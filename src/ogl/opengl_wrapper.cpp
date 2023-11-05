@@ -39,88 +39,6 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 	std::abort();
 }
 
-void load_special_icons(sys::state& state) {
-	auto root = get_root(state.common_fs);
-	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
-
-	auto interface_dir = simple_fs::open_directory(gfx_dir, NATIVE("interface"));
-	auto money_dds = simple_fs::open_file(interface_dir, NATIVE("icon_money_big.dds"));
-	if(money_dds) {
-		auto content = simple_fs::view_contents(*money_dds);
-		uint32_t size_x, size_y;
-		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
-				content.file_size, size_x, size_y, 0));
-	}
-
-	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
-	auto cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not.dds"));
-	if(cross_dds) {
-		auto content = simple_fs::view_contents(*cross_dds);
-		uint32_t size_x, size_y;
-		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
-				content.file_size, size_x, size_y, 0));
-	}
-	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
-	if(checkmark_dds) {
-		auto content = simple_fs::view_contents(*checkmark_dds);
-		uint32_t size_x, size_y;
-		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
-	}
-
-	auto n_dds = simple_fs::open_file(interface_dir, NATIVE("politics_foreign_naval_units.dds"));
-	if(n_dds) {
-		auto content = simple_fs::view_contents(*n_dds);
-		uint32_t size_x, size_y;
-		state.open_gl.navy_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
-	}
-	auto a_dds = simple_fs::open_file(interface_dir, NATIVE("topbar_army.dds"));
-	if(a_dds) {
-		auto content = simple_fs::view_contents(*a_dds);
-		uint32_t size_x, size_y;
-		state.open_gl.army_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
-	}
-}
-
-void initialize_opengl(sys::state& state) {
-	create_opengl_context(state);
-
-	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
-	glEnable(GL_LINE_SMOOTH);
-
-	load_shaders(state);				// create shaders
-	load_global_squares(state); // create various squares to drive the shaders with
-
-	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
-	// Create the remapping for flags
-	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
-		auto fat_id = dcon::fatten(state.world, ident_id);
-		auto nat_id = fat_id.get_nation_from_identity_holder().id;
-		for(auto gov_id : state.world.in_government_type) {
-			state.flag_types.push_back(culture::flag_type(gov_id.get_flag()));
-		}
-	});
-	// Eliminate duplicates
-	std::sort(state.flag_types.begin(), state.flag_types.end());
-	state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
-
-	// Automatically assign texture offsets to the flag_types
-	auto id = 0;
-	for(auto type : state.flag_types)
-		state.flag_type_map[uint32_t(type)] = uint8_t(id++);
-	assert(state.flag_type_map[0] == 0); // default_flag
-
-	// Allocate textures for the flags
-	state.open_gl.asset_textures.resize(
-			state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
-
-	state.map_state.load_map(state);
-
-	load_special_icons(state);
-	state.font_collection.load_all_glyphs();
-}
 
 GLint compile_shader(std::string_view source, GLenum type) {
 	GLuint return_value = glCreateShader(type);
@@ -185,6 +103,212 @@ GLuint create_program(std::string_view vertex_shader, std::string_view fragment_
 	glDeleteShader(f_shader);
 
 	return return_value;
+}
+
+void load_special_icons(sys::state& state) {
+	auto root = get_root(state.common_fs);
+	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+
+	auto interface_dir = simple_fs::open_directory(gfx_dir, NATIVE("interface"));
+	auto money_dds = simple_fs::open_file(interface_dir, NATIVE("icon_money_big.dds"));
+	if(money_dds) {
+		auto content = simple_fs::view_contents(*money_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
+				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
+	auto cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not.dds"));
+	if(cross_dds) {
+		auto content = simple_fs::view_contents(*cross_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
+				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
+	if(checkmark_dds) {
+		auto content = simple_fs::view_contents(*checkmark_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+
+	auto n_dds = simple_fs::open_file(interface_dir, NATIVE("politics_foreign_naval_units.dds"));
+	if(n_dds) {
+		auto content = simple_fs::view_contents(*n_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.navy_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+	auto a_dds = simple_fs::open_file(interface_dir, NATIVE("topbar_army.dds"));
+	if(a_dds) {
+		auto content = simple_fs::view_contents(*a_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.army_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+}
+
+std::string_view framebuffer_error(GLenum e) {
+	switch(e) {
+	case GL_FRAMEBUFFER_UNDEFINED:
+		return "GL_FRAMEBUFFER_UNDEFINED";
+	case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+		return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+	case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+		return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT ";
+	case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+		return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
+	case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+		return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+	case GL_FRAMEBUFFER_UNSUPPORTED:
+		return "GL_FRAMEBUFFER_UNSUPPORTED";
+	case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+		return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+	case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+		return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+	default:
+		break;
+	}
+	return "???";
+}
+
+void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
+	if(state.user_settings.antialias_level == 0)
+		return;
+	if(!size_x || !size_y)
+		return;
+	glEnable(GL_MULTISAMPLE);
+	// setup screen VAO
+	static const float sq_vertices[] = {
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+	glGenVertexArrays(1, &state.open_gl.msaa_vao);
+	glGenBuffers(1, &state.open_gl.msaa_vbo);
+	glBindVertexArray(state.open_gl.msaa_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.msaa_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(sq_vertices), &sq_vertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	// framebuffer
+	glGenFramebuffers(1, &state.open_gl.msaa_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
+	// create a multisampled color attachment texture
+	glGenTextures(1, &state.open_gl.msaa_texcolorbuffer);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, state.open_gl.msaa_texcolorbuffer);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, GLsizei(state.user_settings.antialias_level), GL_RGBA, size_x, size_y, GL_TRUE);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, state.open_gl.msaa_texcolorbuffer, 0);
+	// create a (also multisampled) renderbuffer object for depth and stencil attachments
+	glGenRenderbuffers(1, &state.open_gl.msaa_rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, state.open_gl.msaa_rbo);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, GLsizei(state.user_settings.antialias_level), GL_DEPTH24_STENCIL8, size_x, size_y);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, state.open_gl.msaa_rbo);
+	if(auto r = glCheckFramebufferStatus(GL_FRAMEBUFFER); r != GL_FRAMEBUFFER_COMPLETE) {
+		notify_user_of_fatal_opengl_error("MSAA framebuffer wasn't completed: " + std::string(framebuffer_error(r)));
+	}
+	// configure second post-processing framebuffer
+	glGenFramebuffers(1, &state.open_gl.msaa_interbuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, state.open_gl.msaa_interbuffer);
+	// create a color attachment texture
+	glGenTextures(1, &state.open_gl.msaa_texture);
+	glBindTexture(GL_TEXTURE_2D, state.open_gl.msaa_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size_x, size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state.open_gl.msaa_texture, 0);	// we only need a color buffer
+	if(auto r = glCheckFramebufferStatus(GL_FRAMEBUFFER); r != GL_FRAMEBUFFER_COMPLETE) {
+		notify_user_of_fatal_opengl_error("MSAA post processing framebuffer wasn't completed: " + std::string(framebuffer_error(r)));
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	auto root = get_root(state.common_fs);
+	auto msaa_fshader = open_file(root, NATIVE("assets/shaders/msaa_f_shader.glsl"));
+	auto msaa_vshader = open_file(root, NATIVE("assets/shaders/msaa_v_shader.glsl"));
+	if(bool(msaa_fshader) && bool(msaa_vshader)) {
+		auto vertex_content = view_contents(*msaa_vshader);
+		auto fragment_content = view_contents(*msaa_fshader);
+		state.open_gl.msaa_shader_program = create_program(std::string_view(vertex_content.data, vertex_content.file_size),
+				std::string_view(fragment_content.data, fragment_content.file_size));
+	} else {
+		notify_user_of_fatal_opengl_error("Unable to open a MSAA shaders file");
+	}
+	state.open_gl.msaa_enabled = true;
+}
+
+
+void deinitialize_msaa(sys::state& state) {
+	if(!state.open_gl.msaa_enabled)
+		return;
+
+	state.open_gl.msaa_enabled = false;
+	if(state.open_gl.msaa_texture)
+		glDeleteTextures(1, &state.open_gl.msaa_texture);
+	if(state.open_gl.msaa_interbuffer)
+		glDeleteFramebuffers(1, &state.open_gl.msaa_framebuffer);
+	if(state.open_gl.msaa_rbo)
+		glDeleteRenderbuffers(1, &state.open_gl.msaa_rbo);
+	if(state.open_gl.msaa_texcolorbuffer)
+		glDeleteTextures(1, &state.open_gl.msaa_texcolorbuffer);
+	if(state.open_gl.msaa_framebuffer)
+		glDeleteFramebuffers(1, &state.open_gl.msaa_framebuffer);
+	if(state.open_gl.msaa_vbo)
+		glDeleteBuffers(1, &state.open_gl.msaa_vbo);
+	if(state.open_gl.msaa_vao)
+		glDeleteVertexArrays(1, &state.open_gl.msaa_vao);
+	if(state.open_gl.msaa_shader_program)
+		glDeleteProgram(state.open_gl.msaa_shader_program);
+	glDisable(GL_MULTISAMPLE);
+}
+
+void initialize_opengl(sys::state& state) {
+	create_opengl_context(state);
+
+	glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
+	glEnable(GL_LINE_SMOOTH);
+
+	load_shaders(state);				// create shaders
+	load_global_squares(state); // create various squares to drive the shaders with
+
+	state.flag_type_map.resize(size_t(culture::flag_type::count), 0);
+	// Create the remapping for flags
+	state.world.for_each_national_identity([&](dcon::national_identity_id ident_id) {
+		auto fat_id = dcon::fatten(state.world, ident_id);
+		auto nat_id = fat_id.get_nation_from_identity_holder().id;
+		for(auto gov_id : state.world.in_government_type) {
+			state.flag_types.push_back(culture::flag_type(gov_id.get_flag()));
+		}
+	});
+	// Eliminate duplicates
+	std::sort(state.flag_types.begin(), state.flag_types.end());
+	state.flag_types.erase(std::unique(state.flag_types.begin(), state.flag_types.end()), state.flag_types.end());
+
+	// Automatically assign texture offsets to the flag_types
+	auto id = 0;
+	for(auto type : state.flag_types)
+		state.flag_type_map[uint32_t(type)] = uint8_t(id++);
+	assert(state.flag_type_map[0] == 0); // default_flag
+
+	// Allocate textures for the flags
+	state.open_gl.asset_textures.resize(
+			state.ui_defs.textures.size() + (state.world.national_identity_size() + 1) * state.flag_types.size());
+
+	state.map_state.load_map(state);
+
+	load_special_icons(state);
+	state.font_collection.load_all_glyphs();
+
+	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
 
 static GLfloat global_square_data[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
@@ -797,6 +921,10 @@ void lines::bind_buffer() {
 	}
 
 	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
+}
+
+bool msaa_enabled(sys::state const& state) {
+	return state.open_gl.msaa_enabled;
 }
 
 } // namespace ogl

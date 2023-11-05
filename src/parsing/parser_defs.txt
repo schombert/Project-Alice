@@ -51,6 +51,7 @@ gui_element_common
 	orientation  value      text          member_fn
 	maxheight    value      int           member_fn
 	maxwidth     value      int           member_fn
+	maxsize      group      gfx_xy_pair   member_fn
 
 button
 	#base                 gui_element_common
@@ -797,6 +798,7 @@ tr_work_available
 trigger_body
 	total_sunk_by_us    value     int      member_fn
 	have_core_in   value   text       member_fn
+	test           value           text          member_fn
 	ai               value           bool               member_fn
 	is_ai           value           bool               member_fn (ai)
 	tag              value           text               member_fn
@@ -1816,6 +1818,15 @@ event_option
 	#base    effect_body
 	name                            value      text                              member_fn
 	ai_chance                       extern     make_option_ai_chance             member
+
+stored_condition
+	#base    trigger_body
+	main_parameter    value     text       member_fn
+	this_parameter    value     text       member_fn
+	from_parameter    value     text       member_fn
+
+scripted_trigger_file
+	#any   extern   make_stored_trigger    discard
 
 generic_event
 	id                              value      int                               member

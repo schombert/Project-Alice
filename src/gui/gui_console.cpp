@@ -44,12 +44,15 @@ struct command_info {
 		always_allow_reforms,
 		always_accept_deals,
 		complete_constructions,
-		instant_research
+		instant_research,
+		game_info
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
 		std::string_view name;
-		enum class type : uint8_t { none = 0, numeric, tag, text } mode = type::none;
+		enum class type : uint8_t {
+			none = 0, numeric, tag, text
+		} mode = type::none;
 		bool optional = false;
 	} args[max_arg_slots] = {};
 };
@@ -160,6 +163,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"ym", command_info::type::always_accept_deals, "AI always accepts our deals",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"gi", command_info::type::game_info, "Shows general game information",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -191,7 +197,7 @@ uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
 uint32_t levenshtein_tokenized_distance(std::string_view needle, std::string_view haystack) {
 	assert(needle.find(" ") == std::string::npos);
 	uint32_t dist = std::numeric_limits<uint32_t>::max();
-	std::string str{haystack};
+	std::string str{ haystack };
 	size_t pos = 0;
 	while((pos = str.find(" ")) != std::string::npos) {
 		auto token = str.substr(0, pos);
@@ -278,7 +284,7 @@ dcon::national_identity_id smart_get_national_identity_from_tag(sys::state& stat
 }
 
 parser_state parse_command(sys::state& state, std::string_view text) {
-	std::string s{text};
+	std::string s{ text };
 	// Makes all text lowercase for proper processing
 	std::transform(s.begin(), s.end(), s.begin(), [](auto c) { return char(tolower(char(c))); });
 
@@ -310,8 +316,9 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 		case command_info::argument_info::type::text:
 			pstate.arg_slots[i] = std::string(ident);
 			break;
-		case command_info::argument_info::type::tag: {
-			std::string tag{ident};
+		case command_info::argument_info::type::tag:
+		{
+			std::string tag{ ident };
 			std::transform(tag.begin(), tag.end(), tag.begin(), [](auto c) { return char(toupper(char(c))); });
 			pstate.arg_slots[i] = tag;
 			break;
@@ -380,7 +387,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 	if(pos == std::string::npos) {
 		// Still typing command - so suggest commands
 		std::pair<uint32_t, command_info const*> closest_match =
-				std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
+			std::make_pair<uint32_t, command_info const*>(std::numeric_limits<uint32_t>::max(), &possible_commands[0]);
 		for(auto const& cmd : possible_commands) {
 			std::string_view name = cmd.name;
 			if(name.starts_with(s)) {
@@ -420,7 +427,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 			});
 			// Now type in a suggestion...
 			dcon::nation_id nid =
-					state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
+				state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 			if(tag.size() >= name.size()) {
 				lhs_suggestion = std::string{};
@@ -1150,6 +1157,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
 		break;
+	case command_info::type::game_info:
+		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
+		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
+		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
+		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
 		break;
@@ -1170,7 +1182,7 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 				;
 			std::string_view text(start_text, end_text);
 			if(!text.empty()) {
-				std::string tmp_text{text};
+				std::string tmp_text{ text };
 				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
 						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color),
 						base_data.data.button.font_handle);

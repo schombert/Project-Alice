@@ -296,6 +296,9 @@ void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // calle
 	}
 }
 void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
+	ogl::deinitialize_msaa(*this);
+	ogl::initialize_msaa(*this, x, y);
+
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
@@ -760,6 +763,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(!ui_state.tech_queue.empty()) {
 			if(!world.nation_get_current_research(local_player_nation)) {
 				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+					if(world.nation_get_active_technologies(local_player_nation, *it)) {
+						ui_state.tech_queue.erase(it);
+						break;
+					}
 					if(command::can_start_research(*this, local_player_nation, *it)) {
 						// can research, so research it
 						command::start_research(*this, local_player_nation, *it);
@@ -889,7 +896,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 
 					// Sound effects(tm)
-					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::sound) {
+					if(user_settings.self_message_settings[int32_t(c6->type)] != 0) {
 						switch(c6->type) {
 						case message_setting_type::war_on_nation:
 						case message_setting_type::war_by_nation:
@@ -1382,7 +1389,7 @@ void state::on_create() {
 	});
 
 	{
-		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox>(*this, "chat_list");
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(*this, "chat_list");
 		new_elm->base_data.position.x += 156; // nudge
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
@@ -1695,11 +1702,11 @@ void state::save_user_settings() const {
 	US_SAVE(use_classic_fonts);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
-	std::memcpy(ptr, &user_settings.self_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.interesting_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.interesting_message_settings, lower_half_count);
 	ptr += 98;
-	std::memcpy(ptr, &user_settings.other_message_settings, lower_half_count);
+	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
 	US_SAVE(fow_enabled);
 	constexpr size_t upper_half_count = 128 - 98;
@@ -1710,9 +1717,10 @@ void state::save_user_settings() const {
 	std::memcpy(ptr, &user_settings.other_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
 	US_SAVE(map_label);
+	US_SAVE(antialias_level);
 #undef US_SAVE
 
-	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(sizeof(buffer)));
+	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
 }
 void state::load_user_settings() {
 	auto settings_location = simple_fs::get_or_create_settings_directory();
@@ -1758,6 +1766,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
 			US_LOAD(map_label);
+			US_LOAD(antialias_level);
 #undef US_LOAD
 		} while(false);
 
@@ -1765,6 +1774,8 @@ void state::load_user_settings() {
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
+		if(user_settings.antialias_level > 16)
+			user_settings.antialias_level = 0;
 	}
 }
 
@@ -1821,7 +1832,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2); // 2 = English
+	text::load_text_data(*this, 2, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
@@ -2277,6 +2288,13 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::parse_unit_file(gen, err, context);
 			}
 		}
+
+		if(!bool(military_definitions.infantry)) {
+			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
+		}
+		if(!bool(military_definitions.irregular)) {
+			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
+		}
 	}
 	// make space in arrays
 
@@ -2332,6 +2350,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			} else {
 				ident.set_government_name(named_gov.second, ident.get_name());
 			}
+		}
+	}
+
+	// load scripted triggers
+	auto stdir = open_directory(root, NATIVE("scripted triggers"));
+	for(auto st_file : simple_fs::list_files(stdir, NATIVE(".txt"))) {
+		auto opened_file = open_file(st_file);
+		if(opened_file) {
+			auto content = view_contents(*opened_file);
+			err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scripted_trigger_file(gen, err, context);
 		}
 	}
 
@@ -2905,6 +2935,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	for(auto ip : context.special_impassible) {
+		for(auto adj : world.province_get_province_adjacency(ip)) {
+			adj.get_type() |= province::border::impassible_bit;
+		}
+	}
+
 
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
@@ -3248,6 +3284,16 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		for(auto rt : world.in_rebel_type) {
 			auto ng = rt.get_government_change(g);
 			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
+		}
+	}
+	for(auto a : world.in_army) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
+		}
+	}
+	for(auto a : world.in_navy) {
+		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
+			a.set_arrival_time(current_date + 1);
 		}
 	}
 
@@ -3771,16 +3817,13 @@ sys::checksum_key state::get_save_checksum() {
 }
 
 sys::checksum_key state::get_scenario_checksum() {
-	dcon::load_record loaded = world.make_serialize_record_store_scenario();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
-
+	auto scenario_space = sizeof_scenario_section(*this);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_space]);
+	auto last_written = write_scenario_section(buffer.get(), *this);
+	int32_t last_written_count = int32_t(last_written - buffer.get());
+	assert(size_t(last_written_count) == scenario_space);
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), last_written_count, nullptr, 0);
 	return key;
 }
 

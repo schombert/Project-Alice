@@ -29,9 +29,7 @@
 #include "diplomatic_messages.hpp"
 #include "events.hpp"
 #include "notifications.hpp"
-/*
 #include "network.hpp"
-*/
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -339,7 +337,7 @@ struct user_settings_s {
 		message_response::ignore,//gw_unlocked = 78,
 		message_response::ignore,//war_becomes_great = 79,
 		message_response::ignore,//cb_detected_on_nation = 80,
-		message_response::standard_popup,//cb_detected_by_nation = 81,
+		message_response::log,//cb_detected_by_nation = 81,
 		message_response::ignore,//crisis_join_offer_accepted_by_nation = 82,
 		message_response::ignore,//crisis_join_offer_declined_by_nation = 83,
 		message_response::ignore,//crisis_join_offer_accepted_from_nation = 84,
@@ -361,6 +359,7 @@ struct user_settings_s {
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
+	uint8_t antialias_level = 0;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

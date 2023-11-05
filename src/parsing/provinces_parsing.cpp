@@ -67,8 +67,16 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 				// 2204;2206;sea;3001;0;Panama strait
 				auto first_value = parsers::parse_int(first_text, 0, err);
 				auto second_value = parsers::parse_int(second_text, 0, err);
-				if(first_value <= 0 || second_value <= 0) {
+				if(first_value <= 0) {
 					// dead line
+				} else if(second_value <= 0) {
+					auto province_id_a = context.original_id_to_prov_id_map[first_value];
+					auto ttex = parsers::remove_surrounding_whitespace(values[2]);
+					if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
+						context.special_impassible.push_back(province_id_a);
+					} else {
+						// dead line
+					}
 				} else if(size_t(first_value) >= context.original_id_to_prov_id_map.size()) {
 					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large (" + err.file_name + ")\n";
 				} else if(size_t(second_value) >= context.original_id_to_prov_id_map.size()) {

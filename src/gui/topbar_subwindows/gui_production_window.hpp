@@ -947,7 +947,6 @@ public:
 				if(!visited_types[ftid.index()] && get_filter(state, cid)) {
 					factories[index].activity = std::monostate{};
 					factories[index].id = fid;
-					visited_types[ftid.index()] = true;
 					infos[index]->set_visible(state, true);
 					++index;
 				}

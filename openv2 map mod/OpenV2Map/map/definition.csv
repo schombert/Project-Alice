@@ -1,0 +1,3305 @@
+province;red;green;blue;x;x
+1;204;229;152;Sitka;x
+2;204;179;153;Yakutat;x
+3;153;230;153;Kenai;x
+4;192;0;0;Dutch Harbor;x
+5;192;0;128;Unalakleet;x
+6;153;179;153;Whitehorse;x
+7;192;128;128;Dawson;x
+8;179;204;153;Ross River;x
+9;128;64;128;Fort Simpson;x
+10;64;128;128;Inuvik;x
+11;119;210;74;Echo Bay;x
+12;119;128;199;Reliance;x
+13;96;64;192;Vancouver;x
+14;201;169;171;Vancouver Island;x
+15;224;64;192;Prince Rupert;x
+16;224;192;192;Glenora;x
+17;0;64;128;Atlin;x
+18;153;230;204;Fort Saint John;x
+19;192;160;0;Prince George;x
+20;179;217;153;Kelowna;x
+21;179;166;153;Vernon;x
+22;192;160;128;Edmonton;x
+23;192;64;0;Athabaska Landing;x
+24;63;85;151;Jasper;x
+25;128;160;128;Banff;x
+26;0;224;0;Calgary;x
+27;81;141;79;Denwood;x
+28;122;120;79;Fort MacLeod;x
+29;128;224;0;Medicine Hat;x
+30;128;32;64;Regina;x
+31;192;96;0;Stanley;x
+32;192;96;128;Prince Albert;x
+33;128;96;128;Asquith;x
+34;192;224;128;Saskatoon;x
+35;128;224;128;Maple Creek;x
+36;74;142;210;Winnipeg;x
+37;128;32;192;Churchill;x
+38;64;224;0;Indian Lakes;x
+39;192;224;0;Norway House;x
+40;122;143;170;Dauphin;x
+41;0;160;64;Brandon;x
+42;128;160;64;Pembina;x
+43;192;64;128;Arviat;x
+44;70;70;122;Echo Bay;x
+45;0;0;192;Baffin Island;x
+46;48;128;64;Toronto;x
+47;64;96;0;Fort Severn;x
+48;192;160;192;Fort Albany;x
+49;130;123;117;Dryden;x
+50;64;32;192;Thunder Bay;x
+51;48;128;192;Sault Ste Marie;x
+52;176;128;192;Sudbury;x
+53;176;0;64;Barrie;x
+54;0;96;64;Windsor;x
+55;176;128;64;Hamilton;x
+56;116;74;122;Kingston;x
+57;176;0;192;Ottawa;x
+58;208;64;192;Montreal;x
+59;176;210;74;Nitchequon;x
+60;128;224;64;Charles Fort;x
+61;128;224;192;Chicoutimi;x
+62;192;96;64;Sept-Iles;x
+63;48;0;192;Temiscaming;x
+64;240;192;128;Trois Rivieres;x
+65;176;192;192;Quebec City;x
+66;152;117;121;Sherbrooke;x
+67;240;64;192;Rimouski;x
+68;240;192;64;Fredericton;x
+69;112;64;192;Bathurst;x
+70;112;192;64;Prince Edward Island;x
+71;240;64;64;Halifax;x
+72;128;96;192;Truro;x
+73;192;96;192;Cape Breton Island;x
+74;209;215;159;Saint Johns;x
+75;16;160;0;Millertown;x
+76;0;96;192;Hopedale;x
+77;74;146;55;St Pierre & Miquelon;x
+78;0;160;0;Seattle;x
+79;32;192;192;Spokane;x
+80;160;64;192;Walla Walla;x
+81;128;160;0;Portland;x
+82;160;192;192;Baker City;x
+83;224;224;224;Klamath Falls;x
+84;16;128;128;San Francisco;x
+85;16;128;0;Eureka;x
+86;144;128;0;Sacramento;x
+87;144;128;128;Monterey;x
+88;134;75;69;Mariposa;x
+89;208;0;0;Los Angeles;x
+90;80;128;0;San Diego;x
+91;115;85;191;Boise;x
+92;64;32;128;Coeur D'Alene;x
+93;208;0;128;Pocatello;x
+94;109;100;92;Carson City;x
+95;16;192;0;Elko;x
+96;204;24;24;Las Vegas;x
+97;144;64;0;Salt Lake City;x
+98;86;118;81;Loa;x
+99;208;128;128;Moab;x
+100;16;64;128;Phoenix;x
+101;144;192;0;Flagstaff;x
+102;208;128;0;Tucson;x
+103;80;64;128;Santa Fe;x
+104;192;48;128;Albuquerque;x
+105;64;176;128;Las Cruces;x
+106;208;64;0;Denver;x
+107;80;192;0;Grand Junction;x
+108;208;192;0;Alamosa;x
+109;144;64;64;Pueblo;x
+110;16;192;128;Chyenne;x
+111;134;115;72;Cody;x
+112;144;192;128;Casper;x
+113;80;128;128;Bozeman;x
+114;192;32;128;Missoula;x
+115;0;96;128;Great Falls;x
+116;144;64;128;Billings;x
+117;208;0;192;Bismarck;x
+118;0;32;192;Minot;x
+119;80;128;192;Dickinson;x
+120;132;75;214;Sioux Falls;x
+121;208;128;192;Dupree;x
+122;94;120;119;Rapid City;x
+123;16;192;64;Omaha;x
+124;208;128;64;Alliance;x
+125;144;192;64;North Platte;x
+126;144;64;192;Topeka;x
+127;16;64;192;Goodland;x
+128;16;192;192;Wichita;x
+129;144;192;192;Oklahoma City;x
+130;122;112;123;Tahlequah;x
+131;192;48;64;Okmulgee;x
+132;128;48;64;Houston;x
+133;0;176;64;Austin;x
+134;128;176;192;Dallas;x
+135;0;176;192;Lubbock;x
+136;208;128;112;El Paso;x
+137;128;176;64;San Antonio;x
+138;0;48;192;Laredo;x
+139;76;108;123;New Orleans;x
+140;79;163;196;Baton Rouge;x
+141;192;240;128;Lake Charles;x
+142;192;112;128;Shreveport;x
+143;192;240;0;Little Rock;x
+144;64;112;128;Hot Springs;x
+145;64;240;0;Fayetteville;x
+146;208;0;64;St Louis;x
+147;208;64;128;Joplin;x
+148;80;192;128;Malden;x
+149;80;128;64;Jefferson City;x
+150;132;72;126;Kansas City;x
+151;144;128;192;Des Moines;x
+152;16;128;192;Oskaloosa;x
+153;144;0;192;Cedar Rapids;x
+154;74;95;122;Sioux City;x
+155;90;74;121;Minneapolis;x
+156;16;0;192;Granite Falls;x
+157;0;160;192;Moorehead;x
+158;208;192;128;Duluth;x
+159;208;192;64;Milwaukee;x
+160;208;64;64;Eau Claire;x
+161;128;160;192;Green Bay;x
+162;144;0;64;Madison;x
+163;16;128;64;Chicago;x
+164;80;192;64;Rockford;x
+165;128;96;0;Champaign;x
+166;64;160;128;Peoria;x
+167;144;128;64;Springfield;x
+168;0;160;128;Carbondale;x
+169;240;64;128;Indianapolis;x
+170;112;128;64;Evansville;x
+171;153;119;165;South Bend;x
+172;192;32;0;Fort Wayne;x
+173;112;192;0;Detroit;x
+174;148;215;186;Grand Rapids;x
+175;64;224;128;Saginaw;x
+176;240;192;0;Traverse City;x
+177;112;0;64;Marquette;x
+178;0;0;144;Cleveland;x
+179;112;64;0;Columbus;x
+180;208;192;192;Sandusky;x
+181;240;64;0;Dayton;x
+182;176;192;128;Cincinnati;x
+183;108;210;165;Marietta;x
+184;240;0;64;Louisville;x
+185;176;64;128;Lexington;x
+186;43;191;151;Bowling Green;x
+187;192;112;0;Paducah;x
+188;94;107;77;Nashville;x
+189;128;112;128;Memphis;x
+190;0;240;192;Knoxville;x
+191;163;206;188;Chattanooga;x
+192;0;240;128;Jackson;x
+193;128;240;128;Vicksburg;x
+194;64;112;0;Biloxi;x
+195;32;176;0;Montgomery;x
+196;0;240;0;Tuscaloosa;x
+197;128;112;0;Mobile;x
+198;160;48;0;Tallahassee;x
+199;192;240;64;St Augustine;x
+200;64;112;192;Tampa;x
+201;64;112;64;Atlanta;x
+202;192;112;64;Valdosta;x
+203;22;158;45;Bermuda;x
+204;64;240;64;Savannah;x
+205;226;240;64;Charleston;x
+206;0;112;192;Columbia;x
+207;0;112;64;Raleigh;x
+208;165;153;119;Winston-Salem;x
+209;128;112;192;Charlotte;x
+210;0;240;64;WIlmington;x
+211;192;176;192;Richmond;x
+212;240;0;128;Manassas;x
+213;48;64;128;Fredericksburg;x
+214;64;176;192;Norfolk;x
+215;176;192;0;Staunton;x
+216;192;112;192;Roanoke;x
+217;176;64;0;Wheeling;x
+218;48;192;0;Huntington;x
+219;240;128;0;Baltimore;x
+220;112;0;128;Washington;x
+221;112;128;128;Hagerstown;x
+222;112;128;0;Dover;x
+223;176;0;0;Philadelphia;x
+224;48;128;128;Scranton;x
+225;240;128;128;Williamsport;x
+226;192;192;128;Harrisburg;x
+227;108;73;77;Pittsburgh;x
+228;96;109;79;Erie;x
+229;161;75;78;Newark;x
+230;74;74;176;Trenton;x
+231;240;0;0;Atlantic City;x
+232;176;128;128;New York;x
+233;55;126;85;Long Island;x
+234;176;128;0;Albany;x
+235;48;0;128;Binghamton;x
+236;112;192;128;Buffalo;x
+237;48;128;0;Rochester;x
+238;176;0;128;Syracuse;x
+239;237;199;218;Watertown;x
+240;66;212;150;Plattsburgh;x
+241;48;64;192;Hartford;x
+242;147;154;206;Providence;x
+243;165;142;210;Boston;x
+244;210;142;210;New Bedford;x
+245;176;64;192;Pittsfield;x
+246;176;192;64;Burlington;x
+247;48;192;64;Concord;x
+248;176;64;64;Lewiston;x
+249;110;117;123;Bangor;x
+250;240;128;192;Caribou;x
+251;192;128;64;Nuuk;x
+252;128;64;64;Iceland;x
+253;139;119;144;Faroe Islands;x
+254;104;142;121;Belfast;x
+255;160;96;64;Londonderry;x
+256;32;224;64;Armagh;x
+257;160;192;224;Donegal;x
+258;32;224;192;Galway;x
+259;160;96;192;Sligo;x
+260;224;96;64;Cork;x
+261;160;224;192;Limerick;x
+262;150;146;121;Waterford;x
+263;160;224;64;Dublin;x
+264;32;96;192;Kildare;x
+265;96;224;64;Wexford;x
+266;160;224;0;Aberdeen;x
+267;32;224;0;Inverness;x
+268;32;96;128;Dundee;x
+269;160;224;128;Edinburgh;x
+270;160;96;128;Stirling;x
+271;32;224;128;Glasgow;x
+272;54;56;131;Dumfries;x
+273;32;32;192;Cardiff;x
+274;160;160;64;Cardigan;x
+275;32;160;64;Llandrindod;x
+276;160;32;64;Holyhead;x
+277;96;224;0;Liverpool;x
+278;224;224;0;Manchester;x
+279;224;96;0;Carlisle;x
+280;96;96;0;Newcastle On Tyne;x
+281;224;96;128;Hull;x
+282;96;96;128;Leeds;x
+283;134;176;33;Sheffield;x
+284;32;160;192;Birmingham;x
+285;101;97;124;Chester;x
+286;160;33;176;Shrewesbury;x
+287;96;32;192;Coventry;x
+288;224;224;128;Nottingham;x
+289;160;160;192;Leicester;x
+290;96;224;128;Lincoln;x
+291;140;102;123;Cambridge;x
+292;224;32;64;Ipswich;x
+293;96;160;64;Chelmsford;x
+294;96;224;192;Oxford;x
+295;224;160;64;St Albans;x
+296;224;32;192;Bristol;x
+297;96;96;192;Salisbury;x
+298;224;224;64;Bath;x
+299;96;160;192;Plymouth;x
+300;224;224;192;London;x
+301;98;89;147;Canterbury;x
+302;128;0;32;Brighton;x
+303;224;96;192;Southampton;x
+304;19;114;99;Isle of Man;x
+305;192;64;192;Trondheim;x
+306;192;192;192;Bodo;x
+307;97;128;128;Hammerfest;x
+308;64;64;192;Alesund;x
+309;224;128;32;Bergen;x
+310;251;103;124;Christiansand;x
+311;96;1;32;Skien;x
+312;96;128;32;Drammen;x
+313;192;65;224;Christiania;x
+314;32;128;160;Hamar;x
+315;96;0;160;Lillehammer;x
+316;149;161;84;Frederiksstad;x
+317;97;192;97;Gavle;x
+318;224;128;1;Sundsvall;x
+319;65;192;192;Ostersund;x
+320;97;1;128;Umea;x
+321;223;0;128;Lulea;x
+322;96;64;96;Stockholm;x
+323;160;1;160;Falun;x
+324;196;128;165;Uppsala;x
+325;192;192;224;Norrkoping;x
+326;1;1;160;Vasteras;x
+327;248;228;0;Orebro;x
+328;160;128;33;Karlstad;x
+329;65;192;224;Gothenburg;x
+330;160;1;32;Boras;x
+331;33;192;224;Gotland;x
+332;64;64;223;Kalmar;x
+333;65;192;97;Vaxjo;x
+334;192;65;97;Malmo;x
+335;192;192;97;Karlskrona;x
+336;101;124;82;Oulu;x
+337;160;192;0;Kajaani;x
+338;224;128;128;Tornio;x
+339;32;128;1;Viipuri;x
+340;74;100;99;Kotka;x
+341;64;192;64;Mikkeli;x
+342;160;65;128;Kuopio;x
+343;224;192;224;Helsinki;x
+344;97;192;224;Hameenlinna;x
+345;224;65;224;Turku;x
+346;33;65;128;Vaasa;x
+347;121;211;121;Tampere;x
+348;224;65;97;Aland Islands;x
+349;128;160;33;Reval;x
+350;1;160;33;Narva;x
+351;1;33;160;Parnu;x
+352;191;96;96;Dorpat;x
+353;96;64;224;Kuressaare;x
+354;0;160;160;Riga;x
+355;128;33;160;Valmiera;x
+356;191;32;96;Daugavpils;x
+357;1;224;33;Jelgava;x
+358;128;97;33;Ventspils;x
+359;74;142;93;Liepaja;x
+360;65;224;97;Vilnius;x
+361;1;97;160;Kaunas;x
+362;0;224;160;Marijampole;x
+363;168;255;81;Panevezys;x
+364;192;160;160;Siauliai;x
+365;128;96;160;Palanga;x
+366;128;65;224;Aarhus;x
+367;0;191;223;Aalborg;x
+368;148;70;143;Ribe;x
+369;128;65;96;Kiel;x
+370;0;192;96;Flensburg;x
+371;128;192;97;Abenra;x
+372;128;192;224;Copenhagen;x
+373;116;112;139;Odense;x
+374;144;0;224;Bornholm;x
+375;119;119;50;Amsterdam;x
+376;128;192;160;Rotterdam;x
+377;192;64;33;Utrecht;x
+378;1;192;160;Middelburg;x
+379;192;192;160;Eindhoven;x
+380;76;72;148;Breda;x
+381;0;0;223;Maastricht;x
+382;65;192;160;Arnhem;x
+383;192;192;33;Groningen;x
+384;192;65;160;Zwolle;x
+385;65;192;33;Leeuwarden;x
+386;65;65;160;Assen;x
+387;1;128;97;Brussels;x
+388;1;65;160;Bruges;x
+389;128;65;160;Ghent;x
+390;128;0;96;Antwerp;x
+391;128;128;97;Hasselt;x
+392;145;101;116;Namur;x
+393;128;128;160;Tournai;x
+394;176;160;192;Charleroi;x
+395;239;32;64;Liege;x
+396;72;111;106;Spa;x
+397;81;128;160;Luxembourg;x
+398;208;1;160;Arlon;x
+399;160;160;128;Lille;x
+400;224;160;192;Dunkirk;x
+401;16;96;0;Arras;x
+402;16;160;192;Amiens;x
+403;112;64;160;Laon;x
+404;112;192;32;Cambrai;x
+405;239;191;32;Charleville;x
+406;239;0;223;Troyes;x
+407;112;0;96;Chaumont;x
+408;239;64;160;Chalons;x
+409;110;72;145;Strasbourg;x
+410;176;0;224;Colmar;x
+411;176;128;224;Nancy;x
+412;240;192;160;Metz;x
+413;112;191;160;Verdun;x
+414;48;128;224;Epinal;x
+415;144;32;192;Rouen;x
+416;176;96;128;Evreux;x
+417;16;32;192;Alencon;x
+418;144;160;64;Caen;x
+419;183;142;84;Channel Islands;x
+420;208;224;128;Brest;x
+421;85;96;126;St Brieuc;x
+422;144;32;64;Vannes;x
+423;112;96;0;Nantes;x
+424;16;160;64;Rennes;x
+425;144;96;0;Paris;x
+426;144;160;192;Chartres;x
+427;112;128;223;Melun;x
+428;240;128;96;Dijon;x
+429;112;0;224;Auxerre;x
+430;240;128;224;Moulins;x
+431;109;120;150;Macon;x
+432;240;0;96;Besancon;x
+433;112;128;96;Lons;x
+434;80;160;64;Angers;x
+435;48;224;128;Laval;x
+436;176;224;128;Le Mans;x
+437;63;116;175;La Roche;x
+438;16;223;0;Orleans;x
+439;144;224;0;Bourges;x
+440;136;98;119;Blois;x
+441;208;32;64;Tours;x
+442;208;160;64;La Rochelle;x
+443;208;32;192;Poitiers;x
+444;80;32;192;Angouleme;x
+445;48;96;0;Limoges;x
+446;80;160;192;Chateauroux;x
+447;176;96;0;Tulle;x
+448;112;192;96;Clermont-Ferrand;x
+449;240;192;96;Aurillac;x
+450;48;224;0;Cahors;x
+451;176;64;96;Lyon;x
+452;239;64;96;St Etienne;x
+453;112;64;96;Valence;x
+454;48;192;96;Grenoble;x
+455;48;96;128;Toulouse;x
+456;176;224;0;Montauban;x
+457;16;96;64;Foix;x
+458;240;160;128;Bordeaux;x
+459;112;160;128;Mont de Marsan;x
+460;240;32;128;Pau;x
+461;144;96;128;Montpellier;x
+462;16;96;128;Rodez;x
+463;207;159;191;Carcassone;x
+464;16;96;192;Perpignan;x
+465;107;75;164;Annency;x
+466;208;0;224;Chambery;x
+467;49;192;223;Marseilles;x
+468;176;192;224;Avignon;x
+469;176;64;224;Digne;x
+470;48;64;224;Toulon;x
+471;176;192;96;Frejus;x
+472;80;128;224;Nice;x
+473;239;64;32;Corsica;x
+474;208;224;64;La Coruna;x
+475;80;96;192;Oviedo;x
+476;80;224;64;Vigo;x
+477;208;96;192;Leon;x
+478;240;160;0;Santander;x
+479;112;160;0;Burgos;x
+480;80;224;192;Valladolid;x
+481;240;32;0;Soria;x
+482;176;32;0;Salamanca;x
+483;112;32;0;Avila;x
+484;0;144;32;Badajoz;x
+485;80;96;0;Almendralejo;x
+486;48;160;0;Caceres;x
+487;48;32;128;Madrid;x
+488;176;160;128;Siguenza;x
+489;176;160;0;Toledo;x
+490;176;32;128;Cuenca;x
+491;128;16;160;Ciudad Real;x
+492;112;32;128;BIlbao;x
+493;16;224;192;Pamplona;x
+494;158;201;184;Logrono;x
+495;80;96;64;Zaragoza;x
+496;144;96;192;Huesca;x
+497;48;160;128;Teruel;x
+498;224;192;32;Barcelona;x
+499;17;224;65;Gerona;x
+500;144;96;64;Lerida;x
+501;177;233;121;Tarragona;x
+502;96;240;128;Balearic Islands;x
+503;143;223;128;Valencia;x
+504;208;96;64;Castellon;x
+505;223;239;128;Alicante;x
+506;113;21;139;Cartagena;x
+507;98;104;120;Murcia;x
+508;160;48;64;Albacete;x
+509;128;16;32;Seville;x
+510;128;144;32;Cordoba;x
+511;208;96;0;Huelva;x
+512;78;84;100;Cadiz;x
+513;160;176;64;Granada;x
+514;32;48;192;Malaga;x
+515;32;176;64;Almeria;x
+516;0;16;160;Jaen;x
+517;188;110;211;Gibraltar;x
+518;208;160;0;Oporto;x
+519;208;224;192;Vila Real;x
+520;48;32;163;Covilha;x
+521;208;160;128;Lisbon;x
+522;80;160;0;Coimbra;x
+523;208;32;0;Abrantes;x
+524;84;81;100;Setubal;x
+525;235;169;53;Evora;x
+526;160;112;128;Beja;x
+527;32;112;128;Faro;x
+528;88;114;151;Hamburg;x
+529;224;0;160;Lauenburg;x
+530;96;128;159;Lubeck;x
+531;65;128;97;Stade;x
+532;192;128;224;Luneburg;x
+533;104;190;102;Heligoland;x
+534;105;75;145;Hanover;x
+535;191;0;223;Nienburg;x
+536;33;128;224;Brunswick;x
+537;160;1;224;Gottingen;x
+538;77;98;160;Osnabruck;x
+539;192;128;97;Bremen;x
+540;192;1;97;Oldenburg;x
+541;65;1;224;Cloppenburg;x
+542;128;128;224;Lingen;x
+543;120;75;142;Emden;x
+544;224;128;160;Schwerin;x
+545;224;65;160;Neustrelitz;x
+546;25;174;25;Stettin;x
+547;160;65;33;Swinemunde;x
+548;86;116;82;Stralsund;x
+549;131;177;168;Berlin;x
+550;160;64;160;Prenzlau;x
+551;97;192;160;Pritzwalk;x
+552;223;64;32;Cottbus;x
+553;160;128;224;Magdeburg;x
+554;97;128;97;Erfurt;x
+555;138;68;140;Dessau;x
+556;207;93;142;Halle;x
+557;224;192;160;Stendal;x
+558;121;83;104;Dresden;x
+559;175;223;191;Leipzig;x
+560;49;224;192;Chemnitz;x
+561;81;192;33;Weimar;x
+562;208;192;33;Gotha;x
+563;81;65;160;Meiningen;x
+564;17;192;160;Frankfurt;x
+565;144;192;160;Wiesbaden;x
+566;192;128;32;Kassel;x
+567;139;124;103;Giessen;x
+568;208;65;33;Fulda;x
+569;49;128;97;Mannheim;x
+570;144;192;32;Mainz;x
+571;17;192;33;Kaiserlautern;x
+572;208;128;160;Trier;x
+573;144;64;32;Saarbrucken;x
+574;93;122;104;Kreuznach;x
+575;81;128;33;Cologne;x
+576;131;75;102;Aachen;x
+577;128;1;224;Kleves;x
+578;33;1;224;Dusseldorf;x
+579;81;1;160;Koblenz;x
+580;160;128;97;Dortmund;x
+581;1;128;224;Munster;x
+582;33;128;97;Minden;x
+583;65;128;33;Siegen;x
+584;65;1;160;Korbach;x
+585;159;0;96;Detmold;x
+586;176;1;96;Karlsruhe;x
+587;176;128;97;Freiburg;x
+588;174;186;42;Konstanz;x
+589;17;128;96;Stuttgart;x
+590;16;0;96;Heilbronn;x
+591;143;0;96;Tubingen;x
+592;112;74;95;Augsburg;x
+593;219;184;76;Ulm;x
+594;144;128;96;Sigmaringen;x
+595;208;192;160;Nuremburg;x
+596;144;64;160;Aschaffenburg;x
+597;81;192;160;Wurzburg;x
+598;208;65;160;Bayreuth;x
+599;176;1;33;Munich;x
+600;176;128;33;Landshut;x
+601;49;128;33;Ingolstadt;x
+602;49;1;160;Regensburg;x
+603;126;75;134;Zurich;x
+604;144;128;224;Basel;x
+605;80;128;96;Bern;x
+606;208;1;97;Lucern;x
+607;208;128;96;Geneva;x
+608;17;127;224;Neuchatel;x
+609;144;65;224;Sitten;x
+610;166;238;251;Ponape;x
+611;144;192;224;Chur;x
+612;81;192;224;Innsbruck;x
+613;240;97;192;Salzburg;x
+614;208;192;224;Bregenz;x
+615;240;224;192;Lienz;x
+616;176;97;65;Graz;x
+617;17;1;160;Judenburg;x
+618;143;128;32;Klagenfurt;x
+619;49;97;65;Vienna;x
+620;17;128;160;Sankt Polten;x
+621;169;121;59;Krems;x
+622;144;1;160;Linz;x
+623;240;224;1;Sopron;x
+624;48;160;32;Eisenstadt;x
+625;113;224;65;Prague;x
+626;144;128;160;Hradec Kralove;x
+627;113;97;65;Karlsbad;x
+628;29;107;148;Aussig;x
+629;240;97;65;Plzen;x
+630;240;224;65;Budejovice;x
+631;239;96;128;Brno;x
+632;113;224;128;Olomouc;x
+633;81;97;97;Bratislava;x
+634;144;224;224;Trencin;x
+635;208;97;97;Nitra;x
+636;81;48;106;Banska Bystrica;x
+637;81;224;97;Kosice;x
+638;32;192;0;Roznava;x
+639;113;97;128;Zalaegerszeg;x
+640;207;32;32;Pecs;x
+641;81;224;224;Budapest;x
+642;113;95;93;Gyor;x
+643;207;223;223;Szekesfehevar;x
+644;176;33;33;Kaposvar;x
+645;132;97;101;Kecskemet;x
+646;208;97;224;Miskolc;x
+647;81;97;160;Oradea;x
+648;16;159;159;Debrecen;x
+649;144;160;160;Szeged;x
+650;80;96;223;Bekescsaba;x
+651;144;33;160;Szatmar;x
+652;144;224;33;Temesvar;x
+653;17;97;160;Resicabanya;x
+654;208;224;160;Cluj;x
+655;208;97;160;Gyulafehervar;x
+656;208;224;33;Deva;x
+657;81;224;160;Nagyszeben;x
+658;96;144;192;Hawaii;x
+659;48;96;96;Brasso;x
+660;175;96;159;Udvarhely;x
+661;176;97;97;Beszterce;x
+662;49;160;160;Cernauti;x
+663;0;167;244;Suceava;x
+664;176;224;32;Bucharest;x
+665;224;33;33;Tirgu Jiu;x
+666;81;224;33;Craiova;x
+667;224;163;33;Tirgoviste;x
+668;49;224;33;Braila;x
+669;33;100;224;Calarasi;x
+670;176;160;224;Iasi;x
+671;239;32;96;Botosani;x
+672;48;224;160;Bacau;x
+673;244;0;69;Galati;x
+674;176;97;33;Constanta;x
+675;217;224;33;Tulcea;x
+676;113;33;97;Chisinau;x
+677;138;202;155;Balti;x
+678;176;224;160;Izmail;x
+679;160;192;32;Kolberg;x
+680;128;1;160;Koslin;x
+681;96;191;32;Kustrin;x
+682;110;97;127;Breslau;x
+683;192;1;33;Liegnitz;x
+684;175;159;32;Oppeln;x
+685;94;144;145;Kattowitz;x
+686;177;200;76;Line Islands;x
+687;97;65;33;Gorlitz;x
+688;240;224;128;Troppau;x
+689;16;223;223;Tesin;x
+690;128;160;160;Danzig;x
+691;148;80;0;Tuchel;x
+692;1;128;160;Deutsch Krone;x
+693;122;96;97;Elbing;x
+694;65;160;33;Torun;x
+695;65;33;160;Konigsburg;x
+696;191;159;32;Allenstein;x
+697;192;32;160;Gumbinnen;x
+698;64;160;160;Memel;x
+699;33;65;160;Posen;x
+700;192;33;33;Bromberg;x
+701;65;224;160;Gniezno;x
+702;17;160;33;Lvov;x
+703;144;96;96;Krakow;x
+704;17;97;224;Novy Sacz;x
+705;144;224;96;Przemysl;x
+706;65;97;160;Warsaw;x
+707;128;159;96;Suwalki;x
+708;128;33;97;Plock;x
+709;0;159;96;Lomza;x
+710;87;126;228;Skierniewicz;x
+711;64;223;32;Siedlice;x
+712;192;97;160;Lodz;x
+713;96;0;223;Radom;x
+714;17;224;97;Tarnow;x
+715;81;160;224;Lublin;x
+716;208;160;224;Kielce;x
+717;192;224;160;Kalisz;x
+718;1;97;224;Minsk;x
+719;192;97;33;Bialystock;x
+720;208;128;224;Turin;x
+721;144;192;96;Aosta;x
+722;17;64;224;Novara;x
+723;17;192;97;Alessandria;x
+724;144;64;97;Genoa;x
+725;84;114;138;Savona;x
+726;208;64;96;Milan;x
+727;134;122;144;Bergamo;x
+728;80;192;96;Brescia;x
+729;176;1;160;Venice;x
+730;48;128;160;Verona;x
+731;176;128;160;Padua;x
+732;81;65;224;Treviso;x
+733;85;72;102;Udine;x
+734;208;191;96;Trent;x
+735;208;64;224;Bozen;x
+736;144;0;33;Trieste;x
+737;16;128;33;Gorizia;x
+738;112;1;32;Parma;x
+739;239;0;33;Modena;x
+740;240;128;33;Massa;x
+741;112;0;160;Bologna;x
+742;112;128;32;Ferrara;x
+743;240;0;160;Ravenna;x
+744;112;128;160;Florence;x
+745;106;118;98;Leghorn;x
+746;240;128;160;Lucca;x
+747;176;64;32;Siena;x
+748;176;192;32;Grosetto;x
+749;176;192;160;Rome;x
+750;176;64;160;Viterbo;x
+751;48;64;160;Perugia;x
+752;48;192;33;Ancona;x
+753;49;192;160;Aquila;x
+754;176;32;64;Naples;x
+755;64;144;160;Salerno;x
+756;48;32;159;Bari;x
+757;112;64;32;Foggia;x
+758;64;80;223;Brindisi;x
+759;192;16;32;Reggio di Calabria;x
+760;192;80;224;Catanzaro;x
+761;120;84;96;Potenza;x
+762;192;144;160;Palermo;x
+763;128;81;32;Messina;x
+764;0;208;32;Catania;x
+765;128;208;32;Cagliari;x
+766;48;160;64;Sassari;x
+767;49;224;65;Maribor;x
+768;176;224;64;Ljubljana;x
+769;48;96;191;Postojna;x
+770;176;97;192;Pola;x
+771;113;160;65;Zagreb;x
+772;112;223;0;Sisak;x
+773;240;33;192;Karlovac;x
+774;113;160;192;Senj;x
+775;18;77;115;Varadzin;x
+776;81;160;33;Bjelovar;x
+777;16;96;32;Pozega;x
+778;240;160;64;Fiume;x
+779;144;97;33;Osijek;x
+780;208;160;33;Split;x
+781;239;160;192;Zadar;x
+782;17;160;224;Dubrovnik;x
+783;81;160;160;Sarajevo;x
+784;240;97;1;Bihac;x
+785;80;32;159;Banja Luka;x
+786;208;160;160;Tuzla;x
+787;17;33;224;Foca;x
+788;144;33;224;Mostar;x
+789;208;33;160;Livno;x
+790;200;225;201;Kitwe;x
+791;144;33;97;Mitrovica;x
+792;98;105;152;Pancevo;x
+793;128;207;0;Vukovar;x
+794;16;160;96;Belgrade;x
+795;144;97;160;Bor;x
+796;144;160;97;Kragujevac;x
+797;237;186;32;Uzice;x
+798;208;33;224;Nis;x
+799;98;167;48;Leskovac;x
+800;68;110;132;Ulcinj;x
+801;160;0;176;Tahiti;x
+802;208;33;97;Pristina;x
+803;165;211;169;Prizren;x
+804;157;255;175;Novi Pazar;x
+805;112;160;224;Salonika;x
+806;17;224;160;Skopje;x
+807;224;17;139;Bitola;x
+808;240;160;224;Petrich;x
+809;208;97;33;Sofia;x
+810;205;210;55;Vidin;x
+811;181;87;87;Ruse;x
+812;113;160;160;Pleven;x
+813;232;213;156;Shumen;x
+814;240;160;160;Varna;x
+815;240;33;160;Plovdiv;x
+816;110;113;146;Stara Zagora;x
+817;113;33;160;Burgas;x
+818;49;96;33;Silistre;x
+819;144;224;160;Florina;x
+820;1;208;96;Grevena;x
+821;80;96;32;Edessa;x
+822;210;97;158;Polygyros;x
+823;112;32;32;Kavala;x
+824;128;80;224;Janina;x
+825;1;208;224;Arta;x
+826;75;121;202;Corfu;x
+827;64;80;96;Zante;x
+828;112;160;32;Edirne;x
+829;97;129;210;Xanthe;x
+830;240;32;32;Dedeagatch;x
+831;128;208;96;Larisa;x
+832;160;208;160;Volos;x
+833;230;232;104;Trikkala;x
+834;141;127;98;Athens;x
+835;70;95;141;Amfissa;x
+836;191;81;96;Lamia;x
+837;81;135;145;Missolonghi;x
+838;160;16;160;Khalkis;x
+839;96;208;32;Nafplion;x
+840;224;81;32;Corinth;x
+841;192;208;96;Kalamata;x
+842;97;229;126;Patras;x
+843;197;100;82;Chios;x
+844;33;144;160;Myteline;x
+845;96;144;160;Cyclades;x
+846;224;17;160;Dodecanese;x
+847;223;144;32;Chania;x
+848;96;16;160;Iraklion;x
+849;208;160;97;Tirana;x
+850;81;160;97;Shkoder;x
+851;199;113;224;Durres;x
+852;113;192;224;Vlore;x
+853;123;224;113;Gjirokaster;x
+854;1;81;33;Malta;x
+855;191;48;32;Nicosia;x
+856;121;104;94;Limassol;x
+857;64;176;32;Famagusta;x
+858;240;32;130;Kirklareli;x
+859;32;115;240;Gallipoli;x
+860;240;160;32;Istanbul;x
+861;48;160;96;Uskudar;x
+862;176;160;96;Izmit;x
+863;48;32;224;Bursa;x
+864;128;144;0;Balikesir;x
+865;176;32;224;Canakkale;x
+866;164;237;92;Afyon;x
+867;86;8;122;Kutahya;x
+868;48;160;224;Eskishehir;x
+869;32;80;32;Izmir;x
+870;160;144;160;Manisa;x
+871;96;16;32;Denizli;x
+872;224;144;160;Mugla;x
+873;235;152;243;Konya;x
+874;64;16;96;Burdur;x
+875;224;16;32;Antalya;x
+876;64;144;0;Ankara;x
+877;120;88;73;Amasya;x
+878;192;144;0;Kayseri;x
+879;64;16;128;Sivas;x
+880;192;16;0;Kastamonu;x
+881;240;64;224;Bolu;x
+882;0;16;128;Trabzon;x
+883;128;144;128;Sinop;x
+884;0;144;128;Giresun;x
+885;192;144;128;Kars;x
+886;0;144;0;Ardahan;x
+887;128;16;128;Erzurum;x
+888;192;16;128;Erzincan;x
+889;201;207;36;Malatya;x
+890;0;208;0;Van;x
+891;64;144;128;Bitlis;x
+892;195;60;15;Hakkari;x
+893;160;144;224;Diyarbakir;x
+894;33;17;224;Adana;x
+895;160;144;96;Mersin;x
+896;176;224;96;Marash;x
+897;122;22;121;Aleppo;x
+898;204;189;25;Antep;x
+899;102;83;128;Urfa;x
+900;224;17;96;Antioch;x
+901;166;177;76;Dayr al-Zour;x
+902;224;17;224;Damascus;x
+903;128;176;32;Homs;x
+904;224;144;96;Hama;x
+905;97;144;96;Latakia;x
+906;142;248;149;Suwayda;x
+907;0;48;160;Palmyra;x
+908;96;208;224;Amman;x
+909;194;180;131;Jerash;x
+910;224;208;224;Ruwayshid;x
+911;80;163;135;Maan;x
+912;236;202;199;Baalbeck;x
+913;199;236;203;Beirut;x
+914;96;16;224;Askaleh;x
+915;160;80;224;Sidon;x
+916;54;94;143;Acre;x
+917;224;80;96;Jerusalem;x
+918;201;203;192;Nablus;x
+919;96;80;96;Jaffa;x
+920;96;208;96;Gaza;x
+921;224;208;96;Beersheba;x
+922;224;80;224;Aqaba;x
+923;0;176;160;Mosul;x
+924;32;144;224;Arbil;x
+925;146;112;46;Kirkuk;x
+926;32;80;96;Baghdad;x
+927;160;80;96;Samarra;x
+928;224;144;224;Mendeli;x
+929;32;208;96;Karbala;x
+930;29;127;94;Kut;x
+931;96;144;224;Rutbah;x
+932;128;112;96;Basra;x
+933;32;80;224;Nasiriyya;x
+934;160;208;96;Najaf;x
+935;0;240;96;Kuwait;x
+936;64;96;32;Grodno;x
+937;191;223;32;Brest-Litovsk;x
+938;128;224;160;Lida;x
+939;224;97;118;Baranovichi;x
+940;65;97;97;Pinsk;x
+941;128;224;97;Slutsk;x
+942;128;223;223;Mozyr;x
+943;192;223;96;Smolensk;x
+944;1;224;97;Orsha;x
+945;192;160;224;Vitebsk;x
+946;1;97;97;Polotsk;x
+947;128;97;97;Pastavy;x
+948;65;160;224;Mogilev;x
+949;128;97;224;Gomel;x
+950;208;224;97;Uzgorord;x
+951;143;159;32;Stryi;x
+952;176;33;160;Ternopil;x
+953;126;221;158;Stanislavov;x
+954;240;224;33;Vinnitsa;x
+955;113;97;160;Proskorov;x
+956;113;224;160;Rovne;x
+957;224;1;224;Kovel;x
+958;1;224;224;Kiev;x
+959;17;33;160;Korosten;x
+960;240;97;160;Zhitomir;x
+961;114;98;145;Cherkassy;x
+962;224;128;97;Chernigov;x
+963;113;65;224;Poltava;x
+964;49;224;224;Simferopol;x
+965;239;96;32;Cherson;x
+966;112;96;96;Kerch;x
+967;176;223;223;Sevastopol;x
+968;113;97;33;Odessa;x
+969;113;224;33;Pervomaisk;x
+970;176;33;97;Nikolaev;x
+971;240;224;160;Krivoy Rog;x
+972;113;224;97;Ekaterinoslav;x
+973;240;97;97;Melitopol;x
+974;113;224;224;Kramatorsk;x
+975;112;32;223;Yuzovka;x
+976;240;224;97;Mariopol;x
+977;192;224;224;Kursk;x
+978;240;97;224;Kharkov;x
+979;128;81;128;Rostov;x
+980;113;97;224;Luhansk;x
+981;131;84;82;Archangel;x
+982;160;64;0;Petsamo;x
+983;33;192;128;Kandalaksha;x
+984;160;192;128;Kostomushka;x
+985;207;181;75;Mezen;x
+986;160;0;64;Naryn Mar;x
+987;32;128;64;Ust Sysolsk;x
+988;224;64;0;Povyents;x
+989;96;65;128;Vologda;x
+990;223;64;128;Kotlas;x
+991;224;192;128;Uglich;x
+992;64;32;223;Belozersk;x
+993;160;128;0;Vyterga;x
+994;1;160;224;St Petersburg;x
+995;108;110;122;Petrozavorsk;x
+996;128;160;224;Luga;x
+997;143;121;233;Gdov;x
+998;177;238;116;Tver;x
+999;160;160;33;Rzhev;x
+1000;223;191;96;Staritsa;x
+1001;224;32;32;Yaroslavl;x
+1002;4;93;10;Manzhouli;x
+1003;128;32;223;Novgorod;x
+1004;160;0;0;Tikhvin;x
+1005;64;160;96;Borovichi;x
+1006;0;32;224;Pskov;x
+1007;192;160;96;Velikiye Luki;x
+1008;224;160;33;Moscow;x
+1009;141;100;98;Borodino;x
+1010;160;33;32;Kaluga;x
+1011;160;32;160;Tula;x
+1012;33;33;160;Ryazan;x
+1013;97;33;160;Vladimir;x
+1014;32;160;32;Vyazma;x
+1015;192;32;224;Peremyshl;x
+1016;188;4;65;Bryansk;x
+1017;33;160;160;Orel;x
+1018;64;223;223;Belgorod;x
+1019;160;160;160;Voronets;x
+1020;96;160;160;Nizhni Novgorod;x
+1021;97;96;32;Penza;x
+1022;223;32;160;Ivanovo;x
+1023;192;192;64;Kostorma;x
+1024;96;192;128;Galich;x
+1025;97;97;160;Tambov;x
+1026;160;128;64;Perm;x
+1027;160;128;160;Vetluga;x
+1028;160;0;192;Vyatkha;x
+1029;32;128;192;Glasov;x
+1030;223;160;160;Kazan;x
+1031;32;96;32;Sarapol;x
+1032;160;96;32;Chistopol;x
+1033;33;223;33;Simbirsk;x
+1034;191;112;96;Samara;x
+1035;160;224;33;Syzran;x
+1036;1;80;64;Astrakhan;x
+1037;96;223;33;Saratov;x
+1038;65;144;192;Novo Uzensk;x
+1039;224;96;32;Tsaritsyn;x
+1040;128;81;64;Zarevka;x
+1041;128;16;64;Elitsa;x
+1042;160;96;160;Ufa;x
+1043;160;223;160;Busuluk;x
+1044;33;223;160;Orenburg;x
+1045;1;80;128;Migolinskaya;x
+1046;192;81;128;Chirskaya;x
+1047;0;208;128;Azov;x
+1048;128;208;128;Ekaterinodar;x
+1049;64;80;0;Novorossiysk;x
+1050;192;208;1;Stavropol;x
+1051;192;80;1;Adygei;x
+1052;192;16;64;Derbent;x
+1053;192;144;65;Gunib;x
+1054;65;208;128;Vladikavkaz;x
+1055;1;144;65;Grozny;x
+1056;64;80;128;Pyatigorsk;x
+1057;1;208;65;Kizylyar;x
+1058;35;0;220;Ekaterinburg;x
+1059;65;16;192;Chelyabinsk;x
+1060;223;224;160;Orsk;x
+1061;96;223;160;Tyumen;x
+1062;223;96;160;Berezov;x
+1063;173;34;110;Tomsk;x
+1064;35;36;110;Omsk;x
+1065;160;127;191;Surgut;x
+1066;104;1;74;Tobolsk;x
+1067;35;172;111;Kemerevo;x
+1068;126;76;76;Ulala;x
+1069;208;0;32;Yakutsk;x
+1070;224;1;65;Tunginskoye;x
+1071;224;128;65;Lazo;x
+1072;97;160;223;Okhotsk;x
+1073;97;128;192;Gizhiga;x
+1074;160;96;223;Petropavlovsk;x
+1075;104;34;110;Irkutsk;x
+1076;160;160;96;Chunskoye;x
+1077;35;34;255;Krasnoyarsk;x
+1078;105;155;146;Chita;x
+1079;96;160;96;Nerchinsk;x
+1080;160;160;223;Bauntovskiy;x
+1081;160;32;224;Yaksa;x
+1082;96;208;128;HaIshenwai;x
+1083;224;81;128;Boli;x
+1084;96;80;128;Utchan;x
+1085;160;208;0;Ulusamudan;x
+1086;223;160;96;Pogobi;x
+1087;32;16;192;Ootomari;x
+1088;96;17;64;Shumshu;x
+1089;224;160;224;Etorofu;x
+1090;155;198;155;Tblisi;x
+1091;240;224;223;Pasanauri;x
+1092;128;16;0;Kutaisi;x
+1093;192;207;128;Akhaltsikhe;x
+1094;1;17;65;Poti;x
+1095;64;208;1;Sukhumi;x
+1096;128;144;1;Batum;x
+1097;48;32;144;New Caledonia;x
+1098;128;80;0;Erivan;x
+1099;0;80;0;Gyumri;x
+1100;48;223;96;Kapan;x
+1101;49;97;224;Nakhichevan;x
+1102;0;143;191;Baku;x
+1103;191;209;89;Siyazen;x
+1104;128;144;191;Sheki;x
+1105;128;208;65;Ganja;x
+1106;128;144;64;Agdam;x
+1107;0;112;96;Lankaran;x
+1108;96;80;160;Tabriz;x
+1109;160;16;223;Khvoy;x
+1110;128;176;160;Urumia;x
+1111;204;166;63;Mahabad;x
+1112;191;48;223;Ardabil;x
+1113;192;176;224;Rasht;x
+1114;128;112;223;Noshehr;x
+1115;64;239;160;Sari;x
+1116;64;112;160;Gorgan;x
+1117;224;80;160;Kermanshah;x
+1118;128;240;96;Sanandaj;x
+1119;1;112;224;Ilam;x
+1120;94;75;130;Khoramabad;x
+1121;192;240;160;Tehran;x
+1122;192;176;96;Hamadan;x
+1123;65;176;224;Zanjan;x
+1124;64;48;224;Qazvin;x
+1125;65;176;96;Qom;x
+1126;192;112;160;Semnan;x
+1127;128;49;96;Isfahan;x
+1128;192;49;96;Arak;x
+1129;18;78;140;Kashan;x
+1130;192;112;32;Yazd;x
+1131;0;176;223;Ahvaz;x
+1132;128;176;96;Abadan;x
+1133;128;176;224;Dezful;x
+1134;128;48;223;Dehkord;x
+1135;128;240;160;Shiraz;x
+1136;1;48;224;Bushire;x
+1137;1;176;96;Yasuj;x
+1138;1;240;160;Kangan;x
+1139;64;112;32;Sirjan;x
+1140;128;240;32;Kerman;x
+1141;128;112;160;Lengeh;x
+1142;1;112;160;Bandar Abbas;x
+1143;202;204;73;Bam;x
+1144;179;62;34;Zahedan;x
+1145;1;240;32;Jask;x
+1146;65;49;160;Chabahar;x
+1147;192;176;32;Mashhad;x
+1148;192;240;224;Birjand;x
+1149;128;112;32;Sabzevar;x
+1150;1;112;33;Bojnurd;x
+1151;48;144;160;Mecca;x
+1152;187;52;25;Jidda;x
+1153;97;207;160;Medina;x
+1154;119;129;55;Tabuk;x
+1155;176;144;160;Abha;x
+1156;128;49;33;Kaf;x
+1157;176;208;160;Riyadh;x
+1158;0;176;33;Rafha;x
+1159;112;17;96;Halaban;x
+1160;176;17;160;Hail;x
+1161;176;17;96;Sharawrah;x
+1162;80;90;224;Bahrain;x
+1163;112;81;32;Qatif;x
+1164;70;134;38;Hufuf;x
+1165;239;80;32;Doha;x
+1166;112;81;159;Muscat;x
+1167;112;208;32;Abu Dhabi;x
+1168;240;208;33;Dubai;x
+1169;239;208;160;Suhar;x
+1170;193;189;82;Nizwa;x
+1171;239;80;160;Sur;x
+1172;112;208;160;Duqm;x
+1173;48;143;223;Mukalla;x
+1174;86;39;160;Salalah;x
+1175;176;16;223;Ghayda;x
+1176;176;144;224;Bayda;x
+1177;48;16;224;Socotra;x
+1178;229;223;59;Sana;x
+1179;49;65;144;Hodeida;x
+1180;176;143;96;Taizz;x
+1181;70;86;220;Qaraganda;x
+1182;192;144;192;Guryev;x
+1183;192;81;65;Aqtobe;x
+1184;69;223;220;Kokshetau;x
+1185;69;224;73;Yasi;x
+1186;34;155;0;Alma Ata;x
+1187;173;155;1;Semipalatinsk;x
+1188;160;150;149;Qaratal;x
+1189;89;155;157;Bishkek;x
+1190;44;81;151;Naryn;x
+1191;138;224;220;Khiva;x
+1192;65;80;64;Nukus;x
+1193;0;224;220;Kyzylorda;x
+1194;191;16;191;Aqtau;x
+1195;192;208;64;Tashkent;x
+1196;1;17;192;Dashhowuz;x
+1197;208;224;73;Shymkent;x
+1198;138;86;220;Bukhara;x
+1199;208;86;220;Samarkand;x
+1200;32;176;33;Qarshi;x
+1201;34;76;183;Khojand;x
+1202;173;52;37;Kokand;x
+1203;90;44;151;Osh;x
+1204;191;175;160;Ashkabad;x
+1205;128;17;192;Kizil Arvat;x
+1206;192;112;96;Merv;x
+1207;176;144;32;Kulob;x
+1208;66;176;32;Khorug;x
+1209;33;48;160;Kabul;x
+1210;160;48;160;Faizabad;x
+1211;96;176;160;Balkh;x
+1212;64;240;96;Herat;x
+1213;240;64;122;Bamyan;x
+1214;192;239;96;Farrah;x
+1215;64;240;224;Kandahar;x
+1216;64;240;89;Jalalabad;x
+1217;160;176;32;Ghazni;x
+1218;32;176;160;Peshawar;x
+1219;223;48;160;Quetta;x
+1220;64;112;224;Dalbandin;x
+1221;192;112;224;Kalat;x
+1222;64;112;96;Bela;x
+1223;185;67;175;Chitral;x
+1224;33;112;33;Srinagar;x
+1225;67;185;159;Gilgit;x
+1226;33;240;32;Leh;x
+1227;128;240;224;Lahore;x
+1228;224;49;33;Multan;x
+1229;185;67;89;Sialkot;x
+1230;160;176;160;Attock;x
+1231;112;105;64;Bahawalpur;x
+1232;143;84;64;Shahpur;x
+1233;160;112;32;Amritsar;x
+1234;160;240;160;Firuzapur;x
+1235;96;112;32;Simla;x
+1236;224;239;160;Delhi;x
+1237;224;112;32;Panipat;x
+1238;73;51;127;Dehra Dun;x
+1239;176;80;223;Meerut;x
+1240;97;240;160;Agra;x
+1241;97;112;160;Cawnpore;x
+1242;224;112;160;Lucknow;x
+1243;17;112;33;Allahabad;x
+1244;51;127;108;Fyzabad;x
+1245;208;176;160;Benares;x
+1246;160;49;96;Gorakhpur;x
+1247;33;176;96;Patna;x
+1248;80;176;160;Gaya;x
+1249;17;240;32;Kharswari;x
+1250;224;176;160;Bhagalpur;x
+1251;208;176;223;Calcutta;x
+1252;226;233;43;Darjeeling;x
+1253;239;80;96;Bardwan;x
+1254;17;112;96;Dacca;x
+1255;48;176;160;Rajshahi;x
+1256;111;17;112;Jessore;x
+1257;144;112;96;Chittagong;x
+1258;160;48;224;Gauhati;x
+1259;176;49;33;Imphal;x
+1260;96;48;223;Dibrugarh;x
+1261;208;49;160;Cuttack;x
+1262;160;168;224;Keunjahr;x
+1263;80;49;160;Sambalpur;x
+1264;224;240;33;Ajmer;x
+1265;96;49;160;Jaisalmer;x
+1266;224;176;32;Jodhpur;x
+1267;1;240;224;Bikaner;x
+1268;97;240;33;Jaipur;x
+1269;240;81;223;Udaipur;x
+1270;52;106;80;Gwalior;x
+1271;112;208;224;Indore;x
+1272;239;208;223;Bhopal;x
+1273;144;112;33;Chatarpur;x
+1274;208;176;33;Rewa;x
+1275;144;48;32;Jubulpore;x
+1276;16;176;33;Hoshangabad;x
+1277;208;49;32;Nagpur;x
+1278;116;86;71;Amarati;x
+1279;17;112;160;Jagdalpur;x
+1280;144;240;32;Raipur;x
+1281;81;176;33;Bilaspur;x
+1282;102;51;127;Raigarh;x
+1283;208;112;32;Hyderabad;x
+1284;144;176;160;Aurangabad;x
+1285;80;112;32;Nizamabad;x
+1286;80;240;32;Gulbarga;x
+1287;144;240;160;Warangal;x
+1288;112;80;96;Karachi;x
+1289;96;176;33;Sukkur;x
+1290;49;81;96;Umarkot;x
+1291;176;208;96;Ahmedabad;x
+1292;48;208;96;Rajkot;x
+1293;176;80;96;Mandvi;x
+1294;49;81;224;Patan;x
+1295;240;17;96;Baroda;x
+1296;49;208;224;Surat;x
+1297;176;208;224;Bombay;x
+1298;144;176;33;Nasik;x
+1299;144;49;160;Poona;x
+1300;17;176;160;Bijapur;x
+1301;17;49;160;Kolhapur;x
+1302;208;112;160;Belgaum;x
+1303;81;240;160;Goa;x
+1304;16;176;96;Madras;x
+1305;144;112;160;Vizagapatnam;x
+1306;17;240;160;Masulipatnam;x
+1307;207;240;32;Nellore;x
+1308;81;112;160;Kurnool;x
+1309;160;32;80;Tanjore;x
+1310;160;33;208;Madurai;x
+1311;32;160;80;Coimbatore;x
+1312;171;173;177;Pondicherry;x
+1313;144;48;96;Bangalore;x
+1314;42;96;179;Mysore;x
+1315;105;96;73;Chitaldroog;x
+1316;208;240;160;Mangalore;x
+1317;160;160;80;Calicut;x
+1318;33;33;208;Cochin;x
+1319;33;160;208;Trivandrum;x
+1320;176;48;160;Andaman Islands;x
+1321;160;160;208;Colombo;x
+1322;223;32;80;Jaffna;x
+1323;205;208;160;Kandy;x
+1324;96;32;80;Trincomalee;x
+1325;149;170;163;Maldives;x
+1326;33;48;96;Katmandu;x
+1327;96;80;33;Jumla;x
+1328;224;176;224;Tumlong;x
+1329;96;176;223;Thimpu;x
+1330;176;176;160;Rangoon;x
+1331;16;112;224;Bassein;x
+1332;177;51;48;Pegu;x
+1333;207;112;96;Toungoo;x
+1334;61;181;169;Ava;x
+1335;36;151;231;Kyaukse;x
+1336;57;113;57;Magwe;x
+1337;144;112;223;Prome;x
+1338;144;239;223;Taunggyi;x
+1339;144;239;96;Haka;x
+1340;116;116;41;Lashio;x
+1341;207;239;223;Putao;x
+1342;215;166;72;Myitkyina;x
+1343;208;239;96;Moulmein;x
+1344;149;142;153;Mergui;x
+1345;17;240;96;Sittwe;x
+1346;16;175;224;Bangkok;x
+1347;32;223;208;Lopburi;x
+1348;153;161;192;Nakhon Sawan;x
+1349;48;239;32;Sukothai;x
+1350;112;112;32;Nakhon Ratchasima;x
+1351;144;48;223;Prachinburi;x
+1352;33;96;207;Phuket;x
+1353;80;112;224;Ratchaburi;x
+1354;208;112;223;Nakhon Si Thammanet;x
+1355;80;112;96;Chiang Mai;x
+1356;176;176;32;Luangprabang;x
+1357;176;112;32;Vientiane;x
+1358;180;128;151;Udon Thani;x
+1359;92;48;112;Sisaket;x
+1360;49;48;160;Xiangabouli;x
+1361;176;239;32;Savannakhet;x
+1362;176;239;160;Satavan;x
+1363;48;239;160;Pakche;x
+1364;239;239;32;Oudong;x
+1365;239;112;32;Chanthaburi;x
+1366;112;240;33;Battambang;x
+1367;192;1;176;Kampot;x
+1368;112;112;160;Stongtreng;x
+1369;240;229;49;Hanoi;x
+1370;240;176;160;Haiphong;x
+1371;112;176;159;Cao Bang;x
+1372;240;49;160;Son La;x
+1373;159;112;176;Lang Son;x
+1374;48;112;32;Thanh Hoa;x
+1375;176;112;160;Hue;x
+1376;48;112;160;Vinh;x
+1377;239;48;96;Tourane;x
+1378;192;128;176;Pleiku;x
+1379;112;176;96;Quinhon;x
+1380;33;127;104;Saigon;x
+1381;0;192;176;Dongquai;x
+1382;64;128;176;Hatien;x
+1383;71;75;11;Vinhlong;x
+1384;192;1;48;Singapore;x
+1385;118;84;109;Johor Bahru;x
+1386;128;128;176;Malacca;x
+1387;200;76;76;Kuala Lumpur;x
+1388;8;103;59;Penang;x
+1389;128;0;176;Alor Setar;x
+1390;0;128;176;Kuantan;x
+1391;128;192;176;Kota Bahru;x
+1392;160;96;208;Pattani;x
+1393;128;1;112;Brunei;x
+1394;1;65;176;Kuching;x
+1395;128;65;176;Bintulu;x
+1396;118;54;70;Api;x
+1397;128;128;112;Sandakan;x
+1398;110;211;158;Jambi;x
+1399;143;188;244;Palembang;x
+1400;211;166;110;Inderagiri;x
+1401;96;33;208;Siak;x
+1402;145;176;1;Tanjungpinang;x
+1403;98;143;155;Lampung;x
+1404;122;77;200;Palakpinang;x
+1405;160;223;208;Banda Aceh;x
+1406;97;97;80;Medan;x
+1407;223;96;80;Tapaktuan;x
+1408;121;166;110;Padang;x
+1409;96;224;80;Sibolga;x
+1410;233;98;244;Bencoolen;x
+1411;224;160;240;Gunungsitoli;x
+1412;49;144;96;Aden;x
+1413;113;211;146;Batavia;x
+1414;160;223;239;Bogor;x
+1415;161;46;209;Cirebon;x
+1416;209;157;46;Yogyakarta;x
+1417;160;96;112;Semarang;x
+1418;32;96;239;Surabaya;x
+1419;32;223;112;Surakarta;x
+1420;160;96;240;Probolinggo;x
+1421;160;224;112;Madura;x
+1422;143;143;222;Muraleve;x
+1423;233;233;132;Banjarmasin;x
+1424;155;122;77;Pasir;x
+1425;1;128;112;Tarakan;x
+1426;77;211;110;Pontianak;x
+1427;166;122;110;Kota Waringin;x
+1428;166;211;110;Sintang;x
+1429;77;77;155;Samarinda;x
+1430;177;77;88;Makassar;x
+1431;122;77;155;Bone;x
+1432;122;166;155;Mamuju;x
+1433;128;128;240;Menado;x
+1434;122;77;244;Luwuk;x
+1435;192;1;112;Palu;x
+1436;88;166;88;Kendari;x
+1437;144;128;16;Bulon;x
+1438;223;223;240;Bali;x
+1439;144;128;144;Flores;x
+1440;144;0;144;Sumbawa;x
+1441;16;128;144;Sumba;x
+1442;16;0;144;Lombok;x
+1443;105;146;69;Roti;x
+1444;146;145;69;Alor;x
+1445;207;138;152;Kaupeng;x
+1446;127;69;146;Dili;x
+1447;122;122;110;Ternate;x
+1448;255;118;108;Jilolo;x
+1449;211;166;155;Ambon;x
+1450;77;211;155;Ceram;x
+1451;146;69;76;Aru;x
+1452;175;240;1;Biak;x
+1453;211;181;77;Sorong;x
+1454;211;77;244;Merah;x
+1455;176;240;224;Manila;x
+1456;112;112;97;Vigan;x
+1457;49;240;224;Legazpi;x
+1458;176;240;176;Mindoro;x
+1459;95;95;207;Palawan;x
+1460;128;1;240;Iloilo;x
+1461;240;1;226;Tacloban;x
+1462;240;1;74;Zamboanga;x
+1463;1;128;240;Davao;x
+1464;153;208;48;Sulu;x
+1465;243;155;1;Urga;x
+1466;104;18;146;Dalandzadgad;x
+1467;255;255;35;Bayan Tumen;x
+1468;173;18;146;Altai;x
+1469;35;18;146;Kyzyl;x
+1470;112;48;160;Anqing;x
+1471;84;144;81;Chizhou;x
+1472;208;81;1;Fengyang;x
+1473;16;144;128;Huizhou;x
+1474;144;81;128;Luzhou;x
+1475;144;81;87;Ningguo;x
+1476;224;113;97;Sizhou;x
+1477;81;87;144;Taiping;x
+1478;81;81;1;Yingzhou;x
+1479;97;208;1;Mukden;x
+1480;224;81;1;Jinzhou;x
+1481;112;144;1;Port Arthur;x
+1482;176;144;128;Fuzhou;x
+1483;160;240;224;Jianning;x
+1484;240;112;96;Quanzhou;x
+1485;112;112;224;Taibei;x
+1486;224;112;224;Tingzhou;x
+1487;112;240;96;Zhangzhou;x
+1488;224;48;96;Gansu;x
+1489;160;144;128;Gongchang;x
+1490;32;48;224;Lanzhou;x
+1491;143;94;81;Ningxia;x
+1492;144;144;128;Pingliang;x
+1493;176;176;97;Canton;x
+1494;240;112;224;Chaozhou;x
+1495;240;176;97;Gauzhou;x
+1496;176;49;97;Hong Kong;x
+1497;141;106;30;Waizao;x
+1498;176;49;224;Macao;x
+1499;48;176;224;Hainan;x
+1500;49;176;97;Shaozhou;x
+1501;49;49;224;Zhaoqing;x
+1502;240;240;160;Nanning;x
+1503;240;113;160;Guilin;x
+1504;113;49;224;Pingle;x
+1505;144;144;0;Guiyang;x
+1506;224;240;96;Anshun;x
+1507;16;144;0;Zhenyuan;x
+1508;144;208;128;Kaifeng;x
+1509;128;17;144;Guide;x
+1510;144;144;65;Henan;x
+1511;17;17;192;Huaiqing;x
+1512;144;17;89;Chenzhou;x
+1513;108;192;140;Nanyang;x
+1514;17;47;144;Runing;x
+1515;17;144;192;Weihui;x
+1516;144;16;64;Hanyang;x
+1517;80;144;64;Dean;x
+1518;16;16;64;Huangzhou;x
+1519;144;16;192;Anlu;x
+1520;208;16;64;Jingzhou;x
+1521;80;16;192;Shinan;x
+1522;208;208;128;Wuchang;x
+1523;80;144;192;Xiangyang;x
+1524;208;80;128;Changsha;x
+1525;208;144;192;Changde;x
+1526;16;80;64;Baoqing;x
+1527;80;80;128;Hengzhou;x
+1528;24;111;67;Yuezhou;x
+1529;208;16;192;Yongshun;x
+1530;176;176;224;Yongzhou;x
+1531;210;121;155;New Ireland;x
+1532;160;81;1;Guihua Tumed;x
+1533;224;17;1;Jirim Chuulgan;x
+1534;224;144;128;Ulaan Chab Chuulghan;x
+1535;97;144;1;Yeke Juu Chuulghan;x
+1536;33;240;224;Huaian;x
+1537;208;147;17;Changzhou;x
+1538;176;17;1;Shanghai;x
+1539;97;240;97;Suzhou;x
+1540;48;16;0;Taicangzhou;x
+1541;208;208;192;Tongzhou;x
+1542;17;208;128;Xuzhou;x
+1543;81;208;192;Yangzhou;x
+1544;17;165;208;Zhenjiang;x
+1545;96;240;224;Nanchang;x
+1546;96;112;96;Guangxin;x
+1547;16;16;128;Jian;x
+1548;208;208;0;Jianchang;x
+1549;80;208;128;Jiujiang;x
+1550;96;112;224;Ganzhou;x
+1551;80;208;0;Raozhou;x
+1552;33;208;1;Qiqihar;x
+1553;33;81;128;Aigun;x
+1554;160;81;98;Ninguta;x
+1555;160;81;128;Jilin;x
+1556;32;176;224;Makhai;x
+1557;160;176;224;Balekungomi;x
+1558;96;48;96;Kegudo;x
+1559;80;144;128;Xian;x
+1560;69;146;100;Merauke;x
+1561;208;16;128;Yenan;x
+1562;208;16;0;Hanzhong;x
+1563;197;94;116;Jinan;x
+1564;225;151;8;Caozhou;x
+1565;224;17;128;Laizhou;x
+1566;81;81;192;Qingdao;x
+1567;80;208;64;Qingzhou;x
+1568;17;81;128;Taian;x
+1569;186;161;211;Weihaiwei;x
+1570;144;208;1;Wuding;x
+1571;207;80;191;Yizhou;x
+1572;231;90;53;Taiyuan;x
+1573;113;240;160;Fenzhou;x
+1574;208;144;65;Luan;x
+1575;112;48;96;Pingyang;x
+1576;144;144;192;Datong;x
+1577;208;144;0;Chongqing;x
+1578;96;224;213;Chengdu;x
+1579;144;16;128;Baotung;x
+1580;120;120;82;Jiading;x
+1581;80;144;0;Kuizhou;x
+1582;96;176;96;Longan;x
+1583;224;240;224;Shunqing;x
+1584;144;16;0;Tongchuan;x
+1585;115;86;136;Yibin;x
+1586;224;176;96;Yazhou;x
+1587;160;112;96;Lhasa;x
+1588;32;240;96;Chamdo;x
+1589;32;112;224;Shigatse;x
+1590;32;112;96;Lhodrak;x
+1591;160;112;160;Changtang;x
+1592;31;240;159;Ngari;x
+1593;223;48;223;Tawang;x
+1594;160;240;32;Kashgar;x
+1595;160;16;0;Ili;x
+1596;192;208;192;Tulta;x
+1597;160;176;96;Aksu;x
+1598;32;112;160;Khotan;x
+1599;32;144;128;Kumul;x
+1600;96;16;0;Urumqi;x
+1601;144;176;96;Kunming;x
+1602;48;176;32;Dali;x
+1603;16;48;224;Puer;x
+1604;48;144;0;Hangzhou;x
+1605;91;233;198;Huzhou;x
+1606;171;91;233;Jiaxing;x
+1607;176;16;128;Jinhua;x
+1608;176;144;0;Ningbo;x
+1609;48;144;128;Shaoxing;x
+1610;63;128;16;Taizhou;x
+1611;48;16;128;Wenzhou;x
+1612;224;208;1;Beijing;x
+1613;205;205;238;Chengde;x
+1614;144;81;1;Daming;x
+1615;72;1;144;Jizhou;x
+1616;208;144;128;Shuntian;x
+1617;17;81;1;Tianjin;x
+1618;33;81;1;Zhongding;x
+1619;240;16;0;Pyongyang;x
+1620;96;81;1;Chonchon;x
+1621;112;17;1;Hamhung;x
+1622;33;208;128;Chongjin;x
+1623;160;208;128;Kimchaek;x
+1624;48;80;0;Seoul;x
+1625;240;17;128;Kaesong;x
+1626;112;17;128;Haeju;x
+1627;240;144;1;Sariwon;x
+1628;176;80;0;Inchon;x
+1629;112;144;128;Wonsan;x
+1630;112;239;192;Kangnung;x
+1631;240;144;128;Wonju;x
+1632;155;168;181;Pusan;x
+1633;48;80;128;Taegu;x
+1634;49;208;0;Pohang;x
+1635;48;208;128;Kwangju;x
+1636;176;208;0;Taejon;x
+1637;176;208;128;Cheju;x
+1638;113;81;1;Hiroshima;x
+1639;17;81;192;Okayama;x
+1640;240;80;1;Yamaguchi;x
+1641;162;135;176;Matsue;x
+1642;160;144;192;Hakodate;x
+1643;160;17;192;Ishikara;x
+1644;32;144;192;Nemuru;x
+1645;239;144;192;Niigata;x
+1646;48;208;64;Kanazawa;x
+1647;176;208;64;Fukui;x
+1648;136;89;95;Toyama;x
+1649;239;144;64;Edo;x
+1650;71;133;153;Chiba;x
+1651;112;16;192;Yokohama;x
+1652;240;17;192;Urawa;x
+1653;112;144;64;Mito;x
+1654;128;1;17;Bonin;x
+1655;176;208;192;Osaka;x
+1656;97;66;135;Wakayama;x
+1657;112;80;64;Kyoto;x
+1658;48;80;64;Nara;x
+1659;112;208;64;Kobe;x
+1660;112;207;0;Fukuoka;x
+1661;240;208;0;Nagasaki;x
+1662;112;208;128;Kagoshima;x
+1663;239;80;128;Miyazaki;x
+1664;112;80;128;Kumamoto;x
+1665;239;208;64;Kochi;x
+1666;144;208;64;Matsuyama;x
+1667;240;80;64;Tokushima;x
+1668;176;144;192;Sendai;x
+1669;240;16;64;Fukushima;x
+1670;176;17;192;Morioka;x
+1671;49;144;192;Akita;x
+1672;224;208;128;Aomori;x
+1673;112;16;64;Yamagata;x
+1674;112;144;192;Utsunomiya;x
+1675;48;80;192;Nagoya;x
+1676;49;208;192;Shizuoka;x
+1677;176;80;192;Nagano;x
+1678;240;240;97;Okinawa;x
+1679;240;208;128;Amari;x
+1680;96;176;64;Fez;x
+1681;250;226;187;Wazzan;x
+1682;160;240;64;Meknes;x
+1683;96;48;192;Taza;x
+1684;223;48;192;Wujda;x
+1685;223;48;64;Rabat;x
+1686;32;176;192;Tangier;x
+1687;160;176;192;Tetouan;x
+1688;223;176;64;Ajdir;x
+1689;202;159;117;Melilla;x
+1690;223;112;64;Marrakesh;x
+1691;88;148;155;Casablanca;x
+1692;224;112;192;Huribka;x
+1693;96;239;64;Sawira;x
+1694;223;239;64;Agadir;x
+1695;96;48;128;Ifni;x
+1696;158;88;46;Tarfaya;x
+1697;160;239;192;Figuig;x
+1698;176;150;191;Rashidia;x
+1699;96;112;192;Warzazat;x
+1700;32;239;64;Algiers;x
+1701;128;144;223;Bougie;x
+1702;0;144;160;Setif;x
+1703;126;82;147;Medea;x
+1704;223;176;192;Oran;x
+1705;62;104;136;Tlemcen;x
+1706;167;94;120;Mustaghanim;x
+1707;32;112;64;Mascara;x
+1708;128;80;160;Constantine;x
+1709;0;80;160;Bone;x
+1710;1;208;160;Biskra;x
+1711;160;240;128;Ouargla;x
+1712;64;80;160;Tuggurt;x
+1713;32;239;128;Laghwat;x
+1714;160;239;128;Bechar;x
+1715;160;112;64;Naama;x
+1716;96;112;1;Tindouf;x
+1717;176;240;192;Chenachene;x
+1718;144;208;160;In Salah;x
+1719;128;144;96;Ilizi;x
+1720;160;112;192;Timimoun;x
+1721;144;208;32;In Guezzam;x
+1722;49;240;192;Tin Zawatene;x
+1723;208;239;64;Panama Canal;x
+1724;1;17;224;Tamanrasset;x
+1725;128;208;160;Tunis;x
+1726;152;140;8;Bizerte;x
+1727;123;152;66;Gafsa;x
+1728;192;80;32;Kairouan;x
+1729;191;208;33;Tozeur;x
+1730;64;208;33;Gabes;x
+1731;192;80;160;Tripoli;x
+1732;128;16;224;Ghayran;x
+1733;64;207;160;Misratah;x
+1734;192;208;160;Sirt;x
+1735;64;208;224;Benghazi;x
+1736;160;16;32;Darna;x
+1737;32;144;32;Tobruk;x
+1738;160;144;32;Jaghbub;x
+1739;144;208;96;Kufra;x
+1740;230;232;76;Waddan;x
+1741;1;144;224;Murzuk;x
+1742;128;16;96;Sabha;x
+1743;17;208;160;Ghat;x
+1744;233;180;87;Ghadamis;x
+1745;192;144;96;Cairo;x
+1746;32;80;160;Dumyat;x
+1747;208;80;224;Tanta;x
+1748;80;208;224;Mansura;x
+1749;64;144;96;Ziqaziq;x
+1750;80;17;224;Giza;x
+1751;160;208;32;Alexandria;x
+1752;32;207;32;Matruh;x
+1753;160;80;32;Sidi Barrani;x
+1754;224;208;33;Siwa;x
+1755;192;16;96;Suez Canal;x
+1756;70;75;138;Al Arish;x
+1757;96;80;224;Sharm al-Shaykh;x
+1758;176;17;33;Hariga;x
+1759;32;208;160;Bawiti;x
+1760;108;88;144;Mut;x
+1761;208;208;224;Baris;x
+1762;80;208;96;Asyut;x
+1763;80;80;224;Bani Suwayf;x
+1764;17;208;224;Minya;x
+1765;160;80;160;Fayyum;x
+1766;176;80;32;Aswan;x
+1767;208;208;96;Luxor;x
+1768;77;32;144;Idfu;x
+1769;68;112;45;Qina;x
+1770;144;103;32;Qusayr;x
+1771;112;144;32;Marsa Alam;x
+1772;144;143;32;Ras Gharib;x
+1773;160;239;0;Aaiun;x
+1774;126;90;99;Dakhla;x
+1775;112;48;192;Nouakchott;x
+1776;176;112;192;Rosso;x
+1777;176;48;64;Aleg;x
+1778;240;240;65;Maghama;x
+1779;239;48;64;Shingit;x
+1780;112;112;64;Tishit;x
+1781;223;239;192;Walata;x
+1782;72;130;180;Bir Murghayn;x
+1783;188;255;181;Dakar;x
+1784;239;48;192;Saint-Louis;x
+1785;176;112;64;Banjul;x
+1786;31;24;123;Linguere;x
+1787;123;66;24;Diourbel;x
+1788;101;108;100;Kaolack;x
+1789;38;123;24;Podor;x
+1790;239;175;192;Matam;x
+1791;48;112;65;Bakel;x
+1792;48;239;64;Ziguinchor;x
+1793;176;239;64;Velingara;x
+1794;113;105;224;Bamako;x
+1795;9;102;110;Kayes;x
+1796;112;112;191;Nioro;x
+1797;144;17;33;Kita;x
+1798;144;144;160;Bougouni;x
+1799;16;144;32;Sikasso;x
+1800;240;239;191;Segu;x
+1801;239;176;64;Mourdiah;x
+1802;112;175;64;Jenne;x
+1803;240;112;192;Timbuktu;x
+1804;160;131;17;Bandiagara;x
+1805;113;240;65;Gao;x
+1806;240;113;65;Taoudenni;x
+1807;209;240;65;Tessalit;x
+1808;80;81;160;Niamey;x
+1809;17;144;96;Say;x
+1810;207;80;160;Dosso;x
+1811;80;208;159;Maradi;x
+1812;208;208;160;Agades;x
+1813;143;80;223;Arlit;x
+1814;17;81;223;Madama;x
+1815;174;174;217;Zinder;x
+1816;17;16;224;Kufe;x
+1817;208;144;224;Bilma;x
+1818;128;160;208;Massenya;x
+1819;208;144;160;Moundou;x
+1820;80;144;160;Bongor;x
+1821;94;144;107;Abeche;x
+1822;144;81;96;Am Timan;x
+1823;192;160;80;Mongo;x
+1824;208;144;33;Mao;x
+1825;208;17;223;Zouar;x
+1826;80;144;224;Faya;x
+1827;126;6;0;Khartoum;x
+1828;223;222;155;Wad Madani;x
+1829;6;0;126;Kassala;x
+1830;32;106;45;Sennar;x
+1831;106;84;32;Rabak;x
+1832;224;160;144;Fashoda;x
+1833;0;126;0;Suakin;x
+1834;240;144;33;Halaib;x
+1835;208;144;96;Dongola;x
+1836;112;17;160;Hayya;x
+1837;240;17;160;Atbara;x
+1838;160;184;0;Obeid;x
+1839;208;80;96;Nuhud;x
+1840;128;96;208;Kaduqli;x
+1841;17;208;96;Fasher;x
+1842;80;81;96;Junayah;x
+1843;1;224;208;Waw;x
+1844;64;160;80;Bor;x
+1845;128;96;80;Yambio;x
+1846;160;33;17;Lado;x
+1847;92;0;126;Kapoeta;x
+1848;153;112;160;Asmara;x
+1849;112;144;160;Massawa;x
+1850;112;160;114;Akordat;x
+1851;160;126;112;Assab;x
+1852;223;32;144;Gonder;x
+1853;192;64;224;Debre Tabor;x
+1854;224;102;64;Matamma;x
+1855;215;224;64;Debre Markos;x
+1856;240;144;160;Aksum;x
+1857;97;160;144;Antalo;x
+1858;159;160;97;Awsa;x
+1859;65;224;208;Ankober;x
+1860;191;223;207;Awasa;x
+1861;224;64;147;Aselia;x
+1862;132;132;55;Bonga;x
+1863;64;188;224;Asosa;x
+1864;192;96;208;Negele;x
+1865;65;96;208;Harer;x
+1866;175;8;0;Goba;x
+1867;32;97;17;Werder;x
+1868;223;97;17;Mogadishu;x
+1869;33;32;144;Baidoa;x
+1870;191;224;80;Kismayo;x
+1871;96;96;17;Hobye;x
+1872;160;224;144;Busaso;x
+1873;32;224;144;Berbera;x
+1874;198;165;203;Zeyla;x
+1875;64;224;80;Djibuti;x
+1876;176;176;192;Cape Verde;x
+1877;48;176;64;Bissau;x
+1878;90;98;125;Gabu;x
+1879;48;112;192;Boffa;x
+1880;32;0;208;Timbo;x
+1881;108;143;114;Dinguiraye;x
+1882;129;64;160;Kankan;x
+1883;160;64;80;Beyla;x
+1884;96;128;80;Freetown;x
+1885;143;149;140;Falaba;x
+1886;136;62;133;Bo;x
+1887;223;128;80;Monrovia;x
+1888;77;80;32;Harper;x
+1889;85;101;125;Bopolu;x
+1890;161;126;185;Gbarnga;x
+1891;114;135;146;Zwedru;x
+1892;32;191;207;Grand Lahou;x
+1893;160;191;80;Sassandra;x
+1894;160;191;207;Grand Bassam;x
+1895;224;64;80;Bouake;x
+1896;32;64;208;Man;x
+1897;118;99;109;Akoupe;x
+1898;96;192;80;Kong;x
+1899;224;192;80;Bondouku;x
+1900;159;64;208;Odienne;x
+1901;128;33;144;Wagadugu;x
+1902;17;144;160;Wahiguya;x
+1903;144;17;160;Dori;x
+1904;219;138;158;Fada Ngourma;x
+1905;96;64;208;Bobo Dioulasso;x
+1906;229;145;216;Orodaro;x
+1907;128;33;17;Accra;x
+1908;133;4;230;Cape Coast;x
+1909;108;128;100;Sekondi;x
+1910;97;192;208;Kumasi;x
+1911;224;192;208;Kintampo;x
+1912;209;70;113;Wa;x
+1913;194;224;192;Tamale;x
+1914;212;181;255;Lome;x
+1915;119;128;17;Ho;x
+1916;214;215;132;Yendi;x
+1917;64;109;155;Atakpane;x
+1918;141;10;90;Sokode;x
+1919;1;160;17;Cotonou;x
+1920;128;160;17;Abomey;x
+1921;1;33;144;Nikki;x
+1922;200;200;166;Jugu;x
+1923;1;224;17;Lagos;x
+1924;128;96;16;Abeokuta;x
+1925;64;96;16;Ibadan;x
+1926;1;160;144;Ife;x
+1927;128;223;144;Ilorin;x
+1928;235;252;181;Benin;x
+1929;207;17;160;Akure;x
+1930;179;219;230;Lokoja;x
+1931;1;96;144;Warri;x
+1932;1;160;80;Bonny;x
+1933;147;99;74;Awka;x
+1934;128;96;144;Calabar;x
+1935;128;160;144;Aruchukwu;x
+1936;192;224;144;Makurdi;x
+1937;64;96;144;Tukari;x
+1938;192;97;16;Bussa;x
+1939;128;54;146;Zaria;x
+1940;64;223;17;Bida;x
+1941;65;223;144;Abuja;x
+1942;144;144;224;Bauchi;x
+1943;192;96;144;Jos;x
+1944;192;224;17;Gombe;x
+1945;16;144;224;Kano;x
+1946;3;132;169;Kebbi;x
+1947;81;208;32;Katsina;x
+1948;133;133;67;Sokoto;x
+1949;208;17;96;Hadejia;x
+1950;144;17;224;Yola;x
+1951;208;17;32;Kuka;x
+1952;80;144;96;Nguru;x
+1953;207;208;33;Dikoa;x
+1954;192;32;80;Sao Tome;x
+1955;144;32;137;Fernando Po;x
+1956;128;159;80;Douala;x
+1957;52;32;128;Buea;x
+1958;208;196;213;Kribi;x
+1959;1;33;208;Yaounde;x
+1960;91;128;32;Bafoussam;x
+1961;128;32;80;Bamenda;x
+1962;128;33;208;Bertoua;x
+1963;255;212;63;Ngaoundere;x
+1964;86;106;137;Maroua;x
+1965;192;32;16;Bangui;x
+1966;1;160;208;Nola;x
+1967;192;160;208;Bouar;x
+1968;64;160;208;Bossangoa;x
+1969;64;96;81;Zemio;x
+1970;33;167;144;Bangassou;x
+1971;64;33;208;Ndele;x
+1972;192;32;144;Libreville;x
+1973;64;32;144;Bata;x
+1974;141;32;192;Mayumbe;x
+1975;192;160;144;Moanda;x
+1976;64;160;144;Makokou;x
+1977;177;177;99;Nkuna;x
+1978;128;224;240;Madingou;x
+1979;33;128;17;Biloka;x
+1980;130;118;122;Djambala;x
+1981;1;96;17;Impfondo;x
+1982;192;96;112;Kinshasa;x
+1983;129;20;38;Boma;x
+1984;16;126;73;Kananga;x
+1985;162;211;132;Kumbana;x
+1986;144;128;112;Lusambo;x
+1987;120;82;141;Bunkeya;x
+1988;16;94;126;Mussumba;x
+1989;176;33;16;Munza;x
+1990;33;160;48;Nyangwe;x
+1991;160;160;48;Uvira;x
+1992;128;224;208;Basoko;x
+1993;192;96;240;Irebu;x
+1994;65;224;240;Nsheng;x
+1995;192;32;207;Gemena;x
+1996;1;96;208;Kisangani;x
+1997;134;112;113;Mungbane;x
+1998;1;224;80;Baramo;x
+1999;207;160;231;Luanda;x
+2000;64;96;112;Cabinda;x
+2001;240;0;23;Mbanza;x
+2002;240;136;0;Quibala;x
+2003;80;192;48;Benguela;x
+2004;128;96;240;Mocamedes;x
+2005;0;223;240;Huambo;x
+2006;57;105;127;Kuito;x
+2007;192;223;112;Mavinga;x
+2008;0;107;240;Ondjiva;x
+2009;240;215;0;Malanje;x
+2010;113;240;0;Saurimo;x
+2011;191;224;239;Kubanda;x
+2012;160;32;49;Lusaka;x
+2013;164;48;224;Mongu;x
+2014;64;96;240;Kasempa;x
+2015;48;222;224;Monzo;x
+2016;160;224;48;Kazembe;x
+2017;152;152;197;Kasema;x
+2018;210;224;48;Chipata;x
+2019;224;160;16;Entebbe;x
+2020;101;48;160;Mbarara;x
+2021;160;156;48;Masindi;x
+2022;32;96;96;Kitgum;x
+2023;145;48;160;Jinja;x
+2024;160;160;144;Nairobi;x
+2025;53;103;119;Marsabit;x
+2026;32;159;16;Lodwar;x
+2027;14;99;42;Nakuru;x
+2028;224;33;17;Kisumu;x
+2029;33;160;144;Mombasa;x
+2030;160;33;144;Lamu;x
+2031;160;160;17;Wajir;x
+2032;153;109;98;Garissa;x
+2033;158;159;87;Voi;x
+2034;128;223;80;Kigali;x
+2035;80;147;223;Usumbura;x
+2036;96;33;175;Dar Es Salaam;x
+2037;224;217;32;Tanga;x
+2038;96;160;175;Kilwa;x
+2039;160;96;48;Lindi;x
+2040;33;224;48;Songea;x
+2041;58;125;63;Masasi;x
+2042;224;160;176;Iringa;x
+2043;120;87;95;Tabora;x
+2044;97;33;143;Mwanza;x
+2045;224;32;48;Morogoro;x
+2046;32;96;48;Ujiji;x
+2047;223;160;48;Arusha;x
+2048;224;32;176;Zanzibar;x
+2049;48;131;208;Maputo;x
+2050;48;64;208;Chaimate;x
+2051;208;96;16;Inhambane;x
+2052;208;112;48;Massekisse;x
+2053;63;48;208;Sena;x
+2054;165;48;208;Tete;x
+2055;48;208;153;Songo;x
+2056;208;48;131;Zombo;x
+2057;144;224;144;Sofala;x
+2058;116;208;48;Mossurize;x
+2059;48;176;208;Quelimane;x
+2060;159;224;176;Mocambique;x
+2061;17;224;144;Angoche;x
+2062;201;208;0;Shangzhou;x
+2063;32;224;176;Ibo;x
+2064;52;208;48;Nampula;x
+2065;48;208;127;Milange;x
+2066;100;33;176;Zomba;x
+2067;33;96;176;Lilongwe;x
+2068;158;72;163;Harare;x
+2069;207;183;50;Gweru;x
+2070;91;160;17;Mutare;x
+2071;17;91;160;Bulawayo;x
+2072;144;160;17;Hwange;x
+2073;144;33;17;Masvingo;x
+2074;113;192;208;Gaborone;x
+2075;176;65;208;Serowe;x
+2076;240;192;208;Nokaneng;x
+2077;146;80;102;Tsabong;x
+2078;176;192;80;Windhoek;x
+2079;176;64;80;Swakopmund;x
+2080;96;119;103;Tsumeb;x
+2081;96;1;208;Linyati;x
+2082;49;192;208;Otjinene;x
+2083;128;49;208;Walvis Bay;x
+2084;48;192;80;Angra Pequena;x
+2085;176;192;208;Nugouses;x
+2086;240;192;80;Karasburg;x
+2087;130;99;118;Cape Town;x
+2088;239;65;80;Springbok;x
+2089;176;96;80;Worcester;x
+2090;48;96;80;Swettenham;x
+2091;49;224;80;Mossel Bay;x
+2092;176;224;80;Beaufort;x
+2093;112;192;80;Calvinia;x
+2094;239;64;207;Kimberley;x
+2095;65;192;240;Dikathong;x
+2096;49;96;208;Port Elizabeth;x
+2097;176;96;207;Graaf Reinet;x
+2098;176;223;208;Bisho;x
+2099;48;224;207;Mathele;x
+2100;112;96;80;Umtata;x
+2101;204;196;215;Bloemfontein;x
+2102;83;101;223;Winburg;x
+2103;197;177;175;Philippolis;x
+2104;240;96;80;Thaba Bosiu;x
+2105;144;33;144;Pretoria;x
+2106;208;33;144;Johannesburg;x
+2107;208;160;16;Klerksdorp;x
+2108;127;101;8;Mosega;x
+2109;208;32;17;Lydenburg;x
+2110;80;160;17;Thohoyandu;x
+2111;17;160;144;Durban;x
+2112;133;105;95;Ladysmith;x
+2113;65;192;112;Ulundi;x
+2114;144;160;144;Mbabane;x
+2115;80;160;144;Tananarive;x
+2116;16;167;223;Fianarantsoa;x
+2117;201;16;223;Ampanihy;x
+2118;176;182;74;Tolanaro;x
+2119;16;50;223;Toamasina;x
+2120;224;197;48;Antsiranana;x
+2121;223;96;176;Mahajanga;x
+2122;6;156;13;Toliara;x
+2123;96;108;224;Comoros;x
+2124;224;96;223;Mayotte;x
+2125;208;224;144;Mauritius;x
+2126;214;144;224;Bourbon;x
+2127;96;224;176;Seychelles;x
+2128;91;92;34;Diego Garcia;x
+2129;12;78;181;Saint Helena;x
+2130;12;181;86;Ascension;x
+2131;48;32;208;Falkland Islands;x
+2132;181;118;12;Tristan da Cunha;x
+2133;181;16;12;South Georgia;x
+2134;144;160;128;Azores;x
+2135;56;87;25;Madeira;x
+2136;32;239;1;Canary Islands;x
+2137;223;80;192;Hermosillo;x
+2138;32;80;64;Loreto;x
+2139;33;170;157;Rosarito;x
+2140;96;208;192;Nogales;x
+2141;223;208;192;Guaymas;x
+2142;0;48;128;Chihuahua;x
+2143;128;48;128;Paso del Norte;x
+2144;128;176;1;Delicias;x
+2145;96;80;192;Parral;x
+2146;169;134;32;Monterrey;x
+2147;0;176;1;Morelos;x
+2148;76;155;77;Reynosa;x
+2149;128;48;192;Matamoros;x
+2150;80;239;128;Ciudad Victoria;x
+2151;192;48;1;Saltillo;x
+2152;128;176;128;Monclova;x
+2153;64;48;128;Durango;x
+2154;0;176;128;Santa Maria del Oro;x
+2155;192;176;1;Torreon;x
+2156;192;176;128;Mazatlan;x
+2157;0;112;1;Culiacan;x
+2158;155;137;35;Zacatecas;x
+2159;80;48;128;San Luis Potosi;x
+2160;80;176;128;Aguascalientes;x
+2161;80;176;0;Tepic;x
+2162;68;119;144;Veracruz;x
+2163;208;239;128;Tampico;x
+2164;144;48;192;Mintatitlan;x
+2165;16;176;192;Villahermosa;x
+2166;16;112;1;Guadalajara;x
+2167;208;176;128;Guanajuato;x
+2168;144;176;128;Puerto Vallarta;x
+2169;144;112;1;Colima;x
+2170;16;239;1;Morelia;x
+2171;1;239;180;Los Alaniles;x
+2172;90;76;91;Mexico City;x
+2173;208;48;128;Queretaro;x
+2174;144;48;64;Toluca;x
+2175;16;176;128;Tulacingo;x
+2176;16;176;64;Puebla;x
+2177;144;176;192;Oaxaca;x
+2178;144;176;64;Collataro;x
+2179;192;192;112;Acapuilco;x
+2180;223;80;64;Chilpancingo;x
+2181;208;48;64;Tuxtla;x
+2182;16;48;192;Tapachula;x
+2183;80;48;192;Merida;x
+2184;219;133;176;Campeche;x
+2185;64;176;1;Bacalar;x
+2186;222;200;211;Guatemala;x
+2187;208;48;192;Quetzaltenango;x
+2188;80;176;64;Puerto Barrios;x
+2189;80;176;192;Sayaxche;x
+2190;208;176;64;Belize;x
+2191;176;208;199;San Salvador;x
+2192;16;112;64;San Miguel;x
+2193;144;239;64;Comayagua;x
+2194;144;112;64;San Pedro Sula;x
+2195;16;239;64;La Ceiba;x
+2196;144;112;128;Puerto Lempira;x
+2197;144;112;192;Managua;x
+2198;16;239;192;Rivas;x
+2199;16;112;192;León;x
+2200;16;112;128;Bluefields;x
+2201;16;239;128;San Jose;x
+2202;216;131;105;Liberia;x
+2203;239;144;220;Limon;x
+2204;138;138;32;Panama City;x
+2205;128;192;16;David;x
+2206;48;176;128;Penonome;x
+2207;172;90;137;Sainshand;x
+2208;176;176;128;Yaviza;x
+2209;243;242;201;Havana;x
+2210;82;147;151;Jagua;x
+2211;176;49;1;Camaguey;x
+2212;48;176;1;Santiago de Cuba;x
+2213;198;198;99;Port Au Prince;x
+2214;49;112;128;Santo Domingo;x
+2215;176;176;1;Cap Haitien;x
+2216;135;127;144;La Vega;x
+2217;112;112;184;Jamaica;x
+2218;30;118;30;Cayman Islands;x
+2219;114;192;114;Bahamas;x
+2220;122;111;163;Turks And Caicos;x
+2221;129;17;208;Nanjing;x
+2222;176;112;128;Puerto Rico;x
+2223;48;240;128;Saint Thomas;x
+2224;137;51;77;Antigua;x
+2225;51;83;137;Montserrat;x
+2226;96;96;96;Tortola;x
+2227;137;51;122;Saint Kitts;x
+2228;156;82;202;Martinique;x
+2229;68;91;108;Barbados;x
+2230;51;137;91;Guadeloupe;x
+2231;82;153;202;Saint Lucia;x
+2232;112;240;1;Dominica;x
+2233;240;240;1;Grenada;x
+2234;176;48;128;Curacao;x
+2235;96;101;78;Aruba;x
+2236;236;192;97;Saint Martin;x
+2237;112;112;128;Trinidad;x
+2238;212;150;177;Tobago;x
+2239;160;1;17;Georgetown;x
+2240;160;128;17;Paramaribo;x
+2241;128;192;80;Cayenne;x
+2242;192;192;208;Mahdia;x
+2243;108;98;81;Essequibo;x
+2244;92;34;57;Christmas Island;x
+2245;33;1;144;Apetina;x
+2246;159;0;144;Maripasoula;x
+2247;128;0;80;Bogota;x
+2248;0;192;144;Ibaque;x
+2249;216;216;228;Tunja;x
+2250;128;64;144;Manizales;x
+2251;128;192;144;Cucuta;x
+2252;208;112;64;Medellin;x
+2253;0;64;144;Quibdo;x
+2254;112;176;1;Cartagena de Indias;x
+2255;150;90;46;Barranquilla;x
+2256;128;128;80;Cali;x
+2257;0;0;208;Popayan;x
+2258;0;128;80;Buenaventura;x
+2259;128;0;208;Pasto;x
+2260;64;64;144;San Jose del Gauaviare;x
+2261;191;191;144;Obando;x
+2262;135;86;61;Casanare;x
+2263;64;192;17;El Encanto;x
+2264;176;240;128;Caracas;x
+2265;192;64;17;Guanare;x
+2266;128;64;208;Calabozo;x
+2267;1;191;208;Cumana;x
+2268;80;112;65;San Felipe;x
+2269;240;112;1;Guiria;x
+2270;239;48;1;Maracaibo;x
+2271;219;219;60;Valera;x
+2272;240;176;1;Coro;x
+2273;112;48;128;Barquisimento;x
+2274;192;64;208;Barinas;x
+2275;128;192;208;Angostura;x
+2276;112;112;1;Curiapo;x
+2277;96;96;137;El Jobal;x
+2278;192;192;17;San Fernado de Atabapo;x
+2279;126;201;145;Quito;x
+2280;192;128;80;Guayaquil;x
+2281;192;0;80;Esmereldas;x
+2282;64;0;208;Loja;x
+2283;141;107;149;Zamora;x
+2284;233;192;243;Tena;x
+2285;110;202;98;Galapagos;x
+2286;115;124;126;Iquitos;x
+2287;128;64;80;Yurimagues;x
+2288;128;128;208;Yuncos;x
+2289;0;128;208;Puca Urco;x
+2290;110;219;161;Cajamarca;x
+2291;192;0;208;Piura;x
+2292;64;128;208;Trujillo;x
+2293;160;192;176;Huanuco;x
+2294;118;145;117;Moyobamba;x
+2295;96;192;48;Lima;x
+2296;223;0;176;Huancavelica;x
+2297;96;64;176;Ica;x
+2298;32;192;176;Huaraz;x
+2299;223;192;48;Ayacucho;x
+2300;164;115;91;Pucallpa;x
+2301;28;165;97;Puerto Maldonado;x
+2302;223;64;48;Cusco;x
+2303;114;105;139;Puno;x
+2304;223;192;176;Arequipa;x
+2305;32;0;240;Antofagasta;x
+2306;159;205;21;Sorocaba;x
+2307;16;64;208;Iquique;x
+2308;160;0;112;Arica;x
+2309;32;128;112;Calama;x
+2310;225;188;206;La Paz;x
+2311;160;64;48;Cochabamba;x
+2312;160;64;176;Oruro;x
+2313;96;128;240;Chuquisaca;x
+2314;160;128;112;Potosi;x
+2315;223;0;240;Tarija;x
+2316;96;0;240;Santa Cruz;x
+2317;223;128;176;San Ignacio;x
+2318;223;128;112;Robore;x
+2319;160;192;240;Santa Ana;x
+2320;224;0;16;Riberalta;x
+2321;64;64;208;Cobija;x
+2322;208;128;80;Copiapo;x
+2323;208;0;208;La Serena;x
+2324;208;128;208;Santiago;x
+2325;80;128;208;Valparaiso;x
+2326;112;224;144;Vina del Mar;x
+2327;16;192;80;Talca;x
+2328;144;64;208;Valdivia;x
+2329;144;192;208;Temuco;x
+2330;144;64;80;Cauquenes;x
+2331;144;192;80;Chillan;x
+2332;16;192;208;Osorno;x
+2333;48;224;16;Puerto Aisen;x
+2334;176;224;16;Punta Arenas;x
+2335;112;96;144;Porvenir;x
+2336;154;121;220;Easter Island;x
+2337;0;33;176;Fortin Falcon;x
+2338;96;192;240;Puerto Gaurani;x
+2339;205;159;68;Asuncion;x
+2340;205;30;68;Pilar;x
+2341;54;159;68;Encarnacion;x
+2342;205;31;230;San Pedro;x
+2343;54;30;230;Concepcion;x
+2344;164;110;210;Montevideo;x
+2345;230;159;6;Paysandu;x
+2346;6;30;230;Tacumba;x
+2347;68;159;6;Melo;x
+2348;176;192;144;Buenos Aires;x
+2349;49;128;80;Junin;x
+2350;49;192;144;Azul;x
+2351;176;65;144;La Plata;x
+2352;91;98;146;Mar del Plata;x
+2353;176;127;80;Trenque Lanquen;x
+2354;176;65;17;Bahia Blanca;x
+2355;240;1;144;Carmen;x
+2356;156;33;49;Corrientes;x
+2357;177;150;195;Curuzu Cuatia;x
+2358;165;120;126;Santo Tomas;x
+2359;240;64;17;Colon;x
+2360;112;64;16;Parana;x
+2361;176;1;80;Santa Espiritu;x
+2362;112;192;144;Reconquista;x
+2363;49;192;16;Rosario;x
+2364;176;192;17;Resistencia;x
+2365;160;128;240;Villa Angela;x
+2366;44;108;80;Formosa;x
+2367;160;65;112;Xolotas;x
+2368;32;128;240;Salta;x
+2369;32;64;240;Jujuy;x
+2370;223;0;48;Cochinoca;x
+2371;223;128;240;Equia;x
+2372;32;64;112;Rivadavia;x
+2373;208;192;80;Tucuman;x
+2374;208;192;208;Catamarca;x
+2375;239;185;203;Vinchina;x
+2376;80;64;208;Santiago del Estero;x
+2377;176;0;80;Anatuya;x
+2378;208;65;208;Mailin;x
+2379;176;209;106;Cordoba de Argentina;x
+2380;240;128;144;Villa Nueva;x
+2381;112;128;144;Rio Cuarto;x
+2382;32;191;113;Renanco;x
+2383;112;0;144;San Luis;x
+2384;239;128;16;Mercedes;x
+2385;176;0;16;La Rioja;x
+2386;48;128;16;Santa Rita;x
+2387;176;128;16;San Juan;x
+2388;16;0;208;Calingasta;x
+2389;48;0;144;Mendoza;x
+2390;176;0;144;San Rafael;x
+2391;142;146;147;Nequen;x
+2392;176;128;144;Viedma;x
+2393;240;1;16;Telen;x
+2394;16;128;208;Bariloche;x
+2395;112;128;17;Curaco;x
+2396;176;32;80;Rawson;x
+2397;176;96;144;Esquel;x
+2398;140;125;169;Puerto Deseado;x
+2399;239;160;16;Rio Galleagos;x
+2400;239;96;144;Rio Grande;x
+2401;192;64;144;Marabitanas;x
+2402;111;194;208;Manaus;x
+2403;224;1;17;Cachoeira;x
+2404;138;90;98;Tefe;x
+2405;224;128;144;Borba;x
+2406;92;34;80;Cocos Islands;x
+2407;64;192;144;Tabatinga;x
+2408;65;192;81;Oriximina;x
+2409;68;108;99;Saint Vincent;x
+2410;160;65;17;Belem;x
+2411;96;128;144;Santarem;x
+2412;160;128;144;Obidos;x
+2413;53;100;30;Maraba;x
+2414;96;1;144;Amapa;x
+2415;224;1;144;Macapa;x
+2416;198;206;210;Dourados;x
+2417;1;65;208;Vila Bela;x
+2418;191;32;49;Cuiaba;x
+2419;0;118;230;Corumba;x
+2420;157;54;21;Iguatemi;x
+2421;83;118;68;Vila Boa;x
+2422;64;159;48;Aganja;x
+2423;160;65;144;Palmas;x
+2424;33;192;17;Sao Luis;x
+2425;160;192;17;Chapada;x
+2426;160;192;144;Teresina;x
+2427;33;192;144;Oieras;x
+2428;160;1;80;Paraiba;x
+2429;131;92;31;Fortaleza;x
+2430;224;65;17;Crato;x
+2431;96;65;144;Natal;x
+2432;33;128;80;Recife;x
+2433;96;192;17;Cabrobo;x
+2434;160;128;80;Maceio;x
+2435;192;160;112;Aracaju;x
+2436;1;160;176;Salvador de Bahia;x
+2437;1;97;48;Juazeiro;x
+2438;192;160;48;Vila do Barra;x
+2439;159;13;137;Porto Seguro;x
+2440;192;160;176;Vitoria da Conquista;x
+2441;132;153;248;Ouro Preto;x
+2442;0;118;68;Sabara;x
+2443;205;159;6;Januaria;x
+2444;30;12;136;Paracatu;x
+2445;30;205;21;Uberaba;x
+2446;30;54;137;Sao Joao del Rey;x
+2447;31;205;137;Rio de Janeiro;x
+2448;159;205;137;Campos;x
+2449;150;114;142;Vitoria;x
+2450;83;205;137;Sao Paulo;x
+2451;157;54;136;Santos;x
+2452;205;123;21;Campinas;x
+2453;128;59;54;Assis;x
+2454;160;128;48;Fiji;x
+2455;41;141;108;Iguape;x
+2456;141;66;107;Araraquara;x
+2457;0;54;137;Curitiba;x
+2458;83;205;21;Garapuava;x
+2459;237;205;21;Lajes;x
+2460;150;110;176;Castro;x
+2461;165;114;56;Desterro;x
+2462;168;131;135;Sao Miguel;x
+2463;68;199;176;Porto Alegre;x
+2464;205;158;205;Pelotas;x
+2465;118;0;230;Passo Fundo;x
+2466;137;83;181;Santa Maria;x
+2467;230;159;100;Alegrete;x
+2468;207;64;48;Sydney;x
+2469;81;224;208;Newcastle;x
+2470;208;96;208;Port Macquarie;x
+2471;130;27;196;Ophir;x
+2472;80;128;48;Eden;x
+2473;196;27;150;Wagga Wagga;x
+2474;17;96;80;Moree;x
+2475;17;96;207;Broken Hill;x
+2476;27;196;166;Melbourne;x
+2477;144;64;48;Warmambool;x
+2478;27;118;196;Ballarat;x
+2479;17;192;48;Sale;x
+2480;196;126;27;Beechworth;x
+2481;79;27;196;Swan Hill;x
+2482;17;64;48;Tasmania;x
+2483;208;224;208;Brisbane;x
+2484;207;223;80;Gladstone;x
+2485;207;96;80;Clermont;x
+2486;80;96;208;Toowoomba;x
+2487;80;223;80;Townsville;x
+2488;144;192;16;Cooktown;x
+2489;80;128;144;Longreach;x
+2490;16;223;80;Charleville;x
+2491;208;160;208;Adelaide;x
+2492;198;208;160;Port Lincolon;x
+2493;160;186;208;Robe;x
+2494;144;223;80;Port Augusta;x
+2495;144;96;207;Oodnadatta;x
+2496;17;223;207;Tarcoola;x
+2497;208;32;208;Perth;x
+2498;141;159;80;Kojonup;x
+2499;159;141;80;Geraldton;x
+2500;81;33;208;Kalgoorlie;x
+2501;214;140;214;Broome;x
+2502;80;159;80;Dampier;x
+2503;208;160;81;Wiluna;x
+2504;81;160;208;Esperance;x
+2505;207;0;144;Palmerston;x
+2506;80;0;144;Tennant Creek;x
+2507;144;96;80;Alice Springs;x
+2508;64;176;96;Norfolk Island;x
+2509;176;188;148;Auckland;x
+2510;144;0;240;New Plymouth;x
+2511;16;128;240;Napier;x
+2512;16;0;240;Wellington;x
+2513;208;192;48;Dunedin;x
+2514;80;192;176;Hokitika;x
+2515;80;64;176;Christchurch;x
+2516;208;64;176;Nelson;x
+2517;85;113;65;Guam;x
+2518;128;192;113;Palau;x
+2519;65;65;112;Yap;x
+2520;217;140;218;Taveuni;x
+2521;112;240;224;Saipan;x
+2522;128;128;17;Marshall Islands;x
+2523;192;65;240;Nauru;x
+2524;239;208;192;Wake;x
+2525;239;80;192;Marcus;x
+2526;87;200;76;Palmyra;x
+2527;128;192;17;Gilbert Islands;x
+2528;113;144;64;Port Moresby;x
+2529;144;64;144;Kerema;x
+2530;16;64;144;Lae;x
+2531;87;121;177;Madang;x
+2532;192;65;81;Forte Sao Joaquim;x
+2533;49;97;160;Targu Mures;x
+2534;208;64;144;Solomon Islands;x
+2535;80;64;144;New Hebrides;x
+2536;208;192;16;Santa Cruz Islands;x
+2537;16;192;144;New Britain;x
+2538;17;224;33;Novi Sad;x
+2539;80;192;16;Bougainville;x
+2540;32;128;48;Tonga;x
+2541;128;128;144;Ellice Islands;x
+2542;188;76;110;Wallis And Futuna;x
+2543;192;0;16;Apia;x
+2544;245;217;121;Pago Pago;x
+2545;241;219;243;Rarotonga;x
+2546;153;130;147;Tongareva;x
+2547;167;248;161;Tokelau;x
+2548;66;113;20;Niue;x
+2549;65;192;208;Tarauaca;x
+2550;33;64;144;Forte do Principe;x
+2551;1;42;176;Marquesas;x
+2552;179;68;102;Pitcairn;x
+2553;1;129;176;Tuamotus;x
+2554;205;159;230;Posadas;x
+2555;128;32;128;Augusta;x
+2556;128;112;64;Asheville;x
+2557;0;64;223;Esbjerg;x
+2558;112;64;208;De Aar;x
+2559;240;17;33;Suhaj;x
+2560;17;65;160;Darmstadt;x
+2561;208;128;33;Siegburg;x
+2562;154;80;102;Tainan;x
+2563;118;115;79;Safi;x
+2564;177;165;165;Salima;x
+2565;210;202;74;Cebu;x
+2566;217;148;14;Agartala;x
+2567;14;139;204;Gaeta;x
+2568;17;192;224;Lugano;x
+2569;245;246;194;Niksic;x
+2570;196;198;26;Beauvais;x
+2571;144;128;240;Tauranga;x
+2572;214;169;216;Nan;x
+2573;112;176;192;Mboul;x
+2574;171;222;170;Mochudi;x
+2575;170;34;135;Ipoh;x
+2576;1;192;48;Natuna;x
+2577;161;47;130;Pljevlja;x
+2578;0;112;53;Tacna;x
+2579;113;65;77;Truk;x
+2580;233;198;113;Stara Ladoga;x
+2581;160;97;175;Mataka;x
+2582;144;160;224;Kotor;x
+2583;140;98;146;Cetinje;x
+2584;144;97;224;Bielsko;x
+2585;177;3;22;Matan as Sarah;x
+2586;9;6;150;Al-Ahsa;x
+2587;51;9;23;Kola;x
+2588;93;12;151;Onega;x
+2589;135;15;24;Kanin;x
+2590;177;18;152;Chukchi;x
+2591;51;24;153;Sisimiut;x
+2592;93;27;26;Ungava;x
+2593;135;30;154;Fort George;x
+2594;177;33;27;Pickle;x
+2595;9;36;155;Nunavut;x
+2596;93;42;156;Fort Resolution;x
+2597;135;45;29;Fort Vermilion;x
+2598;177;48;157;Fort Liard;x
+2599;51;54;158;Fort Yukon;x
+2600;93;57;31;Altamira;x
+2601;46;66;133;Sandy Desert;x
+2602;88;69;6;Roebourne;x
+2603;130;72;134;Tanami;x
+2604;172;75;77;Normanton;x
+2605;174;45;172;Gibson's Desert;x
+2606;46;81;8;Aktogay;x
+2607;88;84;136;Taklamakan;x
+2608;130;87;9;Khatgal;x
+2609;48;171;193;Araouane;x
+2610;90;174;66;Oral;x
+2611;132;177;194;Turgay;x
+2612;174;180;67;Zhambyl;x
+2613;6;183;195;Novyj Urengoj;x
+2614;48;186;68;Panajevsk;x
+2615;132;192;69;Sidorovsk;x
+2616;174;195;197;Korf;x
+2617;6;198;70;Amgun;x
+2618;48;201;198;Talaya;x
+2619;90;204;71;Indigirka;x
+2620;132;207;199;Kolyma;x
+2621;174;210;72;Srednekolymsk;x
+2622;126;159;4;Majn;x
+2623;233;177;121;Midway Island;x
+2624;42;48;8;Loango;x
+2625;84;51;136;Port Hope Simpson;x
+2626;126;54;9;Port Harrison;x
+2627;64;96;64;Fort Chimo;x
+2628;168;57;137;Attawapiskat;x
+2629;0;60;10;Beatton River;x
+2630;42;63;138;Fairbanks;x
+2631;84;66;11;Yukon;x
+2632;126;69;139;Isortoq;x
+2633;168;72;12;Palana;x
+2634;0;75;140;Khatyrka;x
+2635;42;78;13;Kariba;x
+2636;84;81;141;Aasiaat;x
+2637;126;84;14;Navarin;x
+2638;168;87;142;Sugoj;x
+2639;0;90;15;Susuman;x
+2640;42;93;143;Ugolnoe;x
+2641;84;96;16;Ajan;x
+2642;126;99;144;Tomtor;x
+2643;168;102;17;Honuu;x
+2644;0;105;145;Tommot;x
+2645;42;108;18;Artemovskij;x
+2646;42;153;153;Niznevartovsk;x
+2647;126;114;19;Deputackij;x
+2648;168;117;147;Handyga;x
+2649;0;120;20;Tomtor;x
+2650;42;123;148;Malykaj;x
+2651;84;126;21;Zigansk;x
+2652;126;129;149;Kular;x
+2653;168;132;22;Saskylah;x
+2654;0;135;150;Hatanga;x
+2655;42;138;23;Essej;x
+2656;84;141;151;Vanavara;x
+2657;126;144;24;Svetlogorsk;x
+2658;168;147;152;Kheta;x
+2659;0;150;25;Guba;x
+2660;42;153;3;Anuj;x
+2661;6;0;200;Anjuj;x
+2662;84;156;131;Ambarcik;x
+2663;168;162;32;Manily;x
+2664;0;165;5;Omolon;x
+2665;42;168;133;Cokurdah;x
+2666;84;171;6;Komsomolskiy;x
+2667;126;174;134;Kazace;x
+2668;168;177;7;Adyca;x
+2669;0;180;135;Majja;x
+2670;42;183;8;Tiksi;x
+2671;84;186;136;Lena;x
+2672;126;189;9;Borogoncy;x
+2673;168;192;137;Olenek;x
+2674;0;195;10;Novyj Kajak;x
+2675;42;198;138;Ajhal;x
+2676;84;201;11;Kirensk;x
+2677;126;204;139;Nepa;x
+2678;168;207;12;Bulgan;x
+2679;0;210;140;Khovd;x
+2680;84;33;146;Dudinka;x
+2681;126;36;19;Taz;x
+2682;168;39;147;Nadym;x
+2683;0;42;20;Vasjugan;x
+2684;42;45;148;Aksarka;x
+2685;84;48;21;Njagan;x
+2686;126;51;149;Isim;x
+2687;168;54;22;Amderma;x
+2688;126;75;224;Inta;x
+2689;168;78;97;Vojvoz;x
+2690;0;81;225;Gornopravdinsk;x
+2691;42;84;98;Vorgovo;x
+2692;84;87;226;Kostino;x
+2693;168;93;227;Kotuj;x
+2694;0;96;0;Erbogacen;x
+2695;42;99;128;Lensk;x
+2696;84;102;1;Nerjungri;x
+2697;52;105;128;Tygda;x
+2698;42;3;78;Slavgorod;x
+2699;133;33;4;Izma;x
+2700;10;120;195;Usogorsk;x
+2701;94;15;21;Cunyja;x
+2702;4;78;135;Aralsk;x
+2703;1;200;200;Vänern;x
+2704;2;200;250;Vättern;x
+2705;3;220;250;Gulf of Bothnia;x
+2706;4;250;250;Ålands Hav;x
+2707;5;200;200;Gulf of Finland;x
+2708;6;200;250;Western Baltic Sea;x
+2709;7;220;250;Gulf of Riga;x
+2710;8;250;250;Southern Baltic Sea;x
+2711;9;200;200;Öresund;x
+2712;10;200;250;Kattegat;x
+2713;11;220;250;Peipsi Järv;x
+2714;12;250;250;Ladoga;x
+2715;13;200;200;Onega;x
+2716;14;200;250;White Sea;x
+2717;15;220;250;Lofoten Sea;x
+2718;16;250;250;Northern Norwegian Sea;x
+2719;17;200;200;Southern Norwegian Sea;x
+2720;18;200;250;Skagerrack;x
+2721;19;220;250;Helgoland Bight;x
+2722;20;250;250;Coast of Holland;x
+2723;21;200;200;Dogger Bank;x
+2724;22;200;250;Straits of Dover;x
+2725;23;220;250;The Channel;x
+2726;24;250;250;Lands End;x
+2727;25;200;200;Coast of Britanny;x
+2728;26;200;250;Quiberon Bay;x
+2729;27;220;250;Cote D'Argent;x
+2730;28;250;250;Bay of Biscay;x
+2731;29;200;200;Cantabrian Sea;x
+2732;30;200;250;Tyne;x
+2733;31;220;250;Firth of Forth;x
+2734;32;250;250;The North Sea;x
+2735;33;200;200;Moray Firth;x
+2736;34;200;250;North Channel;x
+2737;35;220;250;Irish Sea;x
+2738;36;250;250;St. George's Channel;x
+2739;37;200;200;Donegal Bay;x
+2740;38;200;250;Dingle Bay;x
+2741;39;220;250;Celtic Sea;x
+2742;40;250;250;Western Approaches;x
+2743;41;200;200;Finisterre Bay;x
+2744;42;200;250;Lusitanian Sea;x
+2745;43;220;250;Gulf of Cadiz;x
+2746;44;250;250;Straits of Gibraltar;x
+2747;45;200;200;Gulf of Almeira;x
+2748;46;200;250;Gulf of Valencia;x
+2749;47;220;250;Gulf of Lion;x
+2750;48;250;250;Cote D'Azur;x
+2751;49;200;200;Ligurian Sea;x
+2752;50;200;250;Gulf of Mallocra;x
+2753;51;220;250;Western Mediterranean;x
+2754;52;250;250;Barbary Coast;x
+2755;53;200;200;Cape Bon;x
+2756;54;200;250;Tyrrenean Sea;x
+2757;55;220;250;Bay of Naples;x
+2758;56;250;250;Gulf of Gabes;x
+2759;57;200;200;Malta Channel;x
+2760;58;200;250;Straits of Messina;x
+2761;59;220;250;Gulf of Venice;x
+2762;60;250;250;Adriatic Sea;x
+2763;61;200;200;Straits of Otranto;x
+2764;62;200;250;Gulf of Taranto;x
+2765;63;220;250;Ionian Sea;x
+2766;64;250;250;Gulf of Sirte;x
+2767;65;200;200;Gulf of Tobruk;x
+2768;66;200;250;Bay of Alexandrian;x
+2769;67;220;250;Palestinian Coast;x
+2770;68;250;250;Gulf of Cyprus;x
+2771;69;200;200;Sea of Crete;x
+2772;70;200;250;Aegean Sea;x
+2773;71;220;250;Sea of Marmara;x
+2774;72;250;250;Gulf of Varna;x
+2775;73;200;200;Gulf of Odessa;x
+2776;74;200;250;Sea of Azov;x
+2777;75;220;250;Eastern Black Sea;x
+2778;76;250;250;Lake Balaton;x
+2779;77;200;200;Caspian Sea;x
+2780;78;200;250;Aral Sea;x
+2781;79;220;250;Gulf of Suez;x
+2782;80;250;250;Red Sea;x
+2783;81;200;200;Straits of Obokk;x
+2784;82;200;250;Bal el Mandeb;x
+2785;83;220;250;Coast of Mascate;x
+2786;84;250;250;Mascate Coast;x
+2787;85;200;200;Straits of Hormuz;x
+2788;86;200;250;Persian Gulf;x
+2789;87;220;250;Gulf of Indus;x
+2790;88;250;250;Gulf of Gujarat;x
+2791;89;200;200;Laquedive Islands;x
+2792;90;200;250;Coast of Malabar;x
+2793;91;220;250;Comorin Cape;x
+2794;92;250;250;Coast of Caramandel;x
+2795;93;200;200;Coast of Orissa;x
+2796;94;200;250;Ganges Delta;x
+2797;95;220;250;Akyab Bay;x
+2798;96;250;250;Irrawady Delta;x
+2799;97;200;200;Andaman Sea;x
+2800;98;200;250;Mergui Archipelago;x
+2801;99;220;250;Straits of Malacca;x
+2802;100;250;250;Nicobar Isles;x
+2803;101;200;200;Coast of Atjeh;x
+2804;102;200;250;Coast of Sumatra;x
+2805;103;220;250;Christmas Island;x
+2806;104;250;250;Coast of Java;x
+2807;105;200;200;Coast of Surabaya;x
+2808;106;200;250;Straits of Lombok;x
+2809;107;220;250;Timor Sea;x
+2810;108;250;250;The Moluccas;x
+2811;109;200;200;Java Sea;x
+2812;110;200;250;Straits of Makassar;x
+2813;111;220;250;Karimata Strait;x
+2814;112;250;250;Straits of Johore;x
+2815;113;200;200;Malayan Sea;x
+2816;114;200;250;Coast of Sarawk;x
+2817;115;220;250;Mekong Delta;x
+2818;116;250;250;Gulf of Siam;x
+2819;117;200;200;Cam Rah Bay;x
+2820;118;200;250;South China Sea;x
+2821;119;220;250;Coast of Brunei;x
+2822;120;250;250;Coast of Annam;x
+2823;121;200;200;Gulf of Tonkin;x
+2824;122;200;250;Guanghou Bay;x
+2825;123;220;250;Taiwan Strait;x
+2826;124;250;250;Yang Tse Delta;x
+2827;125;200;200;Yellow Sea;x
+2828;126;200;250;Korea Bay;x
+2829;127;220;250;South Korean Sea;x
+2830;0;251;251;North Korean Sea;x
+2831;1;201;201;Coast of Olga;x
+2832;2;201;251;Tatar Straits;x
+2833;3;221;251;Amur Delta;x
+2834;4;251;251;Baj of Ayan;x
+2835;5;201;201;Bay of Komenskoie;x
+2836;6;201;251;Coast of Kamchatska;x
+2837;7;221;251;Oktothsk Sea;x
+2838;8;251;251;Coast Sahkalin;x
+2839;9;201;201;Soya Strait;x
+2840;10;201;251;Tsugaru Strait;x
+2841;11;221;251;Sea of Japan;x
+2842;12;251;251;Amakusa Sea;x
+2843;13;201;201;Setto Inland Sea;x
+2844;14;201;251;Tokai Sea;x
+2845;15;221;251;Ryukyu Islands;x
+2846;16;251;251;Luzon Strait;x
+2847;17;201;201;Paracel Islands;x
+2848;18;201;251;Manila Bay;x
+2849;19;221;251;Coast of Luzon;x
+2850;20;251;251;Gulf of Leyte;x
+2851;21;201;201;Sulu Sea;x
+2852;22;201;251;Sea of Celebes;x
+2853;23;221;251;Sea of Ternete;x
+2854;24;251;251;Sea of Banda;x
+2855;25;201;201;Philipine Sea;x
+2856;26;201;251;Palau Islands;x
+2857;27;221;251;Biak Bay;x
+2858;28;251;251;Vilian Strait;x
+2859;29;201;201;Trobrian Islands;x
+2860;30;201;251;Torres Strait;x
+2861;31;221;251;Arafuam Sea;x
+2862;32;251;251;Kolepom Bay;x
+2863;33;201;201;Gulf of Carpentaria;x
+2864;34;201;251;Great Barrier Reef;x
+2865;35;221;251;Capricorn Bay;x
+2866;36;251;251;Cape Howe;x
+2867;37;201;201;Bass Strait;x
+2868;38;201;251;Kangaroo Island;x
+2869;39;221;251;Great Australian Bight;x
+2870;40;251;251;Cape Leuwiin;x
+2871;41;201;201;Shark Bay;x
+2872;42;201;251;Northwest Cape;x
+2873;43;221;251;King Sound;x
+2874;44;251;251;Tasman Sea;x
+2875;45;201;201;Southern Tasman Sea;x
+2876;46;201;251;Cook Strait;x
+2877;47;221;251;Northern Tasman Sea;x
+2878;48;251;251;Cape Farwell;x
+2879;49;201;201;Coast of New Zealand;x
+2880;50;201;251;Cantebury Bight;x
+2881;51;221;251;Sea of Antarctica;x
+2882;52;251;251;New Caledonian Sea;x
+2883;53;201;201;Coral Sea;x
+2884;54;201;251;Gilbert Sea;x
+2885;55;221;251;Solomon Sea;x
+2886;56;251;251;Nauru Island;x
+2887;57;201;201;Melanesia Sea;x
+2888;58;201;251;Micronesia Sea;x
+2889;59;221;251;Yap Islands;x
+2890;60;251;251;Mariana Islands;x
+2891;61;201;201;Tinian Sea;x
+2892;62;201;251;Iwo Jima Sea;x
+2893;63;221;251;Taihei Ocean;x
+2894;64;251;251;The Kuriles;x
+2895;65;201;201;Bay of Uka;x
+2896;66;201;251;Bay of Oljut;x
+2897;67;221;251;Bay of Anadyr;x
+2898;68;251;251;Western Pacific #12;x
+2899;69;201;201;Horn of Africa;x
+2900;70;201;251;Coast of Pepper;x
+2901;71;221;251;Zanzibar Strait;x
+2902;72;251;251;Mozambique Channel;x
+2903;73;201;201;Diego Suarez Bay;x
+2904;74;201;251;Western Arabian Sea;x
+2905;75;221;251;Eastern Arabian Sea;x
+2906;76;251;251;The Seychelles;x
+2907;77;201;201;Coast of Tamatave;x
+2908;78;201;251;The Mascareignes;x
+2909;79;221;251;Gulf of Zambeze;x
+2910;80;251;251;Coast of Natal;x
+2911;81;201;201;Coast of Transkei;x
+2912;82;201;251;Coast of Ciskei;x
+2913;83;221;251;Cape of Good Hope;x
+2914;84;251;251;Coast of Namibia;x
+2915;85;201;201;Coast of Angola;x
+2916;86;201;251;Gulf of Kongo;x
+2917;87;221;251;Coast of Cameroon;x
+2918;88;251;251;Gulf of Nigeria;x
+2919;89;201;201;Ivory Coast;x
+2920;90;201;251;Gold Coast;x
+2921;91;221;251;Coast of Gamvia;x
+2922;92;251;251;Coast of Guinea;x
+2923;93;201;201;Maueretanian Coast;x
+2924;94;201;251;Canarian Sea;x
+2925;95;221;251;Coast of Morocco;x
+2926;96;251;251;Jan Mayen Sea;x
+2927;97;201;201;Spitzberg Sea;x
+2928;98;201;251;Icelandic Sea;x
+2929;99;221;251;Shetland Straits;x
+2930;100;251;251;Coast of Iceland;x
+2931;101;201;201;Northeastern Atlantic;x
+2932;102;201;251;Rockall;x
+2933;103;221;251;Denmark Strait;x
+2934;104;251;251;Eastern Coast of Greenland;x
+2935;105;201;201;Western Coast of Greenland;x
+2936;106;201;251;Labrador Strait;x
+2937;107;221;251;Baffin Bay;x
+2938;108;251;251;Hudson Straits;x
+2939;109;201;201;James Bay;x
+2940;110;201;251;Western Hudson Bay;x
+2941;111;221;251;Eastern Hudson Bay;x
+2942;112;251;251;Foxe Bassin;x
+2943;113;201;201;Gulf of St. Lawrence;x
+2944;114;201;251;Cabot Strait;x
+2945;115;221;251;Bay of Fundy;x
+2946;116;251;251;Strait of Belle Isle;x
+2947;117;201;201;Fortune Bay;x
+2948;118;201;251;Notre Dame Bay;x
+2949;119;221;251;Labrador Sea;x
+2950;120;251;251;Greenland Sea;x
+2951;121;201;201;Northern Atlantic;x
+2952;122;201;251;Masschusetts Bay;x
+2953;123;221;251;Chesapaeake Bay;x
+2954;124;251;251;Cape Hatteras;x
+2955;125;201;201;Coast of Carolina;x
+2956;126;201;251;Coast of Florida;x
+2957;127;221;251;Sea of Sargassos;x
+2958;0;252;252;Florida Straits;x
+2959;1;202;202;Apalachee Bay;x
+2960;2;202;252;Mobile Bay;x
+2961;3;222;252;Galveston Bay;x
+2962;4;252;252;Tampico Bay;x
+2963;5;202;202;Yucatan Sea;x
+2964;6;202;252;Gulf of Mexico;x
+2965;7;222;252;Yucatan Channel;x
+2966;8;252;252;Belize Bay;x
+2967;9;202;202;Moscitos Coast;x
+2968;10;202;252;Gulf of Darien;x
+2969;11;222;252;Jamica Channel;x
+2970;12;252;252;Central Carribean;x
+2971;13;202;202;Northwestern Carribean;x
+2972;14;202;252;Venezualan Gulf;x
+2973;15;222;252;Venezuelan Sea;x
+2974;16;252;252;Eastern Carribean;x
+2975;17;202;202;Windward Islands;x
+2976;18;202;252;Lesser Antilles;x
+2977;19;222;252;Turks & Caicos Sea;x
+2978;20;252;252;Coast of Cuba;x
+2979;21;202;202;Coast of Hispaniola;x
+2980;22;202;252;Guyana Coast;x
+2981;23;222;252;Bay of Belem;x
+2982;24;252;252;Amazonas Gulf;x
+2983;25;202;202;Coast of Brazil;x
+2984;26;202;252;Coast of Recife;x
+2985;27;222;252;Coast of Pernambuc;x
+2986;28;252;252;Todos Santos Bay;x
+2987;29;202;202;Rio De Janeiro;x
+2988;30;202;252;Baia Parangua;x
+2989;31;222;252;Rio De La Plata;x
+2990;32;252;252;Bahia Blanca;x
+2991;33;202;202;Coast of Patagonia;x
+2992;34;202;252;Magellan Strait;x
+2993;35;222;252;South Chilean Coast;x
+2994;36;252;252;Coast of Chile;x
+2995;37;202;202;Atacama Coast;x
+2996;38;202;252;Arica Gulf;x
+2997;39;222;252;Arequipa Bay;x
+2998;40;252;252;Coast of Peru;x
+2999;41;202;202;Guayaguil Bay;x
+3000;42;202;252;Coast of Ecuador;x
+3001;43;222;252;Gulf of Panama;x
+3002;44;252;252;Bay of Costa Rica;x
+3003;45;202;202;Acapulco Bay;x
+3004;46;202;252;Manzazilla Bay;x
+3005;47;222;252;Mazatlan Bay;x
+3006;48;252;252;Gulf of California;x
+3007;49;202;202;Coast of Baja;x
+3008;50;202;252;Coast of California;x
+3009;51;222;252;Santa Catalina Islands;x
+3010;52;252;252;Coast of Oregon;x
+3011;53;202;202;Coast of Columbia;x
+3012;54;202;252;Hecate Strait;x
+3013;55;222;252;Gulf of Alaska;x
+3014;56;252;252;Coast of Alaska;x
+3015;57;202;202;Kuskowim Bay;x
+3016;58;202;252;Hatton Bank;x
+3017;59;222;252;Eastern Gibbs Fracture;x
+3018;60;252;252;Western Gibbs Fracture;x
+3019;61;202;202;Iberian Shelf;x
+3020;62;202;252;Sea of Azores;x
+3021;63;222;252;Corner Seamounts;x
+3022;64;252;252;New England Seamounts;x
+3023;65;202;202;Sable Island Bank;x
+3024;66;202;252;Blake Plataeu;x
+3025;67;222;252;West Bermuda Sea;x
+3026;68;252;252;East Bermuda Sea;x
+3027;69;202;202;Some Funny Seaname;x
+3028;70;202;252;Northern Guiana Basin;x
+3029;71;222;252;Guiana Basin;x
+3030;72;252;252;Southern Guiana Basin;x
+3031;73;202;202;Canary Approach;x
+3032;74;202;252;Cap Verde Approach;x
+3033;75;222;252;Central Atlantic #1;x
+3034;76;252;252;Central Atlantic #2;x
+3035;77;202;202;Central Atlantic #3;x
+3036;78;202;252;Central Atlantic #4;x
+3037;79;222;252;Romanche Gap;x
+3038;80;252;252;East Guinea Basin;x
+3039;81;202;202;West Guinea Basin;x
+3040;82;202;252;Coast of Falklands;x
+3041;83;222;252;New Georgia Islands;x
+3042;84;252;252;Western Atlantic #1;x
+3043;85;202;202;Western Atlantic #2;x
+3044;86;202;252;Western Atlantic #3;x
+3045;87;222;252;Western Atlantic #4;x
+3046;88;252;252;Western Atlantic #5;x
+3047;89;202;202;Western Atlantic #6;x
+3048;90;202;252;East of Magellans;x
+3049;91;222;252;Central Atlantic #5;x
+3050;92;252;252;Central Atlantic #6;x
+3051;93;202;202;Central Atlantic #7;x
+3052;94;202;252;Central Atlantic #8;x
+3053;95;222;252;Eastern Atlantic #1;x
+3054;96;252;252;Eastern Atlantic #2;x
+3055;97;202;202;Eastern Atlantic #3;x
+3056;98;202;252;Eastern Atlantic #4;x
+3057;99;222;252;Eastern Atlantic #5;x
+3058;100;252;252;Eastern Atlantic #6;x
+3059;101;202;202;Southern Atlantic #1;x
+3060;102;202;252;Southern Atlantic #2;x
+3061;103;222;252;Southern Atlantic #3;x
+3062;104;252;252;Southern Atlantic #4;x
+3063;105;202;202;Cape of Storms;x
+3064;106;202;252;Gulf of Bengal;x
+3065;107;222;252;Northen Bay of Bengal;x
+3066;108;252;252;Southern Bay of Bengal;x
+3067;109;202;202;Ceylon Sea;x
+3068;110;202;252;Coast of Maldives;x
+3069;111;222;252;Indian Ocean #1;x
+3070;112;252;252;Indian Ocean #2;x
+3071;113;202;202;Indian Ocean #3;x
+3072;114;202;252;Indian Ocean #4;x
+3073;115;222;252;Indian Ocean #5;x
+3074;116;252;252;Indian Ocean #6;x
+3075;117;202;202;Indian Ocean #7;x
+3076;118;202;252;Indian Ocean #8;x
+3077;119;222;252;Indian Ocean #9;x
+3078;120;252;252;Indian Ocean #10;x
+3079;121;202;202;Indian Ocean #11;x
+3080;122;202;252;Indian Ocean #12;x
+3081;123;222;252;Indian Ocean #13;x
+3082;124;252;252;Indian Ocean #14;x
+3083;125;202;202;Indian Ocean #15;x
+3084;126;202;252;Indian Ocean #16;x
+3085;127;222;252;Indian Ocean #17;x
+3086;0;253;253;Indian Ocean #18;x
+3087;1;203;203;Indian Ocean #19;x
+3088;2;203;253;Indian Ocean #20;x
+3089;3;223;253;Indian Ocean #21;x
+3090;4;253;253;Indian Ocean #22;x
+3091;5;203;203;Indian Ocean #23;x
+3092;6;203;253;Indian Ocean #24;x
+3093;7;223;253;Indian Ocean #25;x
+3094;8;253;253;Indian Ocean #26;x
+3095;9;203;203;Indian Ocean #27;x
+3096;10;203;253;Indian Ocean #28;x
+3097;11;223;253;Indian Ocean #29;x
+3098;12;253;253;Indian Ocean #30;x
+3099;13;203;203;Indian Ocean #31;x
+3100;14;203;253;Indian Ocean #32;x
+3101;15;223;253;Lake Tchad;x
+3102;16;253;253;Lake Victoria;x
+3103;17;203;203;Lake Tangayika;x
+3104;18;203;253;Lake Malawi;x
+3105;19;223;253;Indian Ocean #33;x
+3106;20;253;253;Lake Balchasj;x
+3107;21;203;203;Lake Bajkal;x
+3108;22;203;253;Lake Dongting;x
+3109;23;223;253;Lake Titicaca;x
+3110;24;253;253;Lake Nicaragua;x
+3111;25;203;203;Northern Pacific #10;x
+3112;26;203;253;Lake Ontario;x
+3113;27;223;253;Lake Erie;x
+3114;28;253;253;Lake Huron;x
+3115;29;203;203;Lake Michigan;x
+3116;30;203;253;Lake Superior;x
+3117;31;223;253;Lake Nipigon;x
+3118;32;253;253;Lake Winnipeg;x
+3119;33;203;203;Western Pacific #1;x
+3120;34;203;253;Western Pacific #2;x
+3121;35;223;253;Western Pacific #3;x
+3122;36;253;253;Western Pacific #4;x
+3123;37;203;203;Western Pacific #5;x
+3124;38;203;253;Western Pacific #6;x
+3125;39;223;253;Western Pacific #7;x
+3126;40;253;253;Western Pacific #8;x
+3127;41;203;203;Western Pacific #9;x
+3128;42;203;253;Western Pacific #10;x
+3129;43;223;253;Western Pacific #11;x
+3130;44;253;253;Northern Pacific #1;x
+3131;45;203;203;Northern Pacific #2;x
+3132;46;203;253;Northern Pacific #3;x
+3133;47;223;253;Northern Pacific #4;x
+3134;48;253;253;Northern Pacific #5;x
+3135;49;203;203;Northern Pacific #6;x
+3136;50;203;253;Northern Pacific #7;x
+3137;51;223;253;Northern Pacific #8;x
+3138;52;253;253;Northern Pacific #9;x
+3139;53;203;203;Northern Pacific #10;x
+3140;54;203;253;Central Pacific #1;x
+3141;55;223;253;Central Pacific #2;x
+3142;56;253;253;Central Pacific #3;x
+3143;57;203;203;Central Pacific #4;x
+3144;58;203;253;Central Pacific #5;x
+3145;59;223;253;Central Pacific #6;x
+3146;60;253;253;Central Pacific #7;x
+3147;61;203;203;Central Pacific #8;x
+3148;62;203;253;Central Pacific #9;x
+3149;63;223;253;Central Pacific #10;x
+3150;64;253;253;Coast of Hawaii;x
+3151;65;203;203;Central Pacific #11;x
+3152;66;203;253;Central Pacific #12;x
+3153;67;223;253;Central Pacific #13;x
+3154;68;253;253;Eastern Pacific #1;x
+3155;69;203;203;Eastern Pacific #2;x
+3156;70;203;253;Eastern Pacific #3;x
+3157;71;223;253;Eastern Pacific #4;x
+3158;72;253;253;Eastern Pacific #5;x
+3159;73;203;203;Eastern Pacific #6;x
+3160;74;203;253;Eastern Pacific #7;x
+3161;75;223;253;Eastern Pacific #8;x
+3162;76;253;253;Eastern Pacific #9;x
+3163;77;203;203;Eastern Pacific #10;x
+3164;78;203;253;Eastern Pacific #11;x
+3165;79;223;253;Eastern Pacific #12;x
+3166;80;253;253;Eastern Pacific #13;x
+3167;81;203;203;Eastern Pacific #14;x
+3168;82;203;253;Eastern Pacific #15;x
+3169;83;223;253;Eastern Pacific #16;x
+3170;84;223;253;Eastern Pacific #16;x
+3171;85;203;203;Southern Pacifc #1;x
+3172;86;203;253;Southern Pacific #2;x
+3173;87;223;253;Southern Pacific #3;x
+3174;88;253;253;Southern Pacific #4;x
+3175;89;203;203;Southern Pacific #5;x
+3176;90;203;253;Southern Pacific #6;x
+3177;91;223;253;Southern Pacific #7;x
+3178;92;253;253;Southern Pacific #8;x
+3179;93;203;203;Southern Pacific #9;x
+3180;94;203;253;Southern Pacific #10;x
+3181;95;223;253;Southern Pacific #11;x
+3182;96;253;253;Southern Pacific #12;x
+3183;97;203;203;Southern Pacific #13;x
+3184;98;203;253;Southern Pacific #14;x
+3185;99;223;253;Southern Pacific #15;x
+3186;100;253;253;Southern Pacific #16;x
+3187;101;203;203;Southern Pacific #17;x
+3188;102;203;253;Southern Pacific #18;x
+3189;103;223;253;Southern Pacific #19;x
+3190;104;203;203;Southern Pacific #20;x
+3191;11;224;254;Southern Pacific #21;x
+3192;14;224;254;Southern Pacific #22;x
+3193;107;223;253;Southern Pacific #23;x
+3194;108;253;253;Southern Pacific #24;x
+3195;109;203;203;Southern Pacific #25;x
+3196;110;203;253;Southern Pacific #26;x
+3197;10;254;224;Southern Pacific #27;x
+3198;112;253;253;Southern Pacific #28;x
+3199;113;203;203;Southern Pacific #29;x
+3200;114;203;253;Western Atlantic #7;x
+3201;115;223;253;Western Atlantic #8;x
+3202;116;203;203;Western Atlantic #9;x
+3203;117;203;253;Western Atlantic #10;x
+3204;118;223;253;Western Atlantic #11;x
+3205;119;253;253;Central Atlantic #9;x
+3206;120;203;203;Central Atlantic #10;x
+3207;121;203;253;Central Atlantic #11;x
+3208;122;223;253;Central Atlantic #12;x
+3209;123;253;253;Central Atlantic #13;x
+3210;124;203;203;Central Atlantic #14;x
+3211;125;203;253;Central Atlantic #15;x
+3212;2;204;254;Indian Ocean #37;x
+3213;127;203;253;Indian Ocean #34;x
+3214;0;253;254;Indian Ocean #35;x
+3215;1;254;224;Indian Ocean #36;x
+3216;13;254;224;Southern Pacific #30;x
+3217;3;204;254;Southern Pacific #31;x
+3218;4;224;254;Southern Pacific #32;x
+3219;12;254;254;Southern Pacific #33;x
+3220;28;214;224;Southern Pacific #34;x
+3221;7;254;224;Southern Pacific #35;x
+3222;8;224;254;Southern Pacific #36;x
+3223;9;224;224;Southern Pacific #37;x
+3224;26;254;254;Lake Tana;x
+3225;27;214;254;Great Salt Lake;x
+3226;15;204;254;Indian Ocean #38;x
+3227;16;204;224;Great Slave Lake;x
+3228;17;254;224;Lake Athabasca;x
+3229;18;254;204;Reindeer Lake;x
+3230;19;204;254;Gulf of Ob;x
+3231;20;224;204;Lake Van;x
+3232;21;254;204;Lake Urmia;x
+3233;22;204;224;Issyk Kul;x
+3234;23;224;224;Qinghai Lake;x
+3235;24;204;254;Lake Poyang;x
+3236;25;224;204;Lake Rudolf;x
+3237;29;215;204;Northern Atlantic #2;x
+3238;30;204;254;Lake Mweru;x
+3239;31;254;204;Lake Champlain;x
+3240;32;224;204;Lake Poopo;x
+3241;32;204;224;Arctic Ocean;x
+3242;126;233;253;Northern Atlantic #3;x
+3243;111;223;253;Southern Pacific #38;x
+3244;5;204;254;Western Pacific #13;x
+3245;106;203;253;Southern Pacific #39;x
+3246;49;150;138;Jan Mayen;x
+3247;52;14;236;West Hawaii;x
+3248;53;14;240;West Magellan Strait;x 
+3249;255;147;0;Arctic Sea;x
+3250;162;0;255;Antarctic Sea;x
+3251;158;73;201;Arctic Islands;x
+3252;255;0;0;Antarctica;x
+;58;14;240;x;
+;59;14;244;x;
+;60;14;248;x;
+;61;14;232;x;
+;62;14;236;x
+;63;14;240;x
+;64;14;244;x
+;65;14;248;x
+;66;14;232;x
+;67;14;236;x
+;68;14;240;x
+;69;14;244;x
+;70;14;248;x
+;71;16;232;x
+;72;16;236;x
+;73;16;240;x
+;74;16;244;x
+;75;16;248;x
+;76;16;232;x
+;77;16;236;x
+;78;16;240;x
+;79;16;244;x
+;80;16;248;x
+;81;16;232;x
+;82;16;236;x
+;83;16;240;x
+;84;16;244;x
+;85;16;248;x
+;86;16;232;x
+;87;16;236;x
+;88;16;240;x
+;89;16;244;x
+;90;16;248;x
+;91;16;232;x
+;92;16;236;x
+;93;16;240;x
+;94;16;244;x
+;95;16;248;x
+;96;16;232;x
+;97;16;236;x
+;98;16;240;x
+;99;16;244;x
+;100;16;248;x
+;101;16;232;x
+;102;16;236;x
+;103;16;240;x
+;104;16;244;x
+;105;16;248;x
+;106;16;232;x
+;107;16;236;x
+;108;16;240;x
+;109;16;244;x

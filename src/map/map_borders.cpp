@@ -337,7 +337,7 @@ bool is_river(uint8_t river_data) {
 
 // Set the river crossing bit for the province adjencencies
 // Will march a line between each adjecent province centroid. If it hits a river it will set the bit
-void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> river_data, glm::ivec2 map_size) {
+void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size) {
 	auto& world = context.state.world;
 	world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
 		auto frel = fatten(world, id);
@@ -402,9 +402,7 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 
 // Needs to be called after load_province_data for the mid points to set
 // and load_border_data for the province_adjacencies to be set
-std::vector<border_vertex> create_river_vertices(display_data const& data,
-												 parsers::scenario_building_context& context,
-												 std::vector<uint8_t> river_data) {
+std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
 	auto size = glm::ivec2(data.size_x, data.size_y);
 	load_river_crossings(context, river_data, size);
 
@@ -429,7 +427,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data,
 		} else if(river_r && river_u && !river_l && !river_d) { // Upper right
 			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_RIGHT);
 		} else if(river_r && river_d && !river_l && !river_u) { // Lower right
-			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_RIGHT);
 		} else {
 			if(river_u) {
 				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), direction::UP);

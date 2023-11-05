@@ -17,6 +17,8 @@ class minimap_mapmode_button : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override {
 		map_mode::set_map_mode(state, target);
+		// Update elements...
+		state.ui_state.root->impl_on_update(state);
 	}
 
 	bool is_active(sys::state& state) noexcept override {

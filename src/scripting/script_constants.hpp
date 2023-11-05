@@ -1708,8 +1708,9 @@ constexpr inline uint16_t has_factories_nation = 0x02D9;
 constexpr inline uint16_t is_coastal_state = 0x02DA;
 constexpr inline uint16_t has_building_bank = 0x02DB;
 constexpr inline uint16_t has_building_university = 0x02DC;
+constexpr inline uint16_t test = 0x02DD;
 
-constexpr inline uint16_t first_scope_code = 0x02DD;
+constexpr inline uint16_t first_scope_code = 0x02DE;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -2520,6 +2521,7 @@ inline constexpr int8_t data_sizes[] = {
 		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
 		0, // constexpr uint16_t has_building_bank = 0x02DB;
 		0, // constexpr uint16_t has_building_university = 0x02DC;
+		1, // constexpr inline uint16_t test = 0x02DD;
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
@@ -2560,6 +2562,7 @@ union payload {
 	dcon::reform_id ref_id;
 	dcon::reform_option_id ropt_id;
 	dcon::region_id reg_id;
+	dcon::stored_trigger_id str_id;
 
 	// variables::national_variable_tag nat_var;
 	// variables::national_flag_tag nat_flag;
@@ -2697,6 +2700,10 @@ union payload {
 	payload(dcon::reform_option_id i) {
 		memset(this, 0, sizeof(payload));
 		ropt_id = i;
+	}
+	payload(dcon::stored_trigger_id i) {
+		memset(this, 0, sizeof(payload));
+		str_id = i;
 	}
 };
 

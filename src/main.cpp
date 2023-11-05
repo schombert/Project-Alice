@@ -46,6 +46,7 @@
 #include "gui_effect_tooltips.cpp"
 #include "gui_modifier_tooltips.cpp"
 #include "commands.cpp"
+#include "network.cpp"
 #include "diplomatic_messages.cpp"
 #include "notifications.cpp"
 #include "map_tooltip.cpp"

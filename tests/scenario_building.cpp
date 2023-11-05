@@ -647,6 +647,16 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			}
 		}
 
+		if(!bool(state->military_definitions.infantry)) {
+			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
+		}
+		if(!bool(state->military_definitions.irregular)) {
+			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
+		}
+		if(!bool(state->military_definitions.artillery)) {
+			err.accumulated_errors += "No artillery (or equivalent unit type) found\n";
+		}
+
 		REQUIRE(err.accumulated_errors == "");
 
 		auto uit = context.map_of_unit_types.find("battleship");

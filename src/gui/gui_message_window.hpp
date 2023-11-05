@@ -146,6 +146,7 @@ public:
 class message_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
+	int32_t prev_size = 0;
 
 	simple_text_element_base* title_text = nullptr;
 	message_body_text* desc_text = nullptr;
@@ -221,10 +222,15 @@ public:
 			state.ui_pause.store(false, std::memory_order_release);
 			set_visible(state, false);
 		} else {
-			if(index >= int32_t(messages.size()))
-				index = 0;
-			else if(index < 0)
+			if(int32_t(messages.size()) > prev_size) {
 				index = int32_t(messages.size()) - 1;
+			} else {
+				if(index >= int32_t(messages.size()))
+					index = 0;
+				else if(index < 0)
+					index = int32_t(messages.size()) - 1;
+			}
+			prev_size = int32_t(messages.size());
 
 			count_text->set_text(state, std::to_string(int32_t(index) + 1) + "/" + std::to_string(int32_t(messages.size())));
 

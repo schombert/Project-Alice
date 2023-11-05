@@ -247,6 +247,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // 3.2+ only
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+	//glfwWindowHint(GLFW_SAMPLES, game_state.user_settings.antialias_level);
 
 	// Create window with graphics context
 	auto* window = glfwCreateWindow(params.size_x, params.size_y, "Project Alice", NULL, NULL);

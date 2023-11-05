@@ -911,7 +911,7 @@ public:
 		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
 		if(it != state.ui_state.tech_queue.end()) {
 			state.ui_state.tech_queue.erase(it);
-			parent->impl_on_update(state);
+			state.game_state_updated.store(true, std::memory_order::release);
 		}
 	}
 
@@ -919,8 +919,10 @@ public:
 		auto content = retrieve<dcon::technology_id>(state, parent);
 		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
 		if(it == state.ui_state.tech_queue.end()) {
-			state.ui_state.tech_queue.push_back(content);
-			parent->impl_on_update(state);
+			if(content != state.world.nation_get_current_research(state.local_player_nation) && !state.world.nation_get_active_technologies(state.local_player_nation, content)) { // don't add already researched or researching
+				state.ui_state.tech_queue.push_back(content);
+				parent->impl_on_update(state);
+			}
 		} else {
 			state.ui_state.tech_queue.erase(it);
 			state.ui_state.tech_queue.push_back(content);

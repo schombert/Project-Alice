@@ -106,11 +106,11 @@ enum class command_type : uint8_t {
 	notify_player_leaves = 110,
 	notify_player_oos = 111,
 	notify_save_loaded = 112,
-	notify_reload_state = 113,
-	notify_start_game = 114, // for synchronized "start game"
-	notify_stop_game = 115, // "go back to lobby"
+	notify_start_game = 113, // for synchronized "start game"
+	notify_stop_game = 114, // "go back to lobby"
 	advance_tick = 120,
 	chat_message = 121,
+	release_subject = 122,
 
 	// console cheats
 	c_switch_nation = 128,
@@ -422,6 +422,7 @@ struct advance_tick_data {
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
 	uint32_t seed;
+	dcon::nation_id target;
 };
 
 struct payload {
@@ -643,17 +644,17 @@ void cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source);
 
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
-bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
-bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost = false);
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 
@@ -783,6 +784,9 @@ bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, d
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 
+void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
@@ -796,7 +800,6 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
-void notify_reload_state(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 

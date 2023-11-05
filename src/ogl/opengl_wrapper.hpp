@@ -163,6 +163,16 @@ struct data {
 	GLuint checkmark_icon_tex = 0;
 	GLuint navy_icon_tex = 0;
 	GLuint army_icon_tex = 0;
+
+	GLuint msaa_framebuffer = 0;
+	GLuint msaa_texcolorbuffer = 0;
+	GLuint msaa_rbo = 0;
+	GLuint msaa_interbuffer = 0;
+	GLuint msaa_texture = 0;
+	GLuint msaa_vao = 0;
+	GLuint msaa_vbo = 0;
+	GLuint msaa_shader_program = 0;
+	bool msaa_enabled = false;
 };
 
 void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort
@@ -236,4 +246,9 @@ void render_new_text(sys::state const& state, char const* codepoints, uint32_t c
 void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id);
 void render_character(sys::state const& state, char codepoint, color_modification enabled, float x, float y, float size, text::font& f);
+
+bool msaa_enabled(sys::state const& state);
+void initialize_msaa(sys::state& state, int32_t x, int32_t y);
+void deinitialize_msaa(sys::state& state);
+
 } // namespace ogl

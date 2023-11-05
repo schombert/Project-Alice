@@ -372,38 +372,26 @@ class nation_government_description_text : public generic_multiline_text<dcon::n
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::nation_id nation_id) noexcept override {
 		if(politics::can_appoint_ruling_party(state, nation_id)) {
-			auto k = state.key_to_text_sequence.find(std::string_view("can_appoint_ruling_party"));
-			if(k != state.key_to_text_sequence.end()) {
-				auto box = text::open_layout_box(contents);
-				text::add_to_layout_box(state, contents, box, k->second, text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("can_appoint_ruling_party"));
+			text::close_layout_box(contents, box);
 		}
 		if(!politics::has_elections(state, nation_id)) {
-			auto k = state.key_to_text_sequence.find(std::string_view("term_for_life"));
-			if(k != state.key_to_text_sequence.end()) {
-				auto box = text::open_layout_box(contents);
-				text::add_to_layout_box(state, contents, box, k->second, text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("term_for_life"));
+			text::close_layout_box(contents, box);
 		} else if(politics::is_election_ongoing(state, nation_id)) {
-			auto k = state.key_to_text_sequence.find(std::string_view("election_info_in_gov"));
-			if(k != state.key_to_text_sequence.end()) {
-				auto box = text::open_layout_box(contents);
-				text::add_to_layout_box(state, contents, box, k->second, text::substitution_map{});
-				text::close_layout_box(contents, box);
-			}
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("election_info_in_gov"));
+			text::close_layout_box(contents, box);
 		} else {
-			auto k = state.key_to_text_sequence.find(std::string_view("next_election"));
-			if(k != state.key_to_text_sequence.end()) {
-				auto box = text::open_layout_box(contents);
-				auto election_start_date = politics::next_election_date(state, nation_id);
-				text::add_to_layout_box(state, contents, box, k->second, text::substitution_map{});
-				text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::black);
-				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), text::text_color::black);
-				text::close_layout_box(contents, box);
-			}
+			auto box = text::open_layout_box(contents);
+			auto election_start_date = politics::next_election_date(state, nation_id);
+			text::localised_format_box(state, contents, box, std::string_view("next_election"));
+			text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::black);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), text::text_color::black);
+			text::close_layout_box(contents, box);
 		}
 	}
 };

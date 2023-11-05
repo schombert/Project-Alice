@@ -122,7 +122,7 @@ else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field
+			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -stdlib=libc++ -std=c++20
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe -D_FORTIFY_SOURCE=2>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
@@ -163,6 +163,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/text
 	${PROJECT_SOURCE_DIR}/src/sound
 	${PROJECT_SOURCE_DIR}/src/map
+	${PROJECT_SOURCE_DIR}/src/network
 	${PROJECT_SOURCE_DIR}/src/nations
 	${PROJECT_SOURCE_DIR}/src/provinces
 	${PROJECT_SOURCE_DIR}/src/economy

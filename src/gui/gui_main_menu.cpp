@@ -166,6 +166,32 @@ void map_label_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void antialiasing_left::button_action(sys::state& state) noexcept {
+	if(state.user_settings.antialias_level > 0) {
+		state.user_settings.antialias_level -= 1;
+		ogl::deinitialize_msaa(state);
+		ogl::initialize_msaa(state, state.x_size, state.y_size);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void antialiasing_left::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.antialias_level == 0);
+}
+void antialiasing_right::button_action(sys::state& state) noexcept {
+	if(state.user_settings.antialias_level < 16) {
+		state.user_settings.antialias_level += 1;
+		ogl::deinitialize_msaa(state);
+		ogl::initialize_msaa(state, state.x_size, state.y_size);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void antialiasing_right::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.antialias_level >= 16);
+}
+void antialiasing_display::on_update(sys::state& state) noexcept {
+	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
+}
+
 /*
 class autosave_left : public button_element_base {
 public:
@@ -288,6 +314,19 @@ void effects_volume::on_update(sys::state& state) noexcept {
 }
 void interface_volume::on_update(sys::state& state) noexcept {
 	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
+}
+
+
+void music_player_left::button_action(sys::state& state) noexcept {
+	sound::play_new_track(state);
+	send(state, parent, notify_setting_update{});
+}
+void music_player_right::button_action(sys::state& state) noexcept {
+	sound::play_new_track(state);
+	send(state, parent, notify_setting_update{});
+}
+void music_player_display::on_update(sys::state& state) noexcept {
+	set_text(state, simple_fs::native_to_utf8(sound::get_current_track_name(state)));
 }
 
 } // namespace ui
