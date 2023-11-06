@@ -4253,11 +4253,16 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 		state.world.nation_set_is_player_controlled(source, false);
 	state.world.nation_set_is_player_controlled(target, true);
 	network::switch_player(state, target, source);
+
+	if(state.world.nation_get_is_player_controlled(target))
+		ai::remove_ai_data(state, target);
+
 	// TODO: To avoid abuse, clients will be given a random nation when they join the server
 	// that isn't occupied already by a player, this allows us to effectively use nation_id
 	// as a player identifier!
-	if(state.local_player_nation == source)
+	if(state.local_player_nation == source) {
 		state.local_player_nation = target;
+	}
 	// We will also re-assign all chat messages from this nation to the new one
 	for(auto& msg : state.ui_state.chat_messages)
 		if(bool(msg.source) && msg.source == source)
