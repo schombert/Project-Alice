@@ -33,19 +33,23 @@
 std::vector<uint32_t> select_states_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
-	std::vector<uint32_t> prov_color(texture_size * 2);
+	std::vector<uint32_t> prov_color(texture_size * 2, 0);
+	for(const auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+		prov_color[province::to_map_id(p.get_province())] |= sys::pack_color(128, 128, 255);
+		prov_color[province::to_map_id(p.get_province()) + texture_size] |= sys::pack_color(128, 128, 255);
+	}
 	for(const auto s : state.selectable_states) {
 		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
 			auto p = m.get_province();
-			prov_color[province::to_map_id(p)] = sys::pack_color(255, 64, 64);
-			prov_color[province::to_map_id(p) + texture_size] = sys::pack_color(255, 64, 64);
+			prov_color[province::to_map_id(p)] |= sys::pack_color(255, 128, 128);
+			prov_color[province::to_map_id(p) + texture_size] |= sys::pack_color(255, 128, 128);
 		}
 	}
 	for(const auto s : state.selected_states) {
 		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
 			auto p = m.get_province();
-			prov_color[province::to_map_id(p)] = sys::pack_color(64, 255, 64);
-			prov_color[province::to_map_id(p) + texture_size] = sys::pack_color(64, 255, 64);
+			prov_color[province::to_map_id(p)] |= sys::pack_color(128, 255, 128);
+			prov_color[province::to_map_id(p) + texture_size] |= sys::pack_color(128, 255, 128);
 		}
 	}
 	return prov_color;
