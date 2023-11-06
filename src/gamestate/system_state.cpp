@@ -161,7 +161,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 						selected_states.clear();
 						selected_states.push_back(sdef);
 					} else {
-						auto it = std::find(selected_states.begin(), selected_states.end(), sdef))
+						auto it = std::find(selected_states.begin(), selected_states.end(), sdef));
 						if(it == selected_states.end()) {
 							selected_states.push_back(sdef);
 						} else {
