@@ -484,12 +484,23 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			text::localised_format_box(state, contents, box, std::string_view("military_build_army_tooltip"));
-		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-			text::localised_format_box(state, contents, box, std::string_view("military_build_navy_tooltip"));
+		if(disabled){
+			text::localised_format_box(state, contents, box, std::string_view("cantbuild_forcedisarm"));
+		} else {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				text::localised_format_box(state, contents, box, std::string_view("military_build_army_tooltip"));
+			} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
+				text::localised_format_box(state, contents, box, std::string_view("military_build_navy_tooltip"));
+			}
 		}
 		text::close_layout_box(contents, box);
+	}
+	void on_update(sys::state& state) noexcept override {
+		if(state.world.nation_get_disarmed_until(state.local_player_nation)) {
+			disabled = true;
+		} else {
+			disabled = false;
+		}
 	}
 };
 
