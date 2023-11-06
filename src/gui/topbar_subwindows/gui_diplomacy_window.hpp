@@ -1023,13 +1023,155 @@ struct dip_tab_request {
 	ui::diplomacy_window_tab tab = ui::diplomacy_window_tab::great_powers;
 };
 
+
+class great_power_detail_influence_button : public tinted_button_element_base {
+public:
+	uint8_t gp_num = 0;
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto other = nations::get_nth_great_power(state, gp_num);
+		disabled = !command::can_increase_opinion(state, state.local_player_nation, content)
+			&& !command::can_add_to_sphere(state, state.local_player_nation, content)
+			&& !command::can_decrease_opinion(state, state.local_player_nation, content, other)
+			&& !command::can_remove_from_sphere(state, state.local_player_nation, content, other);
+
+		color = sys::pack_color(255, 255, 255);
+		if(command::can_add_to_sphere(state, state.local_player_nation, content)) {
+			color = sys::pack_color(64, 255, 64);
+			frame = 0;
+		} else if(command::can_remove_from_sphere(state, state.local_player_nation, content, other)) {
+			color = sys::pack_color(255, 64, 64);
+			frame = 1;
+		} else if(other == state.local_player_nation) {
+			frame = 0;
+		} else {
+			frame = 1;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto other = nations::get_nth_great_power(state, gp_num);
+		auto source = state.local_player_nation;
+		if(other == source) {
+			if(command::can_remove_from_sphere(state, source, target, other)) {
+				command::remove_from_sphere(state, source, target, other);
+			} else if(command::can_add_to_sphere(state, source, target)) {
+				command::add_to_sphere(state, source, target);
+			} else {
+				command::increase_opinion(state, source, target);
+			}
+		} else {
+			if(command::can_remove_from_sphere(state, source, target, other)) {
+				command::remove_from_sphere(state, source, target, other);
+			} else {
+				command::decrease_opinion(state, source, target, other);
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto other = nations::get_nth_great_power(state, gp_num);
+		auto source = state.local_player_nation;
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
+		bool in_players_sphere = state.world.nation_get_in_sphere_of(target) == source;
+		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
+		if(other == source) {
+			text::add_line_with_condition(state, contents, "removefromsphere_desc", command::can_remove_from_sphere(state, source, target, other));
+			if(in_players_sphere) {
+				if(state.defines.removefromsphere_infamy_cost != 0) {
+					text::add_line(state, contents, "rem_sphere_explain_4", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_infamy_cost });
+				}
+				if(state.defines.removefromsphere_prestige_cost != 0) {
+					text::add_line(state, contents, "rem_sphere_explain_5", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_prestige_cost });
+				}
+			}
+			text::add_line_break_to_layout(state, contents);
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
+			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
+			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.removefromsphere_influence_cost, text::variable_type::x, int64_t(state.defines.removefromsphere_influence_cost));
+			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "rem_sphere_explain_1", bool(state.world.nation_get_in_sphere_of(target)));
+			if(!in_players_sphere) {
+				text::add_line_with_condition(state, contents, "rem_sphere_explain_2", clevel == nations::influence::level_friendly);
+			} else {
+				text::add_line_with_condition(state, contents, "rem_sphere_explain_3", true);
+			}
+			//...
+			text::add_line_with_condition(state, contents, "addtosphere_desc", command::can_add_to_sphere(state, source, target));
+			text::add_line_break_to_layout(state, contents);
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
+			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
+			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.addtosphere_influence_cost, text::variable_type::x, int64_t(state.defines.addtosphere_influence_cost));
+			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, source, target));
+			text::add_line_with_condition(state, contents, "add_sphere_explain_1", clevel == nations::influence::level_friendly);
+			text::add_line_with_condition(state, contents, "add_sphere_explain_2", !state.world.nation_get_in_sphere_of(target));
+			//..
+			text::add_line_with_condition(state, contents, "increaseopinion_desc", command::can_increase_opinion(state, source, target));
+			text::add_line_break_to_layout(state, contents);
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
+			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
+			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.increaseopinion_influence_cost, text::variable_type::x, int64_t(state.defines.increaseopinion_influence_cost));
+			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, source, target));
+			text::add_line_with_condition(state, contents, "inc_op_explain_1", clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere);
+		} else {
+			text::add_line_with_condition(state, contents, "removefromsphere_desc", command::can_remove_from_sphere(state, source, target, other));
+			if(in_players_sphere) {
+				if(state.defines.removefromsphere_infamy_cost != 0) {
+					text::add_line(state, contents, "rem_sphere_explain_4", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_infamy_cost });
+				}
+				if(state.defines.removefromsphere_prestige_cost != 0) {
+					text::add_line(state, contents, "rem_sphere_explain_5", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_prestige_cost });
+				}
+			}
+			text::add_line_break_to_layout(state, contents);
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
+			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
+			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.removefromsphere_influence_cost, text::variable_type::x, int64_t(state.defines.removefromsphere_influence_cost));
+			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "rem_sphere_explain_1", bool(state.world.nation_get_in_sphere_of(target)));
+			if(!in_players_sphere) {
+				text::add_line_with_condition(state, contents, "rem_sphere_explain_2", clevel == nations::influence::level_friendly);
+			} else {
+				text::add_line_with_condition(state, contents, "rem_sphere_explain_3", true);
+			}
+			//...
+			text::add_line(state, contents, "decreaseopinion_desc", command::can_decrease_opinion(state, source, target, other));
+			text::add_line_break_to_layout(state, contents);
+			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
+			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
+			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.decreaseopinion_influence_cost, text::variable_type::x, int64_t(state.defines.decreaseopinion_influence_cost));
+			text::add_line_with_condition(state, contents, "iaction_explain_2", (state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) == 0);
+			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, state.local_player_nation, target));
+			text::add_line_with_condition(state, contents, "dec_op_explain_3", clevel != nations::influence::level_hostile);
+		}
+	}
+};
+
 class great_power_inf_detail : public window_element_base {
 public:
 	int32_t gp_num = 0;
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
-			return make_element_by_type<great_power_detail_flag>(state, id);
+			auto ptr = make_element_by_type<great_power_detail_flag>(state, id);
+			auto btn = make_element_by_type< great_power_detail_influence_button>(state, "alice_plus_minus");
+			btn->base_data.position = ptr->base_data.position;
+			btn->base_data.position.x -= 4;
+			btn->base_data.position.y -= 4;
+			btn->base_data.position.x += ptr->base_data.size.x;
+			add_child_to_front(std::move(btn));
+			return ptr;
 		} else if(name == "nongp_country_opinion") {
 			return make_element_by_type<great_power_opinion_detail>(state, id);
 		} else if(name == "nongp_country_influence") {
@@ -2192,14 +2334,6 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
 		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_increase_opinion_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_decrease_opinion_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_add_to_sphere_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_remove_from_sphere_button>>(state, options_offset);
-		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_justify_war_button>>(state, options_offset);
 
 		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state,
@@ -2464,9 +2598,6 @@ public:
 			Cyto::Any new_payload = facts_nation_id;
 			auto fat = dcon::fatten(state.world, facts_nation_id);
 			switch(v) {
-			case diplomacy_action::add_to_sphere:
-				command::add_to_sphere(state, state.local_player_nation, facts_nation_id);
-				break;
 			case diplomacy_action::military_access:
 				command::ask_for_military_access(state, state.local_player_nation, facts_nation_id);
 				break;
@@ -2496,12 +2627,6 @@ public:
 					command::call_to_arms(state, state.local_player_nation, facts_nation_id,
 							dcon::fatten(state.world, war_par).get_war().id);
 				}
-				break;
-			case diplomacy_action::remove_from_sphere:
-				gp_action_dialog_win->set_visible(state, true);
-				gp_action_dialog_win->impl_set(state, new_payload);
-				gp_action_dialog_win->impl_set(state, payload);
-				gp_action_dialog_win->impl_on_update(state);
 				break;
 			case diplomacy_action::declare_war:
 			case diplomacy_action::add_wargoal:
