@@ -302,6 +302,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// this is the message that tells us there is a DirectShow event
 		sound::update_music_track(*state);
 		break;
+	case WM_NCCREATE:
+	{
+		HINSTANCE hUser32dll = LoadLibrary(L"User32.dll");
+		if(hUser32dll) {
+			auto pSetProcessDpiAwarenessContext = (decltype(&SetProcessDpiAwarenessContext))GetProcAddress(hUser32dll, "SetProcessDpiAwarenessContext");
+			if(pSetProcessDpiAwarenessContext == NULL) {
+				// not present, so have to call this
+				auto pEnableNonClientDpiScaling = (decltype(&EnableNonClientDpiScaling))GetProcAddress(hUser32dll, "EnableNonClientDpiScaling");
+				if(pEnableNonClientDpiScaling != NULL) {
+					pEnableNonClientDpiScaling(hwnd); //windows 10
+				}
+				FreeLibrary(hUser32dll);
+			}
+		}
+		break;
+	}
 	}
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
