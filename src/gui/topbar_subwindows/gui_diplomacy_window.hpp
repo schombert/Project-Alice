@@ -867,7 +867,7 @@ public:
 		auto source = state.local_player_nation;
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto content = target;
-		if(military::are_at_war(state, target, source)) {
+		if(!military::are_at_war(state, target, source)) {
 			text::add_line(state, contents, "make_cb_desc");
 			text::add_line_break_to_layout(state, contents);
 			if(source == target) {
