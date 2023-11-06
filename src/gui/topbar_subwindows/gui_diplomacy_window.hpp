@@ -768,74 +768,94 @@ public:
 class diplomacy_action_add_wargoal_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(!content)
-			return;
+		auto source = state.local_player_nation;
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto content = target;
+		if(military::are_at_war(state, target, source)) {
+			set_button_text(state, text::produce_simple_string(state, "diplomacy_add_wargoal"));
+			if(!content)
+				return;
 
-		disabled = true;
-
-		if(content == state.local_player_nation) {
-			return;
-		}
-
-		if(state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost) {
-			return;
-		}
-
-		auto w = military::find_war_between(state, state.local_player_nation, content);
-		if(!w) {
-			return;
-		}
-
-		bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
-		if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
-			return;
-
-		for(auto cb_type : state.world.in_cb_type) {
-			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
-				bool cb_fabbed = false;
-				for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
-					if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
-						cb_fabbed = true;
-						break;
+			disabled = true;
+			if(content == state.local_player_nation) {
+				return;
+			}
+			if(state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost) {
+				return;
+			}
+			auto w = military::find_war_between(state, state.local_player_nation, content);
+			if(!w) {
+				return;
+			}
+			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+			if(!is_attacker && military::defenders_have_status_quo_wargoal(state, w))
+				return;
+			for(auto cb_type : state.world.in_cb_type) {
+				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
+					bool cb_fabbed = false;
+					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
+							cb_fabbed = true;
+							break;
+						}
 					}
-				}
-				if(!cb_fabbed) {
-					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
-						continue; // can only add a constructable cb this way
+					if(!cb_fabbed) {
+						if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
+							continue; // can only add a constructable cb this way
 
-					auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-					auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+						auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+						auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
 
-					if(state.world.war_get_is_great(w)) {
-						if(jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
-							disabled = false;
-							return;
+						if(state.world.war_get_is_great(w)) {
+							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
+								disabled = false;
+								return;
+							}
+						} else {
+							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement) {
+								disabled = false;
+								return;
+							}
 						}
 					} else {
-						if(jingoism_perc >= state.defines.wargoal_jingoism_requirement) {
-							disabled = false;
-							return;
-						}
+						disabled = false;
+						return;
 					}
-				} else {
-					disabled = false;
-					return;
-				}
-			} else { // this is an always CB
-				// prevent duplicate war goals
-				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type) && military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
-					disabled = false;
-					return;
+				} else { // this is an always CB
+					// prevent duplicate war goals
+					if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type) && military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
+						disabled = false;
+						return;
+					}
 				}
 			}
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "make_cb_button"));
+			if(source == target)
+				disabled = true;
+			if(state.world.nation_get_constructing_cb_type(source))
+				disabled = true;
+			auto ol = state.world.nation_get_overlord_as_subject(source);
+			if(state.world.overlord_get_ruler(ol) && state.world.overlord_get_ruler(ol) != target)
+				disabled = true;
+			if(state.world.nation_get_in_sphere_of(target) == source)
+				disabled = true;
+			if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
+				disabled = true;
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = diplomacy_action::add_wargoal;
-			parent->impl_get(state, payload);
+			auto source = state.local_player_nation;
+			auto target = retrieve<dcon::nation_id>(state, parent);
+			if(military::are_at_war(state, target, source)) {
+				Cyto::Any payload = diplomacy_action::add_wargoal;
+				parent->impl_get(state, payload);
+			} else {
+				Cyto::Any payload = diplomacy_action::justify_war;
+				parent->impl_get(state, payload);
+			}
 		}
 	}
 
@@ -844,49 +864,62 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(content == state.local_player_nation) {
-			text::add_line_with_condition(state, contents, "add_wg_1", false);
-			return;
-		}
-
-		if(state.defines.addwargoal_diplomatic_cost > 0) {
-			text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
-		}
-
-		auto w = military::find_war_between(state, state.local_player_nation, content);
-		text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
-		if(!w) {
-			return;
-		}
-
-		bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
-		text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
-
-		for(auto cb_type : state.world.in_cb_type) {
-			if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
-				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
-					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
-						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
+		auto source = state.local_player_nation;
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto content = target;
+		if(military::are_at_war(state, target, source)) {
+			text::add_line(state, contents, "make_cb_desc");
+			text::add_line_break_to_layout(state, contents);
+			if(source == target) {
+				text::add_line_with_condition(state, contents, "fab_explain_1", false);
+			}
+			if(state.defines.make_cb_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "fab_explain_2", state.world.nation_get_diplomatic_points(source) >= state.defines.make_cb_diplomatic_cost, text::variable_type::x, int16_t(state.defines.make_cb_diplomatic_cost));
+			}
+			text::add_line_with_condition(state, contents, "fab_explain_3", !state.world.nation_get_constructing_cb_type(source));
+			auto ol = state.world.nation_get_overlord_as_subject(source);
+			text::add_line_with_condition(state, contents, "fab_explain_4", !state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol) == target);
+			text::add_line_with_condition(state, contents, "fab_explain_5", state.world.nation_get_in_sphere_of(target) != source);
+			text::add_line_with_condition(state, contents, "fab_explain_6", !military::are_at_war(state, target, source));
+		} else {
+			if(content == source) {
+				text::add_line_with_condition(state, contents, "add_wg_1", false);
+				return;
+			}
+			if(state.defines.addwargoal_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "add_wg_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
+			}
+			auto w = military::find_war_between(state, state.local_player_nation, content);
+			text::add_line_with_condition(state, contents, "add_wg_2", bool(w));
+			if(!w) {
+				return;
+			}
+			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+			text::add_line_with_condition(state, contents, "add_wg_5", is_attacker || !military::defenders_have_status_quo_wargoal(state, w));
+			for(auto cb_type : state.world.in_cb_type) {
+				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
+					if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0) {
+						for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+							if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
+								return;
+							}
+						}
+					} else { // this is an always CB
+						// prevent duplicate war goals
+						if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
 							return;
 						}
 					}
-				} else { // this is an always CB
-					// prevent duplicate war goals
-					if(military::can_add_always_cb_to_war(state, state.local_player_nation, content, cb_type, w)) {
-						return;
-					}
 				}
 			}
-		}
-
-		// if we hit this, it means no existing cb is ready to be applied
-		auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-		auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
-		if(state.world.war_get_is_great(w)) {
-			text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod});
-		} else {
-			text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{jingoism_perc}, text::variable_type::y, text::fp_percentage_one_place{state.defines.wargoal_jingoism_requirement});
+			// if we hit this, it means no existing cb is ready to be applied
+			auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+			auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+			if(state.world.war_get_is_great(w)) {
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod, text::variable_type::x, text::fp_percentage_one_place{ jingoism_perc }, text::variable_type::y, text::fp_percentage_one_place{ state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod });
+			} else {
+				text::add_line_with_condition(state, contents, "add_wg_4", jingoism_perc >= state.defines.wargoal_jingoism_requirement, text::variable_type::x, text::fp_percentage_one_place{ jingoism_perc }, text::variable_type::y, text::fp_percentage_one_place{ state.defines.wargoal_jingoism_requirement });
+			}
 		}
 	}
 };
@@ -1169,7 +1202,7 @@ public:
 			btn->base_data.position = ptr->base_data.position;
 			btn->base_data.position.x -= 4;
 			btn->base_data.position.y -= 4;
-			btn->base_data.position.x += ptr->base_data.size.x;
+			btn->base_data.position.x += ptr->base_data.size.x * 2;
 			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "nongp_country_opinion") {
@@ -2316,6 +2349,16 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_call_ally_button>>(state, options_offset);
 		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_discredit_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_expel_advisors_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_release_subject_button>>(state, options_offset);
+		// Next row of actions...
+		options_offset.x += options_size.x;
+		options_offset.y = options_base_offset.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_military_access_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_give_military_access_button>>(state, options_offset);
@@ -2323,18 +2366,6 @@ public:
 		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_release_subject_button>>(state, options_offset);
-		// Next row of actions...
-		options_offset.x += options_size.x;
-		options_offset.y = options_base_offset.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_discredit_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_expel_advisors_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_justify_war_button>>(state, options_offset);
 
 		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state,
 				state.ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition);
