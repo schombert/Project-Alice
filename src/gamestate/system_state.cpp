@@ -43,15 +43,6 @@ namespace sys {
 //
 
 void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
-	if(mode == sys::game_mode_type::select_states) {
-		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
-		//map_state.on_rbutton_up(*this, x, y, x_size, y_size, mod);
-		auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
-		if(sdef)
-			selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
-		return;
-	}
-
 	// Lose focus on text
 	ui_state.edit_target = nullptr;
 
@@ -80,6 +71,14 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			sound::play_interface_sound(*this, sound::get_click_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
+
+			if(mode == sys::game_mode_type::select_states) {
+				map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
+				auto sdef = world.province_get_state_from_abstract_state_membership(id);
+				if(sdef)
+					selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
+				return;
+			}
 
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
 				bool fail = false;
