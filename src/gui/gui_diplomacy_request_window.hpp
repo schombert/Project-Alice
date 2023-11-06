@@ -201,9 +201,9 @@ public:
 		auto border = base_data.data.text.border_size;
 
 		auto content = retrieve<diplomatic_message::message>(state, parent);
-		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto color = delegate->black_text ? text::text_color::black : text::text_color::white;
 		auto container = text::create_endless_layout(
-			internal_layout,
+			delegate->internal_layout,
 			text::layout_parameters{
 				border.x,
 				border.y,
