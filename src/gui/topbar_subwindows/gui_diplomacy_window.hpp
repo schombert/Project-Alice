@@ -1197,7 +1197,7 @@ public:
 			btn->base_data.position = ptr->base_data.position;
 			btn->base_data.position.x -= 4;
 			btn->base_data.position.y -= 4;
-			btn->base_data.position.x += ptr->base_data.size.x * 2;
+			btn->base_data.position.x += ptr->base_data.size.x * 3; //nudge
 			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "nongp_country_opinion") {
