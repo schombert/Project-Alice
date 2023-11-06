@@ -71,15 +71,6 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			sound::play_interface_sound(*this, sound::get_click_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
-
-			if(mode == sys::game_mode_type::select_states) {
-				map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
-				auto sdef = world.province_get_state_from_abstract_state_membership(id);
-				if(sdef)
-					selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
-				return;
-			}
-
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
 				bool fail = false;
 				bool army_play = false;
@@ -170,8 +161,12 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 						selected_states.clear();
 						selected_states.push_back(sdef);
 					} else {
-						if(auto it = std::find(selected_states.begin(), selected_states.end(), sdef); it == selected_states.end())
+						auto it = std::find(selected_states.begin(), selected_states.end(), sdef))
+						if(it == selected_states.end()) {
 							selected_states.push_back(sdef);
+						} else {
+							selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
+						}
 					}
 				}
 			}
