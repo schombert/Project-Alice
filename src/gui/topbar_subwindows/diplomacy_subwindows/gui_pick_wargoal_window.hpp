@@ -809,6 +809,7 @@ private:
 	void select_mode(sys::state& state) {
 		state.selectable_states.clear();
 		state.selected_states.clear();
+		state.single_state_select = true;
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;
@@ -1348,6 +1349,7 @@ private:
 		// Populate selectable states...
 		state.selectable_states.clear();
 		state.selected_states.clear();
+		state.single_state_select = true;
 		dcon::nation_id target = wargoal_against;
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;

@@ -47,10 +47,8 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
 		//map_state.on_rbutton_up(*this, x, y, x_size, y_size, mod);
 		auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
-		if(sdef) {
-			if(auto it = std::find(selected_states.begin(), selected_states.end(), sdef);  it != selectable_states.end())
-				selected_states.erase(it);
-		}
+		if(sdef)
+			selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
 		return;
 	}
 
@@ -169,8 +167,13 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 						break;
 					}
 				if(can_select) {
-					if(auto it = std::find(selected_states.begin(), selected_states.end(), sdef); it == selected_states.end())
+					if(single_state_select) {
+						selected_states.clear();
 						selected_states.push_back(sdef);
+					} else {
+						if(auto it = std::find(selected_states.begin(), selected_states.end(), sdef); it == selected_states.end())
+							selected_states.push_back(sdef);
+					}
 				}
 			}
 		} else if(mode != sys::game_mode_type::end_screen) {
