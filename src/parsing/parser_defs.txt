@@ -1350,6 +1350,7 @@ effect_body
 	enable_canal                    value       int                 member_fn
 	set_global_flag                 value       text                member_fn
 	clr_global_flag                 value       text                member_fn
+	clear_global_flag               value       text                member_fn (clr_global_flag)
 	nationalvalue                   value       text                member_fn
 	civilized                       value       bool                member_fn
 	election                        value       text                member_fn
