@@ -869,7 +869,6 @@ public:
 		auto content = target;
 		if(!military::are_at_war(state, target, source)) {
 			text::add_line(state, contents, "make_cb_desc");
-			text::add_line_break_to_layout(state, contents);
 			if(source == target) {
 				text::add_line_with_condition(state, contents, "fab_explain_1", false);
 			}
@@ -1116,7 +1115,7 @@ public:
 		bool in_players_sphere = state.world.nation_get_in_sphere_of(target) == source;
 		auto clevel = (nations::influence::level_mask & state.world.gp_relationship_get_status(rel));
 		if(other == source) {
-			text::add_line_with_condition(state, contents, "removefromsphere_desc", command::can_remove_from_sphere(state, source, target, other));
+			text::add_line(state, contents, "removefromsphere_desc");
 			if(in_players_sphere) {
 				if(state.defines.removefromsphere_infamy_cost != 0) {
 					text::add_line(state, contents, "rem_sphere_explain_4", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_infamy_cost });
@@ -1125,7 +1124,6 @@ public:
 					text::add_line(state, contents, "rem_sphere_explain_5", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_prestige_cost });
 				}
 			}
-			text::add_line_break_to_layout(state, contents);
 			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.removefromsphere_influence_cost, text::variable_type::x, int64_t(state.defines.removefromsphere_influence_cost));
@@ -1138,8 +1136,8 @@ public:
 				text::add_line_with_condition(state, contents, "rem_sphere_explain_3", true);
 			}
 			//...
-			text::add_line_with_condition(state, contents, "addtosphere_desc", command::can_add_to_sphere(state, source, target));
 			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "addtosphere_desc");
 			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.addtosphere_influence_cost, text::variable_type::x, int64_t(state.defines.addtosphere_influence_cost));
@@ -1148,8 +1146,8 @@ public:
 			text::add_line_with_condition(state, contents, "add_sphere_explain_1", clevel == nations::influence::level_friendly);
 			text::add_line_with_condition(state, contents, "add_sphere_explain_2", !state.world.nation_get_in_sphere_of(target));
 			//..
-			text::add_line_with_condition(state, contents, "increaseopinion_desc", command::can_increase_opinion(state, source, target));
 			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "increaseopinion_desc");
 			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(source));
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.increaseopinion_influence_cost, text::variable_type::x, int64_t(state.defines.increaseopinion_influence_cost));
@@ -1157,7 +1155,7 @@ public:
 			text::add_line_with_condition(state, contents, "iaction_explain_3", !military::are_at_war(state, source, target));
 			text::add_line_with_condition(state, contents, "inc_op_explain_1", clevel != nations::influence::level_friendly && clevel != nations::influence::level_in_sphere);
 		} else {
-			text::add_line_with_condition(state, contents, "removefromsphere_desc", command::can_remove_from_sphere(state, source, target, other));
+			text::add_line(state, contents, "removefromsphere_desc");
 			if(in_players_sphere) {
 				if(state.defines.removefromsphere_infamy_cost != 0) {
 					text::add_line(state, contents, "rem_sphere_explain_4", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_infamy_cost });
@@ -1166,7 +1164,6 @@ public:
 					text::add_line(state, contents, "rem_sphere_explain_5", text::variable_type::x, text::fp_one_place{ state.defines.removefromsphere_prestige_cost });
 				}
 			}
-			text::add_line_break_to_layout(state, contents);
 			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.removefromsphere_influence_cost, text::variable_type::x, int64_t(state.defines.removefromsphere_influence_cost));
@@ -1179,8 +1176,8 @@ public:
 				text::add_line_with_condition(state, contents, "rem_sphere_explain_3", true);
 			}
 			//...
-			text::add_line(state, contents, "decreaseopinion_desc", command::can_decrease_opinion(state, source, target, other));
 			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "decreaseopinion_desc", command::can_decrease_opinion(state, source, target, other));
 			text::add_line_with_condition(state, contents, "iaction_explain_5", state.world.nation_get_is_great_power(state.local_player_nation));
 			text::add_line_with_condition(state, contents, "iaction_explain_6", !state.world.nation_get_is_great_power(target));
 			text::add_line_with_condition(state, contents, "iaction_explain_1", state.world.gp_relationship_get_influence(rel) >= state.defines.decreaseopinion_influence_cost, text::variable_type::x, int64_t(state.defines.decreaseopinion_influence_cost));
