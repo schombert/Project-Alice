@@ -2978,6 +2978,38 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	if(gov_error)
 		return;
 
+	// Sanity checking navies & armies
+	for(auto n : world.in_navy) {
+		auto p = n.get_navy_location().get_location();
+		if(p.id.index() >= province_definitions.first_sea_province.index()) {
+			//...
+		} else { //land province
+			auto pp = world.province_get_port_to(p);
+			auto adj = world.get_province_adjacency_by_province_pair(p, pp);
+			if(!pp || !adj) {
+				err.accumulated_errors += "Navy defined in " + text::produce_simple_string(*this, p.get_name()) + "; but said province isn't connected to a sea province\n";
+			}
+		}
+		// and check they have correct unit types
+		for(auto m : n.get_navy_membership()) {
+			if(!bool(m.get_ship().get_type())) {
+				err.accumulated_errors += "Navy defined in " + text::produce_simple_string(*this, p.get_name()) + " has a ship, that does not have a valid type\n";
+			}
+		}
+	}
+	for(auto a : world.in_army) {
+		auto p = a.get_army_location().get_location();
+		if(p.id.index() >= province_definitions.first_sea_province.index()) {
+			err.accumulated_errors += "Army defined in " + text::produce_simple_string(*this, p.get_name()) + " which is a sea province\n";
+		}
+		// and check they have correct unit types
+		for(auto m : a.get_army_membership()) {
+			if(!bool(m.get_regiment().get_type())) {
+				err.accumulated_errors += "Army defined in " + text::produce_simple_string(*this, p.get_name()) + " has a regiment, that does not have a valid type\n";
+			}
+		}
+	}
+
 	fill_unsaved_data(); // we need this to run triggers
 
 	// run pending triggers and effects
