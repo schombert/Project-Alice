@@ -822,7 +822,7 @@ public:
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
 	}
 };
 
@@ -868,7 +868,7 @@ public:
 	void resize(sys::state& state, int32_t height);
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
 	}
 };
 

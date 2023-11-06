@@ -270,6 +270,9 @@ class province_national_focus_button : public button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
+			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
+
 		return bool(state.world.state_instance_get_owner_focus(content).id)
 							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
 							 : 0;
@@ -281,6 +284,9 @@ public:
 		for(auto nfid : state.world.in_national_focus) {
 			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
 		}
+		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
+			disabled = false;
+
 		frame = get_icon_frame(state);
 	}
 
@@ -292,10 +298,12 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, focus.get_name());
-		text::close_layout_box(contents, box);
+		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation) {
+			text::add_line(state, contents, state.world.national_focus_get_name(state.national_definitions.flashpoint_focus));
+		} else {
+			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
+			text::add_line(state, contents, focus.get_name());
+		}
 	}
 };
 

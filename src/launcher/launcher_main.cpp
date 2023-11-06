@@ -385,7 +385,7 @@ void make_mod_file() {
 			
 
 			std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
-				return b.ident.count > a.ident.count;
+				return a.ident.count > b.ident.count;
 			});
 		}
 
@@ -1212,7 +1212,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 
 		std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
-			return b.ident.count > a.ident.count;
+			return a.ident.count > b.ident.count;
 		});
 
 		find_scenario_file();

@@ -50,13 +50,6 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 }
 
 void restore_unsaved_values(sys::state& state) {
-	for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-		dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-		if(state.military_definitions.unit_base_definitions[u].icon == 3) {
-			state.military_definitions.artillery = u;
-			break;
-		}
-	}
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto w = state.world.nation_get_war_participant(n);
 		if(w.begin() != w.end()) {
@@ -5557,7 +5550,11 @@ void update_naval_battles(sys::state& state) {
 		for(uint32_t j = slots.size(); j-- > 0;) {
 			auto ship_owner =
 					state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
-			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, state.world.ship_get_type(slots[j].ship));
+			auto ship_type = state.world.ship_get_type(slots[j].ship);
+
+			assert((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_sunk || (slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated || ship_type);
+
+			auto& ship_stats = state.world.nation_get_unit_stats(ship_owner, ship_type);
 
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
 			case ship_in_battle::mode_approaching: {
@@ -5606,7 +5603,9 @@ void update_naval_battles(sys::state& state) {
 
 				auto ship_target_owner =
 						state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(tship));
-				auto& ship_target_stats = state.world.nation_get_unit_stats(ship_target_owner, state.world.ship_get_type(tship));
+				auto ttype = state.world.ship_get_type(tship);
+				assert(ttype);
+				auto& ship_target_stats = state.world.nation_get_unit_stats(ship_target_owner, ttype);
 
 				/*
 				Torpedo attack: is treated as 0 except against big ships
@@ -6442,18 +6441,10 @@ void update_blackflag_status(sys::state& state, dcon::province_id p) {
 }
 
 void eject_ships(sys::state& state, dcon::province_id p) {
-	if(!state.world.province_get_is_coast(p))
-		return;
+	auto sea_zone = state.world.province_get_port_to(p);
 
-	dcon::province_id sea_zone;
-	for(auto a : state.world.province_get_province_adjacency(p)) {
-		auto other = a.get_connected_provinces(0) == p ? a.get_connected_provinces(1) : a.get_connected_provinces(0);
-		if(other.id.index() >= state.province_definitions.first_sea_province.index()) {
-			sea_zone = other.id;
-			break;
-		}
-	}
-	assert(sea_zone);
+	if(!sea_zone)
+		return;
 
 	static std::vector<dcon::navy_id> to_eject;
 	to_eject.clear();

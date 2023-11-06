@@ -133,8 +133,9 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 			province::for_each_province_in_state_instance(state, target_state, [&](dcon::province_id p) {
 				state_contains_core = state_contains_core || bool(state.world.get_core_by_prov_tag_key(p, ident));
 			});
-			return state_contains_core && state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank) &&
-				focus == state.national_definitions.flashpoint_focus &&
+			bool rank_high = state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank);
+			bool is_tension_focus = focus == state.national_definitions.flashpoint_focus;
+			return state_contains_core && rank_high && is_tension_focus &&
 				(num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
 				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
 		}
@@ -3942,7 +3943,7 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {
 		military::end_battle(state, b, military::battle_result::defender_won);
-	} else if(source == military::get_naval_battle_lead_attacker(state, b)) {
+	} else if(source == military::get_naval_battle_lead_defender(state, b)) {
 		military::end_battle(state, b, military::battle_result::attacker_won);
 	}
 }

@@ -671,6 +671,7 @@ void take_ai_decisions(sys::state& state) {
 				: !state.world.nation_get_is_player_controlled(ids);
 
 			if(filter_a.v != 0) {
+				// empty allow assumed to be an "always = yes"
 				ve::mask_vector filter_c = allow
 					? (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && (state.world.nation_get_owned_province_count(ids) != 0)) && filter_a
 					: ve::mask_vector{ filter_a } && (state.world.nation_get_owned_province_count(ids) != 0);
@@ -680,8 +681,12 @@ void take_ai_decisions(sys::state& state) {
 
 				ve::apply([&](dcon::nation_id n, bool passed_filter) {
 					if(passed_filter) {
-						auto second_validity = trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0) && trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0);
-
+						auto second_validity = potential
+							? trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0)
+							: true;
+						second_validity = second_validity && (allow
+							? trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)
+							: true);
 						if(second_validity) {
 							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
 										uint32_t(n.index() << 4 ^ d.id.index()));
