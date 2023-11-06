@@ -1058,11 +1058,9 @@ struct dip_tab_request {
 
 class great_power_detail_influence_button : public tinted_button_element_base {
 public:
-	uint8_t gp_num = 0;
-
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		auto other = nations::get_nth_great_power(state, gp_num);
+		auto other = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
 		disabled = !command::can_increase_opinion(state, state.local_player_nation, content)
 			&& !command::can_add_to_sphere(state, state.local_player_nation, content)
 			&& !command::can_decrease_opinion(state, state.local_player_nation, content, other)
@@ -1084,7 +1082,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto other = nations::get_nth_great_power(state, gp_num);
+		auto other = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
 		auto source = state.local_player_nation;
 		if(other == source) {
 			if(command::can_remove_from_sphere(state, source, target, other)) {
@@ -1109,7 +1107,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto other = nations::get_nth_great_power(state, gp_num);
+		auto other = nations::get_nth_great_power(state, uint16_t(retrieve<gp_detail_num>(state, parent).value));
 		auto source = state.local_player_nation;
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
 		bool in_players_sphere = state.world.nation_get_in_sphere_of(target) == source;
