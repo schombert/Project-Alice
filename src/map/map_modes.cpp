@@ -30,10 +30,34 @@
 #include "modes/colonial.hpp"
 #include "modes/rgo_output.hpp"
 
+std::vector<uint32_t> select_states_map_from(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+	std::vector<uint32_t> prov_color(texture_size * 2, sys::pack_color(32, 32, 32));
+	for(const auto s : state.selectable_states) {
+		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
+			auto p = m.get_province();
+			prov_color[province::to_map_id(p)] = sys::pack_color(255, 64, 64);
+		}
+	}
+	for(const auto s : state.selected_states) {
+		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
+			auto p = m.get_province();
+			prov_color[province::to_map_id(p)] = sys::pack_color(64, 255, 64);
+		}
+	}
+	return prov_color;
+}
+
 namespace map_mode {
 
 void set_map_mode(sys::state& state, mode mode) {
 	std::vector<uint32_t> prov_color;
+	if(state.mode == sys::game_mode_type::select_states) {
+		prov_color = select_states_map_from(state);
+		state.map_state.set_province_color(prov_color, mode);
+		return;
+	}
 
 	switch(mode) {
 	case mode::terrain:

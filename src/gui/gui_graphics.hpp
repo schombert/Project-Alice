@@ -376,6 +376,7 @@ struct state {
 	std::unique_ptr<element_base> root;
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
+	std::unique_ptr<element_base> select_states_legend;
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
