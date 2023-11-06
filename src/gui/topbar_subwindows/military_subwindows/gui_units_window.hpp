@@ -496,7 +496,7 @@ public:
 		text::close_layout_box(contents, box);
 	}
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_disarmed_until(state.local_player_nation)) {
+		if(state.world.nation_get_disarmed_until(state.local_player_nation) && state.current_date < state.world.nation_get_disarmed_until(state.local_player_nation)) {
 			disabled = true;
 		} else {
 			disabled = false;

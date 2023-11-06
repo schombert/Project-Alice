@@ -47,7 +47,7 @@ public:
 		state.ui_state.build_unit_window->set_visible(state, false);
 	}
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_disarmed_until(state.local_player_nation)) {
+		if(state.world.nation_get_disarmed_until(state.local_player_nation) && state.current_date < state.world.nation_get_disarmed_until(state.local_player_nation)) {
 			state.ui_state.unit_window_army->set_visible(state, true);
 			state.ui_state.unit_window_navy->set_visible(state, true);
 			state.ui_state.build_unit_window->set_visible(state, false);
