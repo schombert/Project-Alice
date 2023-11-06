@@ -928,15 +928,19 @@ float get_estimated_literacy_change(sys::state& state, dcon::pop_id ids) {
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 	auto cfrac =
-			state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+		state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
 
 	auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 	auto espending =
-			(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) / (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
+		(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
+	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
+		(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
 
-	return (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod));
+	auto old_lit = state.world.pop_get_literacy(ids);
+	auto new_lit = std::min(std::max(old_lit + (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod)), 0.01f), 1.0f);
+
+	return new_lit - old_lit;
 }
 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
