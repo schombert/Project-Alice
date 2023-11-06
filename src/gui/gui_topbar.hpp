@@ -1659,7 +1659,6 @@ class topbar_map_legend_icon : public image_element_base {
 	int16_t get_frame_from_mode(map_mode::mode v) {
 		switch(v) {
 		case map_mode::mode::migration:
-		case map_mode::mode::population:
 		case map_mode::mode::rank:
 		case map_mode::mode::relation:
 		case map_mode::mode::rgo_output:
@@ -1668,6 +1667,7 @@ class topbar_map_legend_icon : public image_element_base {
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
 			return 1;
+		case map_mode::mode::population:
 		case map_mode::mode::crisis:
 		case map_mode::mode::revolt:
 			return 3;
