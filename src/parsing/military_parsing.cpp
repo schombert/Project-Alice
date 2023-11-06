@@ -181,7 +181,7 @@ void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& c
 	// and check they have correct unit types
 	auto p = context.outer_context.state.world.navy_get_location_from_navy_location(id);
 	for(auto m : context.outer_context.state.world.navy_get_navy_membership(id)) {
-		if(!bool(m.get_regiment().get_type())) {
+		if(!bool(m.get_ship().get_type())) {
 			auto name = context.outer_context.state.world.province_get_name(p);
 			err.accumulated_errors += "Navy defined in " + text::produce_simple_string(context.outer_context.state, name) + " has a ship, that does not have a valid type (" + err.file_name + ")\n";
 		}
