@@ -24,30 +24,29 @@ map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
-lg_min_mapmode_8;Low admin;;;;;;;;;;;;x
-lg_min_mapmode_19;Uncivilized;;;;;;;;;;;;x
-lg_min_mapmode_7;Uncolonized;;;;;;;;;;;;x
-lg_min_mapmode_21;Low tension;;;;;;;;;;;;x
-lg_min_mapmode_18;Emigration;;;;;;;;;;;;x
-lg_min_mapmode_12;Low density;;;;;;;;;;;;x
-lg_min_mapmode_17;Low rank;;;;;;;;;;;;x
-lg_min_mapmode_20;Low relations;;;;;;;;;;;;x
-lg_min_mapmode_3;Low risk;;;;;;;;;;;;x
-lg_min_mapmode_11;Low output;;;;;;;;;;;;x
-lg_min_mapmode_15;Low supply;;;;;;;;;;;;x
-lg_max_mapmode_8;High admin;;;;;;;;;;;;x
-lg_max_mapmode_19;Civilized;;;;;;;;;;;;x
-lg_max_mapmode_7;Colonizable;;;;;;;;;;;;x
-lg_max_mapmode_21;High tension;;;;;;;;;;;;x
-lg_max_mapmode_18;Immigration;;;;;;;;;;;;x
-lg_max_mapmode_12;High density;;;;;;;;;;;;x
-lg_max_mapmode_17;High rank;;;;;;;;;;;;x
-lg_max_mapmode_20;High relations;;;;;;;;;;;;x
-lg_max_mapmode_3;High risk;;;;;;;;;;;;x
-lg_max_mapmode_11;High output;;;;;;;;;;;;x
-lg_max_mapmode_15;High supply;;;;;;;;;;;;x
-alice_only_host_speed;Only the host can control the game speed;;;;;;;;;;;;x
-topbar_pause_speed;Pause;;;;;;;;;;;;x
+antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+lg_min_mapmode_8;Low admin
+lg_min_mapmode_19;Uncivilized
+lg_min_mapmode_7;Uncolonized
+lg_min_mapmode_21;Low tension
+lg_min_mapmode_18;Emigration
+lg_min_mapmode_12;Low density
+lg_min_mapmode_17;Low rank
+lg_min_mapmode_20;Low relations
+lg_min_mapmode_3;Low revolt risk
+lg_min_mapmode_11;Low RGO output
+lg_min_mapmode_15;Low supply
+lg_max_mapmode_8;High admin
+lg_max_mapmode_19;Civilized
+lg_max_mapmode_7;Colonizable
+lg_max_mapmode_21;High tension
+lg_max_mapmode_18;Immigration
+lg_max_mapmode_12;High density
+lg_max_mapmode_17;High rank
+lg_max_mapmode_20;High relations
+lg_max_mapmode_3;High revolt risk
+lg_max_mapmode_11;High RGO output
+lg_max_mapmode_15;High supply
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
