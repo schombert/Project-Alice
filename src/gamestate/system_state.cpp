@@ -380,6 +380,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			map_state.on_key_down(keycode, mod);
 			if(keycode == virtual_key::ESCAPE) {
 				mode = sys::game_mode_type::in_game;
+				ui_state.root->impl_on_update(*this);
 			}
 		}
 	} else if(mode == sys::game_mode_type::end_screen) {
