@@ -43,6 +43,17 @@ namespace sys {
 //
 
 void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+	if(mode == sys::game_mode_type::select_states) {
+		map_state.on_rbutton_down(*this, x, y, x_size, y_size, mod);
+		//map_state.on_rbutton_up(*this, x, y, x_size, y_size, mod);
+		auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
+		if(sdef) {
+			if(auto it = std::find(selected_states.begin(), selected_states.end(), sdef);  it != selectable_states.end())
+				selected_states.erase(it);
+		}
+		return;
+	}
+
 	// Lose focus on text
 	ui_state.edit_target = nullptr;
 
