@@ -82,6 +82,7 @@ public:
 };
 class fow_checkbox : public checkbox_button {
 public:
+	void on_create(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };

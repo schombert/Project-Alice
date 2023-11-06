@@ -170,38 +170,50 @@ public:
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
-
 		state.preload();
-
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
-				// do not desync the local player nation upon selection of savefile
-				if(state.network_mode != sys::network_mode_type::single_player) {
+				if(state.network_mode == sys::network_mode_type::host) {
 					for(const auto n : players)
 						state.world.nation_set_is_player_controlled(n, true);
 					state.local_player_nation = old_local_player_nation;
+					state.fill_unsaved_data();
+					{
+						command::payload c;
+						c.type = command::command_type::notify_save_loaded;
+						c.source = state.local_player_nation;
+						c.data.notify_save_loaded.seed = state.game_seed;
+						c.data.notify_save_loaded.target = dcon::nation_id{};
+						network::broadcast_to_clients(state, c);
+					}
+				} else {
+					state.fill_unsaved_data();
 				}
-				state.fill_unsaved_data();
-				if(state.network_mode == sys::network_mode_type::host)
-					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
 				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
-				// do not desync the local player nation upon selection of savefile
-				if(state.network_mode != sys::network_mode_type::single_player) {
+				if(state.network_mode == sys::network_mode_type::host) {
 					for(const auto n : players)
 						state.world.nation_set_is_player_controlled(n, true);
 					state.local_player_nation = old_local_player_nation;
+					state.fill_unsaved_data();
+					{
+						command::payload c;
+						c.type = command::command_type::notify_save_loaded;
+						c.source = state.local_player_nation;
+						c.data.notify_save_loaded.seed = state.game_seed;
+						c.data.notify_save_loaded.target = dcon::nation_id{};
+						network::broadcast_to_clients(state, c);
+					}
+				} else {
+					state.fill_unsaved_data();
 				}
-				state.fill_unsaved_data();
-				if(state.network_mode == sys::network_mode_type::host)
-					command::notify_save_loaded(state, state.local_player_nation);
 			}
 		}
 		state.game_state_updated.store(true, std::memory_order_release);

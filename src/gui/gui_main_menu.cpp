@@ -113,6 +113,10 @@ bool tooltip_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.bind_tooltip_mouse;
 }
 
+void fow_checkbox::on_create(sys::state& state) noexcept {
+	checkbox_button::on_create(state);
+	disabled = (state.network_mode != sys::network_mode_type::single_player);
+}
 bool fow_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.fow_enabled;
 }

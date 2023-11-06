@@ -10,6 +10,8 @@ The commands should be sent in chronological order. Clients **will** advance one
 
 Everytime a client connects, it is given the checksum of the server, this checksum is for failsafe purpouses, to not let the client enter into an invalid state. The "play" button on the nation picker will bre greyed out if the checksum of the client and the host mismatch. Everytime a savefile is selected on the host, it will tell all it's clients that the checksum has indeed, changed now. This prevents clients who are otherwise not given yet a savefile to connect a game, or clients with different mods to connect a server for example.
 
+Fog of War is forcefully set ON, however we know people can evade this restriction pretty easily, so it's mainly an honor thing - be kind with others :D
+
 ### Deterministic reimplementations
 
 The standard C++ and C library provide `sin`, `cos`, and `acos` functions for performing their respective mathematical functions. However the implementation of these vary per platform and library, and since we're trying to provide a cross platform experience we reimplemented the mathematical functions from scratch, into a house-built solution.

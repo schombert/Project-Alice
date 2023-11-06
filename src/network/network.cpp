@@ -237,6 +237,9 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
+	// force fog of war on
+	state.user_settings.fow_enabled = true;
+
 #ifdef _WIN64
     WSADATA data;
 	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
@@ -350,7 +353,7 @@ static void receive_from_clients(sys::state& state) {
 	}
 }
 
-static void broadcast_to_clients(sys::state& state, command::payload& c) {
+void broadcast_to_clients(sys::state& state, command::payload& c) {
 	if(c.type == command::command_type::save_game)
 		return;
 
