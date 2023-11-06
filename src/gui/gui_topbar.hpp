@@ -1149,8 +1149,8 @@ public:
 						header = true;
 					}
 					text::substitution_map sub;
-					text::add_to_substitution_map(sub, text::variable_type::num, int64_t(total));
-					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker));
+					text::add_to_substitution_map(sub, text::variable_type::num, int64_t(unemployed));
+					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(pt));
 					auto state_name = text::get_dynamic_state_name(state, state_instance);
 					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
 					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage_one_place{ unemployed / total });
