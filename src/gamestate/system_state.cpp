@@ -3839,7 +3839,7 @@ void state::debug_oos_dump() {
 	world.serialize(buffer_position, loaded);
 	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - save_buffer.get();
 
-	auto sdir = simple_fs::get_or_create_save_game_directory();
+	auto sdir = simple_fs::get_or_create_oos_directory();
 	auto ymd_date = current_date.to_ymd(start_date);
 	std::string party_name = "S";
 	if(network_mode == sys::network_mode_type::client) {
