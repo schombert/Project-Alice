@@ -545,6 +545,8 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_data.clear();
 					state.network_state.save_stream = false; // go back to normal command loop stuff
 				});
+				// ...
+				state.game_state_updated.store(true, std::memory_order::release);
 			}
 			if(r < 0) { // error
 #ifdef _WIN64

@@ -157,6 +157,11 @@ struct save_item {
 
 class select_save_game : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		disabled = state.network_mode == sys::network_mode_type::client;
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
 
@@ -542,9 +547,6 @@ class start_game_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		if(state.network_mode == sys::network_mode_type::client) {
-			set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
-		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -569,6 +571,14 @@ public:
 						disabled = true; // client is pending
 					}
 				}
+			}
+		}
+
+		if(state.network_mode == sys::network_mode_type::client) {
+			if(state.network_state.save_stream) {
+				set_button_text(state, text::format_percentage(float(state.network_state.save_data.size()) / float(state.network_state.recv_count)));
+			} else {
+				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
 			}
 		}
 	}
