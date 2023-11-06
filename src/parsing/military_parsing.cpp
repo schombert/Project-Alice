@@ -104,11 +104,20 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 		&& context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::infantry) {
 		context.state.military_definitions.irregular = new_id;
 	}
+	if(context.state.military_definitions.unit_base_definitions.back().active
+		&& (context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::support
+		|| context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::special)) {
+		context.state.military_definitions.artillery = new_id;
+	}
 
 	// by name
 	if(!bool(context.state.military_definitions.irregular) && name == "irregular") {
 		context.state.military_definitions.irregular = new_id;
 		err.accumulated_warnings += "Fallbacking to detecting an irregular from name " + err.file_name + "\n";
+	}
+	if(!bool(context.state.military_definitions.artillery) && name == "artillery") {
+		context.state.military_definitions.artillery = new_id;
+		err.accumulated_warnings += "Fallbacking to detecting an artillery from name " + err.file_name + "\n";
 	}
 }
 
