@@ -2950,7 +2950,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
-			if((bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
+			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_port_to(p, other.id);
 				world.province_set_is_coast(p, true);
 				return;
@@ -2990,23 +2990,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				err.accumulated_errors += "Navy defined in " + text::produce_simple_string(*this, p.get_name()) + "; but said province isn't connected to a sea province\n";
 			}
 		}
-		// and check they have correct unit types
-		for(auto m : n.get_navy_membership()) {
-			if(!bool(m.get_ship().get_type())) {
-				err.accumulated_errors += "Navy defined in " + text::produce_simple_string(*this, p.get_name()) + " has a ship, that does not have a valid type\n";
-			}
-		}
 	}
 	for(auto a : world.in_army) {
 		auto p = a.get_army_location().get_location();
 		if(p.id.index() >= province_definitions.first_sea_province.index()) {
 			err.accumulated_errors += "Army defined in " + text::produce_simple_string(*this, p.get_name()) + " which is a sea province\n";
-		}
-		// and check they have correct unit types
-		for(auto m : a.get_army_membership()) {
-			if(!bool(m.get_regiment().get_type())) {
-				err.accumulated_errors += "Army defined in " + text::produce_simple_string(*this, p.get_name()) + " has a regiment, that does not have a valid type\n";
-			}
 		}
 	}
 
