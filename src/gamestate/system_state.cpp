@@ -1776,6 +1776,9 @@ void state::load_user_settings() {
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
 		if(user_settings.antialias_level > 16)
 			user_settings.antialias_level = 0;
+		/* Always force fog of war on multiplayer - even tho it's an honour system */
+		if(network_mode != sys::network_mode_type::single_player)
+			user_settings.fow_enabled = true;
 	}
 }
 
