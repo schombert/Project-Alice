@@ -230,12 +230,28 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size);
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+
+
+					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
+					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
+						context.state.world.province_adjacency_get_type(aval) &= ~(province::border::non_adjacent_bit | province::border::impassible_bit);
+					
 				}
 				if(prov_id_ul != prov_id_dl && prov_id_dl != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+
+					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dl));
+					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
+							context.state.world.province_adjacency_get_type(aval) &= ~(province::border::non_adjacent_bit | province::border::impassible_bit);
+					
 				}
 				if(prov_id_ul != prov_id_dr && prov_id_dr != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+
+					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_dr));
+					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
+						context.state.world.province_adjacency_get_type(aval) &= ~(province::border::non_adjacent_bit | province::border::impassible_bit);
+					
 				}
 			}
 		}

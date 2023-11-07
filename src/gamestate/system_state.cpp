@@ -2950,7 +2950,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
 			auto other = adj.get_connected_provinces(0) != p ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			auto bits = adj.get_type();
-			if((bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
+			if(other && (bits & province::border::coastal_bit) != 0 && (bits & province::border::impassible_bit) == 0) {
 				world.province_set_port_to(p, other.id);
 				world.province_set_is_coast(p, true);
 				return;
