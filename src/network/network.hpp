@@ -79,6 +79,8 @@ struct network_state {
 	sys::player_name nickname;
 	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
 
+	std::atomic<bool> save_slock = false;
+
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
 };

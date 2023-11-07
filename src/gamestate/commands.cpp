@@ -29,9 +29,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode_type::in_game)
 			return;
-		if(state.network_mode != sys::network_mode_type::single_player) {
-			state.network_state.is_new_game = false;
-		}
+		state.network_state.is_new_game = false;
 		break;
 	}
 
@@ -4319,12 +4317,10 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	memset(&p, 0, sizeof(payload));
 	p.type = command::command_type::notify_save_loaded;
 	p.source = source;
-	p.data.notify_save_loaded.seed = state.game_seed;
 	p.data.notify_save_loaded.target = dcon::nation_id{};
 	add_to_command_queue(state, p);
 }
-void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	state.game_seed = seed;
+void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
 	state.session_host_checksum = k;
 	// Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
 	state.network_state.is_new_game = false;
@@ -4339,11 +4335,10 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint3
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{};
 	// Reload the current game state
-	auto length = sizeof_save_section(state);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(state)]);
 	write_save_section(buffer.get(), state);
 	state.preload();
-	read_save_section(buffer.get(), buffer.get() + length, state);
+	read_save_section(buffer.get(), buffer.get() + sizeof_save_section(state), state);
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
@@ -5064,7 +5059,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
 	case command_type::notify_save_loaded:
-		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
 		break;
 	case command_type::notify_start_game:
 		execute_notify_start_game(state, c.source);

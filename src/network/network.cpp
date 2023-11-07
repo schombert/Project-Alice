@@ -358,58 +358,68 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		return;
 
 	// propagate to all the clients
-	if(c.type != command::command_type::notify_save_loaded) {
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active()) {
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-		}
-	} else if(c.type == command::command_type::notify_save_loaded) {
-		// Mirror the calls done by the client
+	if(c.type == command::command_type::notify_save_loaded) {
+		/* A save lock will be set when we load a save, naturally
+		   loading a save implies that we have done preload/fill_unsaved
+		   so we will skip doing that again, to save a bit of sanity on
+		   our miserable CPU */
+		bool needs_reload = !state.network_state.save_slock.load(std::memory_order::acquire);
+		/* Mirror the calls done by the client */
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.local_player_nation = dcon::nation_id{};
-		size_t save_space = sizeof_save_section(state);
-		auto temp_save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[save_space]);
-		write_save_section(temp_save_buffer.get(), state);
+		size_t length = sizeof_save_section(state);
+		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+		write_save_section(save_buffer.get(), state);
 		// this is an upper bound, since compacting the data may require less space
-		size_t total_size = ZSTD_compressBound(save_space) + sizeof(uint32_t) * 2;
-		auto temp_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_size]);
-		auto buffer_position = write_network_compressed_section(temp_buffer.get(), temp_save_buffer.get(), uint32_t(save_space));
-		auto total_size_used = uint32_t(buffer_position - temp_buffer.get());
-		state.preload();
-		read_save_section(temp_save_buffer.get(), temp_save_buffer.get() + save_space, state);
-		for(const auto n : players)
-			state.world.nation_set_is_player_controlled(n, true);
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
+		auto buffer_position = write_network_compressed_section(buffer.get(), save_buffer.get(), uint32_t(length));
+		auto total_size_used = uint32_t(buffer_position - buffer.get());
+		if(needs_reload) {
+			state.preload();
+			read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+			for(const auto n : players)
+				state.world.nation_set_is_player_controlled(n, true);
+		}
 		state.local_player_nation = old_local_player_nation;
-		state.fill_unsaved_data();
-		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-
-		// Regenerate checksum of the savefile
+		if(needs_reload) {
+			state.fill_unsaved_data();
+			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+		}
+		/* We need to regenerate the checksum of the save so it's at this specific point*/
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
+		/* And then we have to first send the command payload itself */
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
-
+		/* Which then we have to send the save stream, note that
+		   we can send a "0" size stream, to signify that the client simply needs
+		   to reload it's save state to sync. */
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				bool send_full = (client.playing_as == c.data.notify_save_loaded.target) || (!c.data.notify_save_loaded.target);
 				if(send_full && !state.network_state.is_new_game) {
 					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = static_cast<size_t>(total_size_used);
+					client.save_stream_size = size_t(total_size_used);
 					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
-					socket_add_to_send_queue(client.send_buffer, temp_buffer.get(), static_cast<size_t>(total_size_used));
+					socket_add_to_send_queue(client.send_buffer, buffer.get(), size_t(total_size_used));
 				} else {
 					static const uint32_t zero = 0;
 					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
 					client.save_stream_size = 0;
 					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
 				}
+			}
+		}
+	} else {
+		for(auto& client : state.network_state.clients) {
+			if(client.is_active()) {
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
 	}
@@ -471,7 +481,6 @@ static void accept_new_clients(sys::state& state) {
 				command::payload c;
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.seed = state.game_seed;
 				c.data.notify_save_loaded.target = client.playing_as;
 				broadcast_to_clients(state, c);
 			}
@@ -481,6 +490,16 @@ static void accept_new_clients(sys::state& state) {
 }
 
 void send_and_receive_commands(sys::state& state) {
+	/* An issue that arose in multiplayer is that the UI was loading the savefile
+	   directly, while the game state loop was running, this was fine with the
+	   assumption that commands weren't executed while the save was being loaded
+	   HOWEVER in multiplayer this is often the case, so we have to block all
+	   commands until the savefile is finished loading
+	   This way, we're able to effectively and safely queue commands until we
+	   can receive them AFTER loading the savefile. */
+	if(state.network_state.save_slock.load(std::memory_order::acquire) == true)
+		return;
+
 	bool command_executed = false;
 	if(state.network_mode == sys::network_mode_type::host) {
 		accept_new_clients(state); // accept new connections
@@ -535,7 +554,6 @@ void send_and_receive_commands(sys::state& state) {
 						if(state.world.nation_get_is_player_controlled(n))
 							players.push_back(n);
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
-					state.local_player_nation = dcon::nation_id{};
 					state.preload();
 					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
 					for(const auto n : players)
@@ -548,8 +566,6 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_data.clear();
 					state.network_state.save_stream = false; // go back to normal command loop stuff
 				});
-				// ...
-				state.game_state_updated.store(true, std::memory_order::release);
 			}
 			if(r < 0) { // error
 #ifdef _WIN64

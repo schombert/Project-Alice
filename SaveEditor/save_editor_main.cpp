@@ -6,7 +6,7 @@ int main(int argc, char **argv) {
 		return EXIT_FAILURE;
 
 	// 
-	auto dir = simple_fs::get_or_create_save_game_directory();
+	auto dir = simple_fs::get_or_create_oos_directory();
 
 	auto oos_file_1 = open_file(dir, simple_fs::utf8_to_native(argv[1]));
 	if(!bool(oos_file_1))
@@ -44,7 +44,21 @@ int main(int argc, char **argv) {
 					//
 					if(std::memcmp(data_start_1, data_start_2, std::min(size1, size2))) {
 						std::printf("%s.%s.%s:", header_1.object_name_start, header_1.property_name_start, header_1.type_name_start);
-						std::printf("Data mismatch (%u/%u)\n", static_cast<unsigned int>(offset1), static_cast<unsigned int>(offset2));
+						std::printf("Data mismatch (%u/%u)", static_cast<unsigned int>(offset1), static_cast<unsigned int>(offset2));
+
+						auto p1 = data_start_1;
+						auto p2 = data_start_2;
+						for(; *p1 == *p2; p1++, p2++);
+						std::printf("<@+%u> ->\n", static_cast<unsigned int>(p1 - data_start_1));
+
+						std::printf("<");
+						for(int32_t i = -8; i < 8; i++)
+							std::printf("%x ", p1[i]);
+						std::printf(">\n<");
+						for(int32_t i = -8; i < 8; i++)
+							std::printf("%x ", p2[i]);
+						std::printf(">\n");
+
 						match = false;
 					}
 					//
