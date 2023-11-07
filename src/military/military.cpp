@@ -6610,7 +6610,7 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 	At most, national-mobilization-impact-modifier x (define:MIN_MOBILIZE_LIMIT v nation's-number-of-regiments regiments may be
 	created by mobilization).
 	*/
-	auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(n)), int32_t(state.defines.min_mobilize_limit));
+	auto real_regs = std::max(int32_t(state.world.nation_get_active_regiments(n)), int32_t(state.defines.min_mobilize_limit));
 	state.world.nation_set_mobilization_remaining(n,
 			uint16_t(real_regs * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact)));
 
