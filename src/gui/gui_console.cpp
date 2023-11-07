@@ -498,16 +498,22 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(pstate.cmd.args[i].mode == command_info::argument_info::type::text) {
 			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
 				log_to_console(state, parent, "Command requires a \xA7Ytext\xA7W argument at " + std::to_string(i));
+				Cyto::Any payload = this;
+				impl_get(state, payload);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
 			if(!std::holds_alternative<std::string>(pstate.arg_slots[i])) {
 				log_to_console(state, parent, "Command requires a \xA7Ytag\xA7W argument at " + std::to_string(i));
+				Cyto::Any payload = this;
+				impl_get(state, payload);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
 			if(!std::holds_alternative<int32_t>(pstate.arg_slots[i])) {
 				log_to_console(state, parent, "Command requires a \xA7Ynumeric\xA7W argument at " + std::to_string(i));
+				Cyto::Any payload = this;
+				impl_get(state, payload);
 				return;
 			}
 		}
@@ -1170,6 +1176,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	log_to_console(state, parent, ""); // space after command
 	add_to_history(state, std::string(s));
+
+	Cyto::Any payload = this;
+	impl_get(state, payload);
 }
 
 void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {

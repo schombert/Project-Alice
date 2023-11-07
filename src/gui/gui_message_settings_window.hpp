@@ -341,7 +341,7 @@ protected:
 	}
 
 	bool is_reversed() override {
-		return true;
+		return false;
 	}
 };
 
