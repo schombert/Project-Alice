@@ -2867,6 +2867,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			nations::create_nation_based_on_template(state, holder, from);
 		}
 
+		add_truce(state, holder, target, 365);
+
 		if((bits & cb_flag::all_allowed_states) == 0) {
 			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
 				if(prov.get_province().get_nation_from_province_ownership() == target) {
@@ -3180,6 +3182,18 @@ void add_truce_from_nation(sys::state& state, dcon::war_id w, dcon::nation_id n,
 		if(!current_truce || current_truce < end_truce)
 			current_truce = end_truce;
 	}
+}
+
+void add_truce(sys::state& state, dcon::nation_id a, dcon::nation_id b, int32_t days) {
+	auto end_truce = state.current_date + days;
+
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	if(!rel) {
+		rel = state.world.force_create_diplomatic_relation(a, b);
+	}
+	auto& current_truce = state.world.diplomatic_relation_get_truce_until(rel);
+	if(!current_truce || current_truce < end_truce)
+		current_truce = end_truce;
 }
 
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
@@ -5934,11 +5948,28 @@ void update_movement(sys::state& state) {
 							path.clear();
 						}
 					} else {
-						army_arrives_in_province(state, a, dest,
-								(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
-										province::border::river_crossing_bit) != 0
-										? military::crossing_type::river
-										: military::crossing_type::none, dcon::land_battle_id{});
+						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
+						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
+							auto port = state.world.province_get_port_to(from);
+							bool hostile_in_port = false;
+							auto controller = a.get_controller_from_army_control();
+							for(auto v : state.world.province_get_navy_location(port)) {
+								if(military::are_at_war(state, controller, v.get_navy().get_controller_from_navy_control())) {
+									hostile_in_port = true;
+									break;
+								}
+							}
+							if(!hostile_in_port) {
+								army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
+							} else {
+								path.clear();
+							}
+						} else {
+							army_arrives_in_province(state, a, dest,
+									(path_bits & province::border::river_crossing_bit) != 0
+											? military::crossing_type::river
+											: military::crossing_type::none, dcon::land_battle_id{});
+						}
 					}
 				} else {
 					path.clear();
