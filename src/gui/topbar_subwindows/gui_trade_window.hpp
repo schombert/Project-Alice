@@ -737,18 +737,36 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		distribution.clear();
+		float total = 0.f;
+		{
+			float amount = 0.f;
+			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
+				for(const auto fl : pc.get_province().get_factory_location()) {
+					if(fl.get_factory().get_building_type().get_output() == com)
+						amount += fl.get_factory().get_actual_production();
+				}
+			}
+			total += amount;
+			distribution.emplace_back(state.culture_definitions.capitalists, amount);
+		}
+		{
+			float amount = 0.f;
+			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
+				if(pc.get_province().get_rgo() == com)
+					amount += pc.get_province().get_rgo_actual_production();
+			}
+			total += amount;
+			distribution.emplace_back(state.culture_definitions.aristocrat, amount);
+		}
+		{
+			auto amount = state.world.nation_get_artisan_actual_production(state.local_player_nation, com);
+			total += amount;
+			distribution.emplace_back(state.culture_definitions.artisans, amount);
+		}
+		// remaining
 		auto produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, com);
-		if(produced != 0.f) {
-			auto total_pw = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-			distribution.emplace_back(state.culture_definitions.primary_factory_worker, total_pw);
-		}
-		if(produced != 0.f) {
-			auto total_sw = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			distribution.emplace_back(state.culture_definitions.secondary_factory_worker, total_sw);
-		}
-		if(produced != 0.f) {
-			auto total_ar = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.artisans));
-			distribution.emplace_back(state.culture_definitions.artisans, total_ar);
+		if(produced >= total) {
+			distribution.emplace_back(state.culture_definitions.laborers, total);
 		}
 		update_chart(state);
 	}
