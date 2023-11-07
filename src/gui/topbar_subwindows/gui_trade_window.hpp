@@ -766,7 +766,7 @@ public:
 		// remaining
 		auto produced = state.world.nation_get_domestic_market_pool(state.local_player_nation, com);
 		if(produced >= total) {
-			distribution.emplace_back(state.culture_definitions.laborers, total);
+			distribution.emplace_back(state.culture_definitions.laborers, total - produced);
 		}
 		update_chart(state);
 	}
