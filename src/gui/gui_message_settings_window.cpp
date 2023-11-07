@@ -56,6 +56,7 @@ void message_log_window::on_update(sys::state& state) noexcept {
 	for(int32_t i = 0; i < int32_t(messages.size()); ++i)
 		log_list->row_contents.push_back(i);
 	log_list->update(state);
+	log_list->scroll_to_bottom(state);
 }
 
 message_result message_log_window::get(sys::state& state, Cyto::Any& payload) noexcept {

@@ -1254,6 +1254,16 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 	return message_result::consumed;
 }
 
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state) {
+	uint32_t list_size = 0;
+	for(auto rc : row_contents) {
+		list_size++;
+	}
+	list_scrollbar->update_raw_value(state, list_size);
+	update(state);
+}
+
 template<typename contents_type>
 message_result listbox2_base<contents_type>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
 	if(int32_t(row_contents.size()) > visible_row_count) {
