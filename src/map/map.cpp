@@ -126,7 +126,7 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(state.user_settings.fow_enabled) {
+	if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {
