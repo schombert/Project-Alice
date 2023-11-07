@@ -584,34 +584,30 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr,
-					text::fp_one_place{nations::diplomatic_points(state, nation_id)});
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::curr,
+				text::fp_one_place{nations::diplomatic_points(state, nation_id)});
 
-			// Monthly gain
-			text::add_to_substitution_map(sub, text::variable_type::value,
-					text::fp_one_place{nations::monthly_diplomatic_points(state, nation_id)});
+		// Monthly gain
+		text::add_to_substitution_map(sub, text::variable_type::value,
+				text::fp_one_place{nations::monthly_diplomatic_points(state, nation_id)});
 
-			text::substitution_map sub_base;
-			// Base gain
-			text::add_to_substitution_map(sub_base, text::variable_type::value,
-					text::fp_one_place{state.defines.base_monthly_diplopoints});
+		text::substitution_map sub_base;
+		// Base gain
+		text::add_to_substitution_map(sub_base, text::variable_type::value,
+				text::fp_one_place{state.defines.base_monthly_diplopoints});
 
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
-			text::add_divider_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_gain"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_basegain"), sub_base);
-			text::close_layout_box(contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
+		text::add_divider_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_gain"), sub);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints_basegain"), sub_base);
+		text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
-		}
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::diplomatic_points_modifier, false);
 	}
 };
 
@@ -622,18 +618,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
-			text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
-			text::close_layout_box(contents, box);
-		}
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::curr, state.world.nation_get_active_regiments(nation_id));
+		text::add_to_substitution_map(sub, text::variable_type::max, state.world.nation_get_recruitable_regiments(nation_id));
+		text::localised_format_box(state, contents, box, std::string_view("topbar_army_tooltip"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
