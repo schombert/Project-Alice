@@ -23,7 +23,7 @@ set(TBB_STRICT OFF)
 
 FetchContent_Declare(tbb 
 	GIT_REPOSITORY "https://github.com/oneapi-src/oneTBB" 
-	GIT_TAG v2021.10.0
+	GIT_TAG v2021.2.4
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
