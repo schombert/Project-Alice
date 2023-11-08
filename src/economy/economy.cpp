@@ -3109,6 +3109,7 @@ void regenerate_unsaved_values(sys::state& state) {
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto fc = fatten(state.world, c);
+		state.world.commodity_set_key_factory(c, dcon::factory_type_id{});
 		if(fc.get_total_production() > 0.0001f) {
 			fc.set_producer_payout_fraction(std::min(fc.get_total_consumption() / fc.get_total_production(), 1.0f));
 		} else {

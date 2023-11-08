@@ -6519,6 +6519,7 @@ void recover_org(sys::state& state) {
 	morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible for the unit
 	times (0.25 + 0.75 x effective land or naval spending).
 	*/
+
 	for(auto ar : state.world.in_army) {
 		if(ar.get_army_battle_participation().get_battle() || ar.get_navy_from_army_transport())
 			continue;
