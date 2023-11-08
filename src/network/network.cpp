@@ -455,15 +455,17 @@ static void accept_new_clients(sys::state& state) {
 			state.world.nation_set_is_player_controlled(client.playing_as, true);
 			{ // Tell the client which nation they're
 				command::payload c;
+				memset(&c, 0, sizeof(c));
 				c.type = command::command_type::notify_player_picks_nation;
 				c.source = dcon::nation_id{};
 				c.data.nation_pick.target = client.playing_as;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
-			// notify the client of all current players
+			// Notify the client of all current players
 			for(auto n : state.world.in_nation) {
 				if(state.world.nation_get_is_player_controlled(n) && n != client.playing_as) {
 					command::payload c;
+					memset(&c, 0, sizeof(c));
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
 					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
@@ -473,6 +475,7 @@ static void accept_new_clients(sys::state& state) {
 			// if already in game, allow the player to join into the lobby as if she was into it
 			if(state.mode == sys::game_mode_type::in_game) {
 				command::payload c;
+				memset(&c, 0, sizeof(c));
 				c.type = command::command_type::notify_start_game;
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
@@ -508,7 +511,6 @@ void send_and_receive_commands(sys::state& state) {
 				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
-				command_executed = true;
 				/* Why? Well, lets suppose we have a host A, and client B.
 				   Host A tells client B that A's nation is player controlled "Ok", acknowledges the
 				   B client, which if you see above, its done by telling the client all of the CURRENTLY
@@ -522,12 +524,15 @@ void send_and_receive_commands(sys::state& state) {
 				   We solve this tiny issue by reloading the state everytime a client joins. Remember that
 				   hotjoin is a functionality we support. */
 				if(c->type == command::command_type::notify_player_joins) {
+					state.network_state.is_new_game = false;
 					command::payload p;
+					memset(&p, 0, sizeof(p));
 					p.type = command::command_type::notify_save_loaded;
 					p.source = state.local_player_nation;
 					p.data.notify_save_loaded.target = c->source;
 					broadcast_to_clients(state, p);
 				}
+				command_executed = true;
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
