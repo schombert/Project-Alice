@@ -3185,9 +3185,12 @@ void build_ships(sys::state& state) {
 			}
 
 			int32_t used_points = n.get_used_naval_supply_points();
-			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + constructing_fleet_cap);
-			auto free_big_points = best_light ? rem_free / 2 - fleet_cap_in_big : rem_free;
-			auto free_small_points = best_big ? rem_free / 2 - fleet_cap_in_small : rem_free;
+			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
+			fleet_cap_in_small = std::max(fleet_cap_in_small, 1);
+			fleet_cap_in_big = std::max(fleet_cap_in_big, 1);
+
+			auto free_big_points = best_light ? rem_free * fleet_cap_in_small / (fleet_cap_in_small + fleet_cap_in_big) : rem_free;
+			auto free_small_points = best_big ? rem_free * fleet_cap_in_big / (fleet_cap_in_small + fleet_cap_in_big) : rem_free;
 
 			if(best_light) {
 				auto overseas_allowed = state.military_definitions.unit_base_definitions[best_light].can_build_overseas;

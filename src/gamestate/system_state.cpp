@@ -3097,6 +3097,11 @@ void state::preload() {
 		n.set_is_target_of_some_cb(false);
 		n.set_in_sphere_of(dcon::nation_id{});
 		n.set_is_player_controlled(false);
+		n.set_is_great_power(false);
+		n.set_is_colonial_nation(false);
+		n.set_has_flash_point_state(false);
+		n.set_ai_is_threatened(false);
+		n.set_ai_home_port(dcon::province_id{});
 	}
 	for(auto p : world.in_pop) {
 		p.set_political_reform_desire(0);
@@ -3105,10 +3110,18 @@ void state::preload() {
 	}
 	for(auto p : world.in_province) {
 		p.set_state_membership(dcon::state_instance_id{});
+		p.set_is_owner_core(false);
+		p.set_is_blockaded(false);
 	}
 	for(auto m : world.in_movement) {
 		m.set_pop_support(0.0f);
 		m.set_radicalism(0.0f);
+	}
+	for(auto s : world.in_ship) {
+		s.set_pending_split(false);
+	}
+	for(auto r : world.in_regiment) {
+		r.set_pending_split(false);
 	}
 }
 
@@ -3320,6 +3333,23 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 			a.set_arrival_time(current_date + 1);
 		}
 	}
+	for(auto shp : world.in_ship) {
+		assert(shp.get_navy_from_navy_membership());
+		assert(shp.get_type());
+	}
+	std::vector<dcon::ship_id> sin_battle;
+	for(auto b : world.in_naval_battle) {
+		for(auto slot : b.get_slots()) {
+			if((slot.flags & military::ship_in_battle::mode_mask) != military::ship_in_battle::mode_retreated
+				&& (slot.flags & military::ship_in_battle::mode_mask) != military::ship_in_battle::mode_sunk) {
+
+				assert(world.ship_is_valid(slot.ship));
+				auto it = std::find(sin_battle.begin(), sin_battle.end(), slot.ship);
+				assert(it == sin_battle.end());
+				sin_battle.push_back(slot.ship);
+			}
+		}
+	}
 
 #endif // ! NDEBUG
 
@@ -3520,7 +3550,7 @@ void state::single_game_tick() {
 	demographics::regenerate_from_pop_data(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
-	concurrency::parallel_for(0, 18, [&](int32_t index) {
+	concurrency::parallel_for(0, 17, [&](int32_t index) {
 		switch(index) {
 			case 0:
 				ai::refresh_home_ports(*this);
@@ -3572,9 +3602,6 @@ void state::single_game_tick() {
 				military::increase_dig_in(*this);
 				break;
 			case 16:
-				military::recover_org(*this);
-				break;
-			case 17:
 				military::update_blockade_status(*this);
 				break;
 		}
@@ -3582,6 +3609,7 @@ void state::single_game_tick() {
 
 	economy::daily_update(*this);
 
+	military::recover_org(*this);
 	military::update_siege_progress(*this);
 	military::update_movement(*this);
 	military::update_naval_battles(*this);
