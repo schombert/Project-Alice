@@ -87,21 +87,21 @@ void autosave_right::on_update(sys::state& state) noexcept {
 }
 void autosave_display::on_update(sys::state& state) noexcept {
 	switch(state.user_settings.autosaves) {
-		case sys::autosave_frequency::none:
-			set_text(state, text::produce_simple_string(state, "auto_save_0"));
-			break;
-		case sys::autosave_frequency::daily:
-			set_text(state, text::produce_simple_string(state, "auto_save_1"));
-			break;
-		case sys::autosave_frequency::monthly:
-			set_text(state, text::produce_simple_string(state, "auto_save_2"));
-			break;
-		case sys::autosave_frequency::yearly:
-			set_text(state, text::produce_simple_string(state, "auto_save_3"));
-			break;
-		default:
-			set_text(state, "???");
-			break;
+	case sys::autosave_frequency::none:
+		set_text(state, text::produce_simple_string(state, "auto_save_0"));
+		break;
+	case sys::autosave_frequency::daily:
+		set_text(state, text::produce_simple_string(state, "auto_save_1"));
+		break;
+	case sys::autosave_frequency::monthly:
+		set_text(state, text::produce_simple_string(state, "auto_save_2"));
+		break;
+	case sys::autosave_frequency::yearly:
+		set_text(state, text::produce_simple_string(state, "auto_save_3"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
 	}
 }
 

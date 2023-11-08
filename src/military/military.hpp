@@ -370,6 +370,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		dcon::national_identity_id wargoal_t);
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
+void add_truce(sys::state& state, dcon::nation_id a, dcon::nation_id b, int32_t days);
 
 void update_ticking_war_score(sys::state& state);
 

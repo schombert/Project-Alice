@@ -1285,7 +1285,7 @@ alice_trade_flow_consumed;§YDomestic consumption:;;;;;;;;;;;;x
 alice_trade_flow_label;Market overview:;;;Analisis del mercado:;;;;;;;;;x
 alice_trade_flow_piechart_producers;Producers;;;Productores;;;;;;;;;x
 alice_trade_flow_piechart_consumers;Consumers;;;Consumidores;;;;;;;;;x
-alice_trade_flow_piechart_workforce;Workforce;;;Profesiones;;;;;;;;;x
+alice_trade_flow_piechart_workforce;Investors;;;Inversionistas;;;;;;;;;x
 alice_diplo_release_subject;Release subject;;;Liberar subdito;;;;;;;;;x
 alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly;;;;;;;;;;;;x
 alice_diplo_release_subject_0;Is our subject;;;Es nuestro subdito;;;;;;;;;x
