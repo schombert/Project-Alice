@@ -477,13 +477,6 @@ static void accept_new_clients(sys::state& state) {
 				c.source = state.local_player_nation;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
-			{ // Load the savefile into the client only if we loaded a save
-				command::payload c;
-				c.type = command::command_type::notify_save_loaded;
-				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.target = client.playing_as;
-				broadcast_to_clients(state, c);
-			}
 			return;
 		}
 	}
@@ -516,6 +509,25 @@ void send_and_receive_commands(sys::state& state) {
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
 				command_executed = true;
+				/* Why? Well, lets suppose we have a host A, and client B.
+				   Host A tells client B that A's nation is player controlled "Ok", acknowledges the
+				   B client, which if you see above, its done by telling the client all of the CURRENTLY
+				   connected clients to the client. The thing is that, on filling unsaved data, the current
+				   PLAYER CONTROLLED nations are treated different from those who do not.
+				   Why is this important?
+				   Suppose nation A and B are player controlled, if we sent the "notify_save_loaded"
+				   when a client joins, this will prompt both to reload their states, HOWEVER they do not
+				   account for C, C then gets told that A and B are player controlled, and reloads.
+				   The issue is that this causes a divergent game state.
+				   We solve this tiny issue by reloading the state everytime a client joins. Remember that
+				   hotjoin is a functionality we support. */
+				if(c->type == command::command_type::notify_player_joins) {
+					command::payload p;
+					p.type = command::command_type::notify_save_loaded;
+					p.source = state.local_player_nation;
+					p.data.notify_save_loaded.target = c->source;
+					broadcast_to_clients(state, p);
+				}
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
