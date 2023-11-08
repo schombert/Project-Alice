@@ -147,12 +147,12 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 		std::abort();
 	int opt = 1;
 #ifdef _WIN64
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE, (char*)&opt, sizeof(opt))) {
 		MessageBoxA(NULL, ("Network setsockpt error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 #else
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE | SO_REUSEPORT, &opt, sizeof(opt))) {
 		std::abort();
 	}
 #endif
