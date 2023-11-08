@@ -85,6 +85,10 @@ public:
 				auto to_delete = row_contents.size() - to_keep;
 				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
 			}
+		} else {
+			/* Kludge to make chat window work properly */
+			if(row_contents.size() >= row_windows.size())
+				row_contents.push_back(state.ui_date.chat_messages[state.ui_state.chat_messages_index]);
 		}
 		update(state);
 	}
