@@ -570,9 +570,9 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		disabled = !bool(state.local_player_nation);
 		if(state.network_mode == sys::network_mode_type::client) {
-			if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
+			if(state.network_state.save_stream) //in the middle of a save stream
 				disabled = true;
-			else if(state.network_state.save_stream) //in the middle of a save stream
+			else if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
 				disabled = true;
 		} else if(state.network_mode == sys::network_mode_type::host) {
 			for(auto const& client : state.network_state.clients) {
