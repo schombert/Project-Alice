@@ -4299,6 +4299,8 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
+	// Monthly OOS check
+#ifdef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
 		if(!current.is_equal(k)) {
@@ -4306,6 +4308,17 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			state.debug_oos_dump();
 		}
 	}
+#else
+	if(state.current_date.to_ymd(state.start_date).day == 0) {
+		if(!state.network_state.out_of_sync) {
+			sys::checksum_key current = state.get_save_checksum();
+			if(!current.is_equal(k)) {
+				state.network_state.out_of_sync = true;
+				state.debug_oos_dump();
+			}
+		}
+	}
+#endif
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.actual_game_speed = speed;
 	}
