@@ -63,6 +63,7 @@ public:
 template<bool ShowFull>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
+	uint8_t prev_index = 0;
 	std::string_view get_row_element_name() override {
 		return "chat_entry";
 	}
@@ -86,9 +87,9 @@ public:
 				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
 			}
 		} else {
-			/* Kludge to make chat window work properly */
-			if(row_contents.size() >= row_windows.size())
-				row_contents.push_back(state.ui_state.chat_messages[state.ui_state.chat_messages_index]);
+			if(prev_index != state.ui_state.chat_messages_index)
+				scroll_to_bottom(state);
+			prev_index = state.ui_state.chat_messages_index;
 		}
 		update(state);
 	}
