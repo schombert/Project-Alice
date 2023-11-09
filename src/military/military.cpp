@@ -3623,10 +3623,36 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w) {
 	auto pdefender = state.world.war_get_primary_defender(w);
 
 	auto d_cpc = state.world.nation_get_central_ports(pdefender);
-	auto def_b_frac = std::clamp(d_cpc > 0 ? float(state.world.nation_get_central_blockaded(pdefender)) / float(d_cpc) : 0.0f, 0.0f, 1.0f);
+	int32_t d_blockaded_in_war = 0;
+	for(auto p : state.world.nation_get_province_ownership(pdefender)) {
+		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
+			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
+				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
+					if(military::get_role(state, w, v.get_navy().get_controller_from_navy_control()) == military::war_role::attacker) {
+						++d_blockaded_in_war;
+						break; // out of inner loop
+					}
+				}
+			}
+		}
+	}
+	auto def_b_frac = std::clamp(d_cpc > 0 ? float(d_blockaded_in_war) / float(d_cpc) : 0.0f, 0.0f, 1.0f);
 
+	int32_t a_blockaded_in_war = 0;
+	for(auto p : state.world.nation_get_province_ownership(pattacker)) {
+		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
+			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
+				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
+					if(military::get_role(state, w, v.get_navy().get_controller_from_navy_control()) == military::war_role::defender) {
+						++a_blockaded_in_war;
+						break; // out of inner loop
+					}
+				}
+			}
+		}
+	}
 	auto a_cpc = state.world.nation_get_central_ports(pattacker);
-	auto att_b_frac = std::clamp(a_cpc > 0 ? float(state.world.nation_get_central_blockaded(pattacker)) / float(a_cpc) : 0.0f, 0.0f, 1.0f);
+	auto att_b_frac = std::clamp(a_cpc > 0 ? float(a_blockaded_in_war) / float(a_cpc) : 0.0f, 0.0f, 1.0f);
 
 	return 25.0f * (def_b_frac - att_b_frac);
 }
@@ -3757,6 +3783,65 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 			total -= wg.get_wargoal().get_ticking_war_score();
 		}
 	}
+
+	auto d_cpc = state.world.nation_get_central_ports(secondary);
+	int32_t d_blockaded_in_war = 0;
+	for(auto p : state.world.nation_get_province_ownership(secondary)) {
+		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
+			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
+				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
+
+					if(is_pattacker) {
+						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::attacker) {
+							++d_blockaded_in_war;
+							break; // out of inner loop
+						}
+					} else if(is_pdefender) {
+						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::defender) {
+							++d_blockaded_in_war;
+							break; // out of inner loop
+						}
+					} else {
+						if(v.get_navy().get_controller_from_navy_control() == primary) {
+							++d_blockaded_in_war;
+							break; // out of inner loop
+						}
+					}
+				}
+			}
+		}
+	}
+	auto def_b_frac = std::clamp(d_cpc > 0 ? float(d_blockaded_in_war) / float(d_cpc) : 0.0f, 0.0f, 1.0f);
+
+	int32_t a_blockaded_in_war = 0;
+	for(auto p : state.world.nation_get_province_ownership(primary)) {
+		if(military::province_is_blockaded(state, p.get_province()) && !province::is_overseas(state, p.get_province().id)) {
+			for(auto v : state.world.province_get_navy_location(p.get_province().get_port_to())) {
+				if(!v.get_navy().get_is_retreating() && !v.get_navy().get_battle_from_navy_battle_participation()) {
+					if(is_tpattacker) {
+						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::attacker) {
+							++a_blockaded_in_war;
+							break; // out of inner loop
+						}
+					} else if(is_tpdefender) {
+						if(get_role(state, w, v.get_navy().get_controller_from_navy_control()) == war_role::defender) {
+							++a_blockaded_in_war;
+							break; // out of inner loop
+						}
+					} else {
+						if(v.get_navy().get_controller_from_navy_control() == secondary) {
+							++a_blockaded_in_war;
+							break; // out of inner loop
+						}
+					}
+				}
+			}
+		}
+	}
+	auto a_cpc = state.world.nation_get_central_ports(primary);
+	auto att_b_frac = std::clamp(a_cpc > 0 ? float(a_blockaded_in_war) / float(a_cpc) : 0.0f, 0.0f, 1.0f);
+
+	total += 25.0f * (def_b_frac - att_b_frac);
 
 	return std::clamp(total, 0.0f, 100.0f);
 }
