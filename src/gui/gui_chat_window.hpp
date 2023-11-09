@@ -86,12 +86,13 @@ public:
 				auto to_delete = row_contents.size() - to_keep;
 				row_contents.erase(row_contents.begin(), row_contents.begin() + to_delete);
 			}
-		} else {
+		}
+		update(state);
+		if constexpr(ShowFull) {
 			if(prev_index != state.ui_state.chat_messages_index)
 				scroll_to_bottom(state);
 			prev_index = state.ui_state.chat_messages_index;
 		}
-		update(state);
 	}
 
 	bool is_reversed() override {
