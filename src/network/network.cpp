@@ -450,6 +450,19 @@ static void accept_new_clients(sys::state& state) {
 				disconnect_client(state, client);
 				break;
 			}
+			/* If already in game, allow the player to join into the lobby as if she was into it */
+			if(state.mode == sys::game_mode_type::in_game) {
+				/* TODO: For now hotjoin doesn't work properly, so just disconnect the client :D */
+				disconnect_client(state, client);
+				break;
+				/*
+				command::payload c;
+				memset(&c, 0, sizeof(c));
+				c.type = command::command_type::notify_start_game;
+				c.source = state.local_player_nation;
+				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+				*/
+			}
 			client.playing_as = get_temp_nation(state);
 			assert(bool(client.playing_as));
 			state.world.nation_set_is_player_controlled(client.playing_as, true);
@@ -471,14 +484,6 @@ static void accept_new_clients(sys::state& state) {
 					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
 					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				}
-			}
-			// if already in game, allow the player to join into the lobby as if she was into it
-			if(state.mode == sys::game_mode_type::in_game) {
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_start_game;
-				c.source = state.local_player_nation;
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 			return;
 		}
