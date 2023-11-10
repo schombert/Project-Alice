@@ -6,7 +6,9 @@ TEST_CASE("text from csv", "[parsers]") {
 
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
-		text::consume_csv_file(*state, 2, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more"));
+		parsers::error_handler err("sample_lines");
+		text::consume_csv_file(*state, 2, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more"), err);
+		REQUIRE(err.fatal == false);
 
 		REQUIRE(state->text_components.size() == size_t(3));
 		REQUIRE(state->text_sequences.size() == size_t(1));
@@ -20,7 +22,9 @@ TEST_CASE("text from csv", "[parsers]") {
 	SECTION("multiple_lines") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
 
-		text::consume_csv_file(*state, 2, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more\r\nBBB;extra;;;;\nCCC;last;;"));
+		parsers::error_handler err("multiple_lines");
+		text::consume_csv_file(*state, 2, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more\r\nBBB;extra;;;;\nCCC;last;;"), err);
+		REQUIRE(err.fatal == false);
 
 		REQUIRE(state->text_components.size() == size_t(5));
 		REQUIRE(state->text_sequences.size() == size_t(3));
