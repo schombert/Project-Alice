@@ -85,7 +85,7 @@ void main() {
 	
 	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
 	temp_result.x *= x_adj;
-	temp_result.z = 0.02f / (thickness * zoom);
+	temp_result.z = 0.01f / (thickness * zoom);
 
 	gl_Position = temp_result;
 	tex_coord = texture_coord;
