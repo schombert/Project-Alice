@@ -11,7 +11,7 @@ void message_log_text::on_update(sys::state& state) noexcept {
 						text::alignment::left, text::text_color::white, false});
 
 		auto box = text::open_layout_box(container);
-		text::add_to_layout_box(state, container, box, m.about);
+		text::add_to_layout_box(state, container, box, m.source);
 		text::add_to_layout_box(state, container, box, std::string_view{": "});
 		text::localised_format_box(state, container, box, m.title);
 		text::close_layout_box(container, box);
