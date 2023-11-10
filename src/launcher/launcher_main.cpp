@@ -1378,7 +1378,7 @@ int WINAPI wWinMain(
 	);
 
 	if(launcher::m_hwnd) {
-		HINSTANCE hUser32dll = LoadLibrary(L"User32.dll");
+		hUser32dll = LoadLibrary(L"User32.dll");
 		if(hUser32dll) {
 			auto pGetDpiForWindow = (decltype(&GetDpiForWindow))GetProcAddress(hUser32dll, "GetDpiForWindow");
 			if(pGetDpiForWindow != NULL) {
