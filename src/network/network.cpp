@@ -402,28 +402,17 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		auto total_size_used = uint32_t(buffer_position - buffer.get());
 		/* We need to regenerate the checksum of the save so it's at this specific point */
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
-		/* And then we have to first send the command payload itself */
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active()) {
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-		}
-		/* Which then we have to send the save stream, note that
-		   we can send a "0" size stream, to signify that the client simply needs
-		   to reload it's save state to sync. */
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				bool send_full = (client.playing_as == c.data.notify_save_loaded.target) || (!c.data.notify_save_loaded.target);
 				if(send_full && !state.network_state.is_new_game) {
+					/* And then we have to first send the command payload itself */
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+					/* And then the bulk payload! */
 					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
 					client.save_stream_size = size_t(total_size_used);
 					socket_add_to_send_queue(client.send_buffer, &total_size_used, sizeof(total_size_used));
 					socket_add_to_send_queue(client.send_buffer, buffer.get(), size_t(total_size_used));
-				} else {
-					static const uint32_t zero = 0;
-					client.save_stream_offset = client.total_sent_bytes + client.send_buffer.size();
-					client.save_stream_size = 0;
-					socket_add_to_send_queue(client.send_buffer, &zero, sizeof(zero));
 				}
 			}
 		}
