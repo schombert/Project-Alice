@@ -496,6 +496,7 @@ static void accept_new_clients(sys::state& state) {
 				hshake.seed = state.game_seed;
 				hshake.assigned_nation = client.playing_as;
 				hshake.scenario_checksum = state.scenario_checksum;
+				hshake.save_checksum = state.get_save_checksum();
 				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 			}
 			for(const auto n : state.world.in_nation) {
@@ -563,6 +564,7 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 					//std::abort();
 				}
+				state.session_host_checksum = state.network_state.s_hshake.save_checksum;
 				state.game_seed = state.network_state.s_hshake.seed;
 				state.local_player_nation = state.network_state.s_hshake.assigned_nation;
 				state.world.nation_set_is_player_controlled(state.local_player_nation, true);

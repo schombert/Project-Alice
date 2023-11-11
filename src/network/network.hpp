@@ -37,6 +37,7 @@ struct client_handshake_data {
 
 struct server_handshake_data {
 	sys::checksum_key scenario_checksum;
+	sys::checksum_key save_checksum;
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
 	uint8_t reserved[64];
