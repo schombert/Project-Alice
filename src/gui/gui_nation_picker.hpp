@@ -600,6 +600,8 @@ public:
 				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
 			}
 			button_element_base::render(state, x, y);
+		} else {
+			button_element_base::render(state, x, y);
 		}
 	}
 
