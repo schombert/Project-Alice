@@ -393,8 +393,6 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		   loading a save implies that we have done preload/fill_unsaved
 		   so we will skip doing that again, to save a bit of sanity on
 		   our miserable CPU */
-		bool needs_reload = !state.network_state.save_slock.load(std::memory_order::acquire);
-		//
 		size_t length = sizeof_save_section(state);
 		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 		write_save_section(save_buffer.get(), state);
@@ -402,23 +400,6 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 		auto buffer_position = write_network_compressed_section(buffer.get(), save_buffer.get(), uint32_t(length));
 		auto total_size_used = uint32_t(buffer_position - buffer.get());
-		if(needs_reload) {
-			/* Mirror the calls done by the client */
-			std::vector<dcon::nation_id> players;
-			for(const auto n : state.world.in_nation)
-				if(n.get_is_player_controlled())
-					players.push_back(n);
-			dcon::nation_id old_local_player_nation = state.local_player_nation;
-			state.local_player_nation = dcon::nation_id{};
-			state.preload();
-			read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-			state.local_player_nation = dcon::nation_id{ };
-			state.fill_unsaved_data();
-			for(const auto n : players)
-				state.world.nation_set_is_player_controlled(n, true);
-			state.local_player_nation = old_local_player_nation;
-			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-		}
 		/* We need to regenerate the checksum of the save so it's at this specific point */
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
 		/* And then we have to first send the command payload itself */
