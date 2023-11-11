@@ -4184,7 +4184,6 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	// Monthly OOS check
-#define OOS_DAILY_CHECK 1
 #ifdef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
@@ -4204,7 +4203,6 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		}
 	}
 #endif
-#undef OOS_DAILY_CHECK
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.actual_game_speed = speed;
 	}
