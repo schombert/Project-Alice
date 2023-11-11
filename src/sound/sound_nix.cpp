@@ -338,7 +338,7 @@ void play_new_track(sys::state& state) {
 
 native_string get_current_track_name(sys::state& state) {
 	if(state.sound_ptr->music.has_value())
-		return state.sound_ptr->music.filename;
+		return state.sound_ptr->music_list[state.sound_ptr->current_music].filename;
 	return "";
 }
 

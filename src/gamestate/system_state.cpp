@@ -884,107 +884,109 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// Log messages
 			auto* c6 = new_messages.front();
 			while(c6) {
-				if(c6->about == local_player_nation) {
-					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::log) {
-						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+				auto base_type = c6->type;
+				auto setting_types = sys::message_setting_map[int32_t(base_type)];
+				uint8_t settings_bits = 0;
+				if(setting_types.source != sys::message_setting_type::count) {
+					if(c6->source == local_player_nation) {
+						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.source)];
+					} else if(notification::nation_is_interesting(*this, c6->source)) {
+						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.source)];
+					} else {
+						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.source)];
 					}
-					if(user_settings.self_message_settings[int32_t(c6->type)] & message_response::popup) {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if((user_settings.self_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
-							ui_pause.store(true, std::memory_order_release);
-						}
+				}
+				if(setting_types.target != sys::message_setting_type::count) {
+					if(c6->target == local_player_nation) {
+						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.target)];
+					} else if(notification::nation_is_interesting(*this, c6->target)) {
+						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.target)];
+					} else {
+						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.target)];
 					}
+				}
+				if(setting_types.third != sys::message_setting_type::count) {
+					if(c6->third == local_player_nation) {
+						settings_bits |= user_settings.self_message_settings[int32_t(setting_types.third)];
+					} else if(notification::nation_is_interesting(*this, c6->third)) {
+						settings_bits |= user_settings.interesting_message_settings[int32_t(setting_types.third)];
+					} else {
+						settings_bits |= user_settings.other_message_settings[int32_t(setting_types.third)];
+					}
+				}
 
-					// Sound effects(tm)
-					if(user_settings.self_message_settings[int32_t(c6->type)] != 0) {
-						switch(c6->type) {
-						case message_setting_type::war_on_nation:
-						case message_setting_type::war_by_nation:
-							sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::peace_accepted_by_nation:
-						case message_setting_type::peace_accepted_from_nation:
-							sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::tech:
-							sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::factory_complete:
-							sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::fort_complete:
-							sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::rr_complete:
-							sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::naval_base_complete:
-							sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::electionstart:
-						case message_setting_type::electiondone:
-							sound::play_effect(*this, sound::get_election_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::revolt:
-							sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::army_built:
-							sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::navy_built:
-							sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::province_event:
-							sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::national_event:
-						case message_setting_type::major_event:
-							sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::alliance_declined_by_nation:
-						case message_setting_type::alliance_declined_on_nation:
-						case message_setting_type::ally_called_declined_by_nation:
-						case message_setting_type::crisis_join_offer_declined_by_nation:
-						case message_setting_type::crisis_join_offer_declined_from_nation:
-						case message_setting_type::crisis_resolution_declined_from_nation:
-						case message_setting_type::mil_access_declined_by_nation:
-						case message_setting_type::mil_access_declined_on_nation:
-						case message_setting_type::peace_rejected_by_nation:
-						case message_setting_type::peace_rejected_from_nation:
-							sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						case message_setting_type::alliance_starts:
-						case message_setting_type::ally_called_accepted_by_nation:
-						case message_setting_type::crisis_join_offer_accepted_by_nation:
-						case message_setting_type::crisis_join_offer_accepted_from_nation:
-						case message_setting_type::crisis_resolution_accepted:
-						case message_setting_type::mil_access_start_by_nation:
-						case message_setting_type::mil_access_start_on_nation:
-							sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-							break;
-						default:
-							break;
-						}
+				if(settings_bits & message_response::log) {
+					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
+				}
+				if(settings_bits & message_response::popup) {
+					static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+					if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
+						ui_pause.store(true, std::memory_order_release);
 					}
-				} else if(notification::nation_is_interesting(*this, c6->about)) {
-					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::log) {
-						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
-					}
-					if(user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::popup) {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if((user_settings.interesting_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
-							ui_pause.store(true, std::memory_order_release);
-						}
-					}
-				} else {
-					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::log) {
-						static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
-					}
-					if(user_settings.other_message_settings[int32_t(c6->type)] & message_response::popup) {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-						if((user_settings.other_message_settings[int32_t(c6->type)] & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
-							ui_pause.store(true, std::memory_order_release);
-						}
+				}
+
+
+				// Sound effects(tm)
+				if(settings_bits != 0 && local_player_nation && (c6->source == local_player_nation || c6->target == local_player_nation)) {
+					switch(base_type) {
+					case message_base_type::war:
+						sound::play_effect(*this, sound::get_declaration_of_war_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::peace_accepted:
+						sound::play_effect(*this, sound::get_peace_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::tech:
+						sound::play_effect(*this, sound::get_technology_finished_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::factory_complete:
+						sound::play_effect(*this, sound::get_factory_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::fort_complete:
+						sound::play_effect(*this, sound::get_fort_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::rr_complete:
+						sound::play_effect(*this, sound::get_railroad_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::naval_base_complete:
+						sound::play_effect(*this, sound::get_naval_base_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::electionstart:
+					case message_base_type::electiondone:
+						sound::play_effect(*this, sound::get_election_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::revolt:
+						sound::play_effect(*this, sound::get_revolt_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::army_built:
+						sound::play_effect(*this, sound::get_army_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::navy_built:
+						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::province_event:
+						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::national_event:
+					case message_base_type::major_event:
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::alliance_declined:
+					case message_base_type::ally_called_declined:
+					case message_base_type::crisis_join_offer_declined:
+					case message_base_type::crisis_resolution_declined:
+					case message_base_type::mil_access_declined:
+					case message_base_type::peace_rejected:
+						sound::play_effect(*this, sound::get_decline_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::alliance_starts:
+					case message_base_type::ally_called_accepted:
+					case message_base_type::crisis_join_offer_accepted:
+					case message_base_type::crisis_resolution_accepted:
+					case message_base_type::mil_access_start:
+						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					default:
+						break;
 					}
 				}
 

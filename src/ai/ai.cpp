@@ -698,8 +698,8 @@ void take_ai_decisions(sys::state& state) {
 									ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
 								},
 								"msg_decision_title",
-								n,
-								sys::message_setting_type::decision
+								n, dcon::nation_id{}, dcon::nation_id{},
+								sys::message_base_type::decision
 							});
 						}
 					}

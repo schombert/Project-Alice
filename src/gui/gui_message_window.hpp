@@ -249,14 +249,14 @@ public:
 			if(messages.empty()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{});
 			} else {
-				payload.emplace<dcon::nation_id>(messages[index].about);
+				payload.emplace<dcon::nation_id>(messages[index].source);
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::national_identity_id>()) {
 			if(messages.empty()) {
 				payload.emplace<dcon::national_identity_id>(dcon::national_identity_id{});
 			} else {
-				payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(messages[index].about));
+				payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(messages[index].source));
 			}
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {

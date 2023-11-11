@@ -287,6 +287,200 @@ enum class message_setting_type : uint8_t {
 	count = 128
 };
 
+enum class message_base_type : uint8_t {
+	revolt = 0, // added
+	war = 1, // added
+	wargoal_added = 2, // added
+	siegeover = 3, // added
+	colony_finished = 4,
+	reform_gained = 5,
+	reform_lost = 6,
+	ruling_party_change = 7,
+	upperhouse = 8, // added
+	electionstart = 9, // added
+	electiondone = 10, // added
+	breakcountry = 11, // added
+	peace_accepted = 12, // added
+	peace_rejected = 13, // added
+	mobilization_start = 14,
+	mobilization_end = 15,
+	factory_complete = 16,
+	rr_complete = 17,
+	fort_complete = 18,
+	naval_base_complete = 19,
+	province_event = 20,
+	national_event = 21,
+	major_event = 22,
+	invention = 23, // added
+	tech = 24, // added
+	leader_dies = 25, // added
+	land_combat_starts = 26,
+	naval_combat_starts = 27,
+	movement_finishes = 28,
+	decision = 29, // added
+	lose_great_power = 30, // added
+	become_great_power = 31, // added
+	war_subsidies_start = 32, // added
+	war_subsidies_end = 33, // added
+	reparations_start = 34,
+	reparations_end = 35,
+	mil_access_start = 36, // added
+	mil_access_end = 37, // added
+	mil_access_declined = 38, // added
+	alliance_starts = 39, // added
+	alliance_ends = 40, // added
+	alliance_declined = 41, // added
+	ally_called_accepted = 42, // added
+	ally_called_declined = 43, // added
+	discredit = 44, // added
+	ban = 45, // added
+	expell = 46, // added
+	increase_opinion = 47, // added
+	decrease_opinion = 48, // added
+	rem_sphere = 49, // added
+	add_to_sphere = 50, // added
+	increase_relation = 51, // added
+	decrease_relation = 52, // added
+	join_war = 53, // added
+	gw_unlocked = 54,
+	war_becomes_great = 55, // added
+	cb_detected = 56, // added
+	crisis_join_offer_accepted = 57, // added
+	crisis_join_offer_declined = 58, // added
+	crisis_resolution_accepted = 59, // added
+	crisis_becomes_war = 60, // added
+	crisis_resolution_declined = 61, // added
+	crisis_starts = 62, // added
+	crisis_attacker_backer = 63, // added
+	crisis_defender_backer = 64, // added
+	crisis_fizzle = 65, // added
+	cb_fab_finished = 66, // added
+	cb_fab_cancelled = 67, // added
+	crisis_voluntary_join = 68, // added
+	army_built = 69, // added
+	navy_built = 70, // added
+	count = 71
+};
+
+struct msg_setting_entry {
+	message_setting_type source;
+	message_setting_type target;
+	message_setting_type third;
+};
+
+constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type::count)] = {
+						// source									target										third
+	msg_setting_entry{ message_setting_type::revolt,					message_setting_type::count,				message_setting_type:: count}, //revolt
+	msg_setting_entry{ message_setting_type::war_by_nation,			message_setting_type::war_on_nation,		message_setting_type::count}, //war = 1, // added
+	msg_setting_entry{ message_setting_type::wargoal_added,		message_setting_type::count,				message_setting_type::count}, //wargoal_added = 2, // added
+	msg_setting_entry{ message_setting_type::siegeover_by_nation,	message_setting_type::siegeover_on_nation,	message_setting_type::count}, //siegeover = 3, // added
+	msg_setting_entry{ message_setting_type::colony_finished,		message_setting_type::count,				message_setting_type::count}, //colony_finished = 4,
+	msg_setting_entry{ message_setting_type::reform_gained,			message_setting_type::count,				message_setting_type::count}, //reform_gained = 5,
+	msg_setting_entry{ message_setting_type::reform_lost,			message_setting_type::count,				message_setting_type::count}, //reform_lost = 6,
+	msg_setting_entry{ message_setting_type::ruling_party_change,	message_setting_type::count,				message_setting_type::count}, //ruling_party_change = 7,
+	msg_setting_entry{ message_setting_type::upperhouse,			message_setting_type::count,				message_setting_type::count}, //upperhouse = 8, // added
+	msg_setting_entry{ message_setting_type::electionstart,			message_setting_type::count,				message_setting_type::count}, //electionstart = 9, // added
+	msg_setting_entry{ message_setting_type::electiondone,			message_setting_type::count,				message_setting_type::count}, //electiondone = 10, // added
+	msg_setting_entry{ message_setting_type::breakcountry,			message_setting_type::count,				message_setting_type::count}, //breakcountry = 11, // added
+	msg_setting_entry{ message_setting_type::peace_accepted_from_nation,
+																	message_setting_type::peace_accepted_by_nation,
+																												message_setting_type::count}, //peace_accepted = 12, // added
+	msg_setting_entry{ message_setting_type::peace_rejected_from_nation,
+																	message_setting_type::peace_rejected_by_nation,
+																												message_setting_type::count}, //peace_rejected = 13, // added
+	msg_setting_entry{ message_setting_type::mobilization_start,		message_setting_type::count,				message_setting_type::count}, //mobilization_start = 14,
+	msg_setting_entry{ message_setting_type::mobilization_end,		message_setting_type::count,				message_setting_type::count}, //mobilization_end = 15,
+	msg_setting_entry{ message_setting_type::factory_complete,		message_setting_type::count,				message_setting_type::count}, //factory_complete = 16,
+	msg_setting_entry{ message_setting_type::rr_complete,			message_setting_type::count,				message_setting_type::count}, //rr_complete = 17,
+	msg_setting_entry{ message_setting_type::fort_complete,			message_setting_type::count,				message_setting_type::count}, //fort_complete = 18,
+	msg_setting_entry{ message_setting_type::naval_base_complete,	message_setting_type::count,				message_setting_type::count}, //naval_base_complete = 19,
+	msg_setting_entry{ message_setting_type::province_event,		message_setting_type::count,				message_setting_type::count}, //province_event = 20,
+	msg_setting_entry{ message_setting_type::national_event,			message_setting_type::count,				message_setting_type::count}, //national_event = 21,
+	msg_setting_entry{ message_setting_type::major_event,			message_setting_type::count,				message_setting_type::count}, //major_event = 22,
+	msg_setting_entry{ message_setting_type::invention,				message_setting_type::count,				message_setting_type::count}, //invention = 23, // added
+	msg_setting_entry{ message_setting_type::tech,					message_setting_type::count,				message_setting_type::count}, //tech = 24, // added
+	msg_setting_entry{ message_setting_type::leader_dies,			message_setting_type::count,				message_setting_type::count}, //leader_dies = 25, // added
+	msg_setting_entry{ message_setting_type::count,					message_setting_type::land_combat_starts_on_nation,
+																												message_setting_type::count}, //land_combat_starts = 26,
+	msg_setting_entry{ message_setting_type::count,					message_setting_type::naval_combat_starts_on_nation,
+																												message_setting_type::count}, //naval_combat_starts = 27,
+	msg_setting_entry{ message_setting_type::movement_finishes,	message_setting_type::count,				message_setting_type::count}, //movement_finishes = 28,
+	msg_setting_entry{ message_setting_type::decision,				message_setting_type::count,				message_setting_type::count}, //decision = 29, // added
+	msg_setting_entry{ message_setting_type::lose_great_power,		message_setting_type::count,				message_setting_type::count}, //lose_great_power = 30, // added
+	msg_setting_entry{ message_setting_type::become_great_power,	message_setting_type::count,				message_setting_type::count}, //become_great_power = 31, // added
+	msg_setting_entry{ message_setting_type::war_subsidies_start_by_nation,
+																	message_setting_type::war_subsidies_start_on_nation,
+																												message_setting_type::count}, //war_subsidies_start = 32, // added
+	msg_setting_entry{ message_setting_type::war_subsidies_end_by_nation,
+																	message_setting_type::war_subsidies_end_on_nation,
+																												message_setting_type::count}, //war_subsidies_end = 33, // added
+	msg_setting_entry{ message_setting_type::reparations_start_by_nation,
+																	message_setting_type::reparations_start_on_nation,
+																												message_setting_type::count}, //reparations_start = 34,
+	msg_setting_entry{ message_setting_type::reparations_end_by_nation,
+																	message_setting_type::reparations_end_on_nation,
+																												message_setting_type::count}, //reparations_end = 35,
+	msg_setting_entry{ message_setting_type::mil_access_start_by_nation,
+																	message_setting_type::mil_access_start_on_nation,
+																												message_setting_type::count}, //mil_access_start = 36, // added
+	msg_setting_entry{ message_setting_type::mil_access_end_by_nation,
+																	message_setting_type::mil_access_end_on_nation,
+																												message_setting_type::count}, //mil_access_end = 37, // added
+	msg_setting_entry{ message_setting_type::mil_access_declined_by_nation,
+																	message_setting_type::mil_access_declined_on_nation,
+																												message_setting_type::count}, //mil_access_declined = 38, // added
+	msg_setting_entry{ message_setting_type::alliance_starts,			message_setting_type::count,				message_setting_type::count}, //alliance_starts = 39, // added
+	msg_setting_entry{ message_setting_type::alliance_ends,			message_setting_type::count,				message_setting_type::count}, //alliance_ends = 40, // added
+	msg_setting_entry{ message_setting_type::alliance_declined_by_nation,
+																	message_setting_type::alliance_declined_on_nation,
+																												message_setting_type::count}, //alliance_declined = 41, // added
+	msg_setting_entry{ message_setting_type::ally_called_accepted_by_nation,
+																	message_setting_type::count,				message_setting_type::count}, //ally_called_accepted = 42, // added
+	msg_setting_entry{ message_setting_type::ally_called_declined_by_nation,
+																	message_setting_type::count,				message_setting_type::count}, //ally_called_declined = 43, // added
+	msg_setting_entry{ message_setting_type::discredit_by_nation,	message_setting_type::discredit_on_nation,	message_setting_type::count}, //discredit = 44, // added
+	msg_setting_entry{ message_setting_type::ban_by_nation,			message_setting_type::ban_on_nation,		message_setting_type::count}, //ban = 45, // added
+	msg_setting_entry{ message_setting_type::expell_by_nation,		message_setting_type::expell_on_nation,		message_setting_type::count}, //expell = 46, // added
+	msg_setting_entry{ message_setting_type::increase_opinion,		message_setting_type::count,				message_setting_type::count}, //increase_opinion = 47, // added
+	msg_setting_entry{ message_setting_type::decrease_opinion_by_nation,
+																	message_setting_type::decrease_opinion_on_nation,
+																												message_setting_type::count}, //decrease_opinion = 48, // added
+	msg_setting_entry{ message_setting_type::rem_sphere_by_nation,	message_setting_type::rem_sphere_on_nation,
+																											message_setting_type::removed_from_sphere }, //rem_sphere = 49, // added
+	msg_setting_entry{ message_setting_type::add_sphere,			message_setting_type::added_to_sphere,		message_setting_type::count}, //added_to_sphere = 50, // added
+	msg_setting_entry{ message_setting_type::increase_relation_by_nation,
+																	message_setting_type::increase_relation_on_nation,
+																												message_setting_type::count}, //increase_relation = 51, // added
+	msg_setting_entry{ message_setting_type::decrease_relation_by_nation,
+																	message_setting_type::decrease_relation_on_nation,
+																												message_setting_type::count}, //decrease_relation = 52, // added
+	msg_setting_entry{ message_setting_type::join_war_by_nation,	message_setting_type::join_war_on_nation,	message_setting_type::count}, //join_war = 53, // added
+	msg_setting_entry{ message_setting_type::gw_unlocked,			message_setting_type::count,				message_setting_type::count}, //gw_unlocked = 54,
+	msg_setting_entry{ message_setting_type::war_becomes_great,	message_setting_type::count,				message_setting_type::count}, //war_becomes_great = 55, // added
+	msg_setting_entry{ message_setting_type::cb_detected_by_nation, message_setting_type::cb_detected_on_nation, message_setting_type::count}, //cb_detected = 56, // added
+	msg_setting_entry{ message_setting_type::crisis_join_offer_accepted_by_nation,
+																	message_setting_type::crisis_join_offer_accepted_from_nation,
+																												message_setting_type::count}, //crisis_join_offer_accepted = 57, // added
+	msg_setting_entry{ message_setting_type::crisis_join_offer_declined_by_nation,
+																	message_setting_type::crisis_join_offer_declined_from_nation,
+																												message_setting_type::count}, //crisis_join_offer_declined = 58, // added
+	msg_setting_entry{ message_setting_type::crisis_resolution_accepted,
+																	message_setting_type::count,				message_setting_type::count}, //crisis_resolution_accepted = 59, // added
+	msg_setting_entry{ message_setting_type::crisis_becomes_war,
+																	message_setting_type::count,				message_setting_type::count}, //crisis_becomes_war = 60, // added
+	msg_setting_entry{ message_setting_type::count,					message_setting_type::crisis_resolution_declined_from_nation,
+																												message_setting_type::count}, //crisis_resolution_declined = 61, // added
+	msg_setting_entry{ message_setting_type::crisis_starts,			message_setting_type::count,				message_setting_type::count}, //crisis_starts = 62, // added
+	msg_setting_entry{ message_setting_type::crisis_attacker_backer,	message_setting_type::count,				message_setting_type::count}, //crisis_attacker_backer = 63, // added
+	msg_setting_entry{ message_setting_type::crisis_defender_backer,	message_setting_type::count,				message_setting_type::count}, //crisis_defender_backer = 64, // added
+	msg_setting_entry{ message_setting_type::crisis_fizzle,			message_setting_type::count,				message_setting_type::count}, //crisis_fizzle = 65, // added
+	msg_setting_entry{ message_setting_type::cb_fab_finished,		message_setting_type::count,				message_setting_type::count}, //cb_fab_finished = 66, // added
+	msg_setting_entry{ message_setting_type::cb_fab_cancelled,		message_setting_type::count,				message_setting_type::count}, //cb_fab_cancelled = 67, // added
+	msg_setting_entry{ message_setting_type::crisis_voluntary_join,	message_setting_type::count,				message_setting_type::count}, //crisis_voluntary_join = 68, // added
+	msg_setting_entry{ message_setting_type::army_built,				message_setting_type::count,				message_setting_type::count}, //army_built = 69, // added
+	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
+};
+
 namespace  message_response {
 
 constexpr inline uint8_t ignore = 0x00;

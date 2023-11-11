@@ -2854,16 +2854,8 @@ void daily_update(sys::state& state) {
 							text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
 						},
 						"msg_wsub_end_title",
-						n.id,
-						sys::message_setting_type::war_subsidies_end_by_nation
-					});
-					notification::post(state, notification::message{
-						[source = n.id, target = uni.get_target().id](sys::state& state, text::layout_base& contents) {
-							text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
-						},
-						"msg_wsub_end_title",
-						uni.get_target().id,
-						sys::message_setting_type::war_subsidies_end_on_nation
+						n.id, uni.get_target().id, dcon::nation_id{},
+						sys::message_base_type::war_subsidies_end
 					});
 				}
 			}
@@ -3815,8 +3807,8 @@ void resolve_constructions(sys::state& state) {
 						text::add_line(state, contents, "amsg_army_built");
 					},
 					"amsg_army_built",
-					state.local_player_nation,
-					sys::message_setting_type::army_built
+					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+					sys::message_base_type::army_built
 				});
 			}
 
@@ -3861,8 +3853,8 @@ void resolve_constructions(sys::state& state) {
 								text::add_line(state, contents, "amsg_navy_built");
 							},
 							"amsg_navy_built",
-							state.local_player_nation,
-							sys::message_setting_type::navy_built
+							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+							sys::message_base_type::navy_built
 						});
 					}
 
@@ -3904,8 +3896,8 @@ void resolve_constructions(sys::state& state) {
 								text::add_line(state, contents, "amsg_naval_base_complete");
 							},
 							"amsg_naval_base_complete",
-							state.local_player_nation,
-							sys::message_setting_type::naval_base_complete
+							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+							sys::message_base_type::naval_base_complete
 						});
 						break;
 					case province_building_type::fort:
@@ -3913,8 +3905,8 @@ void resolve_constructions(sys::state& state) {
 								text::add_line(state, contents, "amsg_fort_complete");
 							},
 							"amsg_fort_complete",
-							state.local_player_nation,
-							sys::message_setting_type::fort_complete
+							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+							sys::message_base_type::fort_complete
 						});
 						break;
 					case province_building_type::railroad:
@@ -3922,8 +3914,8 @@ void resolve_constructions(sys::state& state) {
 								text::add_line(state, contents, "amsg_rr_complete");
 							},
 							"amsg_rr_complete",
-							state.local_player_nation,
-							sys::message_setting_type::rr_complete
+							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+							sys::message_base_type::rr_complete
 						});
 						break;
 					default:
@@ -3986,8 +3978,8 @@ void resolve_constructions(sys::state& state) {
 							text::add_line(state, contents, "amsg_factory_complete");
 						},
 						"amsg_factory_complete",
-						state.local_player_nation,
-						sys::message_setting_type::factory_complete
+						state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::factory_complete
 					});
 				}
 
