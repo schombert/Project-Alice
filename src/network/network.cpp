@@ -459,7 +459,9 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
-		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
+		if(c.type != command::command_type::notify_save_loaded) {
+			socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
+		}
 	}
 }
 
@@ -503,9 +505,7 @@ static void accept_new_clients(sys::state& state) {
 				hshake.scenario_checksum = state.scenario_checksum;
 				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 			}
-			if(state.network_state.is_new_game) { /* Replay commands so far from the lobby */
-				socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
-			}
+			socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
 			return;
 		}
 	}
