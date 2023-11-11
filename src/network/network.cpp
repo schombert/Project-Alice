@@ -147,12 +147,12 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 		std::abort();
 	int opt = 1;
 #ifdef _WIN64
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE, (char*)&opt, sizeof(opt))) {
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
 		MessageBoxA(NULL, ("Network setsockpt error: " + std::to_string(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 #else
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_KEEPALIVE | SO_REUSEPORT, &opt, sizeof(opt))) {
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
 		std::abort();
 	}
 #endif
@@ -233,6 +233,15 @@ static socket_t socket_init_client(struct sockaddr_in6& client_address, const ch
 // non-platform specific
 //
 
+static dcon::nation_id get_temp_nation(sys::state& state) {
+	// give the client a "joining" nation, basically a temporal nation choosen
+	// "randomly" that is tied to the client iself
+	for(auto n : state.world.in_nation)
+		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
+			return n;
+	return dcon::nation_id{ };
+}
+
 void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
@@ -265,14 +274,17 @@ void init(sys::state& state) {
 
 	// Host must have an already selected nation, to prevent issues...
 	if(state.network_mode == sys::network_mode_type::host) {
-		state.world.nation_set_is_player_controlled(dcon::nation_id{}, false);
-		state.world.for_each_nation([&](dcon::nation_id n) {
-			if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
-				state.local_player_nation = n;
-		});
+		state.local_player_nation = get_temp_nation(state);
 		assert(bool(state.local_player_nation));
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 		state.network_state.map_of_player_names.insert_or_assign(state.local_player_nation.index(), state.network_state.nickname);
+		/* Materialize it into a command we send to new clients who connect and have to replay everything... */
+		command::payload c;
+		memset(&c, 0, sizeof(c));
+		c.type = command::command_type::notify_player_joins;
+		c.source = state.local_player_nation;
+		c.data.player_name = state.network_state.nickname;
+		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
 	}
 }
 
@@ -307,15 +319,6 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	ZSTD_decompress(temp_buffer.get(), decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
 	function(temp_buffer.get(), decompressed_length);
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
-}
-
-static dcon::nation_id get_temp_nation(sys::state& state) {
-	// give the client a "joining" nation, basically a temporal nation choosen
-	// "randomly" that is tied to the client iself
-	for(auto n : state.world.in_nation)
-		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
-			return n;
-	return dcon::nation_id{ };
 }
 
 bool client_data::is_banned(sys::state& state) const {
@@ -422,6 +425,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
+		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
 	}
 }
 
@@ -455,13 +459,10 @@ static void accept_new_clients(sys::state& state) {
 				/* TODO: For now hotjoin doesn't work properly, so just disconnect the client :D */
 				disconnect_client(state, client);
 				break;
-				/*
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_start_game;
-				c.source = state.local_player_nation;
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				*/
+			}
+			/* Replay commands so far from the lobby */
+			if(state.network_state.is_new_game) {
+				socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
 			}
 			client.playing_as = get_temp_nation(state);
 			assert(bool(client.playing_as));
@@ -473,17 +474,6 @@ static void accept_new_clients(sys::state& state) {
 				c.source = dcon::nation_id{};
 				c.data.nation_pick.target = client.playing_as;
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-			}
-			// Notify the client of all current players
-			for(auto n : state.world.in_nation) {
-				if(state.world.nation_get_is_player_controlled(n) && n != client.playing_as) {
-					command::payload c;
-					memset(&c, 0, sizeof(c));
-					c.type = command::command_type::notify_player_joins;
-					c.source = n;
-					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-				}
 			}
 			return;
 		}
@@ -529,13 +519,14 @@ void send_and_receive_commands(sys::state& state) {
 				   We solve this tiny issue by reloading the state everytime a client joins. Remember that
 				   hotjoin is a functionality we support. */
 				if(c->type == command::command_type::notify_player_joins) {
-					state.network_state.is_new_game = false;
-					command::payload p;
-					memset(&p, 0, sizeof(p));
-					p.type = command::command_type::notify_save_loaded;
-					p.source = state.local_player_nation;
-					p.data.notify_save_loaded.target = c->source;
-					broadcast_to_clients(state, p);
+					if(!state.network_state.is_new_game) {
+						command::payload p;
+						memset(&p, 0, sizeof(p));
+						p.type = command::command_type::notify_save_loaded;
+						p.source = state.local_player_nation;
+						p.data.notify_save_loaded.target = c->source;
+						broadcast_to_clients(state, p);
+					}
 				}
 				command_executed = true;
 			}

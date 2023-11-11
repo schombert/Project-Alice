@@ -4223,10 +4223,13 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 }
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
 	state.session_host_checksum = k;
-	// Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	   Additionally we will clear the new client sending queue, since the state is no longer
+	   "replayable" without heavy bandwidth costs */
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
+	state.network_state.new_client_send_buffer.clear();
 
 	// Mirror the calls done by the client
 	std::vector<dcon::nation_id> players;
