@@ -425,7 +425,11 @@ public:
 			auto siid = std::get<dcon::state_instance_id>(content);
 			auto fat_si = dcon::fatten(state.world, siid);
 			auto fat_nf = dcon::fatten(state.world, siid).get_owner_focus();
-			if(fat_nf.get_promotion_type()) {
+			if(fat_si.get_nation_from_state_ownership() != state.local_player_nation) {
+				auto full_str = text::produce_simple_string(state, state.world.national_focus_get_name(state.national_definitions.flashpoint_focus)) + " (" + text::get_dynamic_state_name(state, siid) + ")";
+				color = text::text_color::white;
+				set_text(state, full_str);
+			} else if(fat_nf.get_promotion_type()) {
 				auto full_str = text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ", "  + text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) + ")";
 				color = text::text_color::white;
 				set_text(state, full_str);
@@ -677,6 +681,9 @@ public:
 					row_contents.push_back(fat.id);
 				}
 			});
+			if(auto fp = state.world.flashpoint_focus_get_state(state.world.nation_get_flashpoint_focus(state.local_player_nation)); fp) {
+				row_contents.push_back(fp);
+			}
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}

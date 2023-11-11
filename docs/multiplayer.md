@@ -47,7 +47,31 @@ On debug builds, a checksum will be generated every tick to ensure synchronisati
 
 Otherwise, the goal is no more oos :D
 
-### Tutorial (Client)
+### User guide
+
+In the launcher you may be presented with the following:
+
+If you're someone trying to host:
+* The IP address field doesn't need to be filled. (Exception below).
+* Port forward the port `1984`, port forwarding varies per router, some ISPs do not allow port forwarding, so be aware.
+* Use an [open port checker tool](https://www.yougetsignal.com/tools/open-ports/) to check you opened the ports correctly, be aware this kind of tools may not be 100% reliable, as such, another person helping to test is very much preferred.
+* Ensure your firewall isn't blocking connections.
+* In case you can't port forward, an alternative is using a VPN tunneling program, which carries it's own myriad of security risks, so only use it with trusted people.
+* If you want IPv6 networking, simply type a colon ":" in the IP field.
+
+Or if you're trying to join a game:
+* Fill out the IP address field (IPv4 clients can't join IPv6 servers, and viceversa).
+* Ensure you have the same game version, to avoid issues.
+* And have the same mods, again, to avoid issues, you'll be told when your scenario (i.e, mods) do not match the host's.
+
+As a client you'll not be able to control the speed of the game, or to load savefiles on your own - the host has absolute power over the game session. This can be both a good or a bad thing, depending on which server you joined. Hosts can kick and ban people at any time, they may also return to lobby momentarily to allow players to select other nations/switch.
+
+* Kick: Disconnects the player from the session, they may join back if they wish.
+* Ban: Disconnects and blacklists the player from the session, they will not join back unless a new session is done. Based on IP (or MAC, if using IPv6) - again, anyone dedicated enough is able to circumvent this, but it works for most practical cases.
+
+Fog of war is always enabled on multiplayer, it's more of an honour system than anything - as any devious client may just unforce-it back.
+
+### User guide (Client)
 
 Booting up the game, a launcher screen showing your nickname and the IP you want to connect to, ensure the IP is typed correctly, and your desired nickname too, once you're done press the "Join" button.
 
@@ -56,7 +80,7 @@ NOTE: Domains are not supported, please resolve them manually and type their cor
 
 Joining the game will yield you to an usual singleplayer screen, except you'll see other players and the host too, select any nation you want to play as, two players cannot select the same nation (yet). So co-op is not possible at the moment.
 
-### Tutorial (Host)
+### User guide (Host)
 
 If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
 
