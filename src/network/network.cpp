@@ -287,7 +287,6 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::host) {
 		state.local_player_nation = get_temp_nation(state);
 		assert(bool(state.local_player_nation));
-		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 		state.network_state.map_of_player_names.insert_or_assign(state.local_player_nation.index(), state.network_state.nickname);
 		/* Materialize it into a command we send to new clients who connect and have to replay everything... */
 		command::payload c;
@@ -295,7 +294,7 @@ void init(sys::state& state) {
 		c.type = command::command_type::notify_player_joins;
 		c.source = state.local_player_nation;
 		c.data.player_name = state.network_state.nickname;
-		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
+		state.network_state.outgoing_commands.push(c);
 	}
 }
 
@@ -309,6 +308,7 @@ static void disconnect_client(sys::state& state, client_data& client) {
 	client.save_stream_offset = 0;
 	client.playing_as = dcon::nation_id{};
 	client.recv_count = 0;
+	client.handshake = true;
 }
 
 static uint8_t* write_network_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size) {
@@ -347,20 +347,43 @@ bool client_data::is_banned(sys::state& state) const {
 static void receive_from_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
-			int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
-				switch(client.recv_buffer.type) {
-				case command::command_type::invalid:
-				case command::command_type::notify_player_ban:
-				case command::command_type::notify_player_kick:
-				case command::command_type::notify_save_loaded:
-				case command::command_type::advance_tick:
-				case command::command_type::notify_start_game:
-					break; // has to be valid/sendable by client
-				default:
-					state.network_state.outgoing_commands.push(client.recv_buffer);
-					break;
-				}
-			});
+			int r = 0;
+			if(client.handshake) {
+				r = socket_recv(client.socket_fd, &client.hshake_buffer, sizeof(client.hshake_buffer), &client.recv_count, [&]() {
+					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
+						command::payload c;
+						memset(&c, 0, sizeof(c));
+						c.type = command::command_type::notify_player_joins;
+						c.source = client.playing_as;
+						c.data.player_name = client.hshake_buffer.nickname;
+						state.network_state.outgoing_commands.push(c);
+					}
+					if(!state.network_state.is_new_game) {
+						command::payload p;
+						memset(&p, 0, sizeof(p));
+						p.type = command::command_type::notify_save_loaded;
+						p.source = state.local_player_nation;
+						p.data.notify_save_loaded.target = client.playing_as;
+						broadcast_to_clients(state, p);
+					}
+					client.handshake = false; /* Exit from handshake mode */
+				});
+			} else {
+				r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
+					switch(client.recv_buffer.type) {
+					case command::command_type::invalid:
+					case command::command_type::notify_player_ban:
+					case command::command_type::notify_player_kick:
+					case command::command_type::notify_save_loaded:
+					case command::command_type::advance_tick:
+					case command::command_type::notify_start_game:
+						break; // has to be valid/sendable by client
+					default:
+						state.network_state.outgoing_commands.push(client.recv_buffer);
+						break;
+					}
+				});
+			}
 			if(r < 0) // error
 				disconnect_client(state, client);
 		}
@@ -371,7 +394,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 	if(c.type == command::command_type::save_game)
 		return;
 
-	// propagate to all the clients
+	/* Propagate to all the clients */
 	if(c.type == command::command_type::notify_save_loaded) {
 		/* A save lock will be set when we load a save, naturally
 		   loading a save implies that we have done preload/fill_unsaved
@@ -403,7 +426,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 			state.fill_unsaved_data();
 			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 		}
-		/* We need to regenerate the checksum of the save so it's at this specific point*/
+		/* We need to regenerate the checksum of the save so it's at this specific point */
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
 		/* And then we have to first send the command payload itself */
 		for(auto& client : state.network_state.clients) {
@@ -441,7 +464,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 }
 
 static void accept_new_clients(sys::state& state) {
-	// Check if any new clients are to join us
+	/* Check if any new clients are to join us */
 	fd_set rfds;
 	FD_ZERO(&rfds);
 	FD_SET(state.network_state.socket_fd, &rfds);
@@ -465,26 +488,23 @@ static void accept_new_clients(sys::state& state) {
 				disconnect_client(state, client);
 				break;
 			}
-			/* If already in game, allow the player to join into the lobby as if she was into it */
+			/* Do not allow players to join mid-session, they have to go back to the lobby */
 			if(state.mode == sys::game_mode_type::in_game) {
-				/* TODO: For now hotjoin doesn't work properly, so just disconnect the client :D */
 				disconnect_client(state, client);
 				break;
 			}
-			/* Replay commands so far from the lobby */
-			if(state.network_state.is_new_game) {
-				socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
-			}
+			/* Send it data so she is in sync with everyone else! */
 			client.playing_as = get_temp_nation(state);
 			assert(bool(client.playing_as));
-			state.world.nation_set_is_player_controlled(client.playing_as, true);
-			{ // Tell the client which nation they're
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_player_picks_nation;
-				c.source = dcon::nation_id{};
-				c.data.nation_pick.target = client.playing_as;
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			{ /* Tell the client their assigned nation */
+				server_handshake_data hshake;
+				hshake.seed = state.game_seed;
+				hshake.assigned_nation = client.playing_as;
+				hshake.scenario_checksum = state.scenario_checksum;
+				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+			}
+			if(state.network_state.is_new_game) { /* Replay commands so far from the lobby */
+				socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
 			}
 			return;
 		}
@@ -509,36 +529,13 @@ void send_and_receive_commands(sys::state& state) {
 		// send the commands of the server to all the clients
 		auto* c = state.network_state.outgoing_commands.front();
 		while(c) {
-			bool valid = !command::is_console_command(c->type);
-			if(valid) {
+			if(!command::is_console_command(c->type)) {
 				// Generate checksum on the spot
 				if(c->type == command::command_type::advance_tick) {
 					c->data.advance_tick.checksum = state.get_save_checksum();
 				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
-				/* Why? Well, lets suppose we have a host A, and client B.
-				   Host A tells client B that A's nation is player controlled "Ok", acknowledges the
-				   B client, which if you see above, its done by telling the client all of the CURRENTLY
-				   connected clients to the client. The thing is that, on filling unsaved data, the current
-				   PLAYER CONTROLLED nations are treated different from those who do not.
-				   Why is this important?
-				   Suppose nation A and B are player controlled, if we sent the "notify_save_loaded"
-				   when a client joins, this will prompt both to reload their states, HOWEVER they do not
-				   account for C, C then gets told that A and B are player controlled, and reloads.
-				   The issue is that this causes a divergent game state.
-				   We solve this tiny issue by reloading the state everytime a client joins. Remember that
-				   hotjoin is a functionality we support. */
-				if(c->type == command::command_type::notify_player_joins) {
-					if(!state.network_state.is_new_game) {
-						command::payload p;
-						memset(&p, 0, sizeof(p));
-						p.type = command::command_type::notify_save_loaded;
-						p.source = state.local_player_nation;
-						p.data.notify_save_loaded.target = c->source;
-						broadcast_to_clients(state, p);
-					}
-				}
 				command_executed = true;
 			}
 			state.network_state.outgoing_commands.pop();
@@ -548,13 +545,31 @@ void send_and_receive_commands(sys::state& state) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				size_t old_size = client.send_buffer.size();
-				if(socket_send(client.socket_fd, client.send_buffer) < 0) // error
+				if(socket_send(client.socket_fd, client.send_buffer) < 0) { // error
 					disconnect_client(state, client);
+				}
 				client.total_sent_bytes += old_size - client.send_buffer.size();
 			}
 		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
-		if(state.network_state.save_stream) {
+		if(state.network_state.handshake) {
+			/* Send our client's handshake */
+			int r = socket_recv(state.network_state.socket_fd, &state.network_state.s_hshake, sizeof(state.network_state.s_hshake), &state.network_state.recv_count, [&]() {
+				if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
+#ifdef _WIN64
+					MessageBoxA(NULL, "Scenario is not the same as the host!", "Network error", MB_OK);
+#endif
+					//std::abort();
+				}
+				state.local_player_nation = state.network_state.s_hshake.assigned_nation;
+				state.game_seed = state.network_state.s_hshake.seed;
+				/* Send our client handshake back */
+				client_handshake_data hshake;
+				hshake.nickname = state.network_state.nickname;
+				socket_add_to_send_queue(state.network_state.send_buffer, &hshake, sizeof(hshake));
+				state.network_state.handshake = false;
+			});
+		} else if(state.network_state.save_stream) {
 			int r = 0;
 			if(state.network_state.save_size == 0) {
 				r = socket_recv(state.network_state.socket_fd, &state.network_state.save_size, sizeof(state.network_state.save_size), &state.network_state.recv_count, [&]() {
@@ -598,11 +613,6 @@ void send_and_receive_commands(sys::state& state) {
 				std::abort();
 			}
 		} else {
-			if(!state.network_state.sent_nickname && bool(state.local_player_nation)) {
-				command::notify_player_joins(state, state.local_player_nation, state.network_state.nickname);
-				state.network_state.sent_nickname = true;
-			}
-
 			// receive commands from the server and immediately execute them
 			int r = socket_recv(state.network_state.socket_fd, &state.network_state.recv_buffer, sizeof(state.network_state.recv_buffer), &state.network_state.recv_count, [&]() {
 				command::execute_command(state, state.network_state.recv_buffer);
@@ -631,12 +641,12 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.outgoing_commands.pop();
 				c = state.network_state.outgoing_commands.front();
 			}
-			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
+		}
+		if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
 #ifdef _WIN64
-				MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+			MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
-				std::abort();
-			}
+			std::abort();
 		}
 	}
 

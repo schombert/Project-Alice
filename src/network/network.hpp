@@ -30,12 +30,25 @@ typedef SOCKET socket_t;
 typedef int socket_t;
 #endif
 
+struct client_handshake_data {
+	sys::player_name nickname;
+	uint8_t reserved[64];
+};
+
+struct server_handshake_data {
+	sys::checksum_key scenario_checksum;
+	uint32_t seed;
+	dcon::nation_id assigned_nation;
+	uint8_t reserved[64];
+};
+
 struct client_data {
 	dcon::nation_id playing_as{};
 	socket_t socket_fd = 0;
 	struct sockaddr_in6 v6_address;
 	struct sockaddr_in v4_address;
 
+	client_handshake_data hshake_buffer;
 	command::payload recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
@@ -44,6 +57,7 @@ struct client_data {
 	size_t total_sent_bytes = 0;
 	size_t save_stream_offset = 0;
 	size_t save_stream_size = 0;
+	bool handshake = true;
 
 	bool is_banned(sys::state& state) const;
 	inline bool is_active() const {
@@ -77,6 +91,10 @@ struct network_state {
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
 	bool sent_nickname = false; // one-time send the nation_joins command to the server to update our ekename
+	bool handshake = true; // if in handshake mode -> send handshake data
+	bool server_handshake = false;
+
+	server_handshake_data s_hshake;
 
 	sys::player_name nickname;
 	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
