@@ -4197,7 +4197,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		}
 	}
 #else
-	if(state.current_date.to_ymd(state.start_date).day == 0) {
+	if(state.current_date.to_ymd(state.start_date).day == 1) {
 		if(!state.network_state.out_of_sync) {
 			sys::checksum_key current = state.get_save_checksum();
 			if(!current.is_equal(k)) {
