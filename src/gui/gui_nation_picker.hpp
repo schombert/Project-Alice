@@ -570,30 +570,37 @@ public:
 		}
 	}
 
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
 		if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) //in the middle of a save stream
+			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			else if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
-				disabled = true;
-		} else if(state.network_mode == sys::network_mode_type::host) {
-			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
-					if(!client.send_buffer.empty()) {
-						disabled = true; // client is pending
-					}
+			} else {
+				if(!state.session_host_checksum.is_equal(state.get_save_checksum())) { //can't start if checksum doesn't match
+					disabled = true;
 				}
 			}
 		}
-		if(state.network_mode == sys::network_mode_type::client) {
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.network_mode == sys::network_mode_type::host) {
+			bool old_disabled = disabled;
+			for(auto const& client : state.network_state.clients) {
+				if(client.is_active()) {
+					disabled = disabled || !client.send_buffer.empty();
+				}
+			}
+			button_element_base::render(state, x, y);
+			disabled = old_disabled;
+		} else if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) {
 				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
 			} else {
 				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
 			}
+			button_element_base::render(state, x, y);
 		}
-		button_element_base::render(state, x, y);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
