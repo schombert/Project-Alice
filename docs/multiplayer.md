@@ -48,8 +48,6 @@ Otherwise, the goal is no more oos :D
 
 In the launcher you may be presented with the following:
 
-![image](https://github.com/schombert/Project-Alice/assets/39974089/004fa194-487b-43d5-b1eb-e1185388476e)
-
 If you're someone trying to host:
 * The IP address field doesn't need to be filled. (Exception below).
 * Port forward the port `1984`, port forwarding varies per router, some ISPs do not allow port forwarding, so be aware.
@@ -64,8 +62,6 @@ Or if you're trying to join a game:
 * And have the same mods, again, to avoid issues, you'll be told when your scenario (i.e, mods) do not match the host's.
 
 As a client you'll not be able to control the speed of the game, or to load savefiles on your own - the host has absolute power over the game session. This can be both a good or a bad thing, depending on which server you joined. Hosts can kick and ban people at any time, they may also return to lobby momentarily to allow players to select other nations/switch.
-
-![image](https://github.com/schombert/Project-Alice/assets/39974089/df5143f7-3a0f-4efd-8eed-a5efdd7bd1bc)
 
 * Kick: Disconnects the player from the session, they may join back if they wish.
 * Ban: Disconnects and blacklists the player from the session, they will not join back unless a new session is done. Based on IP (or MAC, if using IPv6) - again, anyone dedicated enough is able to circumvent this, but it works for most practical cases.
