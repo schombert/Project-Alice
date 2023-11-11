@@ -140,11 +140,11 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.national_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.national_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
@@ -162,11 +162,11 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.national_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.national_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
@@ -235,11 +235,11 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
@@ -257,11 +257,11 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
@@ -326,11 +326,11 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
@@ -394,11 +394,11 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 				{
 					auto box = text::open_layout_box(contents);
 					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
-					text::add_line_break_to_layout_box(state, contents, box);
 					text::close_layout_box(contents, box);
 				}
 				{
 					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
 					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
 					text::close_layout_box(contents, box);
 				}
