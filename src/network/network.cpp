@@ -347,12 +347,12 @@ static void receive_from_clients(sys::state& state) {
 			if(client.handshake) {
 				r = socket_recv(client.socket_fd, &client.hshake_buffer, sizeof(client.hshake_buffer), &client.recv_count, [&]() {
 					if(!state.network_state.is_new_game) {
-						command::payload p;
-						memset(&p, 0, sizeof(p));
-						p.type = command::command_type::notify_save_loaded;
-						p.source = state.local_player_nation;
-						p.data.notify_save_loaded.target = client.playing_as;
-						broadcast_to_clients(state, p);
+						command::payload c;
+						memset(&c, 0, sizeof(c));
+						c.type = command::command_type::notify_save_loaded;
+						c.source = state.local_player_nation;
+						c.data.notify_save_loaded.target = client.playing_as;
+						broadcast_to_clients(state, c);
 					}
 					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
 						command::payload c;
@@ -360,7 +360,8 @@ static void receive_from_clients(sys::state& state) {
 						c.type = command::command_type::notify_player_joins;
 						c.source = client.playing_as;
 						c.data.player_name = client.hshake_buffer.nickname;
-						state.network_state.outgoing_commands.push(c);
+						broadcast_to_clients(state, c);
+						command::execute_command(state, c);
 					}
 					client.handshake = false; /* Exit from handshake mode */
 				});
@@ -400,10 +401,11 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		/* Mirror the calls done by the client */
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
+			if(n.get_is_player_controlled())
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
 		state.local_player_nation = dcon::nation_id{};
+		//
 		size_t length = sizeof_save_section(state);
 		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 		write_save_section(save_buffer.get(), state);
@@ -411,17 +413,15 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 		auto buffer_position = write_network_compressed_section(buffer.get(), save_buffer.get(), uint32_t(length));
 		auto total_size_used = uint32_t(buffer_position - buffer.get());
-		if(needs_reload) {
-			state.preload();
-			read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-			for(const auto n : players)
-				state.world.nation_set_is_player_controlled(n, true);
-		}
+		state.preload();
+		read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+		state.local_player_nation = dcon::nation_id{ };
+		state.fill_unsaved_data();
+		//
 		state.local_player_nation = old_local_player_nation;
-		if(needs_reload) {
-			state.fill_unsaved_data();
-			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-		}
+		for(const auto n : players)
+			state.world.nation_set_is_player_controlled(n, true);
+		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 		/* We need to regenerate the checksum of the save so it's at this specific point */
 		c.data.notify_save_loaded.checksum = state.get_save_checksum();
 		/* And then we have to first send the command payload itself */
@@ -449,17 +449,11 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 				}
 			}
 		}
-		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
-		static const uint32_t zero = 0;
-		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &zero, sizeof(zero));
 	} else {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
-		}
-		if(state.mode == sys::game_mode_type::pick_nation) {
-			socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
 		}
 	}
 }
@@ -496,7 +490,7 @@ static void accept_new_clients(sys::state& state) {
 			}
 			/* Send it data so she is in sync with everyone else! */
 			client.playing_as = get_temp_nation(state);
-			assert(bool(client.playing_as));
+			assert(client.playing_as);
 			{ /* Tell the client their assigned nation */
 				server_handshake_data hshake;
 				hshake.seed = state.game_seed;
@@ -504,7 +498,16 @@ static void accept_new_clients(sys::state& state) {
 				hshake.scenario_checksum = state.scenario_checksum;
 				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 			}
-			socket_add_to_send_queue(client.send_buffer, state.network_state.new_client_send_buffer.data(), state.network_state.new_client_send_buffer.size());
+			for(const auto n : state.world.in_nation) {
+				if(n.get_is_player_controlled()) {
+					command::payload c;
+					memset(&c, 0, sizeof(c));
+					c.type = command::command_type::notify_player_joins;
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+				}
+			}
 			return;
 		}
 	}
@@ -595,10 +598,12 @@ void send_and_receive_commands(sys::state& state) {
 					dcon::nation_id old_local_player_nation = state.local_player_nation;
 					state.preload();
 					with_network_decompressed_section(state.network_state.save_data.data(), [&](uint8_t const* ptr_in, uint32_t length) { read_save_section(ptr_in, ptr_in + length, state); });
+					state.local_player_nation = dcon::nation_id{ };
+					state.fill_unsaved_data();
+					//
 					for(const auto n : players)
 						state.world.nation_set_is_player_controlled(n, true);
 					state.local_player_nation = old_local_player_nation;
-					state.fill_unsaved_data();
 					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 					//
 					state.game_state_updated.store(true, std::memory_order::release);

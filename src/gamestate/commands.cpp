@@ -900,6 +900,8 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 
 	if(state.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(state, holder);
+	if(state.world.nation_get_is_player_controlled(source))
+		ai::remove_ai_data(state, source);
 
 	if(state.local_player_nation == source) {
 		state.local_player_nation = holder;
@@ -4135,17 +4137,11 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 	return state.world.nation_get_is_player_controlled(target) == false;
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(bool(source) && source != state.national_definitions.rebel_id)
-		state.world.nation_set_is_player_controlled(source, false);
-	state.world.nation_set_is_player_controlled(target, true);
+	assert(source && source != state.national_definitions.rebel_id);
 	network::switch_player(state, target, source);
+	state.world.nation_set_is_player_controlled(source, false);
+	state.world.nation_set_is_player_controlled(target, true);
 
-	if(state.world.nation_get_is_player_controlled(target))
-		ai::remove_ai_data(state, target);
-
-	// TODO: To avoid abuse, clients will be given a random nation when they join the server
-	// that isn't occupied already by a player, this allows us to effectively use nation_id
-	// as a player identifier!
 	if(state.local_player_nation == source) {
 		state.local_player_nation = target;
 	}
@@ -4188,6 +4184,7 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	// Monthly OOS check
+#define OOS_DAILY_CHECK 1
 #ifdef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
@@ -4207,6 +4204,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		}
 	}
 #endif
+#undef OOS_DAILY_CHECK
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.actual_game_speed = speed;
 	}
@@ -4233,19 +4231,20 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	// Mirror the calls done by the client
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
-		if(state.world.nation_get_is_player_controlled(n))
+		if(n.get_is_player_controlled())
 			players.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
-	state.local_player_nation = dcon::nation_id{};
 	// Reload the current game state
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(state)]);
 	write_save_section(buffer.get(), state);
 	state.preload();
+	state.local_player_nation = dcon::nation_id{};
 	read_save_section(buffer.get(), buffer.get() + sizeof_save_section(state), state);
+	state.fill_unsaved_data();
+	//
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
-	state.fill_unsaved_data();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
@@ -4253,6 +4252,10 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 	state.selected_armies.clear();
 	state.selected_navies.clear();
+	/* Clear AI data */
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			ai::remove_ai_data(state, n);
 	state.mode = sys::game_mode_type::in_game;
 }
 
