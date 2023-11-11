@@ -346,14 +346,6 @@ static void receive_from_clients(sys::state& state) {
 			int r = 0;
 			if(client.handshake) {
 				r = socket_recv(client.socket_fd, &client.hshake_buffer, sizeof(client.hshake_buffer), &client.recv_count, [&]() {
-					if(!state.network_state.is_new_game) {
-						command::payload c;
-						memset(&c, 0, sizeof(c));
-						c.type = command::command_type::notify_save_loaded;
-						c.source = state.local_player_nation;
-						c.data.notify_save_loaded.target = client.playing_as;
-						broadcast_to_clients(state, c);
-					}
 					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
 						command::payload c;
 						memset(&c, 0, sizeof(c));
@@ -363,7 +355,16 @@ static void receive_from_clients(sys::state& state) {
 						broadcast_to_clients(state, c);
 						command::execute_command(state, c);
 					}
+					if(!state.network_state.is_new_game) {
+						command::payload c;
+						memset(&c, 0, sizeof(c));
+						c.type = command::command_type::notify_save_loaded;
+						c.source = state.local_player_nation;
+						c.data.notify_save_loaded.target = client.playing_as;
+						broadcast_to_clients(state, c);
+					}
 					client.handshake = false; /* Exit from handshake mode */
+					state.game_state_updated.store(true, std::memory_order::release);
 				});
 			} else {
 				r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
@@ -376,7 +377,10 @@ static void receive_from_clients(sys::state& state) {
 					case command::command_type::notify_start_game:
 						break; // has to be valid/sendable by client
 					default:
-						state.network_state.outgoing_commands.push(client.recv_buffer);
+						/* Has to be from the nation of the client proper */
+						if(client.recv_buffer.source == client.playing_as) {
+							state.network_state.outgoing_commands.push(client.recv_buffer);
+						}
 						break;
 					}
 				});
@@ -649,11 +653,14 @@ void send_and_receive_commands(sys::state& state) {
 				c = state.network_state.outgoing_commands.front();
 			}
 		}
-		if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
+		/* Do not send commands while we're on save stream mode! */
+		if(!state.network_state.save_stream) {
+			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
 #ifdef _WIN64
-			MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+				MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
-			std::abort();
+				std::abort();
+			}
 		}
 	}
 
