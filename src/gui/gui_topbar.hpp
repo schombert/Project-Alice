@@ -17,7 +17,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
-#include <vector>
+#include "gui_event.hpp"
 
 namespace ui {
 
@@ -854,6 +854,9 @@ public:
 			disabled = true;
 		} else {
 			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
+			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::province_event)] & sys::message_response::pause) != 0 && provincial_event_window::pending_events > 0);
+			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::national_event)] & sys::message_response::pause) != 0 && national_event_window::pending_events > 0);
+			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::major_event)] & sys::message_response::pause) != 0 && national_major_event_window::pending_events > 0);
 		}
 	}
 

@@ -180,7 +180,7 @@ struct user_settings_s {
 		message_response::ignore,//naval_base_complete = 23,
 		message_response::log,//province_event = 24,
 		message_response::log,//national_event = 25,
-		message_response::log,//major_event = 26,
+		message_response::standard_popup,//major_event = 26,
 		message_response::log,//invention = 27,
 		message_response::log,//tech = 28,
 		message_response::ignore,//leader_dies = 29,

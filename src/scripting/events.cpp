@@ -129,8 +129,52 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
 		}
+	}
 
-		// TODO: notify
+	if(state.world.national_event_get_is_major(e)) {
+		notification::post(state, notification::message{
+			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.national_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.national_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_m_event_title",
+			n, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::major_event
+		});
+	} else if(n == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.national_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.national_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_n_event_title",
+			n, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::national_event
+		});
 	}
 }
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
@@ -180,8 +224,52 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
 		}
+	}
 
-		// TODO: notify
+	if(state.world.free_national_event_get_is_major(e)) {
+		notification::post(state, notification::message{
+			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_m_event_title",
+			n, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::major_event
+		});
+	} else if(n == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_national_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_n_event_title",
+			n, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::national_event
+		});
 	}
 }
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo,
@@ -227,8 +315,30 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 		}
+	}
 
-		// TODO: notify
+	if(owner == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_p_event_title",
+			owner, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::province_event
+		});
 	}
 }
 void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
@@ -273,8 +383,30 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 		}
+	}
 
-		// TODO: notify
+	if(owner == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_p_event_title",
+			owner, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::province_event
+		});
 	}
 }
 

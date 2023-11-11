@@ -665,283 +665,286 @@ trade_use;Draw upon;;;Tomar de;;;;;;;;;x
 trade_stockpile_target;Stockpile target amount:;;;Meta de reservas:;;;;;;;;;x
 trade_stockpile_current;Current stockpile: ;Reservas actuales: ;;;;;;;;;;;x
 diplomacy_wx_1;Monthly war exhaustion: ;;;Exhaustion de guerra mensual: ;;;;;;;;;x
-influence_explain_1;We are currently banned and accumulate no influence with this nation;;;;;;;;;;;;x
-influence_explain_2;We have a truce with this nation and accumulate no influence with it;;;;;;;;;;;;x
-influence_explain_3;We are at war with this nation and accumulate no influence with it;;;;;;;;;;;;x
-influence_explain_4;We accumulate, with all nations, a total of $x$ influence daily.;;;;;;;;;;;;x
-influence_explain_5;This is the product of the base influence gain rate ($x$) times our national influence modifier ($y$) times our influence modifier from technology ($val$);;;;;;;;;;;;x
-influence_explain_6;National influence modifier: $x$;;;;;;;;;;;;x
-influence_explain_7;Influence modifier from technology: $x$;;;;;;;;;;;;x
-influence_explain_8;This is divided among the nations we are influencing, resulting in a base daily gain of: $x$;;;;;;;;;;;;x
-influence_explain_9;which is further multiplied by 1 plus the sum of the following factors:;;;;;;;;;;;;x
-influence_explain_10;$x$ from being discredited;;;;;;;;;;;;x
-influence_explain_11;$x$ from being neighbors;;;;;;;;;;;;x
-influence_explain_12;$x$ from having one or more of our sphere members as a neighbor;;;;;;;;;;;;x
-influence_explain_13;$x$ from not having its capital on the same continent as ours;;;;;;;;;;;;x
-influence_explain_14;$x$ from being our subject;;;;;;;;;;;;x
-influence_explain_15;$x$ from our relationship;;;;;;;;;;;;x
-influence_explain_16;$x$ from our investment in the nation;;;;;;;;;;;;x
-influence_explain_17;$x$ from the size of the target nation;;;;;;;;;;;;x
-influence_explain_18;$x$ from our relative score;;;;;;;;;;;;x
-until_date;Until $x$;;;;;;;;;;;;x
-add_wg_1;You cannot add a war goal against yourself;;;;;;;;;;;;x
-add_wg_2;You are at war;;;;;;;;;;;;x
-add_wg_3;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-add_wg_4;Current jingoism support ($x$) meets the threshold required to add a war goal ($y$);;;;;;;;;;;;x
-add_wg_5;A status quo war goal has not been added to your side;;;;;;;;;;;;x
-intervene_1;Intervene in war;;;;;;;;;;;;x
-intervene_2;Intervene in great war;;;;;;;;;;;;x
-intervene_3;Is a great power;;;;;;;;;;;;x
-intervene_4;Is not involved in a crisis;;;;;;;;;;;;x
-intervene_5;It has been at least $x$ month(s) since the war started;;;;;;;;;;;;x
-intervene_6;Joining the war would not place you at war against the same nation twice or both fighting with and against the same nation;;;;;;;;;;;;x
-intervene_7;Is not a crisis war;;;;;;;;;;;;x
-intervene_8;Joining would break a truce;;;;;;;;;;;;x
-intervene_9;Is supporting the defender;;;;;;;;;;;;x
-intervene_10;Defenders have no war goals other than status quo;;;;;;;;;;;;x
-intervene_11;Attacker's war score is at least $x$;;;;;;;;;;;;x
-intervene_12;War exhaustion is less than $x$;;;;;;;;;;;;x
-intervene_13;Relations with the war leader are at least $x$;;;;;;;;;;;;x
-intervene_14;None of your sphere members are on the opposing side;;;;;;;;;;;;x
-intervene_15;None of your allies are on the opposing side;;;;;;;;;;;;x
-intervene_16;None of your armies are located in provinces owned by the opposing side;;;;;;;;;;;;x
-intervene_17;Primary defender has a friendly opinion of you;;;;;;;;;;;;x
-war_goal_1;Added by: $x$;;;;;;;;;;;;x
-war_goal_2;Targeting: $x$;;;;;;;;;;;;x
-war_goal_3;For state: $x$;;;;;;;;;;;;x
-war_goal_4;Secondary target: $x$;;;;;;;;;;;;x
-war_goal_5;Ticking war score: $x$;;;;;;;;;;;;x
-utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;;;;;;;;;;x
-utt_noleader;no leader;;;;;;;;;;;;x
-war_score_1;From occupation: $x$;;;;;;;;;;;;x
-war_score_2;From battles: $x$;;;;;;;;;;;;x
-war_score_3;From war goals: $x$;;;;;;;;;;;;x
-war_score_4;From blockades: $x$;;;;;;;;;;;;x
-dp_inf_tooltip_ban;Embassy banned until $x$;;;;;;;;;;;;x
-dp_inf_tooltip_discredit;Discredited until $x$;;;;;;;;;;;;x
-discredit_explain_1;You cannot discredit yourself;;;;;;;;;;;;x
-discredit_explain_2;The target's opinion of you is better than hostile;;;;;;;;;;;;x
-discredit_explain_3;The great power is not banned;;;;;;;;;;;;x
-iaction_explain_1;You have at least $x$ influence with the target;;;;;;;;;;;;x
-iaction_explain_2;Your embassy is not banned;;;;;;;;;;;;x
-iaction_explain_3;You are not at war with the target;;;;;;;;;;;;x
-iaction_explain_4;The target's opinion of the great power is at most equal to their opinion of you;;;;;;;;;;;;x
-expel_explain_1;You cannot expel your own advisors;;;;;;;;;;;;x
-expel_explain_2;The target's opinion of you is at least neutral;;;;;;;;;;;;x
-ban_explain_1;You cannot ban your own embassy;;;;;;;;;;;;x
-ban_explain_2;The target's opinion of you is at least friendly;;;;;;;;;;;;x
-dec_op_explain_1;You cannot decrease a nation's opinion of you;;;;;;;;;;;;x
-dec_op_explain_2;You cannot decrease a nation's opinion of their sphere leader;;;;;;;;;;;;x
-dec_op_explain_3;The target's opinion of you is better than hostile;;;;;;;;;;;;x
-dec_op_explain_4;The target's opinion of a great power cannot be made worse than hostile;;;;;;;;;;;;x
-iaction_explain_5;You are a great power;;;;;;;;;;;;x
-iaction_explain_6;The target is not a great power;;;;;;;;;;;;x
-cancel_ally_explain_1;You cannot cancel an alliance with yourself;;;;;;;;;;;;x
-cancel_ally_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-cancel_ally_explain_3;You are currently allied;;;;;;;;;;;;x
-cancel_ally_explain_4;You are not currently in a war together;;;;;;;;;;;;x
-cancel_ally_explain_5;You are not a vassal of the target nation;;;;;;;;;;;;x
-ally_explain_1;You cannot form an alliance with yourself;;;;;;;;;;;;x
-ally_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-ally_explain_3;You are not currently allied;;;;;;;;;;;;x
-ally_explain_4;You are not both great powers while a crisis is ongoing;;;;;;;;;;;;x
-ally_explain_5;You are not a subject nation;;;;;;;;;;;;x
-ally_explain_6;You are not currently at war with the target;;;;;;;;;;;;x
-ally_explain_7;The AI will accept;;;;;;;;;;;;x
-ally_explain_8;The target is not a subject nation;;;;;;;;;;;;x
-call_ally_explain_1;You have an alliance with this nation;;;;;;;;;;;;x
-call_ally_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-call_ally_explain_3;You are at war;;;;;;;;;;;;x
-call_ally_explain_4;There is a war this nation can be called into;;;;;;;;;;;;x
-call_ally_explain_5;The AI will accept;;;;;;;;;;;;x
-cancel_access_explain_1;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-ask_access_explain_1;You cannot get military access from yourself;;;;;;;;;;;;x
-ask_access_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-ask_access_explain_3;The AI will accept;;;;;;;;;;;;x
-ask_access_explain_4;You are not currently at war with the target;;;;;;;;;;;;x
-cancel_given_access_explain_1;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-give_access_explain_1;You cannot give military access to yourself;;;;;;;;;;;;x
-give_access_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-give_access_explain_3;You are not currently at war with the target;;;;;;;;;;;;x
-increase_rel_explain_1;Improves our relations by §G+$x$;;;;;;;;;;;;x
-increase_rel_explain_2;You cannot increase your relationship with yourself;;;;;;;;;;;;x
-increase_rel_explain_3;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-increase_rel_explain_4;Current relations are less than 200;;;;;;;;;;;;x
-increase_rel_explain_5;You are not currently at war with the target;;;;;;;;;;;;x
-decrease_rel_explain_1;Worsens our relations by §R$x$;;;;;;;;;;;;x
-decrease_rel_explain_2;You cannot decrease your relationship with yourself;;;;;;;;;;;;x
-decrease_rel_explain_3;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-decrease_rel_explain_4;Current relations are greater than -200;;;;;;;;;;;;x
-decrease_rel_explain_5;You are not currently at war with the target;;;;;;;;;;;;x
-cancel_w_sub_explain_1;Currently we are subsidizing this nation §Y$x$§! per day;;;;;;;;;;;;x
-cancel_w_sub_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-w_sub_explain_1;You cannot offer war subsidies to yourself;;;;;;;;;;;;x
-w_sub_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-w_sub_explain_3;You are not currently at war with the target;;;;;;;;;;;;x
-w_sub_explain_4;The target is at war;;;;;;;;;;;;x
-invention_bulb_1;This invention cannot currently be discovered;;;;;;;;;;;;x
-invention_bulb_2;It is possible to discover this invention;;;;;;;;;;;;x
-invention_bulb_3;This invention has been discovered;;;;;;;;;;;;x
-not_implemented;This feature is not currently implemented;;;;;;;;;;;;x
-inc_op_explain_1;The nation's opinion of you is less than friendly;;;;;;;;;;;;x
-add_sphere_explain_1;The nation has a friendly opinion of you;;;;;;;;;;;;x
-add_sphere_explain_2;The nation is not currently sphered by another great power;;;;;;;;;;;;x
-rem_sphere_explain_1;The nation is currently sphered by a great power;;;;;;;;;;;;x
-rem_sphere_explain_2;The nation has a friendly opinion of you;;;;;;;;;;;;x
-rem_sphere_explain_3;The nation is in your sphere of influence;;;;;;;;;;;;x
-rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by §R$x$;;;;;;;;;;;;x
-rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by §R$x$;;;;;;;;;;;;x
-fab_explain_1;You cannot justify war against yourself;;;;;;;;;;;;x
-fab_explain_2;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-fab_explain_3;You are not currently fabricating a casus belli;;;;;;;;;;;;x
-fab_explain_4;You are an independent nation or the target is your overlord;;;;;;;;;;;;x
-fab_explain_5;The target is not in your sphere of influence;;;;;;;;;;;;x
-fab_explain_6;You are not currently at war with the target;;;;;;;;;;;;x
-peace_description;Make a peace offer to end hostilities between you and this nation;;;;;;;;;;;;x
-peace_explain_1;Is not a subject nation;;;;;;;;;;;;x
-peace_explain_2;The target is not a subject nation;;;;;;;;;;;;x
-peace_explain_3;At least one of the negotiating parties is the war leader for their side;;;;;;;;;;;;x
-peace_explain_4;Both the parties are war leaders (crisis war);;;;;;;;;;;;x
-peace_explain_5;You have no other peace offer in progress;;;;;;;;;;;;x
-war_explain_1;You cannot declare war upon yourself;;;;;;;;;;;;x
-war_explain_2;You have a casus belli to use against this nation;;;;;;;;;;;;x
-war_explain_3;You have at least $x$ diplomatic point(s);;;;;;;;;;;;x
-wg_result_1;On adding this war goal:;;;;;;;;;;;;x
-wg_result_2;On achieving this war goal:;;;;;;;;;;;;x
-wg_result_3;On failing to achieve this war goal:;;;;;;;;;;;;x
-wg_not_ready;You must finish choosing a war goal;;;;;;;;;;;;x
-crisis_back_explain_1;You are interested in the crisis (on the fence);;;;;;;;;;;;x
-crisis_back_explain_2;The crisis has attracted its initial backers;;;;;;;;;;;;x
-crisis_add_interest_button;Take an interest in this crisis;;;;;;;;;;;;x
-crisis_add_interest_button_ex_1;You are a great power;;;;;;;;;;;;x
-crisis_add_interest_button_ex_2;The crisis has attracted its initial backers;;;;;;;;;;;;x
-crisis_offer_button;Make an offer to this nation to join your side of the crisis;;;;;;;;;;;;x
-crisis_offer_button_ex_1;You are the leader of one of the crisis sides;;;;;;;;;;;;x
-crisis_offer_button_ex_2;The crisis has attracted its initial backers;;;;;;;;;;;;x
-crisis_offer_button_ex_3;You have at least 1 diplomatic point;;;;;;;;;;;;x
-msg_revolt_title;Rebel Uprising;;;;;;;;;;;;x
-msg_revolt_1;$x$ rebels have risen up in the following provinces:;;;;;;;;;;;;x
-msg_revolt_2;$x$ rebels have risen up (unsuccessfully);;;;;;;;;;;;x
-msg_war_title;War Declared;;;;;;;;;;;;x
-msg_war_1;$x$ has declared war on $y$, starting the $val$.;;;;;;;;;;;;x
-msg_wargoal_title;War Goal Added;;;;;;;;;;;;x
-msg_wargoal_1;$x$ has added to our war the following war goal:;;;;;;;;;;;;x
-msg_war_join_title;Nation joins war;;;;;;;;;;;;x
-msg_war_join_1;$x$ has joined the ongoing $val$;;;;;;;;;;;;x
-msg_war_becomes_great_title;War Escalates;;;;;;;;;;;;x
-msg_war_becomes_great_1;The $x$ has become the $y$;;;;;;;;;;;;x
-msg_siegeover_title;Siege finishes;;;;;;;;;;;;x
-msg_siegeover_1;The siege of $x$ has ended.;;;;;;;;;;;;x
-msg_siegeover_2;$y$ no longer controls the province.;;;;;;;;;;;;x
-msg_siegeover_3;$y$ rebels no longer control the province.;;;;;;;;;;;;x
-msg_siegeover_4;The province is now controlled by $y$.;;;;;;;;;;;;x
-msg_siegeover_5;The province is now controlled by $y$ rebels.;;;;;;;;;;;;x
-msg_new_crisis_title;Crisis Brewing;;;;;;;;;;;;x
-msg_new_crisis_1;A crisis is brewing over the ownership of $x$.;;;;;;;;;;;;x
-msg_new_crisis_2;A crisis is brewing over the colonization of $x$.;;;;;;;;;;;;x
-msg_tech_title;Technology Researched;;;;;;;;;;;;x
-msg_tech_1;$x$ has been researched, with the following effects:;;;;;;;;;;;;x
-msg_inv_title;Invention Discovered;;;;;;;;;;;;x
-msg_inv_1;$x$ has been discovered, with the following effects:;;;;;;;;;;;;x
-msg_fab_discovered_title;Fabrication Discovered;;;;;;;;;;;;x
-msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in §R$x$§! infamy.;;;;;;;;;;;;x
-msg_fab_discovered_2;$x$ has been discovered fabricating a cb on $y$;;;;;;;;;;;;x
-msg_fab_canceled_title;Fabrication Canceled;;;;;;;;;;;;x
-msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.;;;;;;;;;;;;x
-msg_fab_finished_title;Fabrication Complete;;;;;;;;;;;;x
-msg_fab_finished_1;We have finished fabricating a $x$ casus belli against $y$.;;;;;;;;;;;;x
-msg_leader_died_title;A Military Leader Has Died;;;;;;;;;;;;x
-msg_leader_died_1;One of our generals leading an army in $y$, $x$, has died.;;;;;;;;;;;;x
-msg_leader_died_2;One of our admirals commanding a navy in $y$, $x$, has died.;;;;;;;;;;;;x
-msg_peace_offer_accepted_title;Peace Offer Accepted;;;;;;;;;;;;x
-msg_peace_offer_accepted_1;$x$ has accepted a peace offer from $y$ as part of the $val$.;;;;;;;;;;;;x
-msg_peace_offer_rejected_title;Peace Offer Rejected;;;;;;;;;;;;x
-msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of the $val$.;;;;;;;;;;;;x
-msg_upper_house_title;Upper House Formed;;;;;;;;;;;;x
-msg_upper_house_1;A new upper house has been assembled with the following composition:;;;;;;;;;;;;x
-msg_upper_house_2;$x$%: $y$;;;;;;;;;;;;x
-msg_election_start_title;Elections Starting;;;;;;;;;;;;x
-msg_election_start_1;The election will finish on $x$.;;;;;;;;;;;;x
-msg_dec_rel_title;Relations Worsened;;;;;;;;;;;;x
-msg_dec_rel_1;$x$ has decreased their relations with $y$.;;;;;;;;;;;;x
-msg_inc_rel_title;Relations Improved;;;;;;;;;;;;x
-msg_inc_rel_1;$x$ has improved their relations with $y$.;;;;;;;;;;;;x
-msg_add_sphere_title;Nation Sphered;;;;;;;;;;;;x
-msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.;;;;;;;;;;;;x
-msg_rem_sphere_title;Nation Removed from Sphere;;;;;;;;;;;;x
-msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.;;;;;;;;;;;;x
-msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.;;;;;;;;;;;;x
-msg_op_dec_title;Opinion Decreased;;;;;;;;;;;;x
-msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.;;;;;;;;;;;;x
-msg_op_inc_title;Opinion Increased;;;;;;;;;;;;x
-msg_op_inc_1;$x$ has increased $y$'s opinion of them.;;;;;;;;;;;;x
-msg_expel_title;Advisors Expelled;;;;;;;;;;;;x
-msg_expel_1;$x$ has expelled $val$'s advisors to $y$.;;;;;;;;;;;;x
-msg_ban_title;Embassy Banned;;;;;;;;;;;;x
-msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.;;;;;;;;;;;;x
-msg_ban_2;This will last until $x$.;;;;;;;;;;;;x
-msg_discredit_title;Nation Discredited;;;;;;;;;;;;x
-msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.;;;;;;;;;;;;x
-msg_discredit_2;This will last until $x$.;;;;;;;;;;;;x
-msg_ally_call_accepted_title;Alliance Honored;;;;;;;;;;;;x
-msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.;;;;;;;;;;;;x
-msg_ally_call_declined_title;Alliance Dishonored;;;;;;;;;;;;x
-msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.;;;;;;;;;;;;x
-msg_alliance_declined_title;Alliance Refused;;;;;;;;;;;;x
-msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.;;;;;;;;;;;;x
-msg_alliance_starts_title;Alliance Formed;;;;;;;;;;;;x
-msg_alliance_starts_1;$x$ and $y$ have formed an alliance.;;;;;;;;;;;;x
-msg_alliance_ends_title;Alliance Broken;;;;;;;;;;;;x
-msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.;;;;;;;;;;;;x
-msg_access_refused_title;Access Refused;;;;;;;;;;;;x
-msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.;;;;;;;;;;;;x
-msg_access_granted_title;Access Granted;;;;;;;;;;;;x
-msg_access_granted_1;$x$ has given $y$ military access to their nation.;;;;;;;;;;;;x
-msg_access_canceled_a_title;Access Revoked;;;;;;;;;;;;x
-msg_access_canceled_a_1;$x$ has ended the military access they formerly granted to $y$.;;;;;;;;;;;;x
-msg_access_canceled_b_title;Access Canceled;;;;;;;;;;;;x
-msg_access_canceled_b_1;$x$ no longer requires military access to $y$.;;;;;;;;;;;;x
-msg_wsub_start_title;War Subsidies Start;;;;;;;;;;;;x
-msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.;;;;;;;;;;;;x
-msg_wsub_end_title;War Subsidies End;;;;;;;;;;;;x
-msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.;;;;;;;;;;;;x
-msg_new_gp_title;New Great Power;;;;;;;;;;;;x
-msg_new_gp_1;$x$ is now a great power.;;;;;;;;;;;;x
-msg_lost_gp_title;Lost Great Power;;;;;;;;;;;;x
-msg_lost_gp_1;$x$ is no longer considered to be a great power.;;;;;;;;;;;;x
-msg_decision_title;Decision Made;;;;;;;;;;;;x
-msg_decision_1;$x$ has taken the $y$ decision;;;;;;;;;;;;x
-msg_decision_2;Effect:;;;;;;;;;;;;x
-msg_rebels_win_title;Rebel victory;;;;;;;;;;;;x
-msg_rebels_win_1;$x$ rebels have won.;;;;;;;;;;;;x
-msg_rebels_win_2;§R$x$§! prestige lost;;;;;;;;;;;;x
-msg_rebels_win_3;Government changes to $x$;;;;;;;;;;;;x
-msg_rebels_win_4;Government ideology changed to $x$;;;;;;;;;;;;x
-msg_rebels_win_5;All diplomatic relationships are ended;;;;;;;;;;;;x
-msg_rebels_win_6;Effect:;;;;;;;;;;;;x
-msg_election_end_title;Election Finished;;;;;;;;;;;;x
-msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.;;;;;;;;;;;;x
-msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.;;;;;;;;;;;;x
-msg_crisis_joffer_accepted;Nation Takes a Side;;;;;;;;;;;;x
-msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.;;;;;;;;;;;;x
-msg_crisis_joffer_rejected;Nation Remains Neutral;;;;;;;;;;;;x
-msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.;;;;;;;;;;;;x
-msg_crisis_settled_title;Crisis Resolved;;;;;;;;;;;;x
-msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.;;;;;;;;;;;;x
-msg_crisis_not_settled_title;Crisis Resolution Rejected;;;;;;;;;;;;x
-msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.;;;;;;;;;;;;x
-msg_crisis_escalates_title;Crisis Escalates;;;;;;;;;;;;x
-msg_crisis_escalates_1;The current crisis has escalated into the $x$.;;;;;;;;;;;;x
-msg_crisis_fizzle_title;Crisis Adverted;;;;;;;;;;;;x
-msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.;;;;;;;;;;;;x
-msg_crisis_fizzle_2;The brewing crisis failed to attract a defender; the attacking side wins automatically.;;;;;;;;;;;x
-msg_crisis_attacker_title;Crisis Backer;;;;;;;;;;;;x
-msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.;;;;;;;;;;;;x
-msg_crisis_defender_title;Crisis Backer;;;;;;;;;;;;x
-msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.;;;;;;;;;;;;x
-msg_crisis_vol_join_title;Nation Takes a Side;;;;;;;;;;;;x
-msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.;;;;;;;;;;;;x
-msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.;;;;;;;;;;;;x
+influence_explain_1;We are currently banned and accumulate no influence with this nation
+influence_explain_2;We have a truce with this nation and accumulate no influence with it
+influence_explain_3;We are at war with this nation and accumulate no influence with it
+influence_explain_4;We accumulate, with all nations, a total of $x$ influence daily.
+influence_explain_5;This is the product of the base influence gain rate ($x$) times our national influence modifier ($y$) times our influence modifier from technology ($val$)
+influence_explain_6;National influence modifier: $x$
+influence_explain_7;Influence modifier from technology: $x$
+influence_explain_8;This is divided among the nations we are influencing, resulting in a base daily gain of: $x$
+influence_explain_9;which is further multiplied by 1 plus the sum of the following factors:
+influence_explain_10;$x$ from being discredited
+influence_explain_11;$x$ from being neighbors
+influence_explain_12;$x$ from having one or more of our sphere members as a neighbor
+influence_explain_13;$x$ from not having its capital on the same continent as ours
+influence_explain_14;$x$ from being our subject
+influence_explain_15;$x$ from our relationship
+influence_explain_16;$x$ from our investment in the nation
+influence_explain_17;$x$ from the size of the target nation
+influence_explain_18;$x$ from our relative score
+until_date;Until $x$
+add_wg_1;You cannot add a war goal against yourself
+add_wg_2;You are at war
+add_wg_3;You have at least $x$ diplomatic point(s)
+add_wg_4;Current jingoism support ($x$) meets the threshold required to add a war goal ($y$)
+add_wg_5;A status quo war goal has not been added to your side
+intervene_1;Intervene in war
+intervene_2;Intervene in great war
+intervene_3;Is a great power
+intervene_4;Is not involved in a crisis
+intervene_5;It has been at least $x$ month(s) since the war started
+intervene_6;Joining the war would not place you at war against the same nation twice or both fighting with and against the same nation
+intervene_7;Is not a crisis war
+intervene_8;Joining would break a truce
+intervene_9;Is supporting the defender
+intervene_10;Defenders have no war goals other than status quo
+intervene_11;Attacker's war score is at least $x$
+intervene_12;War exhaustion is less than $x$
+intervene_13;Relations with the war leader are at least $x$
+intervene_14;None of your sphere members are on the opposing side
+intervene_15;None of your allies are on the opposing side
+intervene_16;None of your armies are located in provinces owned by the opposing side
+intervene_17;Primary defender has a friendly opinion of you
+war_goal_1;Added by: $x$
+war_goal_2;Targeting: $x$
+war_goal_3;For state: $x$
+war_goal_4;Secondary target: $x$
+war_goal_5;Ticking war score: $x$
+utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
+utt_noleader;no leader;;;
+war_score_1;From occupation: $x$
+war_score_2;From battles: $x$
+war_score_3;From war goals: $x$
+war_score_4;From blockades: $x$
+dp_inf_tooltip_ban;Embassy banned until $x$
+dp_inf_tooltip_discredit;Discredited until $x$
+discredit_explain_1;You cannot discredit yourself
+discredit_explain_2;The target's opinion of you is better than hostile
+discredit_explain_3;The great power is not banned
+iaction_explain_1;You have at least $x$ influence with the target
+iaction_explain_2;Your embassy is not banned
+iaction_explain_3;You are not at war with the target
+iaction_explain_4;The target's opinion of the great power is at most equal to their opinion of you
+expel_explain_1;You cannot expel your own advisors
+expel_explain_2;The target's opinion of you is at least neutral
+ban_explain_1;You cannot ban your own embassy
+ban_explain_2;The target's opinion of you is at least friendly
+dec_op_explain_1;You cannot decrease a nation's opinion of you
+dec_op_explain_2;You cannot decrease a nation's opinion of their sphere leader
+dec_op_explain_3;The target's opinion of you is better than hostile
+dec_op_explain_4;The target's opinion of a great power cannot be made worse than hostile
+iaction_explain_5;You are a great power
+iaction_explain_6;The target is not a great power
+cancel_ally_explain_1;You cannot cancel an alliance with yourself
+cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
+cancel_ally_explain_3;You are currently allied
+cancel_ally_explain_4;You are not currently in a war together
+cancel_ally_explain_5;You are not a vassal of the target nation
+ally_explain_1;You cannot form an alliance with yourself
+ally_explain_2;You have at least $x$ diplomatic point(s)
+ally_explain_3;You are not currently allied
+ally_explain_4;You are not both great powers while a crisis is ongoing
+ally_explain_5;You are not a subject nation
+ally_explain_6;You are not currently at war with the target
+ally_explain_7;The AI will accept
+ally_explain_8;The target is not a subject nation
+call_ally_explain_1;You have an alliance with this nation
+call_ally_explain_2;You have at least $x$ diplomatic point(s)
+call_ally_explain_3;You are at war
+call_ally_explain_4;There is a war this nation can be called into
+call_ally_explain_5;The AI will accept
+cancel_access_explain_1;You have at least $x$ diplomatic point(s)
+ask_access_explain_1;You cannot get military access from yourself
+ask_access_explain_2;You have at least $x$ diplomatic point(s)
+ask_access_explain_3;The AI will accept
+ask_access_explain_4;You are not currently at war with the target
+cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
+give_access_explain_1;You cannot give military access to yourself
+give_access_explain_2;You have at least $x$ diplomatic point(s)
+give_access_explain_3;You are not currently at war with the target
+increase_rel_explain_1;Improves our relations by §G+$x$
+increase_rel_explain_2;You cannot increase your relationship with yourself
+increase_rel_explain_3;You have at least $x$ diplomatic point(s)
+increase_rel_explain_4;Current relations are less than 200
+increase_rel_explain_5;You are not currently at war with the target
+decrease_rel_explain_1;Worsens our relations by §R$x$
+decrease_rel_explain_2;You cannot decrease your relationship with yourself
+decrease_rel_explain_3;You have at least $x$ diplomatic point(s)
+decrease_rel_explain_4;Current relations are greater than -200
+decrease_rel_explain_5;You are not currently at war with the target
+cancel_w_sub_explain_1;Currently we are subsidizing this nation §Y$x$§! per day
+cancel_w_sub_explain_2;You have at least $x$ diplomatic point(s)
+w_sub_explain_1;You cannot offer war subsidies to yourself
+w_sub_explain_2;You have at least $x$ diplomatic point(s)
+w_sub_explain_3;You are not currently at war with the target
+w_sub_explain_4;The target is at war
+invention_bulb_1;This invention cannot currently be discovered
+invention_bulb_2;It is possible to discover this invention
+invention_bulb_3;This invention has been discovered
+not_implemented;This feature is not currently implemented
+inc_op_explain_1;The nation's opinion of you is less than friendly
+add_sphere_explain_1;The nation has a friendly opinion of you
+add_sphere_explain_2;The nation is not currently sphered by another great power
+rem_sphere_explain_1;The nation is currently sphered by a great power
+rem_sphere_explain_2;The nation has a friendly opinion of you
+rem_sphere_explain_3;The nation is in your sphere of influence
+rem_sphere_explain_4;Removing a nation from your own sphere of influence will increase your infamy by §R$x$
+rem_sphere_explain_5;Removing a nation from your own sphere of influence will reduce your prestige by §R$x$
+fab_explain_1;You cannot justify war against yourself
+fab_explain_2;You have at least $x$ diplomatic point(s)
+fab_explain_3;You are not currently fabricating a casus belli
+fab_explain_4;You are an independent nation or the target is your overlord
+fab_explain_5;The target is not in your sphere of influence
+fab_explain_6;You are not currently at war with the target
+peace_description;Make a peace offer to end hostilities between you and this nation
+peace_explain_1;Is not a subject nation
+peace_explain_2;The target is not a subject nation
+peace_explain_3;At least one of the negotiating parties is the war leader for their side
+peace_explain_4;Both the parties are war leaders (crisis war)
+peace_explain_5;You have no other peace offer in progress
+war_explain_1;You cannot declare war upon yourself
+war_explain_2;You have a casus belli to use against this nation
+war_explain_3;You have at least $x$ diplomatic point(s)
+wg_result_1;On adding this war goal:
+wg_result_2;On achieving this war goal:
+wg_result_3;On failing to achieve this war goal:
+wg_not_ready;You must finish choosing a war goal
+crisis_back_explain_1;You are interested in the crisis (on the fence)
+crisis_back_explain_2;The crisis has attracted its initial backers
+crisis_add_interest_button;Take an interest in this crisis
+crisis_add_interest_button_ex_1;You are a great power
+crisis_add_interest_button_ex_2;The crisis has attracted its initial backers
+crisis_offer_button;Make an offer to this nation to join your side of the crisis
+crisis_offer_button_ex_1;You are the leader of one of the crisis sides
+crisis_offer_button_ex_2;The crisis has attracted its initial backers
+crisis_offer_button_ex_3;You have at least 1 diplomatic point
+msg_revolt_title;Rebel Uprising
+msg_revolt_1;$x$ rebels have risen up in the following provinces:
+msg_revolt_2;$x$ rebels have risen up (unsuccessfully)
+msg_war_title;War Declared
+msg_war_1;$x$ has declared war on $y$, starting the $val$.
+msg_wargoal_title;War Goal Added
+msg_wargoal_1;$x$ has added to our war the following war goal:
+msg_war_join_title;Nation joins war
+msg_war_join_1;$x$ has joined the ongoing $val$
+msg_war_becomes_great_title;War Escalates
+msg_war_becomes_great_1;The $x$ has become the $y$
+msg_siegeover_title;Siege finishes
+msg_siegeover_1;The siege of $x$ has ended.
+msg_siegeover_2;$y$ no longer controls the province.
+msg_siegeover_3;$y$ rebels no longer control the province.
+msg_siegeover_4;The province is now controlled by $y$.
+msg_siegeover_5;The province is now controlled by $y$ rebels.
+msg_new_crisis_title;Crisis Brewing
+msg_new_crisis_1;A crisis is brewing over the ownership of $x$.
+msg_new_crisis_2;A crisis is brewing over the colonization of $x$.
+msg_tech_title;Technology Researched
+msg_tech_1;$x$ has been researched, with the following effects:
+msg_inv_title;Invention Discovered
+msg_inv_1;$x$ has been discovered, with the following effects:
+msg_fab_discovered_title;Fabrication Discovered
+msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in §R$x$§! infamy.
+msg_fab_discovered_2;$x$ has been discovered fabricating a cb on $y$
+msg_fab_canceled_title;Fabrication Canceled
+msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
+msg_fab_finished_title;Fabrication Complete
+msg_fab_finished_1;We have finished fabricating a $x$ casus belli against $y$.
+msg_leader_died_title;A Military Leader Has Died
+msg_leader_died_1;One of our generals leading an army in $y$, $x$, has died.
+msg_leader_died_2;One of our admirals commanding a navy in $y$, $x$, has died.
+msg_peace_offer_accepted_title;Peace Offer Accepted
+msg_peace_offer_accepted_1;$x$ has accepted a peace offer from $y$ as part of the $val$.
+msg_peace_offer_rejected_title;Peace Offer Rejected
+msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of the $val$.
+msg_upper_house_title;Upper House Formed
+msg_upper_house_1;A new upper house has been assembled with the following composition:
+msg_upper_house_2;$x$%: $y$
+msg_election_start_title;Elections Starting
+msg_election_start_1;The election will finish on $x$.
+msg_dec_rel_title;Relations Worsened
+msg_dec_rel_1;$x$ has decreased their relations with $y$.
+msg_inc_rel_title;Relations Improved
+msg_inc_rel_1;$x$ has improved their relations with $y$.
+msg_add_sphere_title;Nation Sphered
+msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.
+msg_rem_sphere_title;Nation Removed from Sphere
+msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.
+msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.
+msg_op_dec_title;Opinion Decreased
+msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.
+msg_op_inc_title;Opinion Increased
+msg_op_inc_1;$x$ has increased $y$'s opinion of them.
+msg_expel_title;Advisors Expelled
+msg_expel_1;$x$ has expelled $val$'s advisors to $y$.
+msg_ban_title;Embassy Banned
+msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.
+msg_ban_2;This will last until $x$.
+msg_discredit_title;Nation Discredited
+msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.
+msg_discredit_2;This will last until $x$.
+msg_ally_call_accepted_title;Alliance Honored
+msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.
+msg_ally_call_declined_title;Alliance Dishonored
+msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.
+msg_alliance_declined_title;Alliance Refused
+msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.
+msg_alliance_starts_title;Alliance Formed
+msg_alliance_starts_1;$x$ and $y$ have formed an alliance.
+msg_alliance_ends_title;Alliance Broken
+msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.
+msg_access_refused_title;Access Refused
+msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.
+msg_access_granted_title;Access Granted
+msg_access_granted_1;$x$ has given $y$ military access to their nation.
+msg_access_canceled_a_title;Access Revoked
+msg_access_canceled_a_1;$x$ has ended the military access they formerly granted to $y$.
+msg_access_canceled_b_title;Access Canceled
+msg_access_canceled_b_1;$x$ no longer requires military access to $y$.
+msg_wsub_start_title;War Subsidies Start
+msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.
+msg_wsub_end_title;War Subsidies End
+msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.
+msg_new_gp_title;New Great Power
+msg_new_gp_1;$x$ is now a great power.
+msg_lost_gp_title;Lost Great Power
+msg_lost_gp_1;$x$ is no longer considered to be a great power.
+msg_decision_title;Decision Made
+msg_decision_1;$x$ has taken the $y$ decision
+msg_decision_2;Effect:
+msg_rebels_win_title;Rebel victory
+msg_rebels_win_1;$x$ rebels have won.
+msg_rebels_win_2;§R$x$§! prestige lost
+msg_rebels_win_3;Government changes to $x$
+msg_rebels_win_4;Government ideology changed to $x$
+msg_rebels_win_5;All diplomatic relationships are ended
+msg_rebels_win_6;Effect:
+msg_election_end_title;Election Finished
+msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.
+msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.
+msg_crisis_joffer_accepted;Nation Takes a Side
+msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.
+msg_crisis_joffer_rejected;Nation Remains Neutral
+msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.
+msg_crisis_settled_title;Crisis Resolved
+msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.
+msg_crisis_not_settled_title;Crisis Resolution Rejected
+msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.
+msg_crisis_escalates_title;Crisis Escalates
+msg_crisis_escalates_1;The current crisis has escalated into the $x$.
+msg_crisis_fizzle_title;Crisis Adverted
+msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.
+msg_crisis_fizzle_2;The brewing crisis failed to attract a defender; the attacking side wins automatically.
+msg_crisis_attacker_title;Crisis Backer
+msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.
+msg_crisis_defender_title;Crisis Backer
+msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.
+msg_crisis_vol_join_title;Nation Takes a Side
+msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
+msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+msg_n_event_title;National Event
+msg_p_event_title;Provincial Event
+msg_m_event_title;Major Event
 multiunit_header;$x$ Units Selected;;;$x$ Unidades Seleccionadas;;;;;;;;;x
 ai_alliance_1;The AI is currently seeking allies;;;La IA esta buscando aliados;;;;;;;;;x
 ai_alliance_2;Your nation is close enough to assist in a war;;;Estas cerca para asistir en una guerra;;;;;;;;;x
