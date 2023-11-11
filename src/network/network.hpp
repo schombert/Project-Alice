@@ -90,7 +90,6 @@ struct network_state {
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
-	bool sent_nickname = false; // one-time send the nation_joins command to the server to update our ekename
 	bool handshake = true; // if in handshake mode -> send handshake data
 	bool server_handshake = false;
 

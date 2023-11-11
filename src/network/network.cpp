@@ -257,9 +257,6 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
-	// force fog of war on
-	state.user_settings.fow_enabled = true;
-
 #ifdef _WIN64
     WSADATA data;
 	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
@@ -350,14 +347,6 @@ static void receive_from_clients(sys::state& state) {
 			int r = 0;
 			if(client.handshake) {
 				r = socket_recv(client.socket_fd, &client.hshake_buffer, sizeof(client.hshake_buffer), &client.recv_count, [&]() {
-					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
-						command::payload c;
-						memset(&c, 0, sizeof(c));
-						c.type = command::command_type::notify_player_joins;
-						c.source = client.playing_as;
-						c.data.player_name = client.hshake_buffer.nickname;
-						state.network_state.outgoing_commands.push(c);
-					}
 					if(!state.network_state.is_new_game) {
 						command::payload p;
 						memset(&p, 0, sizeof(p));
@@ -365,6 +354,14 @@ static void receive_from_clients(sys::state& state) {
 						p.source = state.local_player_nation;
 						p.data.notify_save_loaded.target = client.playing_as;
 						broadcast_to_clients(state, p);
+					}
+					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
+						command::payload c;
+						memset(&c, 0, sizeof(c));
+						c.type = command::command_type::notify_player_joins;
+						c.source = client.playing_as;
+						c.data.player_name = client.hshake_buffer.nickname;
+						state.network_state.outgoing_commands.push(c);
 					}
 					client.handshake = false; /* Exit from handshake mode */
 				});
@@ -459,7 +456,7 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
-		if(c.type != command::command_type::notify_save_loaded) {
+		if(state.mode == sys::game_mode_type::in_game && c.type != command::command_type::notify_save_loaded) {
 			socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
 		}
 	}
@@ -561,8 +558,9 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 					//std::abort();
 				}
-				state.local_player_nation = state.network_state.s_hshake.assigned_nation;
 				state.game_seed = state.network_state.s_hshake.seed;
+				state.local_player_nation = state.network_state.s_hshake.assigned_nation;
+				state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 				/* Send our client handshake back */
 				client_handshake_data hshake;
 				hshake.nickname = state.network_state.nickname;
