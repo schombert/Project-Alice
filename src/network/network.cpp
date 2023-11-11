@@ -284,7 +284,6 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::host) {
 		state.local_player_nation = get_temp_nation(state);
 		assert(bool(state.local_player_nation));
-		state.network_state.map_of_player_names.insert_or_assign(state.local_player_nation.index(), state.network_state.nickname);
 		/* Materialize it into a command we send to new clients who connect and have to replay everything... */
 		command::payload c;
 		memset(&c, 0, sizeof(c));
@@ -450,13 +449,16 @@ void broadcast_to_clients(sys::state& state, command::payload& c) {
 				}
 			}
 		}
+		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
+		static const uint32_t zero = 0;
+		socket_add_to_send_queue(state.network_state.new_client_send_buffer, &zero, sizeof(zero));
 	} else {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 			}
 		}
-		if(state.mode == sys::game_mode_type::in_game && c.type != command::command_type::notify_save_loaded) {
+		if(state.mode == sys::game_mode_type::pick_nation) {
 			socket_add_to_send_queue(state.network_state.new_client_send_buffer, &c, sizeof(c));
 		}
 	}
