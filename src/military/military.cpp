@@ -6729,6 +6729,8 @@ void advance_mobilizations(sys::state& state) {
 										int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
 								if(available > 0) {
 
+									bool army_is_new = false;
+
 									auto a = [&]() {
 										for(auto ar : state.world.province_get_army_location(back.where)) {
 											if(ar.get_army().get_controller_from_army_control() == n)
@@ -6736,7 +6738,7 @@ void advance_mobilizations(sys::state& state) {
 										}
 										auto new_army = fatten(state.world, state.world.create_army());
 										new_army.set_controller_from_army_control(n);
-										military::army_arrives_in_province(state, new_army, back.where, military::crossing_type::none, dcon::land_battle_id{});
+										army_is_new = true;
 										return new_army.id;
 									}();
 
@@ -6749,6 +6751,8 @@ void advance_mobilizations(sys::state& state) {
 										--available;
 										--to_mobilize;
 									}
+									if(army_is_new)
+										military::army_arrives_in_province(state, a, back.where, military::crossing_type::none, dcon::land_battle_id{});
 								}
 							}
 

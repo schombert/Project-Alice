@@ -919,9 +919,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
 				}
 				if(settings_bits & message_response::popup) {
-					static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
-					if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
-						ui_pause.store(true, std::memory_order_release);
+					if(c6->source == local_player_nation && (base_type == message_base_type::major_event || base_type == message_base_type::national_event || base_type == message_base_type::province_event)) {
+						// do nothing -- covered by event window logic
+					} else {
+						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
+							ui_pause.store(true, std::memory_order_release);
+						}
 					}
 				}
 
@@ -3925,6 +3929,11 @@ void state::game_loop() {
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
+
+			upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::province_event)] & message_response::pause) != 0 && ui::provincial_event_window::pending_events > 0);
+			upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::national_event)] & message_response::pause) != 0 && ui::national_event_window::pending_events > 0);
+			upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
+
 			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
