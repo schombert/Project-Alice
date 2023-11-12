@@ -176,6 +176,11 @@ struct available_cb {
 	dcon::cb_type_id cb_type;
 	uint8_t padding = 0;
 };
+static_assert(sizeof(available_cb) ==
+	+ sizeof(available_cb::target)
+	+ sizeof(available_cb::expiration)
+	+ sizeof(available_cb::cb_type)
+	+ sizeof(available_cb::padding));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
