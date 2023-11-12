@@ -8,6 +8,10 @@ project (ProjectAlice LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Turn on compile_commands.json export for wider editor/IDE support.
+# This option is ignored on anything but Unix makefiles/Ninja.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(CTest)
 
 # Copy everything from the assets directory into the CMAKE_CURRENT_BINARY_DIR/assets directory
