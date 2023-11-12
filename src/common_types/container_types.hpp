@@ -35,19 +35,34 @@ inline uint32_t pack_color(int32_t r, int32_t g, int32_t b) {
 struct value_modifier_segment {
 	float factor = 0.0f;
 	dcon::trigger_key condition;
+	uint16_t padding = 0;
 };
+static_assert(sizeof(value_modifier_segment) ==
+	sizeof(value_modifier_segment::factor)
+	+ sizeof(value_modifier_segment::condition)
+	+ sizeof(value_modifier_segment::padding));
+
 struct value_modifier_description {
 	float factor = 0.0f;
 	float base = 0.0f;
 	uint16_t first_segment_offset = 0;
 	uint16_t segments_count = 0;
 };
+static_assert(sizeof(value_modifier_description) ==
+	sizeof(value_modifier_description::factor)
+	+ sizeof(value_modifier_description::base)
+	+ sizeof(value_modifier_description::first_segment_offset)
+	+ sizeof(value_modifier_description::segments_count));
 
 struct event_option {
 	dcon::text_sequence_id name;
 	dcon::value_modifier_key ai_chance;
 	dcon::effect_key effect;
 };
+static_assert(sizeof(event_option) ==
+	sizeof(event_option::name)
+	+ sizeof(event_option::ai_chance)
+	+ sizeof(event_option::effect));
 
 struct modifier_hash {
 	using is_avalanching = void;
@@ -212,6 +227,7 @@ struct checksum_key {
 		return true;
 	}
 };
+static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
 	char data[8];
@@ -220,5 +236,6 @@ struct player_name {
 		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
 	}
 };
+static_assert(sizeof(player_name) == sizeof(player_name::data));
 
 } // namespace sys
