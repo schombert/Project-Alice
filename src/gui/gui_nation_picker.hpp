@@ -784,20 +784,6 @@ public:
 	}
 };
 
-class nation_picker_desc : public scrollable_text {
-public:
-	void on_create(sys::state& state) noexcept override {
-		scrollable_text::on_create(state);
-		auto contents = text::create_endless_layout(delegate->internal_layout,
-			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::left,
-				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
-				false });
-		text::add_line(state, contents, "gc_desc");
-		calibrate_scrollbar(state);
-	}
-};
-
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -806,13 +792,10 @@ public:
 			for(uint32_t i = 0; i < 16; i++) {
 				auto rec = make_element_by_type<nation_picker_recommended_country>(state, "alice_recommended_nation");
 				static_cast<nation_picker_recommended_country*>(rec.get())->nth_gp = uint16_t(i);
-				rec->base_data.position.x += (int16_t(i) % 8) * rec->base_data.size.x;
-				rec->base_data.position.y -= rec->base_data.size.y * (2 - (int16_t(i) / 8));
+				rec->base_data.position.x += int16_t(i) * rec->base_data.size.x;
 				add_child_to_front(std::move(rec));
 			}
-			/* Description of the campaing, fixed */
-			auto desc = make_element_by_type<nation_picker_desc>(state, "alice_gc_desc");
-			add_child_to_front(std::move(desc));
+			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "lobby_chat_edit") {
 			return make_element_by_type<invisible_element>(state, id);
