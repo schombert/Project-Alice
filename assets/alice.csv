@@ -953,6 +953,9 @@ msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the
 msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+msg_n_event_title;National Event
+msg_p_event_title;Provincial Event
+msg_m_event_title;Major Event
 multiunit_header;$x$ Units Selected;;;$x$ Unidades Seleccionadas;;;;;;;;;x
 ai_alliance_1;The AI is currently seeking allies;;;La IA esta buscando aliados;;;;;;;;;x
 ai_alliance_2;Your nation is close enough to assist in a war;;;Estas cerca para asistir en una guerra;;;;;;;;;x

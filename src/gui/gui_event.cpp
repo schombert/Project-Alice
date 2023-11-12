@@ -6,6 +6,10 @@ namespace ui {
 std::vector<std::unique_ptr<national_major_event_window>> national_major_event_window::event_pool;
 static std::vector<ui::element_base*> pending_closure;
 
+int national_major_event_window::pending_events = 0;
+int national_event_window::pending_events = 0;
+int provincial_event_window::pending_events = 0;
+
 void  national_major_event_window::new_event(sys::state& state, event::pending_human_n_event const& dat) {
 	if(event_pool.empty()) {
 		auto new_elm = ui::make_element_by_type<ui::national_major_event_window>(state, "event_major_window");
@@ -21,6 +25,7 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 void  national_major_event_window::new_event(sys::state& state, event::pending_human_f_n_event const& dat) {
 	if(event_pool.empty()) {
@@ -37,6 +42,7 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 
 std::vector<std::unique_ptr<national_event_window>> national_event_window::event_pool;
@@ -56,6 +62,7 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_n
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 void  national_event_window::new_event(sys::state& state, event::pending_human_f_n_event const& dat) {
 	if(event_pool.empty()) {
@@ -72,6 +79,7 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_f
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 
 std::vector<std::unique_ptr<provincial_event_window>> provincial_event_window::event_pool;
@@ -91,6 +99,7 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 void  provincial_event_window::new_event(sys::state& state, event::pending_human_f_p_event const& dat) {
 	if(event_pool.empty()) {
@@ -107,6 +116,7 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
+	++pending_events;
 }
 
 void populate_event_submap(sys::state& state, text::substitution_map& sub,
@@ -740,6 +750,7 @@ message_result national_event_window::get(sys::state& state, Cyto::Any& payload)
 		assert(uptr);
 		std::unique_ptr<national_event_window> ptr(static_cast<national_event_window*>(uptr.release()));
 		national_event_window::event_pool.push_back(std::move(ptr));
+		--pending_events;
 		return message_result::consumed;
 	}
 	return message_result::unseen;
@@ -761,6 +772,7 @@ message_result national_major_event_window::get(sys::state& state, Cyto::Any& pa
 		assert(uptr);
 		std::unique_ptr<national_major_event_window> ptr(static_cast<national_major_event_window*>(uptr.release()));
 		national_major_event_window::event_pool.push_back(std::move(ptr));
+		--pending_events;
 		return message_result::consumed;
 	}
 	return message_result::unseen;
@@ -933,6 +945,7 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 		assert(uptr);
 		std::unique_ptr<provincial_event_window> ptr(static_cast<provincial_event_window*>(uptr.release()));
 		provincial_event_window::event_pool.push_back(std::move(ptr));
+		--pending_events;
 		return message_result::consumed;
 	}
 	return message_result::unseen;
