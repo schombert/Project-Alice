@@ -1438,18 +1438,6 @@ int WINAPI wWinMain(
 #endif
 
 	InitializeCriticalSection(&guard_abort_handler);
-#endif
-
-	InitializeCriticalSection(&guard_abort_handler);
-
-	if(!IsDebuggerPresent()) {
-		EnableCrashingOnCrashes();
-		_set_purecall_handler(generic_wrapper);
-		_set_invalid_parameter_handler(invalid_parameter_wrapper);
-		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
-		SetUnhandledExceptionFilter(uef_wrapper);
-		signal(SIGABRT, signal_abort_handler);
-	}
 
 	if(!IsDebuggerPresent()) {
 		EnableCrashingOnCrashes();
@@ -1531,7 +1519,7 @@ int WINAPI wWinMain(
 		if(hUser32dll) {
 			auto pGetDpiForWindow = (decltype(&GetDpiForWindow))GetProcAddress(hUser32dll, "GetDpiForWindow");
 			if(pGetDpiForWindow != NULL) {
-				launcher::dpi = float(GetDpiForWindow((HWND)(launcher::m_hwnd)));
+				launcher::dpi = float(pGetDpiForWindow((HWND)(launcher::m_hwnd)));
 			} else {
 				launcher::dpi = 96.0f; //100%, default
 			}
