@@ -858,6 +858,7 @@ private:
 
 		state.mode = sys::game_mode_type::select_states;
 		map_mode::set_map_mode(state, state.map_state.active_map_mode);
+		state.ui_state.select_states_legend->impl_on_update(state);
 	}
 public:
 	void reset_window() {
@@ -1388,6 +1389,7 @@ private:
 		}
 		state.mode = sys::game_mode_type::select_states;
 		map_mode::set_map_mode(state, state.map_state.active_map_mode);
+		state.ui_state.select_states_legend->impl_on_update(state);
 		wargoal_decided_upon = true;
 	}
 public:

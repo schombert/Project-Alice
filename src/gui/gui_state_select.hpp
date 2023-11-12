@@ -106,11 +106,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		on_update(state);
-	}
 };
 
 } //namespace ui
