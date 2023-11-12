@@ -11,7 +11,7 @@ namespace ui {
 class map_state_select_title : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, "State select (ESC)"));
+		set_text(state, text::produce_simple_string(state, "alice_state_select_title"));
 	}
 };
 
