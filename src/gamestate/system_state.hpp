@@ -360,6 +360,7 @@ struct user_settings_s {
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 0;
+	float gaussianblur_level = 1.f;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
