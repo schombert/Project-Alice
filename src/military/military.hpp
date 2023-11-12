@@ -103,13 +103,34 @@ struct unit_definition : public sys::unit_variable_stats {
 	bool active = true;
 
 	unit_type type = unit_type::infantry;
+	uint16_t padding = 0;
 
 	unit_definition() { }
 };
+static_assert(sizeof(unit_definition) ==
+	sizeof(sys::unit_variable_stats)
+	+ sizeof(unit_definition::build_cost)
+	+ sizeof(unit_definition::supply_cost)
+	+ sizeof(unit_definition::colonial_points)
+	+ sizeof(unit_definition::maneuver)
+	+ sizeof(unit_definition::min_port_level)
+	+ sizeof(unit_definition::supply_consumption_score)
+	+ sizeof(unit_definition::icon)
+	+ sizeof(unit_definition::naval_icon)
+	+ sizeof(unit_definition::name)
+	+ sizeof(unit_definition::is_land)
+	+ sizeof(unit_definition::capital)
+	+ sizeof(unit_definition::can_build_overseas)
+	+ sizeof(unit_definition::primary_culture)
+	+ sizeof(unit_definition::active)
+	+ sizeof(unit_definition::type)
+	+ sizeof(unit_definition::padding));
 
 struct global_military_state {
-	dcon::leader_trait_id first_background_trait;
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
+
+	dcon::leader_trait_id first_background_trait;
+
 	bool great_wars_enabled = false;
 	bool world_wars_enabled = false;
 
@@ -131,6 +152,23 @@ struct global_military_state {
 
 	bool pending_blackflag_update = false;
 };
+static_assert(sizeof(global_military_state) ==
+	sizeof(global_military_state::first_background_trait)
+	+ sizeof(global_military_state::unit_base_definitions)
+	+ sizeof(global_military_state::great_wars_enabled)
+	+ sizeof(global_military_state::world_wars_enabled)
+	+ sizeof(global_military_state::base_army_unit)
+	+ sizeof(global_military_state::base_naval_unit)
+	+ sizeof(global_military_state::standard_civil_war)
+	+ sizeof(global_military_state::standard_great_war)
+	+ sizeof(global_military_state::liberate)
+	+ sizeof(global_military_state::uninstall_communist_gov)
+	+ sizeof(global_military_state::crisis_colony)
+	+ sizeof(global_military_state::crisis_liberate)
+	+ sizeof(global_military_state::irregular)
+	+ sizeof(global_military_state::infantry)
+	+ sizeof(global_military_state::artillery)
+	+ sizeof(global_military_state::pending_blackflag_update));
 
 struct available_cb {
 	dcon::nation_id target;

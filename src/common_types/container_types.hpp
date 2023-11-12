@@ -62,11 +62,19 @@ struct modifier_hash {
 
 struct crisis_join_offer {
 	dcon::nation_id target;
-	dcon::cb_type_id wargoal_type;
 	dcon::state_definition_id wargoal_state;
 	dcon::national_identity_id wargoal_tag;
 	dcon::nation_id wargoal_secondary_nation;
+	dcon::cb_type_id wargoal_type;
+	uint8_t padding = 0;
 };
+static_assert(sizeof(crisis_join_offer) ==
+	sizeof(crisis_join_offer::target)
+	+ sizeof(crisis_join_offer::wargoal_type)
+	+ sizeof(crisis_join_offer::wargoal_state)
+	+ sizeof(crisis_join_offer::wargoal_tag)
+	+ sizeof(crisis_join_offer::wargoal_secondary_nation)
+	+ sizeof(crisis_join_offer::padding));
 
 } // namespace sys
 
@@ -173,12 +181,21 @@ struct commodity_set {
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 };
+static_assert(sizeof(commodity_set) ==
+	sizeof(commodity_set::commodity_amounts)
+	+ sizeof(commodity_set::commodity_type));
+
 struct small_commodity_set {
 	static constexpr uint32_t set_size = 6;
 
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
+	uint16_t padding = 0;
 };
+static_assert(sizeof(small_commodity_set) ==
+	sizeof(small_commodity_set::commodity_amounts)
+	+ sizeof(small_commodity_set::commodity_type)
+	+ sizeof(small_commodity_set::padding));
 
 } // namespace economy
 
