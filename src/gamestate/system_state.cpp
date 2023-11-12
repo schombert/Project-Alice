@@ -1565,7 +1565,7 @@ void state::on_create() {
 	ui_state.unit_details_box->set_visible(*this, false);
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
-	ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(*this, ui_state.defs_by_name.find("alice_map_legend_window")->second.definition);
+	ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(*this, ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
 
 	ui_state.end_screen = std::make_unique<ui::container_base>();
 	{

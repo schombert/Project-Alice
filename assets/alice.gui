@@ -2648,6 +2648,57 @@ guiTypes = {
 	}
 
 	windowType = {
+		name = "alice_select_legend_window"
+		Orientation = "UPPER_LEFT"
+		position = { 0 0 }
+		size = { 0 0 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 200 280 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "legend_title"
+			position = { 0 4 }
+			font = "vic_22"
+			borderSize = { 0 0}
+			maxsize = { 200 24 }
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		listboxType = {
+			name = "selectable"
+			position = { 6 34 }
+			backGround = ""
+			size = { 148 200 }
+			spacing = 1
+			scrollbartype = "standardlistbox_slider"
+			Orientation = "UPPER_LEFT"
+		}
+	}
+
+	windowType = {
+		name = "alice_select_legend_entry"
+		position = { 0 0 }
+		size = { 272 24 }
+		guiButtonType = {
+			name = "button"
+			position = { 0 0 }
+			size = { 272 24 }
+			quadTextureSprite = "console_background"
+			buttonFont = "vic_22"
+			Orientation = "UPPER_LEFT"
+		}
+		guiButtonType = {
+			name = "shield"
+			position = { 4 4 }
+			quadTextureSprite = "GFX_flag_new"
+			Orientation = "UPPER_LEFT"
+		}
+	}
+
+	windowType = {
 		name = "alice_map_legend_window"
 		position = { 0 200 }
 		size = { 200 88 }
