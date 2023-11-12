@@ -1985,7 +1985,7 @@ void state::load_user_settings() {
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
 		if(user_settings.antialias_level > 16)
 			user_settings.antialias_level = 0;
-		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 2.0f);
+		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
 	}
 }
 
