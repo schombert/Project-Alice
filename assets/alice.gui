@@ -2724,7 +2724,7 @@ guiTypes = {
 	}
 	windowType = {
 		name = "alice_recommended_nation"
-		position = { -316 -204 }
+		position = { -592 -84 }
 		size = { 72 64 }
 		Orientation = "CENTER_DOWN"
 		guiButtonType = {
@@ -2739,14 +2739,5 @@ guiTypes = {
 			position = { 20 0 }
 			Orientation = "UPPER_LEFT"
 		}
-	}
-	instantTextBoxType = {
-		name = "alice_gc_desc"
-		position = { -250 -173 }
-		font = "Arial16"
-		borderSize = { 0 0 }
-		maxsize = { 490 130 }
-		orientation = "CENTER_DOWN"
-		format = left
 	}
 }

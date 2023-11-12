@@ -766,17 +766,19 @@ public:
 		if(name == "shield") {
 			return make_element_by_type<picker_flag>(state, id);
 		} else if(name == "overlay") {
-			return make_element_by_type<nation_flag_frame>(state, id);
+			auto ptr = make_element_by_type<image_element_base>(state, id);
+			ptr->frame = 1;
+			return ptr;
 		}
 		return nullptr;
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
 		if(payload.holds_type<dcon::nation_id>()) {
-			if(nth_gp >= state.nations_by_rank.size()) {
+			if(nth_gp >= state.nations_by_military_score.size()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{ });
 			} else {
-				payload.emplace<dcon::nation_id>(state.nations_by_rank[nth_gp]);
+				payload.emplace<dcon::nation_id>(state.nations_by_military_score[nth_gp]);
 			}
 			return message_result::consumed;
 		}
@@ -789,6 +791,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "frontend_chat_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
+			int16_t x_offset = 0;
 			for(uint32_t i = 0; i < 16; i++) {
 				auto rec = make_element_by_type<nation_picker_recommended_country>(state, "alice_recommended_nation");
 				static_cast<nation_picker_recommended_country*>(rec.get())->nth_gp = uint16_t(i);
