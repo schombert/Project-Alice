@@ -47,11 +47,33 @@ On debug builds, a checksum will be generated every tick to ensure synchronisati
 
 Otherwise, the goal is no more oos :D
 
-### User guide
+### Joining a game
 
-In the launcher you may be presented with the following:
+Booting up the game, a launcher screen showing your nickname and the IP you want to connect to, ensure the IP is typed correctly, and your desired nickname too, once you're done press the "Join" button.
 
-If you're someone trying to host:
+As a client you'll not be able to control the speed of the game, or to load savefiles on your own - the host has absolute power over the game session. This can be both a good or a bad thing, depending on which server you joined. Hosts can kick and ban people at any time, they may also return to lobby momentarily to allow players to select other nations/switch.
+
+Fog of war is always enabled on multiplayer, it's more of an honour system than anything - as any devious client may just unforce-it back.
+
+NOTE: If you type an IPv6, your host will need to accept IPv6 connections too, or else it will fail. Same with IPv4, usually IPv4 is recommended for user-experience reasons.
+NOTE: Domains are not supported, please resolve them manually and type their corresponding IPv4 (This is a feature for the future).
+
+Joining the game will yield you to an usual singleplayer screen, except you'll see other players and the host too, select any nation you want to play as, two players cannot select the same nation (yet). So co-op is not possible at the moment.
+
+Joining a game requires the following procedure:
+* Fill out the IP address field (IPv4 clients can't join IPv6 servers, and viceversa).
+* Ensure you have the same game version, to avoid issues.
+* And have the same mods, again, to avoid issues, you'll be told when your scenario (i.e, mods) do not match the host's.
+
+#### Hosting a game
+
+If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
+
+As a host, you'll be able to kick and ban people in-game and in the lobby. Ensure you've prepared everything beforehand.
+
+Take note, loading savefiles will send the savefile to every client you have connected and that will connect, so for example, if you have 8 players, you will send 8 times the savefile, which is usually about 3 MB, so be wary of the fact you may end up sending 3*8=24 MB of information EACH time you load a savefile. It is already compressed using the maximum compression level available, so there is no point in compressing it further (by the mathematical laws of compression, has it's own Wikipedia article which I will not dwell on).
+
+For hostig:
 * The IP address field doesn't need to be filled. (Exception below).
 * Port forward the port `1984`, port forwarding varies per router, some ISPs do not allow port forwarding, so be aware.
 * Use an [open port checker tool](https://www.yougetsignal.com/tools/open-ports/) to check you opened the ports correctly, be aware this kind of tools may not be 100% reliable, as such, another person helping to test is very much preferred.
@@ -59,31 +81,31 @@ If you're someone trying to host:
 * In case you can't port forward, an alternative is using a VPN tunneling program, which carries it's own myriad of security risks, so only use it with trusted people.
 * If you want IPv6 networking, simply type a colon ":" in the IP field.
 
-Or if you're trying to join a game:
-* Fill out the IP address field (IPv4 clients can't join IPv6 servers, and viceversa).
-* Ensure you have the same game version, to avoid issues.
-* And have the same mods, again, to avoid issues, you'll be told when your scenario (i.e, mods) do not match the host's.
-
-As a client you'll not be able to control the speed of the game, or to load savefiles on your own - the host has absolute power over the game session. This can be both a good or a bad thing, depending on which server you joined. Hosts can kick and ban people at any time, they may also return to lobby momentarily to allow players to select other nations/switch.
-
+For dealing with troublemakers:
 * Kick: Disconnects the player from the session, they may join back if they wish.
 * Ban: Disconnects and blacklists the player from the session, they will not join back unless a new session is done. Based on IP (or MAC, if using IPv6) - again, anyone dedicated enough is able to circumvent this, but it works for most practical cases.
 
-Fog of war is always enabled on multiplayer, it's more of an honour system than anything - as any devious client may just unforce-it back.
+#### Troubleshooting
 
-### User guide (Client)
+As a client, follow the procedure:
+* Check the IP you typed was correct
+* Check your player name is not a) empty, or b) improper
+* Check that you haven't been banned from the server
+* Ensure you're connecting using IPv4 or IPv6 - accordingly, hosts will not accept a client with a different IPv
+* If using IPv6, check that your router even supports it
+* If using IPv4, do not input semicolons (i.e, `127.0.0.1:1283`), as this will be interpreted as a IPv6 address
+* Check that your firewall is not blocking Alice
+* Check your internet connection (maybe even ping the host)
+* If using a VPN tunneling app, check that you're connected to the peer
+* Check that someone else is able to join (i.e that the host has port forwarded properly, the port `1984`)
+* Ensure you have the same mods as the host
+* Otherwise ensure you atleast have the same scenario
 
-Booting up the game, a launcher screen showing your nickname and the IP you want to connect to, ensure the IP is typed correctly, and your desired nickname too, once you're done press the "Join" button.
-
-NOTE: If you type an IPv6, your host will need to accept IPv6 connections too, or else it will fail. Same with IPv4, usually IPv4 is recommended for user-experience reasons.
-NOTE: Domains are not supported, please resolve them manually and type their corresponding IPv4 (This is a feature for the future).
-
-Joining the game will yield you to an usual singleplayer screen, except you'll see other players and the host too, select any nation you want to play as, two players cannot select the same nation (yet). So co-op is not possible at the moment.
-
-### User guide (Host)
-
-If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
-
-As a host, you'll be able to kick and ban people in-game and in the lobby. Ensure you've prepared everything beforehand.
-
-Take note, loading savefiles will send the savefile to every client you have connected and that will connect, so for example, if you have 8 players, you will send 8 times the savefile, which is usually about 3 MB, so be wary of the fact you may end up sending 3*8=24 MB of information EACH time you load a savefile. It is already compressed using the maximum compression level available, so there is no point in compressing it further (by the mathematical laws of compression, has it's own Wikipedia article which I will not dwell on).
+As a host, follow the procedure:
+* Check you're using the correct IPv you want (clients also have to be told which IPv they need to use)
+* Check your player name is not a) empty, or b) improper
+* If using IPv6, check that your router even supports it
+* If using IPv4, do not input semicolons (i.e, `:1283`), as this will be interpreted as a IPv6 address
+* Check that your firewall is not blocking Alice
+* Check your internet connection
+* Check that the port `1984`, is properly forwarded on your machine (you may use an open port checker to analyse this)
