@@ -63,6 +63,7 @@ public:
 template<bool ShowFull>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
+	uint8_t prev_index = 0;
 	std::string_view get_row_element_name() override {
 		return "chat_entry";
 	}
@@ -87,6 +88,11 @@ public:
 			}
 		}
 		update(state);
+		if constexpr(ShowFull) {
+			if(prev_index != state.ui_state.chat_messages_index)
+				scroll_to_bottom(state);
+			prev_index = state.ui_state.chat_messages_index;
+		}
 	}
 
 	bool is_reversed() override {
@@ -159,10 +165,8 @@ public:
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			set_text(state, text::produce_simple_string(state, "player"));
 		} else {
-			/*
 			auto n = retrieve<dcon::nation_id>(state, parent);
 			set_text(state, std::string(state.network_state.map_of_player_names[n.index()].to_string_view()));
-			*/
 		}
 	}
 };

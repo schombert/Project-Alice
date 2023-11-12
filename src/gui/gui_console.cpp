@@ -1135,7 +1135,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
-		state.debug_oos_dump();
+		state.debug_save_oos_dump();
+		state.debug_scenario_oos_dump();
 		break;
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;

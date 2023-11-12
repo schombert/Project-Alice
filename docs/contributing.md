@@ -70,11 +70,12 @@ From here compiling is straightforward
     ```cpp
         #ifndef GAME_DIR
         #define GAME_DIR "[insert file path here]"
+        #define OOS_DAILY_CHECK 1
         #endif
 
     ```
   you should set GAME_DIR to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path on linux its noteworthy that you dont need to put \ before spaces, so if your Linux file path is /home/user/Victoria\ 2/, then you write /home/user/Victoria 2/ in the GAME_DIR (surronded by quotes of course)
-    copy the file path and replace [insert file path here] with it, then save.
+    copy the file path and replace [insert file path here] with it, then save. Additionaly, `OOS_DAILY_CHECK` should be defined if you want daily OOS checks instead of the usual "monthly" ones.
 
 7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
 8. `cmake --build . -j$(nproc)`
@@ -87,9 +88,12 @@ That file should contain the following four lines (the last one is an empty line
 ```cpp
 #ifndef GAME_DIR
 #define GAME_DIR "C:\\Your\\Victoria2\\Files"
+#define OOS_DAILY_CHECK 1
 #endif
 ```
 except replacing that path with your own installation location.
 Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)
 Second note: on Windows, BrickPi has made a change such that, if you have Victoria 2 installed, you may be able to bypass creating `local_user_settings.hpp` completely. You may want to try that first.
 Finally, just build the Alice launch target, and you should see the game pop up on your screen.
+
+Remember, `OOS_DAILY_CHECK` will make OOS checks occur daily.

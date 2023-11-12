@@ -577,9 +577,7 @@ struct alignas(64) state {
 	cheat_data_s cheat_data;
 
 	// network data
-	/*
 	network::network_state network_state;
-	*/
 
 	// the following functions will be invoked by the window subsystem
 
@@ -606,7 +604,8 @@ struct alignas(64) state {
 	void game_loop();
 	sys::checksum_key get_save_checksum();
 	sys::checksum_key get_scenario_checksum();
-	void debug_oos_dump();
+	void debug_save_oos_dump();
+	void debug_scenario_oos_dump();
 
 	// the following function are for interacting with the string pool
 
