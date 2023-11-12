@@ -69,12 +69,13 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
-			for(const auto as : state.world.state_definition_get_abstract_state_membership(content)) {
-				auto n = as.get_province().get_state_membership().get_capital().get_province_control().get_nation();
-				payload.emplace<dcon::nation_id>(n);
+			auto memb = state.world.state_definition_get_abstract_state_membership(content);
+			if(memb.begin() == memb.end()) {
+				payload.emplace<dcon::nation_id>(state.national_definitions.rebel_id);
 				return message_result::consumed;
 			}
-			payload.emplace<dcon::nation_id>(state.national_definitions.rebel_id);
+			auto n = (*(memb.begin())).get_province().get_state_membership().get_capital().get_province_control().get_nation();
+			payload.emplace<dcon::nation_id>(n);
 			return message_result::consumed;
 		}
 		return listbox_row_element_base::get(state, payload);
