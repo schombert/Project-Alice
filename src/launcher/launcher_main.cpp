@@ -26,6 +26,7 @@ extern "C" {
 #include "blake2.c"
 };
 #include "serialization.hpp"
+#include "network.cpp"
 
 namespace launcher {
 
@@ -39,6 +40,9 @@ constexpr inline float caption_height = 44.0f;
 
 static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
+
+static std::string ip_addr = "127.0.0.1";
+static std::string player_name = "AnonAnon";
 
 static HWND m_hwnd = nullptr;
 
@@ -54,10 +58,14 @@ constexpr inline int32_t ui_obj_list_left = 1;
 constexpr inline int32_t ui_obj_list_right = 2;
 constexpr inline int32_t ui_obj_create_scenario = 3;
 constexpr inline int32_t ui_obj_play_game = 4;
+constexpr inline int32_t ui_obj_host_game = 5;
+constexpr inline int32_t ui_obj_join_game = 6;
+constexpr inline int32_t ui_obj_ip_addr = 7;
+constexpr inline int32_t ui_obj_player_name = 8;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 5;
+constexpr inline int32_t ui_list_first = 9;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -73,8 +81,12 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 880 - 31,  0 , 31, 31}, // close
 	ui_active_rect{ 30, 208, 21, 93}, // left
 	ui_active_rect{ 515, 208, 21, 93}, // right
-	ui_active_rect{ 555, 47, 286, 33 }, // create scenario
-	ui_active_rect{ 555, 196, 286, 33 }, // play game
+	ui_active_rect{ 555, 48, 286, 33 }, // create scenario
+	ui_active_rect{ 555, 48 + 156 * 1, 286, 33 }, // play game
+	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 0, 138, 33 }, // host game
+	ui_active_rect{ 703, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 200, 23 }, // ip address textbox
+	ui_active_rect{ 765, 54 + 156 * 2 + 36 * 2, 76, 23 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -297,7 +309,7 @@ bool nth_item_can_move_down(int32_t n) {
 
 native_string produce_mod_path() {
 	simple_fs::file_system dummy;
-	simple_fs::add_root(dummy, L".");
+	simple_fs::add_root(dummy, NATIVE("."));
 
 	for(int32_t i = 0; i < int32_t(mod_list.size()); ++i) {
 		if(mod_list[i].mod_selected == false)
@@ -311,8 +323,7 @@ native_string produce_mod_path() {
 
 native_string to_hex(uint64_t v) {
 	native_string ret;
-	constexpr wchar_t digits[] = L"0123456789ABCDEF";
-	
+	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
 	do {
 		ret += digits[v & 0x0F];
 		v = v >> 4;
@@ -336,18 +347,18 @@ void make_mod_file() {
 
 		auto time_stamp = uint64_t(std::time(0));
 		auto base_name = to_hex(time_stamp);
-		while(simple_fs::peek_file(sdir, base_name + L"-"  + std::to_wstring(append) + L".bin")) {
+		while(simple_fs::peek_file(sdir, base_name + NATIVE("-")  + std::to_wstring(append) + NATIVE(".bin"))) {
 			++append;
 		}
 
 		++max_scenario_count;
-		selected_scenario_file = base_name + L"-" + std::to_wstring(append) + L".bin";
+		selected_scenario_file = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
 			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
 			auto pdir = simple_fs::get_or_create_settings_directory();
-			simple_fs::write_file(pdir, L"scenario_errors.txt", assembled_file.data(), uint32_t(assembled_file.length()));
+			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
 			if(!err.accumulated_errors.empty()) {
 				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
@@ -374,7 +385,7 @@ void make_mod_file() {
 			
 
 			std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
-				return b.ident.count > a.ident.count;
+				return a.ident.count > b.ident.count;
 			});
 		}
 
@@ -391,7 +402,7 @@ void find_scenario_file() {
 		return;
 
 	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
-	selected_scenario_file = L"";
+	selected_scenario_file = NATIVE("");
 	auto mod_path = produce_mod_path();
 
 	for(auto& f : scenario_files) {
@@ -430,9 +441,27 @@ void mouse_click() {
 			}
 			return;
 		case ui_obj_play_game:
+		case ui_obj_host_game:
+		case ui_obj_join_game:
 			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+				native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
+				if(obj_under_mouse == ui_obj_host_game) {
+					temp_command_line += NATIVE(" -host");
+					temp_command_line += NATIVE(" -name ");
+					temp_command_line += simple_fs::utf8_to_native(player_name);
+				} else if(obj_under_mouse == ui_obj_join_game) {
+					temp_command_line += NATIVE(" -join");
+					temp_command_line += NATIVE(" ");
+					temp_command_line += simple_fs::utf8_to_native(ip_addr);
+					temp_command_line += NATIVE(" -name ");
+					temp_command_line += simple_fs::utf8_to_native(player_name);
 
-				native_string temp_command_line = native_string(L"Alice.exe ") + selected_scenario_file;
+					// IPv6 address
+					if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
+						temp_command_line += NATIVE(" -v6");
+					}
+				}
+
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
 				si.cb = sizeof(si);
@@ -823,6 +852,8 @@ static ::ogl::texture check_tex;
 static ::ogl::texture up_tex;
 static ::ogl::texture down_tex;
 static ::ogl::texture line_bg_tex;
+static ::ogl::texture big_l_button_tex;
+static ::ogl::texture big_r_button_tex;
 
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
@@ -852,7 +883,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f}, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -886,7 +917,7 @@ void render() {
 				ui_rects[ui_obj_list_right].height,
 				right_tex.get_texture_handle(), ui::rotation::upright, false);
 		} else {
-			launcher::ogl::render_textured_rect( launcher::ogl::color_modification::disabled,
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 				ui_rects[ui_obj_list_right].x,
 				ui_rects[ui_obj_list_right].y,
 				ui_rects[ui_obj_list_right].width,
@@ -905,10 +936,10 @@ void render() {
 
 		if(selected_scenario_file.empty()) {
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Create Scenario", 15, 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		} else {
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Recreate Scenario", 17, 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text("Recreate Scenario", 17, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			launcher::ogl::render_new_text("Recreate Scenario", 17, launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		}
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
@@ -943,6 +974,18 @@ void render() {
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_host_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_l_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_join_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
+			big_r_button_tex.get_texture_handle(), ui::rotation::upright, false);
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 			ui_rects[ui_obj_play_game].x,
@@ -950,17 +993,66 @@ void render() {
 			ui_rects[ui_obj_play_game].width,
 			ui_rects[ui_obj_play_game].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_host_game].x,
+			ui_rects[ui_obj_host_game].y,
+			ui_rects[ui_obj_host_game].width,
+			ui_rects[ui_obj_host_game].height,
+			big_l_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+			ui_rects[ui_obj_join_game].x,
+			ui_rects[ui_obj_join_game].y,
+			ui_rects[ui_obj_join_game].width,
+			ui_rects[ui_obj_join_game].height,
+			big_r_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
 		/*830, 250*/
 		// No scenario file found
 
 		auto xoffset = 830.0f - base_text_extent("No scenario file found", 22, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, 250.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
-	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start Game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Start Game", 10, launcher::ogl::color_modification::none, sg_x_pos, 199.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("IP Address", 10, launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent("IP Address", 10, 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_ip_addr].x,
+		ui_rects[ui_obj_ip_addr].y,
+		ui_rects[ui_obj_ip_addr].width,
+		ui_rects[ui_obj_ip_addr].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+	launcher::ogl::render_new_text("Nickname", 8, launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent("Nickname", 8, 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_player_name].x,
+		ui_rects[ui_obj_player_name].y,
+		ui_rects[ui_obj_player_name].width,
+		ui_rects[ui_obj_player_name].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
+	launcher::ogl::render_new_text("Singleplayer", 13, launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent("Singleplayer", 13, 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start game", 10, 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text("Start game", 10, launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
+	const char* hg_text = "Host";
+	const char* jg_text = "Join";
+	if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
+		hg_text = "Host<IPv6>";
+		jg_text = "Join<IPv6>";
+	}
+
+	launcher::ogl::render_new_text("Multiplayer", 12, launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent("Multiplayer", 12, 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+
+	// Join and host game buttons
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(hg_text, uint32_t(::strlen(hg_text)), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(hg_text, uint32_t(::strlen(hg_text)), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+
+	// Text fields
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
@@ -1036,6 +1128,23 @@ void render() {
 	SwapBuffers(opengl_window_dc);
 }
 
+bool is_low_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xDC00 && char_code <= 0xDFFF;
+}
+bool is_high_surrogate(uint16_t char_code) noexcept {
+	return char_code >= 0xD800 && char_code <= 0xDBFF;
+}
+
+char process_utf16_to_win1250(wchar_t c) {
+	if(c <= 127)
+		return char(c);
+	if(is_low_surrogate(c) || is_high_surrogate(c))
+		return 0;
+	char char_out = 0;
+	WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
+	return char_out;
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	if(message == WM_CREATE) {
 		opengl_window_dc = GetDC(hwnd);
@@ -1050,7 +1159,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 		simple_fs::file_system fs;
 		add_root(fs, NATIVE_M(GAME_DIR));
-		simple_fs::add_root(fs, L".");
+		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
 		auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
@@ -1066,19 +1175,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 		font_collection.load_all_glyphs();
 
-		::ogl::load_file_and_return_handle(L"assets/launcher_bg.png", fs, bg_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_left.png", fs, left_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_right.png", fs, right_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_close.png", fs, close_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_big_button.png", fs, big_button_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_no_check.png", fs, empty_check_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_check.png", fs, check_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_up.png", fs, up_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_down.png", fs, down_tex, false);
-		::ogl::load_file_and_return_handle(L"assets/launcher_line_bg.png", fs, line_bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_left.png"), fs, left_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_right.png"), fs, right_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_close.png"), fs, close_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_button.png"), fs, big_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_left.png"), fs, big_l_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_right.png"), fs, big_r_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_no_check.png"), fs, empty_check_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_check.png"), fs, check_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_up.png"), fs, up_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
 
-		auto mod_dir = simple_fs::open_directory(root, L"mod");
-		auto mod_files = simple_fs::list_files(mod_dir, L".mod");
+		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
+		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
 
 		parsers::error_handler err("");
 		for(auto& f : mod_files) {
@@ -1091,7 +1202,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 
 		auto sdir = simple_fs::get_or_create_scenario_directory();
-		auto s_files = simple_fs::list_files(sdir, L".bin");
+		auto s_files = simple_fs::list_files(sdir, NATIVE(".bin"));
 		for(auto& f : s_files) {
 			auto of = simple_fs::open_file(f);
 			if(of) {
@@ -1105,7 +1216,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		}
 
 		std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
-			return b.ident.count > a.ident.count;
+			return a.ident.count > b.ident.count;
 		});
 
 		find_scenario_file();
@@ -1192,6 +1303,57 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			case WM_DESTROY:
 				PostQuitMessage(0);
 				return 1;
+			case WM_KEYDOWN:
+				if(GetKeyState(VK_CONTROL) & 0x8000) {
+					if(wParam == L'v' || wParam == L'V') {
+						if(!IsClipboardFormatAvailable(CF_TEXT))
+							return 0;
+						if(!OpenClipboard(m_hwnd))
+							return 0;
+
+						auto hglb = GetClipboardData(CF_TEXT);
+						if(hglb != nullptr) {
+							auto lptstr = GlobalLock(hglb);
+							if(lptstr != nullptr) {
+								std::string cb_data((char*)lptstr);
+								while(cb_data.length() > 0 && isspace(cb_data.back())) {
+									cb_data.pop_back();
+								}
+								ip_addr = cb_data;
+								GlobalUnlock(hglb);
+							}
+						}
+						CloseClipboard();
+					}
+				}
+				return 0;
+			case WM_CHAR:
+			{
+				if(GetKeyState(VK_CONTROL) & 0x8000) {
+
+				} else {
+					char turned_into = process_utf16_to_win1250(wParam);
+					if(turned_into) {
+						if(obj_under_mouse == ui_obj_ip_addr) {
+							if(turned_into == '\b') {
+								if(!ip_addr.empty())
+									ip_addr.pop_back();
+							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+								ip_addr.push_back(turned_into);
+							}
+						} else if(obj_under_mouse == ui_obj_player_name) {
+							if(turned_into == '\b') {
+								if(!player_name.empty())
+									player_name.pop_back();
+							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+								player_name.push_back(turned_into);
+							}
+						}
+					}
+				}
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+				return 0;
+			}
 			default:
 				break;
 
@@ -1202,13 +1364,104 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 } // end launcher namespace
 
+static CRITICAL_SECTION guard_abort_handler;
+
+void signal_abort_handler(int) {
+	static bool run_once = false;
+
+	EnterCriticalSection(&guard_abort_handler);
+	if(run_once == false) {
+		run_once = true;
+
+		STARTUPINFO si;
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+		PROCESS_INFORMATION pi;
+		ZeroMemory(&pi, sizeof(pi));
+		// Start the child process. 
+		if(CreateProcessW(
+			L"dbg_alice.exe",   // Module name
+			NULL, // Command line
+			NULL, // Process handle not inheritable
+			NULL, // Thread handle not inheritable
+			FALSE, // Set handle inheritance to FALSE
+			0, // No creation flags
+			NULL, // Use parent's environment block
+			NULL, // Use parent's starting directory 
+			&si, // Pointer to STARTUPINFO structure
+			&pi) == 0) {
+
+			// create process failed
+			LeaveCriticalSection(&guard_abort_handler);
+			return;
+
+		}
+		// Wait until child process exits.
+		WaitForSingleObject(pi.hProcess, INFINITE);
+		// Close process and thread handles. 
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
+	LeaveCriticalSection(&guard_abort_handler);
+}
+
+LONG WINAPI uef_wrapper(struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
+	signal_abort_handler(0);
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void generic_wrapper() {
+	signal_abort_handler(0);
+}
+void invalid_parameter_wrapper(
+   const wchar_t* expression,
+   const wchar_t* function,
+   const wchar_t* file,
+   unsigned int line,
+   uintptr_t pReserved
+) {
+	signal_abort_handler(0);
+}
+
+void EnableCrashingOnCrashes() {
+	typedef BOOL(WINAPI* tGetPolicy)(LPDWORD lpFlags);
+	typedef BOOL(WINAPI* tSetPolicy)(DWORD dwFlags);
+	const DWORD EXCEPTION_SWALLOWING = 0x1;
+
+	HMODULE kernel32 = LoadLibraryA("kernel32.dll");
+	tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy");
+	tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy");
+	if(pGetPolicy && pSetPolicy) {
+		DWORD dwFlags;
+		if(pGetPolicy(&dwFlags)) {
+			// Turn off the filter
+			pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+		}
+	}
+	BOOL insanity = FALSE;
+	SetUserObjectInformationA(GetCurrentProcess(), UOI_TIMERPROC_EXCEPTION_SUPPRESSION, &insanity, sizeof(insanity));
+}
+
 int WINAPI wWinMain(
 	HINSTANCE /*hInstance*/,
 	HINSTANCE /*hPrevInstance*/,
 	LPWSTR /*lpCmdLine*/,
 	int /*nCmdShow*/
 ) {
+#ifdef _DEBUG
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
+#endif
+
+	InitializeCriticalSection(&guard_abort_handler);
+
+	if(!IsDebuggerPresent()) {
+		EnableCrashingOnCrashes();
+		_set_purecall_handler(generic_wrapper);
+		_set_invalid_parameter_handler(invalid_parameter_wrapper);
+		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+		SetUnhandledExceptionFilter(uef_wrapper);
+		signal(SIGABRT, signal_abort_handler);
+	}
 
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
@@ -1231,6 +1484,13 @@ int WINAPI wWinMain(
 	if(RegisterClassEx(&wcex) == 0) {
 		std::abort();
 	}
+
+	// Use by default the name of the computer
+	char username[256 + 1];
+	DWORD username_len = 256 + 1;
+	GetUserNameA(username, &username_len);
+	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
+	//
 
 	launcher::m_hwnd = CreateWindowEx(
 		0,
@@ -1280,6 +1540,7 @@ int WINAPI wWinMain(
 
 	MSG msg;
 	while(GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 

@@ -2166,6 +2166,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_war([&](dcon::war_id id) { row_contents.push_back(id); });
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::war_id a, dcon::war_id b) {
+			auto in_a = military::get_role(state, a, state.local_player_nation) != military::war_role::none;
+			auto in_b = military::get_role(state, b, state.local_player_nation) != military::war_role::none;
+			if(in_a != in_b) {
+				return in_a;
+			} else {
+				return state.world.war_get_start_date(a) < state.world.war_get_start_date(b);
+			}
+		});
 		update(state);
 	}
 };

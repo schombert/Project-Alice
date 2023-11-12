@@ -126,7 +126,7 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(state.user_settings.fow_enabled) {
+	if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {
@@ -640,6 +640,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// draw Screen quad
 		glUseProgram(state.open_gl.msaa_shader_program);
+		glUniform1f(0, state.user_settings.gaussianblur_level);
+		glUniform2f(1, screen_size.x, screen_size.y);
+		//
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, state.open_gl.msaa_texture); // use the now resolved color attachment as the quad's texture
 		glBindVertexArray(state.open_gl.msaa_vao);
@@ -903,7 +906,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
-		auto effective_ratio = glm::vec2(e.ratio.x * map_x_scaling, e.ratio.y);
+		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
 		auto& f = state.font_collection.fonts[1];
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
@@ -916,21 +919,21 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		float x_step = (1.f / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
-			curve_length += glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
+			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 
 		float size = (curve_length / text_length) * 0.85f;
 		if(size > 200.0f) {
 			size = 200.0f + (size - 200.0f) * 0.5f;
 		}
 
-		auto real_text_size = size / float(size_x * 2.0f);
+		auto real_text_size = size / (size_x * 2.0f);
 
 		float margin = (curve_length - text_length * size) / 2.0f;
 
 		float x = 0.f;
 
 		for(float accumulated_length = 0.f; ; x += x_step) {
-			auto added_distance = glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
+			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
 				x += x_step * (margin - accumulated_length) / added_distance;
 				break;
@@ -939,8 +942,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
-			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
-
 			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
 				auto dpoly_fn = [&](float x) {
@@ -950,7 +951,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
-				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio.x, dpoly_fn(x) * effective_ratio.y));
+				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
 				curr_dir.x *= 0.5f;
 				curr_normal_dir.x *= 0.5f;
@@ -967,13 +968,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), curr_dir, glm::vec2(tx, ty), type, real_text_size * 2.0f);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), curr_dir, glm::vec2(tx, ty + step), type, real_text_size * 2.0f);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), curr_dir, glm::vec2(tx + step, ty + step), type, real_text_size * 2.0f);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), curr_dir, glm::vec2(tx + step, ty + step), type, real_text_size * 2.0f);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), curr_dir, glm::vec2(tx + step, ty), type, real_text_size * 2.0f);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), curr_dir, glm::vec2(tx, ty), type, real_text_size * 2.0f);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
 
 				// First vertex of the line segment
 				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
@@ -985,8 +986,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
 			}
 
+			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 			for(float glyph_length = 0.f; ; x += x_step) {
-				auto added_distance = glm::distance(glm::vec2(x, poly_fn(x)) * effective_ratio, glm::vec2(x + x_step, poly_fn(x + x_step)) * effective_ratio);
+				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 				if(glyph_length + added_distance >= glyph_advance) {
 					x += x_step * (glyph_advance - glyph_length) / added_distance;
 					break;

@@ -840,9 +840,20 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			float CurX = x + f.x_offset - (float(f.width) * offset);
 			float CurY = y + f.y_offset - (float(f.height) * offset);
 			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-			glBindTexture(GL_TEXTURE_2D, uint8_t(codepoints[i]) == 0xA4		? state.open_gl.money_icon_tex
-																	 : uint8_t(codepoints[i]) == 0x01 ? state.open_gl.cross_icon_tex
-																																		: state.open_gl.checkmark_icon_tex);
+
+			GLuint icon_tex = 0;
+			if(uint8_t(codepoints[i]) == 0xA4)
+				icon_tex = state.open_gl.money_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x01)
+				icon_tex = state.open_gl.cross_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x02)
+				icon_tex = state.open_gl.checkmark_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x03)
+				icon_tex = state.open_gl.army_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x04)
+				icon_tex = state.open_gl.navy_icon_tex;
+
+			glBindTexture(GL_TEXTURE_2D, icon_tex);
 			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
 					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
