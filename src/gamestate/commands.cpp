@@ -4159,7 +4159,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
-	state.debug_oos_dump();
+	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
 	m.source = source;
@@ -4184,12 +4184,12 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	// Monthly OOS check
-#ifdef OOS_DAILY_CHECK
+#ifndef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
 		if(!current.is_equal(k)) {
 			state.network_state.out_of_sync = true;
-			state.debug_oos_dump();
+			state.debug_save_oos_dump();
 		}
 	}
 #else
@@ -4198,7 +4198,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 			sys::checksum_key current = state.get_save_checksum();
 			if(!current.is_equal(k)) {
 				state.network_state.out_of_sync = true;
-				state.debug_oos_dump();
+				state.debug_save_oos_dump();
 			}
 		}
 	}
@@ -4236,10 +4236,9 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(state)]);
 	write_save_section(buffer.get(), state);
 	state.preload();
-	state.local_player_nation = dcon::nation_id{};
 	read_save_section(buffer.get(), buffer.get() + sizeof_save_section(state), state);
+	state.local_player_nation = dcon::nation_id{};
 	state.fill_unsaved_data();
-	//
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
