@@ -115,7 +115,7 @@ void load_special_icons(sys::state& state) {
 		auto content = simple_fs::view_contents(*money_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.money_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
-				content.file_size, size_x, size_y, 0));
+				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
@@ -124,14 +124,14 @@ void load_special_icons(sys::state& state) {
 		auto content = simple_fs::view_contents(*cross_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
-				content.file_size, size_x, size_y, 0));
+				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
 	if(checkmark_dds) {
 		auto content = simple_fs::view_contents(*checkmark_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 
 	auto n_dds = simple_fs::open_file(interface_dir, NATIVE("politics_foreign_naval_units.dds"));
@@ -139,14 +139,14 @@ void load_special_icons(sys::state& state) {
 		auto content = simple_fs::view_contents(*n_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.navy_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 	auto a_dds = simple_fs::open_file(interface_dir, NATIVE("topbar_army.dds"));
 	if(a_dds) {
 		auto content = simple_fs::view_contents(*a_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.army_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
-			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, 0));
+			reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 }
 
@@ -840,9 +840,20 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			float CurX = x + f.x_offset - (float(f.width) * offset);
 			float CurY = y + f.y_offset - (float(f.height) * offset);
 			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-			glBindTexture(GL_TEXTURE_2D, uint8_t(codepoints[i]) == 0xA4		? state.open_gl.money_icon_tex
-																	 : uint8_t(codepoints[i]) == 0x01 ? state.open_gl.cross_icon_tex
-																																		: state.open_gl.checkmark_icon_tex);
+
+			GLuint icon_tex = 0;
+			if(uint8_t(codepoints[i]) == 0xA4)
+				icon_tex = state.open_gl.money_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x01)
+				icon_tex = state.open_gl.cross_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x02)
+				icon_tex = state.open_gl.checkmark_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x03)
+				icon_tex = state.open_gl.army_icon_tex;
+			else if(uint8_t(codepoints[i]) == 0x04)
+				icon_tex = state.open_gl.navy_icon_tex;
+
+			glBindTexture(GL_TEXTURE_2D, icon_tex);
 			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
 					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,

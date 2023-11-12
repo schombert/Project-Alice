@@ -671,6 +671,7 @@ void take_ai_decisions(sys::state& state) {
 				: !state.world.nation_get_is_player_controlled(ids);
 
 			if(filter_a.v != 0) {
+				// empty allow assumed to be an "always = yes"
 				ve::mask_vector filter_c = allow
 					? (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0) && (state.world.nation_get_owned_province_count(ids) != 0)) && filter_a
 					: ve::mask_vector{ filter_a } && (state.world.nation_get_owned_province_count(ids) != 0);
@@ -680,8 +681,12 @@ void take_ai_decisions(sys::state& state) {
 
 				ve::apply([&](dcon::nation_id n, bool passed_filter) {
 					if(passed_filter) {
-						auto second_validity = trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0) && trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0);
-
+						auto second_validity = potential
+							? trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0)
+							: true;
+						second_validity = second_validity && (allow
+							? trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)
+							: true);
 						if(second_validity) {
 							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
 										uint32_t(n.index() << 4 ^ d.id.index()));
@@ -693,8 +698,8 @@ void take_ai_decisions(sys::state& state) {
 									ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
 								},
 								"msg_decision_title",
-								n,
-								sys::message_setting_type::decision
+								n, dcon::nation_id{}, dcon::nation_id{},
+								sys::message_base_type::decision
 							});
 						}
 					}
@@ -1946,7 +1951,8 @@ void update_cb_fabrication(sys::state& state) {
 				&& n.get_ai_rival().get_in_sphere_of() != n
 				&& (!ol || ol == n.get_ai_rival())
 				&& !military::are_at_war(state, n, n.get_ai_rival())
-				&& !military::can_use_cb_against(state, n, n.get_ai_rival())) {
+				&& !military::can_use_cb_against(state, n, n.get_ai_rival())
+				&& !military::has_truce_with(state, n, n.get_ai_rival())) {
 
 				auto cb = pick_fabrication_type(state, n, n.get_ai_rival());
 				if(cb) {
@@ -1957,7 +1963,7 @@ void update_cb_fabrication(sys::state& state) {
 				static std::vector<dcon::nation_id> possible_targets;
 				possible_targets.clear();
 				for(auto i : state.world.in_nation) {
-					if(valid_construction_target(state, n, i))
+					if(valid_construction_target(state, n, i) && !military::has_truce_with(state, n, i))
 						possible_targets.push_back(i.id);
 				}
 				if(!possible_targets.empty()) {
@@ -3080,6 +3086,9 @@ void update_ships(sys::state& state) {
 void build_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(!n.get_is_player_controlled() && n.get_province_naval_construction().begin() == n.get_province_naval_construction().end()) {
+			auto disarm = n.get_disarmed_until();
+			if(disarm && state.current_date < disarm)
+				continue;
 
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
@@ -3142,43 +3151,48 @@ void build_ships(sys::state& state) {
 			});
 
 			int32_t constructing_fleet_cap = 0;
-			if(fleet_cap_in_transports * 3 < n.get_naval_supply_points()) {
-				auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
-				auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
-				auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
+			if(best_transport) {
+				if(fleet_cap_in_transports * 3 < n.get_naval_supply_points()) {
+					auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
+					auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
+					auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
 
-				for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
-					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
+						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
+							&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
-						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-						c.set_type(best_transport);
-						constructing_fleet_cap += supply_pts;
+							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
+							c.set_type(best_transport);
+							constructing_fleet_cap += supply_pts;
+						}
 					}
-				}
-			} else if(num_transports < 10) {
-				auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
-				auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
-				auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
+				} else if(num_transports < 10) {
+					auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
+					auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
+					auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
 
-				for(uint32_t j = 0; j < owned_ports.size() && num_transports < 10; ++j) {
-					if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
-						&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
+					for(uint32_t j = 0; j < owned_ports.size() && num_transports < 10; ++j) {
+						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
+							&& state.world.province_get_building_level(owned_ports[j], economy::province_building_type::naval_base) >= level_req) {
 
-						auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
-						c.set_type(best_transport);
-						++num_transports;
-						constructing_fleet_cap += supply_pts;
+							auto c = fatten(state.world, state.world.try_create_province_naval_construction(owned_ports[j], n));
+							c.set_type(best_transport);
+							++num_transports;
+							constructing_fleet_cap += supply_pts;
+						}
 					}
 				}
 			}
 
 			int32_t used_points = n.get_used_naval_supply_points();
-			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + constructing_fleet_cap);
-			auto free_big_points = rem_free / 2 - fleet_cap_in_big;
-			auto free_small_points = rem_free / 2 - fleet_cap_in_small;
+			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
+			fleet_cap_in_small = std::max(fleet_cap_in_small, 1);
+			fleet_cap_in_big = std::max(fleet_cap_in_big, 1);
 
-			{
+			auto free_big_points = best_light ? rem_free * fleet_cap_in_small / (fleet_cap_in_small + fleet_cap_in_big) : rem_free;
+			auto free_small_points = best_big ? rem_free * fleet_cap_in_big / (fleet_cap_in_small + fleet_cap_in_big) : rem_free;
+
+			if(best_light) {
 				auto overseas_allowed = state.military_definitions.unit_base_definitions[best_light].can_build_overseas;
 				auto level_req = state.military_definitions.unit_base_definitions[best_light].min_port_level;
 				auto supply_pts = state.military_definitions.unit_base_definitions[best_light].supply_consumption_score;
@@ -3193,7 +3207,7 @@ void build_ships(sys::state& state) {
 					}
 				}
 			}
-			{
+			if(best_big) {
 				auto overseas_allowed = state.military_definitions.unit_base_definitions[best_big].can_build_overseas;
 				auto level_req = state.military_definitions.unit_base_definitions[best_big].min_port_level;
 				auto supply_pts = state.military_definitions.unit_base_definitions[best_big].supply_consumption_score;
@@ -4527,6 +4541,9 @@ void move_gathered_attackers(sys::state& state) {
 void update_land_constructions(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
+			continue;
+		auto disarm = n.get_disarmed_until();
+		if(disarm && state.current_date < disarm)
 			continue;
 
 		auto constructions = state.world.nation_get_province_land_construction(n);

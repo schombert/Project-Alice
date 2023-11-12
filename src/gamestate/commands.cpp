@@ -21,6 +21,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::notify_player_oos:
+	case command_type::notify_pause_game:
 	case command_type::chat_message:
 		// Notifications can be sent because it's an-always do thing
 		break;
@@ -28,11 +29,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		// Normal commands are discarded iff we are not in the game
 		if(state.mode != sys::game_mode_type::in_game)
 			return;
-		/*
-		if(state.network_mode != sys::network_mode_type::single_player) {
-			state.network_state.is_new_game = false;
-		}
-		*/
+		state.network_state.is_new_game = false;
 		break;
 	}
 
@@ -45,9 +42,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case sys::network_mode_type::client:
 	case sys::network_mode_type::host:
 	{
-		/*
 		state.network_state.outgoing_commands.push(p);
-		*/
 		break;
 	}
 	default:
@@ -136,8 +131,9 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 			province::for_each_province_in_state_instance(state, target_state, [&](dcon::province_id p) {
 				state_contains_core = state_contains_core || bool(state.world.get_core_by_prov_tag_key(p, ident));
 			});
-			return state_contains_core && state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank) &&
-				focus == state.national_definitions.flashpoint_focus &&
+			bool rank_high = state.world.nation_get_rank(source) > uint16_t(state.defines.colonial_rank);
+			bool is_tension_focus = focus == state.national_definitions.flashpoint_focus;
+			return state_contains_core && rank_high && is_tension_focus &&
 				(num_focuses_set < num_focuses_total || bool(state.world.nation_get_state_from_flashpoint_focus(source))) &&
 				bool(state.world.state_instance_get_nation_from_flashpoint_focus(target_state)) == false;
 		}
@@ -248,16 +244,8 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 			text::add_line(state, contents, "msg_wsub_start_1", text::variable_type::x, source, text::variable_type::y, target);
 		},
 		"msg_wsub_start_title",
-		source,
-		sys::message_setting_type::war_subsidies_start_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_wsub_start_1", text::variable_type::x, source, text::variable_type::y, target);
-		},
-		"msg_wsub_start_title",
-		target,
-		sys::message_setting_type::war_subsidies_start_on_nation
+		source, target, dcon::nation_id{},
+		sys::message_base_type::war_subsidies_start
 	});
 }
 
@@ -297,16 +285,8 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 				text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
 			},
 			"msg_wsub_end_title",
-			source,
-			sys::message_setting_type::war_subsidies_end_by_nation
-		});
-		notification::post(state, notification::message{
-			[source, target](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_wsub_end_1", text::variable_type::x, source, text::variable_type::y, target);
-			},
-			"msg_wsub_end_title",
-			target,
-			sys::message_setting_type::war_subsidies_end_on_nation
+			source, target, dcon::nation_id{},
+			sys::message_base_type::war_subsidies_end
 		});
 	}
 }
@@ -347,16 +327,8 @@ void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon:
 			text::add_line(state, contents, "msg_inc_rel_1", text::variable_type::x, source, text::variable_type::y, target);
 		},
 		"msg_inc_rel_title",
-		source,
-		sys::message_setting_type::increase_relation_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_inc_rel_1", text::variable_type::x, source, text::variable_type::y, target);
-		},
-		"msg_inc_rel_title",
-		target,
-		sys::message_setting_type::increase_relation_on_nation
+		source, target, dcon::nation_id{},
+		sys::message_base_type::increase_relation
 	});
 }
 
@@ -391,16 +363,8 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 			text::add_line(state, contents, "msg_dec_rel_1", text::variable_type::x, source, text::variable_type::y, target);
 		},
 		"msg_dec_rel_title",
-		source,
-		sys::message_setting_type::decrease_relation_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_dec_rel_1", text::variable_type::x, source, text::variable_type::y, target);
-		},
-		"msg_dec_rel_title",
-		target,
-		sys::message_setting_type::decrease_relation_on_nation
+		source, target, dcon::nation_id{},
+		sys::message_base_type::decrease_relation
 	});
 }
 
@@ -648,6 +612,9 @@ bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
 		return false;
+	auto disarm = state.world.nation_get_disarmed_until(source);
+	if(disarm && state.current_date < disarm)
+		return false;
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
 		return false;
@@ -705,6 +672,9 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && std::count(state.world.nation_get_accepted_cultures(source).begin(), state.world.nation_get_accepted_cultures(source).end(), soldier_culture) == 0) {
 		return false;
 	}
+	auto disarm = state.world.nation_get_disarmed_until(source);
+	if(disarm && state.current_date < disarm)
+		return false;
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
 		/*
@@ -918,17 +888,37 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 
+	if(state.world.nation_get_is_player_controlled(source)) {
+		network::switch_player(state, holder, source);
+	} else if(state.world.nation_get_is_player_controlled(holder)) {
+		network::switch_player(state, source, holder);
+	}
+
 	auto old_controller = state.world.nation_get_is_player_controlled(holder);
 	state.world.nation_set_is_player_controlled(holder, state.world.nation_get_is_player_controlled(source));
 	state.world.nation_set_is_player_controlled(source, old_controller);
 
 	if(state.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(state, holder);
+	if(state.world.nation_get_is_player_controlled(source))
+		ai::remove_ai_data(state, source);
 
 	if(state.local_player_nation == source) {
 		state.local_player_nation = holder;
 	} else if(state.local_player_nation == holder) {
 		state.local_player_nation = source;
+	}
+
+
+	for(auto p : state.world.nation_get_province_ownership(holder)) {
+		auto pid = p.get_province();
+		state.world.province_set_is_colonial(pid, false);
+		auto timed_modifiers = state.world.province_get_current_modifiers(pid);
+		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
+			if(bool(timed_modifiers[i].expiration)) {
+				timed_modifiers.remove_at(i);
+			}
+		}
 	}
 }
 
@@ -1103,17 +1093,8 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 			text::add_line(state, contents, "msg_discredit_2", text::variable_type::x, enddate);
 		},
 		"msg_discredit_title",
-		source,
-		sys::message_setting_type::expell_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.discredit_days)](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_discredit_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-			text::add_line(state, contents, "msg_discredit_2", text::variable_type::x, enddate);
-		},
-		"msg_discredit_title",
-		affected_gp,
-		sys::message_setting_type::expell_on_nation
+		source, affected_gp, influence_target,
+		sys::message_base_type::discredit
 	});
 }
 
@@ -1182,16 +1163,8 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 			text::add_line(state, contents, "msg_expel_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_expel_title",
-		source,
-		sys::message_setting_type::expell_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_expel_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-		},
-		"msg_expel_title",
-		affected_gp,
-		sys::message_setting_type::expell_on_nation
+		source, affected_gp, influence_target,
+		sys::message_base_type::expell
 	});
 }
 
@@ -1261,17 +1234,8 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 			text::add_line(state, contents, "msg_ban_2", text::variable_type::x, enddate);
 		},
 		"msg_ban_title",
-		source,
-		sys::message_setting_type::ban_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp, enddate = state.current_date + int32_t(state.defines.banembassy_days)](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_ban_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-			text::add_line(state, contents, "msg_ban_2", text::variable_type::x, enddate);
-		},
-		"msg_ban_title",
-		affected_gp,
-		sys::message_setting_type::ban_on_nation
+		source, affected_gp, influence_target,
+		sys::message_base_type::ban
 	});
 }
 
@@ -1327,8 +1291,8 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 			text::add_line(state, contents, "msg_op_inc_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 		},
 		"msg_op_inc_title",
-		source,
-		sys::message_setting_type::increase_opinion
+		source, influence_target, dcon::nation_id{},
+		sys::message_base_type::increase_opinion
 	});
 }
 
@@ -1407,16 +1371,8 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 			text::add_line(state, contents, "msg_op_dec_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_op_dec_title",
-		source,
-		sys::message_setting_type::decrease_opinion_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_op_dec_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-		},
-		"msg_op_dec_title",
-		affected_gp,
-		sys::message_setting_type::decrease_opinion_on_nation
+		source, affected_gp, influence_target,
+		sys::message_base_type::decrease_opinion
 	});
 }
 
@@ -1474,16 +1430,8 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 			text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 		},
 		"msg_add_sphere_title",
-		source,
-		sys::message_setting_type::add_sphere
-	});
-	notification::post(state, notification::message{
-		[source, influence_target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_add_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-		},
-		"msg_add_sphere_title",
-		influence_target,
-		sys::message_setting_type::added_to_sphere
+		source, influence_target, dcon::nation_id{},
+		sys::message_base_type::add_to_sphere
 	});
 }
 
@@ -1561,30 +1509,8 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_rem_sphere_title",
-		source,
-		sys::message_setting_type::rem_sphere_by_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
-			if(source == affected_gp)
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-			else
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-		},
-		"msg_rem_sphere_title",
-		affected_gp,
-		sys::message_setting_type::rem_sphere_on_nation
-	});
-	notification::post(state, notification::message{
-		[source, influence_target, affected_gp](sys::state& state, text::layout_base& contents) {
-			if(source == affected_gp)
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
-			else
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
-		},
-		"msg_rem_sphere_title",
-		influence_target,
-		sys::message_setting_type::removed_from_sphere
+		source, affected_gp, influence_target,
+		sys::message_base_type::rem_sphere
 	});
 }
 
@@ -2034,8 +1960,8 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 					text::add_line(state, contents, join_attacker ? "msg_crisis_vol_join_1" : "msg_crisis_vol_join_2", text::variable_type::x, source);
 				},
 				"msg_crisis_vol_join_title",
-				source,
-				sys::message_setting_type::crisis_voluntary_join
+				source, dcon::nation_id{}, dcon::nation_id{},
+				sys::message_base_type::crisis_voluntary_join
 			});
 
 			return;
@@ -2104,8 +2030,8 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 			}
 		},
 		"msg_decision_title",
-		source,
-		sys::message_setting_type::decision
+		source, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::decision
 	});
 }
 
@@ -2493,16 +2419,8 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 			text::add_line(state, contents, "msg_access_canceled_a_1", text::variable_type::x, source, text::variable_type::y, target);
 		},
 		"msg_access_canceled_a_title",
-		target,
-		sys::message_setting_type::mil_access_end_on_nation
-	});
-	notification::post(state, notification::message{
-		[source, target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_access_canceled_a_1", text::variable_type::x, source, text::variable_type::y, target);
-		},
-		"msg_access_canceled_a_title",
-		source,
-		sys::message_setting_type::mil_access_end_by_nation
+		source, target, dcon::nation_id{},
+		sys::message_base_type::mil_access_end
 	});
 }
 
@@ -2539,18 +2457,10 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 				text::add_line(state, contents, "msg_access_canceled_b_1", text::variable_type::x, source, text::variable_type::y, target);
 			},
 			"msg_access_canceled_b_title",
-			source,
-			sys::message_setting_type::mil_access_end_by_nation
+			source, target, dcon::nation_id{},
+			sys::message_base_type::mil_access_end
 		});
 	}
-	notification::post(state, notification::message{
-		[source, target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_access_canceled_b_1", text::variable_type::x, source, text::variable_type::y, target);
-		},
-		"msg_access_canceled_b_title",
-		target,
-		sys::message_setting_type::mil_access_end_on_nation
-	});
 }
 
 void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -3921,7 +3831,7 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 
 	if(source == military::get_naval_battle_lead_attacker(state, b)) {
 		military::end_battle(state, b, military::battle_result::defender_won);
-	} else if(source == military::get_naval_battle_lead_attacker(state, b)) {
+	} else if(source == military::get_naval_battle_lead_defender(state, b)) {
 		military::end_battle(state, b, military::battle_result::attacker_won);
 	}
 }
@@ -4109,9 +4019,7 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 }
 void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	state.world.nation_set_is_player_controlled(source, true);
-	/*
 	state.network_state.map_of_player_names.insert_or_assign(source.index(), name);
-	*/
 
 	ui::chat_message m{};
 	m.source = source;
@@ -4142,9 +4050,7 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	/*
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
-	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	post_chat_message(state, m);
 }
@@ -4163,7 +4069,6 @@ bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nati
 	return true;
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/*
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
@@ -4171,7 +4076,6 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 			}
 		}
 	}
-	*/
 	state.world.nation_set_is_player_controlled(target, false);
 
 	ui::chat_message m{};
@@ -4179,9 +4083,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	/*
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
-	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	post_chat_message(state, m);
 }
@@ -4200,7 +4102,6 @@ bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nat
 	return true;
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	/*
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active() && client.playing_as == target) {
@@ -4208,7 +4109,6 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 			}
 		}
 	}
-	*/
 	state.world.nation_set_is_player_controlled(target, false);
 
 	ui::chat_message m{};
@@ -4216,9 +4116,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(target)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	/*
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[target.index()].to_string_view());
-	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	post_chat_message(state, m);
 }
@@ -4239,17 +4137,14 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 	return state.world.nation_get_is_player_controlled(target) == false;
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(bool(source) && source != state.national_definitions.rebel_id)
-		state.world.nation_set_is_player_controlled(source, false);
+	assert(source && source != state.national_definitions.rebel_id);
+	network::switch_player(state, target, source);
+	state.world.nation_set_is_player_controlled(source, false);
 	state.world.nation_set_is_player_controlled(target, true);
-	/*
-	state.network_state.map_of_player_names.insert_or_assign(target.index(), state.network_state.map_of_player_names[source.index()]);
-	*/
-	// TODO: To avoid abuse, clients will be given a random nation when they join the server
-	// that isn't occupied already by a player, this allows us to effectively use nation_id
-	// as a player identifier!
-	if(state.local_player_nation == source)
+
+	if(state.local_player_nation == source) {
 		state.local_player_nation = target;
+	}
 	// We will also re-assign all chat messages from this nation to the new one
 	for(auto& msg : state.ui_state.chat_messages)
 		if(bool(msg.source) && msg.source == source)
@@ -4264,16 +4159,14 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
-	state.debug_oos_dump();
+	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
 	auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(source)));
 	text::add_to_substitution_map(sub, text::variable_type::x, std::string_view(tag));
-	/*
 	text::add_to_substitution_map(sub, text::variable_type::playername, state.network_state.map_of_player_names[source.index()].to_string_view());
-	*/
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	post_chat_message(state, m);
 }
@@ -4290,15 +4183,26 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
-	/*
+	// Monthly OOS check
+#ifndef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
 		if(!current.is_equal(k)) {
 			state.network_state.out_of_sync = true;
-			state.debug_oos_dump();
+			state.debug_save_oos_dump();
 		}
 	}
-	*/
+#else
+	if(state.current_date.to_ymd(state.start_date).day == 1) {
+		if(!state.network_state.out_of_sync) {
+			sys::checksum_key current = state.get_save_checksum();
+			if(!current.is_equal(k)) {
+				state.network_state.out_of_sync = true;
+				state.debug_save_oos_dump();
+			}
+		}
+	}
+#endif
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.actual_game_speed = speed;
 	}
@@ -4310,38 +4214,34 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	memset(&p, 0, sizeof(payload));
 	p.type = command::command_type::notify_save_loaded;
 	p.source = source;
-	p.data.notify_save_loaded.seed = state.game_seed;
 	p.data.notify_save_loaded.target = dcon::nation_id{};
 	add_to_command_queue(state, p);
 }
-void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, uint32_t seed, sys::checksum_key& k) {
-	state.game_seed = seed;
+void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
 	state.session_host_checksum = k;
-	// Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
-	/*
+	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	   Additionally we will clear the new client sending queue, since the state is no longer
+	   "replayable" without heavy bandwidth costs */
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-	*/
 
-	// Reload the current game state
-	auto length = sizeof_save_section(state);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
-	write_save_section(buffer.get(), state);
 	// Mirror the calls done by the client
 	std::vector<dcon::nation_id> players;
 	for(const auto n : state.world.in_nation)
-		if(state.world.nation_get_is_player_controlled(n))
+		if(n.get_is_player_controlled())
 			players.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	// Reload the current game state
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(state)]);
+	write_save_section(buffer.get(), state);
 	state.preload();
-	read_save_section(buffer.get(), buffer.get() + length, state);
-	state.local_player_nation = old_local_player_nation;
-	for(const auto n : state.world.in_nation)
-		state.world.nation_set_is_player_controlled(n, false);
+	read_save_section(buffer.get(), buffer.get() + sizeof_save_section(state), state);
+	state.local_player_nation = dcon::nation_id{};
+	state.fill_unsaved_data();
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
-	state.fill_unsaved_data();
+	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
@@ -4349,8 +4249,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 	state.selected_armies.clear();
 	state.selected_navies.clear();
+	/* Clear AI data */
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			ai::remove_ai_data(state, n);
 	state.mode = sys::game_mode_type::in_game;
-	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -4363,7 +4266,6 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
-	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
@@ -4374,6 +4276,17 @@ void notify_stop_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
+void execute_notify_pause_game(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0;
+}
+
+void notify_pause_game(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_pause_game;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
 
 bool can_perform_command(sys::state& state, payload& c) {
 	switch(c.type) {
@@ -4696,6 +4609,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
 		return true; //return can_notify_stop_game(state, c.source);
+	case command_type::notify_pause_game:
+		return true; //return can_notify_pause_game(state, c.source);
 	case command_type::release_subject:
 		return can_release_subject(state, c.source, c.data.diplo_action.target);
 
@@ -5047,13 +4962,16 @@ void execute_command(sys::state& state, payload& c) {
 		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 		break;
 	case command_type::notify_save_loaded:
-		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
 		break;
 	case command_type::notify_start_game:
 		execute_notify_start_game(state, c.source);
 		break;
 	case command_type::notify_stop_game:
 		execute_notify_stop_game(state, c.source);
+		break;
+	case command_type::notify_pause_game:
+		execute_notify_pause_game(state, c.source);
 		break;
 
 		// console commands

@@ -11,10 +11,22 @@ void message_log_text::on_update(sys::state& state) noexcept {
 						text::alignment::left, text::text_color::white, false});
 
 		auto box = text::open_layout_box(container);
-		text::add_to_layout_box(state, container, box, m.about);
-		text::add_to_layout_box(state, container, box, std::string_view{": "});
+		std::string tags_string = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(m.source)));
+		if(m.target) {
+			tags_string += std::string(" @") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(m.target)));
+		}
+		tags_string += ": ";
+		text::add_to_layout_box(state, container, box, std::string_view{ tags_string });
 		text::localised_format_box(state, container, box, m.title);
 		text::close_layout_box(container, box);
+	}
+}
+
+void message_log_text::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	int32_t index = retrieve<int32_t>(state, parent);
+	auto const& messages = static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages;
+	if(index < int32_t(messages.size())) {
+		messages[index].body(state, contents);
 	}
 }
 
@@ -56,6 +68,7 @@ void message_log_window::on_update(sys::state& state) noexcept {
 	for(int32_t i = 0; i < int32_t(messages.size()); ++i)
 		log_list->row_contents.push_back(i);
 	log_list->update(state);
+	log_list->scroll_to_bottom(state);
 }
 
 message_result message_log_window::get(sys::state& state, Cyto::Any& payload) noexcept {

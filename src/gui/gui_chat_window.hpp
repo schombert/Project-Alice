@@ -63,6 +63,7 @@ public:
 template<bool ShowFull>
 class chat_message_listbox : public listbox_element_base<chat_message_entry, chat_message> {
 protected:
+	uint8_t prev_index = 0;
 	std::string_view get_row_element_name() override {
 		return "chat_entry";
 	}
@@ -87,10 +88,15 @@ public:
 			}
 		}
 		update(state);
+		if constexpr(ShowFull) {
+			if(prev_index != state.ui_state.chat_messages_index)
+				scroll_to_bottom(state);
+			prev_index = state.ui_state.chat_messages_index;
+		}
 	}
 
 	bool is_reversed() override {
-		return true;
+		return false;
 	}
 
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
@@ -159,10 +165,8 @@ public:
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			set_text(state, text::produce_simple_string(state, "player"));
 		} else {
-			/*
 			auto n = retrieve<dcon::nation_id>(state, parent);
 			set_text(state, std::string(state.network_state.map_of_player_names[n.index()].to_string_view()));
-			*/
 		}
 	}
 };
@@ -222,6 +226,9 @@ public:
 		body[len] = '\0';
 
 		command::chat_message(state, state.local_player_nation, body, target);
+
+		Cyto::Any payload = this;
+		impl_get(state, payload);
 	}
 };
 
@@ -242,6 +249,8 @@ public:
 };
 
 class chat_window : public window_element_base {
+private:
+	chat_message_listbox<true>* chat_message_box = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_button") {
@@ -249,7 +258,9 @@ public:
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "chatlog") {
-			return make_element_by_type<chat_message_listbox<true>>(state, id);
+			auto ptr = make_element_by_type<chat_message_listbox<true>>(state, id);
+			chat_message_box = ptr.get();
+			return ptr;
 		} else if(name == "multiplayer_list") {
 			return make_element_by_type<chat_player_listbox>(state, id);
 		} else if(name == "lobby_chat_edit") {
@@ -258,6 +269,14 @@ public:
 			return make_element_by_type<chat_return_to_lobby_button>(state, id);
 		} else {
 			return nullptr;
+		}
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<chat_edit_box*>()) {
+			chat_message_box->scroll_to_bottom(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
 		}
 	}
 };

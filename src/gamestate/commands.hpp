@@ -108,6 +108,7 @@ enum class command_type : uint8_t {
 	notify_save_loaded = 112,
 	notify_start_game = 113, // for synchronized "start game"
 	notify_stop_game = 114, // "go back to lobby"
+	notify_pause_game = 115, // visual aid mostly
 	advance_tick = 120,
 	chat_message = 121,
 	release_subject = 122,
@@ -421,7 +422,6 @@ struct advance_tick_data {
 
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
-	uint32_t seed;
 	dcon::nation_id target;
 };
 
@@ -802,6 +802,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
+void notify_pause_game(sys::state& state, dcon::nation_id source);
 
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);

@@ -7,16 +7,45 @@ namespace economy {
 
 struct building_information {
 	economy::commodity_set cost;
-	float infrastructure = 0.16f;
 	int32_t naval_capacity = 1;
+	int32_t colonial_points[8] = { 30, 50, 70, 90, 110, 130, 150, 170 };
 	int32_t colonial_range = 50;
-	int32_t colonial_points[8] = {30, 50, 70, 90, 110, 130, 150, 170};
 	int32_t max_level = 6;
 	int32_t time = 1080;
-	dcon::modifier_id province_modifier;
+	float infrastructure = 0.16f;
 	dcon::text_sequence_id name;
+	dcon::modifier_id province_modifier;
+	uint16_t padding2 = 0;
 	bool defined = false;
+	uint8_t padding[3] = { 0 };
 };
+
+static_assert(sizeof(building_information) == 104);
+static_assert(sizeof(building_information::cost) == 40);
+static_assert(sizeof(building_information::colonial_points) == 32);
+static_assert(sizeof(building_information::province_modifier) == 2);
+static_assert(sizeof(building_information::name) == 4);
+static_assert(sizeof(building_information::cost)
+	+ sizeof(building_information::naval_capacity)
+	+ sizeof(building_information::colonial_range)
+	+ sizeof(building_information::colonial_points)
+	+ sizeof(building_information::max_level)
+	+ sizeof(building_information::time)
+	+ sizeof(building_information::infrastructure)
+	== 92);
+static_assert(sizeof(building_information) ==
+	sizeof(building_information::cost)
+	+ sizeof(building_information::naval_capacity)
+	+ sizeof(building_information::colonial_range)
+	+ sizeof(building_information::colonial_points)
+	+ sizeof(building_information::max_level)
+	+ sizeof(building_information::time)
+	+ sizeof(building_information::infrastructure)
+	+ sizeof(building_information::province_modifier)
+	+ sizeof(building_information::name)
+	+ sizeof(building_information::defined)
+	+ sizeof(building_information::padding)
+	+ sizeof(building_information::padding2));
 
 inline std::string_view province_building_type_get_name(economy::province_building_type v) {
 	switch(v) {
@@ -53,10 +82,15 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
+	float craftsmen_fraction = 0.8f;
 	dcon::modifier_id selector_modifier{};
 	dcon::modifier_id immigrator_modifier{};
-	float craftsmen_fraction = 0.8f;
 };
+static_assert(sizeof(global_economy_state) ==
+	sizeof(global_economy_state::building_definitions)
+	+ sizeof(global_economy_state::selector_modifier)
+	+ sizeof(global_economy_state::immigrator_modifier)
+	+ sizeof(global_economy_state::craftsmen_fraction));
 
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 

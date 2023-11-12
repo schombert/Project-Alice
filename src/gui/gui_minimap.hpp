@@ -492,20 +492,22 @@ public:
 			return make_element_by_type<minimap_zoom_in_button>(state, id);
 		} else if(name == "map_zoom_out") {
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
+		} else if(name == "menubar_mail_bg") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_settings") {
-			return make_element_by_type<minimap_msg_settings_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_combat") {
-			return make_element_by_type<minimap_msg_combat_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_diplo") {
-			return make_element_by_type<minimap_msg_diplo_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_unit") {
-			return make_element_by_type<minimap_msg_unit_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_province") {
-			return make_element_by_type<minimap_msg_province_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_event") {
-			return make_element_by_type<minimap_msg_event_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_other") {
-			return make_element_by_type<minimap_msg_other_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_plans_toggle") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_plans_open") {

@@ -609,14 +609,14 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 			// ycentered = std::max(ycentered + state.font_collection.fonts[font_id - 1].top_adjustment(font_size),
 			// float(base_data.data.text.border_size.y));
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
-					float(x + text_offset), float(y + base_data.data.text.border_size.y),
+					float(x + int32_t(text_offset)), float(y + base_data.data.text.border_size.y),
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
 		} else {
 			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 			auto ycentered = (base_data.size.y - linesz) / 2;
 
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
-					float(x + text_offset), float(y + ycentered),
+					float(x + int32_t(text_offset)), float(y + ycentered),
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.text.font_handle);
 		}
 	}
@@ -1252,6 +1252,16 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 		update(state);
 	}
 	return message_result::consumed;
+}
+
+template<class RowWinT, class RowConT>
+void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state) {
+	uint32_t list_size = 0;
+	for(auto rc : row_contents) {
+		list_size++;
+	}
+	list_scrollbar->update_raw_value(state, list_size);
+	update(state);
 }
 
 template<typename contents_type>

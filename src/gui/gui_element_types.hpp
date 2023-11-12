@@ -723,7 +723,6 @@ public:
 	float line_height = 0.f;
 	int32_t current_line = 0;
 	int32_t visible_lines = 0;
-	bool black_text = true;
 	text::layout internal_layout;
 
 	void on_create(sys::state& state) noexcept override;
@@ -822,8 +821,9 @@ public:
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void scroll_to_bottom(sys::state& state);
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
 	}
 };
 
@@ -869,7 +869,7 @@ public:
 	void resize(sys::state& state, int32_t height);
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return message_result::consumed;
+		return type == mouse_probe_type::scroll ? message_result::consumed : message_result::unseen;
 	}
 };
 

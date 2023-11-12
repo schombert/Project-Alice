@@ -82,6 +82,7 @@ public:
 };
 class fow_checkbox : public checkbox_button {
 public:
+	void on_create(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };
@@ -111,6 +112,32 @@ public:
 	void on_update(sys::state& state) noexcept override;
 };
 class antialiasing_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
+class gaussianblur_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gaussianblur_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gaussianblur_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
+class music_player_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class music_player_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+};
+class music_player_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
@@ -185,6 +212,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<antialiasing_left>(state, id);
 		} else if(name == "antialiasing_right") {
 			return make_element_by_type<antialiasing_right>(state, id);
+		} else if(name == "gaussianblur_value") {
+			return make_element_by_type<gaussianblur_display>(state, id);
+		} else if(name == "gaussianblur_left") {
+			return make_element_by_type<gaussianblur_left>(state, id);
+		} else if(name == "gaussianblur_right") {
+			return make_element_by_type<gaussianblur_right>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -217,6 +250,12 @@ class audio_menu_window : public window_element_base {
 			return make_element_by_type<interface_volume>(state, id);
 		else if(name == "effect_volume_scroll_bar")
 			return make_element_by_type<effects_volume>(state, id);
+		else if(name == "music_player_value")
+			return make_element_by_type<music_player_display>(state, id);
+		else if(name == "music_player_left")
+			return make_element_by_type<music_player_left>(state, id);
+		else if(name == "music_player_right")
+			return make_element_by_type<music_player_right>(state, id);
 		else
 			return nullptr;
 	}
@@ -234,7 +273,9 @@ class audio_menu_window : public window_element_base {
 	}
 };
 
-enum class main_menu_sub_window { controls, audio, graphics, message_settings };
+enum class main_menu_sub_window {
+	controls, audio, graphics, message_settings
+};
 
 class close_application_button : public button_element_base {
 public:
@@ -429,19 +470,19 @@ public:
 			auto enum_val = any_cast<main_menu_sub_window>(payload);
 			hide_subwindows(state);
 			switch(enum_val) {
-				case main_menu_sub_window::controls:
-					controls_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::audio:
-					audio_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::graphics:
-					graphics_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::message_settings:
-					message_settings_menu->set_visible(state, true);
-					state.ui_state.root->move_child_to_front(message_settings_menu);
-					break;
+			case main_menu_sub_window::controls:
+				controls_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::audio:
+				audio_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::graphics:
+				graphics_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::message_settings:
+				message_settings_menu->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(message_settings_menu);
+				break;
 			}
 			return message_result::consumed;
 		}

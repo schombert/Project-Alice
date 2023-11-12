@@ -1236,7 +1236,7 @@ public:
 				}
 			}
 
-			if(state.world.land_battle_get_war_attacker_is_attacker(lbattle) == player_is_attacker) {
+			if(state.world.naval_battle_get_war_attacker_is_attacker(nbattle) == player_is_attacker) {
 				display.battle_progress = float(attacker_ships) / float(attacker_ships + defender_ships);
 			} else {
 				display.battle_progress = float(defender_ships) / float(attacker_ships + defender_ships);

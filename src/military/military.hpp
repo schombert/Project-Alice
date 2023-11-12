@@ -103,13 +103,34 @@ struct unit_definition : public sys::unit_variable_stats {
 	bool active = true;
 
 	unit_type type = unit_type::infantry;
+	uint16_t padding = 0;
 
 	unit_definition() { }
 };
+static_assert(sizeof(unit_definition) ==
+	sizeof(sys::unit_variable_stats)
+	+ sizeof(unit_definition::build_cost)
+	+ sizeof(unit_definition::supply_cost)
+	+ sizeof(unit_definition::colonial_points)
+	+ sizeof(unit_definition::maneuver)
+	+ sizeof(unit_definition::min_port_level)
+	+ sizeof(unit_definition::supply_consumption_score)
+	+ sizeof(unit_definition::icon)
+	+ sizeof(unit_definition::naval_icon)
+	+ sizeof(unit_definition::name)
+	+ sizeof(unit_definition::is_land)
+	+ sizeof(unit_definition::capital)
+	+ sizeof(unit_definition::can_build_overseas)
+	+ sizeof(unit_definition::primary_culture)
+	+ sizeof(unit_definition::active)
+	+ sizeof(unit_definition::type)
+	+ sizeof(unit_definition::padding));
 
 struct global_military_state {
-	dcon::leader_trait_id first_background_trait;
 	tagged_vector<unit_definition, dcon::unit_type_id> unit_base_definitions;
+
+	dcon::leader_trait_id first_background_trait;
+
 	bool great_wars_enabled = false;
 	bool world_wars_enabled = false;
 
@@ -138,6 +159,11 @@ struct available_cb {
 	dcon::cb_type_id cb_type;
 	uint8_t padding = 0;
 };
+static_assert(sizeof(available_cb) ==
+	+ sizeof(available_cb::target)
+	+ sizeof(available_cb::expiration)
+	+ sizeof(available_cb::cb_type)
+	+ sizeof(available_cb::padding));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
@@ -370,6 +396,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		dcon::national_identity_id wargoal_t);
 void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer);
 void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer);
+void add_truce(sys::state& state, dcon::nation_id a, dcon::nation_id b, int32_t days);
 
 void update_ticking_war_score(sys::state& state);
 

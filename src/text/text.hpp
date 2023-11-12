@@ -663,9 +663,9 @@ void close_layout_box(layout_base& dest, layout_box& box);
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 void add_to_substitution_map(substitution_map& mp, variable_type key, std::string const&); // DO NOT USE THIS FUNCTION
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size);
+void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err);
 variable_type variable_type_from_name(std::string_view);
-void load_text_data(sys::state& state, uint32_t language);
+void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err);
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);

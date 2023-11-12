@@ -1919,6 +1919,15 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_war([&](dcon::war_id id) { row_contents.push_back(id); });
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::war_id a, dcon::war_id b) {
+			auto in_a = military::get_role(state, a, state.local_player_nation) != military::war_role::none;
+			auto in_b = military::get_role(state, b, state.local_player_nation) != military::war_role::none;
+			if(in_a != in_b) {
+				return in_a;
+			} else {
+				return state.world.war_get_start_date(a) < state.world.war_get_start_date(b);
+			}
+		});
 		update(state);
 	}
 };
@@ -2282,7 +2291,6 @@ public:
 		} else if(name.length() >= 7 && name.substr(0, 7) == "filter_") {
 			auto const filter_name = name.substr(7);
 			auto ptr = make_element_by_type<continent_filter_button>(state, id);
-			
 			if(auto it = state.key_to_text_sequence.find(filter_name); it != state.key_to_text_sequence.end()) {
 				for(auto m : state.world.in_modifier) {
 					if(m.get_name() == it->second) {
@@ -2291,7 +2299,6 @@ public:
 					}
 				}
 			}
-			
 			return ptr;
 		} else {
 			return nullptr;
