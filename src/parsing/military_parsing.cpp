@@ -104,11 +104,20 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 		&& context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::infantry) {
 		context.state.military_definitions.irregular = new_id;
 	}
+	if(context.state.military_definitions.unit_base_definitions.back().active
+		&& (context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::support
+		|| context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::special)) {
+		context.state.military_definitions.artillery = new_id;
+	}
 
 	// by name
 	if(!bool(context.state.military_definitions.irregular) && name == "irregular") {
 		context.state.military_definitions.irregular = new_id;
 		err.accumulated_warnings += "Fallbacking to detecting an irregular from name " + err.file_name + "\n";
+	}
+	if(!bool(context.state.military_definitions.artillery) && name == "artillery") {
+		context.state.military_definitions.artillery = new_id;
+		err.accumulated_warnings += "Fallbacking to detecting an artillery from name " + err.file_name + "\n";
 	}
 }
 
@@ -153,12 +162,30 @@ void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& c
 	context.outer_context.state.world.force_create_army_control(id, context.nation_for);
 	oob_file_army_context new_context{context.outer_context, id, context.nation_for};
 	parse_oob_army(gen, err, new_context);
+
+	// and check they have correct unit types
+	auto p = context.outer_context.state.world.army_get_location_from_army_location(id);
+	for(auto m : context.outer_context.state.world.army_get_army_membership(id)) {
+		if(!bool(m.get_regiment().get_type())) {
+			auto name = context.outer_context.state.world.province_get_name(p);
+			err.accumulated_errors += "Army defined in " + text::produce_simple_string(context.outer_context.state, name) + " has a regiment, that does not have a valid type (" + err.file_name + ")\n";
+		}
+	}
 }
 void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context) {
 	auto id = context.outer_context.state.world.create_navy();
 	context.outer_context.state.world.force_create_navy_control(id, context.nation_for);
 	oob_file_navy_context new_context{context.outer_context, id, context.nation_for};
 	parse_oob_navy(gen, err, new_context);
+
+	// and check they have correct unit types
+	auto p = context.outer_context.state.world.navy_get_location_from_navy_location(id);
+	for(auto m : context.outer_context.state.world.navy_get_navy_membership(id)) {
+		if(!bool(m.get_ship().get_type())) {
+			auto name = context.outer_context.state.world.province_get_name(p);
+			err.accumulated_errors += "Navy defined in " + text::produce_simple_string(context.outer_context.state, name) + " has a ship, that does not have a valid type (" + err.file_name + ")\n";
+		}
+	}
 }
 void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_context& context) {
 	auto id = context.outer_context.state.world.create_regiment();

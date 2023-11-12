@@ -184,6 +184,35 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			}
 #endif
 		} else {
+#ifndef NDEBUG
+			{
+				auto msg = std::string("Loading scenario  ") + simple_fs::native_to_utf8(parsed_cmd[1]);
+				window::emit_error_message(msg, false);
+			}
+#endif
+			for(int i = 1; i < num_params; ++i) {
+				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
+					game_state.network_mode = sys::network_mode_type::host;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-join")) {
+					game_state.network_mode = sys::network_mode_type::client;
+					game_state.network_state.ip_address = "127.0.0.1";
+					if(i + 1 < num_params) {
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						i++;
+					}
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
+					if(i + 1 < num_params) {
+						std::string nickname = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
+						i++;
+					}
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
+					game_state.network_state.as_v6 = true;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
+					game_state.network_state.as_v6 = false;
+				}
+			}
+
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
 			} else {
@@ -191,6 +220,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				window::emit_error_message(msg, true);
 				return 0;
 			}
+
+			network::init(game_state);
 		}
 		LocalFree(parsed_cmd);
 

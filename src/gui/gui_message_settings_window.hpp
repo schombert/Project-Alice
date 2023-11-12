@@ -170,7 +170,7 @@ public:
 		}
 
 		send(state, parent, message_setting_changed_notification{});
-		on_update(state);
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 	void button_right_action(sys::state& state) noexcept override {
 		auto base_index = retrieve<int32_t>(state, parent);
@@ -204,7 +204,7 @@ public:
 		}
 
 		send(state, parent, message_setting_changed_notification{});
-		on_update(state);
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -321,6 +321,10 @@ public:
 class message_log_text : public multiline_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
 class message_log_entry : public listbox_row_element_base<int32_t> {
@@ -341,7 +345,7 @@ protected:
 	}
 
 	bool is_reversed() override {
-		return true;
+		return false;
 	}
 };
 

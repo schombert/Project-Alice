@@ -522,7 +522,7 @@ audio_instance& get_random_land_battle_sound(sys::state& state) {
 	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
 }
 audio_instance& get_random_naval_battle_sound(sys::state& state) {
-	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
+	return state.sound_ptr->naval_battle_sounds[int32_t(std::rand() % 6)];
 }
 
 void play_new_track(sys::state& state) {

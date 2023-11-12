@@ -2148,7 +2148,7 @@ struct decision_context {
 };
 
 struct decision {
-	void finish(decision_context&) { }
+	void finish(decision_context&);
 	void potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context);
 	void allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context);
 	void effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context);

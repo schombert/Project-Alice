@@ -329,7 +329,7 @@ audio_instance& get_random_land_battle_sound(sys::state& state) {
 	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
 }
 audio_instance& get_random_naval_battle_sound(sys::state& state) {
-	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
+	return state.sound_ptr->naval_battle_sounds[int32_t(std::rand() % 6)];
 }
 
 void play_new_track(sys::state& state) {
@@ -338,7 +338,7 @@ void play_new_track(sys::state& state) {
 
 native_string get_current_track_name(sys::state& state) {
 	if(state.sound_ptr->music.has_value())
-		return state.sound_ptr->music.filename;
+		return state.sound_ptr->music_list[state.sound_ptr->current_music].filename;
 	return "";
 }
 

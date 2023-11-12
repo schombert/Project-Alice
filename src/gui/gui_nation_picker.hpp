@@ -157,44 +157,66 @@ struct save_item {
 
 class select_save_game : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		disabled = state.network_mode == sys::network_mode_type::client;
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
 
+		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
 				players.push_back(n);
 		dcon::nation_id old_local_player_nation = state.local_player_nation;
-
 		state.preload();
-
+		bool loaded = false;
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
-				state.fill_unsaved_data();
-				if(state.network_mode == sys::network_mode_type::host)
-					command::notify_save_loaded(state, state.local_player_nation);
+				loaded = true;
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
 				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
 				window::emit_error_message(msg, false);
 			} else {
-				state.fill_unsaved_data();
-				if(state.network_mode == sys::network_mode_type::host)
-					command::notify_save_loaded(state, state.local_player_nation);
+				loaded = true;
 			}
 		}
-		// do not desync the local player nation upon selection of savefile
-		if(state.network_mode != sys::network_mode_type::single_player) {
-			state.local_player_nation = old_local_player_nation;
-			for(const auto n : state.world.in_nation)
-				state.world.nation_set_is_player_controlled(n, false);
-			for(const auto n : players)
-				state.world.nation_set_is_player_controlled(n, true);
+		if(loaded) {
+			/* Updating this flag lets the network state know that
+			   we NEED to send the savefile data, otherwise it is
+			   safe to assume the client has its own data - friendly
+			   reminder that, scenario loading and reloading ends up
+			   with different outcomes :D */
+			state.network_state.is_new_game = false;
+			if(state.network_mode == sys::network_mode_type::host) {
+				state.local_player_nation = dcon::nation_id{ };
+			}
+			state.fill_unsaved_data();
+			/* Notify all clients that we loaded this specific savefile
+			please note how we haven't cleared the save_slock yet, this
+			is so we can properly give the clients an unaltered savefile. */
+			if(state.network_mode == sys::network_mode_type::host) {
+				for(const auto n : players)
+					state.world.nation_set_is_player_controlled(n, true);
+				state.local_player_nation = old_local_player_nation;
+				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+
+				command::payload c;
+				memset(&c, 0, sizeof(command::payload));
+				c.type = command::command_type::notify_save_loaded;
+				c.source = state.local_player_nation;
+				c.data.notify_save_loaded.target = dcon::nation_id{};
+				network::broadcast_to_clients(state, c);
+			}
 		}
+		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
 	void on_update(sys::state& state) noexcept override {
@@ -538,9 +560,6 @@ class start_game_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		if(state.network_mode == sys::network_mode_type::client) {
-			set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
-		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -553,22 +572,37 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		disabled = !bool(state.local_player_nation);
-		/*
 		if(state.network_mode == sys::network_mode_type::client) {
-			if(!state.session_host_checksum.is_equal(state.get_save_checksum())) //can't start if checksum doesn't match
+			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			else if(state.network_state.save_stream) //in the middle of a save stream
-				disabled = true;
-		} else if(state.network_mode == sys::network_mode_type::host) {
-			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
-					if(!client.send_buffer.empty()) {
-						disabled = true; // client is pending
-					}
+			} else {
+				if(!state.session_host_checksum.is_equal(state.get_save_checksum())) { //can't start if checksum doesn't match
+					disabled = true;
 				}
 			}
 		}
-		*/
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(state.network_mode == sys::network_mode_type::host) {
+			bool old_disabled = disabled;
+			for(auto const& client : state.network_state.clients) {
+				if(client.is_active()) {
+					disabled = disabled || !client.send_buffer.empty();
+				}
+			}
+			button_element_base::render(state, x, y);
+			disabled = old_disabled;
+		} else if(state.network_mode == sys::network_mode_type::client) {
+			if(state.network_state.save_stream) {
+				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
+			} else {
+				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+			}
+			button_element_base::render(state, x, y);
+		} else {
+			button_element_base::render(state, x, y);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -576,7 +610,6 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		/*
 		if(state.network_mode == sys::network_mode_type::client) {
 			auto box = text::open_layout_box(contents, 0);
 			if(state.network_state.save_stream) {
@@ -595,7 +628,6 @@ public:
 			}
 			text::close_layout_box(contents, box);
 		}
-		*/
 	}
 };
 
@@ -612,10 +644,9 @@ public:
 
 class multiplayer_status_text : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
-			/*
 			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
@@ -629,10 +660,10 @@ public:
 					}
 				}
 			}
-			*/
 		} else {
 			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
 		}
+		simple_text_element_base::render(state, x, y);
 	}
 };
 

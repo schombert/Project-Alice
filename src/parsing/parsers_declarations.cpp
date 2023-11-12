@@ -2168,18 +2168,34 @@ void rebel_body::demands_enforced_effect(dcon::effect_key value, error_handler& 
 
 void decision::potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_potential(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty potential for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_allow(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty allow for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_effect(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty effect for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
 }
 
 void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
+	if(!value) {
+		err.accumulated_warnings += "Empty ai_will_do for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+	}
+}
+
+void decision::finish(decision_context& context) {
+	// "always = yes" assumed when no allow is specified
 }
 
 void decision::picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
@@ -2329,6 +2345,9 @@ void oob_relationship::value(association_type, int32_t v, error_handler& err, in
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
 		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, float(v));
 	}
+	if(v < -200.f || v > 200.f) {
+		err.accumulated_warnings += "Relation value " + std::to_string(v) + " is not between [-200,-200] (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
 }
 
 void oob_relationship::level(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
@@ -2357,6 +2376,9 @@ void oob_relationship::level(association_type, int32_t v, error_handler& err, in
 		auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
 		context.outer_context.state.world.gp_relationship_set_status(new_rel, status_level);
 	}
+	if(uint32_t(v) > 5) {
+		err.accumulated_warnings += "Influence level " + std::to_string(v) + " defaults to 'neutral' (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
 }
 
 void oob_relationship::influence_value(association_type, float v, error_handler& err, int32_t line, oob_file_relation_context& context) {
@@ -2366,6 +2388,9 @@ void oob_relationship::influence_value(association_type, float v, error_handler&
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_gp_relationship(context.nation_with, context.nation_for);
 		context.outer_context.state.world.gp_relationship_set_influence(new_rel, v);
+	}
+	if(v < 0.f || v > 100.f) {
+		err.accumulated_warnings += "Influence value " + std::to_string(v) + " is not between [0,100] (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -2801,18 +2826,14 @@ void country_history_file::ruling_party(association_type, std::string_view value
 void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	auto value_key = [&]() {
 		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value));
-		if(it != context.outer_context.state.key_to_text_sequence.end()) {
+		if(it != context.outer_context.state.key_to_text_sequence.end())
 			return it->second;
-		}
 		return dcon::text_sequence_id();
 	}();
-
-	dcon::decision_id d;
 	context.outer_context.state.world.for_each_decision([&](dcon::decision_id d) {
 		auto name = context.outer_context.state.world.decision_get_name(d);
-		if(name == value_key) {
+		if(name == value_key)
 			context.pending_decisions.emplace_back(context.holder_id, d);
-		}
 	});
 }
 
@@ -2864,6 +2885,8 @@ void generic_event::picture(association_type, std::string_view name, error_handl
 
 	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\events\\") + [&]() {
 		if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
+			return std::string(name) + ".tga";
+		} else if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
 			return std::string(name) + ".tga";
 		} else {
 			return std::string("GFX_event_no_image.tga");

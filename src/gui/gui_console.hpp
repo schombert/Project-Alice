@@ -88,7 +88,7 @@ protected:
 	}
 
 	bool is_reversed() override {
-		return true;
+		return false;
 	}
 };
 
@@ -118,6 +118,9 @@ public:
 			console_output_list->row_contents.push_back(entry);
 			console_output_list->update(state);
 			return message_result::consumed;
+		} else if(payload.holds_type<console_edit*>()) {
+			console_output_list->scroll_to_bottom(state);
+			return message_result::consumed;
 		} else {
 			return message_result::unseen;
 		}
@@ -131,6 +134,7 @@ public:
 	static void show_toggle(sys::state& state);
 
 	void on_visible(sys::state& state) noexcept override {
+		console_output_list->scroll_to_bottom(state);
 		state.ui_state.edit_target = edit_box;
 	}
 	void on_hide(sys::state& state) noexcept override {

@@ -82,6 +82,7 @@ public:
 };
 class fow_checkbox : public checkbox_button {
 public:
+	void on_create(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };
@@ -252,7 +253,9 @@ class audio_menu_window : public window_element_base {
 	}
 };
 
-enum class main_menu_sub_window { controls, audio, graphics, message_settings };
+enum class main_menu_sub_window {
+	controls, audio, graphics, message_settings
+};
 
 class close_application_button : public button_element_base {
 public:
@@ -447,19 +450,19 @@ public:
 			auto enum_val = any_cast<main_menu_sub_window>(payload);
 			hide_subwindows(state);
 			switch(enum_val) {
-				case main_menu_sub_window::controls:
-					controls_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::audio:
-					audio_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::graphics:
-					graphics_menu->set_visible(state, true);
-					break;
-				case main_menu_sub_window::message_settings:
-					message_settings_menu->set_visible(state, true);
-					state.ui_state.root->move_child_to_front(message_settings_menu);
-					break;
+			case main_menu_sub_window::controls:
+				controls_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::audio:
+				audio_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::graphics:
+				graphics_menu->set_visible(state, true);
+				break;
+			case main_menu_sub_window::message_settings:
+				message_settings_menu->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(message_settings_menu);
+				break;
 			}
 			return message_result::consumed;
 		}

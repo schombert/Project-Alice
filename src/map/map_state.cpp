@@ -35,7 +35,9 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 }
 
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
-	auto adj = state.world.get_province_adjacency_by_province_pair(p, state.world.province_get_port_to(p));
+	auto pt = state.world.province_get_port_to(p);
+	assert(pt);
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
 	assert(adj);
 	auto id = adj.index();
 	auto& map_data = state.map_state.map_data;

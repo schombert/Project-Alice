@@ -180,7 +180,7 @@ struct user_settings_s {
 		message_response::ignore,//naval_base_complete = 23,
 		message_response::log,//province_event = 24,
 		message_response::log,//national_event = 25,
-		message_response::log,//major_event = 26,
+		message_response::standard_popup,//major_event = 26,
 		message_response::log,//invention = 27,
 		message_response::log,//tech = 28,
 		message_response::ignore,//leader_dies = 29,
@@ -379,6 +379,12 @@ struct crisis_member_def {
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
+static_assert(sizeof(crisis_member_def) ==
+	sizeof(crisis_member_def::id)
+	+ sizeof(crisis_member_def::joined_with_offer)
+	+ sizeof(crisis_member_def::supports_attacker)
+	+ sizeof(crisis_member_def::merely_interested));
+
 enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4 };
 enum class crisis_mode : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
 
@@ -389,6 +395,9 @@ struct great_nation {
 	great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
 	great_nation() = default;
 };
+static_assert(sizeof(great_nation) ==
+	sizeof(great_nation::last_greatness)
+	+ sizeof(great_nation::nation));
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
@@ -568,9 +577,7 @@ struct alignas(64) state {
 	cheat_data_s cheat_data;
 
 	// network data
-	/*
 	network::network_state network_state;
-	*/
 
 	// the following functions will be invoked by the window subsystem
 
@@ -597,7 +604,8 @@ struct alignas(64) state {
 	void game_loop();
 	sys::checksum_key get_save_checksum();
 	sys::checksum_key get_scenario_checksum();
-	void debug_oos_dump();
+	void debug_save_oos_dump();
+	void debug_scenario_oos_dump();
 
 	// the following function are for interacting with the string pool
 
