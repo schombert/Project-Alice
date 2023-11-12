@@ -21,9 +21,9 @@ set(TBB_DYNAMIC_LOAD_ENABLED OFF)
 set(TBB_ENABLE_IPO OFF)
 set(TBB_STRICT OFF)
 
-FetchContent_Declare(tbb 
-	GIT_REPOSITORY "https://github.com/oneapi-src/oneTBB" 
-	GIT_TAG v2021.10.0
+FetchContent_Declare(tbb
+	GIT_REPOSITORY "https://github.com/oneapi-src/oneTBB"
+	GIT_TAG v2021.2.4
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
@@ -54,5 +54,6 @@ if(WIN32)
 else() # GCC or CLANG
 	target_compile_options(tbb PRIVATE
 		$<$<CONFIG:Debug>:			-fexceptions>
-		$<$<NOT:$<CONFIG:Debug>>: 	-fexceptions>)
+		$<$<NOT:$<CONFIG:Debug>>: 	-fexceptions>
+                -mwaitpkg)
 endif()

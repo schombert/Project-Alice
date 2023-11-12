@@ -72,6 +72,7 @@ public:
 class national_event_window : public window_element_base {
 public:
 	static std::vector<std::unique_ptr<national_event_window>> event_pool;
+	static int32_t pending_events;
 
 	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
 
@@ -86,6 +87,7 @@ public:
 class national_major_event_window : public window_element_base {
 public:
 	static std::vector<std::unique_ptr<national_major_event_window>> event_pool;
+	static int32_t pending_events;
 
 	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
 
@@ -103,6 +105,7 @@ public:
 class provincial_event_window : public window_element_base {
 public:
 	static std::vector<std::unique_ptr<provincial_event_window>> event_pool;
+	static int32_t pending_events;
 
 	std::variant<std::monostate, event::pending_human_p_event, event::pending_human_f_p_event> event_data;
 

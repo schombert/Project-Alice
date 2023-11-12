@@ -19,7 +19,7 @@ I suggest monthly autosaves, although you need to remember to clean out your sav
 
 ## Updates
 
-- [November 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/november.md)
+- [November 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/november.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/november_cn.md)
 - [October 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/october/october.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/october/october_cn.md)
 - [September 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/september/september.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/september/september_cn.md)
 - [August 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/august/august.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/august/august_cn.md)

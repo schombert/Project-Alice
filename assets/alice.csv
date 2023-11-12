@@ -17,13 +17,15 @@ music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
 effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;;;;x
 fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
-tooltip_mode_label;Floating tooltip
+tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
+gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
+antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
 lg_min_mapmode_8;Low admin
 lg_min_mapmode_19;Uncivilized
 lg_min_mapmode_7;Uncolonized
@@ -97,7 +99,7 @@ add_core_to;Add core to;;;Aï¿½adir nucleo a;;;;;;;;;x
 rebel;Rebel;;;Rebelde(s);;;;;;;;;x
 remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
-flashpoint_tension_label;Flashpoint tension;
+flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
 change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
@@ -127,7 +129,7 @@ annexed_by_effect;Is annexed by $text$;;;Es anexado por $text$;;;;;;;;;x
 core_return;$adj$ cores are returned to $text$;;;Los nucleos de $adj$ son devueltos a $text$;;;;;;;;;x
 core_return_short;$adj$ cores are returned;;;Los nucleos de $adj$ son devueltos;;;;;;;;;x
 change_province_controller;change province controller to $text$;;;Cambiar el controlador de la provincia a $text$;;;;;;;;;x
-change_state_controller;change state controller to $text$
+change_state_controller;change state controller to $text$;;;;;;;;;;;;x
 railroad_level;Railroad level;;;Nivel del ferrocarril;;;;;;;;;x
 pop_savings;Pop savings;;;Ahorros del pop;;;;;;;;;x
 leadership_points;Leadership points;;;Puntos de liderazgo;;;;;;;;;x
@@ -216,9 +218,9 @@ railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
 fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado capital;;;;;;;;;x
-set_national_variable_to;Set national variable $text$ to $value$
-increase_national_variable_by;Increase national variable $text$ by $value$
-decrease_national_variable_by;Decrease national variable $text$ by $value$
+set_national_variable_to;Set national variable $text$ to $value$;;;;;;;;;;;;x
+increase_national_variable_by;Increase national variable $text$ by $value$;;;;;;;;;;;;x
+decrease_national_variable_by;Decrease national variable $text$ by $value$;;;;;;;;;;;;x
 cmp_ge;is at least;;;Es al menos;;;;;;;;;x
 cmp_le;is at most;;;Es a lo mucho;;;;;;;;;x
 cmp_gt;is greater than;;;Es mas que;;;;;;;;;x
@@ -235,7 +237,7 @@ all_of_the_following;All of the following:;;;Todo de lo siguiente:;;;;;;;;;x
 any_of_the_following;Any of the following:;;;Cualquiera de lo siguiente:;;;;;;;;;x
 nation_at_war_against;nation at war against;;;Nacion en guerra en contra de;;;;;;;;;x
 core_in;core in;;;Nucleo en;;;;;;;;;x
-colonial_pop;located in a colonial province
+colonial_pop;located in a colonial province;;;;;;;;;;;;x
 substate_of;substate of;;;Subestado de;;;;;;;;;x
 nation_in_sphere;nation in the sphere of;;;Nacion en esfera de;;;;;;;;;x
 year;year;;;Aï¿½o;;;;;;;;;x
@@ -265,18 +267,18 @@ government;government;;;Gobierno;;;;;;;;;x
 capital;capital;;;Capital;;;;;;;;;x
 technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
 primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
-primary_culture_pop;the primary culture of the nation the pop is in
+primary_culture_pop;the primary culture of the nation the pop is in;;;;;;;;;;;;x
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
 culture;culture;;;Cultura;;;;;;;;;x
 dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
 a_primary_or_accepted;a primary or accepted culture;;;Una cultura primaria o aceptada;;;;;;;;;x
-rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;X
+rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;x
 this_nation_prim_culture;the primary culture or an accepted culture of this nation;;;La cultura primaria o una cultura aceptada de esta nacion;;;;;;;;;x
 from_nation_prim_culture;the primary culture or an accepted culture of the from nation;;;La cultura primaria o una cultura aceptada de esa nacion;;;;;;;;;x
 culture_group;culture group;;;Grupo de cultura;;;;;;;;;x
-dominant_culture_group;dominant culture group;
-primary_culture_group;primary culture group;
-a_core_ob;a core owned by
+dominant_culture_group;dominant culture group;;;;;;;;;;;;x
+primary_culture_group;primary culture group;;;;;;;;;;;;x
+a_core_ob;a core owned by;;;;;;;;;;;;x
 rebel_culture_group;rebel cultural group;;;Grupo de cultura rebelde;;;;;;;;;x
 this_nation_culture_group;the same as the culture group of this nation ;;;Es el mismo grupo que esta nacion;;;;;;;;;x
 from_nation_culture_group;the same as the culture group of the from nation;;;Es el mismo grupo que esa nacion;;;;;;;;;x
@@ -304,8 +306,8 @@ controls;controls;;;Controla;;;;;;;;;x
 does_not_control;does not control;;;No controla;;;;;;;;;x
 a_core_in;a core in;;;Un nucleo en;;;;;;;;;x
 a_core_of;a core of;;;Un nucleo de;;;;;;;;;x
-a_core_of_owner;a core of its owner
-located_in_a_core_of;located in a core of
+a_core_of_owner;a core of its owner;;;;;;;;;;;;x
+located_in_a_core_of;located in a core of;;;;;;;;;;;;x
 percentage_reb_control;percentage of rebel controlled provinces;;;Porcentaje de provincias controladas por los rebeldes;;;;;;;;;x
 num_of_reb_control;number of rebel controlled provinces;;;Numero de provincias controladas por los rebeldes;;;;;;;;;x
 num_owned_provinces;number of owned provinces;;;Numero de provincias de las que sois dueï¿½os;;;;;;;;;x
@@ -318,8 +320,8 @@ exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
 set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
-located_in;located in
-the_owner_of_region;the owner of every province in
+located_in;located in;;;;;;;;;;;;x
+the_owner_of_region;the owner of every province in;;;;;;;;;;;;x
 a_casus_belli_against;a casus belli against;;;Un cassus belli en contra de;;;;;;;;;x
 military_access_with;military access with;;;Acceso militar con;;;;;;;;;x
 prestige_of;the prestige of;;;El prestigio d;;;;;;;;;x
@@ -336,13 +338,13 @@ part_of;part of;;;;;;;;;;;;x
 a_border_with;a border with;;;;;;;;;;;;x
 units_in_province;units in province;;;;;;;;;;;;x
 units_in_the_province;units in the province;;;;;;;;;;;;x
-units_in_the_state;units in the state
+units_in_the_state;units in the state;;;;;;;;;;;;x
 at_war_against;at war against;;;;;;;;;;;;x
 num_of_divisions;a number of divisions;;;;;;;;;;;;x
 an_ongoing_battle;an ongoing battle;;;;;;;;;;;;x
-treasury;treasury
-o_treasury;owner's treasury
-o_of_prov;the owner of the province
+treasury;treasury;;;;;;;;;;;;x
+o_treasury;owner's treasury;;;;;;;;;;;;x
+o_of_prov;the owner of the province;;;;;;;;;;;;x
 percentage_unowned_cores;percentage of unowned cores;;;;;;;;;;;;x
 a_vassal;a vassal;;;;;;;;;;;;x
 ruling_party_ideology;ruling party ideology;;;;;;;;;;;;x
@@ -355,7 +357,7 @@ crime_percent;percentage of provinces with crime;;;;;;;;;;;;x
 national_religion;the national_religion;;;;;;;;;;;;x
 member_of_nat_religion;a member of the national religion;;;;;;;;;;;;x
 dominant_religion;the dominant religion;;;;;;;;;;;;x
-same_rel_as_this;the same religion as this nation
+same_rel_as_this;the same religion as this nation;;;;;;;;;;;;x
 this_pop_culture;the culture of this pop;;;;;;;;;;;;x
 this_nation_primary_culture;the primary culture of this nation;;;;;;;;;;;;x
 this_nation_accepted_culture;an accepted culture of this nation;;;;;;;;;;;;x
@@ -363,8 +365,8 @@ coastal;coastal;;;;;;;;;;;;x
 in_sphere_of;in the sphere of;;;;;;;;;;;;x
 a_producer_of;a producer of;;;;;;;;;;;;x
 next_reform;next reform;;;;;;;;;;;;x
-always;always;;;;;;;;;;;;x
-never;never;;;;;;;;;;;;x
+always;always;;;siempre;;;;;;;;;x
+never;never;;;nunca;;;;;;;;;x
 percentage_recruited;percentage of recruited pops;;;;;;;;;;;;x
 in_cultural_core_prov;in a province with a core of the same culture;;;;;;;;;;;;x
 nationalism;nationalism;;;;;;;;;;;;x
@@ -372,14 +374,14 @@ overseas;overseas;;;;;;;;;;;;x
 overseas_pop;located in an overseas province;;;;;;;;;;;;x
 controlled_by_rebel;controlled by rebels;;;;;;;;;;;;x
 controlled_by;controlled by;;;;;;;;;;;;x
-state_capital;the state capital
-loc_state_capital;located in the state capital
-a_truce_with;a truce with;;;;;;;;;;;;x
-population;population;;;;;;;;;;;;x
+state_capital;the state capital;;;en el estado capital;;;;;;;;;x
+loc_state_capital;located in the state capital;;;ubicado en el estado capital;;;;;;;;;x
+a_truce_with;a truce with;;;tregua con;;;;;;;;;x
+population;population;;;poblacion;;;;;;;;;x
 size;size;;;;;;;;;;;;x
-pops_of_type;pops of type;;;;;;;;;;;;x
-of_type_plain;of type;;;;;;;;;;;;x
-ai_controlled;AI controlled;;;;;;;;;;;;x
+pops_of_type;pops of type;;;pops de tipo;;;;;;;;;x
+of_type_plain;of type;;;de tipo;;;;;;;;;x
+ai_controlled;AI controlled;;;Controlado por IA;;;;;;;;;x
 a_leader_named;a leader named;;;;;;;;;;;;x
 a_possible_vassal;a possible vassal;;;;;;;;;;;;x
 a_vassal_of;a vassal of;;;;;;;;;;;;x
@@ -394,7 +396,7 @@ greater_than_edu_spending;greater than education spending;;;;;;;;;;;;x
 support_for_rp;support for ruling party;;;;;;;;;;;;x
 colonial;colonial;;;;;;;;;;;;x
 in_default_to;in default to;;;;;;;;;;;;x
-in_bnkrpt;bankrupt
+in_bnkrpt;bankrupt;;;;;;;;;;;;x
 num_of_ports_connected;number of ports connected to capital;;;;;;;;;;;;x
 holding_an_election;holding an election;;;;;;;;;;;;x
 set_globally;set globally;;;;;;;;;;;;x
@@ -427,7 +429,7 @@ num_vassals_no_substates;number of non-substate vassals;;;;;;;;;;;;x
 num_regiments;number of regiments;;;;;;;;;;;;x
 owner_num_regiments;owner's number of regiments;;;;;;;;;;;;x
 num_regiments_of;the number of regiments belonging to;;;;;;;;;;;;x
-times_num_regiments_of;$x$ times the number of regiments belonging to
+times_num_regiments_of;$x$ times the number of regiments belonging to;;;;;;;;;;;;x
 fabricating_on;fabricating a casus belli on;;;;;;;;;;;;x
 cb_discovered;casus belli fabrication has been discovered;;;la fabricacion de un casus belli ha sido descubierta;;;;;;;;;x
 cb_not_discovered;casus belli fabrication has not been discovered;;;la fabricacion de un casus belli no ha sido descubierta;;;;;;;;;x
@@ -462,7 +464,7 @@ everyday_needs_satisfaction;everyday-needs satisfaction;;;;;;;;;;;;x
 luxury_needs_satisfaction;luxury-needs satisfaction;;;;;;;;;;;;x
 present_in_state;present in state;;;;;;;;;;;;x
 flashpoint;Flashpoint;;;;;;;;;;;;x
-plurality_pop;the plurality of the nation the pop is in
+plurality_pop;the plurality of the nation the pop is in;;;;;;;;;;;;x
 an_ongoing_crisis;an ongoing crisis;;;;;;;;;;;;x
 there;There;;;;;;;;;;;;x
 current_crisis;current crisis;;;;;;;;;;;;x
@@ -501,52 +503,38 @@ event_show_odds;Odds of the event;;;Probabilidades del evento;;;;;;;;;x
 value_mod_product;Value $val$ is the product of:;;;;;;;;;;;;x
 value_mod_sum;Value $val$ is the sum of:;;;;;;;;;;;;x
 value_mod_sum_factor;Value $val$ is $x$ times the sum of:;;;;;;;;;;;;x
-admin_explain_1;Administrative efficiency modifier of $val$
-admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$%
-admin_explain_3;To the required percentage: $val$% (base $x$% + $y$% from reforms)
-factory_condition_1;The nation is civilized
-factory_condition_2;This is not a colonial state
-factory_condition_3;The ruling party allows building factories
-factory_condition_4;There are fewer than $val$ factories in the state
-cant_subsidize_explanation;The ruling party does not allow us to subsidize factories
-percent_of_pop_strata;$val$ of the population of their strata
-cant_prioritize_explanation;The ruling party does not allow us to change factory priority
-factory_upgrade_condition_1;The nation is civilized
-factory_upgrade_condition_2;This is not a colonial state
-factory_upgrade_condition_3;The technology requirements to construct the factory are met
-factory_upgrade_condition_4;Your nation is a great power while the target nation is not
-factory_upgrade_condition_5;The investment target is civilized
-factory_upgrade_condition_6;The ruling party of the investment target allows foreign investment
-factory_upgrade_condition_7;The investment target is not at war with you
-factory_upgrade_condition_8;The ruling party allows upgrading factories
-factory_upgrade_condition_9;The factory is not already being upgraded
-factory_upgrade_condition_10;The factory is not at max level
-factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment being upgraded.
-factory_delete_header;Delete factory
-factory_delete_not_allowed;The ruling party does not allow us to delete factories
-factory_stats_1;This factory is currently operating at $val$ capacity
-factory_stats_2;This factory is targeting $val$ capacity
-factory_stats_3;It produced $val$ units of $x$ in the previous day
-factory_stats_4;It made a profit of $val$ in the previous day
-factory_stats_5;Inputs availability:
-factory_stats_6;Efficiency inputs availability:
+admin_explain_1;Administrative efficiency modifier of $val$;;;;;;;;;;;;x
+admin_explain_2;Applied to the ratio of non-colonial bureaucrats: $val$%;;;;;;;;;;;;x
+admin_explain_3;To the required percentage: $val$% (base $x$% + $y$% from reforms);;;;;;;;;;;;x
+factory_condition_1;The nation is civilized;;;;;;;;;;;;x
+factory_condition_2;This is not a colonial state;;;;;;;;;;;;x
+factory_condition_3;The ruling party allows building factories;;;;;;;;;;;;x
+factory_condition_4;There are fewer than $val$ factories in the state;;;;;;;;;;;;x
+cant_subsidize_explanation;The ruling party does not allow us to subsidize factories;;;;;;;;;;;;x
+percent_of_pop_strata;$val$ of the population of their strata;;;;;;;;;;;;x
+cant_prioritize_explanation;The ruling party does not allow us to change factory priority;;;;;;;;;;;;x
+factory_upgrade_condition_1;The nation is civilized;;;;;;;;;;;;x
+factory_upgrade_condition_2;This is not a colonial state;;;;;;;;;;;;x
+factory_upgrade_condition_3;The technology requirements to construct the factory are met;;;;;;;;;;;;x
+factory_upgrade_condition_4;Your nation is a great power while the target nation is not;;;;;;;;;;;;x
+factory_upgrade_condition_5;The investment target is civilized;;;;;;;;;;;;x
+factory_upgrade_condition_6;The ruling party of the investment target allows foreign investment;;;;;;;;;;;;x
+factory_upgrade_condition_7;The investment target is not at war with you;;;;;;;;;;;;x
+factory_upgrade_condition_8;The ruling party allows upgrading factories;;;;;;;;;;;;x
+factory_upgrade_condition_9;The factory is not already being upgraded;;;;;;;;;;;;x
+factory_upgrade_condition_10;The factory is not at max level;;;;;;;;;;;;x
+factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
+factory_delete_header;Delete factory;;;;;;;;;;;;x
+factory_delete_not_allowed;The ruling party does not allow us to delete factories;;;;;;;;;;;;x
+factory_stats_1;This factory is currently operating at $val$ capacity;;;;;;;;;;;;x
+factory_stats_2;This factory is targeting $val$ capacity;;;;;;;;;;;;x
+factory_stats_3;It produced $val$ units of $x$ in the previous day;;;;;;;;;;;;x
+factory_stats_4;It made a profit of $val$ in the previous day;;;;;;;;;;;;x
+factory_stats_5;Inputs availability:;;;;;;;;;;;;x
+factory_stats_6;Efficiency inputs availability:;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
-shift_to_hold_open;Hold shift to keep this window open
-blank_org_gain;organization gain
-plurality_change_reason;(based on the average consciousness)
-revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
-allow_reform_cond;Requirements:
-reform_effect_if_desc;When activated, if
-reform_effect_then_desc;Then:
-reform_effect_desc;When activated:
-special_rules;Special rules:
-voting_rules;Voting rules:
-hide_decision;Hide the notification for this decision
-sup_point_gain;Monthly suppression point increase: §G+$val$
-sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
-mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
-mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
-mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
+shift_to_hold_open;Hold shift to keep this window open;;;;;;;;;;;;x
+blank_org_gain;organization gain;;;;;;;;;;;;x
 plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
 allow_reform_cond;Requirements:;;;;;;;;;;;;x
@@ -558,122 +546,125 @@ voting_rules;Voting rules:;;;;;;;;;;;;x
 hide_decision;Hide the notification for this decision;;;;;;;;;;;;x
 sup_point_gain;Monthly suppression point increase: §G+$val$;;;;;;;;;;;;x
 sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain;;;;;;;;;;;;x
+mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
+mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
+mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
 mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
-pop_size_1;In the coming month the size of this pop is expected to change by: ;
-pop_size_2;From growth: ;
-pop_size_3;From promotion and demotion: ;
-pop_size_4;From assimilation: ;
-pop_size_5;From internal migration: ;
-pop_size_6;From colonial migration: ;
-pop_size_7;From emigration: ;
-pop_l_migration_header;§YMigration away: $val$;
-pop_l_c_migration_header;§YColonial migration away: $val$;
-pop_l_emigration_header;§YEmigration away: $val$;
-pop_mig_1;There is no internal migration from colonial provinces
-pop_mig_2;Slaves do not migrate internally
-pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
-pop_mig_4;§YMigration factor:
-pop_cmig_1;The nation does not have any colonies
-pop_cmig_2;There is no colonial migration from colonial provinces
-pop_cmig_3;Slaves do not migrate colonially
-pop_cmig_4;Rich-strata pops do not migrate colonially
-pop_cmig_5;Factory workers do not migrate colonially
-pop_cmig_6;The number of people that will migrate colonially is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the province's colonial-migration modifier ($num$) times the colonial migration factor ($val$)
-pop_cmig_7;§YColonial migration factor:
-pop_emg_1;Pops can only emigrate from civilized nations
-pop_emg_2;There is no emigration from colonial provinces
-pop_emg_3;Slaves do not emigrate
-pop_emg_4;Pops without an "overseas" culture do not emigrate
-pop_emg_5;The number of people that will emigrate is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$, squared if it is greater than 100%) times the emigration factor ($val$)
-pop_emg_6;§YEmigration factor:
-pop_prom_1;§YPromotion factor:
-pop_prom_2;From national focus: §G$val$
-pop_prom_3;0 (because of national focus)
-pop_prom_4;§YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
-pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
-pop_con_1;Monthly consciousness change: ;
-pop_con_2;Is the sum of:;
-pop_con_3;From luxury needs satisfaction: §G+$x$
-pop_con_4;From the local clergymen percentage ($val$): §R$x$
-pop_con_5;The plurality and literacy factor: §G+$x$§!, which is the product of:
-pop_con_6;Plurality: $x$
-pop_con_7;The national modifier to literacy-on-consciousness impact: $x$
-pop_con_8;The literacy impact factor: $x$
-pop_con_9;The pop's literacy: $x$
-pop_con_10;The colonial consciousness factor: $x$
-pop_con_11;and 0.1
-pop_con_12;Local pop consciousness modifier: ;
-pop_con_13;National pop consciousness modifier: ;
-pop_con_14;National non-colonial pop consciousness modifier: ;
-pop_con_15;National non-accepted pop consciousness modifier: ;
-pop_mil_1;Monthly militancy change: ;
-pop_mil_2;Is the sum of:;
-pop_mil_3;From life-needs satisfaction: §R+$x$
-pop_mil_4;From everyday-needs satisfaction: ;
-pop_mil_5;From luxury-needs satisfaction: §G$x$
-pop_mil_6;From conservatism support: §G$x$
-pop_mil_7;From ruling party support: §G$x$
-pop_mil_8;From reform desire: §R+$x$
-pop_mil_9;Local pop militancy modifier: ;
-pop_mil_10;National pop militancy modifier: ;
-pop_mil_11;National non-colonial pop militancy modifier: ;
-pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;
-pop_lit_1;Monthly literacy change: ;
-pop_lit_2;Is the product of:
-pop_lit_3;From the local clergymen percentage ($val$): $x$
-pop_lit_4;Effective education spending: $x$
-pop_lit_5;The national education-efficiency modifier: $x$
-pop_lit_6;The modifier to the national education-efficiency modifier: $x$
-pop_lit_7;The base literacy change rate: $x$
-pop_lit_8;And 0.01
-pop_growth_topbar;Our population is expected to grow by $x$ within the next month
-pop_growth_topbar_2;Our population changed by $x$ last month
-pop_growth_1;Monthly pop growth: ;
-pop_growth_2;Slaves do not grow;
-pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;
-pop_growth_4;The quality-of-life factor $x$, which is the product of:
-pop_growth_5;The province factor $x$, which is itself the sum of:
-pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$
-pop_growth_7;And the base pop growth value $x$
-pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$)
-pop_growth_9;And 4
-pop_growth_10;The local population-growth modifier $x$
-pop_growth_11;The national population-growth modifier $x$
-pop_assim_1;Monthly pop assimilation: $x$
-pop_assim_2;Slaves do not assimilate
-pop_assim_3;Pops of an accepted culture do not assimilate
-pop_assim_4;Pops in colonial provinces do not assimilate
-pop_assim_5;Pops in overseas provinces do not assimilate
-pop_assim_6;Assimilation is proportional to the size of the pop times the product of:;
-pop_assim_7;The base assimilation scale: $x$
-pop_assim_8;The national assimilation-rate modifier: $x$
-pop_assim_9;The local assimilation-rate modifier: $x$
-pop_assim_10;0.1 for not having an overseas culture
-pop_assim_11;$x$ from cores present in the province
-pop_assim_12;Variable assimilation factors: $x$
-pop_issue_attraction_1;Issue attraction: $x$
-pop_issue_attraction_2;This reform is not currently possible
-pop_issue_attraction_3;Issue attraction is the product of:
-pop_issue_attraction_4;The national modifier to social reform desire: $x$
-pop_issue_attraction_5;The national modifier to political reform desire: $x$
-pop_issue_attraction_6;And the issue attraction factor: $x$
-pop_ideology_attraction_1;Ideology attraction: $x$
-pop_ideology_attraction_2;This ideology is not currently available
+pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
+pop_size_2;From growth: ;;;;;;;;;;;;x
+pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
+pop_size_4;From assimilation: ;;;;;;;;;;;;x
+pop_size_5;From internal migration: ;;;;;;;;;;;;x
+pop_size_6;From colonial migration: ;;;;;;;;;;;;x
+pop_size_7;From emigration: ;;;;;;;;;;;;x
+pop_l_migration_header;§YMigration away: $val$;;;;;;;;;;;;x
+pop_l_c_migration_header;§YColonial migration away: $val$;;;;;;;;;;;;x
+pop_l_emigration_header;§YEmigration away: $val$;;;;;;;;;;;;x
+pop_mig_1;There is no internal migration from colonial provinces;;;;;;;;;;;;x
+pop_mig_2;Slaves do not migrate internally;;;;;;;;;;;;x
+pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$);;;;;;;;;;;;x
+pop_mig_4;§YMigration factor:;;;;;;;;;;;;x
+pop_cmig_1;The nation does not have any colonies;;;;;;;;;;;;x
+pop_cmig_2;There is no colonial migration from colonial provinces;;;;;;;;;;;;x
+pop_cmig_3;Slaves do not migrate colonially;;;;;;;;;;;;x
+pop_cmig_4;Rich-strata pops do not migrate colonially;;;;;;;;;;;;x
+pop_cmig_5;Factory workers do not migrate colonially;;;;;;;;;;;;x
+pop_cmig_6;The number of people that will migrate colonially is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the province's colonial-migration modifier ($num$) times the colonial migration factor ($val$);;;;;;;;;;;;x
+pop_cmig_7;§YColonial migration factor:;;;;;;;;;;;;x
+pop_emg_1;Pops can only emigrate from civilized nations;;;;;;;;;;;;x
+pop_emg_2;There is no emigration from colonial provinces;;;;;;;;;;;;x
+pop_emg_3;Slaves do not emigrate;;;;;;;;;;;;x
+pop_emg_4;"Pops without an ""overseas"" culture do not emigrate";;;;;;;;;;;;x
+pop_emg_5;The number of people that will emigrate is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$, squared if it is greater than 100%) times the emigration factor ($val$);;;;;;;;;;;;x
+pop_emg_6;§YEmigration factor:;;;;;;;;;;;;x
+pop_prom_1;§YPromotion factor:;;;;;;;;;;;;x
+pop_prom_2;From national focus: §G$val$;;;;;;;;;;;;x
+pop_prom_3;0 (because of national focus);;;;;;;;;;;;x
+pop_prom_4;§YDemotion factor:;;;;;;;;;;;;x
+pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor;;;;;;;;;;;;x
+pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor;;;;;;;;;;;;x
+pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting;;;;;;;;;;;;x
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$);;;;;;;;;;;;x
+pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$);;;;;;;;;;;;x
+pop_con_1;Monthly consciousness change: ;;;;;;;;;;;;x
+pop_con_2;Is the sum of:;;;;;;;;;;;;x
+pop_con_3;From luxury needs satisfaction: §G+$x$;;;;;;;;;;;;x
+pop_con_4;From the local clergymen percentage ($val$): §R$x$;;;;;;;;;;;;x
+pop_con_5;The plurality and literacy factor: §G+$x$§!, which is the product of:;;;;;;;;;;;;x
+pop_con_6;Plurality: $x$;;;;;;;;;;;;x
+pop_con_7;The national modifier to literacy-on-consciousness impact: $x$;;;;;;;;;;;;x
+pop_con_8;The literacy impact factor: $x$;;;;;;;;;;;;x
+pop_con_9;The pop's literacy: $x$;;;;;;;;;;;;x
+pop_con_10;The colonial consciousness factor: $x$;;;;;;;;;;;;x
+pop_con_11;and 0.1;;;;;;;;;;;;x
+pop_con_12;Local pop consciousness modifier: ;;;;;;;;;;;;x
+pop_con_13;National pop consciousness modifier: ;;;;;;;;;;;;x
+pop_con_14;National non-colonial pop consciousness modifier: ;;;;;;;;;;;;x
+pop_con_15;National non-accepted pop consciousness modifier: ;;;;;;;;;;;;x
+pop_mil_1;Monthly militancy change: ;;;;;;;;;;;;x
+pop_mil_2;Is the sum of:;;;;;;;;;;;;x
+pop_mil_3;From life-needs satisfaction: §R+$x$;;;;;;;;;;;;x
+pop_mil_4;From everyday-needs satisfaction: ;;;;;;;;;;;;x
+pop_mil_5;From luxury-needs satisfaction: §G$x$;;;;;;;;;;;;x
+pop_mil_6;From conservatism support: §G$x$;;;;;;;;;;;;x
+pop_mil_7;From ruling party support: §G$x$;;;;;;;;;;;;x
+pop_mil_8;From reform desire: §R+$x$;;;;;;;;;;;;x
+pop_mil_9;Local pop militancy modifier: ;;;;;;;;;;;;x
+pop_mil_10;National pop militancy modifier: ;;;;;;;;;;;;x
+pop_mil_11;National non-colonial pop militancy modifier: ;;;;;;;;;;;;x
+pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;;;;;;;;;;;;x
+pop_lit_1;Monthly literacy change: ;;;;;;;;;;;;x
+pop_lit_2;Is the product of:;;;;;;;;;;;;x
+pop_lit_3;From the local clergymen percentage ($val$): $x$;;;;;;;;;;;;x
+pop_lit_4;Effective education spending: $x$;;;;;;;;;;;;x
+pop_lit_5;The national education-efficiency modifier: $x$;;;;;;;;;;;;x
+pop_lit_6;The modifier to the national education-efficiency modifier: $x$;;;;;;;;;;;;x
+pop_lit_7;The base literacy change rate: $x$;;;;;;;;;;;;x
+pop_lit_8;And 0.01;;;;;;;;;;;;x
+pop_growth_topbar;Our population is expected to grow by $x$ within the next month;;;;;;;;;;;;x
+pop_growth_topbar_2;Our population changed by $x$ last month;;;;;;;;;;;;x
+pop_growth_1;Monthly pop growth: ;;;;;;;;;;;;x
+pop_growth_2;Slaves do not grow;;;;;;;;;;;;x
+pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;;;;;;;;;;;;x
+pop_growth_4;The quality-of-life factor $x$, which is the product of:;;;;;;;;;;;;x
+pop_growth_5;The province factor $x$, which is itself the sum of:;;;;;;;;;;;;x
+pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$;;;;;;;;;;;;x
+pop_growth_7;And the base pop growth value $x$;;;;;;;;;;;;x
+pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$);;;;;;;;;;;;x
+pop_growth_9;And 4;;;;;;;;;;;;x
+pop_growth_10;The local population-growth modifier $x$;;;;;;;;;;;;x
+pop_growth_11;The national population-growth modifier $x$;;;;;;;;;;;;x
+pop_assim_1;Monthly pop assimilation: $x$;;;;;;;;;;;;x
+pop_assim_2;Slaves do not assimilate;;;;;;;;;;;;x
+pop_assim_3;Pops of an accepted culture do not assimilate;;;;;;;;;;;;x
+pop_assim_4;Pops in colonial provinces do not assimilate;;;;;;;;;;;;x
+pop_assim_5;Pops in overseas provinces do not assimilate;;;;;;;;;;;;x
+pop_assim_6;Assimilation is proportional to the size of the pop times the product of:;;;;;;;;;;;;x
+pop_assim_7;The base assimilation scale: $x$;;;;;;;;;;;;x
+pop_assim_8;The national assimilation-rate modifier: $x$;;;;;;;;;;;;x
+pop_assim_9;The local assimilation-rate modifier: $x$;;;;;;;;;;;;x
+pop_assim_10;0.1 for not having an overseas culture;;;;;;;;;;;;x
+pop_assim_11;$x$ from cores present in the province;;;;;;;;;;;;x
+pop_assim_12;Variable assimilation factors: $x$;;;;;;;;;;;;x
+pop_issue_attraction_1;Issue attraction: $x$;;;;;;;;;;;;x
+pop_issue_attraction_2;This reform is not currently possible;;;;;;;;;;;;x
+pop_issue_attraction_3;Issue attraction is the product of:;;;;;;;;;;;;x
+pop_issue_attraction_4;The national modifier to social reform desire: $x$;;;;;;;;;;;;x
+pop_issue_attraction_5;The national modifier to political reform desire: $x$;;;;;;;;;;;;x
+pop_issue_attraction_6;And the issue attraction factor: $x$;;;;;;;;;;;;x
+pop_ideology_attraction_1;Ideology attraction: $x$;;;;;;;;;;;;x
+pop_ideology_attraction_2;This ideology is not currently available;;;;;;;;;;;;x
 trade_setting_drawing;Drawing on stockpiles;;;Tomando de las reservas;;;;;;;;;x
 trade_setting_filling;Filling stockpiles;;;Llenando las reservas;;;;;;;;;x
 trade_setting_stable;No stockpile activity;;;Sin actividad de reservas;;;;;;;;;x
-trade_commodity_report_1;Current global demand: $x$
-trade_commodity_report_2;Current global production: $x$
-trade_commodity_report_3;Current global consumption: $x$
-trade_commodity_report_4;Amount on world market: $x$
+trade_commodity_report_1;Current global demand: $x$;;;;;;;;;;;;x
+trade_commodity_report_2;Current global production: $x$;;;;;;;;;;;;x
+trade_commodity_report_3;Current global consumption: $x$;;;;;;;;;;;;x
+trade_commodity_report_4;Amount on world market: $x$;;;;;;;;;;;;x
 trade_fill;Fill;;;Llenar;;;;;;;;;x
 trade_use;Draw upon;;;Tomar de;;;;;;;;;x
 trade_stockpile_target;Stockpile target amount:;;;Meta de reservas:;;;;;;;;;x
-trade_stockpile_current;Current stockpile: ;Reservas actuales: ;;;;;;;;;x
+trade_stockpile_current;Current stockpile: ;Reservas actuales: ;;;;;;;;;;;x
 diplomacy_wx_1;Monthly war exhaustion: ;;;Exhaustion de guerra mensual: ;;;;;;;;;x
 influence_explain_1;We are currently banned and accumulate no influence with this nation
 influence_explain_2;We have a truce with this nation and accumulate no influence with it
@@ -952,45 +943,48 @@ msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the
 msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+msg_n_event_title;National Event
+msg_p_event_title;Provincial Event
+msg_m_event_title;Major Event
 multiunit_header;$x$ Units Selected;;;$x$ Unidades Seleccionadas;;;;;;;;;x
 ai_alliance_1;The AI is currently seeking allies;;;La IA esta buscando aliados;;;;;;;;;x
 ai_alliance_2;Your nation is close enough to assist in a war;;;Estas cerca para asistir en una guerra;;;;;;;;;x
 ai_alliance_3;No conflicting ambitions;;;Sin conflictos de interes;;;;;;;;;x
 ai_alliance_4;Your nation's military is sufficiently strong;;;Tu militar es lo suficientemente fuerte;;;;;;;;;x
 ai_alliance_5;Has shared mutual strategic interests;;;Tienen intereses estrategicos compartidos;;;;;;;;;x
-ai_access_1;The AI sees one of your wars as advantageous to them
-col_start_title;Begin colonizing this state
-col_start_1;No colonizers are present or colonization is still in the initial stage
-col_start_2;Your nation is at least rank $x$
-col_start_3;The state is not the target of a colonial crisis
-col_start_4;You are not participating in a crisis war
-col_start_5;The minimum life rating you can colonize ($x$) is less than or equal to the life rating of the state ($y$)
-col_start_6;Base §Y$x$
-col_start_7;There are at most three other colonizers present
-col_start_8;You are adjacent to the state or it is within naval range
-col_start_9;You have at least $x$ free colonial points
-col_invest_title;Invest in your colony
-col_invest_1;Your nation is at least rank $x$
-col_invest_2;The state is not the target of a colonial crisis
-col_invest_3;You are not participating in a crisis war
-col_invest_4;Without competition, you will be able to turn this state into a colony on $x$
-col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
-col_invest_6;You have at least $x$ free colonial points
-alice_maximum_speed;Max Speed §G$x$§! KPH
-alice_attack;Attack §G$x$
-alice_hull;Hull §G$x$
-alice_fire_range;Firing Range §G$x$
-alice_supply_consumption;Supply Consumption §R$x$%
-alice_supply_load;Supplies Weight §R$x$
-alice_defence;Defence §G$x$
-alice_discipline;Discipline §G$x$%
-alice_maneuver;Maneuver §G$x$
-alice_recon;Reconaissance §G$x$
-alice_support;Support §G$x$%
-alice_evasion;Evasion §G$x$%
-alice_siege;Siege §G$x$
-alice_torpedo_attack;Torpedo Attack §G$x$
-alice_unit_folder_unit_name;§Y$x$
+ai_access_1;The AI sees one of your wars as advantageous to them;;;;;;;;;;;;x
+col_start_title;Begin colonizing this state;;;;;;;;;;;;x
+col_start_1;No colonizers are present or colonization is still in the initial stage;;;;;;;;;;;;x
+col_start_2;Your nation is at least rank $x$;;;;;;;;;;;;x
+col_start_3;The state is not the target of a colonial crisis;;;;;;;;;;;;x
+col_start_4;You are not participating in a crisis war;;;;;;;;;;;;x
+col_start_5;The minimum life rating you can colonize ($x$) is less than or equal to the life rating of the state ($y$);;;;;;;;;;;;x
+col_start_6;Base §Y$x$;;;;;;;;;;;;x
+col_start_7;There are at most three other colonizers present;;;;;;;;;;;;x
+col_start_8;You are adjacent to the state or it is within naval range;;;;;;;;;;;;x
+col_start_9;You have at least $x$ free colonial points;;;;;;;;;;;;x
+col_invest_title;Invest in your colony;;;;;;;;;;;;x
+col_invest_1;Your nation is at least rank $x$;;;;;;;;;;;;x
+col_invest_2;The state is not the target of a colonial crisis;;;;;;;;;;;;x
+col_invest_3;You are not participating in a crisis war;;;;;;;;;;;;x
+col_invest_4;Without competition, you will be able to turn this state into a colony on $x$;;;;;;;;;;;;x
+col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$);;;;;;;;;;;;x
+col_invest_6;You have at least $x$ free colonial points;;;;;;;;;;;;x
+alice_maximum_speed;Max Speed §G$x$§! KPH;;;;;;;;;;;;x
+alice_attack;Attack §G$x$;;;;;;;;;;;;x
+alice_hull;Hull §G$x$;;;;;;;;;;;;x
+alice_fire_range;Firing Range §G$x$;;;;;;;;;;;;x
+alice_supply_consumption;Supply Consumption §R$x$%;;;;;;;;;;;;x
+alice_supply_load;Supplies Weight §R$x$;;;;;;;;;;;;x
+alice_defence;Defence §G$x$;;;;;;;;;;;;x
+alice_discipline;Discipline §G$x$%;;;;;;;;;;;;x
+alice_maneuver;Maneuver §G$x$;;;;;;;;;;;;x
+alice_recon;Reconaissance §G$x$;;;;;;;;;;;;x
+alice_support;Support §G$x$%;;;;;;;;;;;;x
+alice_evasion;Evasion §G$x$%;;;;;;;;;;;;x
+alice_siege;Siege §G$x$;;;;;;;;;;;;x
+alice_torpedo_attack;Torpedo Attack §G$x$;;;;;;;;;;;;x
+alice_unit_folder_unit_name;§Y$x$;;;;;;;;;;;;x
 alice_build_time;$x$ days;;;$x$ dias;;;;;;;;;x
 alice_build_unit_pop_size;$x$k;;;$x$k;;;;;;;;;x
 alice_build_unit_brigades;$x$/$y$;;;$x$/$y$;;;;;;;;;x
@@ -1000,10 +994,10 @@ msg_war_by_nation;When we are declared war;;;;;;;;;;;;x
 msg_wargoal_added;When a wargoal is added;;;;;;;;;;;;x
 msg_siegeover_by_nation;Siege done against us;;;;;;;;;;;;x
 msg_siegeover_on_nation;Siege done against them;;;;;;;;;;;;x
-msg_colony_finished;When we finish colonizing;;;;;;;;;;;x
-msg_reform_gained;When we gain a reform;;;;;;;;;;;x
-msg_reform_lost;When we lose a reform;;;;;;;;;;;x
-msg_ruling_party_change;When the ruling party changes;;;;;;;;;;;x
+msg_colony_finished;When we finish colonizing;;;;;;;;;;;;x
+msg_reform_gained;When we gain a reform;;;;;;;;;;;;x
+msg_reform_lost;When we lose a reform;;;;;;;;;;;;x
+msg_ruling_party_change;When the ruling party changes;;;;;;;;;;;;x
 msg_upperhouse;When the upperhouse changes;;;;;;;;;;;;x
 msg_electionstart;When elections start;;;;;;;;;;;;x
 msg_electiondone;When elections end;;;;;;;;;;;;x
@@ -1012,23 +1006,23 @@ msg_peace_accepted_from_nation;When we accept a peace offer;;;;;;;;;;;;x
 msg_peace_rejected_from_nation;When we reject a peace offer;;;;;;;;;;;;x
 msg_peace_accepted_by_nation;When they accept a peace offer;;;;;;;;;;;;x
 msg_peace_rejected_by_nation;When they reject a peace offer;;;;;;;;;;;;x
-msg_mobilization_start;When we mobilize;;;;;;;;;;;x
-msg_mobilization_end;When we demobilize;;;;;;;;;;;x
-msg_factory_complete;When a factory gets constructed;;;;;;;;;;;x
-msg_rr_complete;When a railroad gets constructed;;;;;;;;;;;x
-msg_fort_complete;When a fort gets constructed;;;;;;;;;;;x
-msg_naval_base_complete;When a naval base gets constructed;;;;;;;;;;;x
-msg_province_event;When a province event occurs;;;;;;;;;;;x
-msg_national_event;When a national event occurs;;;;;;;;;;;x
-msg_major_event;When a major event occurs;;;;;;;;;;;x
+msg_mobilization_start;When we mobilize;;;;;;;;;;;;x
+msg_mobilization_end;When we demobilize;;;;;;;;;;;;x
+msg_factory_complete;When a factory gets constructed;;;;;;;;;;;;x
+msg_rr_complete;When a railroad gets constructed;;;;;;;;;;;;x
+msg_fort_complete;When a fort gets constructed;;;;;;;;;;;;x
+msg_naval_base_complete;When a naval base gets constructed;;;;;;;;;;;;x
+msg_province_event;When a province event occurs;;;;;;;;;;;;x
+msg_national_event;When a national event occurs;;;;;;;;;;;;x
+msg_major_event;When a major event occurs;;;;;;;;;;;;x
 msg_invention;When an invention is discovered;;;;;;;;;;;;x
 msg_tech;When we finish research;;;;;;;;;;;;x
 msg_leader_dies;When a leader dies;;;;;;;;;;;;x
-msg_land_combat_starts_on_nation;When we start land combat;;;;;;;;;;;x
-msg_naval_combat_starts_on_nation;When we start naval combat;;;;;;;;;;;x
-msg_land_combat_starts_by_nation;When land combat is started;;;;;;;;;;;x
-msg_naval_combat_starts_by_nation;When naval combat is started;;;;;;;;;;;x
-msg_movement_finishes;When movement finishes;;;;;;;;;;;x
+msg_land_combat_starts_on_nation;When we start land combat;;;;;;;;;;;;x
+msg_naval_combat_starts_on_nation;When we start naval combat;;;;;;;;;;;;x
+msg_land_combat_starts_by_nation;When land combat is started;;;;;;;;;;;;x
+msg_naval_combat_starts_by_nation;When naval combat is started;;;;;;;;;;;;x
+msg_movement_finishes;When movement finishes;;;;;;;;;;;;x
 msg_decision;When a decision is done;;;;;;;;;;;;x
 msg_lose_great_power;When we lose great power;;;;;;;;;;;;x
 msg_become_great_power;When we become great power;;;;;;;;;;;;x
@@ -1036,10 +1030,10 @@ msg_war_subsidies_start_by_nation;When war subsidies are given;;;;;;;;;;;;x
 msg_war_subsidies_start_on_nation;When we give war subsidies;;;;;;;;;;;;x
 msg_war_subsidies_end_by_nation;When war subsidies are ended;;;;;;;;;;;;x
 msg_war_subsidies_end_on_nation;When we end war subsidies;;;;;;;;;;;;x
-msg_reparations_start_by_nation;When war reparations are placed;;;;;;;;;;;x
-msg_reparations_start_on_nation;When we pay have to war reparations;;;;;;;;;;;x
-msg_reparations_end_by_nation;When war reparations are paid off;;;;;;;;;;;x
-msg_reparations_end_on_nation;When we pay off war reparations;;;;;;;;;;;x
+msg_reparations_start_by_nation;When war reparations are placed;;;;;;;;;;;;x
+msg_reparations_start_on_nation;When we pay have to war reparations;;;;;;;;;;;;x
+msg_reparations_end_by_nation;When war reparations are paid off;;;;;;;;;;;;x
+msg_reparations_end_on_nation;When we pay off war reparations;;;;;;;;;;;;x
 msg_mil_access_start_by_nation;When we are given military access;;;;;;;;;;;;x
 msg_mil_access_start_on_nation;When we give military access;;;;;;;;;;;;x
 msg_mil_access_end_by_nation;;;;;;;;;;;;;x
@@ -1072,7 +1066,7 @@ msg_decrease_relation_by_nation;When they decrease relations;;;;;;;;;;;;x
 msg_decrease_relation_on_nation;When we decrease relations;;;;;;;;;;;;x
 msg_join_war_by_nation;When a nation joins a war;;;;;;;;;;;;x
 msg_join_war_on_nation;When we join a war;;;;;;;;;;;;x
-msg_gw_unlocked;When great wars are unlocked;;;;;;;;;;;x
+msg_gw_unlocked;When great wars are unlocked;;;;;;;;;;;;x
 msg_war_becomes_great;When a war becomes a great war;;;;;;;;;;;;x
 msg_cb_detected_on_nation;;;;;;;;;;;;;x
 msg_cb_detected_by_nation;;;;;;;;;;;;;x
@@ -1101,8 +1095,8 @@ uv_sort_f;Rec;;;Rec;;;;;;;;;x
 uv_sort_g;Rel;;;Rel;;;;;;;;;x
 uv_sort_h;Exp;;;Exp;;;;;;;;;x
 alice_retreat;Retreat from battle;;;Retirarse de la batalla;;;;;;;;;x
-alice_retreat_1;It has been at least $x$ days since the battle started
-alice_retreat_2;You are the lead attacker or defender
+alice_retreat_1;It has been at least $x$ days since the battle started;;;;;;;;;;;;x
+alice_retreat_2;You are the lead attacker or defender;;;;;;;;;;;;x
 alice_province_select;Selects province;;;Selecciona la provincia;;;;;;;;;x
 alice_province_deselect;Deselects province;;;Deselecciona la provincia;;;;;;;;;x
 alice_province_selector_on;ON;;;SI;;;;;;;;;x
@@ -1122,158 +1116,158 @@ chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ was banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
 chat_player_kick;@$x$ $playername$ was kicked;;;@$x$ $playername$ fue vetado;;;;;;;;;x
 chat_player_switch;@$x$ $playername$ has choosen $country$;;;@$x$ $playername$ ahora es $country$;;;;;;;;;x
-chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x
+chat_player_oos;@$x$ $playername$ has OOSed!;;;;;;;;;x;;;x
 alice_status_ready;READY;;;LISTO;;;;;;;;;x
 alice_status_stream;Save progress $value$;;;Progreso $value$;;;;;;;;;x
 alice_play_pending_client;$playername$ is not ready yet;;;$playername$ no esta listo/a todavia;;;;;;;;;x
-message_name_text;Message
-msg_for_us;About: your nation
-msg_for_interesting;Interesting nation
-msg_for_other;Other nation
-msg_handling_ignore;Ignore the message
-msg_handling_log;Log the message
-msg_handling_sound;Log the message with a sound effect
-msg_handling_popup;Pop up a notification for the message
-msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed
-amsg_revolt;A revolt happens in the nation
-amsg_war_on_nation;War is declared on the nation
-amsg_war_by_nation;War is declared by the nation
-amsg_wargoal_added;The nation adds a war goal
-amsg_siegeover_by_nation;The nation completes a siege
-amsg_siegeover_on_nation;A siege finishes on a province the nation controls
-amsg_colony_finished;The nation finishes a colony
-amsg_reform_gained;The nation passes a reform
-amsg_reform_lost;The nation loses a reform
-amsg_ruling_party_change;The ruling party of the nation changes
-amsg_upperhouse;The composition of the upper house of the nation changes
-amsg_electionstart;An election starts in the nation
-amsg_electiondone;An election ends in the nation
-amsg_breakcountry;Rebels enforce their demands on the nation
-amsg_peace_accepted_from_nation;The nation's peace offer is accepted
-amsg_peace_rejected_from_nation;The nation's peace offer is rejected
-amsg_peace_accepted_by_nation;The nation accepts a peace offer
-amsg_peace_rejected_by_nation;The nation rejects a peace offer
-amsg_mobilization_start;The nation mobilizes
-amsg_mobilization_end;The nation ends its mobilization
-amsg_factory_complete;The nation finishes building a factory
-amsg_rr_complete;The nation finishes building a railroad
-amsg_fort_complete;The nation finishes building a fort
-amsg_naval_base_complete;The nation finishes building a naval base
-amsg_province_event;A province event happens to the nation
-amsg_national_event;A national event happens to the nation
-amsg_major_event;A major event happens to the nation
-amsg_invention;The nation discovers an invention
-amsg_tech;The nation finishes researching a technology
-amsg_leader_dies;One of the nation's military leaders dies
-amsg_land_combat_starts_on_nation;One of the nation's armies is attacked
-amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked
-amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack
-amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack
-amsg_movement_finishes;One of the nation's units finishes moving
-amsg_decision;The nation takes a decision
-amsg_lose_great_power;The nation loses great power status
-amsg_become_great_power;The nation gains great power status
-amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies
-amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies
-amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies
-amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies
-amsg_reparations_start_by_nation;The nation starts paying reparations
-amsg_reparations_start_on_nation;The nation starts being paid reparations
-amsg_reparations_end_by_nation;The nation stops paying reparations
-amsg_reparations_end_on_nation;Reparations stop being paid to the nation
-amsg_mil_access_start_by_nation;The nation starts giving military access
-amsg_mil_access_start_on_nation;The nation starts receiving military access
-amsg_mil_access_end_by_nation;The nation stops giving military access
-amsg_mil_access_end_on_nation;The nation stops receiving military access
-amsg_mil_access_declined_by_nation;The nation's military access request is declined
-amsg_mil_access_declined_on_nation;The nation declines a military access request
-amsg_alliance_starts;The nation enters into a new alliance
-amsg_alliance_ends;The nation ends an alliance
-amsg_alliance_declined_by_nation;The nation declines an alliance offer
-amsg_alliance_declined_on_nation;The nation's alliance offer is declined
-amsg_ally_called_accepted_by_nation;The nation honors a call to arms
-amsg_ally_called_declined_by_nation;The nation declines a call to arms
-amsg_discredit_by_nation;The nation discredits another nation
-amsg_ban_by_nation;The nation bans the embassy of another nation
-amsg_expell_by_nation;The nation expels the advisors of another nation
-amsg_discredit_on_nation;The nation is discredited
-amsg_ban_on_nation;The nation's embassy is banned
-amsg_expell_on_nation;The nation's advisors are expelled
-amsg_increase_opinion;The nation increases another nation's opinion of them
-amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease
-amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease
-amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence
-amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence
-amsg_removed_from_sphere;The nation is removed from a sphere of influence
-amsg_add_sphere;The nation adds another nation to their sphere of influence
-amsg_added_to_sphere;The nation is added to a sphere of influence
-amsg_increase_relation_by_nation;The nation increases another nation's relationship with it
-amsg_increase_relation_on_nation;The nation has its relationship with someone else increased
-amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it
-amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased
-amsg_join_war_by_nation;The nation joins an existing war
-amsg_join_war_on_nation;A new nation joins an existing war against this nation
-amsg_gw_unlocked;Great wars are unlocked
-amsg_war_becomes_great;A war involving this nation becomes great
-amsg_cb_detected_on_nation;CB justification targeting this nation is detected
-amsg_cb_detected_by_nation;This nation is detected justifying a CB
-amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis
-amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis
-amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted
-amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined
-amsg_crisis_resolution_accepted;A crisis resolution is accepted
-amsg_crisis_becomes_war;A crisis becomes a war
-amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined
-amsg_crisis_starts;A new crisis starts
-amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis
-amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis
-amsg_crisis_fizzle;A crisis fails to attract great power interest
-amsg_war_join_by;The nation joins a war
-amsg_war_join_on;A nation joins a war against this nation
-amsg_cb_fab_finished;The nation finished fabricating a CB
-amsg_cb_fab_cancelled;CB fabrication by the nation is canceled
-amsg_crisis_voluntary_join;The nation joins a crisis without an offer
-a_alert_reb;One or more of our sphere members has active rebels:
-event_auto;Automatically choose this option for the remainder of the session
-alice_load_unload_1;A navy docked here has sufficient capacity
-alice_load_unload_2;The army is being transported
-alice_load_unload_3;The transporting fleet is docked
-alice_load_unload_4;One or more armies is being transported
-alice_load_unload_5;The fleet is docked
-alice_unload_fleet;Unload all armies transported by the fleet
+message_name_text;Message;;;;;;;;;;;;x
+msg_for_us;About: your nation;;;;;;;;;;;;x
+msg_for_interesting;Interesting nation;;;;;;;;;;;;x
+msg_for_other;Other nation;;;;;;;;;;;;x
+msg_handling_ignore;Ignore the message;;;;;;;;;;;;x
+msg_handling_log;Log the message;;;;;;;;;;;;x
+msg_handling_sound;Log the message with a sound effect;;;;;;;;;;;;x
+msg_handling_popup;Pop up a notification for the message;;;;;;;;;;;;x
+msg_handling_pause;Pop up a notification for the message and pause the game until it is dismissed;;;;;;;;;;;;x
+amsg_revolt;A revolt happens in the nation;;;;;;;;;;;;x
+amsg_war_on_nation;War is declared on the nation;;;;;;;;;;;;x
+amsg_war_by_nation;War is declared by the nation;;;;;;;;;;;;x
+amsg_wargoal_added;The nation adds a war goal;;;;;;;;;;;;x
+amsg_siegeover_by_nation;The nation completes a siege;;;;;;;;;;;;x
+amsg_siegeover_on_nation;A siege finishes on a province the nation controls;;;;;;;;;;;;x
+amsg_colony_finished;The nation finishes a colony;;;;;;;;;;;;x
+amsg_reform_gained;The nation passes a reform;;;;;;;;;;;;x
+amsg_reform_lost;The nation loses a reform;;;;;;;;;;;;x
+amsg_ruling_party_change;The ruling party of the nation changes;;;;;;;;;;;;x
+amsg_upperhouse;The composition of the upper house of the nation changes;;;;;;;;;;;;x
+amsg_electionstart;An election starts in the nation;;;;;;;;;;;;x
+amsg_electiondone;An election ends in the nation;;;;;;;;;;;;x
+amsg_breakcountry;Rebels enforce their demands on the nation;;;;;;;;;;;;x
+amsg_peace_accepted_from_nation;The nation's peace offer is accepted;;;;;;;;;;;;x
+amsg_peace_rejected_from_nation;The nation's peace offer is rejected;;;;;;;;;;;;x
+amsg_peace_accepted_by_nation;The nation accepts a peace offer;;;;;;;;;;;;x
+amsg_peace_rejected_by_nation;The nation rejects a peace offer;;;;;;;;;;;;x
+amsg_mobilization_start;The nation mobilizes;;;;;;;;;;;;x
+amsg_mobilization_end;The nation ends its mobilization;;;;;;;;;;;;x
+amsg_factory_complete;The nation finishes building a factory;;;;;;;;;;;;x
+amsg_rr_complete;The nation finishes building a railroad;;;;;;;;;;;;x
+amsg_fort_complete;The nation finishes building a fort;;;;;;;;;;;;x
+amsg_naval_base_complete;The nation finishes building a naval base;;;;;;;;;;;;x
+amsg_province_event;A province event happens to the nation;;;;;;;;;;;;x
+amsg_national_event;A national event happens to the nation;;;;;;;;;;;;x
+amsg_major_event;A major event happens to the nation;;;;;;;;;;;;x
+amsg_invention;The nation discovers an invention;;;;;;;;;;;;x
+amsg_tech;The nation finishes researching a technology;;;;;;;;;;;;x
+amsg_leader_dies;One of the nation's military leaders dies;;;;;;;;;;;;x
+amsg_land_combat_starts_on_nation;One of the nation's armies is attacked;;;;;;;;;;;;x
+amsg_naval_combat_starts_on_nation;One of the nation's navies is attacked;;;;;;;;;;;;x
+amsg_land_combat_starts_by_nation;One of the nation's armies makes an attack;;;;;;;;;;;;x
+amsg_naval_combat_starts_by_nation;One of the nation's navies makes an attack;;;;;;;;;;;;x
+amsg_movement_finishes;One of the nation's units finishes moving;;;;;;;;;;;;x
+amsg_decision;The nation takes a decision;;;;;;;;;;;;x
+amsg_lose_great_power;The nation loses great power status;;;;;;;;;;;;x
+amsg_become_great_power;The nation gains great power status;;;;;;;;;;;;x
+amsg_war_subsidies_start_by_nation;The nation starts providing war subsidies;;;;;;;;;;;;x
+amsg_war_subsidies_start_on_nation;The nation starts being given war subsidies;;;;;;;;;;;;x
+amsg_war_subsidies_end_by_nation;The nation stops providing war subsidies;;;;;;;;;;;;x
+amsg_war_subsidies_end_on_nation;The nation stops being provided with war subsidies;;;;;;;;;;;;x
+amsg_reparations_start_by_nation;The nation starts paying reparations;;;;;;;;;;;;x
+amsg_reparations_start_on_nation;The nation starts being paid reparations;;;;;;;;;;;;x
+amsg_reparations_end_by_nation;The nation stops paying reparations;;;;;;;;;;;;x
+amsg_reparations_end_on_nation;Reparations stop being paid to the nation;;;;;;;;;;;;x
+amsg_mil_access_start_by_nation;The nation starts giving military access;;;;;;;;;;;;x
+amsg_mil_access_start_on_nation;The nation starts receiving military access;;;;;;;;;;;;x
+amsg_mil_access_end_by_nation;The nation stops giving military access;;;;;;;;;;;;x
+amsg_mil_access_end_on_nation;The nation stops receiving military access;;;;;;;;;;;;x
+amsg_mil_access_declined_by_nation;The nation's military access request is declined;;;;;;;;;;;;x
+amsg_mil_access_declined_on_nation;The nation declines a military access request;;;;;;;;;;;;x
+amsg_alliance_starts;The nation enters into a new alliance;;;;;;;;;;;;x
+amsg_alliance_ends;The nation ends an alliance;;;;;;;;;;;;x
+amsg_alliance_declined_by_nation;The nation declines an alliance offer;;;;;;;;;;;;x
+amsg_alliance_declined_on_nation;The nation's alliance offer is declined;;;;;;;;;;;;x
+amsg_ally_called_accepted_by_nation;The nation honors a call to arms;;;;;;;;;;;;x
+amsg_ally_called_declined_by_nation;The nation declines a call to arms;;;;;;;;;;;;x
+amsg_discredit_by_nation;The nation discredits another nation;;;;;;;;;;;;x
+amsg_ban_by_nation;The nation bans the embassy of another nation;;;;;;;;;;;;x
+amsg_expell_by_nation;The nation expels the advisors of another nation;;;;;;;;;;;;x
+amsg_discredit_on_nation;The nation is discredited;;;;;;;;;;;;x
+amsg_ban_on_nation;The nation's embassy is banned;;;;;;;;;;;;x
+amsg_expell_on_nation;The nation's advisors are expelled;;;;;;;;;;;;x
+amsg_increase_opinion;The nation increases another nation's opinion of them;;;;;;;;;;;;x
+amsg_decrease_opinion_by_nation;The nation causes the opinion of another nation to decrease;;;;;;;;;;;;x
+amsg_decrease_opinion_on_nation;The opinion of this nation is caused to decrease;;;;;;;;;;;;x
+amsg_rem_sphere_by_nation;The nation removes another nation from a sphere of influence;;;;;;;;;;;;x
+amsg_rem_sphere_on_nation;The nation has another nation removed from its sphere of influence;;;;;;;;;;;;x
+amsg_removed_from_sphere;The nation is removed from a sphere of influence;;;;;;;;;;;;x
+amsg_add_sphere;The nation adds another nation to their sphere of influence;;;;;;;;;;;;x
+amsg_added_to_sphere;The nation is added to a sphere of influence;;;;;;;;;;;;x
+amsg_increase_relation_by_nation;The nation increases another nation's relationship with it;;;;;;;;;;;;x
+amsg_increase_relation_on_nation;The nation has its relationship with someone else increased;;;;;;;;;;;;x
+amsg_decrease_relation_by_nation;The nation decreases another nation's relationship with it;;;;;;;;;;;;x
+amsg_decrease_relation_on_nation;The nation has its relationship with someone else decreased;;;;;;;;;;;;x
+amsg_join_war_by_nation;The nation joins an existing war;;;;;;;;;;;;x
+amsg_join_war_on_nation;A new nation joins an existing war against this nation;;;;;;;;;;;;x
+amsg_gw_unlocked;Great wars are unlocked;;;;;;;;;;;;x
+amsg_war_becomes_great;A war involving this nation becomes great;;;;;;;;;;;;x
+amsg_cb_detected_on_nation;CB justification targeting this nation is detected;;;;;;;;;;;;x
+amsg_cb_detected_by_nation;This nation is detected justifying a CB;;;;;;;;;;;;x
+amsg_crisis_join_offer_accepted_by_nation;The nation accepts an offer to join a crisis;;;;;;;;;;;;x
+amsg_crisis_join_offer_declined_by_nation;The nation declines an offer to join a crisis;;;;;;;;;;;;x
+amsg_crisis_join_offer_accepted_from_nation;An offer to join a crisis from this nation is accepted;;;;;;;;;;;;x
+amsg_crisis_join_offer_declined_from_nation;An offer to join a crisis from this nation is declined;;;;;;;;;;;;x
+amsg_crisis_resolution_accepted;A crisis resolution is accepted;;;;;;;;;;;;x
+amsg_crisis_becomes_war;A crisis becomes a war;;;;;;;;;;;;x
+amsg_crisis_resolution_declined_from_nation;An crisis resolution offer from this nation is declined;;;;;;;;;;;;x
+amsg_crisis_starts;A new crisis starts;;;;;;;;;;;;x
+amsg_crisis_attacker_backer;A great power becomes the primary attacker in a crisis;;;;;;;;;;;;x
+amsg_crisis_defender_backer;A great power becomes the primary defender in a crisis;;;;;;;;;;;;x
+amsg_crisis_fizzle;A crisis fails to attract great power interest;;;;;;;;;;;;x
+amsg_war_join_by;The nation joins a war;;;;;;;;;;;;x
+amsg_war_join_on;A nation joins a war against this nation;;;;;;;;;;;;x
+amsg_cb_fab_finished;The nation finished fabricating a CB;;;;;;;;;;;;x
+amsg_cb_fab_cancelled;CB fabrication by the nation is canceled;;;;;;;;;;;;x
+amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;;x
+a_alert_reb;One or more of our sphere members has active rebels:;;;;;;;;;;;;x
+event_auto;Automatically choose this option for the remainder of the session;;;;;;;;;;;;x
+alice_load_unload_1;A navy docked here has sufficient capacity;;;;;;;;;;;;x
+alice_load_unload_2;The army is being transported;;;;;;;;;;;;x
+alice_load_unload_3;The transporting fleet is docked;;;;;;;;;;;;x
+alice_load_unload_4;One or more armies is being transported;;;;;;;;;;;;x
+alice_load_unload_5;The fleet is docked;;;;;;;;;;;;x
+alice_unload_fleet;Unload all armies transported by the fleet;;;;;;;;;;;;x
 auto_save_lb;Auto-save frequency;;;Frecuencia de auto-guardado;;;;;;;;;x
 auto_save_1;Daily;;;Diario;;;;;;;;;x
 auto_save_2;Monthly;;;Mensual;;;;;;;;;x
 auto_save_3;Yearly;;;Anual;;;;;;;;;x
 auto_save_0;None;;;Ninguno;;;;;;;;;x
-monthly_emigration_lab;Monthly emigration to (top 10)
-monthly_immigration_lab;Monthly immigration from (top 10)
-im_em_header;Predicted immigration/emigration for ;
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$)
-unit_standing_text;$m$ $n$/$x$/$y$
-disarmed_pop;a member of a disarmed nation
-cancel_fac_construction;Cancel factory construction
-cancel_fac_upgrade;Cancel factory upgrade
+monthly_emigration_lab;Monthly emigration to (top 10);;;;;;;;;;;;x
+monthly_immigration_lab;Monthly immigration from (top 10);;;;;;;;;;;;x
+im_em_header;Predicted immigration/emigration for ;;;;;;;;;;;;x
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$);;;;;;;;;;;;x
+unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
+disarmed_pop;a member of a disarmed nation;;;;;;;;;;;;x
+cancel_fac_construction;Cancel factory construction;;;;;;;;;;;;x
+cancel_fac_upgrade;Cancel factory upgrade;;;;;;;;;;;;x
 kierkegaard_1;Either;;;Ya sea;;;;;;;;;x
 kierkegaard_2;Or;;;O tambien;;;;;;;;;x
-open_and_sub;Subsidize & Reopen Factory
-o_set_national_flag;Set national flag $text$ for the owner
-o_add_modifier_until;Owner of the province gets $text$ until $date$
-o_add_modifier;Owner of the province gets $text$
-o_relations_with;Owner of the province's relation with $text$
-o_add_to_treasury; for the owner of the province
-w_rgo_prod;Global RGO production: $x$
-w_artisan_prod;Global artisan production: $x$
-w_fac_prod;Global factory production: $x$
-alice_lose_gp;We are losing §YGreat Power§W status!
-fort_build_tt_1;The province is under your control
-fort_build_tt_2;The province is not under siege
-fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$
-nb_build_tt_1;The province is coastal
-nb_build_tt_2;No other naval base has been built or is under construction in the state
-rr_build_tt_1;Our ruling party allows the government to construct rail roads
-tech_ol_tt;§G$x$§! from your overlord having this technology
-tech_year_tt;§G$x$§! from the current year
+open_and_sub;Subsidize & Reopen Factory;;;;;;;;;;;;x
+o_set_national_flag;Set national flag $text$ for the owner;;;;;;;;;;;;x
+o_add_modifier_until;Owner of the province gets $text$ until $date$;;;;;;;;;;;;x
+o_add_modifier;Owner of the province gets $text$;;;;;;;;;;;;x
+o_relations_with;Owner of the province's relation with $text$;;;;;;;;;;;;x
+o_add_to_treasury; for the owner of the province;;;;;;;;;;;;x
+w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
+w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
+w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
+alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
+fort_build_tt_1;The province is under your control;;;;;;;;;;;;x
+fort_build_tt_2;The province is not under siege;;;;;;;;;;;;x
+fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$;;;;;;;;;;;;x
+nb_build_tt_1;The province is coastal;;;;;;;;;;;;x
+nb_build_tt_2;No other naval base has been built or is under construction in the state;;;;;;;;;;;;x
+rr_build_tt_1;Our ruling party allows the government to construct rail roads;;;;;;;;;;;;x
+tech_ol_tt;§G$x$§! from your overlord having this technology;;;;;;;;;;;;x
+tech_year_tt;§G$x$§! from the current year;;;;;;;;;;;;x
 disband_all;Disband all selected units;;;Desbaratar todas las unidades seleccionadas;;;;;;;;;x
 alice_play_checksum_host;Checksum mismatch with host, ensure you have the same mods and savefiles;;;Los codigos de verificacion no coinciden con el del anfitrion, checa que tengas los mismos mods;;;;;;;;;x
 alice_play_save_stream;Host is streaming a save to you, wait until it completes;;;El anfitrion esta pasandote la partida a ti, espera a que se complete;;;;;;;;;x
@@ -1282,25 +1276,25 @@ ai_will_not_accept_po;The AI will NOT accept this offer;;;IA rechazara esta ofer
 close_and_del;Close & Delete Factory;;;Cerrar & Borrar Industria;;;;;;;;;x
 cb_conditions_header;Conditions to use:;;;Condiciones para usar:;;;;;;;;;x
 as_a_vassal;as a vassal;;;como un vasal;;;;;;;;;x
-change_state_name_to;change state name to $text$
-alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:
-alice_unit_disable_rebel_hunt;Stop hunting rebels
-alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W
-alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W
-alice_tech_queue_info;Press SHIFT to add to queue, right click to remove
-alice_commodity_shortage;§RThere is a shortage of this commodity
-alice_commodity_surplus;§GThere is a surplus of this commodity
-alice_trade_flow_produced;§YDomestic production:
-alice_trade_flow_consumed;§YDomestic consumption:
+change_state_name_to;change state name to $text$;;;;;;;;;;;;x
+alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side in the current crisis:;;;;;;;;;;;;x
+alice_unit_disable_rebel_hunt;Stop hunting rebels;;;;;;;;;;;;x
+alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W;;;;;;;;;;;;x
+alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W;;;;;;;;;;;;x
+alice_tech_queue_info;Press SHIFT to add to queue, right click to remove;;;;;;;;;;;;x
+alice_commodity_shortage;§RThere is a shortage of this commodity;;;;;;;;;;;;x
+alice_commodity_surplus;§GThere is a surplus of this commodity;;;;;;;;;;;;x
+alice_trade_flow_produced;§YDomestic production:;;;;;;;;;;;;x
+alice_trade_flow_consumed;§YDomestic consumption:;;;;;;;;;;;;x
 alice_trade_flow_label;Market overview:;;;Analisis del mercado:;;;;;;;;;x
 alice_trade_flow_piechart_producers;Producers;;;Productores;;;;;;;;;x
 alice_trade_flow_piechart_consumers;Consumers;;;Consumidores;;;;;;;;;x
-alice_trade_flow_piechart_workforce;Workforce;;;Profesiones;;;;;;;;;x
+alice_trade_flow_piechart_workforce;Investors;;;Inversionistas;;;;;;;;;x
 alice_diplo_release_subject;Release subject;;;Liberar subdito;;;;;;;;;x
-alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly
+alice_diplo_release_subject_desc;Releases one of our subjects, making them no longer our subject, alliances need to be broken separatedly;;;;;;;;;;;;x
 alice_diplo_release_subject_0;Is our subject;;;Es nuestro subdito;;;;;;;;;x
 e_kill_leader;Kill leader;;;Matar lider;;;;;;;;;x
 e_annex_null;becomes unowned;;;se hace sin duenio;;;;;;;;;x
 meets_the_conditions_of;meets the conditions of ;;;cumple con las condiciones de ;;;;;;;;;x
-does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;x
+does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;;;x
 ;;;;;;;;;;;;;x

@@ -692,7 +692,7 @@ void crisis_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::localised_single_sub_box(state, contents, box, std::string_view("flashpoint_tension"), text::variable_type::value, text::format_percentage(fat.get_state_membership().get_flashpoint_tension(), 0));
+		text::localised_single_sub_box(state, contents, box, std::string_view("flashpoint_tension"), text::variable_type::value, std::to_string(int32_t(fat.get_state_membership().get_flashpoint_tension())));
 		text::close_layout_box(contents, box);
 	}
 }

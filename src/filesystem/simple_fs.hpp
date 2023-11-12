@@ -74,6 +74,7 @@ native_string get_full_name(file const& f);
 
 // functions that operate outside of a filesystem object
 directory get_or_create_save_game_directory();
+directory get_or_create_oos_directory();
 directory get_or_create_scenario_directory();
 directory get_or_create_settings_directory();
 

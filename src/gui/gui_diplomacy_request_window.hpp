@@ -63,12 +63,8 @@ public:
 	}
 };
 
-class diplomacy_request_desc_text : public generic_multiline_text<diplomatic_message::message> {
-public:
-	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message diplomacy_request) noexcept override {
-
-
-		
+class diplomacy_request_desc_text : public scrollable_text {
+	void populate_layout(sys::state& state, text::endless_layout& contents, diplomatic_message::message diplomacy_request) noexcept {
 		switch(diplomacy_request.type) {
 		case diplomatic_message::type_t::none:
 			break;
@@ -188,7 +184,37 @@ public:
 			}
 			break;
 		}
-		
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		text::alignment align = text::alignment::left;
+		switch(base_data.data.text.get_alignment()) {
+		case ui::alignment::right:
+			align = text::alignment::right;
+			break;
+		case ui::alignment::centered:
+			align = text::alignment::center;
+			break;
+		default:
+			break;
+		}
+		auto border = base_data.data.text.border_size;
+
+		auto content = retrieve<diplomatic_message::message>(state, parent);
+		auto color = delegate->black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			delegate->internal_layout,
+			text::layout_parameters{
+				border.x,
+				border.y,
+				int16_t(base_data.size.x - border.x * 2),
+				int16_t(base_data.size.y - border.y * 2),
+				base_data.data.text.font_handle,
+				0,
+				align,
+				color,
+				false });
+		populate_layout(state, container, content);
 	}
 };
 

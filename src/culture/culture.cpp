@@ -906,8 +906,8 @@ void update_research(sys::state& state, uint32_t current_year) {
 							ui::technology_description(state, contents, t);
 						},
 						"msg_tech_title",
-						n,
-						sys::message_setting_type::tech
+						n, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::tech
 					});
 
 					n.set_current_research(dcon::technology_id{});
@@ -950,8 +950,8 @@ void discover_inventions(sys::state& state) {
 												ui::invention_description(state, contents, inv, 0);
 											},
 											"msg_inv_title",
-											n,
-											sys::message_setting_type::invention
+											n, dcon::nation_id{}, dcon::nation_id{},
+											sys::message_base_type::invention
 										});
 									}
 								}
@@ -978,9 +978,9 @@ void discover_inventions(sys::state& state) {
 												text::add_line(state, contents, "msg_inv_1", text::variable_type::x, state.world.invention_get_name(inv));
 												ui::invention_description(state, contents, inv, 0);
 											},
-												"msg_inv_title",
-												n,
-												sys::message_setting_type::invention
+											"msg_inv_title",
+											n, dcon::nation_id{}, dcon::nation_id{},
+											sys::message_base_type::invention
 										});
 									}
 								}
