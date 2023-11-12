@@ -379,6 +379,12 @@ struct crisis_member_def {
 	bool supports_attacker = false;
 	bool merely_interested = false;
 };
+static_assert(sizeof(crisis_member_def) ==
+	sizeof(crisis_member_def::id)
+	+ sizeof(crisis_member_def::joined_with_offer)
+	+ sizeof(crisis_member_def::supports_attacker)
+	+ sizeof(crisis_member_def::merely_interested));
+
 enum class crisis_type : uint32_t { none = 0, claim = 1, liberation = 2, colonial = 3, influence = 4 };
 enum class crisis_mode : uint32_t { inactive = 0, finding_attacker = 1, finding_defender = 2, heating_up = 3 };
 
@@ -389,6 +395,9 @@ struct great_nation {
 	great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
 	great_nation() = default;
 };
+static_assert(sizeof(great_nation) ==
+	sizeof(great_nation::last_greatness)
+	+ sizeof(great_nation::nation));
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
