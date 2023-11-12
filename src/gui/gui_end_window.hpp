@@ -251,7 +251,7 @@ public:
 		} else if(name == "workforce_chart") {
 			return make_element_by_type<nation_picker_poptypes_chart>(state, id);
 		} else if(name == "ledger_button") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		}
 		return nullptr;
 	}
