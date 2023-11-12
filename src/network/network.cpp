@@ -535,7 +535,7 @@ void send_and_receive_commands(sys::state& state) {
 			int r = socket_recv(state.network_state.socket_fd, &state.network_state.s_hshake, sizeof(state.network_state.s_hshake), &state.network_state.recv_count, [&]() {
 				if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
 #ifdef _WIN64
-					MessageBoxA(NULL, "Scenario is not the same as the host!", "Network error", MB_OK);
+					//MessageBoxA(NULL, "Scenario is not the same as the host!", "Network error", MB_OK);
 #endif
 					//std::abort();
 				}
