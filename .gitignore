@@ -23,6 +23,8 @@ DartConfiguration.tcl
 *.userosscache
 *.sln.docstates
 *.runsettings
+
+# Generated compile commands JSON
 compile_commands.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
