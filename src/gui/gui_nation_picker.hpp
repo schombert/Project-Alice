@@ -775,10 +775,31 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
 		if(payload.holds_type<dcon::nation_id>()) {
+			uint32_t max = uint32_t(state.defines.great_nations_count) * 2;
 			if(nth_gp >= state.nations_by_military_score.size()) {
 				payload.emplace<dcon::nation_id>(dcon::nation_id{ });
 			} else {
-				payload.emplace<dcon::nation_id>(state.nations_by_military_score[nth_gp]);
+				if(nth_gp == max - 1) {
+					for(const auto n : state.nations_by_military_score) {
+						if(state.world.nation_get_is_civilized(n) == false) {
+							payload.emplace<dcon::nation_id>(n);
+							break;
+						}
+					}
+				} else if(nth_gp == max - 2) {
+					int32_t count = 0;
+					for(const auto n : state.nations_by_military_score) {
+						if(state.world.nation_get_is_civilized(n) == false) {
+							if(count > 0) {
+								payload.emplace<dcon::nation_id>(n);
+								break;
+							}
+							count++;
+						}
+					}
+				} else {
+					payload.emplace<dcon::nation_id>(state.nations_by_military_score[nth_gp]);
+				}
 			}
 			return message_result::consumed;
 		}
