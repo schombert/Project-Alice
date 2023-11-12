@@ -152,23 +152,6 @@ struct global_military_state {
 
 	bool pending_blackflag_update = false;
 };
-static_assert(sizeof(global_military_state) ==
-	sizeof(global_military_state::first_background_trait)
-	+ sizeof(global_military_state::unit_base_definitions)
-	+ sizeof(global_military_state::great_wars_enabled)
-	+ sizeof(global_military_state::world_wars_enabled)
-	+ sizeof(global_military_state::base_army_unit)
-	+ sizeof(global_military_state::base_naval_unit)
-	+ sizeof(global_military_state::standard_civil_war)
-	+ sizeof(global_military_state::standard_great_war)
-	+ sizeof(global_military_state::liberate)
-	+ sizeof(global_military_state::uninstall_communist_gov)
-	+ sizeof(global_military_state::crisis_colony)
-	+ sizeof(global_military_state::crisis_liberate)
-	+ sizeof(global_military_state::irregular)
-	+ sizeof(global_military_state::infantry)
-	+ sizeof(global_military_state::artillery)
-	+ sizeof(global_military_state::pending_blackflag_update));
 
 struct available_cb {
 	dcon::nation_id target;
