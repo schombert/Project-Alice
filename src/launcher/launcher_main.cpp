@@ -84,9 +84,9 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 48, 286, 33 }, // create scenario
 	ui_active_rect{ 555, 48 + 156 * 1, 286, 33 }, // play game
 	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 0, 138, 33 }, // host game
-	ui_active_rect{ 695, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
-	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 2 - 4, 200, 33 }, // ip address textbox
-	ui_active_rect{ 757, 48 + 156 * 2 + 36 * 2 - 4, 76, 33 }, // player name textbox
+	ui_active_rect{ 703, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 200, 23 }, // ip address textbox
+	ui_active_rect{ 757, 54 + 156 * 2 + 36 * 2, 76, 23 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
 	ui_active_rect{ 60 + 383, 75 + 32 * 0 + 4, 24, 24 },
@@ -455,11 +455,11 @@ void mouse_click() {
 					temp_command_line += simple_fs::utf8_to_native(ip_addr);
 					temp_command_line += NATIVE(" -name ");
 					temp_command_line += simple_fs::utf8_to_native(player_name);
-				}
 
-				// IPv6 address
-				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
-					temp_command_line += NATIVE(" -v6");
+					// IPv6 address
+					if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
+						temp_command_line += NATIVE(" -v6");
+					}
 				}
 
 				STARTUPINFO si;
@@ -852,6 +852,8 @@ static ::ogl::texture check_tex;
 static ::ogl::texture up_tex;
 static ::ogl::texture down_tex;
 static ::ogl::texture line_bg_tex;
+static ::ogl::texture big_l_button_tex;
+static ::ogl::texture big_r_button_tex;
 
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
@@ -881,7 +883,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 78.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -977,13 +979,13 @@ void render() {
 			ui_rects[ui_obj_host_game].y,
 			ui_rects[ui_obj_host_game].width,
 			ui_rects[ui_obj_host_game].height,
-			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+			big_l_button_tex.get_texture_handle(), ui::rotation::upright, false);
 		launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_join_game ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 			ui_rects[ui_obj_join_game].x,
 			ui_rects[ui_obj_join_game].y,
 			ui_rects[ui_obj_join_game].width,
 			ui_rects[ui_obj_join_game].height,
-			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+			big_r_button_tex.get_texture_handle(), ui::rotation::upright, false);
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 			ui_rects[ui_obj_play_game].x,
@@ -996,13 +998,13 @@ void render() {
 			ui_rects[ui_obj_host_game].y,
 			ui_rects[ui_obj_host_game].width,
 			ui_rects[ui_obj_host_game].height,
-			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+			big_l_button_tex.get_texture_handle(), ui::rotation::upright, false);
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
 			ui_rects[ui_obj_join_game].x,
 			ui_rects[ui_obj_join_game].y,
 			ui_rects[ui_obj_join_game].width,
 			ui_rects[ui_obj_join_game].height,
-			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+			big_r_button_tex.get_texture_handle(), ui::rotation::upright, false);
 
 		/*830, 250*/
 		// No scenario file found
@@ -1047,10 +1049,10 @@ void render() {
 	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	// Text fields
-	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 4.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 5.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
-	float pn_x_pos = ui_rects[ui_obj_player_name].x + 4.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 5.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
+	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
@@ -1178,6 +1180,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_right.png"), fs, right_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_close.png"), fs, close_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_button.png"), fs, big_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_left.png"), fs, big_l_button_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_big_right.png"), fs, big_r_button_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_no_check.png"), fs, empty_check_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_check.png"), fs, check_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_up.png"), fs, up_tex, false);
@@ -1299,23 +1303,51 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			case WM_DESTROY:
 				PostQuitMessage(0);
 				return 1;
+			case WM_KEYDOWN:
+				if(GetKeyState(VK_CONTROL) & 0x8000) {
+					if(wParam == L'v' || wParam == L'V') {
+						if(!IsClipboardFormatAvailable(CF_TEXT))
+							return 0;
+						if(!OpenClipboard(m_hwnd))
+							return 0;
+
+						auto hglb = GetClipboardData(CF_TEXT);
+						if(hglb != nullptr) {
+							auto lptstr = GlobalLock(hglb);
+							if(lptstr != nullptr) {
+								std::string cb_data((char*)lptstr);
+								while(cb_data.length() > 0 && isspace(cb_data.back())) {
+									cb_data.pop_back();
+								}
+								ip_addr = cb_data;
+								GlobalUnlock(hglb);
+							}
+						}
+						CloseClipboard();
+					}
+				}
+				return 0;
 			case WM_CHAR:
 			{
-				char turned_into = process_utf16_to_win1250(wParam);
-				if(turned_into) {
-					if(obj_under_mouse == ui_obj_ip_addr) {
-						if(turned_into == '\b') {
-							if(!ip_addr.empty())
-								ip_addr.pop_back();
-						} else if(turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
-							ip_addr.push_back(turned_into);
-						}
-					} else if(obj_under_mouse == ui_obj_player_name) {
-						if(turned_into == '\b') {
-							if(!player_name.empty())
-								player_name.pop_back();
-						} else if(turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
-							player_name.push_back(turned_into);
+				if(GetKeyState(VK_CONTROL) & 0x8000) {
+
+				} else {
+					char turned_into = process_utf16_to_win1250(wParam);
+					if(turned_into) {
+						if(obj_under_mouse == ui_obj_ip_addr) {
+							if(turned_into == '\b') {
+								if(!ip_addr.empty())
+									ip_addr.pop_back();
+							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+								ip_addr.push_back(turned_into);
+							}
+						} else if(obj_under_mouse == ui_obj_player_name) {
+							if(turned_into == '\b') {
+								if(!player_name.empty())
+									player_name.pop_back();
+							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+								player_name.push_back(turned_into);
+							}
 						}
 					}
 				}

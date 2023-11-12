@@ -19,6 +19,7 @@ effect_volume_label;Sound effect volume;;;Volumen de los efectos de sonido;;;;;;
 fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
+gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
