@@ -115,6 +115,20 @@ class antialiasing_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class gaussianblur_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gaussianblur_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class gaussianblur_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 class music_player_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -198,6 +212,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<antialiasing_left>(state, id);
 		} else if(name == "antialiasing_right") {
 			return make_element_by_type<antialiasing_right>(state, id);
+		} else if(name == "gaussianblur_value") {
+			return make_element_by_type<gaussianblur_display>(state, id);
+		} else if(name == "gaussianblur_left") {
+			return make_element_by_type<gaussianblur_left>(state, id);
+		} else if(name == "gaussianblur_right") {
+			return make_element_by_type<gaussianblur_right>(state, id);
 		} else {
 			return nullptr;
 		}

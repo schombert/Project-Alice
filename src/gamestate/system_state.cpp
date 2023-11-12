@@ -1724,6 +1724,7 @@ void state::save_user_settings() const {
 	ptr += upper_half_count;
 	US_SAVE(map_label);
 	US_SAVE(antialias_level);
+	US_SAVE(gaussianblur_level);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1773,6 +1774,7 @@ void state::load_user_settings() {
 			ptr += upper_half_count;
 			US_LOAD(map_label);
 			US_LOAD(antialias_level);
+			US_LOAD(gaussianblur_level);
 #undef US_LOAD
 		} while(false);
 
@@ -1782,6 +1784,7 @@ void state::load_user_settings() {
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
 		if(user_settings.antialias_level > 16)
 			user_settings.antialias_level = 0;
+		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 2.0f);
 	}
 }
 
