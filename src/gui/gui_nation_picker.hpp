@@ -12,8 +12,15 @@ public:
 		auto fat_id = dcon::fatten(state.world, retrieve<dcon::nation_id>(state, parent));
 		return fat_id.get_identity_from_identity_holder();
 	}
-	void button_action(sys::state& state) noexcept override {
 
+	void button_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			state.local_player_nation = n;
+			state.ui_state.nation_picker->impl_on_update(state);
+		} else {
+			command::notify_player_picks_nation(state, state.local_player_nation, n);
+		}
 	}
 };
 
@@ -786,9 +793,7 @@ public:
 				base_data.data.text.font_handle, 0, text::alignment::left,
 				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
 				false });
-		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, std::string_view("gc_desc"));
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "gc_desc");
 		calibrate_scrollbar(state);
 	}
 };

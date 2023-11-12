@@ -1113,6 +1113,8 @@ void scrollable_text::on_create(sys::state& state) noexcept {
 	make_size_from_graphics(state, res->base_data);
 	res->base_data.position.x = 0;
 	res->base_data.position.y = 0;
+	res->base_data.flags &= ~res->base_data.orientation_mask;
+	res->base_data.flags |= uint8_t(ui::orientation::upper_left);
 	res->on_create(state);
 	delegate = res.get();
 	add_child_to_front(std::move(res));
