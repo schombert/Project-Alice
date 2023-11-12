@@ -792,7 +792,7 @@ public:
 		if(name == "frontend_chat_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			int16_t x_offset = 0;
-			for(uint32_t i = 0; i < 16; i++) {
+			for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) * 2; i++) {
 				auto rec = make_element_by_type<nation_picker_recommended_country>(state, "alice_recommended_nation");
 				static_cast<nation_picker_recommended_country*>(rec.get())->nth_gp = uint16_t(i);
 				rec->base_data.position.x += int16_t(i) * rec->base_data.size.x;
