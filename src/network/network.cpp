@@ -117,8 +117,15 @@ static void socket_shutdown(socket_t socket_fd) {
 
 static socket_t socket_init_server(struct sockaddr_in& server_address) {
 	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
+
+#ifdef _WIN64
+	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET))
+		std::abort();
+#else
 	if(socket_fd < 0)
 		std::abort();
+#endif
+
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
@@ -154,8 +161,15 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 
 static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
+
+#ifdef _WIN64
+	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET))
+		std::abort();
+#else
 	if(socket_fd < 0)
 		std::abort();
+#endif
+
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
@@ -191,14 +205,21 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 
 static socket_t socket_init_client(struct sockaddr_in& client_address, const char *ip_address) {
 	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
-	if(socket_fd < 0) {
+
 #ifdef _WIN64
+	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
 		MessageBoxA(NULL, ("Network socket error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
+	}
+#else
+	if(socket_fd < 0) {
 		std::abort();
 	}
+#endif
+
+	
 	client_address.sin_family = AF_INET;
 	client_address.sin_port = htons(default_server_port);
+
 	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
 #ifdef _WIN64
 		MessageBoxA(NULL, ("Network inet_pton error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
@@ -216,12 +237,17 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 
 static socket_t socket_init_client(struct sockaddr_in6& client_address, const char* ip_address) {
 	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
-	if(socket_fd < 0) {
+
 #ifdef _WIN64
+	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
 		MessageBoxA(NULL, ("Network socket error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
+	}
+#else
+	if(socket_fd < 0) {
 		std::abort();
 	}
+#endif
+
 	client_address.sin6_addr = IN6ADDR_ANY_INIT;
 	client_address.sin6_family = AF_INET6;
 	client_address.sin6_port = htons(default_server_port);

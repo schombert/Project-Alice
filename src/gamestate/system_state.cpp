@@ -41,10 +41,12 @@ namespace sys {
 
 void state::start_state_selection(sys::state& state, state_selection_data& data) {
 	state.mode = sys::game_mode_type::select_states;
+	if(state.state_selection) {
+		state.state_selection->on_cancel(state);
+	}
 	state.state_selection = data;
 	map_mode::set_map_mode(state, state.map_state.active_map_mode);
 	state.ui_state.select_states_legend->impl_on_update(state);
-	state.state_selection.emplace(data);
 }
 
 void state::finish_state_selection(sys::state& state) {
@@ -4168,7 +4170,7 @@ void state::game_loop() {
 				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
 			}
 
-			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
+			if(speed <= 0 || upause || internally_paused || (mode != sys::game_mode_type::in_game && mode != sys::game_mode_type::select_states)) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
