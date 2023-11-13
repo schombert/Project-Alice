@@ -1251,23 +1251,50 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	return text::resolve_string_substitution(state, state.world.rebel_faction_get_type(reb).get_name(), sub);
 }
 
+bool allow_in_area(sys::state& state, dcon::province_id p, dcon::province_id l, dcon::rebel_faction_id reb) {
+	auto rf = dcon::fatten(state.world, reb);
+	auto prov = dcon::fatten(state.world, p);
+	auto location = dcon::fatten(state.world, l);
+	switch(culture::rebel_area(rf.get_type().get_area())) {
+	case culture::rebel_area::all:
+		return true;
+	case culture::rebel_area::culture:
+		return prov.get_dominant_culture() == rf.get_primary_culture();
+	case culture::rebel_area::culture_group:
+		return prov.get_dominant_culture().get_culture_group_membership().get_group() == rf.get_primary_culture_group();
+	case culture::rebel_area::religion:
+		return prov.get_dominant_religion() == rf.get_religion();
+	case culture::rebel_area::nation_religion:
+		return prov.get_dominant_religion() == rf.get_defection_target().get_religion() && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+	case culture::rebel_area::nation_culture:
+		return prov.get_dominant_culture() == rf.get_defection_target().get_primary_culture() && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+	case culture::rebel_area::nation:
+		return prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+	default:
+		break;
+	}
+	return false;
+}
+
 void update_armies(sys::state& state) {
-	for(const auto arc : state.world.in_army_rebel_control) {
+	concurrency::parallel_for(uint32_t(0), state.world.army_rebel_control_size(), [&](uint32_t i) {
+		auto ar_reb_control = dcon::army_rebel_control_id{ dcon::army_rebel_control_id::value_base_t(i) };
+		if(!state.world.army_rebel_control_is_valid(ar_reb_control))
+			return;
+		auto arc = dcon::fatten(state.world, ar_reb_control);
 		auto ar = arc.get_army();
 		if(!ar.get_army_rebel_control().get_controller()) /* Not a rebel army */
-			continue;
+			return;
 		if(ar.get_arrival_time() != sys::date{}) /* Do not interrupt travel */
-			continue;
+			return;
 		if(ar.get_army_battle_participation().get_battle()) /* In battle */
-			continue;
-
+			return;
 		auto type = arc.get_controller().get_type();
 		auto area = arc.get_controller().get_type().get_area();
 		auto location = ar.get_location_from_army_location();
 		/* If on an unsieged province, siege it! */
 		if(location.get_nation_from_province_control() && !location.get_province_rebel_control())
-			continue;
-
+			return;
 		dcon::province_fat_id best_prov = location;
 		float best_weight = 0.f;// trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(best_prov), trigger::to_generic(best_prov), 0);;
 		for(const auto adj : location.get_province_adjacency()) {
@@ -1279,37 +1306,7 @@ void update_armies(sys::state& state) {
 			/* impassable */
 			if((adj.get_type() & province::border::impassible_bit) != 0)
 				continue;
-
-			bool allow = false;
-			switch(culture::rebel_area(area)) {
-			case culture::rebel_area::all:
-				allow = true;
-				break;
-			case culture::rebel_area::culture:
-				allow = prov.get_dominant_culture() == arc.get_controller().get_primary_culture();
-				break;
-			case culture::rebel_area::culture_group:
-				allow = prov.get_dominant_culture().get_culture_group_membership().get_group() == arc.get_controller().get_primary_culture_group();
-				break;
-			case culture::rebel_area::religion:
-				allow = prov.get_dominant_religion() == arc.get_controller().get_religion();
-				break;
-			case culture::rebel_area::nation_religion:
-				allow = prov.get_dominant_religion() == arc.get_controller().get_defection_target().get_religion();
-				allow = allow && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
-				break;
-			case culture::rebel_area::nation_culture:
-				allow = prov.get_dominant_culture() == arc.get_controller().get_defection_target().get_primary_culture();
-				allow = allow && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
-				break;
-			case culture::rebel_area::nation:
-				allow = prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
-				break;
-			default:
-				break;
-			}
-
-			if(allow) {
+			if(allow_in_area(state, prov, location, arc.get_controller())) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
 				float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())));
 				if(weight >= best_weight) {
@@ -1325,7 +1322,7 @@ void update_armies(sys::state& state) {
 			ar.set_dig_in(0);
 			ar.set_is_rebel_hunter(false);
 		}
-	}
+	});
 }
 
 } // namespace rebel
