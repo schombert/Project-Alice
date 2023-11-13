@@ -1616,7 +1616,7 @@ object {
 object {
 	name{ army }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 8000 }
 	tag{ save }
 
 	property{
