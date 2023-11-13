@@ -21,6 +21,7 @@
 #include "gui_naval_combat.hpp"
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
+#include "gui_state_select.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
@@ -37,6 +38,39 @@
 #include "blake2.h"
 
 namespace sys {
+
+void state::start_state_selection(sys::state& state, state_selection_data& data) {
+	state.mode = sys::game_mode_type::select_states;
+	state.state_selection = data;
+	map_mode::set_map_mode(state, state.map_state.active_map_mode);
+	state.ui_state.select_states_legend->impl_on_update(state);
+	state.state_selection.emplace(data);
+}
+
+void state::finish_state_selection(sys::state& state) {
+	state.mode = sys::game_mode_type::in_game;
+	state.state_selection.reset();
+}
+
+void state::state_select(sys::state& state, dcon::state_definition_id sdef) {
+	assert(state.state_selection.has_value());
+	if(std::find(state.state_selection->selectable_states.begin(), state.state_selection->selectable_states.end(), sdef) != state.state_selection->selectable_states.end()) {
+		if(state.state_selection->single_state_select) {
+			state.state_selection->on_select(state, sdef);
+			finish_state_selection(state);
+		} else {
+			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
+			if(it == state.selected_states.end()) {
+				on_select(sdef);
+			} else {
+				state.selected_states.erase(std::remove(state.selected_states.begin(), state.selected_states.end(), sdef), state.selected_states.end());
+			}*/
+			std::abort();
+		}
+	}
+	state.map_state.update(state);
+}
+
 //
 // window event functions
 //
@@ -70,7 +104,6 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			sound::play_interface_sound(*this, sound::get_click_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
-
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
 				bool fail = false;
 				bool army_play = false;
@@ -145,6 +178,11 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
+		} else if(mode == sys::game_mode_type::select_states) {
+			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
+			auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
+			state_select(*this, sdef);
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
@@ -346,6 +384,14 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			}
 
 			map_state.on_key_down(keycode, mod);
+		}
+	} else if(mode == sys::game_mode_type::select_states) {
+		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			map_state.on_key_down(keycode, mod);
+			if(keycode == virtual_key::ESCAPE) {
+				mode = sys::game_mode_type::in_game;
+				ui_state.root->impl_on_update(*this);
+			}
 		}
 	} else if(mode == sys::game_mode_type::end_screen) {
 
@@ -706,6 +752,168 @@ void state::render() { // called to render the frame may (and should) delay retu
 		ui_state.relative_mouse_location = mouse_probe.relative_location;
 
 		ui_state.nation_picker->impl_render(*this, 0, 0);
+		if(ui_state.tooltip->is_visible()) {
+			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
+		}
+		return;
+	} else if(mode == sys::game_mode_type::select_states) {  // SELECT STATES RENDERING
+		ui_state.select_states_legend->base_data.size.x = ui_state.root->base_data.size.x;
+		ui_state.select_states_legend->base_data.size.y = ui_state.root->base_data.size.y;
+
+		auto mouse_probe = ui_state.select_states_legend->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+		auto tooltip_probe = ui_state.select_states_legend->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+
+		if(game_state_was_updated) {
+			this->map_state.map_data.update_borders(*this);
+			nations::update_ui_rankings(*this);
+
+
+
+			ui_state.select_states_legend->impl_on_update(*this);
+			map_mode::update_map_mode(*this);
+
+
+			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				}
+			}
+		}
+
+
+
+		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
+			ui_state.last_tooltip = tooltip_probe.under_mouse;
+			if(tooltip_probe.under_mouse) {
+				auto type = ui_state.last_tooltip->has_tooltip(*this);
+				if(type != ui::tooltip_behavior::no_tooltip) {
+
+					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
+									text::alignment::left,
+									text::text_color::white, true },
+							 10);
+					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
+							container);
+					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+					if(container.used_width > 0)
+						ui_state.tooltip->set_visible(*this, true);
+					else
+						ui_state.tooltip->set_visible(*this, false);
+				} else {
+					ui_state.tooltip->set_visible(*this, false);
+				}
+			} else {
+				ui_state.tooltip->set_visible(*this, false);
+			}
+		} else if(ui_state.last_tooltip &&
+							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
+							text::alignment::left,
+							text::text_color::white, true },
+					 10);
+			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
+			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(container.used_width > 0)
+				ui_state.tooltip->set_visible(*this, true);
+			else
+				ui_state.tooltip->set_visible(*this, false);
+		}
+
+		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
+			// reposition tooltip
+			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+			if(ui_state.tooltip->base_data.size.y <=
+					ui_state.select_states_legend->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else if(ui_state.tooltip->base_data.size.x <=
+								ui_state.select_states_legend->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0),
+						int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
+				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
+				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
+			} else {
+				ui_state.tooltip->base_data.position.x = std::clamp(
+						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
+						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
+				ui_state.tooltip->base_data.position.y = std::clamp(
+						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
+						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
+			}
+		}
+
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		if(bg_gfx_id) {
+			// Render default background
+			glUseProgram(open_gl.ui_shader_program);
+			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glViewport(0, 0, x_size, y_size);
+			glDepthRange(-1.0f, 1.0f);
+			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+			if(gfx_def.primary_texture_handle) {
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						ui::rotation::upright, gfx_def.is_vertically_flipped());
+			}
+		}
+
+		map_state.render(*this, x_size, y_size);
+
+		// UI rendering
+		glUseProgram(open_gl.ui_shader_program);
+		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
+		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glViewport(0, 0, x_size, y_size);
+		glDepthRange(-1.0f, 1.0f);
+
+		ui_state.under_mouse = mouse_probe.under_mouse;
+		ui_state.scroll_target = ui_state.select_states_legend->impl_probe_mouse(*this,
+			int32_t(mouse_x_position / user_settings.ui_scale),
+			int32_t(mouse_y_position / user_settings.ui_scale),
+			ui::mouse_probe_type::scroll).under_mouse;
+
+		ui_state.relative_mouse_location = mouse_probe.relative_location;
+
+		ui_state.select_states_legend->impl_render(*this, 0, 0);
 		if(ui_state.tooltip->is_visible()) {
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
@@ -1366,6 +1574,8 @@ void state::on_create() {
 	ui_state.unit_details_box->set_visible(*this, false);
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
+	ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(*this, ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
+
 	ui_state.end_screen = std::make_unique<ui::container_base>();
 	{
 		auto ewin = ui::make_element_by_type<ui::end_window>(*this, ui_state.defs_by_name.find("back_end")->second.definition);
