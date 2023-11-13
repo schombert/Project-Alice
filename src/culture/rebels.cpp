@@ -1308,7 +1308,13 @@ void update_armies(sys::state& state) {
 				continue;
 			if(allow_in_area(state, prov, location, arc.get_controller())) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
-				float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())));
+				float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())) % 100);
+				//if(prov.get_army_location().begin() != prov.get_army_location().end()) {
+				//	weight *= 0.001f;
+				//}
+				//if(prov.get_rebel_faction_from_province_rebel_control()) {
+				//	weight *= 0.00001f;
+				//}
 				if(weight >= best_weight) {
 					best_weight = weight;
 					best_prov = prov;
