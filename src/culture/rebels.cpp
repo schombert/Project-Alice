@@ -1254,10 +1254,11 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 void update_armies(sys::state& state) {
 	for(const auto arc : state.world.in_army_rebel_control) {
 		auto ar = arc.get_army();
-		/* Do not interrupt travel or battle */
-		if(ar.get_arrival_time() != sys::date{})
+		if(!ar.get_army_rebel_control()) /* Not a rebel army */
 			continue;
-		if(ar.get_army_battle_participation().get_battle())
+		if(ar.get_arrival_time() != sys::date{}) /* Do not interrupt travel */
+			continue;
+		if(ar.get_army_battle_participation().get_battle()) /* In battle */
 			continue;
 
 		auto type = arc.get_controller().get_type();
@@ -1274,7 +1275,7 @@ void update_armies(sys::state& state) {
 			auto prov = adj.get_connected_provinces(indx);
 
 			bool allow = true;
-			/*switch(culture::rebel_area(area)) {
+			switch(culture::rebel_area(area)) {
 			case culture::rebel_area::all:
 				allow = true;
 				break;
@@ -1300,7 +1301,7 @@ void update_armies(sys::state& state) {
 				break;
 			default:
 				break;
-			}*/
+			}
 
 			//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
 			float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())));
