@@ -502,6 +502,7 @@ public:
 	}
 };
 
+/*
 class diplomacy_action_give_military_access_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -559,6 +560,7 @@ public:
 
 	}
 };
+*/
 
 class diplomacy_action_war_subisides_button : public button_element_base {
 public:

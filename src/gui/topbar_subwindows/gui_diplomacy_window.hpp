@@ -2365,8 +2365,6 @@ public:
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_military_access_button>>(state, options_offset);
 		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_give_military_access_button>>(state, options_offset);
-		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_declare_war_button>>(state, options_offset);
