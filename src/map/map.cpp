@@ -640,6 +640,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// draw Screen quad
 		glUseProgram(state.open_gl.msaa_shader_program);
+		glUniform1f(0, state.user_settings.gaussianblur_level);
+		glUniform2f(1, screen_size.x, screen_size.y);
+		//
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, state.open_gl.msaa_texture); // use the now resolved color attachment as the quad's texture
 		glBindVertexArray(state.open_gl.msaa_vao);

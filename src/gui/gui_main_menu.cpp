@@ -196,6 +196,28 @@ void antialiasing_display::on_update(sys::state& state) noexcept {
 	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
 }
 
+void gaussianblur_left::button_action(sys::state& state) noexcept {
+	if(state.user_settings.gaussianblur_level > 1.f) {
+		state.user_settings.gaussianblur_level -= 0.03125f;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void gaussianblur_left::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.gaussianblur_level == 1.f) || (state.user_settings.antialias_level == 0);
+}
+void gaussianblur_right::button_action(sys::state& state) noexcept {
+	if(state.user_settings.gaussianblur_level < 1.5f) {
+		state.user_settings.gaussianblur_level += 0.03125f;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void gaussianblur_right::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.gaussianblur_level >= 1.5f) || (state.user_settings.antialias_level == 0);
+}
+void gaussianblur_display::on_update(sys::state& state) noexcept {
+	set_text(state, "x" + text::format_float(state.user_settings.gaussianblur_level));
+}
+
 /*
 class autosave_left : public button_element_base {
 public:

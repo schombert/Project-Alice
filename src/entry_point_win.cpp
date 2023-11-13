@@ -184,12 +184,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			}
 #endif
 		} else {
-#ifndef NDEBUG
-			{
-				auto msg = std::string("Loading scenario  ") + simple_fs::native_to_utf8(parsed_cmd[1]);
-				window::emit_error_message(msg, false);
-			}
-#endif
 			for(int i = 1; i < num_params; ++i) {
 				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
 					game_state.network_mode = sys::network_mode_type::host;
