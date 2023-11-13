@@ -326,110 +326,6 @@ public:
 	}
 };
 
-class diplomacy_action_call_ally_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "callally_button"));
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = true;
-		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
-			if(command::can_call_to_arms(state, state.local_player_nation, content, war_par.get_war())) {
-
-				if(!state.world.nation_get_is_player_controlled(content)) {
-					diplomatic_message::message m;
-					m.type = diplomatic_message::type::call_ally_request;
-					m.from = state.local_player_nation;
-					m.to = content;
-					m.data.war = war_par.get_war();
-					if(diplomatic_message::ai_will_accept(state, m)) {
-						disabled = false;
-						break;
-					}
-				} else {
-					disabled = false;
-					break;
-				}
-			}
-		}
-	}
-
-	void button_action(sys::state& state) noexcept override {
-
-		auto asker = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		for(auto war_par : state.world.nation_get_war_participant(asker)) {
-			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
-
-				if(!state.world.nation_get_is_player_controlled(target)) {
-					diplomatic_message::message m;
-					m.type = diplomatic_message::type::call_ally_request;
-					m.from = state.local_player_nation;
-					m.to = target;
-					m.data.war = war_par.get_war();
-					if(diplomatic_message::ai_will_accept(state, m)) {
-						command::call_to_arms(state, asker, target, war_par.get_war());
-					}
-				} else {
-					command::call_to_arms(state, asker, target, war_par.get_war());
-				}
-			}
-		}
-
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
-		auto asker = state.local_player_nation;
-		auto target = retrieve<dcon::nation_id>(state, parent);
-
-		text::add_line(state, contents, "remove_callally_desc");
-		text::add_line_break_to_layout(state, contents);
-
-		if(state.defines.callally_diplomatic_cost > 0) {
-			text::add_line_with_condition(state, contents, "call_ally_explain_2", state.world.nation_get_diplomatic_points(asker) >= state.defines.callally_diplomatic_cost, text::variable_type::x, int64_t(state.defines.callally_diplomatic_cost));
-		}
-		text::add_line_with_condition(state, contents, "call_ally_explain_1", nations::are_allied(state, asker, target));
-		text::add_line_with_condition(state, contents, "call_ally_explain_3", state.world.nation_get_is_at_war(asker));
-
-		bool possible_war = false;
-		bool that_ai_will_accept = false;
-
-		for(auto war_par : state.world.nation_get_war_participant(asker)) {
-			if(!military::is_civil_war(state, war_par.get_war())
-				&& military::standard_war_joining_is_possible(state, war_par.get_war(), target, military::is_attacker(state, war_par.get_war(), asker))
-				&& (!war_par.get_war().get_is_crisis_war() || state.military_definitions.great_wars_enabled)) {
-
-				possible_war = true;
-				if(!state.world.nation_get_is_player_controlled(target)) {
-					diplomatic_message::message m;
-					m.type = diplomatic_message::type::call_ally_request;
-					m.from = state.local_player_nation;
-					m.to = target;
-					m.data.war = war_par.get_war();
-					if(diplomatic_message::ai_will_accept(state, m)) {
-						that_ai_will_accept = true;
-					}
-				}
-			}
-		}
-		text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
-		if(!state.world.nation_get_is_player_controlled(target)) {
-			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
-		}
-
-	}
-};
-
 class diplomacy_action_military_access_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -631,23 +527,66 @@ public:
 class diplomacy_action_declare_war_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
-
-		if(military::are_at_war(state, state.local_player_nation, content)) {
-			disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
-					military::find_war_between(state, state.local_player_nation, content), true);
-			set_button_text(state, text::produce_simple_string(state, "peace_button"));
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.diplomatic_relation_get_are_allied(state.world.get_diplomatic_relation_by_diplomatic_pair(state.local_player_nation, content))) {
+			disabled = true;
+			for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
+				if(command::can_call_to_arms(state, state.local_player_nation, content, war_par.get_war())) {
+					if(!state.world.nation_get_is_player_controlled(content)) {
+						diplomatic_message::message m;
+						m.type = diplomatic_message::type::call_ally_request;
+						m.from = state.local_player_nation;
+						m.to = content;
+						m.data.war = war_par.get_war();
+						if(diplomatic_message::ai_will_accept(state, m)) {
+							disabled = false;
+							break;
+						}
+					} else {
+						disabled = false;
+						break;
+					}
+				}
+			}
+			set_button_text(state, text::produce_simple_string(state, "callally_button"));
 		} else {
-			disabled = state.local_player_nation == content || !military::can_use_cb_against(state, state.local_player_nation, content) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost;
-			set_button_text(state, text::produce_simple_string(state, "war_button"));
+			if(military::are_at_war(state, state.local_player_nation, content)) {
+				disabled = !command::can_start_peace_offer(state, state.local_player_nation, content,
+						military::find_war_between(state, state.local_player_nation, content), true);
+				set_button_text(state, text::produce_simple_string(state, "peace_button"));
+			} else {
+				disabled = state.local_player_nation == content || !military::can_use_cb_against(state, state.local_player_nation, content) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost;
+				set_button_text(state, text::produce_simple_string(state, "war_button"));
+			}
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
-			Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace : diplomacy_action::declare_war;
-			parent->impl_get(state, ac_payload);
+		auto asker = state.local_player_nation;
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.diplomatic_relation_get_are_allied(state.world.get_diplomatic_relation_by_diplomatic_pair(asker, target))) {
+			for(auto war_par : state.world.nation_get_war_participant(asker)) {
+				if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
+					if(!state.world.nation_get_is_player_controlled(target)) {
+						diplomatic_message::message m;
+						m.type = diplomatic_message::type::call_ally_request;
+						m.from = state.local_player_nation;
+						m.to = target;
+						m.data.war = war_par.get_war();
+						if(diplomatic_message::ai_will_accept(state, m)) {
+							command::call_to_arms(state, asker, target, war_par.get_war());
+						}
+					} else {
+						command::call_to_arms(state, asker, target, war_par.get_war());
+					}
+				}
+			}
+		} else {
+			if(parent) {
+				dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+				Cyto::Any ac_payload = military::are_at_war(state, state.local_player_nation, content) ? diplomacy_action::make_peace : diplomacy_action::declare_war;
+				parent->impl_get(state, ac_payload);
+			}
 		}
 	}
 
@@ -656,62 +595,97 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
+		auto asker = state.local_player_nation;
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto source = state.local_player_nation;
-
-		if(military::are_at_war(state, state.local_player_nation, target)) {
-			text::add_line(state, contents, "peace_description");
+		if(state.world.diplomatic_relation_get_are_allied(state.world.get_diplomatic_relation_by_diplomatic_pair(asker, target))) {
+			text::add_line(state, contents, "remove_callally_desc");
 			text::add_line_break_to_layout(state, contents);
-			{
-				auto ol = state.world.nation_get_overlord_as_subject(source);
-				text::add_line_with_condition(state, contents, "peace_explain_1", !state.world.overlord_get_ruler(ol));
+
+			if(state.defines.callally_diplomatic_cost > 0) {
+				text::add_line_with_condition(state, contents, "call_ally_explain_2", state.world.nation_get_diplomatic_points(asker) >= state.defines.callally_diplomatic_cost, text::variable_type::x, int64_t(state.defines.callally_diplomatic_cost));
 			}
+			text::add_line_with_condition(state, contents, "call_ally_explain_1", nations::are_allied(state, asker, target));
+			text::add_line_with_condition(state, contents, "call_ally_explain_3", state.world.nation_get_is_at_war(asker));
 
-			{
-				auto ol = state.world.nation_get_overlord_as_subject(target);
-				text::add_line_with_condition(state, contents, "peace_explain_2", !state.world.overlord_get_ruler(ol));
-			}
+			bool possible_war = false;
+			bool that_ai_will_accept = false;
 
-			auto war = military::find_war_between(state, source, target);
+			for(auto war_par : state.world.nation_get_war_participant(asker)) {
+				if(!military::is_civil_war(state, war_par.get_war())
+					&& military::standard_war_joining_is_possible(state, war_par.get_war(), target, military::is_attacker(state, war_par.get_war(), asker))
+					&& (!war_par.get_war().get_is_crisis_war() || state.military_definitions.great_wars_enabled)) {
 
-			if(state.world.war_get_is_crisis_war(war)) {
-				bool both_wl = (state.world.war_get_primary_attacker(war) == source && state.world.war_get_primary_defender(war) == target) || (state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == source);
-				text::add_line_with_condition(state, contents, "peace_explain_4", both_wl);
-			} else {
-				bool one_is_wl = [&]() {
-					if(state.world.war_get_primary_attacker(war) == source) {
-						if(military::get_role(state, war, target) == military::war_role::defender)
-							return true;
-					} else if(state.world.war_get_primary_defender(war) == source) {
-						if(military::get_role(state, war, target) == military::war_role::attacker)
-							return true;
-					} else if(state.world.war_get_primary_attacker(war) == target) {
-						if(military::get_role(state, war, source) == military::war_role::defender)
-							return true;
-					} else if(state.world.war_get_primary_defender(war) == target) {
-						if(military::get_role(state, war, source) == military::war_role::attacker)
-							return true;
+					possible_war = true;
+					if(!state.world.nation_get_is_player_controlled(target)) {
+						diplomatic_message::message m;
+						m.type = diplomatic_message::type::call_ally_request;
+						m.from = state.local_player_nation;
+						m.to = target;
+						m.data.war = war_par.get_war();
+						if(diplomatic_message::ai_will_accept(state, m)) {
+							that_ai_will_accept = true;
+						}
 					}
-					return false;
-					}();
-					text::add_line_with_condition(state, contents, "peace_explain_3", one_is_wl);
+				}
 			}
-			text::add_line_with_condition(state, contents, "peace_explain_5", !(state.world.nation_get_peace_offer_from_pending_peace_offer(source)));
-
+			text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
+			if(!state.world.nation_get_is_player_controlled(target)) {
+				text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
+			}
 		} else {
-			text::add_line(state, contents, "act_wardesc");
-			text::add_line_break_to_layout(state, contents);
+			auto source = asker;
+			if(military::are_at_war(state, state.local_player_nation, target)) {
+				text::add_line(state, contents, "peace_description");
+				text::add_line_break_to_layout(state, contents);
+				{
+					auto ol = state.world.nation_get_overlord_as_subject(source);
+					text::add_line_with_condition(state, contents, "peace_explain_1", !state.world.overlord_get_ruler(ol));
+				}
 
-			if(source == target) {
-				text::add_line_with_condition(state, contents, "war_explain_1", false);
+				{
+					auto ol = state.world.nation_get_overlord_as_subject(target);
+					text::add_line_with_condition(state, contents, "peace_explain_2", !state.world.overlord_get_ruler(ol));
+				}
+
+				auto war = military::find_war_between(state, source, target);
+
+				if(state.world.war_get_is_crisis_war(war)) {
+					bool both_wl = (state.world.war_get_primary_attacker(war) == source && state.world.war_get_primary_defender(war) == target) || (state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == source);
+					text::add_line_with_condition(state, contents, "peace_explain_4", both_wl);
+				} else {
+					bool one_is_wl = [&]() {
+						if(state.world.war_get_primary_attacker(war) == source) {
+							if(military::get_role(state, war, target) == military::war_role::defender)
+								return true;
+						} else if(state.world.war_get_primary_defender(war) == source) {
+							if(military::get_role(state, war, target) == military::war_role::attacker)
+								return true;
+						} else if(state.world.war_get_primary_attacker(war) == target) {
+							if(military::get_role(state, war, source) == military::war_role::defender)
+								return true;
+						} else if(state.world.war_get_primary_defender(war) == target) {
+							if(military::get_role(state, war, source) == military::war_role::attacker)
+								return true;
+						}
+						return false;
+						}();
+						text::add_line_with_condition(state, contents, "peace_explain_3", one_is_wl);
+				}
+				text::add_line_with_condition(state, contents, "peace_explain_5", !(state.world.nation_get_peace_offer_from_pending_peace_offer(source)));
+
+			} else {
+				text::add_line(state, contents, "act_wardesc");
+				text::add_line_break_to_layout(state, contents);
+
+				if(source == target) {
+					text::add_line_with_condition(state, contents, "war_explain_1", false);
+				}
+				if(state.defines.declarewar_diplomatic_cost > 0) {
+					text::add_line_with_condition(state, contents, "war_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost, text::variable_type::x, int64_t(state.defines.declarewar_diplomatic_cost));
+				}
+				text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
 			}
-			if(state.defines.declarewar_diplomatic_cost > 0) {
-				text::add_line_with_condition(state, contents, "war_explain_3", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.declarewar_diplomatic_cost, text::variable_type::x, int64_t(state.defines.declarewar_diplomatic_cost));
-			}
-			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
 		}
-
 	}
 };
 

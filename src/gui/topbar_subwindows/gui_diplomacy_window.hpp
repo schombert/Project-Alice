@@ -1399,7 +1399,7 @@ public:
 			gp_elements[0] = ptr.get();
 			if(war_element_offset.y == 0) {
 				war_element_offset = ptr->base_data.size;
-				war_element_offset.y += 2;
+				war_element_offset.y -= 6;
 			}
 			return ptr;
 		} else if(name == "country_gp_friendly_label") {
@@ -1444,7 +1444,7 @@ public:
 			sub_window_top_left.y += 12;
 			if(war_element_offset.y == 0) {
 				war_element_offset = ptr->base_data.size;
-				war_element_offset.y += 2;
+				war_element_offset.y -= 6;
 			}
 			return ptr;
 		} else if(name == "country_flag") {
@@ -1506,7 +1506,7 @@ public:
 			ptr->base_data.position.y += war_element_offset.y;
 			if(war_element_offset.y == 0) {
 				war_element_offset = ptr->base_data.size;
-				war_element_offset.y += 2;
+				war_element_offset.y -= 6;
 			}
 			return ptr;
 		} else if(name == "country_wars") {
@@ -2338,7 +2338,7 @@ public:
 		// Fill out all the options for the diplomacy window
 		xy_pair options_base_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_actions_pos")->second.definition].position;
-		options_base_offset.y += 128;
+		options_base_offset.y += 138;
 
 		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_option")->second.definition].size;
 		xy_pair options_offset = options_base_offset;
@@ -2347,13 +2347,9 @@ public:
 		add_action_button<diplomacy_action_window<diplomacy_action_ban_embassy_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_expel_advisors_button>>(state, options_offset);
-		options_offset.y += options_size.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_discredit_button>>(state, options_offset);
 		// Next row of actions...
 		options_offset.x += options_size.x;
 		options_offset.y = options_base_offset.y;
-		add_action_button<diplomacy_action_window<diplomacy_action_call_ally_button>>(state, options_offset);
-		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_military_access_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_war_subisides_button>>(state, options_offset);
