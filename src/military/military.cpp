@@ -6206,8 +6206,10 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 
 void update_siege_progress(sys::state& state) {
 	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
+	static auto new_rebel_controller = ve::vectorizable_buffer<dcon::rebel_faction_id, dcon::province_id>(state.world.province_size());
 	province::ve_for_each_land_province(state, [&](auto ids) {
 		new_nation_controller.set(ids, dcon::nation_id{});
+		new_rebel_controller.set(ids, dcon::rebel_faction_id{});
 	});
 
 	concurrency::parallel_for(0, state.province_definitions.first_sea_province.index(), [&](int32_t id) {
@@ -6369,19 +6371,11 @@ void update_siege_progress(sys::state& state) {
 				if(!are_at_war(state, new_controller, owner))
 					new_controller = owner;
 
-				//auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
-				//assert(bool(new_controller) != bool(rebel_controller));
+				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
+				assert(bool(new_controller) != bool(rebel_controller));
 
 				new_nation_controller.set(prov, new_controller);
-
-				/*
-				if(!new_controller) {
-					province::set_province_controller(state, prov, rebel_controller);
-				} else if(are_at_war(state, new_controller, owner)) {
-					province::set_province_controller(state, prov, new_controller);
-				} else {
-					province::set_province_controller(state, prov, owner);
-				}*/
+				new_rebel_controller.set(prov, rebel_controller);
 			}
 		}
 	});
@@ -6436,6 +6430,29 @@ void update_siege_progress(sys::state& state) {
 			*/
 			// is controler != owner ...
 			// event::fire_fixed_event(state, );
+		}
+		if(auto nr = new_rebel_controller.get(prov); nr) {
+			province::set_province_controller(state, prov, nr);
+			eject_ships(state, prov);
+
+			for(auto ar : state.world.province_get_army_location(prov)) {
+				auto a = ar.get_army();
+				if(a.get_is_rebel_hunter()
+					&& a.get_controller_from_army_control().get_is_player_controlled()
+					&& !a.get_battle_from_army_battle_participation()
+					&& !a.get_navy_from_army_transport()
+					&& !a.get_arrival_time()) {
+					send_rebel_hunter_to_next_province(state, a, prov);
+				}
+			}
+
+			auto cc = state.world.province_get_nation_from_province_control(prov);
+			auto oc = state.world.province_get_former_controller(prov);
+			auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(nr);
+			auto t = state.world.rebel_faction_get_type(nr);
+			if(trigger::evaluate(state, state.world.rebel_type_get_siege_won_trigger(t), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(nr))) {
+				effect::execute(state, state.world.rebel_type_get_siege_won_effect(t), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(nr), uint32_t(state.current_date.value), uint32_t(within.index() ^ (nr.index() << 4)));
+			}
 		}
 	});
 }

@@ -35,4 +35,6 @@ void delete_faction(sys::state& state, dcon::rebel_faction_id reb);
 
 std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb);
 
+void update_armies(sys::state& state);
+
 } // namespace rebel

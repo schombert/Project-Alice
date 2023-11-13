@@ -599,6 +599,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 		case 30:
 			ai::update_ships(ws1);
 			ai::update_ships(ws2);
+			rebel::update_armies(ws1);
+			rebel::update_armies(ws2);
 			break;
 		case 31:
 			ai::update_cb_fabrication(ws1);

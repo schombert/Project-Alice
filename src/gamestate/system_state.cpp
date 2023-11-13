@@ -3959,6 +3959,7 @@ void state::single_game_tick() {
 			break;
 		case 30:
 			ai::update_ships(*this);
+			rebel::update_armies(*this);
 			break;
 		case 31:
 			ai::update_cb_fabrication(*this);
