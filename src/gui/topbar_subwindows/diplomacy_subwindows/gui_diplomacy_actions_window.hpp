@@ -228,27 +228,35 @@ class diplomacy_action_ally_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
-
-		if(nations::are_allied(state, content, state.local_player_nation)) {
-			set_button_text(state, text::produce_simple_string(state, "cancelalliance_button"));
-			disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
+		if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(content)) == state.local_player_nation) {
+			set_button_text(state, text::produce_simple_string(state, "alice_diplo_release_subject"));
+			disabled = !command::can_release_subject(state, state.local_player_nation, content);
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alliance_button"));
+			if(nations::are_allied(state, content, state.local_player_nation)) {
+				set_button_text(state, text::produce_simple_string(state, "cancelalliance_button"));
+				disabled = !command::can_cancel_alliance(state, state.local_player_nation, content);
+			} else {
+				set_button_text(state, text::produce_simple_string(state, "alliance_button"));
 
-			diplomatic_message::message m;
-			m.type = diplomatic_message::type::alliance_request;
-			m.from = state.local_player_nation;
-			m.to = content;
-			disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content) || (!state.world.nation_get_is_player_controlled(content) && !diplomatic_message::ai_will_accept(state, m));
+				diplomatic_message::message m;
+				m.type = diplomatic_message::type::alliance_request;
+				m.from = state.local_player_nation;
+				m.to = content;
+				disabled = !command::can_ask_for_alliance(state, state.local_player_nation, content) || (!state.world.nation_get_is_player_controlled(content) && !diplomatic_message::ai_will_accept(state, m));
+			}
 		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		if(nations::are_allied(state, content, state.local_player_nation)) {
-			command::cancel_alliance(state, state.local_player_nation, content);
+		if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(content)) == state.local_player_nation) {
+			command::release_subject(state, state.local_player_nation, content);
 		} else {
-			command::ask_for_alliance(state, state.local_player_nation, content);
+			if(nations::are_allied(state, content, state.local_player_nation)) {
+				command::cancel_alliance(state, state.local_player_nation, content);
+			} else {
+				command::ask_for_alliance(state, state.local_player_nation, content);
+			}
 		}
 	}
 
@@ -257,8 +265,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-
 		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(content)) == state.local_player_nation) {
+			text::add_line(state, contents, "alice_diplo_release_subject_desc");
+			text::add_line_with_condition(state, contents, "alice_diplo_release_subject_0", state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(content)) == state.local_player_nation);
+			return;
+		}
 		if(nations::are_allied(state, content, state.local_player_nation)) {
 			text::add_line(state, contents, "cancelalliance_desc");
 			text::add_line_break_to_layout(state, contents);
@@ -700,34 +712,6 @@ public:
 			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
 		}
 
-	}
-};
-
-class diplomacy_action_release_subject_button : public button_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_diplo_release_subject"));
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		disabled = !command::can_release_subject(state, state.local_player_nation, n);
-	}
-
-	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		command::release_subject(state, state.local_player_nation, n);
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		text::add_line(state, contents, "alice_diplo_release_subject_desc");
-		text::add_line_with_condition(state, contents, "alice_diplo_release_subject_0", state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n)) == state.local_player_nation);
 	}
 };
 
