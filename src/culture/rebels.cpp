@@ -1254,7 +1254,7 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 void update_armies(sys::state& state) {
 	for(const auto arc : state.world.in_army_rebel_control) {
 		auto ar = arc.get_army();
-		if(!ar.get_army_rebel_control()) /* Not a rebel army */
+		if(!ar.get_army_rebel_control().get_controller()) /* Not a rebel army */
 			continue;
 		if(ar.get_arrival_time() != sys::date{}) /* Do not interrupt travel */
 			continue;
