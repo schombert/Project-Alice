@@ -516,6 +516,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 		case 12:
 			ai::update_ai_research(ws1);
 			ai::update_ai_research(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::update_armies(ws1);
+			rebel::update_armies(ws2);
 			break;
 		case 13:
 			ai::perform_influence_actions(ws1);
@@ -575,6 +578,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			ai::make_attacks(ws1);
 			ai::make_attacks(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::update_armies(ws1);
+			rebel::update_armies(ws2);
 			break;
 		case 25:
 			rebel::execute_province_defections(ws1);
@@ -599,6 +605,7 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 		case 30:
 			ai::update_ships(ws1);
 			ai::update_ships(ws2);
+			compare_game_states(ws1, ws2);
 			rebel::update_armies(ws1);
 			rebel::update_armies(ws2);
 			break;

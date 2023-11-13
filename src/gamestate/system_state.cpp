@@ -3901,6 +3901,7 @@ void state::single_game_tick() {
 			break;
 		case 12:
 			ai::update_ai_research(*this);
+			rebel::update_armies(*this);
 			break;
 		case 13:
 			ai::perform_influence_actions(*this);
@@ -3941,6 +3942,7 @@ void state::single_game_tick() {
 		case 24:
 			rebel::execute_rebel_victories(*this);
 			ai::make_attacks(*this);
+			rebel::update_armies(*this);
 			break;
 		case 25:
 			rebel::execute_province_defections(*this);
