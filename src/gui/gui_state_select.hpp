@@ -20,47 +20,19 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_definition_id>(state, parent);
 		set_button_text(state, text::produce_simple_string(state, state.world.state_definition_get_name(content)));
-
-		auto it = std::find(state.selected_states.begin(), state.selected_states.end(), content);
-		disabled = (it != state.selected_states.end());
+		//auto it = std::find(state.selected_states.begin(), state.selected_states.end(), content);
+		//disabled = (it != state.selected_states.end());
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_definition_id>(state, parent);
-
-		auto sdef = content;
-		bool can_select = false;
-		for(const auto s : state.selectable_states) {
-			if(s == sdef) {
-				can_select = true;
-				break;
-			}
-		}
-		if(can_select) {
-			if(state.single_state_select) {
-				if(!state.selected_states.empty() && state.selected_states[0] == sdef) {
-					state.selected_states.clear();
-				} else {
-					state.selected_states.clear();
-					state.selected_states.push_back(sdef);
-				}
-			} else {
-				auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
-				if(it == state.selected_states.end()) {
-					state.selected_states.push_back(sdef);
-				} else {
-					state.selected_states.erase(std::remove(state.selected_states.begin(), state.selected_states.end(), sdef), state.selected_states.end());
-				}
-			}
-		}
+		state.state_select(state, content);
 	}
 };
 
 class map_state_select_entry : public listbox_row_element_base<dcon::state_definition_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "shield") {
-			return make_element_by_type<flag_button>(state, id);
-		} else if(name == "button") {
+		if(name == "button") {
 			return make_element_by_type<map_state_select_button>(state, id);
 		} else {
 			return nullptr;
@@ -90,7 +62,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		row_contents = state.selectable_states;
+		assert(state.state_selection.has_value());
+		row_contents = state.state_selection->selectable_states;
 		update(state);
 	}
 };

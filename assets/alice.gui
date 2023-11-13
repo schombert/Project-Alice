@@ -2681,19 +2681,13 @@ guiTypes = {
 	windowType = {
 		name = "alice_select_legend_entry"
 		position = { 0 0 }
-		size = { 272 24 }
+		size = { 172 24 }
 		guiButtonType = {
 			name = "button"
 			position = { 0 0 }
-			size = { 272 24 }
+			size = { 172 24 }
 			quadTextureSprite = "console_background"
 			buttonFont = "vic_22"
-			Orientation = "UPPER_LEFT"
-		}
-		guiButtonType = {
-			name = "shield"
-			position = { 4 4 }
-			quadTextureSprite = "GFX_flag_new"
 			Orientation = "UPPER_LEFT"
 		}
 	}

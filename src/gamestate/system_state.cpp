@@ -38,6 +38,39 @@
 #include "blake2.h"
 
 namespace sys {
+
+void state::start_state_selection(sys::state& state, state_selection_data& data) {
+	state.mode = sys::game_mode_type::select_states;
+	state.state_selection = data;
+	map_mode::set_map_mode(state, state.map_state.active_map_mode);
+	state.ui_state.select_states_legend->impl_on_update(state);
+	state.state_selection.emplace(data);
+}
+
+void state::finish_state_selection(sys::state& state) {
+	state.mode = sys::game_mode_type::in_game;
+	state.state_selection.reset();
+}
+
+void state::state_select(sys::state& state, dcon::state_definition_id sdef) {
+	assert(state.state_selection.has_value());
+	if(std::find(state.state_selection->selectable_states.begin(), state.state_selection->selectable_states.end(), sdef) != state.state_selection->selectable_states.end()) {
+		if(state.state_selection->single_state_select) {
+			state.state_selection->on_select(state, sdef);
+			finish_state_selection(state);
+		} else {
+			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
+			if(it == state.selected_states.end()) {
+				on_select(sdef);
+			} else {
+				state.selected_states.erase(std::remove(state.selected_states.begin(), state.selected_states.end(), sdef), state.selected_states.end());
+			}*/
+			std::abort();
+		}
+	}
+	state.map_state.update(state);
+}
+
 //
 // window event functions
 //
@@ -149,31 +182,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
-			if(sdef) {
-				bool can_select = false;
-				for(const auto s : selectable_states)
-					if(s == sdef) {
-						can_select = true;
-						break;
-					}
-				if(can_select) {
-					if(single_state_select) {
-						if(!selected_states.empty() && selected_states[0] == sdef) {
-							selected_states.clear();
-						} else {
-							selected_states.clear();
-							selected_states.push_back(sdef);
-						}
-					} else {
-						auto it = std::find(selected_states.begin(), selected_states.end(), sdef);
-						if(it == selected_states.end()) {
-							selected_states.push_back(sdef);
-						} else {
-							selected_states.erase(std::remove(selected_states.begin(), selected_states.end(), sdef), selected_states.end());
-						}
-					}
-				}
-			}
+			state_select(*this, sdef);
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);

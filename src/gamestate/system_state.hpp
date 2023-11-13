@@ -400,6 +400,14 @@ static_assert(sizeof(great_nation) ==
 	sizeof(great_nation::last_greatness)
 	+ sizeof(great_nation::nation));
 
+// used by state selector visually
+struct state_selection_data {
+	bool single_state_select = false;
+	std::vector<dcon::state_definition_id> selectable_states;
+	std::function<void(sys::state&, dcon::state_definition_id)> on_select;
+	std::function<void(sys::state&)> on_cancel;
+};
+
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
 	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
@@ -526,9 +534,7 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
-	std::vector<dcon::state_definition_id> selectable_states;
-	std::vector<dcon::state_definition_id> selected_states;
-	bool single_state_select = false;
+	std::optional<state_selection_data> state_selection;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
@@ -610,6 +616,10 @@ struct alignas(64) state {
 	sys::checksum_key get_scenario_checksum();
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();
+
+	void start_state_selection(sys::state& state, state_selection_data& data);
+	void finish_state_selection(sys::state& state);
+	void state_select(sys::state& state, dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool
 

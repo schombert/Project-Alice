@@ -38,20 +38,21 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 		prov_color[province::to_map_id(p.get_province())] |= sys::pack_color(0, 0, 255);
 		prov_color[province::to_map_id(p.get_province()) + texture_size] |= sys::pack_color(0, 0, 255);
 	}
-	for(const auto s : state.selectable_states) {
+	assert(state.state_selection.has_value());
+	for(const auto s : state.state_selection->selectable_states) {
 		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
 			auto p = m.get_province();
 			prov_color[province::to_map_id(p)] |= sys::pack_color(255, 0, 0);
 			prov_color[province::to_map_id(p) + texture_size] |= sys::pack_color(255, 0, 0);
 		}
 	}
-	for(const auto s : state.selected_states) {
+	/*if(!state.state_selection->single_state_select) {
 		for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
 			auto p = m.get_province();
 			prov_color[province::to_map_id(p)] |= sys::pack_color(0, 255, 0);
 			prov_color[province::to_map_id(p) + texture_size] |= sys::pack_color(0, 255, 0);
 		}
-	}
+	}*/
 	return prov_color;
 }
 
