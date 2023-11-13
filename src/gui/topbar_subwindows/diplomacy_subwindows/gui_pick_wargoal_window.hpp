@@ -856,6 +856,7 @@ private:
 		}
 		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
 			target_state = sdef;
+			wargoal_decided_upon = true;
 		};
 		state.start_state_selection(state, seldata);
 	}
