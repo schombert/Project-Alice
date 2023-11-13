@@ -1273,6 +1273,12 @@ void update_armies(sys::state& state) {
 		for(const auto adj : location.get_province_adjacency()) {
 			auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
 			auto prov = adj.get_connected_provinces(indx);
+			/* sea province */
+			if(prov.id.index() >= state.province_definitions.first_sea_province.index())
+				continue;
+			/* impassable */
+			if((adj.get_type() & province::border::impassible_bit) != 0)
+				continue;
 
 			bool allow = false;
 			switch(culture::rebel_area(area)) {
