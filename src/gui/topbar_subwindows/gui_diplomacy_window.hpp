@@ -2338,7 +2338,7 @@ public:
 		// Fill out all the options for the diplomacy window
 		xy_pair options_base_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_actions_pos")->second.definition].position;
-		options_base_offset.y += 138;
+		options_base_offset.y += 144;
 
 		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_option")->second.definition].size;
 		xy_pair options_offset = options_base_offset;
