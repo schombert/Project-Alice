@@ -826,11 +826,12 @@ void rebel_risings_check(sys::state& state) {
 							}
 							auto new_army = fatten(state.world, state.world.create_army());
 							new_army.set_controller_from_army_rebel_control(rf);
-							military::army_arrives_in_province(state, new_army, pop_location, military::crossing_type::none);
 							return new_army.id;
 						}();
 						state.world.try_create_army_membership(new_reg, a);
 						state.world.try_create_regiment_source(new_reg, pop.get_pop());
+
+						military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
 
 						--counter;
 					}
@@ -1253,22 +1254,27 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 void update_armies(sys::state& state) {
 	for(const auto arc : state.world.in_army_rebel_control) {
 		auto ar = arc.get_army();
-
-		/* Do not interrupt */
-		if(ar.get_path().size() > 0 || ar.get_location_from_army_location().get_siege_progress() > 0.f)
+		/* Do not interrupt travel or battle */
+		if(ar.get_arrival_time() != sys::date{})
+			continue;
+		if(ar.get_army_battle_participation().get_battle())
 			continue;
 
 		auto type = arc.get_controller().get_type();
 		auto area = arc.get_controller().get_type().get_area();
 		auto location = ar.get_location_from_army_location();
+		/* If on an unsieged province, siege it! */
+		if(location.get_nation_from_province_control() && !location.get_province_rebel_control())
+			continue;
 
 		dcon::province_fat_id best_prov = location;
 		float best_weight = 0.f;// trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(best_prov), trigger::to_generic(best_prov), 0);;
-		for(const auto padj : location.get_province_adjacency()) {
-			auto prov = padj.get_connected_provinces(padj.get_connected_provinces(0) == location.id ? 1 : 0);
+		for(const auto adj : location.get_province_adjacency()) {
+			auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
+			auto prov = adj.get_connected_provinces(indx);
 
-			bool allow = false;
-			switch(culture::rebel_area(area)) {
+			bool allow = true;
+			/*switch(culture::rebel_area(area)) {
 			case culture::rebel_area::all:
 				allow = true;
 				break;
@@ -1294,19 +1300,21 @@ void update_armies(sys::state& state) {
 				break;
 			default:
 				break;
-			}
+			}*/
 
-			float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
+			//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
+			float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())));
 			if(weight >= best_weight) {
 				best_weight = weight;
 				best_prov = prov;
 			}
 		}
 		if(best_prov != location) {
-			ar.get_path().clear();
-			ar.get_path().push_back(best_prov);
-			ar.set_arrival_time(military::arrival_time_to(state, ar.id, *(ar.get_path().end())));
+			ar.get_path().resize(1);
+			ar.get_path()[0] = best_prov;
+			ar.set_arrival_time(military::arrival_time_to(state, ar.id, best_prov));
 			ar.set_dig_in(0);
+			ar.set_is_rebel_hunter(false);
 		}
 	}
 }
