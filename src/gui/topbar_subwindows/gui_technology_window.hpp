@@ -1399,10 +1399,12 @@ public:
 			return make_element_by_type<technology_selected_effect_text>(state, id);
 		} else if(name == "diff_icon") {
 			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "diff_label") {
+			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "diff") {
 			return make_element_by_type<technology_research_points_text>(state, id);
 		} else if(name == "year_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "year") {
 			return make_element_by_type<technology_year_text>(state, id);
 		} else if(name == "start") {
@@ -1599,6 +1601,10 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "administration") {
+			return make_element_by_type<simple_body_text>(state, id);
+		} else if(name == "current_research") {
+			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "administration_type") {
 			return make_element_by_type<national_tech_school>(state, id);
 		} else if(name == "research_progress") {

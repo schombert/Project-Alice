@@ -918,14 +918,15 @@ public:
 	}
 };
 
-class national_tech_school : public standard_nation_text {
+class national_tech_school : public simple_body_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto mod_id = state.world.nation_get_tech_school(nation_id);
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto mod_id = state.world.nation_get_tech_school(n);
 		if(bool(mod_id)) {
-			return text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
+			set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(mod_id)));
 		} else {
-			return text::produce_simple_string(state, "traditional_academic");
+			set_text(state, text::produce_simple_string(state, "traditional_academic"));
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {

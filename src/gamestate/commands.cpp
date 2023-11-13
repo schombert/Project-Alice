@@ -913,12 +913,6 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	for(auto p : state.world.nation_get_province_ownership(holder)) {
 		auto pid = p.get_province();
 		state.world.province_set_is_colonial(pid, false);
-		auto timed_modifiers = state.world.province_get_current_modifiers(pid);
-		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
-			if(bool(timed_modifiers[i].expiration)) {
-				timed_modifiers.remove_at(i);
-			}
-		}
 	}
 }
 
