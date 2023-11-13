@@ -27,7 +27,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
-		if(state.mode != sys::game_mode_type::in_game)
+		if(state.mode != sys::game_mode_type::in_game || state.mode != sys::game_mode_type::select_states)
 			return;
 		state.network_state.is_new_game = false;
 		break;

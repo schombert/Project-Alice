@@ -4168,7 +4168,7 @@ void state::game_loop() {
 				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
 			}
 
-			if(speed <= 0 || upause || internally_paused || mode != sys::game_mode_type::in_game) {
+			if(speed <= 0 || upause || internally_paused || (mode != sys::game_mode_type::in_game && mode != sys::game_mode_type::select_states)) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(15));
 			} else {
 				auto entry_time = std::chrono::steady_clock::now();
