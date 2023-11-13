@@ -1274,7 +1274,7 @@ void update_armies(sys::state& state) {
 			auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
 			auto prov = adj.get_connected_provinces(indx);
 
-			bool allow = true;
+			bool allow = false;
 			switch(culture::rebel_area(area)) {
 			case culture::rebel_area::all:
 				allow = true;
