@@ -477,7 +477,7 @@ static void accept_new_clients(sys::state& state) {
 				break;
 			}
 			/* Do not allow players to join mid-session, they have to go back to the lobby */
-			if(state.mode == sys::game_mode_type::in_game) {
+			if(state.mode == sys::game_mode_type::in_game || state.mode != sys::game_mode_type::select_states) {
 				disconnect_client(state, client);
 				break;
 			}

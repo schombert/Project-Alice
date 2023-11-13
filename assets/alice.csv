@@ -1260,7 +1260,7 @@ w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
 w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
 w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
 alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
-alice_state_select_title;Select state (ESC);;;Seleccionar estado (ESC);;;;;;;;;x
+alice_state_select_title;Select state (ESC to cancel);;;Seleccionar estado (ESC para cancelar);;;;;;;;;x
 fort_build_tt_1;The province is under your control;;;;;;;;;;;;x
 fort_build_tt_2;The province is not under siege;;;;;;;;;;;;x
 fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$;;;;;;;;;;;;x
