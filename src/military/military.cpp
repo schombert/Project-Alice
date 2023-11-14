@@ -7,8 +7,8 @@
 
 namespace military {
 
-constexpr inline float org_dam_mul = 0.3f;
-constexpr inline float str_dam_mul = 0.25f;
+constexpr inline float org_dam_mul = 0.18f;
+constexpr inline float str_dam_mul = 0.14f;
 
 int32_t total_regiments(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_active_regiments(n);
@@ -6137,7 +6137,7 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
-constexpr inline float siege_speed_mul = 0.5f;
+constexpr inline float siege_speed_mul = 1.0f / 300.0f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
