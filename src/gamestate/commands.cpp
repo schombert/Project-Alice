@@ -865,6 +865,7 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 		auto sr = state.world.force_create_gp_relationship(holder, source);
 		auto& flags = state.world.gp_relationship_get_status(sr);
 		flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		state.world.nation_set_in_sphere_of(holder, source);
 	}
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 	auto& inf = state.world.nation_get_infamy(source);
