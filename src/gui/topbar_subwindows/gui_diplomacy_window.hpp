@@ -1786,6 +1786,29 @@ public:
 		auto fat = dcon::fatten(state.world, content);
 		progress = (fat.get_constructing_cb_progress() / 100.0f);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fab_by = retrieve<dcon::nation_id>(state, parent);
+		if(fab_by == state.local_player_nation) {
+			auto target = state.world.nation_get_constructing_cb_target(state.local_player_nation);
+			
+			if(nations::is_involved_in_crisis(state, state.local_player_nation)) {
+				text::add_line(state, contents, "fab_is_paused");
+			} else {
+				auto rem_progress = 100.0f - state.world.nation_get_constructing_cb_progress(state.local_player_nation);
+				auto daily_progress = state.defines.cb_generation_base_speed * state.world.nation_get_constructing_cb_type(state.local_player_nation).get_construction_speed()* (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+				auto days = int32_t(std::ceil(rem_progress / daily_progress));
+				text::add_line(state, contents, "fab_finish_date", text::variable_type::date, state.current_date + days);
+			}
+
+			text::add_line_break_to_layout(state, contents);
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::cb_generation_speed_modifier, true);
+		}
+	}
 };
 
 class justifying_attacker_flag : public overlapping_flags_box {

@@ -807,6 +807,7 @@ peace_explain_5;You have no other peace offer in progress
 war_explain_1;You cannot declare war upon yourself
 war_explain_2;You have a casus belli to use against this nation
 war_explain_3;You have at least $x$ diplomatic point(s)
+war_explain_4;You are not already in a war with this nation
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
@@ -1298,4 +1299,6 @@ e_kill_leader;Kill leader;;;Matar lider;;;;;;;;;x
 e_annex_null;becomes unowned;;;se hace sin duenio;;;;;;;;;x
 meets_the_conditions_of;meets the conditions of ;;;cumple con las condiciones de ;;;;;;;;;x
 does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;;;x
+fab_finish_date;CB fabrication is expected to finish on $date$
+fab_is_paused;CB fabrication is currently paused
 ;;;;;;;;;;;;;x

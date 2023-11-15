@@ -1759,7 +1759,7 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 	 with a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 	*/
 	auto infamy = cb_infamy(state, state.world.nation_get_constructing_cb_type(n));
-	auto adj_infamy = ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy;
+	auto adj_infamy = std::max(0.0f, ((100.0f - state.world.nation_get_constructing_cb_progress(n)) / 100.0f) * infamy);
 	state.world.nation_get_infamy(n) += adj_infamy;
 
 	auto target = state.world.nation_get_constructing_cb_target(n);
@@ -5257,18 +5257,6 @@ void update_land_battles(sys::state& state) {
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(def_back[i]) {
 				if(state.world.regiment_get_strength(def_back[i]) <= 0.0f) {
-					auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_back[i])].type;
-					switch(type) {
-					case unit_type::infantry:
-						state.world.land_battle_get_defender_infantry_lost(b)++;
-						break;
-					case unit_type::cavalry:
-						state.world.land_battle_get_defender_cav_lost(b)++;
-						break;
-					default:
-						state.world.land_battle_get_defender_support_lost(b)++;
-						break;
-					}
 					def_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_back[i]) < 0.1f) {
 					def_back[i] = dcon::regiment_id{};
@@ -5276,18 +5264,6 @@ void update_land_battles(sys::state& state) {
 			}
 			if(def_front[i]) {
 				if(state.world.regiment_get_strength(def_front[i]) <= 0.0f) {
-					auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].type;
-					switch(type) {
-					case unit_type::infantry:
-						state.world.land_battle_get_defender_infantry_lost(b)++;
-						break;
-					case unit_type::cavalry:
-						state.world.land_battle_get_defender_cav_lost(b)++;
-						break;
-					default:
-						state.world.land_battle_get_defender_support_lost(b)++;
-						break;
-					}
 					def_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(def_front[i]) < 0.1f) {
 					def_front[i] = dcon::regiment_id{};
@@ -5295,18 +5271,6 @@ void update_land_battles(sys::state& state) {
 			}
 			if(att_back[i]) {
 				if(state.world.regiment_get_strength(att_back[i]) <= 0.0f) {
-					auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_back[i])].type;
-					switch(type) {
-					case unit_type::infantry:
-						state.world.land_battle_get_attacker_infantry_lost(b)++;
-						break;
-					case unit_type::cavalry:
-						state.world.land_battle_get_attacker_cav_lost(b)++;
-						break;
-					default:
-						state.world.land_battle_get_attacker_support_lost(b)++;
-						break;
-					}
 					att_back[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_back[i]) < 0.1f) {
 					att_back[i] = dcon::regiment_id{};
@@ -5314,18 +5278,6 @@ void update_land_battles(sys::state& state) {
 			}
 			if(att_front[i]) {
 				if(state.world.regiment_get_strength(att_front[i]) <= 0.0f) {
-					auto type = state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].type;
-					switch(type) {
-					case unit_type::infantry:
-						state.world.land_battle_get_attacker_infantry_lost(b)++;
-						break;
-					case unit_type::cavalry:
-						state.world.land_battle_get_attacker_cav_lost(b)++;
-						break;
-					default:
-						state.world.land_battle_get_attacker_support_lost(b)++;
-						break;
-					}
 					att_front[i] = dcon::regiment_id{};
 				} else if(state.world.regiment_get_org(att_front[i]) < 0.1f) {
 					att_front[i] = dcon::regiment_id{};
