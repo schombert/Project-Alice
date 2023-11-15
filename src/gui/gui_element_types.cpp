@@ -247,8 +247,8 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		auto ycentered = (base_data.size.y - linesz) / 2;
 
 		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + text_offset),
-				float(y + ycentered), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
+				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
 				base_data.data.button.font_handle);
 	}
 }
@@ -1219,7 +1219,13 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					row_window->impl_on_update(state);
+					if(!row_window->is_visible()) {
+						row_window->set_visible(state, true);
+					} else {
+						row_window->impl_on_update(state);
+					}
+				} else {
+					row_window->set_visible(state, true);
 				}
 			} else {
 				row_window->set_visible(state, false);
@@ -1229,13 +1235,18 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = size_t(scroll_pos);
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
-				row_window->set_visible(state, true);
 				auto prior_content = retrieve<RowConT>(state, row_window);
 				auto new_content = row_contents[i++];
 				
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					row_window->impl_on_update(state);
+					if(!row_window->is_visible()) {
+						row_window->set_visible(state, true);
+					} else {
+						row_window->impl_on_update(state);
+					}
+				} else {
+					row_window->set_visible(state, true);
 				}
 			} else {
 				row_window->set_visible(state, false);

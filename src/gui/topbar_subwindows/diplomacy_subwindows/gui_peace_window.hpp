@@ -101,6 +101,7 @@ class diplomacy_peace_wargoal_score_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto wg = fatten(state.world, retrieve<dcon::wargoal_id>(state, parent));
+		assert(wg.is_valid());
 		int32_t score = military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 		set_text(state, std::to_string(score));
 	}

@@ -25,7 +25,7 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_definition_id>(state, parent);
-		state.state_select(state, content);
+		state.state_select(content);
 	}
 };
 

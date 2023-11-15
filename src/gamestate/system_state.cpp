@@ -39,27 +39,28 @@
 
 namespace sys {
 
-void state::start_state_selection(sys::state& state, state_selection_data& data) {
-	state.mode = sys::game_mode_type::select_states;
-	if(state.state_selection) {
-		state.state_selection->on_cancel(state);
+void state::start_state_selection(state_selection_data& data) {
+	mode = sys::game_mode_type::select_states;
+	if(state_selection) {
+		state_selection->on_cancel(*this);
 	}
-	state.state_selection = data;
-	map_mode::set_map_mode(state, state.map_state.active_map_mode);
-	state.ui_state.select_states_legend->impl_on_update(state);
+	state_selection = data;
+	map_mode::set_map_mode(*this, map_state.active_map_mode);
+	ui_state.select_states_legend->impl_on_update(*this);
 }
 
-void state::finish_state_selection(sys::state& state) {
-	state.mode = sys::game_mode_type::in_game;
-	state.state_selection.reset();
+void state::finish_state_selection() {
+	mode = sys::game_mode_type::in_game;
+	state_selection.reset();
+	map_state.update(*this);
 }
 
-void state::state_select(sys::state& state, dcon::state_definition_id sdef) {
-	assert(state.state_selection.has_value());
-	if(std::find(state.state_selection->selectable_states.begin(), state.state_selection->selectable_states.end(), sdef) != state.state_selection->selectable_states.end()) {
-		if(state.state_selection->single_state_select) {
-			state.state_selection->on_select(state, sdef);
-			finish_state_selection(state);
+void state::state_select(dcon::state_definition_id sdef) {
+	assert(state_selection);
+	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
+		if(state_selection->single_state_select) {
+			state_selection->on_select(*this, sdef);
+			finish_state_selection();
 		} else {
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
 			if(it == state.selected_states.end()) {
@@ -70,7 +71,7 @@ void state::state_select(sys::state& state, dcon::state_definition_id sdef) {
 			std::abort();
 		}
 	}
-	state.map_state.update(state);
+	map_state.update(*this);
 }
 
 //
@@ -184,7 +185,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
-			state_select(*this, sdef);
+			state_select(sdef);
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);

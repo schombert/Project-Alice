@@ -2448,7 +2448,7 @@ public:
 			case diplomacy_action::declare_war:
 			case diplomacy_action::add_wargoal:
 				declare_war_win->set_visible(state, false);
-				declare_war_win->reset_window();
+				declare_war_win->reset_window(state);
 				declare_war_win->set_visible(state, true);
 				
 				break;

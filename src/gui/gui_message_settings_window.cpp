@@ -66,12 +66,16 @@ void message_log_window::on_update(sys::state& state) noexcept {
 		messages.resize(100);
 	}
 
+	bool at_bottom = log_list->list_scrollbar->raw_value() == log_list->list_scrollbar->settings.upper_limit;
+
 	log_list->row_contents.clear();
 	for(int32_t i = 0; i < int32_t(messages.size()); ++i)
 		log_list->row_contents.push_back(i);
 
 	log_list->update(state);
-	log_list->scroll_to_bottom(state);
+
+	if(at_bottom)
+		log_list->scroll_to_bottom(state);
 }
 
 message_result message_log_window::get(sys::state& state, Cyto::Any& payload) noexcept {
