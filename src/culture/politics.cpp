@@ -341,6 +341,7 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 		state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 	}
 	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
+	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 
 void change_government_type(sys::state& state, dcon::nation_id n, dcon::government_type_id new_type) {
