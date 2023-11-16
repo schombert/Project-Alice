@@ -643,7 +643,7 @@ struct alignas(64) state {
 
 	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
 
-	~state();
+	//~state() = default;
 
 	void save_user_settings() const;
 	void load_user_settings();
