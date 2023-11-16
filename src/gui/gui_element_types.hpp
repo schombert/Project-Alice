@@ -685,9 +685,10 @@ protected:
 	scrollbar_left* left = nullptr;
 	scrollbar_right* right = nullptr;
 	scrollbar_slider* slider = nullptr;
-	scrollbar_settings settings;
 
 public:
+	scrollbar_settings settings;
+
 	scrollbar_track* track = nullptr;
 	virtual void on_value_change(sys::state& state, int32_t v) noexcept { }
 

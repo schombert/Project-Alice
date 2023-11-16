@@ -918,14 +918,15 @@ public:
 	}
 };
 
-class national_tech_school : public standard_nation_text {
+class national_tech_school : public simple_body_text {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto mod_id = state.world.nation_get_tech_school(nation_id);
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto mod_id = state.world.nation_get_tech_school(n);
 		if(bool(mod_id)) {
-			return text::produce_simple_string(state, state.world.modifier_get_name(mod_id));
+			set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(mod_id)));
 		} else {
-			return text::produce_simple_string(state, "traditional_academic");
+			set_text(state, text::produce_simple_string(state, "traditional_academic"));
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1780,6 +1781,49 @@ public:
 		} else {
 			return nullptr;
 		}
+	}
+};
+
+class province_colony_button : public standard_state_instance_button {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		frame = 1;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		disabled = !command::can_upgrade_colony_to_state(state, state.local_player_nation, content);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		command::upgrade_colony_to_state(state, state.local_player_nation, content);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto state_instance_id = retrieve<dcon::state_instance_id>(state, parent);
+
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony"));
+		text::add_divider_to_layout_box(state, contents, box);
+
+		text::substitution_map sub1{};
+		text::add_to_substitution_map(sub1, text::variable_type::num, text::fp_one_place{ state.defines.state_creation_admin_limit * 100.f });
+		float total_pop = state.world.state_instance_get_demographics(state_instance_id, demographics::total);
+		float b_size = province::state_accepted_bureaucrat_size(state, state_instance_id);
+		text::add_to_substitution_map(sub1, text::variable_type::curr, text::fp_one_place{ (b_size / total_pop) * 100.f });
+		text::localised_format_box(state, contents, box, std::string_view("pw_colony_no_state"), sub1);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::substitution_map sub2{};
+		text::add_to_substitution_map(sub2, text::variable_type::value, int32_t(province::colony_integration_cost(state, state_instance_id)));
+		text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
+
+		text::close_layout_box(contents, box);
 	}
 };
 

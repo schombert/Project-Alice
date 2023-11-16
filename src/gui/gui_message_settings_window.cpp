@@ -35,8 +35,7 @@ void message_log_window::on_create(sys::state& state) noexcept {
 	cat_filters.resize(size_t(message_settings_category::count));
 }
 
-std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, std::string_view name,
-		dcon::gui_def_id id) noexcept {
+std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "close") {
 		return make_element_by_type<generic_close_button>(state, id);
 	} else if(name == "messagelog") {
@@ -61,14 +60,22 @@ std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, 
 }
 
 void message_log_window::on_update(sys::state& state) noexcept {
-	while(messages.size() >= 100)
-		messages.pop_back();
+
+	if(auto ex_size = int32_t(messages.size()) - 100; ex_size > 0) {
+		std::rotate(messages.begin(), messages.begin() + ex_size, messages.end());
+		messages.resize(100);
+	}
+
+	bool at_bottom = log_list->list_scrollbar->raw_value() == log_list->list_scrollbar->settings.upper_limit;
 
 	log_list->row_contents.clear();
 	for(int32_t i = 0; i < int32_t(messages.size()); ++i)
 		log_list->row_contents.push_back(i);
+
 	log_list->update(state);
-	log_list->scroll_to_bottom(state);
+
+	if(at_bottom)
+		log_list->scroll_to_bottom(state);
 }
 
 message_result message_log_window::get(sys::state& state, Cyto::Any& payload) noexcept {

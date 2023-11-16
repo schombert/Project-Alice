@@ -36,7 +36,9 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto pt = state.world.province_get_port_to(p);
-	assert(pt);
+	if(!pt)
+		return glm::vec2{};
+
 	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
 	assert(adj);
 	auto id = adj.index();
@@ -66,7 +68,7 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	std::vector<std::vector<glm::vec2>> arrows;
 	std::vector<float> progresses;
-	for(auto& selected_army : state.selected_armies) {
+	for(auto selected_army : state.selected_armies) {
 		progresses.push_back(military::fractional_distance_covered(state, selected_army));
 
 		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
@@ -78,7 +80,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 			arrows.back().push_back(army_pos);
 		}
 	}
-	for(auto& selected_navy : state.selected_navies) {
+	for(auto selected_navy : state.selected_navies) {
 		progresses.push_back(military::fractional_distance_covered(state, selected_navy));
 
 		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);

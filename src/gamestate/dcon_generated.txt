@@ -2165,7 +2165,7 @@ object {
 
 	property{
 		name{ reserves }
-		type{vector_pool{2500}{military::reserve_regiment}}
+		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
 }
