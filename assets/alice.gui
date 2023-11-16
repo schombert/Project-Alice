@@ -2655,7 +2655,7 @@ guiTypes = {
 		guiButtonType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 200 280 }
+			size = { 200 298 }
 			quadTextureSprite = "console_background"
 		}
 		instantTextBoxType = {
@@ -2667,9 +2667,19 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = center
 		}
+		instantTextBoxType = {
+			name = "legend_esc_instr"
+			text = "alice_state_select_2"
+			position = { 0 33 }
+			font = "Arial14"
+			borderSize = { 0 0}
+			maxsize = { 200 24 }
+			orientation = "UPPER_LEFT"
+			format = center
+		}
 		listboxType = {
 			name = "selectable"
-			position = { 6 34 }
+			position = { 6 52 }
 			backGround = ""
 			size = { 148 200 }
 			spacing = 1
