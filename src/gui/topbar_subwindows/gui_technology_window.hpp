@@ -917,6 +917,9 @@ public:
 
 	void button_shift_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
+		if(!content)
+			return;
+
 		auto it = std::find(state.ui_state.tech_queue.begin(), state.ui_state.tech_queue.end(), content);
 		if(it == state.ui_state.tech_queue.end()) {
 			if(content != state.world.nation_get_current_research(state.local_player_nation) && !state.world.nation_get_active_technologies(state.local_player_nation, content)) { // don't add already researched or researching
@@ -989,6 +992,9 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		if(!tech_id)
+			return;
+
 		if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			// Fully researched.
 			tech_button->frame = 1;
@@ -1184,11 +1190,11 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::invention_id>(state, parent);
 		frame = 0; // inactive
-		if(state.world.nation_get_active_inventions(state.local_player_nation, content)) {
+		if(content && state.world.nation_get_active_inventions(state.local_player_nation, content)) {
 			frame = 1; // This invention's been discovered
 		} else {
 			auto tech_id = retrieve<dcon::technology_id>(state, parent);
-			if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
+			if(tech_id && state.world.nation_get_active_technologies(state.local_player_nation, tech_id))
 				frame = 2; // Active technology but not invention
 		}
 	}
@@ -1200,9 +1206,9 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto inv = retrieve<dcon::invention_id>(state, parent);
 		auto tech_id = retrieve<dcon::technology_id>(state, parent);
-		if(state.world.nation_get_active_inventions(state.local_player_nation, inv)) {
+		if(inv && state.world.nation_get_active_inventions(state.local_player_nation, inv)) {
 			text::add_line(state, contents, "invention_bulb_3");
-		} else if(state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
+		} else if(tech_id && state.world.nation_get_active_technologies(state.local_player_nation, tech_id)) {
 			text::add_line(state, contents, "invention_bulb_2");
 		} else {
 			text::add_line(state, contents, "invention_bulb_1");

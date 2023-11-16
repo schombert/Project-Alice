@@ -3120,6 +3120,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}
+	state.world.army_set_moving_to_merge(a, false);
 }
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
@@ -3203,6 +3204,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	} else if(reset) {
 		state.world.navy_set_arrival_time(n, sys::date{});
 	}
+	state.world.navy_set_moving_to_merge(n, false);
 }
 
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {

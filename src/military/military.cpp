@@ -6025,6 +6025,10 @@ void update_movement(sys::state& state) {
 								while(regs.begin() != regs.end()) {
 									(*regs.begin()).set_navy(ar.get_navy());
 								}
+								auto a = state.world.navy_get_army_transport(n);
+								while(a.begin() != a.end()) {
+									(*a.begin()).set_navy(ar.get_navy());
+								}
 								return;
 							}
 						}

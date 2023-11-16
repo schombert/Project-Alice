@@ -937,6 +937,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
+	for(auto i = selected_armies.size(); i-- > 0; ) {
+		if(!world.army_is_valid(selected_armies[i]) || world.army_get_controller_from_army_control(selected_armies[i]) != local_player_nation) {
+			selected_armies[i] = selected_armies.back();
+			selected_armies.pop_back();
+		}
+	}
+	for(auto i = selected_navies.size(); i-- > 0; ) {
+		if(!world.navy_is_valid(selected_navies[i]) || world.navy_get_controller_from_navy_control(selected_navies[i]) != local_player_nation) {
+			selected_navies[i] = selected_navies.back();
+			selected_navies.pop_back();
+		}
+	}
+
 	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
