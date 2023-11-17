@@ -6046,6 +6046,9 @@ float fractional_distance_covered(sys::state& state, dcon::army_id a) {
 	auto p = state.world.army_get_path(a);
 	if(p.size() == 0)
 		return 0.0f;
+	if(state.world.army_get_battle_from_army_battle_participation(a))
+		return 0.0f;
+
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
@@ -6064,6 +6067,9 @@ float fractional_distance_covered(sys::state& state, dcon::navy_id a) {
 	auto p = state.world.navy_get_path(a);
 	if(p.size() == 0)
 		return 0.0f;
+	if(state.world.navy_get_battle_from_navy_battle_participation(a))
+		return 0.0f;
+
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
