@@ -175,7 +175,9 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				// a nation, at the moment
 				// TODO: Allow Co-op
 				if(network_mode == sys::network_mode_type::single_player) {
+					world.nation_set_is_player_controlled(local_player_nation, false);
 					local_player_nation = owner;
+					world.nation_set_is_player_controlled(local_player_nation, true);
 					ui_state.nation_picker->impl_on_update(*this);
 				} else {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);

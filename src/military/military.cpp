@@ -3637,6 +3637,11 @@ float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id prima
 	auto is_tpattacker = state.world.war_get_primary_attacker(w) == secondary;
 	auto is_tpdefender = state.world.war_get_primary_defender(w) == secondary;
 
+	if(is_pattacker && is_tpdefender)
+		return primary_warscore(state, w);
+	if(is_pdefender && is_tpattacker)
+		return -primary_warscore(state, w);
+
 	int32_t sum_attacker_prov_values = 0;
 	int32_t sum_attacker_occupied_values = 0;
 	for(auto prv : state.world.nation_get_province_ownership(primary)) {
