@@ -142,7 +142,8 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
 		// maybe report an error here -- repeated definition
 		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
-		state.text_sequences[it->second] = sequence_record;
+		//leave previous in place
+		//state.text_sequences[it->second] = sequence_record;
 		return it->second;
 	} else {
 		const auto nh = state.text_sequences.size();

@@ -1605,12 +1605,6 @@ int WINAPI wWinMain(
 #include "opengl_wrapper_win.cpp"
 #include "opengl_wrapper.cpp"
 
-namespace sys {
-state::~state() {
-	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-}
-} // namespace sys
-
 // zstd
 extern "C" {
 #define XXH_NAMESPACE ZSTD_

@@ -66,6 +66,21 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 }
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
+	map_data.unit_arrow_vertices.clear();
+
+	for(auto selected_army : state.selected_armies) {
+		map::make_army_path(state, map_data.unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+	}
+	for(auto selected_navy : state.selected_navies) {
+		map::make_navy_path(state, map_data.unit_arrow_vertices, selected_navy, float(map_data.size_x), float(map_data.size_y));
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
+	if(map_data.unit_arrow_vertices.size() > 0) {
+		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	/*
 	std::vector<std::vector<glm::vec2>> arrows;
 	std::vector<float> progresses;
 	for(auto selected_army : state.selected_armies) {
@@ -93,6 +108,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		}
 	}
 	map_data.set_unit_arrows(arrows, progresses);
+	*/
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {

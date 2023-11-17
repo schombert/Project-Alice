@@ -2084,7 +2084,7 @@ struct effect_body {
 	void change_province_name(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
+			context.compiled_effect.push_back(uint16_t(effect::change_province_name));
 		} else {
 			err.accumulated_errors += "change_province_name effect used in an incorrect scope type (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
