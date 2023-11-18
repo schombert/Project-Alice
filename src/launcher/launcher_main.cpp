@@ -1549,6 +1549,7 @@ int WINAPI wWinMain(
 	return 0;
 }
 
+#include "common_types.cpp"
 #include "fonts.cpp"
 #include "texture.cpp"
 #include "text.cpp"
