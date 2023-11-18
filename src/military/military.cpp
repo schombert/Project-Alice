@@ -4756,12 +4756,13 @@ inline constexpr float combat_modifier_table[] = {0.0f, 0.02f, 0.04f, 0.06f, 0.0
 dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r) {
 	auto army = state.world.regiment_get_army_from_army_membership(r);
 	auto nation = state.world.army_get_controller_from_army_control(army);
-
 	if(nation)
 		return nation;
-
 	auto rf = state.world.army_get_controller_from_army_rebel_control(army);
-	return state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
+	auto ruler = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
+	if(ruler)
+		return ruler;
+	return state.national_definitions.rebel_id;
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
