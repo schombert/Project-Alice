@@ -801,14 +801,6 @@ void rebel_risings_check(sys::state& state) {
 
 				if(pop.get_pop().get_militancy() >= state.defines.mil_to_join_rising) {
 					auto location = pop.get_pop().get_province_from_pop_location();
-					/*
-					if(location.get_nation_from_province_control() == faction_owner) { // only in a province controlled by the owner
-						auto& sz = pop.get_pop().get_size();
-						province_damage.get(location) += sz;
-						total_damage += sz;
-						sz *= 0.98f; // 2% damage to pops that attempt a rising
-					}
-					*/
 
 					// this is the logic we would use if we were creating rebel regiments
 					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / state.defines.pop_size_per_regiment);
@@ -857,8 +849,10 @@ void rebel_risings_check(sys::state& state) {
 					}
 				}
 
-				for(auto prov : rf.get_province_rebel_control()) {
-					rebel_provs.push_back(prov.get_province().id);
+				for(auto prov : faction_owner.get_province_ownership()) {
+					if(prov.get_province().get_rebel_faction_from_province_rebel_control()
+						|| military::rebel_army_in_province(state, prov.get_province()))
+						rebel_provs.push_back(prov.get_province().id);
 				}
 
 				while(rebel_provs.size() > 0 && rebel_hunters.size() > 0) {
@@ -1287,13 +1281,16 @@ void update_armies(sys::state& state) {
 			return;
 		if(ar.get_arrival_time() != sys::date{}) /* Do not interrupt travel */
 			return;
-		if(ar.get_army_battle_participation().get_battle()) /* In battle */
+		if(ar.get_battle_from_army_battle_participation()) /* In battle */
 			return;
+		if(ar.get_navy_from_army_transport()) /* Or in naval transport... */
+			return;
+
 		auto type = arc.get_controller().get_type();
 		auto area = arc.get_controller().get_type().get_area();
 		auto location = ar.get_location_from_army_location();
 		/* If on an unsieged province, siege it! */
-		if(location.get_nation_from_province_control() && !location.get_province_rebel_control())
+		if(location.get_nation_from_province_control() && !location.get_rebel_faction_from_province_rebel_control())
 			return;
 		dcon::province_fat_id best_prov = location;
 		float best_weight = 0.f;// trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(best_prov), trigger::to_generic(best_prov), 0);;
@@ -1310,11 +1307,11 @@ void update_armies(sys::state& state) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
 				float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())) % 100);
 				//if(prov.get_army_location().begin() != prov.get_army_location().end()) {
-				//	weight *= 0.001f;
+				//	weight *= 0.01f;
 				//}
-				//if(prov.get_rebel_faction_from_province_rebel_control()) {
-				//	weight *= 0.00001f;
-				//}
+				if(prov.get_rebel_faction_from_province_rebel_control()) {
+					weight *= 0.0001f;
+				}
 				if(weight >= best_weight) {
 					best_weight = weight;
 					best_prov = prov;

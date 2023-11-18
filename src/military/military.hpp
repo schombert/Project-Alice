@@ -450,4 +450,6 @@ dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_batt
 dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_battle_id b);
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
+bool rebel_army_in_province(sys::state& state, dcon::province_id p);
+
 } // namespace military

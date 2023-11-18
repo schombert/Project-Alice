@@ -6874,4 +6874,12 @@ void update_blackflag_status(sys::state& state) {
 	}
 }
 
+bool rebel_army_in_province(sys::state& state, dcon::province_id p) {
+	for(auto ar : state.world.province_get_army_location(p)) {
+		if(!ar.get_army().get_controller_from_army_control())
+			return true;
+	}
+	return false;
+}
+
 } // namespace military

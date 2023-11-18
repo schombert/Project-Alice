@@ -4042,14 +4042,6 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 	}
 }
 
-bool rebel_army_in_province(sys::state& state, dcon::province_id p) {
-	for(auto ar : state.world.province_get_army_location(p)) {
-		if(!ar.get_army().get_controller_from_army_control())
-			return true;
-	}
-	return false;
-}
-
 float estimate_army_strength(sys::state& state, dcon::army_id a) {
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
@@ -4134,7 +4126,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 
 	for(auto o : state.world.nation_get_province_ownership(n)) {
 		if(!(o.get_province().get_nation_from_province_control())
-			|| (o.get_province().get_nation_from_province_control() == n && rebel_army_in_province(state, o.get_province()))
+			|| (o.get_province().get_nation_from_province_control() == n && military::rebel_army_in_province(state, o.get_province()))
 			) {
 
 			potential_targets.push_back(
