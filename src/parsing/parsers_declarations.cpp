@@ -2825,16 +2825,26 @@ void country_history_file::ruling_party(association_type, std::string_view value
 
 void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	auto value_key = [&]() {
-		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value));
+		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value) + "_title");
 		if(it != context.outer_context.state.key_to_text_sequence.end())
 			return it->second;
 		return dcon::text_sequence_id();
 	}();
-	context.outer_context.state.world.for_each_decision([&](dcon::decision_id d) {
-		auto name = context.outer_context.state.world.decision_get_name(d);
-		if(name == value_key)
+
+	if(!value_key) {
+		err.accumulated_errors += "no decision named " + std::string(value) + " found  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+	for(auto d : context.outer_context.state.world.in_decision) {
+		auto name = d.get_name();
+		if(name == value_key) {
 			context.pending_decisions.emplace_back(context.holder_id, d);
-	});
+			return;
+		}
+	}
+
+	err.accumulated_errors += "no decision named " + std::string(value) + " found  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 void commodity_array::finish(scenario_building_context& context) {
