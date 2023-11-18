@@ -1,6 +1,7 @@
 #ifdef LOCAL_USER_SETTINGS
 #include "local_user_settings.hpp"
 #endif
+#include "common_types.cpp"
 #include "system_state.cpp"
 #include "parsers.cpp"
 #include "defines.cpp"
