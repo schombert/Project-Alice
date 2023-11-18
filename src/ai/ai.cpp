@@ -2527,7 +2527,7 @@ void make_peace_offers(sys::state& state) {
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
 			if((military::is_attacker(state, w, wg.get_wargoal().get_added_by()) == attacker) == !concession) {
 				auto goal_cost = military::peace_cost(state, w, wg.get_wargoal().get_type(), wg.get_wargoal().get_added_by(), wg.get_wargoal().get_target_nation(), wg.get_wargoal().get_secondary_nation(), wg.get_wargoal().get_associated_state(), wg.get_wargoal().get_associated_tag());
-				if(current_value + goal_cost < score_max) {
+				if(current_value + goal_cost <= score_max) {
 					current_value += goal_cost;
 					state.world.force_create_peace_offer_item(pending, wg.get_wargoal().id);
 				}
