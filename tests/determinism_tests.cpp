@@ -519,6 +519,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			rebel::update_armies(ws1);
 			rebel::update_armies(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::rebel_hunting_check(ws1);
+			rebel::rebel_hunting_check(ws2);
 			break;
 		case 13:
 			ai::perform_influence_actions(ws1);
@@ -581,6 +584,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			rebel::update_armies(ws1);
 			rebel::update_armies(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::rebel_hunting_check(ws1);
+			rebel::rebel_hunting_check(ws2);
 			break;
 		case 25:
 			rebel::execute_province_defections(ws1);
@@ -608,6 +614,9 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 			compare_game_states(ws1, ws2);
 			rebel::update_armies(ws1);
 			rebel::update_armies(ws2);
+			compare_game_states(ws1, ws2);
+			rebel::rebel_hunting_check(ws1);
+			rebel::rebel_hunting_check(ws2);
 			break;
 		case 31:
 			ai::update_cb_fabrication(ws1);

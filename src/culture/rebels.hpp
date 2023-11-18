@@ -28,6 +28,7 @@ float get_suppression_point_cost(sys::state& state, dcon::movement_id m);
 void execute_rebel_victories(sys::state& state);
 void execute_province_defections(sys::state& state);
 
+void rebel_hunting_check(sys::state& state);
 void rebel_risings_check(sys::state& state);
 void trigger_revolt(sys::state& state, dcon::nation_id n, dcon::rebel_type_id t, dcon::ideology_id i, dcon::culture_id c, dcon::religion_id r);
 
