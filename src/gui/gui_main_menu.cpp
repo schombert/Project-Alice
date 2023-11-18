@@ -198,7 +198,7 @@ void antialiasing_display::on_update(sys::state& state) noexcept {
 
 void gaussianblur_left::button_action(sys::state& state) noexcept {
 	if(state.user_settings.gaussianblur_level > 1.f) {
-		state.user_settings.gaussianblur_level -= 0.03125f;
+		state.user_settings.gaussianblur_level -= 0.0078125f;
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -207,15 +207,16 @@ void gaussianblur_left::on_update(sys::state& state) noexcept {
 }
 void gaussianblur_right::button_action(sys::state& state) noexcept {
 	if(state.user_settings.gaussianblur_level < 1.5f) {
-		state.user_settings.gaussianblur_level += 0.03125f;
+		state.user_settings.gaussianblur_level += 0.0078125f;
 		send(state, parent, notify_setting_update{});
 	}
 }
 void gaussianblur_right::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.gaussianblur_level >= 1.5f) || (state.user_settings.antialias_level == 0);
+	disabled = (state.user_settings.gaussianblur_level >= 1.25f) || (state.user_settings.antialias_level == 0);
 }
 void gaussianblur_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + text::format_float(state.user_settings.gaussianblur_level));
+	/* More user friendly displaying of gaussian blur */
+	set_text(state, "x" + text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
 }
 
 /*
