@@ -6403,17 +6403,6 @@ void update_siege_progress(sys::state& state) {
 			province::set_province_controller(state, prov, nr);
 			eject_ships(state, prov);
 
-			for(auto ar : state.world.province_get_army_location(prov)) {
-				auto a = ar.get_army();
-				if(a.get_is_rebel_hunter()
-					&& a.get_controller_from_army_control().get_is_player_controlled()
-					&& !a.get_battle_from_army_battle_participation()
-					&& !a.get_navy_from_army_transport()
-					&& !a.get_arrival_time()) {
-					send_rebel_hunter_to_next_province(state, a, prov);
-				}
-			}
-
 			auto cc = state.world.province_get_nation_from_province_control(prov);
 			auto oc = state.world.province_get_former_controller(prov);
 			auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(nr);
