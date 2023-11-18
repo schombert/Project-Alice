@@ -875,6 +875,7 @@ void render() {
 	glUseProgram(ui_shader_program);
 	glUniform1f(ogl::parameters::screen_width, float(base_width));
 	glUniform1f(ogl::parameters::screen_height, float(base_height));
+	glUniform1f(11, 1.f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

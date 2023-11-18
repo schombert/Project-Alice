@@ -218,6 +218,28 @@ void gaussianblur_display::on_update(sys::state& state) noexcept {
 	set_text(state, "x" + text::format_float(state.user_settings.gaussianblur_level));
 }
 
+void gamma_left::button_action(sys::state& state) noexcept {
+	if(state.user_settings.gamma > 0.5f) {
+		state.user_settings.gamma -= 0.1f;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void gamma_left::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.gamma <= 0.5f);
+}
+void gamma_right::button_action(sys::state& state) noexcept {
+	if(state.user_settings.gamma < 2.5f) {
+		state.user_settings.gamma += 0.1f;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void gamma_right::on_update(sys::state& state) noexcept {
+	disabled = (state.user_settings.gamma >= 2.5f);
+}
+void gamma_display::on_update(sys::state& state) noexcept {
+	set_text(state, "x" + text::format_float(state.user_settings.gamma));
+}
+
 /*
 class autosave_left : public button_element_base {
 public:

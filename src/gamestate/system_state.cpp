@@ -580,6 +580,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -724,6 +725,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glUseProgram(open_gl.ui_shader_program);
 			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glUniform1f(11, user_settings.gamma);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
@@ -742,6 +744,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -886,6 +889,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glUseProgram(open_gl.ui_shader_program);
 			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glUniform1f(11, user_settings.gamma);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
@@ -904,6 +908,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1443,6 +1448,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
@@ -1461,6 +1467,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glUseProgram(open_gl.ui_shader_program);
 	glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 	glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+	glUniform1f(11, user_settings.gamma);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1953,6 +1960,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_label);
 	US_SAVE(antialias_level);
 	US_SAVE(gaussianblur_level);
+	US_SAVE(gamma);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2003,6 +2011,7 @@ void state::load_user_settings() {
 			US_LOAD(map_label);
 			US_LOAD(antialias_level);
 			US_LOAD(gaussianblur_level);
+			US_LOAD(gamma);
 #undef US_LOAD
 		} while(false);
 
@@ -2013,6 +2022,7 @@ void state::load_user_settings() {
 		if(user_settings.antialias_level > 16)
 			user_settings.antialias_level = 0;
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
+		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
 	}
 }
 

@@ -507,6 +507,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		glUniform1f(11, state.user_settings.gamma);
 
 		GLuint vertex_subroutines;
 		// calc_gl_position()
@@ -612,6 +613,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!drag_box_vertices.empty()) {
 		glUseProgram(drag_box_shader);
+		glUniform1f(11, state.user_settings.gamma);
 		glBindVertexArray(drag_box_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());

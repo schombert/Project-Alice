@@ -18,6 +18,10 @@ layout (binding = 13) uniform sampler2D province_fow;
 // location 2 : screen_size
 layout (location = 3) uniform vec2 map_size;
 layout (location = 4) uniform float time;
+layout (location = 11) uniform float gamma;
+vec4 gamma_correct(vec4 colour) {
+	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
+}
 
 // sheet is composed of 64 files, in 4 cubes of 4 rows of 4 columns
 // so each column has 8 tiles, and each row has 8 tiles too
@@ -231,4 +235,6 @@ void main() {
 
 	frag_color = mix(water, terrain, is_land);
 	frag_color.a = 1;
+
+	frag_color = gamma_correct(frag_color);
 }
