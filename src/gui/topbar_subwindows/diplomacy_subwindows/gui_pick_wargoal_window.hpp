@@ -210,7 +210,7 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(n != target && n != actor) {
+			//if(n != target && n != actor) {
 				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 					trigger::to_generic(n.id))) {
 
@@ -231,7 +231,7 @@ public:
 						}
 					}
 				}
-			}
+			//}
 		}
 
 		update(state);
@@ -1311,14 +1311,14 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(n != target && n != actor && n != state.local_player_nation) {
+			//if(n != target && n != actor && n != state.local_player_nation) {
 				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 					trigger::to_generic(n.id))) {
 
 					auto id = state.world.nation_get_identity_from_identity_holder(n);
 					row_contents.push_back(id);
 				}
-			}
+			//}
 		}
 
 		update(state);
