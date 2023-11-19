@@ -6109,26 +6109,12 @@ constexpr inline float siege_speed_mul = 1.0f / 50.0f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
-
+	auto controller = a.get_controller_from_army_control();
 	static std::vector<dcon::province_id> rebel_provs;
 	rebel_provs.clear();
+	rebel::get_hunting_targets(state, controller, rebel_provs);
+	rebel::sort_hunting_targets(state, ar, rebel_provs);
 
-	auto controller = a.get_controller_from_army_control();
-
-	for(auto op : controller.get_province_ownership()) {
-		if(!op.get_province().get_nation_from_province_control()) {
-			rebel_provs.push_back(op.get_province().id);
-		}
-	}
-
-	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-		auto da = province::sorting_distance(state, a, prov);
-		auto db = province::sorting_distance(state, b, prov);
-		if(da != db)
-			return da < db;
-		else
-			return a.index() < b.index();
-	});
 	for(auto next_prov : rebel_provs) {
 		if(prov == next_prov)
 			continue;
