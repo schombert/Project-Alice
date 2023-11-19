@@ -6105,7 +6105,7 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
-constexpr inline float siege_speed_mul = 1.0f / 100.0f;
+constexpr inline float siege_speed_mul = 1.0f / 50.0f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
