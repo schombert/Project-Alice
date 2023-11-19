@@ -404,7 +404,7 @@ void parse_csv_pop_history_file(sys::state& state, const char* start, const char
 				return;
 			}
 			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
-			pop_history_province_context pop_context(context, p);
+			pop_history_province_context pop_context{context, p};
 			def.culture(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
 			def.religion(parsers::association_type::eq_default, religion_text , err, 0, pop_context);
 			def.size = parsers::parse_int(size_text, 0, err);
