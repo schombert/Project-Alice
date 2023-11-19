@@ -369,4 +369,50 @@ void make_pop_province_list(std::string_view name, token_generator& gen, error_h
 		parse_pop_province_list(gen, err, new_context);
 	}
 }
+
+void parse_csv_pop_history_file(sys::state& state, const char* start, const char* end, error_handler& err, scenario_building_context& context) {
+	pop_history_definition def;
+	pop_province_list ppl;
+	pop_history_province_context pop_context(context);
+
+	auto cpos = start;
+	while(cpos < end) {
+		// province-id;size;culture;religion;type
+		cpos = parsers::parse_fixed_amount_csv_values<5>(cpos, end, ';', [&](std::string_view const* values) {
+			auto provid_text = parsers::remove_surrounding_whitespace(values[0]);
+			auto size_text = parsers::remove_surrounding_whitespace(values[1]);
+			auto culture_text = parsers::remove_surrounding_whitespace(values[2]);
+			auto religion_text = parsers::remove_surrounding_whitespace(values[3]);
+			auto type_text = parsers::remove_surrounding_whitespace(values[4]);
+			if(provid_text.empty()) {
+				err.accumulated_errors += "Unspecified province id (" + err.file_name + ")\n";
+				return;
+			}
+			if(size_text.empty()) {
+				err.accumulated_errors += "Unspecified size (" + err.file_name + ")\n";
+				return;
+			}
+			if(culture_text.empty()) {
+				err.accumulated_errors += "Unspecified culture (" + err.file_name + ")\n";
+				return;
+			}
+			if(religion_text.empty()) {
+				err.accumulated_errors += "Unspecified religion (" + err.file_name + ")\n";
+				return;
+			}
+			if(type_text.empty()) {
+				err.accumulated_errors += "Unspecified type (" + err.file_name + ")\n";
+				return;
+			}
+			pop_context.id = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
+			def.culture(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
+			def.religion(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
+			def.size = parsers::parse_int(size_text, 0, err);
+			//def.rebel_type(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
+			ppl.any_group(type_text, def, err, 0, pop_context);
+			ppl.finish(pop_context);
+		});
+	}
+}
+
 } // namespace parsers

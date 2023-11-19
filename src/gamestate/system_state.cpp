@@ -2674,6 +2674,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::parse_pop_history_file(gen, err, context);
 			}
 		}
+
+		// Modding extension:
+		// Support loading pops from a CSV file, this to condense them better and allow
+		// for them to load faster and better ordered, editable with a spreadsheet program
+		for(auto pop_file : list_files(date_directory, NATIVE(".csv"))) {
+			auto opened_file = open_file(pop_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::parse_csv_pop_history_file(*this, content.data, content.data + content.file_size, err, context);
+			}
+		}
 	}
 	// load poptype definitions
 	{

@@ -39,3 +39,19 @@ To use a scripted trigger simply add `test = name_of_condition` in a trigger whe
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
+
+### Dense CSV pop listing
+
+This is an extension that allows you to use CSV files instead of scripting pops manually, this allowing you to edit the pop files on a spreadsheet program, for example:
+
+```
+825;100;albanian;orthodox;clergymen;
+825;150;albanian;orthodox;aristocrats;
+825;744;albanian;orthodox;capitalists;
+825;4019578;albanian;orthodox;farmers;
+...
+```
+
+This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
+
+Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
