@@ -3,6 +3,11 @@ layout (location = 0) out vec4 frag_color;
 
 layout (binding = 5) uniform sampler2D colormap_water;
 
+layout (location = 11) uniform float gamma;
+vec4 gamma_correct(vec4 colour) {
+	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
+}
+
 void main() {
 	frag_color = vec4(0., 0., 0., 1.);
 
@@ -21,5 +26,5 @@ void main() {
 	//float4 TerraIncognita = tex2D( TerraIncognitaTexture, v.vTerrainTexCoord );
 	//OutColor.rgb += ( TerraIncognita.g - 0.25 )*1.33;
 
-	frag_color = OutColor;
+	frag_color = gamma_correct(OutColor);
 }

@@ -13,6 +13,11 @@ layout (location = 2) uniform vec4 d_rect;
 layout (location = 6) uniform float border_size;
 layout (location = 7) uniform vec3 inner_color;
 layout (location = 10) uniform vec4 subrect;
+
+layout (location = 11) uniform float gamma;
+vec4 gamma_correct(vec4 colour) {
+	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
+}
 		
 layout(index = 0) subroutine(font_function_class)
 vec4 border_filter(vec2 tc) {
@@ -134,5 +139,5 @@ vec4 alt_tint_color(vec4 color_in) {
 }
 		
 void main() {
-	frag_color = coloring_function(font_function(tex_coord));
+	frag_color = gamma_correct(coloring_function(font_function(tex_coord)));
 }
