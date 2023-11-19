@@ -1115,7 +1115,7 @@ public:
 					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(pt));
 					auto state_name = text::get_dynamic_state_name(state, state_instance);
 					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
-					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage_one_place{ unemployed / total });
+					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_two_places{ (unemployed / total) * 100.f });
 					auto box = text::open_layout_box(contents);
 					text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
 					text::close_layout_box(contents, box);
