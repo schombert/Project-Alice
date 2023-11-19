@@ -1309,8 +1309,10 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	state.national_definitions.gc_pending = true;
 	state.diplomatic_cached_values_out_of_date = true; // refresh stored counts of allies, vassals, etc
 
-	if(n == state.local_player_nation) { // TODO: player defeated; notify and end game
+	if(n == state.local_player_nation) {
+		// Player was defeated, show end screen
 		state.local_player_nation = dcon::nation_id{};
+		state.mode = sys::game_mode_type::end_screen;
 	}
 }
 
