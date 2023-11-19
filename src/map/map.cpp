@@ -507,6 +507,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		glUniform1f(11, state.user_settings.gamma);
 
 		GLuint vertex_subroutines;
 		// calc_gl_position()
@@ -612,6 +613,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!drag_box_vertices.empty()) {
 		glUseProgram(drag_box_shader);
+		glUniform1f(11, state.user_settings.gamma);
 		glBindVertexArray(drag_box_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
@@ -984,7 +986,7 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) 
 	auto ladjx = std::abs(new_point.x - size_x - base_point.x);
 	auto radjx = std::abs(new_point.x + size_x - base_point.x);
 	if(uadjx < ladjx) {
-		return uadjx < radjx ? new_point : glm::vec2{new_point.x + size_x, new_point.y};
+		return uadjx < radjx ? new_point : glm::vec2{ new_point.x + size_x, new_point.y };
 	} else {
 		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
 	}
@@ -1012,7 +1014,7 @@ void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 				if(glm::length(temp) < 0.00001f) {
 					next_perpendicular = -a_per;
 				} else {
-					next_perpendicular = glm::normalize(glm::vec2{-temp.y, temp.x});
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
 
 					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
 						next_perpendicular *= -1.0f;
@@ -1179,7 +1181,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-		};
+			};
 		float x_step = (1.f / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
@@ -1212,7 +1214,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 					// y = a + 1bx^1 + 1cx^2 + 1dx^3
 					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-				};
+					};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
