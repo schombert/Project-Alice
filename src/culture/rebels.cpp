@@ -785,8 +785,8 @@ void sort_hunting_targets(sys::state& state, dcon::army_id ar, std::vector<dcon:
 	auto our_str = ai::estimate_army_strength(state, ar);
 	auto loc = state.world.army_get_location_from_army_location(ar);
 	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-		auto aa = our_str / ai::estimate_rebel_strength(state, a);
-		auto ab = our_str / ai::estimate_rebel_strength(state, b);
+		auto aa = ai::estimate_rebel_strength(state, a) / our_str;
+		auto ab = ai::estimate_rebel_strength(state, b) / our_str;
 		auto da = province::sorting_distance(state, a, loc) * aa;
 		auto db = province::sorting_distance(state, b, loc) * ab;
 		if(da != db)
