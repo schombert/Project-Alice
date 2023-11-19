@@ -918,7 +918,7 @@ public:
 	}
 };
 
-class national_tech_school : public simple_body_text {
+class national_tech_school : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);

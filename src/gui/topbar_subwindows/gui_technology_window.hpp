@@ -1507,6 +1507,33 @@ public:
 	}
 };
 
+class tech_window_tech_school : public simple_body_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto mod_id = state.world.nation_get_tech_school(n);
+		if(bool(mod_id)) {
+			set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(mod_id)));
+		} else {
+			set_text(state, text::produce_simple_string(state, "traditional_academic"));
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
+		if(bool(mod_id)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+
+			modifier_description(state, contents, mod_id);
+		}
+	}
+};
+
 class technology_window : public generic_tabbed_window<culture::tech_category> {
 	technology_selected_tech_window* selected_tech_win = nullptr;
 	dcon::technology_id tech_id{};
@@ -1612,7 +1639,7 @@ public:
 		} else if(name == "current_research") {
 			return make_element_by_type<simple_body_text>(state, id);
 		} else if(name == "administration_type") {
-			return make_element_by_type<national_tech_school>(state, id);
+			return make_element_by_type<tech_window_tech_school>(state, id);
 		} else if(name == "research_progress") {
 			return make_element_by_type<nation_technology_research_progress>(state, id);
 		} else if(name == "research_progress_name") {
