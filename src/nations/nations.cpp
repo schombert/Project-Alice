@@ -2675,6 +2675,8 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 		return;
 	if(great_power == target)
 		return;
+	if(state.world.nation_get_is_great_power(target) || !state.world.nation_get_is_great_power(great_power))
+		return;
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);
 	if(!rel) {
