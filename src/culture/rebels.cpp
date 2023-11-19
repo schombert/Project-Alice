@@ -800,10 +800,13 @@ void rebel_hunting_check(sys::state& state) {
 
 			while(rebel_provs.size() > 0 && rebel_hunters.size() > 0) {
 				auto rh = rebel_hunters[0];
+				auto our_str = ai::estimate_army_strength(state, rh);
 				auto loc = state.world.army_get_location_from_army_location(rh);
 				std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-					auto da = province::sorting_distance(state, a, loc);
-					auto db = province::sorting_distance(state, b, loc);
+					auto aa = our_str / ai::estimate_rebel_strength(state, a);
+					auto ab = our_str / ai::estimate_rebel_strength(state, b);
+					auto da = province::sorting_distance(state, a, loc) * aa;
+					auto db = province::sorting_distance(state, b, loc) * ab;
 					if(da != db)
 						return da < db;
 					else

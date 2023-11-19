@@ -67,4 +67,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg);
 
+float estimate_army_strength(sys::state& state, dcon::army_id a);
+float estimate_rebel_strength(sys::state& state, dcon::province_id p);
+
 }

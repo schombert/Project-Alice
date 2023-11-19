@@ -4789,4 +4789,12 @@ void general_ai_unit_tick(sys::state& state) {
 	}
 }
 
+float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
+	float v = 0.f;
+	for(auto ar : state.world.province_get_army_location(p))
+		if(ar.get_army().get_controller_from_army_rebel_control())
+			v += estimate_army_strength(state, ar.get_army());
+	return v;
+}
+
 }
