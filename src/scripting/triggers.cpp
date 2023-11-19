@@ -3936,15 +3936,15 @@ TRIGGER_FUNCTION(tf_national_provinces_occupied) {
 			read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_is_greater_power_nation) {
-	return compare_to_true(tval[0], ws.world.nation_get_rank(to_nation(primary_slot)) <= uint16_t(ws.defines.great_nations_count));
+	return compare_to_true(tval[0], ws.world.nation_get_is_great_power(to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_is_greater_power_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(primary_slot));
-	return compare_to_true(tval[0], ws.world.nation_get_rank(owner) <= uint16_t(ws.defines.great_nations_count));
+	return compare_to_true(tval[0], ws.world.nation_get_is_great_power(owner));
 }
 TRIGGER_FUNCTION(tf_is_greater_power_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(primary_slot));
-	return compare_to_true(tval[0], ws.world.nation_get_rank(owner) <= uint16_t(ws.defines.great_nations_count));
+	return compare_to_true(tval[0], ws.world.nation_get_is_great_power(owner));
 }
 TRIGGER_FUNCTION(tf_rich_tax) {
 	return compare_values(tval[0], ws.world.nation_get_rich_tax(to_nation(primary_slot)), payload(tval[1]).signed_value);
@@ -4588,13 +4588,13 @@ TRIGGER_FUNCTION(tf_province_control_days) {
 TRIGGER_FUNCTION(tf_is_disarmed) {
 	return compare_to_true(tval[0], ve::apply([&ws](dcon::nation_id n) {
 			auto d = ws.world.nation_get_disarmed_until(n);
-			return bool(d) && d < ws.current_date;
+			return bool(d) && ws.current_date < d;
 		}, to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_is_disarmed_pop) {
 	return compare_to_true(tval[0], ve::apply([&ws](dcon::nation_id n) {
 		auto d = ws.world.nation_get_disarmed_until(n);
-		return bool(d) && d < ws.current_date;
+		return bool(d) && ws.current_date < d;
 		}, nations::owner_of_pop(ws, to_pop(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_big_producer) {

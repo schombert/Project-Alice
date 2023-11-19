@@ -1229,7 +1229,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
+				auto type = float(uint8_t(e.text[i]) >> 6);
 				float step = 1.f / 8.f;
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;
