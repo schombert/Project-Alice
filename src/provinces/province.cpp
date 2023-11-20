@@ -775,21 +775,21 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			state.world.province_set_is_slave(id, false);
 			if(will_be_colonial)
 				state.world.nation_set_is_colonial_nation(new_owner, true);
-				if(state.world.province_get_building_level(id, economy::province_building_type::naval_base) > 0)
-					state.world.state_instance_set_naval_base_is_taken(new_si, true);
+			if(state.world.province_get_building_level(id, economy::province_building_type::naval_base) > 0)
+				state.world.state_instance_set_naval_base_is_taken(new_si, true);
 
-				state_is_new = true;
+			state_is_new = true;
+		} else {
+			auto sc = state.world.state_instance_get_capital(new_si);
+			state.world.province_set_is_colonial(id, state.world.province_get_is_colonial(sc));
+			state.world.province_set_is_slave(id, state.world.province_get_is_slave(sc));
+			if(state.world.province_get_building_level(id, economy::province_building_type::naval_base) > 0) {
+				if(state.world.state_instance_get_naval_base_is_taken(new_si)) {
+					state.world.province_set_building_level(id, economy::province_building_type::naval_base, 0);
 				} else {
-					auto sc = state.world.state_instance_get_capital(new_si);
-					state.world.province_set_is_colonial(id, state.world.province_get_is_colonial(sc));
-					state.world.province_set_is_slave(id, state.world.province_get_is_slave(sc));
-					if(state.world.province_get_building_level(id, economy::province_building_type::naval_base) > 0) {
-						if(state.world.state_instance_get_naval_base_is_taken(new_si)) {
-							state.world.province_set_building_level(id, economy::province_building_type::naval_base, 0);
-						} else {
-							state.world.state_instance_set_naval_base_is_taken(new_si, true);
-						}
-					}
+					state.world.state_instance_set_naval_base_is_taken(new_si, true);
+				}
+			}
 		}
 		if(was_slave_state) {
 			culture::fix_slaves_in_province(state, new_owner, id);
@@ -829,20 +829,20 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
-		} else {
-			state.world.province_set_state_membership(id, dcon::state_instance_id{});
-			for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
-				state.world.province_set_building_level(id, t, uint8_t(0));
-			}
+	} else {
+		state.world.province_set_state_membership(id, dcon::state_instance_id{});
+		for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+			state.world.province_set_building_level(id, t, uint8_t(0));
+		}
 
-			auto province_fac_range = state.world.province_get_factory_location(id);
-			while(province_fac_range.begin() != province_fac_range.end()) {
-				state.world.delete_factory((*province_fac_range.begin()).get_factory().id);
-			}
+		auto province_fac_range = state.world.province_get_factory_location(id);
+		while(province_fac_range.begin() != province_fac_range.end()) {
+			state.world.delete_factory((*province_fac_range.begin()).get_factory().id);
+		}
 
-			for(auto p : state.world.province_get_pop_location(id)) {
-				p.get_pop().set_is_primary_or_accepted_culture(false);
-			}
+		for(auto p : state.world.province_get_pop_location(id)) {
+			p.get_pop().set_is_primary_or_accepted_culture(false);
+		}
 	}
 
 	static std::vector<dcon::regiment_id> regs;
