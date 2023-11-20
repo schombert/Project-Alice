@@ -36,6 +36,8 @@ list(APPEND SOURCE_FILES_CPP "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/parsing/parsers.cpp"
+	"src/text/fonts.cpp"
 	"src/text/text.cpp")
 
 if(WIN32)
