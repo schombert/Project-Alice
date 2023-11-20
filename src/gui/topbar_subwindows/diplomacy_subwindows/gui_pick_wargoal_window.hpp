@@ -777,6 +777,36 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(!show)
 			return;
+
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		for(auto dr : state.world.nation_get_diplomatic_relation(state.local_player_nation)) {
+			if(dr.get_are_allied()) {
+				auto other = dr.get_related_nations(0) == state.local_player_nation ? dr.get_related_nations(1) : dr.get_related_nations(0);
+				if(other.get_is_player_controlled()) {
+					text::add_line(state, contents, "att_call_is_human", text::variable_type::x, other.id);
+				} else {
+					if(target == other || military::are_in_common_war(state, target, other) || military::are_at_war(state, target, other) || nations::are_allied(state, target, other)) {
+						text::add_line(state, contents, "att_call_will_decline", text::variable_type::x, other.id);
+					} else {
+						bool will_join = false;
+
+						if(military::can_use_cb_against(state, other, target))
+							will_join = true;
+						if(state.world.nation_get_ai_rival(other) == target)
+							will_join = true;
+
+						// TODO: check subjects, other nations that can be expected to defensively answer the CTA
+
+						if(will_join) {
+							text::add_line(state, contents, "att_call_will_accept", text::variable_type::x, other.id);
+						} else {
+							text::add_line(state, contents, "att_call_will_decline", text::variable_type::x, other.id);
+						}
+					}
+				}
+			}
+		}
 	}
 };
 
