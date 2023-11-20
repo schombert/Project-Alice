@@ -1516,8 +1516,7 @@ public:
 				if(state.world.nation_get_in_sphere_of(m) == n) {
 					[&]() {
 						for(auto fac : state.world.nation_get_rebellion_within(m)) {
-							auto control = fac.get_rebels().get_province_rebel_control();
-							if(control.begin() != control.end()) {
+							if(rebel::get_faction_brigades_active(state, fac.get_rebels()) > 0) {
 								if(!added_reb_header)
 									text::add_line(state, contents, std::string_view("a_alert_reb"));
 								added_reb_header = true;
