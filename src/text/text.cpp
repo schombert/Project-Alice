@@ -822,16 +822,6 @@ std::string prettify(int64_t num) {
 	return std::string("#inf");
 }
 
-template<class T>
-std::string get_name_as_string(sys::state const& state, T t) {
-	return text::produce_simple_string(state, t.get_name());
-}
-
-template<class T>
-std::string get_adjective_as_string(sys::state const& state, T t) {
-	return text::produce_simple_string(state, t.get_adjective());
-}
-
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
 	auto fat_id = dcon::fatten(state.world, state_id);
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
