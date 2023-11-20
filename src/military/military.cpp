@@ -4885,7 +4885,7 @@ void apply_attrition(sys::state& state) {
 				auto army_controller = ar.get_army().get_controller_from_army_control();
 				auto supply_limit = supply_limit_in_province(state, army_controller, prov);
 				auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
-				
+
 				float greatest_hostile_fort = 0.0f;
 
 				for(auto adj : state.world.province_get_province_adjacency(prov)) {
@@ -4923,7 +4923,7 @@ void apply_attrition(sys::state& state) {
 
 void apply_regiment_damage(sys::state& state) {
 	for(uint32_t i = state.world.regiment_size(); i-- > 0;) {
-		dcon::regiment_id s{dcon::regiment_id::value_base_t(i)};
+		dcon::regiment_id s{ dcon::regiment_id::value_base_t(i) };
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
 			auto current_strength = state.world.regiment_get_strength(s);
@@ -4935,8 +4935,8 @@ void apply_regiment_damage(sys::state& state) {
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
 					psize -= state.defines.pop_size_per_regiment * pending_damage * state.defines.soldier_to_pop_damage /
-									 (3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
-																			 sys::national_mod_offsets::soldier_to_pop_loss)));
+						(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
+							sys::national_mod_offsets::soldier_to_pop_loss)));
 					if(psize <= 1.0f) {
 						state.world.delete_pop(backing_pop);
 					}
@@ -4961,6 +4961,20 @@ void apply_regiment_damage(sys::state& state) {
 							wex = std::min(wex + 0.5f / float(maxr),
 									state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
 						}
+					}
+				}
+				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+					for(auto& e : state.world.land_battle_get_attacker_back_line(b)) {
+						e = (e == s) ? dcon::regiment_id{} : e;
+					}
+					for(auto& e : state.world.land_battle_get_attacker_front_line(b)) {
+						e = (e == s) ? dcon::regiment_id{} : e;
+					}
+					for(auto& e : state.world.land_battle_get_defender_back_line(b)) {
+						e = (e == s) ? dcon::regiment_id{} : e;
+					}
+					for(auto& e : state.world.land_battle_get_defender_front_line(b)) {
+						e = (e == s) ? dcon::regiment_id{} : e;
 					}
 				}
 				state.world.delete_regiment(s);
@@ -5079,12 +5093,8 @@ void update_land_battles(sys::state& state) {
 		*/
 
 		for(int32_t i = 0; i < combat_width; ++i) {
-			// Array may hold non-0 indices, hence, we have to explicitly assert the regiments are valid actually
-			// to do that we're going to employ the strategy of checking explicitly they are valid
-			// Since the array is NOT updated when a regiment is deleted, we have to do this check for each front
-			// of the attack and defence front, hence allowing us to not let invalid regiments be checked against.
-			if(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i])) {
-				//assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
+			if(att_back[i] && def_front[i]) {
+				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
 
 				auto tech_att_nation = tech_nation_for_regiment(state, att_back[i]);
 				auto tech_def_nation = tech_nation_for_regiment(state, def_front[i]);
