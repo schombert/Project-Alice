@@ -925,34 +925,35 @@ void rebel_risings_check(sys::state& state) {
 				}
 			}
 
-			//if(counter != new_to_make) {
-				notification::post(state, notification::message{
-					[reb = rf.id](sys::state& state, text::layout_base& contents) {
-						auto rn = rebel_name(state, reb);
-						auto province_control = state.world.rebel_faction_get_province_rebel_control(reb);
-						if(province_control.begin() != province_control.end()) {
-							text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
-							for(auto p : province_control) {
-								auto box = text::open_layout_box(contents, 15);
-								text::add_to_layout_box(state, contents, box, p.get_province().id);
-								text::close_layout_box(contents, box);
-							}
-						} else {
-							text::add_line(state, contents, "msg_revolt_2", text::variable_type::x, std::string_view{ rn });
-						}
-					},
-					"msg_revolt_title",
-					rf.get_ruler_from_rebellion_within(), dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::revolt });
-			//}
-
 			/*
 			- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by
 			a factor of (number-of-additional-regiments x 0.01 + 1))
 			*/
 			rf.set_organization(0);
 			if(counter != new_to_make) {
-				// TODO: Notify
+				notification::post(state, notification::message{
+					[reb = rf.id](sys::state& state, text::layout_base& contents) {
+						auto rn = rebel_name(state, reb);
+						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
+						ankerl::unordered_dense::map<dcon::province_id, int32_t> provs;
+						for(auto ar : state.world.in_army_rebel_control) {
+							if(ar.get_controller() == reb) {
+								auto p = ar.get_army().get_location_from_army_location();
+								provs[p.id] += 1;
+							}
+						}
+						for(auto p : provs) {
+							auto box = text::open_layout_box(contents, 15);
+							text::add_to_layout_box(state, contents, box, p.first);
+							text::add_to_layout_box(state, contents, box, std::string_view(" ("));
+							text::add_to_layout_box(state, contents, box, text::int_wholenum{ p.second });
+							text::add_to_layout_box(state, contents, box, std::string_view(")"));
+							text::close_layout_box(contents, box);
+						}
+					},
+					"msg_revolt_title",
+					rf.get_ruler_from_rebellion_within(), dcon::nation_id{}, dcon::nation_id{},
+					sys::message_base_type::revolt });
 			}
 		}
 	}
