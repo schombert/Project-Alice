@@ -5079,8 +5079,12 @@ void update_land_battles(sys::state& state) {
 		*/
 
 		for(int32_t i = 0; i < combat_width; ++i) {
-			if(att_back[i] && def_front[i]) {
-				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
+			// Array may hold non-0 indices, hence, we have to explicitly assert the regiments are valid actually
+			// to do that we're going to employ the strategy of checking explicitly they are valid
+			// Since the array is NOT updated when a regiment is deleted, we have to do this check for each front
+			// of the attack and defence front, hence allowing us to not let invalid regiments be checked against.
+			if(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i])) {
+				//assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
 
 				auto tech_att_nation = tech_nation_for_regiment(state, att_back[i]);
 				auto tech_def_nation = tech_nation_for_regiment(state, def_front[i]);
