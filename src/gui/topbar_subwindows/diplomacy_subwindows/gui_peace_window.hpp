@@ -22,10 +22,7 @@ template<bool is_concession>
 class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{ is_concession };
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<bool>{ is_concession });
 	}
 	void on_update(sys::state& state) noexcept override {
 		frame = (retrieve<bool>(state, parent) == is_concession) ? 1 : 0;
@@ -475,6 +472,9 @@ public:
 				target_personal_po_value, potential_peace_score_against,
 				my_side_against_target, my_side_peace_cost,
 				war_duration, contains_sq);
+
+			if(state.cheat_data.always_accept_deals)
+				acceptance = true;
 
 			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;

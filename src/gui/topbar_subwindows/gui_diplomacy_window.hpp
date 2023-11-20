@@ -773,6 +773,10 @@ public:
 			return;
 
 		disabled = true;
+		if(state.cheat_data.always_allow_wargoals) {
+			disabled = false;
+			return;
+		}
 
 		if(content == state.local_player_nation) {
 			return;
