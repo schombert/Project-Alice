@@ -695,17 +695,11 @@ void update_pop_rebel_membership(sys::state& state) {
 }
 
 void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
-
-	auto armies = state.world.rebel_faction_get_army_rebel_control(reb);
-	while(armies.begin() != armies.end()) {
-		military::cleanup_army(state, (*armies.begin()).get_army());
-	}
 	auto control = state.world.rebel_faction_get_province_rebel_control(reb);
 	for(auto p : control) {
 		auto prov = p.get_province();
 		province::set_province_controller(state, prov, prov.get_nation_from_province_ownership());
 	}
-
 	state.world.delete_rebel_faction(reb);
 }
 

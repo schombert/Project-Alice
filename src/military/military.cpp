@@ -6244,6 +6244,8 @@ void update_siege_progress(sys::state& state) {
 			auto& progress = state.world.province_get_siege_progress(prov);
 			progress = std::max(0.0f, progress - 0.1f);
 		} else {
+			assert(bool(first_army));
+
 			/*
 			We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
 			greatest-siege-value-present x
@@ -6320,10 +6322,10 @@ void update_siege_progress(sys::state& state) {
 				state.world.province_set_former_controller(prov, controller);
 				state.world.province_set_former_rebel_controller(prov, old_rf);
 
-				// logic now assumes that there are no rebel armies
 				auto new_controller = state.world.army_get_controller_from_army_control(first_army);
-				if(!are_at_war(state, new_controller, owner))
+				if(new_controller && !are_at_war(state, new_controller, owner)) {
 					new_controller = owner;
+				}
 
 				auto rebel_controller = state.world.army_get_controller_from_army_rebel_control(first_army);
 				assert(bool(new_controller) != bool(rebel_controller));
