@@ -935,16 +935,16 @@ void rebel_risings_check(sys::state& state) {
 					[reb = rf.id](sys::state& state, text::layout_base& contents) {
 						auto rn = rebel_name(state, reb);
 						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
-						ankerl::unordered_dense::map<dcon::province_id, int32_t> provs;
-						for(auto ar : state.world.in_army_rebel_control) {
+						ankerl::unordered_dense::map<int32_t, int32_t> provs;
+						for(auto ar : state.world.rebel_faction_get_army_rebel_control(reb)) {
 							if(ar.get_controller() == reb) {
 								auto p = ar.get_army().get_location_from_army_location();
-								provs[p.id] += 1;
+								provs[p.id.index()] += 1;
 							}
 						}
 						for(auto p : provs) {
 							auto box = text::open_layout_box(contents, 15);
-							text::add_to_layout_box(state, contents, box, p.first);
+							text::add_to_layout_box(state, contents, box, dcon::province_id(dcon::province_id::value_base_t(p.first)));
 							text::add_to_layout_box(state, contents, box, std::string_view(" ("));
 							text::add_to_layout_box(state, contents, box, text::int_wholenum{ p.second });
 							text::add_to_layout_box(state, contents, box, std::string_view(")"));
