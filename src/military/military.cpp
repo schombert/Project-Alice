@@ -4963,20 +4963,6 @@ void apply_regiment_damage(sys::state& state) {
 						}
 					}
 				}
-				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
-					for(auto& e : state.world.land_battle_get_attacker_back_line(b)) {
-						e = (e == s) ? dcon::regiment_id{} : e;
-					}
-					for(auto& e : state.world.land_battle_get_attacker_front_line(b)) {
-						e = (e == s) ? dcon::regiment_id{} : e;
-					}
-					for(auto& e : state.world.land_battle_get_defender_back_line(b)) {
-						e = (e == s) ? dcon::regiment_id{} : e;
-					}
-					for(auto& e : state.world.land_battle_get_defender_front_line(b)) {
-						e = (e == s) ? dcon::regiment_id{} : e;
-					}
-				}
 				state.world.delete_regiment(s);
 			}
 		}
