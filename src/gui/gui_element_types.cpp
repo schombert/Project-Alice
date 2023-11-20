@@ -1616,10 +1616,14 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state& state) no
 	}
 }
 
+dcon::rebel_faction_id flag_button::get_current_rebel_faction(sys::state& state) noexcept {
+	return retrieve<dcon::rebel_faction_id>(state, parent);
+}
+
 void flag_button::button_action(sys::state& state) noexcept {
 	auto ident = get_current_nation(state);
-	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	if(!ident)
+		return;
 
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
@@ -1679,14 +1683,20 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 }
 void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
-	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
-
-	auto name = nations::name_from_tag(state, ident);
-	if(name) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, name);
-		text::close_layout_box(contents, box);
+	if(ident) {
+		auto name = nations::name_from_tag(state, ident);
+		if(name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, name);
+			text::close_layout_box(contents, box);
+		}
+	} else {
+		if(auto reb = get_current_rebel_faction(state); reb) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, reb));
+			text::close_layout_box(contents, box);
+			return;
+		}
 	}
 }
 
