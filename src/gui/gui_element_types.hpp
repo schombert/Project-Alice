@@ -968,6 +968,9 @@ public:
 		}
 		progress = avg;
 	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 int32_t status_frame(sys::state& state, dcon::army_id a) {
