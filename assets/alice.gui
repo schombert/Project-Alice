@@ -154,31 +154,31 @@ guiTypes = {
 			# Projection settings for the map: equirectangular, orthographic
 			instantTextBoxType = {
 				name = "projection_label"
-				position = { 58 148 }
+				position = { 58 180 }
 				font = "Arial16"
 				borderSize = { 0 0 }
-				maxsize = { 236 18 }
+				maxsize = { 128 18 }
 				text = "map_projection"
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			instantTextBoxType = {
 				name = "projection_value"
-				position = { 58 168 }
+				position = { 216 180 }
 				font = "Arial14"
 				borderSize = { 0 0 }
-				maxsize = { 236 18 }
+				maxsize = { 72 18 }
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = center
 			}
 			guiButtonType = {
 				name = "projection_left"
-				position = { 51 168 }
+				position = { 186 176 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "projection_right"
-				position = { 269 168 }
+				position = { 289 176 }
 				quadTextureSprite = "option_next"
 			}
 			# UI scaling
@@ -190,115 +190,144 @@ guiTypes = {
 				maxsize = { 236 18 }
 				text = "ui_scale"
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			instantTextBoxType={
-				position = { 58 220 }
+				position = { 216 200 }
 				name = "ui_scale_value"
 				font = "Arial14"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = center
 			}
 			guiButtonType = {
 				name = "ui_scale_left"
-				position = { 51 218 }
+				position = { 186 196 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "ui_scale_right"
-				position = { 269 218 }
+				position = { 289 196 }
 				quadTextureSprite = "option_next"
 			}
 			# Map label mode: none, linear, cuadratic, cubic
 			instantTextBoxType={
-				position = { 58 252 }
+				position = { 58 220 }
 				name = "map_label_label"
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
 				text = "map_label"
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			instantTextBoxType={
-				position = { 58 272 }
+				position = { 216 220 }
 				name = "map_label_value"
 				font = "Arial14"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = center
 			}
 			guiButtonType = {
 				name = "map_label_left"
-				position = { 51 274 }
+				position = { 186 216 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "map_label_right"
-				position = { 269 274 }
+				position = { 289 216 }
 				quadTextureSprite = "option_next"
 			}
 			# Antialiasing
 			instantTextBoxType={
-				position = { 58 304 }
+				position = { 58 240 }
 				name = "antialiasing_label"
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
 				text = "antialiasing_label"
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			instantTextBoxType={
-				position = { 58 324 }
+				position = { 216 240 }
 				name = "antialiasing_value"
 				font = "Arial14"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = center
 			}
 			guiButtonType = {
 				name = "antialiasing_left"
-				position = { 51 323 }
+				position = { 186 236 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "antialiasing_right"
-				position = { 269 323 }
+				position = { 289 236 }
 				quadTextureSprite = "option_next"
 			}
 			# Gaussian blur
 			instantTextBoxType = {
-				position = { 58 356 }
+				position = { 58 260 }
 				name = "gaussianblur_label"
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
-				text = "gaussianblur_label"
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = left
 			}
 			instantTextBoxType = {
-				position = { 58 376 }
+				position = { 216 260 }
 				name = "gaussianblur_value"
 				font = "Arial14"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
 				orientation = "UPPER_LEFT"
-				format = centre
+				format = center
 			}
 			guiButtonType = {
 				name = "gaussianblur_left"
-				position = { 51 377 }
+				position = { 186 256 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "gaussianblur_right"
-				position = { 269 377 }
+				position = { 289 256 }
+				quadTextureSprite = "option_next"
+			}
+			# Gamma correction meow
+			instantTextBoxType = {
+				position = { 58 280 }
+				name = "gamma_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "gamma_label"
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			instantTextBoxType = {
+				position = { 216 280 }
+				name = "gamma_value"
+				font = "Arial14"
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
+				orientation = "UPPER_LEFT"
+				format = center
+			}
+			guiButtonType = {
+				name = "gamma_left"
+				position = { 186 276 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "gamma_right"
+				position = { 289 276 }
 				quadTextureSprite = "option_next"
 			}
 		}

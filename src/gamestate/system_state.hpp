@@ -361,6 +361,7 @@ struct user_settings_s {
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
+	float gamma = 1.f;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
