@@ -826,7 +826,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					}
 				}
 				p.get_pop().set_is_primary_or_accepted_culture(false);
-			}();
+				}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
@@ -854,7 +854,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		for(auto r : p.get_pop().get_regiment_source()) {
 			regs.push_back(r.get_regiment().id);
 		}
-		
+
 		{
 			auto rng = p.get_pop().get_province_land_construction();
 			while(rng.begin() != rng.end()) {
@@ -863,6 +863,31 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 	for(auto r : regs) {
+		auto army = state.world.regiment_get_army_from_army_membership(r);
+		if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+			for(auto& e : state.world.land_battle_get_attacker_back_line(b))
+				e = (e == r) ? dcon::regiment_id{} : e;
+			for(auto& e : state.world.land_battle_get_attacker_front_line(b))
+				e = (e == r) ? dcon::regiment_id{} : e;
+			for(auto& e : state.world.land_battle_get_defender_back_line(b))
+				e = (e == r) ? dcon::regiment_id{} : e;
+			for(auto& e : state.world.land_battle_get_defender_front_line(b))
+				e = (e == r) ? dcon::regiment_id{} : e;
+			auto reserves = state.world.land_battle_get_reserves(b);
+			for(int32_t i = reserves.size() - 1; i >= 0; i--) {
+				if(reserves[i].regiment == r) {
+					reserves[i] = reserves[reserves.size() - 1];
+					reserves.pop_back();
+					break;
+				}
+			}
+			// Reserves should not have duplicate regiments, however, we assert this
+			// on debug, in any case, just to be sure :D
+#ifdef NDEBUG
+			for(int32_t i = reserves.size() - 1; i >= 0; i--)
+				assert(reserves[i].regiment != r);
+#endif
+		}
 		state.world.delete_regiment(r);
 	}
 
