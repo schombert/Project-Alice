@@ -752,9 +752,9 @@ guiTypes = {
 			position = { 46 16 }
 		}
 		instantTextBoxType={
-			position = { 4 39 }
+			position = { 4 40 }
 			name = "strength"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = { 0 0}
 			maxsize = { 53 17 }
 			orientation = "UPPER_LEFT"
@@ -852,9 +852,9 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = { -11	 24 }
+			position = { -11	 25 }
 			name = "ship_count"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = { 0 0}
 			maxsize = { 30 17 }
 			orientation = "UPPER_LEFT"
@@ -1237,9 +1237,9 @@ guiTypes = {
 				position = { 50 16 }
 			}
 			instantTextBoxType={
-				position = { 8 39 }
+				position = { 8 40 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }
 				orientation = "UPPER_LEFT"
@@ -1311,9 +1311,9 @@ guiTypes = {
 				position = { 46 16 }
 			}
 			instantTextBoxType={
-				position = { 4 39 }
+				position = { 4 40 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }
 				orientation = "UPPER_LEFT"

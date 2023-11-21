@@ -3869,6 +3869,9 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -3903,6 +3906,9 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		}
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -4066,6 +4072,9 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		// put ships in slots
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -4093,6 +4102,9 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		}
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -5292,23 +5304,6 @@ void update_land_battles(sys::state& state) {
 		}
 
 
-
-		// prefer slot zero
-		if(!att_back[0]) {
-			std::swap(att_back[0], att_back[1]);
-		}
-		if(!def_back[0]) {
-			std::swap(def_back[0], def_back[1]);
-		}
-		if(!att_front[0]) {
-			std::swap(att_front[0], att_front[1]);
-		}
-		if(!def_front[0]) {
-			std::swap(def_front[0], def_front[1]);
-		}
-
-		// back row
-
 		auto compact = [](std::array<dcon::regiment_id, 30>& a) {
 			int32_t low = 0;
 			while(low < 30 && a[low]) {
@@ -5327,8 +5322,6 @@ void update_land_battles(sys::state& state) {
 					high += 2;
 
 				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
 			}
 
 			low = 1;
@@ -5348,8 +5341,6 @@ void update_land_battles(sys::state& state) {
 					high += 2;
 
 				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
 			}
 			};
 
@@ -5357,6 +5348,20 @@ void update_land_battles(sys::state& state) {
 		compact(att_front);
 		compact(def_back);
 		compact(def_front);
+
+		// prefer slot zero
+		if(!att_back[0]) {
+			std::swap(att_back[0], att_back[1]);
+		}
+		if(!def_back[0]) {
+			std::swap(def_back[0], def_back[1]);
+		}
+		if(!att_front[0]) {
+			std::swap(att_front[0], att_front[1]);
+		}
+		if(!def_front[0]) {
+			std::swap(def_front[0], def_front[1]);
+		}
 
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
