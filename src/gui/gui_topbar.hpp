@@ -1115,7 +1115,7 @@ public:
 					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(pt));
 					auto state_name = text::get_dynamic_state_name(state, state_instance);
 					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
-					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage_one_place{ unemployed / total });
+					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_two_places{ (unemployed / total) * 100.f });
 					auto box = text::open_layout_box(contents);
 					text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
 					text::close_layout_box(contents, box);
@@ -1516,8 +1516,7 @@ public:
 				if(state.world.nation_get_in_sphere_of(m) == n) {
 					[&]() {
 						for(auto fac : state.world.nation_get_rebellion_within(m)) {
-							auto control = fac.get_rebels().get_province_rebel_control();
-							if(control.begin() != control.end()) {
+							if(rebel::get_faction_brigades_active(state, fac.get_rebels()) > 0) {
 								if(!added_reb_header)
 									text::add_line(state, contents, std::string_view("a_alert_reb"));
 								added_reb_header = true;

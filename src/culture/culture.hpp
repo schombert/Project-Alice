@@ -78,6 +78,10 @@ enum class flag_type : uint8_t {
 	agrarism,
 	national_syndicalist,
 	theocratic,
+	slot1,
+	slot2,
+	slot3,
+	slot4,
 	count
 };
 

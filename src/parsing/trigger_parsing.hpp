@@ -1457,8 +1457,8 @@ struct trigger_body {
 
 			context.compiled_trigger.push_back(trigger::payload(itb->second.id).value);
 		} else {
-			err.accumulated_errors += "invention trigger supplied with neither a valid technology nor a valid invention (" +
-																err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "invention trigger supplied with neither a valid technology nor a valid invention "
+				+ std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		}
 	}
 	void big_producer(association_type a, std::string_view value, error_handler& err, int32_t line,

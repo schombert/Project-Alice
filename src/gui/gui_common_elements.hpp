@@ -918,7 +918,7 @@ public:
 	}
 };
 
-class national_tech_school : public simple_body_text {
+class national_tech_school : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
@@ -1321,6 +1321,44 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::prettify(int32_t(province::rgo_employment(state, province_id))));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto rgo_max = economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(p), p) * state.world.province_get_rgo_production_scale(p);
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+		float worker_pool = 0.0f;
+		for(auto wt : state.culture_definitions.rgo_workers) {
+			worker_pool += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		}
+		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+		float labor_pool = worker_pool + slave_pool;
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_employment"), text::variable_type::value, std::string_view(""));
+		text::add_divider_to_layout_box(state, contents, box);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::total, text::fp_one_place{ rgo_max });
+		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_one_place{ state.world.province_get_rgo_employment(p) });
+		text::localised_format_box(state, contents, box, std::string_view("base_rgo_size"), sub);
+		text::close_layout_box(contents, box);
+		auto base_workforce_txt = text::format_float(labor_pool, 1);
+		text::add_to_layout_box(state, contents, box, std::string_view(base_workforce_txt), text::text_color::yellow);
+		text::close_layout_box(contents, box);
+
+		if(is_mine) {
+			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_eff, true);
+			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_size, true);
+		} else {
+			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_eff, true);
+			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_size, true);
+		}
+		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_input, true);
+		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_output, true);
+		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_throughput, true);
 	}
 };
 

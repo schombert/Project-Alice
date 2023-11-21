@@ -1221,6 +1221,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	state.world.gp_relationship_get_influence(rel) -= state.defines.banembassy_influence_cost;
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_banned;
+	state.world.gp_relationship_set_influence(orel, 0.0f);
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
 
 	notification::post(state, notification::message{

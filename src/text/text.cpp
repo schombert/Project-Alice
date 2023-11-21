@@ -171,15 +171,6 @@ void consume_csv_file(sys::state& state, uint32_t language, char const* file_con
 void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
 	auto rt = get_root(state.common_fs);
 
-	// first, load in special mod gui
-	// TODO put this in a better location
-	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
-	if(alice_csv) {
-		auto content = view_contents(*alice_csv);
-		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size, err);
-	}
-
 	auto text_dir = open_directory(rt, NATIVE("localisation"));
 	auto all_files = list_files(text_dir, NATIVE(".csv"));
 
@@ -191,6 +182,15 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
+
+	// special keys after all existing keys
+	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
+	if(alice_csv) {
+		auto content = view_contents(*alice_csv);
+		err.file_name = "assets/alice.csv";
+		consume_csv_file(state, language, content.data, content.file_size, err);
+	}
+
 }
 
 template<size_t N>

@@ -3887,112 +3887,118 @@ void state::single_game_tick() {
 
 	// Once per month updates, spread out over the month
 	switch(ymd_date.day) {
-	case 1:
-		nations::update_monthly_points(*this);
-		economy::prune_factories(*this);
-		break;
-	case 2:
-		province::update_blockaded_cache(*this);
-		sys::update_modifier_effects(*this);
-		break;
-	case 3:
-		military::monthly_leaders_update(*this);
-		ai::add_gw_goals(*this);
-		break;
-	case 4:
-		military::reinforce_regiments(*this);
-		ai::make_defense(*this);
-		break;
-	case 5:
-		rebel::update_movements(*this);
-		rebel::update_factions(*this);
-		break;
-	case 6:
-		ai::form_alliances(*this);
-		ai::make_attacks(*this);
-		break;
-	case 7:
-		ai::update_ai_general_status(*this);
-		break;
-	case 8:
-		military::apply_attrition(*this);
-		break;
-	case 9:
-		military::repair_ships(*this);
-		break;
-	case 10:
-		province::update_crimes(*this);
-		break;
-	case 11:
-		province::update_nationalism(*this);
-		break;
-	case 12:
-		ai::update_ai_research(*this);
-		break;
-	case 13:
-		ai::perform_influence_actions(*this);
-		break;
-	case 14:
-		ai::update_focuses(*this);
-		break;
-	case 15:
-		culture::discover_inventions(*this);
-		break;
-	case 16:
-		ai::take_ai_decisions(*this);
-		break;
-	case 17:
-		ai::build_ships(*this);
-		ai::update_land_constructions(*this);
-		break;
-	case 18:
-		ai::update_ai_econ_construction(*this);
-		break;
-	case 19:
-		ai::update_budget(*this);
-		break;
-	case 20:
-		nations::monthly_flashpoint_update(*this);
-		ai::make_defense(*this);
-		break;
-	case 21:
-		ai::update_ai_colony_starting(*this);
-		break;
-	case 22:
-		ai::take_reforms(*this);
-		break;
-	case 23:
-		ai::civilize(*this);
-		ai::make_war_decs(*this);
-		break;
-	case 24:
-		rebel::execute_rebel_victories(*this);
-		ai::make_attacks(*this);
-		break;
-	case 25:
-		rebel::execute_province_defections(*this);
-		break;
-	case 26:
-		ai::make_peace_offers(*this);
-		break;
-	case 27:
-		ai::update_crisis_leaders(*this);
-		break;
-	case 28:
-		rebel::rebel_risings_check(*this);
-		break;
-	case 29:
-		ai::update_war_intervention(*this);
-		break;
-	case 30:
-		ai::update_ships(*this);
-		break;
-	case 31:
-		ai::update_cb_fabrication(*this);
-		ai::update_ai_ruling_party(*this);
-		break;
-	default:
-		break;
+		case 1:
+			nations::update_monthly_points(*this);
+			economy::prune_factories(*this);
+			break;
+		case 2:
+			province::update_blockaded_cache(*this);
+			sys::update_modifier_effects(*this);
+			break;
+		case 3:
+			military::monthly_leaders_update(*this);
+			ai::add_gw_goals(*this);
+			break;
+		case 4:
+			military::reinforce_regiments(*this);
+			ai::make_defense(*this);
+			break;
+		case 5:
+			rebel::update_movements(*this);
+			rebel::update_factions(*this);
+			break;
+		case 6:
+			ai::form_alliances(*this);
+			ai::make_attacks(*this);
+			break;
+		case 7:
+			ai::update_ai_general_status(*this);
+			break;
+		case 8:
+			military::apply_attrition(*this);
+			break;
+		case 9:
+			military::repair_ships(*this);
+			break;
+		case 10:
+			province::update_crimes(*this);
+			break;
+		case 11:
+			province::update_nationalism(*this);
+			break;
+		case 12:
+			ai::update_ai_research(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
+			break;
+		case 13:
+			ai::perform_influence_actions(*this);
+			break;
+		case 14:
+			ai::update_focuses(*this);
+			break;
+		case 15:
+			culture::discover_inventions(*this);
+			break;
+		case 16:
+			ai::take_ai_decisions(*this);
+			break;
+		case 17:
+			ai::build_ships(*this);
+			ai::update_land_constructions(*this);
+			break;
+		case 18:
+			ai::update_ai_econ_construction(*this);
+			break;
+		case 19:
+			ai::update_budget(*this);
+			break;
+		case 20:
+			nations::monthly_flashpoint_update(*this);
+			ai::make_defense(*this);
+			break;
+		case 21:
+			ai::update_ai_colony_starting(*this);
+			break;
+		case 22:
+			ai::take_reforms(*this);
+			break;
+		case 23:
+			ai::civilize(*this);
+			ai::make_war_decs(*this);
+			break;
+		case 24:
+			rebel::execute_rebel_victories(*this);
+			ai::make_attacks(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
+			break;
+		case 25:
+			rebel::execute_province_defections(*this);
+			break;
+		case 26:
+			ai::make_peace_offers(*this);
+			break;
+		case 27:
+			ai::update_crisis_leaders(*this);
+			break;
+		case 28:
+			rebel::rebel_risings_check(*this);
+			break;
+		case 29:
+			ai::update_war_intervention(*this);
+			break;
+		case 30:
+			ai::update_ships(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
+			break;
+		case 31:
+			ai::update_cb_fabrication(*this);
+			ai::update_ai_ruling_party(*this);
+			break;
+		default:
+			break;
 	}
 
 	military::apply_regiment_damage(*this);

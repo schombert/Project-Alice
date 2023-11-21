@@ -467,6 +467,9 @@ public:
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->top_right_org_value;
 	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
 };
 
 class tr_status : public image_element_base {
@@ -650,6 +653,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		progress = params->top_left_org_value;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
 	}
 };
 

@@ -527,6 +527,18 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		case culture::flag_type::theocratic:
 			file_str += NATIVE("_theocratic");
 			break;
+		case culture::flag_type::slot1:
+			file_str += NATIVE("_slot1");
+			break;
+		case culture::flag_type::slot2:
+			file_str += NATIVE("_slot2");
+			break;
+		case culture::flag_type::slot3:
+			file_str += NATIVE("_slot3");
+			break;
+		case culture::flag_type::slot4:
+			file_str += NATIVE("_slot4");
+			break;
 		}
 		file_str += NATIVE(".tga");
 

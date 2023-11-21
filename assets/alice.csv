@@ -244,7 +244,7 @@ year;year;;;A�o;;;;;;;;;x
 month;month;;;Mes;;;;;;;;;x
 a_port;a port;;;Un puerto;;;;;;;;;x
 national_rank;national rank;;;Ranking nacional;;;;;;;;;x
-technology;technology;;;Tecnologia;;;;;;;;;x
+att_technology;technology;;;Tecnologia;;;;;;;;;x
 strata;strata;;;Estrata;;;;;;;;;x
 rich;rich;;;Rico;;;;;;;;;x
 poor;poor;;;Pobre;;;;;;;;;x
@@ -377,7 +377,7 @@ controlled_by;controlled by;;;;;;;;;;;;x
 state_capital;the state capital;;;en el estado capital;;;;;;;;;x
 loc_state_capital;located in the state capital;;;ubicado en el estado capital;;;;;;;;;x
 a_truce_with;a truce with;;;tregua con;;;;;;;;;x
-population;population;;;poblacion;;;;;;;;;x
+att_population;population;;;poblacion;;;;;;;;;x
 size;size;;;;;;;;;;;;x
 pops_of_type;pops of type;;;pops de tipo;;;;;;;;;x
 of_type_plain;of type;;;de tipo;;;;;;;;;x
@@ -1302,4 +1302,7 @@ meets_the_conditions_of;meets the conditions of ;;;cumple con las condiciones de
 does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;;;x
 fab_finish_date;CB fabrication is expected to finish on $date$
 fab_is_paused;CB fabrication is currently paused
+att_call_will_accept;$x$ will join your war
+att_call_will_decline;$x$ will not join your war
+att_call_is_human;$x$ may join your war
 ;;;;;;;;;;;;;x
