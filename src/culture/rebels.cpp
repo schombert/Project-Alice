@@ -779,10 +779,10 @@ void sort_hunting_targets(sys::state& state, dcon::army_id ar, std::vector<dcon:
 	auto our_str = ai::estimate_army_strength(state, ar);
 	auto loc = state.world.army_get_location_from_army_location(ar);
 	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-		auto aa = our_str / ai::estimate_rebel_strength(state, a);
-		auto ab = our_str / ai::estimate_rebel_strength(state, b);
-		auto da = province::sorting_distance(state, a, loc) * aa;
-		auto db = province::sorting_distance(state, b, loc) * ab;
+		auto aa = 0.02f * -(our_str - ai::estimate_rebel_strength(state, a));
+		auto ab = 0.02f * -(our_str - ai::estimate_rebel_strength(state, b));
+		auto da = province::sorting_distance(state, a, loc) + aa;
+		auto db = province::sorting_distance(state, b, loc) + ab;
 		if(da != db)
 			return da < db;
 		else
@@ -821,10 +821,10 @@ void rebel_hunting_check(sys::state& state) {
 				std::sort(rebel_hunters.begin(), rebel_hunters.end(), [&](dcon::army_id a, dcon::army_id b) {
 					auto pa = state.world.army_get_location_from_army_location(a);
 					auto pb = state.world.army_get_location_from_army_location(b);
-					auto as = 1.f / std::max<float>(ai::estimate_army_strength(state, a), 1.f);
-					auto bs = 1.f / std::max<float>(ai::estimate_army_strength(state, b), 1.f);
-					auto da = province::sorting_distance(state, pa, closest_prov) * as;
-					auto db = province::sorting_distance(state, pb, closest_prov) * bs;
+					auto as = 0.02f * std::max<float>(ai::estimate_army_strength(state, a), 1.f);
+					auto bs = 0.02f * std::max<float>(ai::estimate_army_strength(state, b), 1.f);
+					auto da = province::sorting_distance(state, pa, closest_prov) + as;
+					auto db = province::sorting_distance(state, pb, closest_prov) + bs;
 					if(da != db)
 						return da < db;
 					else
@@ -834,8 +834,7 @@ void rebel_hunting_check(sys::state& state) {
 				for(uint32_t i = 0; i < rebel_hunters.size(); ++i) {
 					auto a = rebel_hunters[i];
 					if(state.world.army_get_location_from_army_location(a) == closest_prov) {
-						auto existing_path = state.world.army_get_path(a);
-						existing_path.resize(0);
+						state.world.army_get_path(a).clear();
 						state.world.army_set_arrival_time(a, sys::date{});
 
 						rebel_hunters[i] = rebel_hunters.back();
@@ -843,14 +842,11 @@ void rebel_hunting_check(sys::state& state) {
 						break;
 					} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
 						auto existing_path = state.world.army_get_path(a);
-
 						auto new_size = uint32_t(path.size());
 						existing_path.resize(new_size);
-
-						for(uint32_t j = new_size; j-- > 0; ) {
+						for(uint32_t j = 0; j < new_size; j++) {
 							existing_path.at(j) = path[j];
 						}
-
 						state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 						state.world.army_set_dig_in(a, 0);
 
@@ -925,34 +921,35 @@ void rebel_risings_check(sys::state& state) {
 				}
 			}
 
-			//if(counter != new_to_make) {
-				notification::post(state, notification::message{
-					[reb = rf.id](sys::state& state, text::layout_base& contents) {
-						auto rn = rebel_name(state, reb);
-						auto province_control = state.world.rebel_faction_get_province_rebel_control(reb);
-						if(province_control.begin() != province_control.end()) {
-							text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
-							for(auto p : province_control) {
-								auto box = text::open_layout_box(contents, 15);
-								text::add_to_layout_box(state, contents, box, p.get_province().id);
-								text::close_layout_box(contents, box);
-							}
-						} else {
-							text::add_line(state, contents, "msg_revolt_2", text::variable_type::x, std::string_view{ rn });
-						}
-					},
-					"msg_revolt_title",
-					rf.get_ruler_from_rebellion_within(), dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::revolt });
-			//}
-
 			/*
 			- Faction organization is reduced to 0 after an initial rising (for later contributory risings, it may instead be reduced by
 			a factor of (number-of-additional-regiments x 0.01 + 1))
 			*/
 			rf.set_organization(0);
 			if(counter != new_to_make) {
-				// TODO: Notify
+				notification::post(state, notification::message{
+					[reb = rf.id](sys::state& state, text::layout_base& contents) {
+						auto rn = rebel_name(state, reb);
+						text::add_line(state, contents, "msg_revolt_1", text::variable_type::x, std::string_view{ rn });
+						ankerl::unordered_dense::map<int32_t, int32_t> provs;
+						for(auto ar : state.world.rebel_faction_get_army_rebel_control(reb)) {
+							if(ar.get_controller() == reb) {
+								auto p = ar.get_army().get_location_from_army_location();
+								provs[p.id.index()] += 1;
+							}
+						}
+						for(auto p : provs) {
+							auto box = text::open_layout_box(contents, 15);
+							text::add_to_layout_box(state, contents, box, dcon::province_id(dcon::province_id::value_base_t(p.first)));
+							text::add_to_layout_box(state, contents, box, std::string_view(" ("));
+							text::add_to_layout_box(state, contents, box, text::int_wholenum{ p.second });
+							text::add_to_layout_box(state, contents, box, std::string_view(")"));
+							text::close_layout_box(contents, box);
+						}
+					},
+					"msg_revolt_title",
+					rf.get_ruler_from_rebellion_within(), dcon::nation_id{}, dcon::nation_id{},
+					sys::message_base_type::revolt });
 			}
 		}
 	}

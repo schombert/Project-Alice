@@ -2337,6 +2337,11 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 }
 
 void oob_relationship::value(association_type, int32_t v, error_handler& err, int32_t line, oob_file_relation_context& context) {
+	if(v < -200 || v > 200) {
+		err.accumulated_warnings += "Relation value " + std::to_string(v) + " is not between [-200,-200] (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		v = std::clamp(v, -200, 200);
+	}
+
 	auto rel =
 			context.outer_context.state.world.get_diplomatic_relation_by_diplomatic_pair(context.nation_for, context.nation_with);
 	if(rel) {
@@ -2344,9 +2349,6 @@ void oob_relationship::value(association_type, int32_t v, error_handler& err, in
 	} else {
 		auto new_rel = context.outer_context.state.world.force_create_diplomatic_relation(context.nation_for, context.nation_with);
 		context.outer_context.state.world.diplomatic_relation_set_value(new_rel, float(v));
-	}
-	if(v < -200.f || v > 200.f) {
-		err.accumulated_warnings += "Relation value " + std::to_string(v) + " is not between [-200,-200] (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 

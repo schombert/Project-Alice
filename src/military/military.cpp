@@ -4885,7 +4885,7 @@ void apply_attrition(sys::state& state) {
 				auto army_controller = ar.get_army().get_controller_from_army_control();
 				auto supply_limit = supply_limit_in_province(state, army_controller, prov);
 				auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
-				
+
 				float greatest_hostile_fort = 0.0f;
 
 				for(auto adj : state.world.province_get_province_adjacency(prov)) {
@@ -4923,7 +4923,7 @@ void apply_attrition(sys::state& state) {
 
 void apply_regiment_damage(sys::state& state) {
 	for(uint32_t i = state.world.regiment_size(); i-- > 0;) {
-		dcon::regiment_id s{dcon::regiment_id::value_base_t(i)};
+		dcon::regiment_id s{ dcon::regiment_id::value_base_t(i) };
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
 			auto current_strength = state.world.regiment_get_strength(s);
@@ -4935,8 +4935,8 @@ void apply_regiment_damage(sys::state& state) {
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
 					psize -= state.defines.pop_size_per_regiment * pending_damage * state.defines.soldier_to_pop_damage /
-									 (3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
-																			 sys::national_mod_offsets::soldier_to_pop_loss)));
+						(3.0f * (1.0f + state.world.nation_get_modifier_values(tech_nation,
+							sys::national_mod_offsets::soldier_to_pop_loss)));
 					if(psize <= 1.0f) {
 						state.world.delete_pop(backing_pop);
 					}

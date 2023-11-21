@@ -413,6 +413,7 @@ protected:
 
 public:
 	virtual dcon::national_identity_id get_current_nation(sys::state& state) noexcept;
+	virtual dcon::rebel_faction_id get_current_rebel_faction(sys::state& state) noexcept;
 	virtual void set_current_nation(sys::state& state, dcon::national_identity_id identity) noexcept;
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
@@ -966,6 +967,9 @@ public:
 			}
 		}
 		progress = avg;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
 	}
 };
 
