@@ -3869,6 +3869,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.f)
+				continue;
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -3903,6 +3905,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		}
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.f)
+				continue;
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -3965,6 +3969,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 			auto other_nation = o.get_army().get_controller_from_army_control();
 
 			if(bool(owner_nation) != bool(other_nation)) { // battle vs. rebels
+				assert(p);
 				auto new_battle = fatten(state.world, state.world.create_land_battle());
 				new_battle.set_war_attacker_is_attacker(!bool(owner_nation));
 				new_battle.set_start_date(state.current_date);
@@ -3993,6 +3998,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				gather_to_battle = new_battle.id;
 				break;
 			} else if(auto par = internal_find_war_between(state, owner_nation, other_nation); par.role != war_role::none) {
+				assert(p);
 				auto new_battle = fatten(state.world, state.world.create_land_battle());
 				new_battle.set_war_attacker_is_attacker(par.role == war_role::attacker);
 				new_battle.set_start_date(state.current_date);
@@ -4066,6 +4072,8 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		// put ships in slots
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.f)
+				continue;
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -4093,6 +4101,8 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		}
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.f)
+				continue;
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -4353,6 +4363,8 @@ void cleanup_navy(sys::state& state, dcon::navy_id n) {
 }
 
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
+	assert(state.world.land_battle_is_valid(b));
+	
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
 
@@ -4545,6 +4557,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		}
 	}
 
+	assert(state.world.land_battle_is_valid(b));
 	state.world.delete_land_battle(b);
 }
 
@@ -4747,6 +4760,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		}
 	}
 
+	assert(state.world.naval_battle_is_valid(b));
 	state.world.delete_naval_battle(b);
 }
 
@@ -4963,31 +4977,23 @@ void apply_regiment_damage(sys::state& state) {
 						}
 					}
 				}
+#ifndef NDEBUG
 				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
 					auto r = s;
-					for(auto& e : state.world.land_battle_get_attacker_back_line(b))
-						e = (e == r) ? dcon::regiment_id{} : e;
-					for(auto& e : state.world.land_battle_get_attacker_front_line(b))
-						e = (e == r) ? dcon::regiment_id{} : e;
-					for(auto& e : state.world.land_battle_get_defender_back_line(b))
-						e = (e == r) ? dcon::regiment_id{} : e;
-					for(auto& e : state.world.land_battle_get_defender_front_line(b))
-						e = (e == r) ? dcon::regiment_id{} : e;
-					// Reserves should not have duplicate regiments, however, we assert this
-					// on debug, in any case, just to be sure :D
+					(void)r;
+					for(auto e : state.world.land_battle_get_attacker_back_line(b))
+						assert(e != r);
+					for(auto e : state.world.land_battle_get_attacker_front_line(b))
+						assert(e != r);
+					for(auto e : state.world.land_battle_get_defender_back_line(b))
+						assert(e != r);
+					for(auto e : state.world.land_battle_get_defender_front_line(b))
+						assert(e != r);
 					auto reserves = state.world.land_battle_get_reserves(b);
-					for(uint32_t j = 0; j < reserves.size(); j++) {
-						if(reserves[j].regiment == r) {
-							reserves[j] = reserves[reserves.size() - 1];
-							reserves.pop_back();
-							break;
-						}
-					}
-#ifdef NDEBUG
 					for(uint32_t j = 0; j < reserves.size(); j++)
 						assert(reserves[j].regiment != r);
-#endif
 				}
+#endif
 				state.world.delete_regiment(s);
 			}
 		}
@@ -5854,6 +5860,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 			auto other_nation = o.get_navy().get_controller_from_navy_control();
 
 			if(auto par = internal_find_war_between(state, owner_nation, other_nation); par.role != war_role::none) {
+				assert(p);
 				auto new_battle = fatten(state.world, state.world.create_naval_battle());
 				new_battle.set_war_attacker_is_attacker(par.role == war_role::attacker);
 				new_battle.set_start_date(state.current_date);

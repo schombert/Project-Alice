@@ -883,7 +883,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					break;
 				}
 			}
-#ifdef NDEBUG
+#ifndef NDEBUG
 			for(uint32_t i = 0; i < reserves.size(); i++)
 				assert(reserves[i].regiment != r);
 #endif
