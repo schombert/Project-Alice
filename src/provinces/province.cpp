@@ -873,18 +873,18 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				e = (e == r) ? dcon::regiment_id{} : e;
 			for(auto& e : state.world.land_battle_get_defender_front_line(b))
 				e = (e == r) ? dcon::regiment_id{} : e;
+			// Reserves should not have duplicate regiments, however, we assert this
+			// on debug, in any case, just to be sure :D
 			auto reserves = state.world.land_battle_get_reserves(b);
-			for(int32_t i = reserves.size() - 1; i >= 0; i--) {
+			for(uint32_t i = 0; i < reserves.size(); i++) {
 				if(reserves[i].regiment == r) {
 					reserves[i] = reserves[reserves.size() - 1];
 					reserves.pop_back();
 					break;
 				}
 			}
-			// Reserves should not have duplicate regiments, however, we assert this
-			// on debug, in any case, just to be sure :D
 #ifdef NDEBUG
-			for(int32_t i = reserves.size() - 1; i >= 0; i--)
+			for(uint32_t i = 0; i < reserves.size(); i++)
 				assert(reserves[i].regiment != r);
 #endif
 		}

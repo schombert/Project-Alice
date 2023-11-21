@@ -4963,6 +4963,31 @@ void apply_regiment_damage(sys::state& state) {
 						}
 					}
 				}
+				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+					auto r = s;
+					for(auto& e : state.world.land_battle_get_attacker_back_line(b))
+						e = (e == r) ? dcon::regiment_id{} : e;
+					for(auto& e : state.world.land_battle_get_attacker_front_line(b))
+						e = (e == r) ? dcon::regiment_id{} : e;
+					for(auto& e : state.world.land_battle_get_defender_back_line(b))
+						e = (e == r) ? dcon::regiment_id{} : e;
+					for(auto& e : state.world.land_battle_get_defender_front_line(b))
+						e = (e == r) ? dcon::regiment_id{} : e;
+					// Reserves should not have duplicate regiments, however, we assert this
+					// on debug, in any case, just to be sure :D
+					auto reserves = state.world.land_battle_get_reserves(b);
+					for(uint32_t j = 0; j < reserves.size(); j++) {
+						if(reserves[j].regiment == r) {
+							reserves[j] = reserves[reserves.size() - 1];
+							reserves.pop_back();
+							break;
+						}
+					}
+#ifdef NDEBUG
+					for(uint32_t j = 0; j < reserves.size(); j++)
+						assert(reserves[j].regiment != r);
+#endif
+				}
 				state.world.delete_regiment(s);
 			}
 		}
