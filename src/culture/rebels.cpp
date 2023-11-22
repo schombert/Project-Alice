@@ -864,6 +864,8 @@ void rebel_hunting_check(sys::state& state) {
 
 void rebel_risings_check(sys::state& state) {
 	static auto province_damage = state.world.province_make_vectorizable_float_buffer();
+	static std::vector<dcon::army_id> new_armies;
+	new_armies.clear();
 
 	for(auto rf : state.world.in_rebel_faction) {
 		auto revolt_chance = get_faction_revolt_risk(state, rf);
@@ -885,6 +887,8 @@ void rebel_risings_check(sys::state& state) {
 			max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
 			*/
 
+			
+
 			float total_damage = 0.0f;
 			for(auto pop : rf.get_pop_rebellion_membership()) {
 				if(counter == 0)
@@ -904,17 +908,17 @@ void rebel_risings_check(sys::state& state) {
 						auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, state.military_definitions.irregular);
 						auto a = [&]() {
 							for(auto ar : state.world.province_get_army_location(pop_location)) {
-								if(ar.get_army().get_controller_from_army_rebel_control() == rf)
+								if(!(ar.get_army().get_battle_from_army_battle_participation()) && ar.get_army().get_controller_from_army_rebel_control() == rf)
 									return ar.get_army().id;
 							}
 							auto new_army = fatten(state.world, state.world.create_army());
 							new_army.set_controller_from_army_rebel_control(rf);
+							new_army.set_location_from_army_location(pop_location);
+							new_armies.push_back(new_army);
 							return new_army.id;
 						}();
 						state.world.try_create_army_membership(new_reg, a);
 						state.world.try_create_regiment_source(new_reg, pop.get_pop());
-
-						military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
 
 						--counter;
 					}
@@ -952,6 +956,10 @@ void rebel_risings_check(sys::state& state) {
 					sys::message_base_type::revolt });
 			}
 		}
+	}
+
+	for(auto a : new_armies) {
+		military::army_arrives_in_province(state, a, state.world.army_get_location_from_army_location(a), military::crossing_type::none);
 	}
 }
 

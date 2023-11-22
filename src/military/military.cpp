@@ -3936,6 +3936,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
 	assert(state.world.army_is_valid(a));
+	assert(!state.world.army_get_battle_from_army_battle_participation(a));
+
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
 	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
@@ -4975,6 +4977,23 @@ void apply_regiment_damage(sys::state& state) {
 						}
 					}
 				}
+
+#ifndef NDEBUG
+				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+					for(auto e : state.world.land_battle_get_attacker_back_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_attacker_front_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_defender_back_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_defender_front_line(b))
+						assert(e != s);
+					auto reserves = state.world.land_battle_get_reserves(b);
+					for(uint32_t j = 0; j < reserves.size(); j++)
+						assert(reserves[j].regiment != s);
+				}
+#endif
+
 				state.world.delete_regiment(s);
 			}
 		}
@@ -5804,6 +5823,8 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
 	assert(state.world.navy_is_valid(n));
+	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
+
 	state.world.navy_set_location_from_navy_location(n, p);
 	auto ships = state.world.navy_get_navy_membership(n);
 	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index() && ships.begin() != ships.end()) {
