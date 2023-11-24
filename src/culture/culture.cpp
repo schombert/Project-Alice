@@ -686,17 +686,23 @@ uint32_t get_remapped_flag_type(sys::state const& state, flag_type type) {
 }
 
 flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_nation) {
+	if(state.world.nation_get_owned_province_count(target_nation) == 0)
+		return flag_type::default_flag;
+
 	auto gov_type = state.world.nation_get_government_type(target_nation);
-	auto id = state.world.national_identity_get_government_flag_type(
-			state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
+	if(!gov_type)
+		return flag_type::default_flag;
+	
+	auto id = state.world.national_identity_get_government_flag_type(state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
 	if(id != 0)
 		return flag_type(id - 1);
+
 	return flag_type(state.world.government_type_get_flag(gov_type));
 }
 
 flag_type get_current_flag_type(sys::state const& state, dcon::national_identity_id identity) {
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(identity);
-	if(holder && state.world.nation_get_owned_province_count(holder) > 0) {
+	if(holder) {
 		return get_current_flag_type(state, holder);
 	} else {
 		return flag_type::default_flag;
