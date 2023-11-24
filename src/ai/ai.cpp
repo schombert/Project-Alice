@@ -4060,21 +4060,34 @@ float conservative_estimate_army_strength(sys::state& state, dcon::army_id a) {
 }
 
 float estimate_attack_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
-	float strength_total = 0.f;
-	for(auto ar : state.world.in_army) {
-		if(ar.get_is_retreating() || ar.get_battle_from_army_battle_participation())
-			continue;
+	if(state.world.nation_get_is_at_war(by)) {
+		float strength_total = 0.f;
+		for(auto ar : state.world.in_army) {
+			if(ar.get_is_retreating() || ar.get_battle_from_army_battle_participation())
+				continue;
 
-		auto loc = ar.get_location_from_army_location();
-		auto sdist = province::sorting_distance(state, loc, target);
-		if(sdist < state.defines.alice_ai_threat_radius) {
-			auto other_nation = ar.get_controller_from_army_control();
-			if((by != other_nation) && (!other_nation || military::are_at_war(state, other_nation, by))) {
-				strength_total += estimate_army_strength(state, ar);
+			auto loc = ar.get_location_from_army_location();
+			auto sdist = province::sorting_distance(state, loc, target);
+			if(sdist < state.defines.alice_ai_threat_radius) {
+				auto other_nation = ar.get_controller_from_army_control();
+				if((by != other_nation) && (!other_nation || military::are_at_war(state, other_nation, by))) {
+					strength_total += estimate_army_strength(state, ar);
+				}
 			}
 		}
+		return state.defines.alice_ai_threat_overestimate * strength_total;
+	} else { // not at war -- rebel fighting
+		float strength_total = 0.f;
+		for(auto ar : state.world.province_get_army_location(target)) {
+
+			auto other_nation = ar.get_army().get_controller_from_army_control();
+			if(!other_nation) {
+				strength_total += estimate_army_strength(state, ar.get_army());
+			}
+			
+		}
+		return state.defines.alice_ai_threat_overestimate * strength_total;
 	}
-	return state.defines.alice_ai_threat_overestimate * strength_total;
 }
 
 void assign_targets(sys::state& state, dcon::nation_id n) {
@@ -4166,7 +4179,8 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	});
 
 	// organize attack stacks
-	int32_t max_attacks_to_make = (ready_count + 3) / 4;
+	bool is_at_war = state.world.nation_get_is_at_war(n);
+	int32_t max_attacks_to_make = is_at_war ? (ready_count + 3) / 4 : ready_count; // not at war -- allow all stacks to attack rebels
 	auto const psize = potential_targets.size();
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)
@@ -4185,7 +4199,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		// make list of attackers
 		float a_force_str = 0.f;
 		int32_t k = int32_t(ready_armies.size());
-		for(; k-- > 0 && a_force_str <= target_attack_force;) {
+		for(; k-- > 0 && a_force_str < target_attack_force;) {
 			for(auto ar : state.world.province_get_army_location(ready_armies[k])) {
 				if(ar.get_army().get_battle_from_army_battle_participation()
 					|| n != ar.get_army().get_controller_from_army_control()
@@ -4269,9 +4283,11 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		--max_attacks_to_make;
 
 		// remove subsequent targets that are too close
-		for(uint32_t j = i + 1; j < psize; ++j) {
-			if(province::sorting_distance(state, potential_targets[j].location, potential_targets[i].location) < state.defines.alice_ai_attack_target_radius)
-				potential_targets[j].location = dcon::province_id{};
+		if(is_at_war) {
+			for(uint32_t j = i + 1; j < psize; ++j) {
+				if(province::sorting_distance(state, potential_targets[j].location, potential_targets[i].location) < state.defines.alice_ai_attack_target_radius)
+					potential_targets[j].location = dcon::province_id{};
+			}
 		}
 	}
 }

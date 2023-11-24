@@ -845,14 +845,15 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	static std::vector<dcon::regiment_id> regs;
-	regs.clear();
 	for(auto p : state.world.province_get_pop_location(id)) {
 		rebel::remove_pop_from_movement(state, p.get_pop());
 		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
 
-		for(auto r : p.get_pop().get_regiment_source()) {
-			regs.push_back(r.get_regiment().id);
+		{
+			auto rng = p.get_pop().get_regiment_source();
+			while(rng.begin() != rng.end()) {
+				state.world.delete_regiment_source(*(rng.begin()));
+			}
 		}
 
 		{
@@ -861,34 +862,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				state.world.delete_province_land_construction(*(rng.begin()));
 			}
 		}
-	}
-	for(auto r : regs) {
-		auto army = state.world.regiment_get_army_from_army_membership(r);
-		if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
-			for(auto& e : state.world.land_battle_get_attacker_back_line(b))
-				e = (e == r) ? dcon::regiment_id{} : e;
-			for(auto& e : state.world.land_battle_get_attacker_front_line(b))
-				e = (e == r) ? dcon::regiment_id{} : e;
-			for(auto& e : state.world.land_battle_get_defender_back_line(b))
-				e = (e == r) ? dcon::regiment_id{} : e;
-			for(auto& e : state.world.land_battle_get_defender_front_line(b))
-				e = (e == r) ? dcon::regiment_id{} : e;
-			auto reserves = state.world.land_battle_get_reserves(b);
-			for(int32_t i = reserves.size() - 1; i >= 0; i--) {
-				if(reserves[i].regiment == r) {
-					reserves[i] = reserves[reserves.size() - 1];
-					reserves.pop_back();
-					break;
-				}
-			}
-			// Reserves should not have duplicate regiments, however, we assert this
-			// on debug, in any case, just to be sure :D
-#ifdef NDEBUG
-			for(int32_t i = reserves.size() - 1; i >= 0; i--)
-				assert(reserves[i].regiment != r);
-#endif
-		}
-		state.world.delete_regiment(r);
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);

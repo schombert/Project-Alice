@@ -898,7 +898,7 @@ void rebel_risings_check(sys::state& state) {
 					auto location = pop.get_pop().get_province_from_pop_location();
 
 					// this is the logic we would use if we were creating rebel regiments
-					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / state.defines.pop_size_per_regiment);
+					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / (province::is_overseas(state, pop.get_pop().get_province_from_pop_location()) ? (state.defines.pop_min_size_for_regiment_colony_multiplier * state.defines.pop_size_per_regiment) : state.defines.pop_size_per_regiment));
 					auto cregs = pop.get_pop().get_regiment_source();
 					auto used_count = int32_t(cregs.end() - cregs.begin());
 
