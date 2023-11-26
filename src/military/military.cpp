@@ -3866,7 +3866,7 @@ bool army_can_join_land_battle(sys::state& state, dcon::army_id a) {
 
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r) {
 	assert(state.world.army_is_valid(a));
-	assert(state.world.battle_is_valid(b));
+	assert(state.world.land_battle_is_valid(b));
 
 	bool battle_attacker = (r == war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
 	if(battle_attacker) {
