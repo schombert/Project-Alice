@@ -3859,8 +3859,15 @@ sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id 
 	return state.current_date + days;
 }
 
+bool army_can_join_land_battle(sys::state& state, dcon::army_id a) {
+	auto o = dcon::fatten(state.world, a);
+	return !(o.get_is_retreating() || o.get_black_flag() || o.get_navy_from_army_transport() || o.get_battle_from_army_battle_participation());
+}
+
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r) {
 	assert(state.world.army_is_valid(a));
+	assert(state.world.battle_is_valid(b));
+
 	bool battle_attacker = (r == war_role::attacker) == state.world.land_battle_get_war_attacker_is_attacker(b);
 	if(battle_attacker) {
 		if(!state.world.land_battle_get_general_from_attacking_general(b)) {
@@ -3940,7 +3947,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
-	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
+	if(army_can_join_land_battle(state, a) && regs.begin() != regs.end()) {
 		auto owner_nation = state.world.army_get_controller_from_army_control(a);
 
 		// look for existing battle
@@ -3961,46 +3968,24 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 		}
 
 		// start battle
-		dcon::land_battle_id gather_to_battle;
-		dcon::war_id battle_in_war;
-
+		auto gather_to_battle = dcon::land_battle_id{};
+		auto battle_in_war = dcon::war_id{};
 		for(auto o : state.world.province_get_army_location(p)) {
 			if(o.get_army() == a)
 				continue;
-			if(o.get_army().get_is_retreating() || o.get_army().get_black_flag() || o.get_army().get_navy_from_army_transport() || o.get_army().get_battle_from_army_battle_participation())
+			if(!army_can_join_land_battle(state, o.get_army()))
 				continue;
 
 			auto other_nation = o.get_army().get_controller_from_army_control();
 
-			if(bool(owner_nation) != bool(other_nation)) { // battle vs. rebels
-				auto new_battle = fatten(state.world, state.world.create_land_battle());
-				new_battle.set_war_attacker_is_attacker(!bool(owner_nation));
-				new_battle.set_start_date(state.current_date);
-				new_battle.set_location_from_land_battle_location(p);
-				new_battle.set_dice_rolls(make_dice_rolls(state, uint32_t(new_battle.id.value)));
-
-				uint8_t flags = defender_bonus_dig_in_mask;
-				if(crossing == crossing_type::river)
-					flags |= defender_bonus_crossing_river;
-				if(crossing == crossing_type::sea)
-					flags |= defender_bonus_crossing_sea;
-				new_battle.set_defender_bonus(flags);
-
-				auto cw_a = state.defines.base_combat_width -
-					state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::combat_width);
-				auto cw_b = state.defines.base_combat_width -
-					state.world.nation_get_modifier_values(other_nation, sys::national_mod_offsets::combat_width);
-				new_battle.set_combat_width(uint8_t(
-					std::clamp(int32_t(std::min(cw_a, cw_b) *
-						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						2, 30)));
-
-				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender);
-				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender);
-
-				gather_to_battle = new_battle.id;
-				break;
-			} else if(auto par = internal_find_war_between(state, owner_nation, other_nation); par.role != war_role::none) {
+			military::participation par{ dcon::war_id{}, war_role::none };
+			if(owner_nation && other_nation) { // nation vs. nation
+				par = internal_find_war_between(state, owner_nation, other_nation);
+			} else { // nation vs. rebels
+				par.w = dcon::war_id{};
+				par.role = bool(owner_nation) ? war_role::defender : war_role::attacker;
+			}
+			if(par.role != war_role::none) {
 				auto new_battle = fatten(state.world, state.world.create_land_battle());
 				new_battle.set_war_attacker_is_attacker(par.role == war_role::attacker);
 				new_battle.set_start_date(state.current_date);
@@ -4031,14 +4016,13 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				battle_in_war = par.w;
 				break;
 			}
-			
 		}
 
 		if(gather_to_battle) {
 			for(auto o : state.world.province_get_army_location(p)) {
 				if(o.get_army() == a)
 					continue;
-				if(o.get_army().get_is_retreating() || o.get_army().get_black_flag() || o.get_army().get_navy_from_army_transport() || o.get_army().get_battle_from_army_battle_participation())
+				if(!army_can_join_land_battle(state, o.get_army()))
 					continue;
 
 				auto other_nation = o.get_army().get_controller_from_army_control();
