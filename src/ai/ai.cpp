@@ -3650,7 +3650,9 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 			auto n_controller = other.get_nation_from_province_control();
 			auto ovr = n_controller.get_overlord_as_subject().get_ruler();
 
-			/* We will target POTENTIAL enemies of the nation */
+			/* We will target POTENTIAL enemies of the nation;
+			   we could also check if the CB can be used on us, but
+			   that is expensive, so instead we use available_cbs! */
 			bool is_threat = false;
 			if(n_controller) {
 				is_threat |= n_controller.get_ai_rival() == n;
