@@ -4145,9 +4145,26 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	if(ready_armies.empty())
 		return; // nothing to attack with
 
+	struct army_target {
+		float minimal_distance;
+		dcon::province_id location;
+	};
+
+	/* Ourselves */
+	std::vector<army_target> potential_targets;
+	potential_targets.reserve(state.world.province_size());
+	for(auto o : state.world.nation_get_province_ownership(n)) {
+		if(!o.get_province().get_nation_from_province_control()
+			|| military::rebel_army_in_province(state, o.get_province())
+			) {
+			potential_targets.push_back(
+				army_target{ province::sorting_distance(state, o.get_province(), ready_armies[0]), o.get_province().id }
+			);
+		}
+	}
+	/* Nations we're at war with OR hostile to */
 	std::vector<dcon::nation_id> at_war_with;
 	at_war_with.reserve(state.world.nation_size());
-
 	for(auto w : state.world.nation_get_war_participant(n)) {
 		auto attacker = w.get_is_attacker();
 		for(auto p : w.get_war().get_war_participant()) {
@@ -4156,25 +4173,6 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 					at_war_with.push_back(p.get_nation().id);
 				}
 			}
-		}
-	}
-
-	struct army_target {
-		float minimal_distance;
-		dcon::province_id location;
-	};
-
-	std::vector<army_target> potential_targets;
-	potential_targets.reserve(state.world.province_size());
-
-	for(auto o : state.world.nation_get_province_ownership(n)) {
-		if(!(o.get_province().get_nation_from_province_control())
-			|| (o.get_province().get_nation_from_province_control() == n && military::rebel_army_in_province(state, o.get_province()))
-			) {
-
-			potential_targets.push_back(
-				army_target{ province::sorting_distance(state, o.get_province(), ready_armies[0]), o.get_province().id }
-			);
 		}
 	}
 	for(auto w : at_war_with) {
@@ -4191,6 +4189,20 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
+	/* Our allies (mainly our substates, vassals) - we need to care of them! */
+	for(const auto ovr : state.world.nation_get_overlord_as_ruler(n)) {
+		auto w = ovr.get_subject();
+		for(auto o : state.world.nation_get_province_ownership(w)) {
+			if(!o.get_province().get_nation_from_province_control()
+				|| military::rebel_army_in_province(state, o.get_province())
+				) {
+				potential_targets.push_back(
+					army_target{ province::sorting_distance(state, o.get_province(), ready_armies[0]), o.get_province().id }
+				);
+			}
+		}
+	}
+
 	for(auto& pt : potential_targets) {
 		for(uint32_t i = uint32_t(ready_armies.size()); i-- > 1;) {
 			auto sdist = province::sorting_distance(state, ready_armies[i], pt.location);
