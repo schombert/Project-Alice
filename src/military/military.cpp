@@ -5003,9 +5003,10 @@ void apply_regiment_damage(sys::state& state) {
 }
 
 void update_land_battles(sys::state& state) {
-	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(state.world.land_battle_size());
+	auto isize = state.world.land_battle_size();
+	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(isize);
 
-	concurrency::parallel_for(0, int32_t(state.world.land_battle_size()), [&](int32_t index) {
+	concurrency::parallel_for(0, int32_t(isize), [&](int32_t index) {
 		dcon::land_battle_id b{dcon::land_battle_id::value_base_t(index)};
 
 		if(!state.world.land_battle_is_valid(b))
@@ -5472,17 +5473,19 @@ void update_land_battles(sys::state& state) {
 		}
 	});
 
-	for(auto b : state.world.in_land_battle) {
-		if(to_delete.get(b) != 0) {
- 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
+	for(auto i = isize; i-- > 0;) {
+		dcon::land_battle_id b{dcon::land_battle_id::value_base_t(i) };
+		if(state.world.land_battle_is_valid(b) && to_delete.get(b) != 0) {
+			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
 		}
 	}
 }
 
 void update_naval_battles(sys::state& state) {
-	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(state.world.naval_battle_size());
+	auto isize = state.world.naval_battle_size();
+	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(isize);
 
-	concurrency::parallel_for(0, int32_t(state.world.naval_battle_size()), [&](int32_t index) {
+	concurrency::parallel_for(0, int32_t(isize), [&](int32_t index) {
 		dcon::naval_battle_id b{dcon::naval_battle_id::value_base_t(index)};
 
 		if(!state.world.naval_battle_is_valid(b))
@@ -5801,11 +5804,13 @@ void update_naval_battles(sys::state& state) {
 		}
 	});
 
-	for(auto b : state.world.in_naval_battle) {
-		if(to_delete.get(b) != 0) {
+	for(auto i = isize; i-- > 0;) {
+		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(i) };
+		if(state.world.naval_battle_is_valid(b) && to_delete.get(b) != 0) {
 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
 		}
 	}
+
 	for(uint32_t i = state.world.ship_size(); i-- > 0;) {
 		dcon::ship_id s{dcon::ship_id::value_base_t(i)};
 		if(state.world.ship_is_valid(s)) {
