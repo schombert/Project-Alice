@@ -425,6 +425,19 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
+class flag_button2 : public button_element_base {
+public:
+	GLuint flag_texture_handle = 0;
+
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+
 class overlapping_flags_flag_button : public flag_button {
 private:
 	dcon::national_identity_id stored_identity{};
@@ -1226,23 +1239,34 @@ public:
 	}
 };
 
-class unit_controller_flag : public flag_button {
+class unit_controller_flag : public flag_button2 {
 public:
 	bool visible = true;
 
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto u = retrieve< unit_var>(state, parent);
-
-		if(std::holds_alternative<dcon::army_id>(u)) {
-			auto a = std::get<dcon::army_id>(u);
-			return state.world.nation_get_identity_from_identity_holder(state.world.army_get_controller_from_army_control(a));
-
-		} else if(std::holds_alternative<dcon::navy_id>(u)) {
-			auto a = std::get<dcon::navy_id>(u);
-			return state.world.nation_get_identity_from_identity_holder(state.world.navy_get_controller_from_navy_control(a));
-		} else {
-			return dcon::national_identity_id{};
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::nation_id>()) {
+			auto u = retrieve< unit_var>(state, parent);
+			if(std::holds_alternative<dcon::army_id>(u)) {
+				auto a = std::get<dcon::army_id>(u);
+				payload.emplace<dcon::nation_id>(state.world.army_get_controller_from_army_control(a));
+			} else if(std::holds_alternative<dcon::navy_id>(u)) {
+				auto a = std::get<dcon::navy_id>(u);
+				payload.emplace<dcon::nation_id>(state.world.navy_get_controller_from_navy_control(a));
+			} else {
+				payload.emplace<dcon::nation_id>(dcon::nation_id{});
+			}
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::rebel_faction_id>()) {
+			auto u = retrieve< unit_var>(state, parent);
+			if(std::holds_alternative<dcon::army_id>(u)) {
+				auto a = std::get<dcon::army_id>(u);
+				payload.emplace<dcon::rebel_faction_id>(state.world.army_get_controller_from_army_rebel_control(a));
+			} else {
+				payload.emplace<dcon::rebel_faction_id>(dcon::rebel_faction_id{});
+			}
+			return message_result::consumed;
 		}
+		return message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override {
 
@@ -1267,15 +1291,15 @@ public:
 			return;
 		}
 
-		flag_button::on_update(state);
+		flag_button2::on_update(state);
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
-			flag_button::render(state, x, y);
+			flag_button2::render(state, x, y);
 	}
 	mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(visible)
-			return flag_button::impl_probe_mouse(state, x, y, type);
+			return flag_button2::impl_probe_mouse(state, x, y, type);
 		else
 			return mouse_probe{ nullptr, ui::xy_pair{} };
 	}

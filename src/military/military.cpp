@@ -3869,6 +3869,9 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -3903,6 +3906,9 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 		}
 		auto reserves = state.world.land_battle_get_reserves(b);
 		for(auto reg : state.world.army_get_army_membership(a)) {
+			if(reg.get_regiment().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[reg.get_regiment().get_type()].type;
 			switch(type) {
 			case unit_type::infantry:
@@ -3930,6 +3936,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
 	assert(state.world.army_is_valid(a));
+	assert(!state.world.army_get_battle_from_army_battle_participation(a));
+
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
 	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
@@ -4066,6 +4074,9 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		// put ships in slots
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -4093,6 +4104,9 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 		}
 		auto slots = state.world.naval_battle_get_slots(b);
 		for(auto ship : state.world.navy_get_navy_membership(n)) {
+			if(ship.get_ship().get_strength() <= 0.0f)
+				continue;
+
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
@@ -4963,6 +4977,23 @@ void apply_regiment_damage(sys::state& state) {
 						}
 					}
 				}
+
+#ifndef NDEBUG
+				if(auto b = state.world.army_get_battle_from_army_battle_participation(army); b) {
+					for(auto e : state.world.land_battle_get_attacker_back_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_attacker_front_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_defender_back_line(b))
+						assert(e != s);
+					for(auto e : state.world.land_battle_get_defender_front_line(b))
+						assert(e != s);
+					auto reserves = state.world.land_battle_get_reserves(b);
+					for(uint32_t j = 0; j < reserves.size(); j++)
+						assert(reserves[j].regiment != s);
+				}
+#endif
+
 				state.world.delete_regiment(s);
 			}
 		}
@@ -4970,9 +5001,10 @@ void apply_regiment_damage(sys::state& state) {
 }
 
 void update_land_battles(sys::state& state) {
-	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(state.world.land_battle_size());
+	auto isize = state.world.land_battle_size();
+	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::land_battle_id>(isize);
 
-	concurrency::parallel_for(0, int32_t(state.world.land_battle_size()), [&](int32_t index) {
+	concurrency::parallel_for(0, int32_t(isize), [&](int32_t index) {
 		dcon::land_battle_id b{dcon::land_battle_id::value_base_t(index)};
 
 		if(!state.world.land_battle_is_valid(b))
@@ -5292,23 +5324,6 @@ void update_land_battles(sys::state& state) {
 		}
 
 
-
-		// prefer slot zero
-		if(!att_back[0]) {
-			std::swap(att_back[0], att_back[1]);
-		}
-		if(!def_back[0]) {
-			std::swap(def_back[0], def_back[1]);
-		}
-		if(!att_front[0]) {
-			std::swap(att_front[0], att_front[1]);
-		}
-		if(!def_front[0]) {
-			std::swap(def_front[0], def_front[1]);
-		}
-
-		// back row
-
 		auto compact = [](std::array<dcon::regiment_id, 30>& a) {
 			int32_t low = 0;
 			while(low < 30 && a[low]) {
@@ -5327,8 +5342,6 @@ void update_land_battles(sys::state& state) {
 					high += 2;
 
 				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
 			}
 
 			low = 1;
@@ -5348,8 +5361,6 @@ void update_land_battles(sys::state& state) {
 					high += 2;
 
 				low += 2;
-				while(low < 30 && a[low])
-					low += 2;
 			}
 			};
 
@@ -5357,6 +5368,20 @@ void update_land_battles(sys::state& state) {
 		compact(att_front);
 		compact(def_back);
 		compact(def_front);
+
+		// prefer slot zero
+		if(!att_back[0]) {
+			std::swap(att_back[0], att_back[1]);
+		}
+		if(!def_back[0]) {
+			std::swap(def_back[0], def_back[1]);
+		}
+		if(!att_front[0]) {
+			std::swap(att_front[0], att_front[1]);
+		}
+		if(!def_front[0]) {
+			std::swap(def_front[0], def_front[1]);
+		}
 
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
@@ -5446,17 +5471,19 @@ void update_land_battles(sys::state& state) {
 		}
 	});
 
-	for(auto b : state.world.in_land_battle) {
-		if(to_delete.get(b) != 0) {
- 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
+	for(auto i = isize; i-- > 0;) {
+		dcon::land_battle_id b{dcon::land_battle_id::value_base_t(i) };
+		if(state.world.land_battle_is_valid(b) && to_delete.get(b) != 0) {
+			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
 		}
 	}
 }
 
 void update_naval_battles(sys::state& state) {
-	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(state.world.naval_battle_size());
+	auto isize = state.world.naval_battle_size();
+	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(isize);
 
-	concurrency::parallel_for(0, int32_t(state.world.naval_battle_size()), [&](int32_t index) {
+	concurrency::parallel_for(0, int32_t(isize), [&](int32_t index) {
 		dcon::naval_battle_id b{dcon::naval_battle_id::value_base_t(index)};
 
 		if(!state.world.naval_battle_is_valid(b))
@@ -5775,11 +5802,13 @@ void update_naval_battles(sys::state& state) {
 		}
 	});
 
-	for(auto b : state.world.in_naval_battle) {
-		if(to_delete.get(b) != 0) {
+	for(auto i = isize; i-- > 0;) {
+		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(i) };
+		if(state.world.naval_battle_is_valid(b) && to_delete.get(b) != 0) {
 			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
 		}
 	}
+
 	for(uint32_t i = state.world.ship_size(); i-- > 0;) {
 		dcon::ship_id s{dcon::ship_id::value_base_t(i)};
 		if(state.world.ship_is_valid(s)) {
@@ -5799,6 +5828,8 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
 	assert(state.world.navy_is_valid(n));
+	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
+
 	state.world.navy_set_location_from_navy_location(n, p);
 	auto ships = state.world.navy_get_navy_membership(n);
 	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index() && ships.begin() != ships.end()) {

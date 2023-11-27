@@ -629,36 +629,7 @@ guiTypes = {
 					position = { 0 236}
 				}
 			}
-			# Change current song
-			instantTextBoxType = {
-				position = { 58 308 }
-				name = "music_player_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				text = "music_player"
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			instantTextBoxType={
-				position = { 58 328 }
-				name = "music_player_value"
-				font = "Arial14"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = centre
-			}
-			guiButtonType = {
-				name = "music_player_left"
-				position = { 51 326 }
-				quadTextureSprite = "option_prev"
-			}
-			guiButtonType = {
-				name = "music_player_right"
-				position = { 269 326 }
-				quadTextureSprite = "option_next"
-			}
+
 		}
 	}
 
@@ -752,9 +723,9 @@ guiTypes = {
 			position = { 46 16 }
 		}
 		instantTextBoxType={
-			position = { 4 39 }
+			position = { 4 40 }
 			name = "strength"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = { 0 0}
 			maxsize = { 53 17 }
 			orientation = "UPPER_LEFT"
@@ -852,9 +823,9 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType={
-			position = { -11	 24 }
+			position = { -11	 25 }
 			name = "ship_count"
-			font = "Arial16"
+			font = "Arial14"
 			borderSize = { 0 0}
 			maxsize = { 30 17 }
 			orientation = "UPPER_LEFT"
@@ -1237,9 +1208,9 @@ guiTypes = {
 				position = { 50 16 }
 			}
 			instantTextBoxType={
-				position = { 8 39 }
+				position = { 8 40 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }
 				orientation = "UPPER_LEFT"
@@ -1311,9 +1282,9 @@ guiTypes = {
 				position = { 46 16 }
 			}
 			instantTextBoxType={
-				position = { 4 39 }
+				position = { 4 40 }
 				name = "strength"
-				font = "Arial16"
+				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }
 				orientation = "UPPER_LEFT"
