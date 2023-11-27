@@ -4190,11 +4190,8 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		}
 	}
 	/* Our allies (mainly our substates, vassals) - we need to care of them! */
-	std::vector<dcon::nation_id> allied_with;
-	allied_with.reserve(state.world.nation_size());
-	for(const auto ovr : state.world.nation_get_overlord_as_ruler(n))
-		allied_with.push_back(ovr.get_subject());
-	for(auto w : allied_with) {
+	for(const auto ovr : state.world.nation_get_overlord_as_ruler(n)) {
+		auto w = ovr.get_subject();
 		for(auto o : state.world.nation_get_province_ownership(w)) {
 			if(!o.get_province().get_nation_from_province_control()
 				|| military::rebel_army_in_province(state, o.get_province())
