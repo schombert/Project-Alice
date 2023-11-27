@@ -45,7 +45,8 @@ struct command_info {
 		always_accept_deals,
 		complete_constructions,
 		instant_research,
-		game_info
+		game_info,
+		spectate
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -166,6 +167,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"gi", command_info::type::game_info, "Shows general game information",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{ "spectate", command_info::type::spectate, "Become spectator nation",
+						{command_info::argument_info{}, command_info::argument_info{},
+								command_info::argument_info{}, command_info::argument_info{}} },
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -1176,6 +1180,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
 		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
 		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
+		break;
+	case command_info::type::spectate:
+		command::c_switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id));
 		break;
 	case command_info::type::none:
 		log_to_console(state, parent, "Command \"" + std::string(s) + "\" not found.");
