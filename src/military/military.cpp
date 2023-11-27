@@ -3981,7 +3981,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 			military::participation par{ dcon::war_id{}, war_role::none };
 			if(owner_nation && other_nation) { // nation vs. nation
 				par = internal_find_war_between(state, owner_nation, other_nation);
-			} else { // nation vs. rebels
+			} else if(bool(owner_nation) != bool(other_nation)) { // nation vs. rebels
 				par.w = dcon::war_id{};
 				par.role = bool(owner_nation) ? war_role::defender : war_role::attacker;
 			}
