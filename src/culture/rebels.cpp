@@ -959,7 +959,8 @@ void rebel_risings_check(sys::state& state) {
 	}
 
 	for(auto a : new_armies) {
-		military::army_arrives_in_province(state, a, state.world.army_get_location_from_army_location(a), military::crossing_type::none);
+		if(!state.world.army_get_battle_from_army_battle_participation(a))
+			military::army_arrives_in_province(state, a, state.world.army_get_location_from_army_location(a), military::crossing_type::none);
 	}
 }
 
