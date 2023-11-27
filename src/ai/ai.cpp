@@ -3627,7 +3627,8 @@ enum class province_class : uint8_t {
 	low_priority_border = 2,
 	border = 3,
 	threat_border = 4,
-	hostile_border = 5
+	hostile_border = 5,
+	count = 6
 };
 
 struct classified_province {
@@ -3726,7 +3727,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 	// distribute target provinces
 	uint32_t end_of_stage = 0;
 
-	for(uint8_t stage = 5; stage-- > 0 && !guards_list.empty(); ) {
+	for(uint8_t stage = uint8_t(province_class::count); stage-- > 0 && !guards_list.empty(); ) {
 		uint32_t start_of_stage = end_of_stage;
 
 		for(; end_of_stage < provinces.size(); ++end_of_stage) {
