@@ -3937,6 +3937,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
 	assert(state.world.army_is_valid(a));
 	assert(!state.world.army_get_battle_from_army_battle_participation(a));
+	assert(p);
+	assert(a);
 
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
