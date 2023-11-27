@@ -4828,11 +4828,16 @@ void general_ai_unit_tick(sys::state& state) {
 		move_idle_guards(state);
 		break;
 	case 6:
-		break;
-	case 7:
 		move_gathered_attackers(state);
 		break;
+	case 7:
+		break;
 	}
+}
+
+void general_rebel_hunting_tick(sys::state& state) {
+	move_idle_guards(state);
+	move_gathered_attackers(state);
 }
 
 float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
