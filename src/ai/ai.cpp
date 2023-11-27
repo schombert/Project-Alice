@@ -4808,36 +4808,43 @@ void general_ai_unit_tick(sys::state& state) {
 	auto v = state.current_date.value;
 	auto r = v % 8;
 
+	bool skip_rh = false;
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	if(ymd_date.day == 30 || ymd_date.day == 28 || ymd_date.day == 24 || ymd_date.day == 12) {
+		move_idle_guards(state);
+		move_gathered_attackers(state);
+		skip_rh = true;
+	}
+
 	switch(r) {
 	case 0:
 		pickup_idle_ships(state);
 		break;
 	case 1:
-		move_idle_guards(state);
+		if(skip_rh)
+			move_idle_guards(state);
 		break;
 	case 2:
 		new_units_and_merging(state);
 		break;
 	case 3:
-		move_gathered_attackers(state);
+		if(skip_rh)
+			move_gathered_attackers(state);
 		break;
 	case 4:
 		update_naval_transport(state);
 		break;
 	case 5:
-		move_idle_guards(state);
+		if(skip_rh)
+			move_idle_guards(state);
 		break;
 	case 6:
-		move_gathered_attackers(state);
+		if(skip_rh)
+			move_gathered_attackers(state);
 		break;
 	case 7:
 		break;
 	}
-}
-
-void general_rebel_hunting_tick(sys::state& state) {
-	move_idle_guards(state);
-	move_gathered_attackers(state);
 }
 
 float estimate_rebel_strength(sys::state& state, dcon::province_id p) {

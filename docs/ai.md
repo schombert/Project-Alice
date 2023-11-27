@@ -19,9 +19,6 @@ Must be run each day. Removes empty armies and navies that may be left by AI mer
 `void general_ai_unit_tick(sys::state& state)`:
 Runs the various functions described below that issue new orders to idle units.
 
-`void general_rebel_hunting_tick(sys::state& state)`:
-Runs functions necesary for targeting rebels properly.
-
 ### Naval AI
 
 `void update_ships(sys::state& state)`:
