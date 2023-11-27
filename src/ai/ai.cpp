@@ -3626,7 +3626,8 @@ enum class province_class : uint8_t {
 	coast = 1,
 	low_priority_border = 2,
 	border = 3,
-	hostile_border = 4
+	threat_border = 4,
+	hostile_border = 5
 };
 
 struct classified_province {
@@ -3684,10 +3685,11 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 				if(uint8_t(cls) < uint8_t(province_class::low_priority_border)) {
 					cls = province_class::low_priority_border;
 				}
-			} else if(military::are_at_war(state, n, n_controller) || is_threat) {
-				// fabricating against us or at war with us
+			} else if(military::are_at_war(state, n, n_controller)) {
 				cls = province_class::hostile_border;
 				break;
+			} else if(is_threat) {
+				cls = province_class::threat_border;
 			} else { // other border
 				if(uint8_t(cls) < uint8_t(province_class::border)) {
 					cls = province_class::border;
