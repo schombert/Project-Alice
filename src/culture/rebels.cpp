@@ -863,7 +863,7 @@ void rebel_hunting_check(sys::state& state) {
 }
 
 void rebel_risings_check(sys::state& state) {
-	static std::vector<std::pair<dcon::army_id, dcon::province_id>> new_armies;
+	static std::vector<dcon::army_id> new_armies;
 	new_armies.clear();
 
 	for(auto rf : state.world.in_rebel_faction) {
@@ -900,9 +900,9 @@ void rebel_risings_check(sys::state& state) {
 							}
 							auto new_army = dcon::fatten(state.world, state.world.create_army());
 							new_army.set_controller_from_army_rebel_control(rf);
-							assert(!new_army.get_location_from_army_location());
+							new_army.set_location_from_army_location(pop_location);
+							new_armies.push_back(new_army);
 							assert(!new_army.get_battle_from_army_battle_participation());
-							new_armies.emplace_back(new_army, pop_location);
 							return new_army.id;
 						}();
 
@@ -949,7 +949,8 @@ void rebel_risings_check(sys::state& state) {
 	}
 
 	for(auto a : new_armies) {
-		military::army_arrives_in_province(state, a.first, a.second, military::crossing_type::none);
+		if(!state.world.army_get_battle_from_army_battle_participation(a))
+			military::army_arrives_in_province(state, a, state.world.army_get_location_from_army_location(a), military::crossing_type::none);
 	}
 }
 
