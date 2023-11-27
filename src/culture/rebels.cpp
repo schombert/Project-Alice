@@ -863,7 +863,7 @@ void rebel_hunting_check(sys::state& state) {
 }
 
 void rebel_risings_check(sys::state& state) {
-	static std::vector<dcon::army_id> new_armies;
+	static std::vector<std::pair<dcon::army_id, dcon::province_id>> new_armies;
 	new_armies.clear();
 
 	for(auto rf : state.world.in_rebel_faction) {
@@ -895,14 +895,14 @@ void rebel_risings_check(sys::state& state) {
 						auto pop_location = pop.get_pop().get_province_from_pop_location();
 						auto a = [&]() {
 							for(auto ar : state.world.province_get_army_location(pop_location)) {
-								if(ar.get_army().get_controller_from_army_rebel_control() == rf && !ar.get_army().get_black_flag() && !ar.get_army().get_is_retreating() && !ar.get_army().get_battle_from_army_battle_participation())
+								if(ar.get_army().get_controller_from_army_rebel_control() == rf && !ar.get_army().get_battle_from_army_battle_participation())
 									return ar.get_army().id;
 							}
 							auto new_army = dcon::fatten(state.world, state.world.create_army());
 							new_army.set_controller_from_army_rebel_control(rf);
-							new_army.set_location_from_army_location(pop_location);
-							new_armies.push_back(new_army);
+							assert(!new_army.get_location_from_army_location());
 							assert(!new_army.get_battle_from_army_battle_participation());
+							new_armies.emplace_back(new_army, pop_location);
 							return new_army.id;
 						}();
 
@@ -949,7 +949,7 @@ void rebel_risings_check(sys::state& state) {
 	}
 
 	for(auto a : new_armies) {
-		military::army_arrives_in_province(state, a, state.world.army_get_location_from_army_location(a), military::crossing_type::none);
+		military::army_arrives_in_province(state, a.first, a.second, military::crossing_type::none);
 	}
 }
 
