@@ -863,7 +863,6 @@ void rebel_hunting_check(sys::state& state) {
 }
 
 void rebel_risings_check(sys::state& state) {
-	static auto province_damage = state.world.province_make_vectorizable_float_buffer();
 	static std::vector<dcon::army_id> new_armies;
 	new_armies.clear();
 
@@ -873,23 +872,15 @@ void rebel_risings_check(sys::state& state) {
 		float p_val = float(rval & 0xFFFF) / float(0x10000);
 		if(p_val < revolt_chance) {
 			auto const faction_owner = rf.get_ruler_from_rebellion_within();
-			auto const new_to_make = get_faction_brigades_ready(state, rf);
+			auto const new_to_make = int32_t(float(get_faction_brigades_ready(state, rf)) * 0.25f);
 			auto counter = new_to_make;
 			if(new_to_make == 0)
 				continue;
-
-			ve::execute_serial_fast<dcon::province_id>(state.world.province_size(), [&](auto index) {
-				province_damage.set(index, ve::fp_vector{});
-			});
 
 			/*
 			- When a rising happens, pops with at least define:MILITANCY_TO_JOIN_RISING will spawn faction-organization x
 			max-possible-supported-regiments, to a minimum of 1 (if any more regiments are possible).
 			*/
-
-			
-
-			float total_damage = 0.0f;
 			for(auto pop : rf.get_pop_rebellion_membership()) {
 				if(counter == 0)
 					break;
