@@ -3651,28 +3651,6 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 			auto n_controller = other.get_nation_from_province_control();
 			auto ovr = n_controller.get_overlord_as_subject().get_ruler();
 
-			/* We will target POTENTIAL enemies of the nation;
-			   we could also check if the CB can be used on us, but
-			   that is expensive, so instead we use available_cbs! */
-			bool is_threat = false;
-			if(n_controller) {
-				is_threat |= n_controller.get_ai_rival() == n;
-				is_threat |= state.world.nation_get_ai_rival(n) == n_controller.id;
-				if(ovr) {
-					/* subjects cannot negotiate by themselves, but the overlord may */
-					is_threat |= ovr.get_ai_rival() == n;
-					is_threat |= state.world.nation_get_ai_rival(n) == ovr.id;
-					//
-					is_threat |= ovr.get_constructing_cb_target() == n;
-					for(auto cb : ovr.get_available_cbs())
-						is_threat |= cb.target == n;
-				} else {
-					is_threat |= n_controller.get_constructing_cb_target() == n;
-					for(auto cb : n_controller.get_available_cbs())
-						is_threat |= cb.target == n;
-				}
-			}
-
 			if(n_controller == n) {
 				// own province
 			} else if(!n_controller && !other.get_rebel_faction_from_province_rebel_control()) {
@@ -3680,19 +3658,44 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 			} else if(other.get_rebel_faction_from_province_rebel_control()) {
 				cls = province_class::hostile_border;
 				break;
+			} else if(military::are_at_war(state, n, n_controller)) {
+				cls = province_class::hostile_border;
+				break;
 			} else if(nations::are_allied(state, n, n_controller) || (ovr && ovr == n) || (ovr && nations::are_allied(state, n, ovr))) {
 				// allied controller or subject of allied controller or our "parent" overlord
 				if(uint8_t(cls) < uint8_t(province_class::low_priority_border)) {
 					cls = province_class::low_priority_border;
 				}
-			} else if(military::are_at_war(state, n, n_controller)) {
-				cls = province_class::hostile_border;
-				break;
-			} else if(is_threat) {
-				cls = province_class::threat_border;
-			} else { // other border
-				if(uint8_t(cls) < uint8_t(province_class::border)) {
-					cls = province_class::border;
+			} else {
+				/* We will target POTENTIAL enemies of the nation;
+				   we could also check if the CB can be used on us, but
+				   that is expensive, so instead we use available_cbs! */
+				bool is_threat = false;
+				if(n_controller) {
+					is_threat |= n_controller.get_ai_rival() == n;
+					is_threat |= state.world.nation_get_ai_rival(n) == n_controller.id;
+					if(ovr) {
+						/* subjects cannot negotiate by themselves, but the overlord may */
+						is_threat |= ovr.get_ai_rival() == n;
+						is_threat |= state.world.nation_get_ai_rival(n) == ovr.id;
+						//
+						is_threat |= ovr.get_constructing_cb_target() == n;
+						for(auto cb : ovr.get_available_cbs())
+							is_threat |= cb.target == n;
+					} else {
+						is_threat |= n_controller.get_constructing_cb_target() == n;
+						for(auto cb : n_controller.get_available_cbs())
+							is_threat |= cb.target == n;
+					}
+				}
+				if(is_threat) {
+					if(uint8_t(cls) < uint8_t(province_class::threat_border)) {
+						cls = province_class::threat_border;
+					}
+				} else { // other border
+					if(uint8_t(cls) < uint8_t(province_class::border)) {
+						cls = province_class::border;
+					}
 				}
 			}
 		}
