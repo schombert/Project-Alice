@@ -425,16 +425,24 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 					}
 				}
 			});
-			// Now type in a suggestion...
-			dcon::nation_id nid =
-				state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
-			std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
-			if(tag.size() >= name.size()) {
-				lhs_suggestion = std::string{};
+			if(closest_match.second) {
+				// Now type in a suggestion...
+				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
+				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
+				if(tag.size() >= name.size()) {
+					lhs_suggestion = std::string{};
+				} else {
+					lhs_suggestion = name.substr(tag.size());
+				}
+				rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
 			} else {
-				lhs_suggestion = name.substr(tag.size());
+				lhs_suggestion = std::string{};
+				rhs_suggestion = std::string{};
+				if(tag.size() == 1)
+					rhs_suggestion = tag + "?? - ???";
+				else if(tag.size() == 2)
+					rhs_suggestion = tag + "? - ???";
 			}
-			rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
 		}
 	}
 }
