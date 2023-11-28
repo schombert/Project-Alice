@@ -6269,11 +6269,16 @@ void update_siege_progress(sys::state& state) {
 			}
 		}
 
-		if(total_sieging_strength == 0.0f) {
+		 if(total_sieging_strength == 0.0f) {
 			// Garrison recovers at 10% per day when not being sieged (to 100%)
 
-			auto& progress = state.world.province_get_siege_progress(prov);
-			progress = std::max(0.0f, progress - 0.1f);
+			 auto local_battles = state.world.province_get_land_battle_location(prov);
+			 if(local_battles.begin() != local_battles.end()) {
+				 // ongoing battle: do nothing
+			 } else {
+				 auto& progress = state.world.province_get_siege_progress(prov);
+				 progress = std::max(0.0f, progress - 0.1f);
+			 }
 		} else {
 			assert(bool(first_army));
 
