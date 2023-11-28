@@ -24,5 +24,7 @@ void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, i
 void c_force_ally(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void c_toggle_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void c_complete_constructions(sys::state& state, dcon::nation_id source);
+void c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id new_owner);
+void c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id new_controller);
 
 } // namespace command

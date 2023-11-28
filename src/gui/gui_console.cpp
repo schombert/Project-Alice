@@ -1171,7 +1171,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::toggle_ai:
 		for(auto n : state.world.in_nation)
 			command::c_toggle_ai(state, state.local_player_nation, n);
-		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 		break;
 	case command_info::type::always_allow_wargoals:
 		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
@@ -1198,34 +1197,29 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::change_control_and_owner:
 	{
-		auto province_id = dcon::province_control_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
+		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
 		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
 		auto tag = std::get<std::string>(pstate.arg_slots[1]);
 		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
-		dcon::nation_id nnid(state.world.national_identity_get_nation_from_identity_holder(nid));
-		state.world.province_control_set_nation(province_id, nnid);
-		[[fallthrough]];
+		command::c_change_owner(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
+		break;
 	}
 	case command_info::type::change_owner:
 	{
-		auto province_id = dcon::province_ownership_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
+		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
 		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
 		auto tag = std::get<std::string>(pstate.arg_slots[1]);
 		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
-		dcon::nation_id nnid(state.world.national_identity_get_nation_from_identity_holder(nid));
-		state.world.province_ownership_set_nation(province_id, nnid);
-		state.game_state_updated.store(true, std::memory_order::release); // i dont know whether this is necessary
+		command::c_change_owner(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::change_control:
 	{
-		auto province_id = dcon::province_control_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
+		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
 		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
 		auto tag = std::get<std::string>(pstate.arg_slots[1]);
 		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
-		dcon::nation_id nnid(state.world.national_identity_get_nation_from_identity_holder(nid));
-		state.world.province_control_set_nation(province_id, nnid);
-		state.game_state_updated.store(true, std::memory_order::release); // i dont know whether this is necessary
+		command::c_change_controller(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::none:
