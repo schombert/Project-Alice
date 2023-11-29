@@ -3843,6 +3843,7 @@ sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id 
 	float effective_speed = effective_army_speed(state, a);
 
 	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	assert(days > 0);
 	return state.current_date + days;
 }
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
@@ -6006,7 +6007,10 @@ void update_movement(sys::state& state) {
 	}
 
 	for(auto n : state.world.in_navy) {
-		if(auto path = n.get_path(); n.get_arrival_time() == state.current_date && path.size() > 0) {
+		auto arrival = n.get_arrival_time();
+		assert(!arrival || arrival >= state.current_date);
+		if(auto path = n.get_path(); arrival == state.current_date) {
+			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 
@@ -6023,7 +6027,36 @@ void update_movement(sys::state& state) {
 						a.set_navy_from_army_transport(dcon::navy_id{});
 						a.get_path().clear();
 						a.set_arrival_time(sys::date{});
+						auto acontroller = a.get_controller_from_army_control();
 
+						if(acontroller && !acontroller.get_is_player_controlled()) {
+							auto army_dest = a.get_ai_province();
+							a.set_location_from_army_location(dest);
+							if(army_dest && army_dest != dest) {
+								auto apath = province::make_land_path(state, dest, army_dest, acontroller, a);
+								if(apath.size() > 0) {
+									auto existing_path = a.get_path();
+									auto new_size = uint32_t(apath.size());
+									existing_path.resize(new_size);
+
+									for(uint32_t i = 0; i < new_size; ++i) {
+										existing_path[i] = apath[i];
+									}
+									a.set_arrival_time(military::arrival_time_to(state, a, apath.back()));
+									a.set_dig_in(0);
+									auto activity = ai::army_activity(a.get_ai_activity());
+									if(activity == ai::army_activity::transport_guard) {
+										a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
+									} else if(activity == ai::army_activity::transport_attack) {
+										a.set_ai_activity(uint8_t(ai::army_activity::attack_gathered));
+									}
+								} else {
+									a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
+								}
+							} else {
+								a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
+							}
+						}
 						army_arrives_in_province(state, a, dest, military::crossing_type::none, dcon::land_battle_id{});
 					}
 				} else {

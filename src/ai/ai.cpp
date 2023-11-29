@@ -2997,29 +2997,6 @@ void update_budget(sys::state& state) {
 	});
 }
 
-enum class fleet_activity {
-	unspecified = 0,			// ai hasn't run on this unit yet
-	boarding = 1,			// waiting for troops to arrive
-	transporting = 2,			// moving or waiting for troops to disembark
-	returning_to_base = 3,	// moving back to home port
-	attacking = 4,			// trying to attack another fleet
-	merging = 5,				// moving to main base to merge up
-	idle = 6,					// sitting in main base with no order
-	unloading = 7,			// transport arrived, waiting for units to get off
-	failed_transport = 8,
-};
-
-enum class army_activity {
-	unspecified = 0,
-	on_guard = 1,		// hold in place
-	attacking = 2,
-	merging = 3,
-	transport_guard = 4,
-	transport_attack = 5,
-	// attack_finished = 6,
-	attack_gathered = 7,
-	attack_transport = 8,
-};
 
 void remove_ai_data(sys::state& state, dcon::nation_id n) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
@@ -3032,6 +3009,9 @@ void remove_ai_data(sys::state& state, dcon::nation_id n) {
 }
 
 void update_ships(sys::state& state) {
+	static std::vector<dcon::ship_id> to_delete;
+	to_delete.clear();
+
 	for(auto n : state.world.in_nation) {
 		if(!n.get_is_player_controlled() && n.get_is_at_war() == false) {
 			dcon::unit_type_id best_transport;
@@ -3059,27 +3039,31 @@ void update_ships(sys::state& state) {
 			}
 
 			for(auto v : n.get_navy_control()) {
-				static std::vector<dcon::ship_id> to_delete;
-				to_delete.clear();
-				for(auto shp : v.get_navy().get_navy_membership()) {
-					auto type = shp.get_ship().get_type();
+				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+					auto trange = v.get_navy().get_army_transport();
+					bool transporting = trange.begin() != trange.end();
 
-					if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport) {
-						if(best_transport && type != best_transport)
-							to_delete.push_back(shp.get_ship().id);
-					} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::light_ship) {
-						if(best_light && type != best_light)
-							to_delete.push_back(shp.get_ship().id);
-					} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::big_ship) {
-						if(best_big && type != best_big)
-							to_delete.push_back(shp.get_ship().id);
+					for(auto shp : v.get_navy().get_navy_membership()) {
+						auto type = shp.get_ship().get_type();
+
+						if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport && !transporting) {
+							if(best_transport && type != best_transport)
+								to_delete.push_back(shp.get_ship().id);
+						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::light_ship) {
+							if(best_light && type != best_light)
+								to_delete.push_back(shp.get_ship().id);
+						} else if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::big_ship) {
+							if(best_big && type != best_big)
+								to_delete.push_back(shp.get_ship().id);
+						}
 					}
-				}
-				for(auto s : to_delete) {
-					state.world.delete_ship(s);
 				}
 			}
 		}
+	}
+
+	for(auto s : to_delete) {
+		state.world.delete_ship(s);
 	}
 }
 
@@ -3296,17 +3280,7 @@ bool naval_advantage(sys::state& state, dcon::nation_id n) {
 void send_fleet_home(sys::state& state, dcon::navy_id n, fleet_activity moving_status = fleet_activity::returning_to_base, fleet_activity at_base = fleet_activity::idle) {
 	auto v = fatten(state.world, n);
 	auto home_port = v.get_controller_from_navy_control().get_ai_home_port();
-	if(v.get_location_from_navy_location() == home_port) { // already home -- make sure no units are embarked
-		auto attached = state.world.navy_get_army_transport(n);
-		while(attached.begin() != attached.end()) {
-			auto a = (*attached.begin()).get_army();
-
-			a.set_navy_from_army_transport(dcon::navy_id{});
-			a.get_path().clear();
-			a.set_arrival_time(sys::date{});
-
-			military::army_arrives_in_province(state, a, home_port, military::crossing_type::none, dcon::land_battle_id{});
-		}
+	if(v.get_location_from_navy_location() == home_port) {
 		v.set_ai_activity(uint8_t(at_base));
 	} else if(!home_port) {
 		v.set_ai_activity(uint8_t(fleet_activity::unspecified));
@@ -3316,7 +3290,6 @@ void send_fleet_home(sys::state& state, dcon::navy_id n, fleet_activity moving_s
 		existing_path.resize(new_size);
 
 		for(uint32_t i = 0; i < new_size; ++i) {
-			assert(naval_path[i]);
 			existing_path[i] = naval_path[i];
 		}
 		v.set_arrival_time(military::arrival_time_to(state, v, naval_path.back()));
@@ -3374,8 +3347,11 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 
 void unload_units_from_transport(sys::state& state, dcon::navy_id n) {
 	auto transported_armies = state.world.navy_get_army_transport(n);
+	auto location = state.world.navy_get_location_from_navy_location(n);
+
+
 	for(auto ar : transported_armies) {
-		auto path = province::make_land_path(state, ar.get_army().get_location_from_army_location(), ar.get_army().get_ai_province(), ar.get_army().get_controller_from_army_control(), ar.get_army());
+		auto path = province::make_land_path(state, location, ar.get_army().get_ai_province(), ar.get_army().get_controller_from_army_control(), ar.get_army());
 		if(path.size() > 0) {
 			auto existing_path = ar.get_army().get_path();
 			auto new_size = uint32_t(path.size());
@@ -3395,37 +3371,42 @@ void unload_units_from_transport(sys::state& state, dcon::navy_id n) {
 			}
 		}
 	}
+
 	state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::unloading));
 }
 
 bool merge_fleet(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::nation_id owner) {
 	auto merge_target = [&]() {
+		dcon::navy_id largest;
+		int32_t largest_size = 0;
 		for(auto on : state.world.province_get_navy_location(p)) {
 			if(on.get_navy() != n && on.get_navy().get_controller_from_navy_control() == owner) {
 				auto other_mem = on.get_navy().get_navy_membership();
-				if(other_mem.begin() != other_mem.end())
-					return on.get_navy().id;
+				if(auto sz = int32_t(other_mem.end() - other_mem.begin()); sz > largest_size) {
+					largest =  on.get_navy().id;
+					largest_size = sz;
+				}
 			}
 		}
-		return dcon::navy_id{};
-		}();
+		return largest;
+	}();
 
-		if(!merge_target) {
-			return false;
-		}
+	if(!merge_target) {
+		return false;
+	}
 
-		auto regs = state.world.navy_get_navy_membership(n);
-		while(regs.begin() != regs.end()) {
-			auto reg = (*regs.begin()).get_ship();
-			reg.set_navy_from_navy_membership(merge_target);
-		}
+	auto regs = state.world.navy_get_navy_membership(n);
+	while(regs.begin() != regs.end()) {
+		auto reg = (*regs.begin()).get_ship();
+		reg.set_navy_from_navy_membership(merge_target);
+	}
 
-		auto transported = state.world.navy_get_army_transport(n);
-		while(transported.begin() != transported.end()) {
-			auto arm = (*transported.begin()).get_army();
-			arm.set_navy_from_army_transport(merge_target);
-		}
-		return true;
+	auto transported = state.world.navy_get_army_transport(n);
+	while(transported.begin() != transported.end()) {
+		auto arm = (*transported.begin()).get_army();
+		arm.set_navy_from_army_transport(merge_target);
+	}
+	return true;
 }
 
 void pickup_idle_ships(sys::state& state) {
@@ -3437,7 +3418,7 @@ void pickup_idle_ships(sys::state& state) {
 
 		auto owner = n.get_controller_from_navy_control();
 
-		if(owner.get_is_player_controlled() || owner.get_owned_province_count() == 0)
+		if(!owner || owner.get_is_player_controlled() || owner.get_owned_province_count() == 0)
 			continue;
 
 		auto home_port = state.world.nation_get_ai_home_port(owner);
@@ -3489,14 +3470,16 @@ void pickup_idle_ships(sys::state& state) {
 						existing_path.resize(new_size);
 
 						for(uint32_t k = 0; k < new_size; ++k) {
-							assert(naval_path[k]);
 							existing_path[k] = naval_path[k];
 						}
-						if(new_size > 0)
+						if(new_size > 0) {
 							n.set_arrival_time(military::arrival_time_to(state, n, naval_path.back()));
-						else
+							n.set_ai_activity(uint8_t(fleet_activity::transporting));
+						} else {
 							n.set_arrival_time(sys::date{});
-						n.set_ai_activity(uint8_t(fleet_activity::transporting));
+							send_fleet_home(state, n);
+						}
+						
 					} else if(auto path = province::make_path_to_nearest_coast(state, owner, transported_dest); path.empty()) {
 						send_fleet_home(state, n);
 					} else {
@@ -3511,14 +3494,15 @@ void pickup_idle_ships(sys::state& state) {
 						existing_path.resize(new_size);
 
 						for(uint32_t k = 0; k < new_size; ++k) {
-							assert(naval_path[k]);
 							existing_path[k] = naval_path[k];
 						}
-						if(new_size > 0)
+						if(new_size > 0) {
 							n.set_arrival_time(military::arrival_time_to(state, n, naval_path.back()));
-						else
+							n.set_ai_activity(uint8_t(fleet_activity::transporting));
+						} else {
 							n.set_arrival_time(sys::date{});
-						n.set_ai_activity(uint8_t(fleet_activity::transporting));
+							send_fleet_home(state, n);
+						}
 					}
 				}
 			}
@@ -3529,17 +3513,8 @@ void pickup_idle_ships(sys::state& state) {
 			break;
 		case fleet_activity::failed_transport:
 			if(location == home_port) {
-				auto attached = state.world.navy_get_army_transport(n);
-				while(attached.begin() != attached.end()) {
-					auto a = (*attached.begin()).get_army();
-
-					a.set_navy_from_army_transport(dcon::navy_id{});
-					a.get_path().clear();
-					a.set_arrival_time(sys::date{});
-
-					military::army_arrives_in_province(state, a, home_port, military::crossing_type::none, dcon::land_battle_id{});
-				}
-				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::idle));
+				if(!merge_fleet(state, n, location, owner))
+					state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::idle));
 			} else if(home_port) {
 				auto existing_path = state.world.navy_get_path(n);
 				auto path = province::make_naval_path(state, location, home_port);
@@ -3589,7 +3564,23 @@ void pickup_idle_ships(sys::state& state) {
 				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::unspecified));
 			} else if(owner.get_is_at_war()) {
 				if(!navy_needs_repair(state, n)) {
-					if(naval_advantage(state, owner)) {
+					bool valid_attacker = true;
+					auto self_ships = state.world.navy_get_navy_membership(n);
+					int32_t self_sz = int32_t(self_ships.end() - self_ships.begin());
+					for(auto o : owner.get_navy_control()) {
+						if(o.get_navy() != n) {
+							if(o.get_navy().get_ai_activity() == uint8_t(fleet_activity::attacking)) {
+								valid_attacker = false;
+								break;
+							}
+							auto orange = o.get_navy().get_navy_membership();
+							if(int32_t(orange.end() - orange.begin()) >= self_sz) {
+								valid_attacker = false;
+								break;
+							}
+						}
+					}
+					if(valid_attacker && naval_advantage(state, owner)) {
 						set_fleet_target(state, owner, state.world.navy_get_location_from_navy_location(n), n);
 					}
 				}
@@ -3597,20 +3588,21 @@ void pickup_idle_ships(sys::state& state) {
 			break;
 		case fleet_activity::unloading:
 		{
-			bool failed_transport = false;
+			bool failed_transport = true;
+
 			auto transporting = state.world.navy_get_army_transport(n);
 			for(auto ar : transporting) {
-				if(ar.get_army().get_path().size() == 0) {
-					failed_transport = true;
-					break;
+				if(ar.get_army().get_path().size() != 0) {
+					failed_transport = false;
 				}
 			}
-			if(failed_transport) {
-				// an army is stuck on the boats
-				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::failed_transport));
-			} else if(transporting.begin() == transporting.end()) {
+			
+			if(transporting.begin() == transporting.end()) {
 				// all unloaded -> set to unspecified to send home later in this routine
 				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::unspecified));
+			} else if(failed_transport) {
+				// an army is stuck on the boats
+				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::failed_transport));
 			} else {
 				// do nothing, still unloading
 			}
