@@ -862,6 +862,8 @@ void rebel_hunting_check(sys::state& state) {
 	}
 }
 
+inline constexpr float rebel_size_reduction = 0.25f;
+
 void rebel_risings_check(sys::state& state) {
 	static std::vector<dcon::army_id> new_armies;
 	new_armies.clear();
@@ -872,7 +874,7 @@ void rebel_risings_check(sys::state& state) {
 		float p_val = float(rval & 0xFFFF) / float(0x10000);
 		if(p_val < revolt_chance) {
 			auto const faction_owner = rf.get_ruler_from_rebellion_within();
-			auto const new_to_make = int32_t(float(get_faction_brigades_ready(state, rf)) * 0.25f);
+			auto const new_to_make = int32_t(float(get_faction_brigades_ready(state, rf)) * rebel_size_reduction);
 			auto counter = new_to_make;
 			if(new_to_make == 0)
 				continue;
@@ -889,7 +891,7 @@ void rebel_risings_check(sys::state& state) {
 					auto location = pop.get_pop().get_province_from_pop_location();
 
 					// this is the logic we would use if we were creating rebel regiments
-					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) / (province::is_overseas(state, pop.get_pop().get_province_from_pop_location()) ? (state.defines.pop_min_size_for_regiment_colony_multiplier * state.defines.pop_size_per_regiment) : state.defines.pop_size_per_regiment));
+					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) * rebel_size_reduction / (province::is_overseas(state, pop.get_pop().get_province_from_pop_location()) ? (state.defines.pop_min_size_for_regiment_colony_multiplier * state.defines.pop_size_per_regiment) : state.defines.pop_size_per_regiment));
 					auto cregs = pop.get_pop().get_regiment_source();
 					auto used_count = int32_t(cregs.end() - cregs.begin());
 

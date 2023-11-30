@@ -2523,6 +2523,7 @@ void make_peace_offers(sys::state& state) {
 		if(!pending)
 			return;
 
+		score_max = std::min(score_max, 100);
 		int32_t current_value = 0;
 		for(auto wg : state.world.war_get_wargoals_attached(w)) {
 			if((military::is_attacker(state, w, wg.get_wargoal().get_added_by()) == attacker) == !concession) {
