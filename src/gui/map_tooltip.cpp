@@ -744,6 +744,9 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		case map_mode::mode::terrain:
 			terrain_map_tt_box(state, contents, prov);
 			break;
+		case map_mode::mode::state_select:
+			political_map_tt_box(state, contents, prov);
+			break;
 		case map_mode::mode::political:
 			political_map_tt_box(state, contents, prov);
 			break;

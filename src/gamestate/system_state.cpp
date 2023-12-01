@@ -45,14 +45,15 @@ void state::start_state_selection(state_selection_data& data) {
 		state_selection->on_cancel(*this);
 	}
 	state_selection = data;
-	map_mode::set_map_mode(*this, map_state.active_map_mode);
+	stored_map_mode = map_state.active_map_mode;
+	map_mode::set_map_mode(*this, map_mode::mode::state_select);
 	ui_state.select_states_legend->impl_on_update(*this);
 }
 
 void state::finish_state_selection() {
 	mode = sys::game_mode_type::in_game;
 	state_selection.reset();
-	map_state.update(*this);
+	map_mode::set_map_mode(*this, stored_map_mode);
 }
 
 void state::state_select(dcon::state_definition_id sdef) {
@@ -395,6 +396,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			map_state.on_key_down(keycode, mod);
 			if(keycode == virtual_key::ESCAPE) {
 				mode = sys::game_mode_type::in_game;
+				state_selection->on_cancel(*this);
+				finish_state_selection();
 				ui_state.root->impl_on_update(*this);
 			}
 		}

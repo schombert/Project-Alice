@@ -536,6 +536,7 @@ struct alignas(64) state {
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
 	std::optional<state_selection_data> state_selection;
+	map_mode::mode stored_map_mode;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information

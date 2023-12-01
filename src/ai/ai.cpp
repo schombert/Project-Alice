@@ -4215,14 +4215,15 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	bool is_at_war = state.world.nation_get_is_at_war(n);
 	int32_t max_attacks_to_make = is_at_war ? (ready_count + 3) / 4 : ready_count; // not at war -- allow all stacks to attack rebels
 	auto const psize = potential_targets.size();
+
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)
 			continue; // target has been removed as too close by some earlier iteration
 
 		auto target_attack_force = estimate_attack_force(state, potential_targets[i].location, n);
 		std::sort(ready_armies.begin(), ready_armies.end(), [&](dcon::province_id a, dcon::province_id b) {
-			auto adist = province::direct_distance(state, a, potential_targets[i].location);
-			auto bdist = province::direct_distance(state, b, potential_targets[i].location);
+			auto adist = province::sorting_distance(state, a, potential_targets[i].location);
+			auto bdist = province::sorting_distance(state, b, potential_targets[i].location);
 			if(adist != bdist)
 				return adist > bdist;
 			else
@@ -4232,7 +4233,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		// make list of attackers
 		float a_force_str = 0.f;
 		int32_t k = int32_t(ready_armies.size());
-		for(; k-- > 0 && a_force_str < target_attack_force;) {
+		for(; k-- > 0 && a_force_str <= target_attack_force;) {
 			for(auto ar : state.world.province_get_army_location(ready_armies[k])) {
 				if(ar.get_army().get_battle_from_army_battle_participation()
 					|| n != ar.get_army().get_controller_from_army_control()

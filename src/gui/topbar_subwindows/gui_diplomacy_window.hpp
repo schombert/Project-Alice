@@ -2103,7 +2103,6 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
-		set_visible(state, false);
 		state.ui_state.diplomacy_subwindow = this;
 
 		xy_pair base_gp_info_offset =
@@ -2211,6 +2210,8 @@ public:
 
 		Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.local_player_nation };
 		impl_get(state, payload);
+
+		set_visible(state, false);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -2338,6 +2339,16 @@ public:
 		crisis_window->set_visible(state, false);
 		for(auto e : gp_infos)
 			e->set_visible(state, false);
+	}
+
+	void on_hide(sys::state& state) noexcept override {
+		offer_goal_win->set_visible(state, false);
+		action_dialog_win->set_visible(state, false);
+		declare_war_win->set_visible(state, false);
+		setup_peace_win->set_visible(state, false);
+		make_cb_win->set_visible(state, false);
+		crisis_backdown_win->set_visible(state, false);
+		gp_action_dialog_win->set_visible(state, false);
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
