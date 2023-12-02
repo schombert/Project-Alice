@@ -2210,6 +2210,7 @@ struct effect_body {
 		}
 	}
 	void reduce_pop(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
+		value = std::max(0.0f, value);
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::reduce_pop));
 			context.add_float_to_payload(value);
