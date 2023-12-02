@@ -802,9 +802,9 @@ void rebel_hunting_check(sys::state& state) {
 				if(ar.get_army().get_is_rebel_hunter()
 					&& !ar.get_army().get_battle_from_army_battle_participation()
 					&& !ar.get_army().get_navy_from_army_transport()
-					&& (ar.get_army().get_arrival_time() || loc.get_nation_from_province_control() == faction_owner)
+					&& !ar.get_army().get_arrival_time()
+					&& loc.get_nation_from_province_control() == faction_owner
 					) {
-
 					rebel_hunters.push_back(ar.get_army().id);
 				}
 			}
