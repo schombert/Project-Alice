@@ -5528,7 +5528,7 @@ struct trigger_body {
 			context.add_float_to_payload(value.value_);
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
 		} else {
-			err.accumulated_errors += "unemployment_by_type trigger supplied with an invalid pop type \"" + std::string(value) + "\" (" + err.file_name + ", line " +
+			err.accumulated_errors += "unemployment_by_type trigger supplied with an invalid pop type \"" + std::string(value.type) + "\" (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
