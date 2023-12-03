@@ -13,7 +13,6 @@
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "stb_image.h"
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 #include "math_fns.hpp"

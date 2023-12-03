@@ -16,7 +16,9 @@
 #define STBI_NO_PNM 1
 #define STBI_NO_THREAD_LOCALS 1
 
+extern "C" {
 #include "stb_image.h"
+};
 
 namespace ogl {
 

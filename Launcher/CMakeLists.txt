@@ -15,11 +15,6 @@ endforeach()
 
 add_executable(launch_alice WIN32
 	"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_modes.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc"
 	${LAUNCHER_ASSET_FILES})
 

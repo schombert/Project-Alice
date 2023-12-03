@@ -32,20 +32,9 @@ endforeach()
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 if(WIN32)
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/alice.rc"
-	${ASSET_FILES})
+	add_executable(Alice WIN32 "src/main.cpp" "src/alice.rc" ${ASSET_FILES})
 else()
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	${ASSET_FILES})
+	add_executable(Alice WIN32 "src/main.cpp" ${ASSET_FILES})
 endif()
 
 if(NOT WIN32)

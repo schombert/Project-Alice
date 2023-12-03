@@ -54,6 +54,12 @@
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
 
+#include "map_state.cpp"
+#include "map_data_loading.cpp"
+#include "map_borders.cpp"
+#include "map.cpp"
+#include "map_modes.cpp"
+
 #ifdef _WIN64
 // WINDOWS implementations go here
 
