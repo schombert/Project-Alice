@@ -30,6 +30,8 @@
 #include "modes/colonial.hpp"
 #include "modes/rgo_output.hpp"
 
+#include "gui_element_types.hpp"
+
 std::vector<uint32_t> select_states_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
@@ -57,6 +59,32 @@ namespace map_mode {
 
 void set_map_mode(sys::state& state, mode mode) {
 	std::vector<uint32_t> prov_color;
+
+
+	
+	switch(mode) {
+		case map_mode::mode::migration:
+		case map_mode::mode::population:
+		case map_mode::mode::relation:
+		case map_mode::mode::revolt:
+		case map_mode::mode::supply:
+		case map_mode::mode::admin:
+		case map_mode::mode::crisis:
+			if(state.ui_state.map_gradient_legend)
+				state.ui_state.map_gradient_legend->set_visible(state, true);
+			break;
+		default:
+			if(state.ui_state.map_gradient_legend)
+				state.ui_state.map_gradient_legend->set_visible(state, false);
+			break;
+	}
+	if(mode == mode::civilization_level) {
+		if(state.ui_state.map_civ_level_legend)
+			state.ui_state.map_civ_level_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_civ_level_legend)
+			state.ui_state.map_civ_level_legend->set_visible(state, false);
+	}
 
 	switch(mode) {
 	case mode::state_select:

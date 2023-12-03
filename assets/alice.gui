@@ -2652,11 +2652,11 @@ guiTypes = {
 		Orientation = "UPPER_LEFT"
 		position = { 0 0 }
 		size = { 0 0 }
-		guiButtonType = {
+		iconType = {
 			name = "background"
 			position = { 0 0 }
 			size = { 200 298 }
-			quadTextureSprite = "console_background"
+			spriteType = "console_background"
 		}
 		instantTextBoxType = {
 			name = "legend_title"
@@ -2703,42 +2703,35 @@ guiTypes = {
 	}
 
 	windowType = {
-		name = "alice_map_legend_window"
-		position = { 0 200 }
-		size = { 200 88 }
-		guiButtonType = {
+		name = "alice_map_legend_gradient_window"
+		position = { 0 0 }
+		size = { 200 64 }
+		Orientation = UPPER_LEFT
+		
+		iconType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 200 88 }
-			quadTextureSprite = "console_background"
+			size = { 200 64 }
+			spriteType = "console_background"
 		}
-		instantTextBoxType = {
-			name = "legend_title"
-			position = { 0 4 }
-			font = "vic_22"
-			borderSize = { 0 0}
-			maxsize = { 200 24 }
-			orientation = "UPPER_LEFT"
-			format = center
-		}
-		instantTextBoxType = {
-			name = "legend_contents"
-			position = { 6 34 }
-			font = "Arial16"
-			borderSize = { 0 0 }
-			maxsize = { 148 62 }
-			orientation = "UPPER_LEFT"
-			format = left
-		}
+		#instantTextBoxType = {
+		#	name = "legend_contents"
+		#	position = { 6 4 }
+		#	font = "Arial16"
+		#	borderSize = { 0 0 }
+		#	maxsize = { 148 62 }
+		#	orientation = "UPPER_LEFT"
+		#	format = left
+		#}
 		iconType = {
 			name = "gradient_icon"
 			spriteType = "GFX_legend_gradient"
-			position = { 10 34 }
+			position = { 10 8 }
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
 			name = "gradient_min"
-			position = { 6 68 }
+			position = { 6 42 }
 			font = "Arial16"
 			borderSize = { 0 0 }
 			maxsize = { 90 20 }
@@ -2747,12 +2740,116 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "gradient_max"
-			position = { 104 68 }
+			position = { 104 42 }
 			font = "Arial16"
 			borderSize = { 0 0 }
 			maxsize = { 90 20 }
 			orientation = "UPPER_LEFT"
 			format = right
+		}
+	}
+	
+	windowType = {
+		name = "alice_map_legend_civ_level"
+		position = { 0 0 }
+		size = { 460 54 }
+		Orientation = UPPER_LEFT
+		
+		iconType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 460 54 }
+			spriteType = "console_background"
+		}
+		iconType = {
+			name = "s1_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s1_label"
+			text = "aml_civ_s1"
+			position = { 36 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s5_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "s5_ico_b"
+			spriteType = "GFX_alice_striped_rectangle"
+			position = { 158 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s5_label"
+			text = "aml_civ_s5"
+			position = { 186 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s2_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 308 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s2_label"
+			text = "aml_civ_s2"
+			position = { 336 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s3_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s3_label"
+			text = "aml_civ_s3"
+			position = { 36 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s4_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s4_label"
+			text = "aml_civ_s4"
+			position = { 186 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
 		}
 	}
 

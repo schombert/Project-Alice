@@ -32,6 +32,8 @@ std::vector<uint32_t> civilization_level_map_from(sys::state& state) {
 		prov_color[i] = color;
 		if(!state.world.province_get_is_colonial(prov_id)) {
 			prov_color[i + texture_size] = color;
+		} else {
+			prov_color[i + texture_size] = sys::pack_color(53, 53, 250);
 		}
 	});
 	return prov_color;

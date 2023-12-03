@@ -34,6 +34,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_nation_picker.hpp"
 #include "gui_end_window.hpp"
+#include "gui_map_legend.hpp"
 
 #include "blake2.h"
 
@@ -1741,6 +1742,17 @@ void state::on_create() {
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(*this, "alice_map_legend_gradient_window");
+		ui_state.map_gradient_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_civ_level>(*this, "alice_map_legend_civ_level");
+		ui_state.map_civ_level_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
 	}
 
 	{ // One on the lobby

@@ -288,9 +288,8 @@ public:
 	}
 };
 
-struct open_msg_log_data {
-	int dummy;
-};
+struct open_msg_log_data {};
+
 class open_msg_log_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {

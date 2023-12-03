@@ -85,6 +85,8 @@ public:
 class tinted_image_element_base : public image_element_base {
 public:
 	uint32_t color = 0;
+	tinted_image_element_base() : color(0) { }
+	tinted_image_element_base(uint32_t c) : color(c) { }
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {

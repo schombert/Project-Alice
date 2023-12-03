@@ -1305,4 +1305,9 @@ fab_is_paused;CB fabrication is currently paused
 att_call_will_accept;$x$ will join your war
 att_call_will_decline;$x$ will not join your war
 att_call_is_human;$x$ may join your war
+aml_civ_s1;Civilized
+aml_civ_s2;Uncolonized
+aml_civ_s3;100% Westernized
+aml_civ_s4;0% Westernized
+aml_civ_s5;Colony
 ;;;;;;;;;;;;;x
