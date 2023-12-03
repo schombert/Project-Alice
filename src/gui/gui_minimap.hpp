@@ -34,6 +34,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		switch(target) {
+		case map_mode::mode::state_select:
+			break; // doesn't appear as a button
 		case map_mode::mode::admin:
 			text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
 			break;
