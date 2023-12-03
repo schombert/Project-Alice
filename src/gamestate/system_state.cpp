@@ -2727,7 +2727,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	if(!culture_definitions.conservative) {
 		if(auto it = context.map_of_ideologies.find("conservative"); it != context.map_of_ideologies.end()) {
 			culture_definitions.conservative = it->second.id;
-			err.accumulated_warnings += "conservative ideology lacks \"can_reduce_militancy = 1\" key"\n";
+			err.accumulated_warnings += "conservative ideology lacks \"can_reduce_militancy = 1\" key\n";
 		}
 		if(!culture_definitions.conservative) {
 			err.accumulated_errors += "NO CONSERVATIVE IDEOLOGY (fatal error)\n";
