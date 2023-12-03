@@ -522,6 +522,7 @@ struct goods_file {
 #define MOD_PROV_FUNCTION(X)                                                                                                     \
 	template<typename T>                                                                                                           \
 	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
+		if(v == 0.0f) return; \
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {                                         \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
 		} else {                                                                                                                     \
@@ -533,6 +534,7 @@ struct goods_file {
 #define MOD_NAT_FUNCTION(X)                                                                                                      \
 	template<typename T>                                                                                                           \
 	void X(association_type, float v, error_handler& err, int32_t line, T& context) {                                              \
+		if(v == 0.0f) return; \
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {                                           \
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";           \
 		} else {                                                                                                                     \
@@ -575,6 +577,7 @@ public:
 	MOD_NAT_FUNCTION(loan_interest)
 	template<typename T>
 	void tax_efficiency(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -613,6 +616,7 @@ public:
 	MOD_PROV_FUNCTION(population_growth)
 	template<typename T>
 	void global_population_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -653,6 +657,7 @@ public:
 	MOD_PROV_FUNCTION(mine_rgo_size)
 	template<typename T>
 	void m_rgo_size(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; 
 		} else {
@@ -681,6 +686,7 @@ public:
 	MOD_NAT_FUNCTION(global_immigrant_attract)
 	template<typename T>
 	void immigration(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -709,6 +715,7 @@ public:
 	MOD_PROV_FUNCTION(attack)
 	template<typename T>
 	void defender(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -719,6 +726,7 @@ public:
 	}
 	template<typename T>
 	void attacker(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -729,6 +737,7 @@ public:
 	}
 	template<typename T>
 	void defence(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
@@ -779,6 +788,7 @@ public:
 	MOD_NAT_FUNCTION(land_attrition)
 	template<typename T>
 	void pop_growth(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {

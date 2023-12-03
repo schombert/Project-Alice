@@ -1337,28 +1337,25 @@ public:
 		}
 		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		float labor_pool = worker_pool + slave_pool;
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_employment"), text::variable_type::value, std::string_view(""));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::total, text::fp_one_place{ rgo_max });
-		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_one_place{ state.world.province_get_rgo_employment(p) });
-		text::localised_format_box(state, contents, box, std::string_view("base_rgo_size"), sub);
-		text::close_layout_box(contents, box);
-		auto base_workforce_txt = text::format_float(labor_pool, 1);
-		text::add_to_layout_box(state, contents, box, std::string_view(base_workforce_txt), text::text_color::yellow);
-		text::close_layout_box(contents, box);
+		
+		text::add_line(state, contents, "provinceview_employment", text::variable_type::value, int64_t(std::min(rgo_max, labor_pool)));
+		text::add_line_break_to_layout(state, contents);
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "base_rgo_size");
+			text::add_to_layout_box(state, contents, box, int64_t(economy::rgo_per_size_employment * state.world.province_get_rgo_size(p)));
+			text::close_layout_box(contents, box);
+		}
 
 		if(is_mine) {
-			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_eff, true);
-			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_size, true);
+			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, true);
+			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, true);
 		} else {
-			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_eff, true);
-			active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_size, true);
+			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, true);
+			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, true);
 		}
-		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_input, true);
-		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_output, true);
-		active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_rgo_throughput, true);
 	}
 };
 
