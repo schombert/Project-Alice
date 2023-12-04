@@ -10,25 +10,21 @@ namespace ui {
 void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::issue_option_id ref) {
 	auto reform = fatten(state.world, ref);
 
-	auto mod_id = reform.get_modifier();
-	if(bool(mod_id)) {
-		modifier_description(state, contents, mod_id);
-		text::add_line_break_to_layout(state, contents);
-	}
-
 	auto total = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
 	if(total > 0) {
 		text::add_line(state, contents, "there_are_backing", text::variable_type::val, text::fp_percentage{ support / total });
-		text::add_line_break_to_layout(state, contents);
+	}
+
+	auto mod_id = reform.get_modifier();
+	if(bool(mod_id)) {
+		modifier_description(state, contents, mod_id);
 	}
 
 	auto time_limit = state.world.nation_get_last_issue_or_reform_change(state.local_player_nation);
 	auto parent = state.world.issue_option_get_parent_issue(ref);
-
 	if(parent.get_issue_type() != uint8_t(culture::issue_type::party) && time_limit && !(time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) {
 		text::add_line_with_condition(state, contents, "too_soon_for_reform", false, text::variable_type::date, time_limit + int32_t(state.defines.min_delay_between_reforms * 30));
-		text::add_line_break_to_layout(state, contents);
 	}
 
 	auto allow = reform.get_allow();
@@ -37,7 +33,6 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		text::add_line(state, contents, "allow_reform_cond");
 		trigger_description(state, contents, allow, trigger::to_generic(state.local_player_nation),
 				trigger::to_generic(state.local_player_nation), -1);
-		text::add_line_break_to_layout(state, contents);
 	}
 
 	auto ext = reform.get_on_execute_trigger();
@@ -56,14 +51,12 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		effect_description(state, contents, ex, trigger::to_generic(state.local_player_nation),
 				trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
 				uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
-		text::add_line_break_to_layout(state, contents);
 	}
 
 	auto rules = reform.get_rules();
 
 	if((rules & (issue_rule::primary_culture_voting | issue_rule::culture_voting | issue_rule::culture_voting | issue_rule::all_voting | issue_rule::largest_share | issue_rule::dhont | issue_rule::sainte_laque | issue_rule::same_as_ruling_party | issue_rule::rich_only | issue_rule::state_vote | issue_rule::population_vote)) !=
 			0) {
-
 		text::add_line(state, contents, "voting_rules");
 		if((rules & issue_rule::primary_culture_voting) != 0) {
 			text::add_line(state, contents, "rule_primary_culture_voting");
@@ -95,13 +88,11 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 		if((rules & issue_rule::population_vote) != 0) {
 			text::add_line(state, contents, "rule_population_vote");
 		}
-		text::add_line_break_to_layout(state, contents);
 	}
 
 	if((rules & (issue_rule::build_factory | issue_rule::expand_factory | issue_rule::open_factory | issue_rule::destroy_factory | issue_rule::factory_priority | issue_rule::can_subsidise | issue_rule::pop_build_factory | issue_rule::pop_expand_factory | issue_rule::pop_open_factory | issue_rule::delete_factory_if_no_input | issue_rule::allow_foreign_investment | issue_rule::slavery_allowed | issue_rule::build_railway | issue_rule::build_bank | issue_rule::build_university)) != 0) {
 
 		text::add_line(state, contents, "special_rules");
-
 		if((rules & issue_rule::build_factory) != 0) {
 			text::add_line(state, contents, "rule_build_factory");
 		}
@@ -151,8 +142,6 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 				text::add_line(state, contents, "rule_build_university");
 			}
 		}
-
-		text::add_line_break_to_layout(state, contents);
 	}
 }
 

@@ -62,8 +62,7 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	float zoom_level = zoom / 5;
-	float thickness = border_width / zoom_level;
+	float thickness = border_width * 0.25f;
 	vec2 rot_direction = vec2(-direction.y, direction.x);
 	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.

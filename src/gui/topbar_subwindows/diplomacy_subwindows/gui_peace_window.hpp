@@ -22,10 +22,7 @@ template<bool is_concession>
 class diplomacy_peace_tab_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<bool>{ is_concession };
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<bool>{ is_concession });
 	}
 	void on_update(sys::state& state) noexcept override {
 		frame = (retrieve<bool>(state, parent) == is_concession) ? 1 : 0;
@@ -101,6 +98,7 @@ class diplomacy_peace_wargoal_score_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto wg = fatten(state.world, retrieve<dcon::wargoal_id>(state, parent));
+		assert(wg.is_valid());
 		int32_t score = military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 		set_text(state, std::to_string(score));
 	}
@@ -474,6 +472,9 @@ public:
 				target_personal_po_value, potential_peace_score_against,
 				my_side_against_target, my_side_peace_cost,
 				war_duration, contains_sq);
+
+			if(state.cheat_data.always_accept_deals)
+				acceptance = true;
 
 			payload.emplace<test_acceptance>(test_acceptance{ acceptance });
 			return message_result::consumed;

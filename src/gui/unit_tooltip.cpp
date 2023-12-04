@@ -43,8 +43,13 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	auto army = dcon::fatten(state.world, a);
 	unitamounts amounts = calc_amounts_from_army(state, army);
 
+	auto controller = army.get_controller_from_army_control();
+	if(!controller) {
+		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+	}
+
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(army.get_controller_from_army_control().get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x03";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -65,8 +70,13 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	auto navy = dcon::fatten(state.world, n);
 	unitamounts amounts = calc_amounts_from_navy(state, navy);
 
+	auto controller = navy.get_controller_from_navy_control();
+	if(!controller) {
+		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+	}
+
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(navy.get_controller_from_navy_control().get_identity_from_identity_holder().get_identifying_int()) + "\x04";
+	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x04";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));

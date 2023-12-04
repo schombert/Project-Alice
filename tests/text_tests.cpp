@@ -54,7 +54,8 @@ TEST_CASE("text game files parsing", "[parsers]") {
 		REQUIRE(sizeof(NATIVE_M(GAME_DIR)) > size_t(4)); // If this fails, then you have not set your GAME_FILES_DIRECTORY CMake cache variable
 		add_root(state->common_fs, NATIVE_M(GAME_DIR));
 
-		text::load_text_data(*state, 2);
+		parsers::error_handler err("");
+		text::load_text_data(*state, 2, err);
 
 		{
 			REQUIRE(state->text_components.size() > size_t(100));

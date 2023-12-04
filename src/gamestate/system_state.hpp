@@ -361,6 +361,7 @@ struct user_settings_s {
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
+	float gamma = 1.f;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -399,6 +400,14 @@ struct great_nation {
 static_assert(sizeof(great_nation) ==
 	sizeof(great_nation::last_greatness)
 	+ sizeof(great_nation::nation));
+
+// used by state selector visually
+struct state_selection_data {
+	bool single_state_select = false;
+	std::vector<dcon::state_definition_id> selectable_states;
+	std::function<void(sys::state&, dcon::state_definition_id)> on_select;
+	std::function<void(sys::state&)> on_cancel;
+};
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
@@ -526,6 +535,8 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
+	std::optional<state_selection_data> state_selection;
+	map_mode::mode stored_map_mode;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
@@ -608,6 +619,10 @@ struct alignas(64) state {
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();
 
+	void start_state_selection(state_selection_data& data);
+	void finish_state_selection();
+	void state_select(dcon::state_definition_id sdef);
+
 	// the following function are for interacting with the string pool
 
 	std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
@@ -630,7 +645,7 @@ struct alignas(64) state {
 
 	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
 
-	~state();
+	~state() = default;
 
 	void save_user_settings() const;
 	void load_user_settings();

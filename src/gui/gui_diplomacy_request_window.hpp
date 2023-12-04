@@ -115,6 +115,7 @@ class diplomacy_request_desc_text : public scrollable_text {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::recipient, state.world.wargoal_get_target_nation(wg));
 				text::add_to_substitution_map(sub, text::variable_type::from, state.world.wargoal_get_added_by(wg));
+				text::add_to_substitution_map(sub, text::variable_type::actor, state.world.wargoal_get_added_by(wg));
 				if(state.world.wargoal_get_secondary_nation(wg))
 					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_secondary_nation(wg));
 				else if(state.world.wargoal_get_associated_tag(wg))
@@ -167,6 +168,7 @@ class diplomacy_request_desc_text : public scrollable_text {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::recipient, state.world.wargoal_get_target_nation(wg));
 				text::add_to_substitution_map(sub, text::variable_type::from, state.world.wargoal_get_added_by(wg));
+				text::add_to_substitution_map(sub, text::variable_type::actor, state.world.wargoal_get_added_by(wg));
 				if(state.world.wargoal_get_secondary_nation(wg))
 					text::add_to_substitution_map(sub, text::variable_type::third, state.world.wargoal_get_secondary_nation(wg));
 				else if(state.world.wargoal_get_associated_tag(wg))

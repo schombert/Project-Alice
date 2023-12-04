@@ -6,6 +6,7 @@
 #include "province.hpp"
 #include "color.hpp"
 #include "triggers.hpp"
+#include "gui_province_window.hpp"
 
 namespace ui {
 
@@ -1467,7 +1468,7 @@ public:
 };
 
 class pop_left_side_state_window : public window_element_base {
-	image_element_base* colonial_icon = nullptr;
+	province_colony_button* colonial_icon = nullptr;
 
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1478,7 +1479,7 @@ public:
 		} else if(name == "poplist_numpops") {
 			return make_element_by_type<popwin_state_population>(state, id);
 		} else if(name == "colonial_state_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colonial_icon = ptr.get();
 			return ptr;
 		} else if(name == "state_focus") {

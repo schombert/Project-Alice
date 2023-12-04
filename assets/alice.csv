@@ -244,7 +244,7 @@ year;year;;;Aï¿½o;;;;;;;;;x
 month;month;;;Mes;;;;;;;;;x
 a_port;a port;;;Un puerto;;;;;;;;;x
 national_rank;national rank;;;Ranking nacional;;;;;;;;;x
-technology;technology;;;Tecnologia;;;;;;;;;x
+att_technology;technology;;;Tecnologia;;;;;;;;;x
 strata;strata;;;Estrata;;;;;;;;;x
 rich;rich;;;Rico;;;;;;;;;x
 poor;poor;;;Pobre;;;;;;;;;x
@@ -377,7 +377,7 @@ controlled_by;controlled by;;;;;;;;;;;;x
 state_capital;the state capital;;;en el estado capital;;;;;;;;;x
 loc_state_capital;located in the state capital;;;ubicado en el estado capital;;;;;;;;;x
 a_truce_with;a truce with;;;tregua con;;;;;;;;;x
-population;population;;;poblacion;;;;;;;;;x
+att_population;population;;;poblacion;;;;;;;;;x
 size;size;;;;;;;;;;;;x
 pops_of_type;pops of type;;;pops de tipo;;;;;;;;;x
 of_type_plain;of type;;;de tipo;;;;;;;;;x
@@ -807,6 +807,7 @@ peace_explain_5;You have no other peace offer in progress
 war_explain_1;You cannot declare war upon yourself
 war_explain_2;You have a casus belli to use against this nation
 war_explain_3;You have at least $x$ diplomatic point(s)
+war_explain_4;You are not already in a war with this nation
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
@@ -1260,6 +1261,8 @@ w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
 w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
 w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
 alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
+alice_state_select_title;Select state;;;Seleccionar estado;;;;;;;;;x
+alice_state_select_2;(Press ESC to cancel)
 fort_build_tt_1;The province is under your control;;;;;;;;;;;;x
 fort_build_tt_2;The province is not under siege;;;;;;;;;;;;x
 fort_build_tt_3;The current level, $x$, plus the province's difficulty level, $n$, is less than your current max level, $y$;;;;;;;;;;;;x
@@ -1297,6 +1300,16 @@ e_kill_leader;Kill leader;;;Matar lider;;;;;;;;;x
 e_annex_null;becomes unowned;;;se hace sin duenio;;;;;;;;;x
 meets_the_conditions_of;meets the conditions of ;;;cumple con las condiciones de ;;;;;;;;;x
 does_not_meet_the_conditions_of;does not meet the conditions of ;no cumple con las condiciones de ;;;;;;;;;;;x
+fab_finish_date;CB fabrication is expected to finish on $date$
+fab_is_paused;CB fabrication is currently paused
+att_call_will_accept;$x$ will join your war
+att_call_will_decline;$x$ will not join your war
+att_call_is_human;$x$ may join your war
+aml_civ_s1;Civilized
+aml_civ_s2;Uncolonized
+aml_civ_s3;100% Westernized
+aml_civ_s4;0% Westernized
+aml_civ_s5;Colony
 macro_builder;Macro-builder;;;Macro-constructor
 save_template;Save template;;;Guardar plantilla
 new_template;New template;;;Nueva plantila

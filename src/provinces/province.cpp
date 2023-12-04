@@ -739,6 +739,9 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	bool state_is_new = false;
 	dcon::state_instance_id new_si;
 
+	auto pmods = state.world.province_get_current_modifiers(id);
+	pmods.clear();
+
 	bool will_be_colonial = state.world.province_get_is_colonial(id) ||
 													(old_owner && state.world.nation_get_is_civilized(old_owner) == false &&
 															state.world.nation_get_is_civilized(new_owner) == true) ||
@@ -823,7 +826,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					}
 				}
 				p.get_pop().set_is_primary_or_accepted_culture(false);
-			}();
+				}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
@@ -842,25 +845,23 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	static std::vector<dcon::regiment_id> regs;
-	regs.clear();
 	for(auto p : state.world.province_get_pop_location(id)) {
 		rebel::remove_pop_from_movement(state, p.get_pop());
 		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
 
-		for(auto r : p.get_pop().get_regiment_source()) {
-			regs.push_back(r.get_regiment().id);
+		{
+			auto rng = p.get_pop().get_regiment_source();
+			while(rng.begin() != rng.end()) {
+				state.world.delete_regiment_source(*(rng.begin()));
+			}
 		}
-		
+
 		{
 			auto rng = p.get_pop().get_province_land_construction();
 			while(rng.begin() != rng.end()) {
 				state.world.delete_province_land_construction(*(rng.begin()));
 			}
 		}
-	}
-	for(auto r : regs) {
-		state.world.delete_regiment(r);
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);

@@ -27,7 +27,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game
-		if(state.mode != sys::game_mode_type::in_game)
+		if(state.mode != sys::game_mode_type::in_game && state.mode != sys::game_mode_type::select_states)
 			return;
 		state.network_state.is_new_game = false;
 		break;
@@ -865,6 +865,7 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 		auto sr = state.world.force_create_gp_relationship(holder, source);
 		auto& flags = state.world.gp_relationship_get_status(sr);
 		flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+		state.world.nation_set_in_sphere_of(holder, source);
 	}
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 	auto& inf = state.world.nation_get_infamy(source);
@@ -913,12 +914,6 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	for(auto p : state.world.nation_get_province_ownership(holder)) {
 		auto pid = p.get_province();
 		state.world.province_set_is_colonial(pid, false);
-		auto timed_modifiers = state.world.province_get_current_modifiers(pid);
-		for(uint32_t i = timed_modifiers.size(); i-- > 0;) {
-			if(bool(timed_modifiers[i].expiration)) {
-				timed_modifiers.remove_at(i);
-			}
-		}
 	}
 }
 
@@ -1226,6 +1221,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	state.world.gp_relationship_get_influence(rel) -= state.defines.banembassy_influence_cost;
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_banned;
+	state.world.gp_relationship_set_influence(orel, 0.0f);
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
 
 	notification::post(state, notification::message{
@@ -3125,6 +3121,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}
+	state.world.army_set_moving_to_merge(a, false);
 }
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
@@ -3208,6 +3205,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	} else if(reset) {
 		state.world.navy_set_arrival_time(n, sys::date{});
 	}
+	state.world.navy_set_moving_to_merge(n, false);
 }
 
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4622,6 +4620,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_change_money:
 	case command_type::c_westernize:
 	case command_type::c_unwesternize:
+	case command_type::c_change_controller:
+	case command_type::c_change_owner:
 	case command_type::c_change_research_points:
 	case command_type::c_change_cb_progress:
 	case command_type::c_change_infamy:
@@ -4989,6 +4989,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_unwesternize:
 		execute_c_unwesternize(state, c.source);
+		break;
+	case command_type::c_change_owner:
+		execute_c_change_owner(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
+		break;
+	case command_type::c_change_controller:
+		execute_c_change_controller(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
 		break;
 	case command_type::c_change_research_points:
 		execute_c_change_research_points(state, c.source, c.data.cheat.value);

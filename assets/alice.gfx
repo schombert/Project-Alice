@@ -187,4 +187,14 @@ spriteTypes = {
 		noOfFrames = 4
 		size = { 180 30 }
 	}
+	spriteType = {
+		name = "GFX_alice_white_rectangle"
+		texturefile = "assets\\alice_ws.png"
+		noOfFrames = 1
+	}
+	spriteType = {
+		name = "GFX_alice_striped_rectangle"
+		texturefile = "assets\\alice_ds.png"
+		noOfFrames = 1
+	}
 }

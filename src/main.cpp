@@ -1,6 +1,7 @@
 #ifdef LOCAL_USER_SETTINGS
 #include "local_user_settings.hpp"
 #endif
+#include "common_types.cpp"
 #include "system_state.cpp"
 #include "parsers.cpp"
 #include "defines.cpp"
@@ -85,12 +86,6 @@
 extern "C" {
 #include "blake2.c"
 };
-
-namespace sys {
-state::~state() {
-	// why does this exist ? So that the destructor of the unique pointer doesn't have to be known before it is implemented
-}
-} // namespace sys
 
 // zstd
 extern "C" {

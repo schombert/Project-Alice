@@ -1100,7 +1100,7 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 			context.main_slot = old_main;
 		} else {
 			gen.discard_group();
-			err.accumulated_errors += "Invalid tag used as an effect scope (" + err.file_name + ")\n";
+			err.accumulated_errors += "Invalid tag " + str_label + " used as an effect scope (" + err.file_name + ")\n";
 			return;
 		}
 	} else {

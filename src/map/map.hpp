@@ -148,7 +148,6 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 
-private:
 	// Meshes
 	GLuint land_vao = 0;
 	GLuint land_vbo = 0;
@@ -200,6 +199,8 @@ private:
 };
 
 std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
+void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map

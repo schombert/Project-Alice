@@ -1616,7 +1616,7 @@ object {
 object {
 	name{ army }
 	storage_type{ erasable }
-	size{ 3000 }
+	size{ 8000 }
 	tag{ save }
 
 	property{
@@ -2165,7 +2165,7 @@ object {
 
 	property{
 		name{ reserves }
-		type{vector_pool{2500}{military::reserve_regiment}}
+		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
 }
@@ -2256,7 +2256,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 10000 }
+	size{ 20000 }
 	tag{ save }
 
 	property{

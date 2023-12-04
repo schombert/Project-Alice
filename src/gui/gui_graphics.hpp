@@ -376,6 +376,7 @@ struct state {
 	std::unique_ptr<element_base> root;
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
+	std::unique_ptr<element_base> select_states_legend;
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
 	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
@@ -412,6 +413,8 @@ struct state {
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
 	element_base* r_chat_window = nullptr;
+	element_base* map_gradient_legend = nullptr;
+	element_base* map_civ_level_legend = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;

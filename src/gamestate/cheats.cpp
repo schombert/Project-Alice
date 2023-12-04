@@ -271,4 +271,30 @@ void execute_c_toggle_ai(sys::state& state, dcon::nation_id source, dcon::nation
 	state.world.nation_set_is_player_controlled(target, !state.world.nation_get_is_player_controlled(target));
 }
 
+void c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_owner) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_owner;
+	p.source = source;
+	p.data.cheat_location.prov = pr;
+	p.data.cheat_location.n = new_owner;
+	add_to_command_queue(state, p);
+}
+void c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_change_controller;
+	p.source = source;
+	p.data.cheat_location.prov = pr;
+	p.data.cheat_location.n = new_controller;
+	add_to_command_queue(state, p);
+}
+void execute_c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_owner) {
+	province::change_province_owner(state, pr, new_owner);
+}
+void execute_c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
+	province::set_province_controller(state, pr, new_controller);
+	military::eject_ships(state, pr);
+}
+
 }

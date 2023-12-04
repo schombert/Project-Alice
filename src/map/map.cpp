@@ -8,6 +8,10 @@
 #include <glm/mat3x3.hpp>
 #include <unordered_map>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/intersect.hpp>
+#include <glm/gtx/polar_coordinates.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "stb_image.h"
 #include "system_state.hpp"
@@ -503,6 +507,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		// uniform vec2 map_size
 		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
 		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		glUniform1f(11, state.user_settings.gamma);
 
 		GLuint vertex_subroutines;
 		// calc_gl_position()
@@ -558,7 +563,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(zoom > 8) { // Render all borders
 		show_all_borders = true;
 		border_size = 0.00085f;
-	} else if (zoom > 5) { // Render state borders also
+	} else if(zoom > 5) { // Render state borders also
 		visible_borders |= province::border::state_bit;
 		border_size = 0.0010f;
 	}
@@ -608,6 +613,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(!drag_box_vertices.empty()) {
 		glUseProgram(drag_box_shader);
+		glUniform1f(11, state.user_settings.gamma);
 		glBindVertexArray(drag_box_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
@@ -807,10 +813,270 @@ void add_arrow(
 	}
 }
 
+void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
+
+	glm::vec2 curr_dir = normalize(end - start);
+
+	start /= glm::vec2(size_x, size_y);
+	end /= glm::vec2(size_x, size_y);
+
+	if(fill_progress != 0) {
+		auto pos3 = glm::mix(start, end, fill_progress);
+		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+
+		// Filled unit arrow
+		// First vertex of the line segment
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
+		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 2.0f);
+		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
+		// Second vertex of the line segment
+		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
+		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 2.0f);
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
+
+		// Unfilled unit arrow
+		if(fill_progress < 1.0f) {
+			// First vertex of the line segment
+			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+			buffer.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
+			// Second vertex of the line segment
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
+			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
+			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+		}
+	} else {
+		// Unfilled unit arrow
+		// First vertex of the line segment
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
+		// Second vertex of the line segment
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+	}
+
+	if(end_arrow) {
+		// First vertex of the line segment
+		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
+		buffer.emplace_back(end, -next_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 1.0f);
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
+		// Second vertex of the line segment
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 1.0f);
+		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
+	}
+}
+
+constexpr inline uint32_t num_b_segments = 16;
+constexpr inline float control_point_length_factor = 0.3f;
+
+void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y) {
+	auto control_point_length = glm::length(end - start) * control_point_length_factor;
+
+	auto start_control_point = start_per * control_point_length + start;
+	auto end_control_point = end_per * control_point_length + end;
+
+	auto bpoint = [=](float t) {
+		auto u = 1.0f - t;
+		return 0.0f
+			+ (u * u * u) * start
+			+ (3.0f * u * u * t) * start_control_point
+			+ (3.0f * u * t * t) * end_control_point
+			+ (t * t * t) * end;
+		};
+
+	auto last_normal = glm::vec2(-start_per.y, start_per.x);
+	glm::vec2 next_normal{ 0.0f, 0.0f };
+
+	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
+		auto t_start = float(i) / float(num_b_segments);
+		auto t_end = float(i + 1) / float(num_b_segments);
+		auto t_next = float(i + 2) / float(num_b_segments);
+
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+		auto next_point = bpoint(t_next);
+
+		next_normal = glm::normalize(end_point - start_point) + glm::normalize(end_point - next_point);
+		auto temp = glm::normalize(end_point - start_point);
+		if(glm::length(next_normal) < 0.00001f) {
+			next_normal = glm::normalize(glm::vec2(-temp.y, temp.x));
+		} else {
+			next_normal = glm::normalize(next_normal);
+			if(glm::dot(glm::vec2(-temp.y, temp.x), next_normal) < 0) {
+				next_normal = -next_normal;
+			}
+		}
+
+		if(progress > 0.0f) {
+			if(t_end <= progress) { // filled
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 1.0f, false, size_x, size_y);
+			} else if(progress < t_start) { // empty
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 0.0f, false, size_x, size_y);
+			} else {
+				auto effective_progress = (progress - t_start) * float(num_b_segments);
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, effective_progress, false, size_x, size_y);
+			}
+		} else {
+			add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 0.0f, false, size_x, size_y);
+		}
+
+		last_normal = next_normal;
+	}
+
+	{
+		next_normal = glm::vec2(end_per.y, -end_per.x);
+		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
+		auto t_end = 1.0f;
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+
+		if(progress > 0.0f) {
+			if(t_end <= progress) { // filled
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 1.0f, last_curve, size_x, size_y);
+			} else if(progress < t_start) { // empty
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 0.0f, last_curve, size_x, size_y);
+			} else {
+				auto effective_progress = (progress - t_start) * float(num_b_segments);
+				add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, effective_progress, last_curve, size_x, size_y);
+			}
+		} else {
+			add_arrow_to_buffer(buffer, start_point, end_point, last_normal, next_normal, 0.0f, last_curve, size_x, size_y);
+		}
+	}
+}
+
+namespace duplicates {
+glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
+	auto pt = state.world.province_get_port_to(p);
+	if(!pt)
+		return glm::vec2{};
+
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
+	assert(adj);
+	auto id = adj.index();
+	auto& map_data = state.map_state.map_data;
+	auto& border = map_data.borders[id];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
+	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
+
+	return vertex.position_ * map_size;
+}
+
+bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
+	return prov_id.index() >= state.province_definitions.first_sea_province.index();
+}
+
+glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
+	if(is_sea_province(state, prov_id))
+		return state.world.province_get_mid_point(prov_id);
+	else
+		return get_port_location(state, prov_id);
+}
+
+glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
+	return state.world.province_get_mid_point(prov_id);
+}
+}
+
+glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) {
+	auto uadjx = std::abs(new_point.x - base_point.x);
+	auto ladjx = std::abs(new_point.x - size_x - base_point.x);
+	auto radjx = std::abs(new_point.x + size_x - base_point.x);
+	if(uadjx < ladjx) {
+		return uadjx < radjx ? new_point : glm::vec2{ new_point.x + size_x, new_point.y };
+	} else {
+		return ladjx < radjx ? glm::vec2{ new_point.x - size_x, new_point.y } : glm::vec2{ new_point.x + size_x, new_point.y };
+	}
+}
+
+void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
+	auto path = state.world.navy_get_path(selected_navy);
+	if(auto ps = path.size(); ps > 0) {
+		auto progress = military::fractional_distance_covered(state, selected_navy);
+
+		glm::vec2 current_pos = duplicates::get_navy_location(state, state.world.navy_get_location_from_navy_location(selected_navy));
+		glm::vec2 next_pos = put_in_local(duplicates::get_navy_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+
+		for(auto i = ps; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_navy_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_navy_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_navy_location(state, path[i]);
+		}
+	}
+}
+
+
+void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
+	auto path = state.world.army_get_path(selected_army);
+	if(auto ps = path.size(); ps > 0) {
+		auto progress = military::fractional_distance_covered(state, selected_army);
+
+		glm::vec2 current_pos = duplicates::get_army_location(state, state.world.army_get_location_from_army_location(selected_army));
+		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+
+
+		for(auto i = ps; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
+
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(duplicates::get_army_location(state, path[i - 1]), next_pos, size_x);
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = duplicates::get_army_location(state, path[i]);
+		}
+	}
+}
+
 void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses) {
 	unit_arrow_vertices.clear();
 	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
-		auto arrow = arrows[arrow_index];
+		auto& arrow = arrows[arrow_index];
 		auto progress = progresses[arrow_index];
 		if(arrow.size() <= 1)
 			continue;
@@ -891,7 +1157,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	if(unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), &unit_arrow_vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
@@ -915,7 +1181,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-		};
+			};
 		float x_step = (1.f / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
@@ -948,7 +1214,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 					// y = a + 1bx^1 + 1cx^2 + 1dx^3
 					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-				};
+					};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
@@ -963,7 +1229,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				auto type = float(uint8_t(text::win1250toUTF16(e.text[i]) >> 6));
+				auto type = float(uint8_t(e.text[i]) >> 6);
 				float step = 1.f / 8.f;
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;

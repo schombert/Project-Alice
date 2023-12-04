@@ -499,7 +499,8 @@ constexpr inline uint8_t standard_pause = log | sound | popup | pause;
 enum class game_mode_type {
 	pick_nation,
 	in_game,
-	end_screen
+	end_screen,
+	select_states
 };
 
 enum class network_mode_type {
@@ -542,7 +543,37 @@ constexpr inline uint8_t test_bit = 0x40;
 } // namespace border
 } // namespace province
 
+namespace economy {
+inline constexpr float rgo_per_size_employment = 40'000.0f;
+}
+
 namespace map {
 constexpr inline float min_zoom = 1.0f;
 constexpr inline float max_zoom = 75.0f;
  }
+
+namespace ai {
+enum class fleet_activity {
+	unspecified = 0,			// ai hasn't run on this unit yet
+	boarding = 1,			// waiting for troops to arrive
+	transporting = 2,			// moving or waiting for troops to disembark
+	returning_to_base = 3,	// moving back to home port
+	attacking = 4,			// trying to attack another fleet
+	merging = 5,				// moving to main base to merge up
+	idle = 6,					// sitting in main base with no order
+	unloading = 7,			// transport arrived, waiting for units to get off
+	failed_transport = 8,
+};
+
+enum class army_activity {
+	unspecified = 0,
+	on_guard = 1,		// hold in place
+	attacking = 2,
+	merging = 3,
+	transport_guard = 4,
+	transport_attack = 5,
+	// attack_finished = 6,
+	attack_gathered = 7,
+	attack_transport = 8,
+};
+}

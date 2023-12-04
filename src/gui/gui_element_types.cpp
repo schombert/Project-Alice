@@ -247,8 +247,8 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		auto ycentered = (base_data.size.y - linesz) / 2;
 
 		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + text_offset),
-				float(y + ycentered), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
+				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
 				base_data.data.button.font_handle);
 	}
 }
@@ -1219,7 +1219,13 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					row_window->impl_on_update(state);
+					if(!row_window->is_visible()) {
+						row_window->set_visible(state, true);
+					} else {
+						row_window->impl_on_update(state);
+					}
+				} else {
+					row_window->set_visible(state, true);
 				}
 			} else {
 				row_window->set_visible(state, false);
@@ -1229,13 +1235,18 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 		auto i = size_t(scroll_pos);
 		for(RowWinT* row_window : row_windows) {
 			if(i < row_contents.size()) {
-				row_window->set_visible(state, true);
 				auto prior_content = retrieve<RowConT>(state, row_window);
 				auto new_content = row_contents[i++];
 				
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					row_window->impl_on_update(state);
+					if(!row_window->is_visible()) {
+						row_window->set_visible(state, true);
+					} else {
+						row_window->impl_on_update(state);
+					}
+				} else {
+					row_window->set_visible(state, true);
 				}
 			} else {
 				row_window->set_visible(state, false);
@@ -1605,16 +1616,102 @@ dcon::national_identity_id flag_button::get_current_nation(sys::state& state) no
 	}
 }
 
+dcon::rebel_faction_id flag_button::get_current_rebel_faction(sys::state& state) noexcept {
+	return retrieve<dcon::rebel_faction_id>(state, parent);
+}
+
 void flag_button::button_action(sys::state& state) noexcept {
 	auto ident = get_current_nation(state);
-	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	if(!ident)
+		return;
 
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	if(bool(nation.id) && nation.get_owned_province_count() != 0) {
 		state.open_diplomacy(nation.id);
 	}
+}
+
+void flag_button2::button_action(sys::state& state) noexcept {
+	auto nid = retrieve<dcon::nation_id>(state, this);
+	auto tid = retrieve<dcon::national_identity_id>(state, this);
+	if(!nid && tid) {
+		nid = state.world.national_identity_get_nation_from_identity_holder(tid);
+	}
+	auto rid = retrieve<dcon::rebel_faction_id>(state, this);
+	if(!nid && rid) {
+		nid = state.world.rebel_faction_get_ruler_from_rebellion_within(rid);
+	}
+	if(nid && state.world.nation_get_owned_province_count(nid) != 0)
+		state.open_diplomacy(nid);
+}
+
+void flag_button2::on_update(sys::state& state) noexcept {
+	auto nid = retrieve<dcon::nation_id>(state, this);
+	if(nid) {
+		flag_texture_handle = ogl::get_flag_handle(state, state.world.nation_get_identity_from_identity_holder(nid), culture::get_current_flag_type(state, nid));
+		return;
+	}
+
+	auto tid = retrieve<dcon::national_identity_id>(state, this);
+	if(!nid && tid) {
+		flag_texture_handle = ogl::get_flag_handle(state, tid, culture::get_current_flag_type(state, tid));
+		return;
+	}
+
+	auto reb_tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, culture::flag_type::default_flag);
+}
+
+void flag_button2::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto nid = retrieve<dcon::nation_id>(state, this);
+	if(nid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, nid);
+		text::close_layout_box(contents, box);
+		return;
+	}
+	auto tid = retrieve<dcon::national_identity_id>(state, this);
+	if(tid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, tid);
+		text::close_layout_box(contents, box);
+		return;
+	}
+	auto rid = retrieve<dcon::rebel_faction_id>(state, this);
+	if(rid) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rid));
+		text::close_layout_box(contents, box);
+		return;
+	}
+}
+
+void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid && flag_texture_handle > 0) {
+		auto& gfx_def = state.ui_defs.gfx[gid];
+		if(gfx_def.type_dependent) {
+			auto mask_handle = ogl::get_texture_handle(state, dcon::texture_id(gfx_def.type_dependent - 1), true);
+			auto& mask_tex = state.open_gl.asset_textures[dcon::texture_id(gfx_def.type_dependent - 1)];
+			ogl::render_masked_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				float(x) + float(base_data.size.x - mask_tex.size_x) * 0.5f,
+				float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
+				float(mask_tex.size_x),
+				float(mask_tex.size_y),
+				flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+		} else {
+			ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped());
+		}
+	}
+	image_element_base::render(state, x, y);
 }
 
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
@@ -1668,14 +1765,20 @@ void flag_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
 }
 void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto ident = get_current_nation(state);
-	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
-
-	auto name = nations::name_from_tag(state, ident);
-	if(name) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, name);
-		text::close_layout_box(contents, box);
+	if(ident) {
+		auto name = nations::name_from_tag(state, ident);
+		if(name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, name);
+			text::close_layout_box(contents, box);
+		}
+	} else {
+		if(auto reb = get_current_rebel_faction(state); reb) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, reb));
+			text::close_layout_box(contents, box);
+			return;
+		}
 	}
 }
 
