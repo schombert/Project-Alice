@@ -84,9 +84,18 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 					}
 				});
 
+				// War
+				if(std::find(enemies.begin(), enemies.end(), fat_owner.id) != enemies.end()) {
+					color = war_color;
+				}
+
+				// Allies
+				if(std::find(allies.begin(), allies.end(), fat_owner.id) != allies.end()) {
+					color = ally_color;
+				}
+
 				// Sphere
-				auto master_rel_id = state.world.get_gp_relationship_by_gp_influence_pair(fat_owner, selected_nation);
-				if(bool(master_rel_id) && state.world.gp_relationship_get_status(master_rel_id) == nations::influence::level_in_sphere) {
+				if(fat_owner.get_in_sphere_of() == selected_nation) {
 					color = sphere_color;
 				}
 
@@ -99,16 +108,6 @@ std::vector<uint32_t> get_selected_diplomatic_color(sys::state& state) {
 					if(bool(selected_overlord_id) && selected_overlord_id.get_ruler().id == fat_owner.id) {
 						color = puppet_color;
 					}
-				}
-
-				// War
-				if(std::find(enemies.begin(), enemies.end(), fat_owner.id) != enemies.end()) {
-					color = war_color;
-				}
-
-				// Allies
-				if(std::find(allies.begin(), allies.end(), fat_owner.id) != allies.end()) {
-					color = ally_color;
 				}
 			}
 

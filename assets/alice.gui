@@ -2759,6 +2759,185 @@ guiTypes = {
 	# 4th col: icon x = 458, text x = 486, size x = 614 (+150)
 	
 	windowType = {
+		name = "alice_map_legend_diplomatic"
+		position = { 0 0 }
+		size = { 464 74 }
+		Orientation = UPPER_LEFT
+		
+		iconType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 464 74 }
+			spriteType = "console_background"
+		}
+		
+		iconType = {
+			name = "s1_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s1_label"
+			text = "aml_dip_s1"
+			position = { 36 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s2_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s2_label"
+			text = "aml_dip_s2"
+			position = { 186 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s3_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 308 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s3_label"
+			text = "aml_dip_s3"
+			position = { 336 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s4_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s4_label"
+			text = "aml_dip_s4"
+			position = { 36 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s5_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s5_label"
+			text = "aml_dip_s5"
+			position = { 186 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s6_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 308 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s6_label"
+			text = "aml_dip_s6"
+			position = { 336 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "s7_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "s7_ico_b"
+			spriteType = "GFX_alice_striped_rectangle"
+			position = { 8 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s7_label"
+			text = "aml_dip_s7"
+			position = { 36 49 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s8_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "s8_ico_b"
+			spriteType = "GFX_alice_striped_rectangle"
+			position = { 158 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s8_label"
+			text = "aml_dip_s8"
+			position = { 186 49 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s9_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 308 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "s9_ico_b"
+			spriteType = "GFX_alice_striped_rectangle"
+			position = { 308 48 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s9_label"
+			text = "aml_dip_s9"
+			position = { 336 49 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	windowType = {
 		name = "alice_map_legend_colonial"
 		position = { 0 0 }
 		size = { 314 54 }

@@ -416,6 +416,7 @@ struct state {
 	element_base* map_gradient_legend = nullptr;
 	element_base* map_civ_level_legend = nullptr;
 	element_base* map_col_legend = nullptr;
+	element_base* map_dip_legend = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;
