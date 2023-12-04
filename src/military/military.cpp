@@ -2026,7 +2026,7 @@ void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::sub
 	auto war = fatten(state.world, w);
 
 	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
-	dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
+	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
 	text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
@@ -2198,6 +2198,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	new_war.set_start_date(state.current_date);
 	new_war.set_over_state(primary_wargoal_state);
 	new_war.set_over_tag(primary_wargoal_tag);
+	new_war.set_original_target(primary_defender);
 	if(primary_wargoal_secondary) {
 		new_war.set_over_tag(state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary));
 	}

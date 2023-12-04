@@ -152,9 +152,10 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"tai", command_info::type::toggle_ai, "Toggles ON/OFF AI for countries",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"aw", command_info::type::always_allow_wargoals, "Always allow adding wargoals",
+		/* doesn't work, removed until someone fixes it
+		command_info{ "aw", command_info::type::always_allow_wargoals, "Always allow adding wargoals",
 				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}}},
+						command_info::argument_info{}, command_info::argument_info{}}}, */
 		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},

@@ -2370,6 +2370,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ original_target }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
 		name{ over_tag }
 		type{ national_identity_id }
 		tag{ save }
