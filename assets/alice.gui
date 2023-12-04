@@ -2749,16 +2749,103 @@ guiTypes = {
 		}
 	}
 	
+	# 1st row: icon y = 8 , text y = 9 , size y = 32
+	# 2nd row: icon y = 28, text y = 29, size y = 54 (+20)
+	# 3rd row: icon y = 48, text y = 49, size y = 74 (+20)
+	# 4th row: icon y = 68, text y = 69, size y = 94 (+20)
+	# 1st col: icon x = 8  , text x = 36 , size x = 164
+	# 2nd col: icon x = 158, text x = 186, size x = 314 (+150)
+	# 3rd col: icon x = 308, text x = 336, size x = 464 (+150)
+	# 4th col: icon x = 458, text x = 486, size x = 614 (+150)
+	
 	windowType = {
-		name = "alice_map_legend_civ_level"
+		name = "alice_map_legend_colonial"
 		position = { 0 0 }
-		size = { 460 54 }
+		size = { 314 54 }
 		Orientation = UPPER_LEFT
 		
 		iconType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 460 54 }
+			size = { 314 54 }
+			spriteType = "console_background"
+		}
+		iconType = {
+			name = "s1_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s1_label"
+			text = "aml_col_s1"
+			position = { 36 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s2_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s2_label"
+			text = "aml_col_s2"
+			position = { 186 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s3_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s3_label"
+			text = "aml_col_s3"
+			position = { 36 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s4_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s4_label"
+			text = "aml_col_s4"
+			position = { 186 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	windowType = {
+		name = "alice_map_legend_civ_level"
+		position = { 0 0 }
+		size = { 464 54 }
+		Orientation = UPPER_LEFT
+		
+		iconType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 464 54 }
 			spriteType = "console_background"
 		}
 		iconType = {
