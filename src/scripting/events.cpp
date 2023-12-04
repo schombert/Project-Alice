@@ -659,7 +659,7 @@ void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const
 		for(auto& fe : valid_list) {
 			random_value -= fe.chance;
 			if(random_value < 0) {
-				trigger_national_event(state, fe.e, this_slot, state.current_date.value, uint32_t(primary_slot), from_slot, ft);
+				trigger_national_event(state, fe.e, this_slot, state.current_date.value, uint32_t(primary_slot), primary_slot, pt, from_slot, ft);
 				return;
 			}
 		}
