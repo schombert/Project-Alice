@@ -1323,4 +1323,9 @@ aml_dip_s6;Other
 aml_dip_s7;Core
 aml_dip_s8;Non Core
 aml_dip_s9;Union Core
+aml_rr_s1;Level 0
+aml_rr_s2;Level 6
+aml_rr_s3;Upgrading
+aml_rr_s4;Max level
+aml_rr_s5;Blocked
 ;;;;;;;;;;;;;x

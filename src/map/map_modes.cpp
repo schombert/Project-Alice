@@ -99,6 +99,13 @@ void set_map_mode(sys::state& state, mode mode) {
 		if(state.ui_state.map_dip_legend)
 			state.ui_state.map_dip_legend->set_visible(state, false);
 	}
+	if(mode == mode::infrastructure) {
+		if(state.ui_state.map_rr_legend)
+			state.ui_state.map_rr_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rr_legend)
+			state.ui_state.map_rr_legend->set_visible(state, false);
+	}
 
 	switch(mode) {
 	case mode::state_select:
