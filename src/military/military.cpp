@@ -3481,12 +3481,10 @@ void update_ticking_war_score(sys::state& state) {
 
 			if(total_count > 0.0f) {
 				float fraction = occupied / total_count;
-				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && total_count > 0.0f)) {
+				if(fraction >= state.defines.tws_fulfilled_idle_space || (wg.get_ticking_war_score() < 0 && occupied > 0.0f)) {
 					wg.get_ticking_war_score() += state.defines.tws_fulfilled_speed * fraction;
-				} else if(total_count == 0.0f) {
-					if(wg.get_ticking_war_score() > 0.0f ||
-							war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
-
+				} else if(occupied == 0.0f) {
+					if(wg.get_ticking_war_score() > 0.0f || war.get_start_date() + int32_t(state.defines.tws_grace_period_days) <= state.current_date) {
 						wg.get_ticking_war_score() -= state.defines.tws_not_fulfilled_speed;
 					}
 				}

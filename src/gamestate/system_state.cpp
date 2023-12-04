@@ -3311,9 +3311,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	// fix slaves in non-slave owning nations
 	for(auto p : world.in_province) {
-		if(p.get_nation_from_province_ownership()) {
-			culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
-		}
+		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {

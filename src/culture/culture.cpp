@@ -710,13 +710,26 @@ flag_type get_current_flag_type(sys::state const& state, dcon::national_identity
 }
 void fix_slaves_in_province(sys::state& state, dcon::nation_id owner, dcon::province_id p) {
 	auto rules = state.world.nation_get_combined_issue_rules(owner);
-	if((rules & issue_rule::slavery_allowed) == 0) {
+	if(!owner || (rules & issue_rule::slavery_allowed) == 0) {
 		state.world.province_set_is_slave(p, false);
 		bool mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 		for(auto pop : state.world.province_get_pop_location(p)) {
 			if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
 				pop.get_pop().set_poptype(mine ? state.culture_definitions.laborers : state.culture_definitions.farmers);
 			}
+		}
+	} else if(state.world.province_get_is_slave(p) == false) { // conversely, could become a slave state if slaves are found
+		bool found_slave = false;
+		for(auto pop : state.world.province_get_pop_location(p)) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.slaves) {
+				found_slave = true;
+				break;
+			}
+		}
+		if(found_slave) {
+			province::for_each_province_in_state_instance(state, state.world.province_get_state_membership(p), [&](dcon::province_id p2) {
+				state.world.province_set_is_slave(p2, true);
+			});
 		}
 	}
 }

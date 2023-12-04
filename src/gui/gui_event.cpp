@@ -142,7 +142,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 		target_province = target_capital;
-		target_state = state.world.province_get_state_membership(target_province);
+		if(e.pt != event::slot_type::state)
+			target_state = state.world.province_get_state_membership(target_province);
+		else
+			target_state = trigger::to_state(e.primary_slot);
 
 		from_slot = e.from_slot;
 		ft = e.ft;
