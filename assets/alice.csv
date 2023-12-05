@@ -1333,4 +1333,8 @@ aml_nav_s2;Max level
 aml_nav_s3;Upgrading
 aml_nav_s4;Upgradeable
 aml_nav_s5;Constructible
+aml_rank_s1;Great
+aml_rank_s2;Secondary
+aml_rank_s3;Civ
+aml_rank_s4;Unciv
 ;;;;;;;;;;;;;x

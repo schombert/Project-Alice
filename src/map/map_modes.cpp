@@ -113,6 +113,13 @@ void set_map_mode(sys::state& state, mode mode) {
 		if(state.ui_state.map_nav_legend)
 			state.ui_state.map_nav_legend->set_visible(state, false);
 	}
+	if(mode == mode::rank) {
+		if(state.ui_state.map_rank_legend)
+			state.ui_state.map_rank_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rank_legend)
+			state.ui_state.map_rank_legend->set_visible(state, false);
+	}
 
 	switch(mode) {
 	case mode::state_select:
