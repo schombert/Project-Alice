@@ -5,7 +5,7 @@
 namespace effect {
 
 struct effect_local_state {
-	static constexpr inline uint32_t max_if_depth = 64;
+	static constexpr inline uint32_t max_if_depth = 16;
 	bool if_is_triggered[max_if_depth] = { false };
 	uint32_t if_depth = 0;
 };
@@ -38,12 +38,14 @@ uint32_t es_if_scope(EFFECT_PARAMTERS) {
 		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot)) {
 			els.if_is_triggered[els.if_depth] = true;
 			els.if_depth++;
+			assert(els.if_depth < effect_local_state::max_if_depth);
 			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 			els.if_depth--;
 			return ret;
 		}
 	}
 	els.if_depth++;
+	assert(els.if_depth < effect_local_state::max_if_depth);
 	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 	els.if_depth--;
 	return ret;
@@ -51,15 +53,17 @@ uint32_t es_if_scope(EFFECT_PARAMTERS) {
 uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot) && !els.if_is_triggered) {
+		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot) && !els.if_is_triggered[els.if_depth]) {
 			els.if_is_triggered[els.if_depth] = true;
 			els.if_depth++;
+			assert(els.if_depth < effect_local_state::max_if_depth);
 			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 			els.if_depth--;
 			return ret;
 		}
 	}
 	els.if_depth++;
+	assert(els.if_depth < effect_local_state::max_if_depth);
 	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 	els.if_depth--;
 	return ret;
@@ -4671,57 +4675,57 @@ uint32_t ef_variable_invention_name_no(EFFECT_PARAMTERS) {
 }
 uint32_t ef_set_country_flag_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_set_country_flag_pop(EFFECT_PARAMTERS) {
 	if(auto owner = nations::owner_of_pop(ws, trigger::to_pop(primary_slot)); owner)
-		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_set_country_flag(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_add_country_modifier_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_add_country_modifier(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_add_country_modifier(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_add_country_modifier_province_no_duration(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_add_country_modifier_no_duration(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_add_country_modifier_no_duration(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_relation(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province_this_nation(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation_this_nation(tval, ws, trigger::to_generic(owner), this_slot, 0, 0, 0);
+		return ef_relation_this_nation(tval, ws, trigger::to_generic(owner), this_slot, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province_this_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation_this_province(tval, ws, trigger::to_generic(owner), this_slot, 0, 0, 0);
+		return ef_relation_this_province(tval, ws, trigger::to_generic(owner), this_slot, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province_from_nation(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation_this_nation(tval, ws, trigger::to_generic(owner), from_slot, 0, 0, 0);
+		return ef_relation_this_nation(tval, ws, trigger::to_generic(owner), from_slot, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province_from_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation_this_province(tval, ws, trigger::to_generic(owner), from_slot, 0, 0, 0);
+		return ef_relation_this_province(tval, ws, trigger::to_generic(owner), from_slot, 0, 0, 0, els);
 	return 0;
 }
 uint32_t ef_relation_province_reb(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_relation_reb(tval, ws, trigger::to_generic(owner), 0, from_slot, 0, 0);
+		return ef_relation_reb(tval, ws, trigger::to_generic(owner), 0, from_slot, 0, 0, els);
 	return 0;
 }
 uint32_t ef_treasury_province(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
-		return ef_treasury(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0);
+		return ef_treasury(tval, ws, trigger::to_generic(owner), 0, 0, 0, 0, els);
 	return 0;
 }
 
