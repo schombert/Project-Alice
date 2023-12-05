@@ -224,7 +224,6 @@ struct tr_upper_house {
 struct tr_check_variable {
 	std::string_view which;
 	float value_ = 0.0f;
-	uint32_t value = 0;
 	association_type a;
 	void value(association_type t, float v, error_handler& err, int32_t line, trigger_building_context& context) {
 		a = t;
