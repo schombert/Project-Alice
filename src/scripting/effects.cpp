@@ -5,7 +5,9 @@
 namespace effect {
 
 struct effect_local_state {
-	bool if_is_triggered = false;
+	static constexpr inline uint32_t max_if_depth = 64;
+	bool if_is_triggered[max_if_depth] = { false };
+	uint32_t if_depth = 0;
 };
 
 #define EFFECT_PARAMTERS                                                                                                         \
@@ -30,25 +32,37 @@ uint32_t es_generic_scope(EFFECT_PARAMTERS) {
 }
 
 uint32_t es_if_scope(EFFECT_PARAMTERS) {
-	els.if_is_triggered = false;
+	els.if_is_triggered[els.if_depth] = false;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot)) {
-			apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-			els.if_is_triggered = true;
+			els.if_is_triggered[els.if_depth] = true;
+			els.if_depth++;
+			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els.if_depth--;
+			return ret;
 		}
 	}
-	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+	els.if_depth++;
+	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+	els.if_depth--;
+	return ret;
 }
 uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot) && !els.if_is_triggered) {
-			apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-			els.if_is_triggered = true;
+			els.if_is_triggered[els.if_depth] = true;
+			els.if_depth++;
+			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els.if_depth--;
+			return ret;
 		}
 	}
-	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+	els.if_depth++;
+	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+	els.if_depth--;
+	return ret;
 }
 
 uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
