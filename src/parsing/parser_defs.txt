@@ -1298,6 +1298,9 @@ ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
 effect_body
+	if                              group       ef_scope_if         member_fn
+	else_if                         group       ef_scope_else_if    member_fn
+	else                            group       ef_scope_else_if    member_fn (else_if)
 	capital                         value       int                 member_fn
 	add_core                        value       text                member_fn
 	remove_core                     value       text                member_fn

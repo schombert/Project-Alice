@@ -4,8 +4,12 @@
 
 namespace effect {
 
+struct effect_local_state {
+	bool if_is_triggered = false;
+};
+
 #define EFFECT_PARAMTERS                                                                                                         \
-	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_hi, uint32_t r_lo
+	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_hi, uint32_t r_lo, effect_local_state els
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS);
 
@@ -22,7 +26,29 @@ inline uint32_t apply_subeffects(EFFECT_PARAMTERS) {
 }
 
 uint32_t es_generic_scope(EFFECT_PARAMTERS) {
-	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo);
+	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+}
+
+uint32_t es_if_scope(EFFECT_PARAMTERS) {
+	els.if_is_triggered = false;
+	if((tval[0] & effect::scope_has_limit) != 0) {
+		auto limit = trigger::payload(tval[2]).tr_id;
+		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot)) {
+			apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els.if_is_triggered = true;
+		}
+	}
+	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+}
+uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::scope_has_limit) != 0) {
+		auto limit = trigger::payload(tval[2]).tr_id;
+		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot) && !els.if_is_triggered) {
+			apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els.if_is_triggered = true;
+		}
+	}
+	return apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 }
 
 uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
@@ -55,7 +81,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1);
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
@@ -68,7 +94,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 
 				if(other.get_nation_from_province_ownership() &&
 						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
-					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i);
+					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
 			return i;
@@ -79,7 +105,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 																																										: p.get_connected_provinces(0);
 
 				if(other.get_nation_from_province_ownership()) {
-					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i);
+					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
 			return i;
@@ -113,7 +139,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1);
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
@@ -125,7 +151,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 																																										: p.get_connected_nations(0);
 
 				if(trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
-					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i);
+					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
 			return i;
@@ -135,7 +161,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
 																																										: p.get_connected_nations(0);
 
-				i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i);
+				i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 			return i;
 		}
@@ -160,7 +186,7 @@ uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1);
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
@@ -5261,21 +5287,25 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
 		es_region_proper_scope, //constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
 		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
+		es_if_scope, // constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
+		es_else_if_scope, // constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {
 	assert(0 <= (*tval & effect::code_mask) && (*tval & effect::code_mask) < effect::first_invalid_code);
-	return effect_functions[*tval & effect::code_mask](tval, ws, primary_slot, this_slot, from_slot, r_lo, r_hi);
+	return effect_functions[*tval & effect::code_mask](tval, ws, primary_slot, this_slot, from_slot, r_lo, r_hi, els);
 }
 
 void execute(sys::state& state, dcon::effect_key key, int32_t primary, int32_t this_slot, int32_t from_slot, uint32_t r_lo,
 		uint32_t r_hi) {
-	internal_execute_effect(state.effect_data.data() + state.effect_data_indices[key.index() + 1], state, primary, this_slot, from_slot, r_lo, r_hi);
+	effect_local_state els{};
+	internal_execute_effect(state.effect_data.data() + state.effect_data_indices[key.index() + 1], state, primary, this_slot, from_slot, r_lo, r_hi, els);
 }
 
 void execute(sys::state& state, uint16_t const* data, int32_t primary, int32_t this_slot, int32_t from_slot, uint32_t r_lo,
 		uint32_t r_hi) {
-	internal_execute_effect(data, state, primary, this_slot, from_slot, r_lo, r_hi);
+	effect_local_state els{};
+	internal_execute_effect(data, state, primary, this_slot, from_slot, r_lo, r_hi, els);
 }
 
 } // namespace effect
