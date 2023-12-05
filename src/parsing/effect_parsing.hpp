@@ -277,7 +277,7 @@ struct ef_variable {
 	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		which_ = context.outer_context.get_national_variable(std::string(v));
 	}
-	void free_value(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+	void free_value(std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		if(any_index == 0) {
 			which_ = context.outer_context.get_national_variable(std::string(v));
 		} else if(any_index == 1) {
