@@ -1,0 +1,2 @@
+trade_goods = coal
+life_rating = 0

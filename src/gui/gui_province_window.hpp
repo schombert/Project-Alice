@@ -51,26 +51,6 @@ public:
 	}
 };
 
-
-class province_rgoworkers : public province_rgo_workers_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_employment"), text::variable_type::value,
-				std::string_view(""));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("production_factory_employeecount_tooltip"));
-		// TODO - list the workers that are used to calculate the value of the above thing here
-		text::localised_format_box(state, contents, box, std::string_view("base_rgo_size"));
-		text::add_to_layout_box(state, contents, box, std::string_view("UwU"));
-		text::close_layout_box(contents, box);
-	}
-};
-
 class province_rgo : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1274,7 +1254,7 @@ public:
 		} else if(name == "employment_ratio") {
 			return make_element_by_type<province_rgo_employment_progress_icon>(state, id);
 		} else if(name == "rgo_population") {
-			return make_element_by_type<province_rgoworkers>(state, id);
+			return make_element_by_type<province_rgo_workers_text>(state, id);
 		} else if(name == "rgo_percent") {
 			return make_element_by_type<province_rgo_employment_percent_text>(state, id);
 		} else if(name == "produced") {

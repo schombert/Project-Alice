@@ -131,6 +131,8 @@ enum class command_type : uint8_t {
 	c_force_ally = 142,
 	c_toggle_ai = 143,
 	c_complete_constructions = 144,
+	c_change_owner = 145,
+	c_change_controller = 146,
 };
 
 struct national_focus_data {
@@ -205,6 +207,11 @@ struct influence_priority_data {
 
 struct generic_location_data {
 	dcon::province_id prov;
+};
+
+struct cheat_location_data {
+	dcon::province_id prov;
+	dcon::nation_id n;
 };
 
 struct movement_data {
@@ -481,6 +488,7 @@ struct payload {
 		save_game_data save_game;
 		notify_save_loaded_data notify_save_loaded;
 		sys::player_name player_name;
+		cheat_location_data cheat_location;
 
 		dtype() { }
 	} data;

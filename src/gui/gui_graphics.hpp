@@ -413,6 +413,14 @@ struct state {
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
 	element_base* r_chat_window = nullptr;
+	element_base* map_gradient_legend = nullptr;
+	element_base* map_civ_level_legend = nullptr;
+	element_base* map_col_legend = nullptr;
+	element_base* map_dip_legend = nullptr;
+	element_base* map_rr_legend = nullptr;
+	element_base* map_nav_legend = nullptr;
+	element_base* map_rank_legend = nullptr;
+	element_base* map_rec_legend = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;

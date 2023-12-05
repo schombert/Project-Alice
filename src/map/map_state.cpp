@@ -152,6 +152,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		// Populate common dataset points
 		std::vector<float> my;
 		std::vector<float> w;
+		std::vector<std::array<float, 4>> mx;
+
 		for(auto p2 : state.world.in_province) {
 			if(p2.get_connected_region_id() == rid) {
 				auto e = p2.get_mid_point();
@@ -159,6 +161,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				e /= ratio;
 				my.push_back(e.y);
 				w.push_back(float(map_data.province_area[province::to_map_id(p2)]));
+				mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
 			}
 		}
 
@@ -179,15 +182,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// [ x1^0 x1^1 x1^2 x1^3 ]
 			// [ ...  ...  ...  ...  ]
 			// [ xn^0 xn^1 xn^2 xn^3 ]
-			std::vector<std::array<float, 4>> mx;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					auto e = p2.get_mid_point();
-					e -= basis;
-					e /= ratio;
-					mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
-				}
-			}
+			
 			// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
 			// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
 			// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
@@ -236,6 +231,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		bool use_linear = false;
 		if(state.user_settings.map_label == sys::map_label_mode::quadratic || use_quadratic) {
 			// Now lets try quadratic
+
+			/*
 			std::vector<std::array<float, 3>> mx;
 			for(auto p2 : state.world.in_province) {
 				if(p2.get_connected_region_id() == rid) {
@@ -245,6 +242,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					mx.push_back(std::array<float, 3>{ 1.f, e.x, e.x* e.x });
 				}
 			}
+			*/
+
 			glm::mat3x3 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
@@ -287,6 +286,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
 			// Now lets try linear
+			/*
 			std::vector<std::array<float, 2>> mx;
 			for(auto p2 : state.world.in_province) {
 				if(p2.get_connected_region_id() == rid) {
@@ -296,6 +296,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					mx.push_back(std::array<float, 2>{ 1.f, e.x });
 				}
 			}
+			*/
 			glm::mat2x2 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)

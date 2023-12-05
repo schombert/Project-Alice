@@ -615,8 +615,6 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	return std::max(sz * bonus, 0.01f);
 }
 
-inline constexpr float rgo_per_size_employment = 40'000.0f;
-
 float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
 	return rgo_per_size_employment * rgo_effective_size(state, n, p);
 }

@@ -26,7 +26,8 @@ enum class mode : uint8_t {
 	civilization_level = 0x13,
 	relation = 0x14,
 	crisis = 0x15,
-	naval = 0x16
+	naval = 0x16,
+	state_select = 0x17
 };
 
 const uint8_t PROV_COLOR_LAYERS = 2;

@@ -361,6 +361,7 @@ struct user_settings_s {
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
+	float gamma = 1.f;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -535,6 +536,7 @@ struct alignas(64) state {
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
 	std::optional<state_selection_data> state_selection;
+	map_mode::mode stored_map_mode;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information

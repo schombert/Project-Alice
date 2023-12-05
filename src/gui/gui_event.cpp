@@ -142,7 +142,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_nation = e.n;
 		target_capital = state.world.nation_get_capital(target_nation);
 		target_province = target_capital;
-		target_state = state.world.province_get_state_membership(target_province);
+		if(e.pt != event::slot_type::state)
+			target_state = state.world.province_get_state_membership(target_province);
+		else
+			target_state = trigger::to_state(e.primary_slot);
 
 		from_slot = e.from_slot;
 		ft = e.ft;
@@ -747,10 +750,11 @@ message_result national_event_window::get(sys::state& state, Cyto::Any& payload)
 	} else if(payload.holds_type<option_taken_notification>()) {
 		set_visible(state, false);
 		auto uptr = state.ui_state.root->remove_child(this);
-		assert(uptr);
-		std::unique_ptr<national_event_window> ptr(static_cast<national_event_window*>(uptr.release()));
-		national_event_window::event_pool.push_back(std::move(ptr));
-		--pending_events;
+		if(uptr) {
+			std::unique_ptr<national_event_window> ptr(static_cast<national_event_window*>(uptr.release()));
+			national_event_window::event_pool.push_back(std::move(ptr));
+			--pending_events;
+		}
 		return message_result::consumed;
 	}
 	return message_result::unseen;
@@ -769,10 +773,11 @@ message_result national_major_event_window::get(sys::state& state, Cyto::Any& pa
 	} else if(payload.holds_type<option_taken_notification>()) {
 		set_visible(state, false);
 		auto uptr = state.ui_state.root->remove_child(this);
-		assert(uptr);
-		std::unique_ptr<national_major_event_window> ptr(static_cast<national_major_event_window*>(uptr.release()));
-		national_major_event_window::event_pool.push_back(std::move(ptr));
-		--pending_events;
+		if(uptr) {
+			std::unique_ptr<national_major_event_window> ptr(static_cast<national_major_event_window*>(uptr.release()));
+			national_major_event_window::event_pool.push_back(std::move(ptr));
+			--pending_events;
+		}
 		return message_result::consumed;
 	}
 	return message_result::unseen;
@@ -942,10 +947,11 @@ message_result provincial_event_window::get(sys::state& state, Cyto::Any& payloa
 	} else if(payload.holds_type<option_taken_notification>()) {
 		set_visible(state, false);
 		auto uptr = state.ui_state.root->remove_child(this);
-		assert(uptr);
-		std::unique_ptr<provincial_event_window> ptr(static_cast<provincial_event_window*>(uptr.release()));
-		provincial_event_window::event_pool.push_back(std::move(ptr));
-		--pending_events;
+		if(uptr) {
+			std::unique_ptr<provincial_event_window> ptr(static_cast<provincial_event_window*>(uptr.release()));
+			provincial_event_window::event_pool.push_back(std::move(ptr));
+			--pending_events;
+		}
 		return message_result::consumed;
 	}
 	return message_result::unseen;

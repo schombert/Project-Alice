@@ -34,6 +34,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_nation_picker.hpp"
 #include "gui_end_window.hpp"
+#include "gui_map_legend.hpp"
 
 #include "blake2.h"
 
@@ -45,14 +46,15 @@ void state::start_state_selection(state_selection_data& data) {
 		state_selection->on_cancel(*this);
 	}
 	state_selection = data;
-	map_mode::set_map_mode(*this, map_state.active_map_mode);
+	stored_map_mode = map_state.active_map_mode;
+	map_mode::set_map_mode(*this, map_mode::mode::state_select);
 	ui_state.select_states_legend->impl_on_update(*this);
 }
 
 void state::finish_state_selection() {
 	mode = sys::game_mode_type::in_game;
 	state_selection.reset();
-	map_state.update(*this);
+	map_mode::set_map_mode(*this, stored_map_mode);
 }
 
 void state::state_select(dcon::state_definition_id sdef) {
@@ -89,7 +91,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			b = b->parent;
 		}
 		return false;
-	};
+		};
 
 	if(ui_state.under_mouse != nullptr && !belongs_on_map(ui_state.under_mouse)) {
 		ui_state.under_mouse->impl_on_rbutton_down(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod);
@@ -106,7 +108,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		if(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size()) {
 			sound::play_interface_sound(*this, sound::get_click_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
-			auto id =  province::from_map_id(map_state.map_data.province_id_map[idx]);
+			auto id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
 				bool fail = false;
 				bool army_play = false;
@@ -248,7 +250,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			}
 		}
 		for(auto a : world.nation_get_navy_control(local_player_nation)) {
-			if( !a.get_navy().get_battle_from_navy_battle_participation() && !a.get_navy().get_is_retreating()) {
+			if(!a.get_navy().get_battle_from_navy_battle_participation() && !a.get_navy().get_is_retreating()) {
 				auto loc = a.get_navy().get_location_from_navy_location();
 				if(loc.id.index() >= province_definitions.first_sea_province.index()) {
 					auto mid_point = world.province_get_mid_point(loc);
@@ -359,7 +361,7 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 			b = b->parent;
 		}
 		return false;
-	};
+		};
 
 	if(ui_state.scroll_target != nullptr) {
 		ui_state.scroll_target->impl_on_scroll(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y,
@@ -395,6 +397,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			map_state.on_key_down(keycode, mod);
 			if(keycode == virtual_key::ESCAPE) {
 				mode = sys::game_mode_type::in_game;
+				state_selection->on_cancel(*this);
+				finish_state_selection();
 				ui_state.root->impl_on_update(*this);
 			}
 		}
@@ -580,6 +584,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -724,6 +729,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glUseProgram(open_gl.ui_shader_program);
 			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glUniform1f(11, user_settings.gamma);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
@@ -742,6 +748,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -886,6 +893,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glUseProgram(open_gl.ui_shader_program);
 			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+			glUniform1f(11, user_settings.gamma);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glViewport(0, 0, x_size, y_size);
@@ -904,6 +912,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1021,10 +1030,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.national_event_get_is_major(c1->e)) {
 						ui::national_major_event_window::new_event(*this, *c1);
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c1);
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c1, uint8_t(auto_choice - 1));
@@ -1039,10 +1048,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 				if(auto_choice == 0) {
 					if(world.free_national_event_get_is_major(c2->e)) {
 						ui::national_major_event_window::new_event(*this, *c2);
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
 						ui::national_event_window::new_event(*this, *c2);
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
+						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
 					command::make_event_choice(*this, *c2, uint8_t(auto_choice - 1));
@@ -1069,7 +1078,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
 					ui::provincial_event_window::new_event(*this, *c4);
-					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume* user_settings.master_volume);
+					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
 				}
@@ -1104,7 +1113,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				c5 = new_requests.front();
 			}
 			if(had_diplo_msg) {
-				sound::play_effect(*this, sound::get_diplomatic_request_sound(*this), user_settings.interface_volume* user_settings.master_volume);
+				sound::play_effect(*this, sound::get_diplomatic_request_sound(*this), user_settings.interface_volume * user_settings.master_volume);
 			}
 
 			// Log messages
@@ -1443,6 +1452,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+		glUniform1f(11, user_settings.gamma);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
@@ -1461,6 +1471,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	glUseProgram(open_gl.ui_shader_program);
 	glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 	glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
+	glUniform1f(11, user_settings.gamma);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1541,44 +1552,44 @@ void state::on_create() {
 	// Clear "center" property so they don't look messed up!
 	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
-			~ui::element_data::orientation_mask;
+		~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
 	// Allow mobility of those windows who can be moved, and shall be moved
 	ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these
 	// windows are moveable
 	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
-			ui::window_data::is_moveable_mask;
+		ui::window_data::is_moveable_mask;
 	ui_defs.gui[ui_state.defs_by_name.find("ingame_lobby_window")->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
 	// Nudge, overriden by V2 to be 0 always
@@ -1731,6 +1742,47 @@ void state::on_create() {
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(*this, "alice_map_legend_gradient_window");
+		ui_state.map_gradient_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_civ_level>(*this, "alice_map_legend_civ_level");
+		ui_state.map_civ_level_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_col>(*this, "alice_map_legend_colonial");
+		ui_state.map_col_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_dip>(*this, "alice_map_legend_diplomatic");
+		ui_state.map_dip_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rr>(*this, "alice_map_legend_infrastructure");
+		ui_state.map_rr_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_nav>(*this, "alice_map_legend_naval");
+		ui_state.map_nav_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rank>(*this, "alice_map_legend_rank");
+		ui_state.map_rank_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rec>(*this, "alice_map_legend_rec");
+		ui_state.map_rec_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
 	}
 
 	{ // One on the lobby
@@ -1953,6 +2005,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_label);
 	US_SAVE(antialias_level);
 	US_SAVE(gaussianblur_level);
+	US_SAVE(gamma);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2003,6 +2056,7 @@ void state::load_user_settings() {
 			US_LOAD(map_label);
 			US_LOAD(antialias_level);
 			US_LOAD(gaussianblur_level);
+			US_LOAD(gamma);
 #undef US_LOAD
 		} while(false);
 
@@ -2013,6 +2067,8 @@ void state::load_user_settings() {
 		if(user_settings.antialias_level > 16)
 			user_settings.antialias_level = 0;
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
+		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
+		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
 	}
 }
 
@@ -2053,7 +2109,7 @@ void list_pop_types(sys::state& state, parsers::scenario_building_context& conte
 }
 
 void state::open_diplomacy(dcon::nation_id target) {
-	Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{target};
+	Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{ target };
 	if(ui_state.diplomacy_subwindow != nullptr) {
 		if(ui_state.topbar_subwindow != nullptr) {
 			ui_state.topbar_subwindow->set_visible(*this, false);
@@ -2609,7 +2665,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.for_each_national_identity([&](dcon::national_identity_id i) {
 		auto country_file = open_file(common, simple_fs::win1250_to_native(context.file_names_for_idents[i]));
 		if(country_file) {
-			parsers::country_file_context c_context{context, i};
+			parsers::country_file_context c_context{ context, i };
 			auto content = view_contents(*country_file);
 			err.file_name = context.file_names_for_idents[i];
 			parsers::token_generator gen(content.data, content.data + content.file_size);
@@ -2645,7 +2701,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					auto opened_file = open_file(prov_file);
 					if(opened_file) {
 						auto pid = context.original_id_to_prov_id_map[province_id];
-						parsers::province_file_context pf_context{context, pid};
+						parsers::province_file_context pf_context{ context, pid };
 						auto content = view_contents(*opened_file);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						parsers::parse_province_history_file(gen, err, pf_context);
@@ -2662,7 +2718,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto pop_history = open_directory(history, NATIVE("pops"));
 		auto startdate = sys::date(0).to_ymd(start_date);
 		auto start_dir_name =
-				std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
@@ -2695,7 +2751,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			if(opened_file) {
 				err.file_name = pr.first + ".txt";
 				auto content = view_contents(*opened_file);
-				parsers::poptype_context inner_context{context, pr.second};
+				parsers::poptype_context inner_context{ context, pr.second };
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_poptype_file(gen, err, inner_context);
 			}
@@ -2706,27 +2762,33 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	{
 		err.file_name = "ideologies.txt";
 		for(auto& pr : context.map_of_ideologies) {
-			parsers::individual_ideology_context new_context{context, pr.second.id};
+			parsers::individual_ideology_context new_context{ context, pr.second.id };
 			parsers::parse_individual_ideology(pr.second.generator_state, err, new_context);
 		}
 	}
 	if(!culture_definitions.conservative) {
-		err.accumulated_errors += "NO CONSERVATIVE IDEOLOGY (fatal error)\n";
-		err.fatal = true;
+		if(auto it = context.map_of_ideologies.find("conservative"); it != context.map_of_ideologies.end()) {
+			culture_definitions.conservative = it->second.id;
+			err.accumulated_warnings += "conservative ideology lacks \"can_reduce_militancy = 1\" key\n";
+		}
+		if(!culture_definitions.conservative) {
+			err.accumulated_errors += "NO CONSERVATIVE IDEOLOGY (fatal error)\n";
+			err.fatal = true;
+		}
 	}
 	// triggered modifier contents
 	{
 		err.file_name = "triggered_modifiers.txt";
 		for(auto& r : context.set_of_triggered_modifiers) {
 			national_definitions.triggered_modifiers[r.index].trigger_condition =
-					parsers::read_triggered_modifier_condition(r.generator_state, err, context);
+				parsers::read_triggered_modifier_condition(r.generator_state, err, context);
 		}
 	}
 	// cb contents
 	{
 		err.file_name = "cb_types.txt";
 		for(auto& r : context.map_of_cb_types) {
-			parsers::individual_cb_context new_context{context, r.second.id};
+			parsers::individual_cb_context new_context{ context, r.second.id };
 			parsers::parse_cb_body(r.second.generator_state, err, new_context);
 		}
 	}
@@ -2832,7 +2894,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.file_name = "production_types.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 
-			parsers::production_context new_context{context};
+			parsers::production_context new_context{ context };
 			parsers::parse_production_types_file(gen, err, new_context);
 
 			for(const auto ft : world.in_factory_type) {
@@ -2908,7 +2970,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
-						parsers::oob_file_context new_context{context, holder};
+						parsers::oob_file_context new_context{ context, holder };
 
 						auto opened_file = open_file(oob_file);
 						if(opened_file) {
@@ -2972,7 +3034,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						world.try_create_identity_holder(holder, it->second);
 					}
 
-					parsers::country_history_context new_context{context, it->second, holder, pending_decisions};
+					parsers::country_history_context new_context{ context, it->second, holder, pending_decisions };
 
 					auto opened_file = open_file(country_file);
 					if(opened_file) {
@@ -2984,7 +3046,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 				} else {
 					err.accumulated_warnings +=
-							"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+						"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}
 		}
@@ -2996,7 +3058,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		for(auto war_file : list_files(country_dir, NATIVE(".txt"))) {
 			auto opened_file = open_file(war_file);
 			if(opened_file) {
-				parsers::war_history_context new_context{context};
+				parsers::war_history_context new_context{ context };
 
 				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
 				auto content = view_contents(*opened_file);
@@ -3011,7 +3073,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.nation_resize_stockpiles(world.commodity_size());
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
-	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{0});
+	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
 
 	world.for_each_ideology([&](dcon::ideology_id id) {
 		if(!bool(world.ideology_get_activation_date(id))) {
@@ -3106,7 +3168,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// fill in the terrain type
 
 	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); ++i) {
-		dcon::province_id id{dcon::province_id::value_base_t(i)};
+		dcon::province_id id{ dcon::province_id::value_base_t(i) };
 		if(!world.province_get_terrain(id)) { // don't overwrite if set by the history file
 			auto terrain_type = map_state.map_data.median_terrain_type[province::to_map_id(id)];
 			if(terrain_type < 64) {
@@ -3116,7 +3178,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 	for(int32_t i = province_definitions.first_sea_province.index(); i < int32_t(world.province_size()); ++i) {
-		dcon::province_id id{dcon::province_id ::value_base_t(i)};
+		dcon::province_id id{ dcon::province_id::value_base_t(i) };
 		world.province_set_terrain(id, context.ocean_terrain);
 	}
 
@@ -3291,9 +3353,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	// fix slaves in non-slave owning nations
 	for(auto p : world.in_province) {
-		if(p.get_nation_from_province_ownership()) {
-			culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
-		}
+		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
@@ -3640,124 +3700,124 @@ void state::single_game_tick() {
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
 	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
-			case 0:
-			{
-				auto o = uint32_t(ymd_date.day);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_ideologies(*this, o, days_in_month, idbuf);
-				break;
-			}
-			case 1:
-			{
-				auto o = uint32_t(ymd_date.day + 1);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_issues(*this, o, days_in_month, isbuf);
-				break;
-			}
-			case 2:
-			{
-				auto o = uint32_t(ymd_date.day + 6);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_type_changes(*this, o, days_in_month, pbuf);
-				break;
-			}
-			case 3:
-			{
-				auto o = uint32_t(ymd_date.day + 7);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_assimilation(*this, o, days_in_month, abuf);
-				break;
-			}
-			case 4:
-			{
-				auto o = uint32_t(ymd_date.day + 8);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_internal_migration(*this, o, days_in_month, mbuf);
-				break;
-			}
-			case 5:
-			{
-				auto o = uint32_t(ymd_date.day + 9);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
-				break;
-			}
-			case 6:
-			{
-				auto o = uint32_t(ymd_date.day + 10);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_immigration(*this, o, days_in_month, imbuf);
-				break;
-			}
+		case 0:
+		{
+			auto o = uint32_t(ymd_date.day);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1:
+		{
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2:
+		{
+			auto o = uint32_t(ymd_date.day + 6);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_type_changes(*this, o, days_in_month, pbuf);
+			break;
+		}
+		case 3:
+		{
+			auto o = uint32_t(ymd_date.day + 7);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_assimilation(*this, o, days_in_month, abuf);
+			break;
+		}
+		case 4:
+		{
+			auto o = uint32_t(ymd_date.day + 8);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_internal_migration(*this, o, days_in_month, mbuf);
+			break;
+		}
+		case 5:
+		{
+			auto o = uint32_t(ymd_date.day + 9);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_colonial_migration(*this, o, days_in_month, cmbuf);
+			break;
+		}
+		case 6:
+		{
+			auto o = uint32_t(ymd_date.day + 10);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_immigration(*this, o, days_in_month, imbuf);
+			break;
+		}
 		}
 	});
 
 	// apply in parallel where we can
 	concurrency::parallel_for(0, 8, [&](int32_t index) {
 		switch(index) {
-			case 0:
-			{
-				auto o = uint32_t(ymd_date.day + 0);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::apply_ideologies(*this, o, days_in_month, idbuf);
-				break;
-			}
-			case 1:
-			{
-				auto o = uint32_t(ymd_date.day + 1);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::apply_issues(*this, o, days_in_month, isbuf);
-				break;
-			}
-			case 2:
-			{
-				auto o = uint32_t(ymd_date.day + 2);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_militancy(*this, o, days_in_month);
-				break;
-			}
-			case 3:
-			{
-				auto o = uint32_t(ymd_date.day + 3);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_consciousness(*this, o, days_in_month);
-				break;
-			}
-			case 4:
-			{
-				auto o = uint32_t(ymd_date.day + 4);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_literacy(*this, o, days_in_month);
-				break;
-			}
-			case 5:
-			{
-				auto o = uint32_t(ymd_date.day + 5);
-				if(o >= days_in_month)
-					o -= days_in_month;
-				demographics::update_growth(*this, o, days_in_month);
-				break;
-			}
-			case 6:
-				province::ve_for_each_land_province(*this,
-						[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
-				break;
-			case 7:
-				province::ve_for_each_land_province(*this,
-						[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
-				break;
+		case 0:
+		{
+			auto o = uint32_t(ymd_date.day + 0);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_ideologies(*this, o, days_in_month, idbuf);
+			break;
+		}
+		case 1:
+		{
+			auto o = uint32_t(ymd_date.day + 1);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::apply_issues(*this, o, days_in_month, isbuf);
+			break;
+		}
+		case 2:
+		{
+			auto o = uint32_t(ymd_date.day + 2);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_militancy(*this, o, days_in_month);
+			break;
+		}
+		case 3:
+		{
+			auto o = uint32_t(ymd_date.day + 3);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_consciousness(*this, o, days_in_month);
+			break;
+		}
+		case 4:
+		{
+			auto o = uint32_t(ymd_date.day + 4);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_literacy(*this, o, days_in_month);
+			break;
+		}
+		case 5:
+		{
+			auto o = uint32_t(ymd_date.day + 5);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_growth(*this, o, days_in_month);
+			break;
+		}
+		case 6:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
+			break;
+		case 7:
+			province::ve_for_each_land_province(*this,
+					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
+			break;
 		}
 	});
 
@@ -3801,58 +3861,58 @@ void state::single_game_tick() {
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
 	concurrency::parallel_for(0, 17, [&](int32_t index) {
 		switch(index) {
-			case 0:
-				ai::refresh_home_ports(*this);
-				break;
-			case 1:
-				nations::update_research_points(*this);
-				break;
-			case 2:
-				military::regenerate_land_unit_average(*this);
-				break;
-			case 3:
-				military::regenerate_ship_scores(*this);
-				break;
-			case 4:
-				nations::update_industrial_scores(*this);
-				break;
-			case 5:
-				military::update_naval_supply_points(*this);
-				break;
-			case 6:
-				military::update_all_recruitable_regiments(*this);
-				break;
-			case 7:
-				military::regenerate_total_regiment_counts(*this);
-				break;
-			case 8:
-				economy::update_rgo_employment(*this);
-				break;
-			case 9:
-				economy::update_factory_employment(*this);
-				break;
-			case 10:
-				nations::update_administrative_efficiency(*this);
-				rebel::daily_update_rebel_organization(*this);
-				break;
-			case 11:
-				military::daily_leaders_update(*this);
-				break;
-			case 12:
-				politics::daily_party_loyalty_update(*this);
-				break;
-			case 13:
-				nations::daily_update_flashpoint_tension(*this);
-				break;
-			case 14:
-				military::update_ticking_war_score(*this);
-				break;
-			case 15:
-				military::increase_dig_in(*this);
-				break;
-			case 16:
-				military::update_blockade_status(*this);
-				break;
+		case 0:
+			ai::refresh_home_ports(*this);
+			break;
+		case 1:
+			nations::update_research_points(*this);
+			break;
+		case 2:
+			military::regenerate_land_unit_average(*this);
+			break;
+		case 3:
+			military::regenerate_ship_scores(*this);
+			break;
+		case 4:
+			nations::update_industrial_scores(*this);
+			break;
+		case 5:
+			military::update_naval_supply_points(*this);
+			break;
+		case 6:
+			military::update_all_recruitable_regiments(*this);
+			break;
+		case 7:
+			military::regenerate_total_regiment_counts(*this);
+			break;
+		case 8:
+			economy::update_rgo_employment(*this);
+			break;
+		case 9:
+			economy::update_factory_employment(*this);
+			break;
+		case 10:
+			nations::update_administrative_efficiency(*this);
+			rebel::daily_update_rebel_organization(*this);
+			break;
+		case 11:
+			military::daily_leaders_update(*this);
+			break;
+		case 12:
+			politics::daily_party_loyalty_update(*this);
+			break;
+		case 13:
+			nations::daily_update_flashpoint_tension(*this);
+			break;
+		case 14:
+			military::update_ticking_war_score(*this);
+			break;
+		case 15:
+			military::increase_dig_in(*this);
+			break;
+		case 16:
+			military::update_blockade_status(*this);
+			break;
 		}
 	});
 
@@ -3929,6 +3989,8 @@ void state::single_game_tick() {
 			break;
 		case 12:
 			ai::update_ai_research(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
 			break;
 		case 13:
 			ai::perform_influence_actions(*this);
@@ -3969,6 +4031,8 @@ void state::single_game_tick() {
 		case 24:
 			rebel::execute_rebel_victories(*this);
 			ai::make_attacks(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
 			break;
 		case 25:
 			rebel::execute_province_defections(*this);
@@ -3987,6 +4051,8 @@ void state::single_game_tick() {
 			break;
 		case 30:
 			ai::update_ships(*this);
+			rebel::update_armies(*this);
+			rebel::rebel_hunting_check(*this);
 			break;
 		case 31:
 			ai::update_cb_fabrication(*this);
@@ -4085,21 +4151,21 @@ void state::single_game_tick() {
 	game_state_updated.store(true, std::memory_order::release);
 
 	switch(user_settings.autosaves) {
-		case autosave_frequency::none:
-			break;
-		case autosave_frequency::daily:
+	case autosave_frequency::none:
+		break;
+	case autosave_frequency::daily:
+		write_save_file(*this);
+		break;
+	case autosave_frequency::monthly:
+		if(ymd_date.day == 1)
 			write_save_file(*this);
-			break;
-		case autosave_frequency::monthly:
-			if(ymd_date.day == 1)
-				write_save_file(*this);
-			break;
-		case autosave_frequency::yearly:
-			if(ymd_date.month == 1 && ymd_date.day == 1)
-				write_save_file(*this);
-			break;
-		default:
-			break;
+		break;
+	case autosave_frequency::yearly:
+		if(ymd_date.month == 1 && ymd_date.day == 1)
+			write_save_file(*this);
+		break;
+	default:
+		break;
 	}
 }
 

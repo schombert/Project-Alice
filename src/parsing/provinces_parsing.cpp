@@ -282,7 +282,7 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
 		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
 	} else {
-		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 void province_history_file::controller(association_type, uint32_t value, error_handler& err, int32_t line,
@@ -291,7 +291,7 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
-		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -311,7 +311,7 @@ void province_history_file::add_core(association_type, uint32_t value, error_han
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		context.outer_context.state.world.try_create_core(context.id, it->second);
 	} else {
-		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -321,7 +321,7 @@ void province_history_file::remove_core(association_type, uint32_t value, error_
 		auto core = context.outer_context.state.world.get_core_by_prov_tag_key(context.id, it->second);
 		context.outer_context.state.world.delete_core(core);
 	} else {
-		err.accumulated_errors += "Invalid tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 

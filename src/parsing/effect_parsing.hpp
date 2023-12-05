@@ -517,7 +517,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::capital));
 		} else {
 			err.accumulated_errors +=
-					"capital effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		if(0 <= value && size_t(value) < context.outer_context.original_id_to_prov_id_map.size()) {
@@ -542,7 +542,7 @@ struct effect_body {
 				}
 			} else {
 				err.accumulated_errors +=
-						"add_core = int effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"add_core = int effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -551,7 +551,7 @@ struct effect_body {
 					if(context.from_slot == trigger::slot_contents::rebel)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_reb | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -561,7 +561,7 @@ struct effect_body {
 					else if(context.from_slot == trigger::slot_contents::province)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_from_province | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -575,7 +575,7 @@ struct effect_body {
 					else if(context.this_slot == trigger::slot_contents::pop)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_this_pop | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -599,7 +599,7 @@ struct effect_body {
 					if(context.from_slot == trigger::slot_contents::rebel)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_state_reb | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -609,7 +609,7 @@ struct effect_body {
 					else if(context.from_slot == trigger::slot_contents::province)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_state_from_province | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -623,7 +623,7 @@ struct effect_body {
 					else if(context.this_slot == trigger::slot_contents::pop)
 						context.compiled_effect.push_back(uint16_t(effect::add_core_state_this_pop | effect::no_payload));
 					else {
-						err.accumulated_errors += "add_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "add_core = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -644,7 +644,7 @@ struct effect_body {
 				}
 			} else {
 				err.accumulated_errors +=
-						"add_core effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"add_core effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		}
@@ -663,7 +663,7 @@ struct effect_body {
 					context.compiled_effect.push_back(trigger::payload(dcon::province_id()).value);
 				}
 			} else {
-				err.accumulated_errors += "remove_core = int effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "remove_core = int effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -673,7 +673,7 @@ struct effect_body {
 					if(context.from_slot == trigger::slot_contents::rebel)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_reb | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -683,7 +683,7 @@ struct effect_body {
 					else if(context.from_slot == trigger::slot_contents::province)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_from_province | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -697,7 +697,7 @@ struct effect_body {
 					else if(context.this_slot == trigger::slot_contents::pop)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_this_pop | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																			std::to_string(line) + ")\n";
 						return;
 					}
@@ -721,7 +721,7 @@ struct effect_body {
 					if(context.from_slot == trigger::slot_contents::rebel)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_reb | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -731,7 +731,7 @@ struct effect_body {
 					else if(context.from_slot == trigger::slot_contents::province)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_from_province | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -745,7 +745,7 @@ struct effect_body {
 					else if(context.this_slot == trigger::slot_contents::pop)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_state_this_pop | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -769,7 +769,7 @@ struct effect_body {
 					if(context.from_slot == trigger::slot_contents::rebel)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_reb | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -779,7 +779,7 @@ struct effect_body {
 					else if(context.from_slot == trigger::slot_contents::province)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_from_province | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -793,7 +793,7 @@ struct effect_body {
 					else if(context.this_slot == trigger::slot_contents::pop)
 						context.compiled_effect.push_back(uint16_t(effect::remove_core_nation_this_pop | effect::no_payload));
 					else {
-						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+						err.accumulated_errors += "remove_core = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 							std::to_string(line) + ")\n";
 						return;
 					}
@@ -814,7 +814,7 @@ struct effect_body {
 				}
 			} else {
 				err.accumulated_errors +=
-						"remove_core effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"remove_core effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		}
@@ -826,7 +826,7 @@ struct effect_body {
 		} else if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
 		} else {
-			err.accumulated_errors += "change_region_name effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -842,7 +842,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors +=
-						"trade_goods effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"trade_goods effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -866,7 +866,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "add_accepted_culture effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_accepted_culture effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -878,7 +878,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::nation)
 					context.compiled_effect.push_back(uint16_t(effect::primary_culture_from_nation | effect::no_payload));
 				else {
-					err.accumulated_errors += "primary_culture = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "primary_culture = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -892,7 +892,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::primary_culture_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "primary_culture = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "primary_culture = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -908,7 +908,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"primary_culture effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"primary_culture effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -925,7 +925,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "remove_accepted_culture effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "remove_accepted_culture effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -939,7 +939,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"life_rating effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"life_rating effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -956,7 +956,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"religion effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"religion effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -978,7 +978,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::is_slave_pop_no | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"is_slave effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"is_slave effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -988,7 +988,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"research_points effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"research_points effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1006,7 +1006,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"tech_school effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"tech_school effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1017,7 +1017,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::government_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "government = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "government = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1032,7 +1032,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"government effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"government effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1045,7 +1045,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"treasury effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"treasury effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1055,7 +1055,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"war_exhaustion effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"war_exhaustion effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1065,7 +1065,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"prestige effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"prestige effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1092,7 +1092,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"change_tag effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"change_tag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1118,7 +1118,7 @@ struct effect_body {
 			}
 
 		} else {
-			err.accumulated_errors += "change_tag_no_core_switch effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "change_tag_no_core_switch effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1136,7 +1136,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
-					"set_country_flag effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"set_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1147,7 +1147,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
-					"clr_country_flag effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1162,7 +1162,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::military_access_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "military_access = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "military_access = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1172,7 +1172,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::military_access_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "military_access = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "military_access = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1194,7 +1194,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"military_access effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"military_access effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1204,7 +1204,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"badboy effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"badboy effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1221,7 +1221,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1231,7 +1231,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1239,7 +1239,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1272,7 +1272,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1282,7 +1282,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1290,7 +1290,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -1311,7 +1311,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"secede_province effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"secede_province effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1327,7 +1327,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::inherit_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "inherit = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "inherit = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1337,7 +1337,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::inherit_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "inherit = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "inherit = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1359,7 +1359,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"inherit effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"inherit effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1375,7 +1375,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::annex_to_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "annex_to = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "annex_to = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -1385,7 +1385,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::annex_to_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "annex_to = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "annex_to = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -1412,13 +1412,13 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
-				err.accumulated_errors += "annex_to effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "annex_to effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 					std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
 			err.accumulated_errors +=
-					"annex_to effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"annex_to effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1434,7 +1434,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::release_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "release = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1444,7 +1444,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::release_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "release = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1466,7 +1466,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"release effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"release effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1479,7 +1479,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1489,7 +1489,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1515,7 +1515,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "change_controller = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1525,7 +1525,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::change_controller_state_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "change_controller = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 						", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1546,7 +1546,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"change_controller effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"change_controller effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1559,7 +1559,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"infrastructure effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"infrastructure effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1572,7 +1572,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"fort effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"fort effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1585,7 +1585,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"naval_base effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"naval_base effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1598,7 +1598,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-				"bank effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"bank effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1611,7 +1611,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-				"university effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"university effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1629,7 +1629,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-				"province_selector effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"province_selector effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1647,7 +1647,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-				"province_immigrator effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"province_immigrator effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1663,7 +1663,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"money effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"money effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1673,7 +1673,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"leadership effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"leadership effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1686,7 +1686,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::create_vassal_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "create_vassal = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "create_vassal = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1696,7 +1696,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::create_vassal_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "create_vassal = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "create_vassal = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1718,7 +1718,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"create_vassal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"create_vassal effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1731,7 +1731,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::end_military_access_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "end_military_access = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "end_military_access = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1741,7 +1741,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::end_military_access_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "end_military_access = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "end_military_access = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1762,7 +1762,7 @@ struct effect_body {
 			}
 
 		} else {
-			err.accumulated_errors += "end_military_access effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "end_military_access effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1776,7 +1776,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::leave_alliance_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "leave_alliance = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "leave_alliance = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1786,7 +1786,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::leave_alliance_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "leave_alliance = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "leave_alliance = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1807,7 +1807,7 @@ struct effect_body {
 			}
 
 		} else {
-			err.accumulated_errors += "end_military_access effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "end_military_access effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1820,7 +1820,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::end_war_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "end_war = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "end_war = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1830,7 +1830,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::end_war_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "end_war = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "end_war = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -1852,7 +1852,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"end_war effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"end_war effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1881,7 +1881,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "ruling_party_ideology effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "ruling_party_ideology effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1892,7 +1892,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"plurality effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"plurality effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1919,7 +1919,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "remove_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "remove_province_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1937,7 +1937,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "remove_country_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "remove_country_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -1951,7 +1951,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::create_alliance_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "create_alliance = this effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "create_alliance = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1961,7 +1961,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::create_alliance_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "create_alliance = from effect used in an incorrect scope type (" + err.file_name +
+					err.accumulated_errors += "create_alliance = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																		", line " + std::to_string(line) + ")\n";
 					return;
 				}
@@ -1983,7 +1983,7 @@ struct effect_body {
 
 		} else {
 			err.accumulated_errors +=
-					"create_alliance effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"create_alliance effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1995,7 +1995,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2005,7 +2005,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2013,7 +2013,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2039,7 +2039,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_this_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2049,7 +2049,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2057,7 +2057,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::release_vassal_province_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "release_vassal = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 						std::to_string(line) + ")\n";
 					return;
 				}
@@ -2077,7 +2077,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "release_vassal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "release_vassal effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2086,7 +2086,7 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::province) {
 			context.compiled_effect.push_back(uint16_t(effect::change_province_name));
 		} else {
-			err.accumulated_errors += "change_province_name effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2116,7 +2116,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors +=
-						"nationalvalue effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"nationalvalue effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2133,7 +2133,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::civilized_no | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"civilized effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"civilized effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2142,7 +2142,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::election | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"election effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"election effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2158,7 +2158,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
-						"social_reform effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"social_reform effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2178,7 +2178,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::political_reform_province));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
-				err.accumulated_errors += "political_reform effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "political_reform effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2194,7 +2194,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::add_tax_relative_income));
 			context.add_float_to_payload(value);
 		} else {
-			err.accumulated_errors += "add_tax_relative_income effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_tax_relative_income effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2205,11 +2205,16 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::neutrality | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"neutrality effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"neutrality effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
 	void reduce_pop(association_type t, float value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(value < 0.f) {
+			err.accumulated_warnings +=
+				"reduce_pop effect with a negative value (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+		value = std::max(0.0f, value);
 		if(context.main_slot == trigger::slot_contents::pop) {
 			context.compiled_effect.push_back(uint16_t(effect::reduce_pop));
 			context.add_float_to_payload(value);
@@ -2224,7 +2229,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"reduce_pop effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"reduce_pop effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2240,7 +2245,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"move_pop effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"move_pop effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2252,7 +2257,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
 				err.accumulated_errors +=
-						"pop_type effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"pop_type effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2267,7 +2272,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"years_of_research effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"years_of_research effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2280,7 +2285,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"prestige_factor effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"prestige_factor effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2293,7 +2298,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
-						"military_reform effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"military_reform effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2311,7 +2316,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
-						"economic_reform effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"economic_reform effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2326,7 +2331,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::remove_random_military_reforms));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
-			err.accumulated_errors += "remove_random_military_reforms effect used in an incorrect scope type (" + err.file_name +
+			err.accumulated_errors += "remove_random_military_reforms effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																", line " + std::to_string(line) + ")\n";
 			return;
 		}
@@ -2337,7 +2342,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::remove_random_economic_reforms));
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
-			err.accumulated_errors += "remove_random_economic_reforms effect used in an incorrect scope type (" + err.file_name +
+			err.accumulated_errors += "remove_random_economic_reforms effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																", line " + std::to_string(line) + ")\n";
 			return;
 		}
@@ -2349,7 +2354,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors +=
-						"add_crime effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"add_crime effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "none")) {
@@ -2366,7 +2371,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::nationalize | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"nationalize effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"nationalize effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2378,7 +2383,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::build_factory_in_capital_state));
 				context.compiled_effect.push_back(trigger::payload(it->second).value);
 			} else {
-				err.accumulated_errors += "build_factory_in_capital_state effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "build_factory_in_capital_state effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -2396,7 +2401,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::activate_technology));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
-				err.accumulated_errors += "activate_technology effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "activate_technology effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2406,7 +2411,7 @@ struct effect_body {
 				context.compiled_effect.push_back(uint16_t(effect::activate_invention));
 				context.compiled_effect.push_back(trigger::payload(itb->second.id).value);
 			} else {
-				err.accumulated_errors += "activate_technology effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "activate_technology effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2438,7 +2443,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::assimilate_state | effect::no_payload));
 		} else {
 			err.accumulated_errors +=
-					"assimilate effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"assimilate effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2448,7 +2453,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"literacy effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"literacy effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2457,7 +2462,7 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			context.compiled_effect.push_back(uint16_t(effect::add_crisis_interest | effect::no_payload));
 		} else {
-			err.accumulated_errors += "add_crisis_interest effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_crisis_interest effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2470,7 +2475,7 @@ struct effect_body {
 			context.compiled_effect.push_back(uint16_t(effect::flashpoint_tension_province));
 			context.add_float_to_payload(value);
 		} else {
-			err.accumulated_errors += "flashpoint_tension effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "flashpoint_tension effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2495,7 +2500,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"consciousness effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"consciousness effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2514,7 +2519,7 @@ struct effect_body {
 			context.add_float_to_payload(value);
 		} else {
 			err.accumulated_errors +=
-					"militancy effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"militancy effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2524,7 +2529,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value)).value);
 		} else {
 			err.accumulated_errors +=
-					"rgo_size effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"rgo_size effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2551,7 +2556,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2569,7 +2574,7 @@ struct effect_body {
 				return;
 			}
 		} else {
-			err.accumulated_errors += "add_country_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_country_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2588,7 +2593,7 @@ struct effect_body {
 			context.compiled_effect.push_back(effect::trigger_revolt_province);
 		else {
 			err.accumulated_errors +=
-					"trigger_revolt effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"trigger_revolt effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(trigger::payload(value.type_).value);
@@ -2599,7 +2604,7 @@ struct effect_body {
 	void diplomatic_influence(ef_diplomatic_influence const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation && context.main_slot != trigger::slot_contents::province) {
-			err.accumulated_errors += "diplomatic_influence effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "diplomatic_influence effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2621,7 +2626,7 @@ struct effect_body {
 				}
 				context.compiled_effect.push_back(effect::diplomatic_influence_from_province);
 			} else {
-				err.accumulated_errors += "diplomatic_influence = from effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "diplomatic_influence = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -2644,7 +2649,7 @@ struct effect_body {
 				}
 				context.compiled_effect.push_back(effect::diplomatic_influence_this_province);
 			}  else {
-				err.accumulated_errors += "diplomatic_influence = this effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "diplomatic_influence = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -2683,7 +2688,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(effect::relation_from_province);
 				else {
-					err.accumulated_errors += "relation = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2694,7 +2699,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(effect::relation_this_province);
 				else {
-					err.accumulated_errors += "relation = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2703,7 +2708,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(effect::relation_reb);
 				else {
-					err.accumulated_errors += "relation = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2731,7 +2736,7 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(effect::relation_province_from_province);
 				else {
-					err.accumulated_errors += "relation = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2742,7 +2747,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(effect::relation_province_this_province);
 				else {
-					err.accumulated_errors += "relation = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2751,7 +2756,7 @@ struct effect_body {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(effect::relation_province_reb);
 				else {
-					err.accumulated_errors += "relation = reb effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "relation = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -2774,7 +2779,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"relation effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"relation effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2799,7 +2804,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
 			}
 		} else {
-			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "add_province_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2824,7 +2829,7 @@ struct effect_body {
 				context.compiled_effect.push_back(trigger::payload(int16_t(value.duration)).value);
 			}
 		} else {
-			err.accumulated_errors += "add_country_modifier effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "add_country_modifier effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2832,7 +2837,7 @@ struct effect_body {
 	void casus_belli(ef_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"casus_belli effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		if(is_from(value.target)) {
@@ -2841,7 +2846,7 @@ struct effect_body {
 			else if(context.from_slot == trigger::slot_contents::province)
 				context.compiled_effect.push_back(effect::casus_belli_from_province);
 			else {
-				err.accumulated_errors += "casus_belli = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "casus_belli = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2857,7 +2862,7 @@ struct effect_body {
 			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(effect::casus_belli_this_pop);
 			else {
-				err.accumulated_errors += "casus_belli = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "casus_belli = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2897,7 +2902,7 @@ struct effect_body {
 	void add_casus_belli(ef_add_casus_belli const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"add_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"add_casus_belli effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		if(is_from(value.target)) {
@@ -2906,7 +2911,7 @@ struct effect_body {
 			else if(context.from_slot == trigger::slot_contents::province)
 				context.compiled_effect.push_back(effect::add_casus_belli_from_province);
 			else {
-				err.accumulated_errors += "add_casus_belli = from effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "add_casus_belli = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2922,7 +2927,7 @@ struct effect_body {
 			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(effect::add_casus_belli_this_pop);
 			else {
-				err.accumulated_errors += "add_casus_belli = this effect used in an incorrect scope type (" + err.file_name + ", line " +
+				err.accumulated_errors += "add_casus_belli = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																	std::to_string(line) + ")\n";
 				return;
 			}
@@ -2962,7 +2967,7 @@ struct effect_body {
 	void remove_casus_belli(ef_remove_casus_belli const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -2972,7 +2977,7 @@ struct effect_body {
 			else if(context.from_slot == trigger::slot_contents::province)
 				context.compiled_effect.push_back(effect::remove_casus_belli_from_province);
 			else {
-				err.accumulated_errors += "remove_casus_belli = from effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "remove_casus_belli = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -2987,7 +2992,7 @@ struct effect_body {
 			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(effect::remove_casus_belli_this_pop);
 			else {
-				err.accumulated_errors += "remove_casus_belli = this effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "remove_casus_belli = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -3024,7 +3029,7 @@ struct effect_body {
 	void this_remove_casus_belli(ef_this_remove_casus_belli const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "remove_casus_belli effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -3034,7 +3039,7 @@ struct effect_body {
 			else if(context.from_slot == trigger::slot_contents::province)
 				context.compiled_effect.push_back(effect::this_remove_casus_belli_from_province);
 			else {
-				err.accumulated_errors += "this_remove_casus_belli = from effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "this_remove_casus_belli = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -3049,7 +3054,7 @@ struct effect_body {
 			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(effect::this_remove_casus_belli_this_pop);
 			else {
-				err.accumulated_errors += "this_remove_casus_belli = this effect used in an incorrect scope type (" + err.file_name +
+				err.accumulated_errors += "this_remove_casus_belli = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
 																	", line " + std::to_string(line) + ")\n";
 				return;
 			}
@@ -3086,7 +3091,7 @@ struct effect_body {
 	void war(ef_war const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"war effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"war effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		if(is_from(value.target)) {
@@ -3096,7 +3101,7 @@ struct effect_body {
 				context.compiled_effect.push_back(value.call_ally ? effect::war_from_province : effect::war_no_ally_from_province);
 			else {
 				err.accumulated_errors +=
-						"war = from effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"war = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else if(is_this(value.target)) {
@@ -3110,7 +3115,7 @@ struct effect_body {
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_pop : effect::war_no_ally_this_pop);
 			else {
 				err.accumulated_errors +=
-						"war = this effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"war = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else if(value.target.length() == 3) {
@@ -3151,7 +3156,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_pop));
 				else {
 					err.accumulated_errors +=
-							"country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+							"country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 				context.compiled_effect.push_back(trigger::payload(value.id_).value);
@@ -3166,7 +3171,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::country_event_this_pop));
 				else {
 					err.accumulated_errors +=
-							"country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+							"country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 				context.compiled_effect.push_back(trigger::payload(value.id_).value);
@@ -3184,7 +3189,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_pop));
 				else {
 					err.accumulated_errors +=
-							"country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+							"country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 				context.compiled_effect.push_back(trigger::payload(value.id_).value);
@@ -3199,7 +3204,7 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::country_event_province_this_pop));
 				else {
 					err.accumulated_errors +=
-							"country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+							"country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 				context.compiled_effect.push_back(trigger::payload(value.id_).value);
@@ -3207,7 +3212,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"country_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -3223,7 +3228,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_pop));
 				else {
-					err.accumulated_errors += "province_event effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -3238,7 +3243,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::province_event_this_pop));
 				else {
-					err.accumulated_errors += "province_event effect used in an incorrect scope type (" + err.file_name + ", line " +
+					err.accumulated_errors += "province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																		std::to_string(line) + ")\n";
 					return;
 				}
@@ -3247,7 +3252,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"province_event effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -3256,7 +3261,7 @@ struct effect_body {
 		if(is_this(value.value)) {
 			if(context.main_slot != trigger::slot_contents::nation || context.this_slot != trigger::slot_contents::province) {
 				err.accumulated_errors +=
-						"sub_unit effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"sub_unit effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_effect.push_back(effect::sub_unit_this);
@@ -3264,7 +3269,7 @@ struct effect_body {
 		} else if(is_from(value.value)) {
 			if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::province) {
 				err.accumulated_errors +=
-						"sub_unit effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"sub_unit effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_effect.push_back(effect::sub_unit_from);
@@ -3272,7 +3277,7 @@ struct effect_body {
 		} else if(is_fixed_token_ci(value.value.data(), value.value.data() + value.value.length(), "current")) {
 			if(context.main_slot != trigger::slot_contents::province) {
 				err.accumulated_errors +=
-						"sub_unit effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+						"sub_unit effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 			context.compiled_effect.push_back(effect::sub_unit_current);
@@ -3294,7 +3299,7 @@ struct effect_body {
 	void set_variable(ef_set_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"set_variable effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"set_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::set_variable);
@@ -3304,7 +3309,7 @@ struct effect_body {
 	void change_variable(ef_change_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"change_variable effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::change_variable);
@@ -3314,7 +3319,7 @@ struct effect_body {
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors +=
-					"ideology effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"ideology effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::ideology);
@@ -3332,14 +3337,14 @@ struct effect_body {
 			context.add_float_to_payload(value.factor);
 		} else {
 			err.accumulated_errors +=
-					"dominant_issue effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"dominant_issue effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
 	void upper_house(ef_upper_house const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"upper_house effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"upper_house effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::upper_house);
@@ -3401,7 +3406,7 @@ struct effect_body {
 			}
 		} else {
 			err.accumulated_errors +=
-					"scaled_militancy effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"scaled_militancy effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -3459,7 +3464,7 @@ struct effect_body {
 				context.add_float_to_payload(value.factor * value.unemployment);
 			}
 		} else {
-			err.accumulated_errors += "scaled_consciousness effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "scaled_consciousness effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -3470,7 +3475,7 @@ struct effect_body {
 	void add_war_goal(ef_add_war_goal const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation || context.from_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"add_war_goal effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"add_war_goal effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::add_war_goal);
@@ -3487,7 +3492,7 @@ struct effect_body {
 		else if(context.main_slot == trigger::slot_contents::pop)
 			context.compiled_effect.push_back(effect::move_issue_percentage_pop);
 		else {
-			err.accumulated_errors += "move_issue_percentage effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "move_issue_percentage effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -3507,14 +3512,14 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(int16_t(value.loyalty_value)).value);
 		} else {
 			err.accumulated_errors +=
-					"party_loyalty effect used in an incorrect scope type (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"party_loyalty effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
 	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "build_railway_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "build_railway_in_capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}
@@ -3531,7 +3536,7 @@ struct effect_body {
 	void build_bank_in_capital(ef_build_bank_in_capital const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "build_bank_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "build_bank_in_capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 				std::to_string(line) + ")\n";
 			return;
 		}
@@ -3548,7 +3553,7 @@ struct effect_body {
 	void build_university_in_capital(ef_build_university_in_capital const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "build_university_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "build_university_in_capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 				std::to_string(line) + ")\n";
 			return;
 		}
@@ -3565,7 +3570,7 @@ struct effect_body {
 	void build_fort_in_capital(ef_build_fort_in_capital const& value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
-			err.accumulated_errors += "build_fort_in_capital effect used in an incorrect scope type (" + err.file_name + ", line " +
+			err.accumulated_errors += "build_fort_in_capital effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
 																std::to_string(line) + ")\n";
 			return;
 		}

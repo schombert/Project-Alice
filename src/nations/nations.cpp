@@ -1309,8 +1309,9 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	state.national_definitions.gc_pending = true;
 	state.diplomatic_cached_values_out_of_date = true; // refresh stored counts of allies, vassals, etc
 
-	if(n == state.local_player_nation) { // TODO: player defeated; notify and end game
-		state.local_player_nation = dcon::nation_id{};
+	if(n == state.local_player_nation) {
+		// Player was defeated, show end screen
+		state.mode = sys::game_mode_type::end_screen;
 	}
 }
 
@@ -2672,6 +2673,8 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 	if(state.world.nation_get_owned_province_count(great_power) == 0 || state.world.nation_get_owned_province_count(target) == 0)
 		return;
 	if(great_power == target)
+		return;
+	if(state.world.nation_get_is_great_power(target) || !state.world.nation_get_is_great_power(great_power))
 		return;
 
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, great_power);

@@ -35,7 +35,7 @@ std::vector<uint32_t> infrastructure_map_from(sys::state& state) {
 			}
 
 		} else {
-			color = sys::pack_color(232, 228, 111); // yellow
+			color = sys::pack_color(222, 7, 46); // red
 		}
 		auto i = province::to_map_id(prov_id);
 

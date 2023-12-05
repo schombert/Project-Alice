@@ -192,7 +192,7 @@ void create_opengl_context() {
 
 	wglMakeCurrent(window_dc, HGLRC(opengl_context));
 	wglDeleteContext(handle_to_ogl_dc);
-	
+
 	if(wglewIsSupported("WGL_EXT_swap_control_tear") == 1) {
 		wglSwapIntervalEXT(-1);
 	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
@@ -301,7 +301,7 @@ bool nth_item_can_move_down(int32_t n) {
 		return false;
 	if(mod_list[n + 1].mod_selected == false)
 		return false;
-	if(transitively_depends_on(mod_list[n+1], mod_list[n]))
+	if(transitively_depends_on(mod_list[n + 1], mod_list[n]))
 		return false;
 
 	return true;
@@ -347,7 +347,7 @@ void make_mod_file() {
 
 		auto time_stamp = uint64_t(std::time(0));
 		auto base_name = to_hex(time_stamp);
-		while(simple_fs::peek_file(sdir, base_name + NATIVE("-")  + std::to_wstring(append) + NATIVE(".bin"))) {
+		while(simple_fs::peek_file(sdir, base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin"))) {
 			++append;
 		}
 
@@ -382,7 +382,7 @@ void make_mod_file() {
 					scenario_files.push_back(scenario_file{ selected_scenario_file , desc });
 				}
 			}
-			
+
 
 			std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
 				return a.ident.count > b.ident.count;
@@ -419,77 +419,77 @@ void mouse_click() {
 		return;
 
 	switch(obj_under_mouse) {
-		case ui_obj_close:
-			PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
-			return;
-		case ui_obj_list_left :
-			if(frame_in_list > 0) {
-				--frame_in_list;
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-			}
-			return;
-		case ui_obj_list_right:
-			if((frame_in_list + 1) * ui_list_count < int32_t(mod_list.size())) {
-				++frame_in_list;
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-			}
-			return;
-		case ui_obj_create_scenario:
-			if(file_is_ready.load(std::memory_order::memory_order_acquire)) {
-				make_mod_file();
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-			}
-			return;
-		case ui_obj_play_game:
-		case ui_obj_host_game:
-		case ui_obj_join_game:
-			if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-				native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
-				if(obj_under_mouse == ui_obj_host_game) {
-					temp_command_line += NATIVE(" -host");
-					temp_command_line += NATIVE(" -name ");
-					temp_command_line += simple_fs::utf8_to_native(player_name);
-				} else if(obj_under_mouse == ui_obj_join_game) {
-					temp_command_line += NATIVE(" -join");
-					temp_command_line += NATIVE(" ");
-					temp_command_line += simple_fs::utf8_to_native(ip_addr);
-					temp_command_line += NATIVE(" -name ");
-					temp_command_line += simple_fs::utf8_to_native(player_name);
+	case ui_obj_close:
+		PostMessageW(m_hwnd, WM_CLOSE, 0, 0);
+		return;
+	case ui_obj_list_left:
+		if(frame_in_list > 0) {
+			--frame_in_list;
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
+		return;
+	case ui_obj_list_right:
+		if((frame_in_list + 1) * ui_list_count < int32_t(mod_list.size())) {
+			++frame_in_list;
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
+		return;
+	case ui_obj_create_scenario:
+		if(file_is_ready.load(std::memory_order::memory_order_acquire)) {
+			make_mod_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+		}
+		return;
+	case ui_obj_play_game:
+	case ui_obj_host_game:
+	case ui_obj_join_game:
+		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+			native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
+			if(obj_under_mouse == ui_obj_host_game) {
+				temp_command_line += NATIVE(" -host");
+				temp_command_line += NATIVE(" -name ");
+				temp_command_line += simple_fs::utf8_to_native(player_name);
+			} else if(obj_under_mouse == ui_obj_join_game) {
+				temp_command_line += NATIVE(" -join");
+				temp_command_line += NATIVE(" ");
+				temp_command_line += simple_fs::utf8_to_native(ip_addr);
+				temp_command_line += NATIVE(" -name ");
+				temp_command_line += simple_fs::utf8_to_native(player_name);
 
-					// IPv6 address
-					if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
-						temp_command_line += NATIVE(" -v6");
-					}
+				// IPv6 address
+				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
+					temp_command_line += NATIVE(" -v6");
 				}
-
-				STARTUPINFO si;
-				ZeroMemory(&si, sizeof(si));
-				si.cb = sizeof(si);
-				PROCESS_INFORMATION pi;
-				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process. 
-				if(CreateProcessW(
-					nullptr,   // Module name
-					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
-					nullptr, // Process handle not inheritable
-					nullptr, // Thread handle not inheritable
-					FALSE, // Set handle inheritance to FALSE
-					0, // No creation flags
-					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory 
-					&si, // Pointer to STARTUPINFO structure
-					&pi) != 0) {
-
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
-				}
-				
-
-				// ready to launch
 			}
-			return;
-		default:
-			break;
+
+			STARTUPINFO si;
+			ZeroMemory(&si, sizeof(si));
+			si.cb = sizeof(si);
+			PROCESS_INFORMATION pi;
+			ZeroMemory(&pi, sizeof(pi));
+			// Start the child process. 
+			if(CreateProcessW(
+				nullptr,   // Module name
+				const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+				nullptr, // Process handle not inheritable
+				nullptr, // Thread handle not inheritable
+				FALSE, // Set handle inheritance to FALSE
+				0, // No creation flags
+				nullptr, // Use parent's environment block
+				nullptr, // Use parent's starting directory 
+				&si, // Pointer to STARTUPINFO structure
+				&pi) != 0) {
+
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+			}
+
+
+			// ready to launch
+		}
+		return;
+	default:
+		break;
 	}
 
 	if(!file_is_ready.load(std::memory_order::memory_order_acquire))
@@ -499,44 +499,44 @@ void mouse_click() {
 	int32_t sub_obj = (obj_under_mouse - ui_list_first) - list_position * 3;
 
 	switch(sub_obj) {
-		case ui_list_checkbox:
-		{
-			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
-			if(list_offset < int32_t(launcher::mod_list.size())) {
-				launcher::mod_list[list_offset].mod_selected = !launcher::mod_list[list_offset].mod_selected;
-				if(!launcher::mod_list[list_offset].mod_selected) {
-					recursively_remove_from_list(launcher::mod_list[list_offset]);
-				} else {
-					recursively_add_to_list(launcher::mod_list[list_offset]);
-				}
-				enforce_list_order();
-				find_scenario_file();
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+	case ui_list_checkbox:
+	{
+		int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+		if(list_offset < int32_t(launcher::mod_list.size())) {
+			launcher::mod_list[list_offset].mod_selected = !launcher::mod_list[list_offset].mod_selected;
+			if(!launcher::mod_list[list_offset].mod_selected) {
+				recursively_remove_from_list(launcher::mod_list[list_offset]);
+			} else {
+				recursively_add_to_list(launcher::mod_list[list_offset]);
 			}
-			return;
+			enforce_list_order();
+			find_scenario_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 		}
-		case ui_list_move_up:
-		{
-			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
-			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_up(list_offset)) {
-				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset - 1]);
-				find_scenario_file();
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-			}
-			return;
+		return;
+	}
+	case ui_list_move_up:
+	{
+		int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+		if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_up(list_offset)) {
+			std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset - 1]);
+			find_scenario_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 		}
-		case ui_list_move_down:
-		{
-			int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
-			if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_down(list_offset)) {
-				std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset + 1]);
-				find_scenario_file();
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-			}
-			return;
+		return;
+	}
+	case ui_list_move_down:
+	{
+		int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count + list_position;
+		if(launcher::mod_list[list_offset].mod_selected && nth_item_can_move_down(list_offset)) {
+			std::swap(launcher::mod_list[list_offset], launcher::mod_list[list_offset + 1]);
+			find_scenario_file();
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 		}
-		default:
-			break;
+		return;
+	}
+	default:
+		break;
 	}
 }
 
@@ -737,38 +737,38 @@ struct color3f {
 
 inline auto map_color_modification_to_index(color_modification e) {
 	switch(e) {
-		case color_modification::disabled:
-			return parameters::disabled;
-		case color_modification::interactable:
-			return parameters::interactable;
-		case color_modification::interactable_disabled:
-			return parameters::interactable_disabled;
-		default:
-		case color_modification::none:
-			return parameters::enabled;
+	case color_modification::disabled:
+		return parameters::disabled;
+	case color_modification::interactable:
+		return parameters::interactable;
+	case color_modification::interactable_disabled:
+		return parameters::interactable_disabled;
+	default:
+	case color_modification::none:
+		return parameters::enabled;
 	}
 }
 
 void bind_vertices_by_rotation(ui::rotation r, bool flipped) {
 	switch(r) {
-		case ui::rotation::upright:
-			if(!flipped)
-				glBindVertexBuffer(0, global_square_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
-		case ui::rotation::r90_left:
-			if(!flipped)
-				glBindVertexBuffer(0, global_square_left_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
-		case ui::rotation::r90_right:
-			if(!flipped)
-				glBindVertexBuffer(0, global_square_right_buffer, 0, sizeof(GLfloat) * 4);
-			else
-				glBindVertexBuffer(0, global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
-			break;
+	case ui::rotation::upright:
+		if(!flipped)
+			glBindVertexBuffer(0, global_square_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
+	case ui::rotation::r90_left:
+		if(!flipped)
+			glBindVertexBuffer(0, global_square_left_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
+	case ui::rotation::r90_right:
+		if(!flipped)
+			glBindVertexBuffer(0, global_square_right_buffer, 0, sizeof(GLfloat) * 4);
+		else
+			glBindVertexBuffer(0, global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+		break;
 	}
 }
 
@@ -875,6 +875,7 @@ void render() {
 	glUseProgram(ui_shader_program);
 	glUniform1f(ogl::parameters::screen_width, float(base_width));
 	glUniform1f(ogl::parameters::screen_height, float(base_height));
+	glUniform1f(11, 1.f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -952,7 +953,7 @@ void render() {
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-		
+
 	}
 
 	{
@@ -1057,7 +1058,7 @@ void render() {
 	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
 	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
-	
+
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
 	for(int32_t i = 0; i < ui_list_count && list_offset + i < int32_t(mod_list.size()); ++i) {
@@ -1210,7 +1211,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
 				if(desc.count != 0) {
 					max_scenario_count = std::max(desc.count, max_scenario_count);
-					scenario_files.push_back(scenario_file{simple_fs::get_file_name(f) , desc });
+					scenario_files.push_back(scenario_file{ simple_fs::get_file_name(f) , desc });
 				}
 			}
 		}
@@ -1224,138 +1225,138 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 1;
 	} else {
 		switch(message) {
-			case WM_DPICHANGED:
-			{
-				dpi = float(HIWORD(wParam));
-				auto lprcNewScale = reinterpret_cast<RECT*>(lParam);
+		case WM_DPICHANGED:
+		{
+			dpi = float(HIWORD(wParam));
+			auto lprcNewScale = reinterpret_cast<RECT*>(lParam);
 
 
-				scaling_factor = float(lprcNewScale->right - lprcNewScale->left) / base_width;
+			scaling_factor = float(lprcNewScale->right - lprcNewScale->left) / base_width;
 
-				SetWindowPos(hwnd, nullptr, lprcNewScale->left, lprcNewScale->top,
-					lprcNewScale->right - lprcNewScale->left, lprcNewScale->bottom - lprcNewScale->top,
-					SWP_NOZORDER | SWP_NOACTIVATE);
+			SetWindowPos(hwnd, nullptr, lprcNewScale->left, lprcNewScale->top,
+				lprcNewScale->right - lprcNewScale->left, lprcNewScale->bottom - lprcNewScale->top,
+				SWP_NOZORDER | SWP_NOACTIVATE);
 
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+
+			break;
+		}
+		case WM_NCMOUSEMOVE:
+		{
+			RECT rcWindow;
+			GetWindowRect(hwnd, &rcWindow);
+			auto x = GET_X_LPARAM(lParam);
+			auto y = GET_Y_LPARAM(lParam);
+
+			POINTS adj{ SHORT(x - rcWindow.left), SHORT(y - rcWindow.top) };
+			memcpy(&lParam, &adj, sizeof(LPARAM));
+
+			mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
+			mouse_y = int32_t(float(GET_Y_LPARAM(lParam)) / scaling_factor);
+			if(update_under_mouse()) {
 				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-
-				break;
 			}
-			case WM_NCMOUSEMOVE:
-			{
-				RECT rcWindow;
-				GetWindowRect(hwnd, &rcWindow);
-				auto x = GET_X_LPARAM(lParam);
-				auto y = GET_Y_LPARAM(lParam);
-
-				POINTS adj{ SHORT(x - rcWindow.left), SHORT(y - rcWindow.top) };
-				memcpy(&lParam, &adj, sizeof(LPARAM));
-
-				mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
-				mouse_y = int32_t(float(GET_Y_LPARAM(lParam)) / scaling_factor);
-				if(update_under_mouse()) {
-					InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-				}
+			return 0;
+		}
+		case WM_MOUSEMOVE:
+		{
+			mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
+			mouse_y = int32_t(float(GET_Y_LPARAM(lParam)) / scaling_factor);
+			if(update_under_mouse()) {
+				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			}
+			return 0;
+		}
+		case WM_LBUTTONDOWN:
+		{
+			mouse_click();
+			return 0;
+		}
+		case WM_NCCALCSIZE:
+			if(wParam == TRUE)
 				return 0;
-			}
-			case WM_MOUSEMOVE:
-			{
-				mouse_x = int32_t(float(GET_X_LPARAM(lParam)) / scaling_factor);
-				mouse_y = int32_t(float(GET_Y_LPARAM(lParam)) / scaling_factor);
-				if(update_under_mouse()) {
-					InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-				}
-				return 0;
-			}
-			case WM_LBUTTONDOWN:
-			{
-				mouse_click();
-				return 0;
-			}
-			case WM_NCCALCSIZE:
-				if(wParam == TRUE)
-					return 0;
-				break;
-			case WM_NCHITTEST:
-			{
-				POINT ptMouse = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-				RECT rcWindow;
-				GetWindowRect(hwnd, &rcWindow);
+			break;
+		case WM_NCHITTEST:
+		{
+			POINT ptMouse = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			RECT rcWindow;
+			GetWindowRect(hwnd, &rcWindow);
 
-				if(ptMouse.x <= int32_t(rcWindow.left + caption_width * scaling_factor)
-					&& ptMouse.y <= int32_t(rcWindow.top + caption_height * scaling_factor)) {
+			if(ptMouse.x <= int32_t(rcWindow.left + caption_width * scaling_factor)
+				&& ptMouse.y <= int32_t(rcWindow.top + caption_height * scaling_factor)) {
 
-					return HTCAPTION;
-				} else {
-					return HTCLIENT;
-				}
+				return HTCAPTION;
+			} else {
+				return HTCLIENT;
 			}
-			case WM_PAINT:
-			case WM_DISPLAYCHANGE:
-			{
-				PAINTSTRUCT ps;
-				BeginPaint(hwnd, &ps);
+		}
+		case WM_PAINT:
+		case WM_DISPLAYCHANGE:
+		{
+			PAINTSTRUCT ps;
+			BeginPaint(hwnd, &ps);
 
-				render();
+			render();
 
-				EndPaint(hwnd, &ps);
-				return 0;
-			}
-			case WM_DESTROY:
-				PostQuitMessage(0);
-				return 1;
-			case WM_KEYDOWN:
-				if(GetKeyState(VK_CONTROL) & 0x8000) {
-					if(wParam == L'v' || wParam == L'V') {
-						if(!IsClipboardFormatAvailable(CF_TEXT))
-							return 0;
-						if(!OpenClipboard(m_hwnd))
-							return 0;
+			EndPaint(hwnd, &ps);
+			return 0;
+		}
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 1;
+		case WM_KEYDOWN:
+			if(GetKeyState(VK_CONTROL) & 0x8000) {
+				if(wParam == L'v' || wParam == L'V') {
+					if(!IsClipboardFormatAvailable(CF_TEXT))
+						return 0;
+					if(!OpenClipboard(m_hwnd))
+						return 0;
 
-						auto hglb = GetClipboardData(CF_TEXT);
-						if(hglb != nullptr) {
-							auto lptstr = GlobalLock(hglb);
-							if(lptstr != nullptr) {
-								std::string cb_data((char*)lptstr);
-								while(cb_data.length() > 0 && isspace(cb_data.back())) {
-									cb_data.pop_back();
-								}
-								ip_addr = cb_data;
-								GlobalUnlock(hglb);
+					auto hglb = GetClipboardData(CF_TEXT);
+					if(hglb != nullptr) {
+						auto lptstr = GlobalLock(hglb);
+						if(lptstr != nullptr) {
+							std::string cb_data((char*)lptstr);
+							while(cb_data.length() > 0 && isspace(cb_data.back())) {
+								cb_data.pop_back();
 							}
-						}
-						CloseClipboard();
-					}
-				}
-				return 0;
-			case WM_CHAR:
-			{
-				if(GetKeyState(VK_CONTROL) & 0x8000) {
-
-				} else {
-					char turned_into = process_utf16_to_win1250(wParam);
-					if(turned_into) {
-						if(obj_under_mouse == ui_obj_ip_addr) {
-							if(turned_into == '\b') {
-								if(!ip_addr.empty())
-									ip_addr.pop_back();
-							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
-								ip_addr.push_back(turned_into);
-							}
-						} else if(obj_under_mouse == ui_obj_player_name) {
-							if(turned_into == '\b') {
-								if(!player_name.empty())
-									player_name.pop_back();
-							} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
-								player_name.push_back(turned_into);
-							}
+							ip_addr = cb_data;
+							GlobalUnlock(hglb);
 						}
 					}
+					CloseClipboard();
 				}
-				InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
-				return 0;
 			}
-			default:
-				break;
+			return 0;
+		case WM_CHAR:
+		{
+			if(GetKeyState(VK_CONTROL) & 0x8000) {
+
+			} else {
+				char turned_into = process_utf16_to_win1250(wParam);
+				if(turned_into) {
+					if(obj_under_mouse == ui_obj_ip_addr) {
+						if(turned_into == '\b') {
+							if(!ip_addr.empty())
+								ip_addr.pop_back();
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+							ip_addr.push_back(turned_into);
+						}
+					} else if(obj_under_mouse == ui_obj_player_name) {
+						if(turned_into == '\b') {
+							if(!player_name.empty())
+								player_name.pop_back();
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+							player_name.push_back(turned_into);
+						}
+					}
+				}
+			}
+			InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
+			return 0;
+		}
+		default:
+			break;
 
 		}
 		return DefWindowProc(hwnd, message, wParam, lParam);

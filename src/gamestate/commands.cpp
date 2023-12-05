@@ -1221,6 +1221,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 	state.world.gp_relationship_get_influence(rel) -= state.defines.banembassy_influence_cost;
 	nations::adjust_relationship(state, source, affected_gp, state.defines.banembassy_relation_on_accept);
 	state.world.gp_relationship_get_status(orel) |= nations::influence::is_banned;
+	state.world.gp_relationship_set_influence(orel, 0.0f);
 	state.world.gp_relationship_set_penalty_expires_date(orel, state.current_date + int32_t(state.defines.banembassy_days));
 
 	notification::post(state, notification::message{
@@ -4619,6 +4620,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_change_money:
 	case command_type::c_westernize:
 	case command_type::c_unwesternize:
+	case command_type::c_change_controller:
+	case command_type::c_change_owner:
 	case command_type::c_change_research_points:
 	case command_type::c_change_cb_progress:
 	case command_type::c_change_infamy:
@@ -4986,6 +4989,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_unwesternize:
 		execute_c_unwesternize(state, c.source);
+		break;
+	case command_type::c_change_owner:
+		execute_c_change_owner(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
+		break;
+	case command_type::c_change_controller:
+		execute_c_change_controller(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
 		break;
 	case command_type::c_change_research_points:
 		execute_c_change_research_points(state, c.source, c.data.cheat.value);

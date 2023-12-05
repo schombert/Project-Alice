@@ -2256,7 +2256,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 10000 }
+	size{ 20000 }
 	tag{ save }
 
 	property{
@@ -2367,6 +2367,11 @@ object {
 	property{
 		name{ over_state }
 		type{ state_definition_id }
+		tag{ save }
+	}
+	property{
+		name{ original_target }
+		type{ nation_id }
 		tag{ save }
 	}
 	property{

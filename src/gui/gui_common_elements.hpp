@@ -918,7 +918,7 @@ public:
 	}
 };
 
-class national_tech_school : public simple_body_text {
+class national_tech_school : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
@@ -957,22 +957,27 @@ public:
 	}
 };
 
-class standard_nation_progress_bar : public progress_bar {
-public:
-	virtual float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept {
-		return 0.f;
-	}
 
+class nation_westernization_progress_bar : public progress_bar {
+public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-		progress = get_progress(state, nation_id);
+		progress = state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
 	}
-};
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 
-class nation_westernization_progress_bar : public standard_nation_progress_bar {
-public:
-	float get_progress(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier);
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "modifier_civilization_progress");
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::civilization_progress_modifier) }, text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
+		active_modifiers_description(state, contents, nation_id, 15, sys::national_mod_offsets::civilization_progress_modifier, false);
 	}
 };
 
@@ -1321,6 +1326,41 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::prettify(int32_t(province::rgo_employment(state, province_id))));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto rgo_max = economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(p), p) * state.world.province_get_rgo_production_scale(p);
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
+		float worker_pool = 0.0f;
+		for(auto wt : state.culture_definitions.rgo_workers) {
+			worker_pool += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+		}
+		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+		float labor_pool = worker_pool + slave_pool;
+		
+		text::add_line(state, contents, "provinceview_employment", text::variable_type::value, int64_t(std::min(rgo_max, labor_pool)));
+		text::add_line_break_to_layout(state, contents);
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "base_rgo_size");
+			text::add_to_layout_box(state, contents, box, int64_t(economy::rgo_per_size_employment * state.world.province_get_rgo_size(p)));
+			text::close_layout_box(contents, box);
+		}
+
+		if(is_mine) {
+			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
+			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, false);
+		} else {
+			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, false);
+			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, false);
+		}
 	}
 };
 

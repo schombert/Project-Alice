@@ -202,7 +202,7 @@ void restore_cached_values(sys::state& state) {
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_owned_state_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_is_colonial_nation(ids, ve::mask_vector()); });
 
-	// need to set owner cores first becasue capital selection depends on them
+	// need to set owner cores first because capital selection depends on them
 
 	for(int32_t i = 0; i < state.province_definitions.first_sea_province.index(); ++i) {
 		dcon::province_id pid{dcon::province_id::value_base_t(i)};
@@ -826,7 +826,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					}
 				}
 				p.get_pop().set_is_primary_or_accepted_culture(false);
-			}();
+				}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {
@@ -845,25 +845,23 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	static std::vector<dcon::regiment_id> regs;
-	regs.clear();
 	for(auto p : state.world.province_get_pop_location(id)) {
 		rebel::remove_pop_from_movement(state, p.get_pop());
 		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
 
-		for(auto r : p.get_pop().get_regiment_source()) {
-			regs.push_back(r.get_regiment().id);
+		{
+			auto rng = p.get_pop().get_regiment_source();
+			while(rng.begin() != rng.end()) {
+				state.world.delete_regiment_source(*(rng.begin()));
+			}
 		}
-		
+
 		{
 			auto rng = p.get_pop().get_province_land_construction();
 			while(rng.begin() != rng.end()) {
 				state.world.delete_province_land_construction(*(rng.begin()));
 			}
 		}
-	}
-	for(auto r : regs) {
-		state.world.delete_regiment(r);
 	}
 
 	state.world.province_set_nation_from_province_ownership(id, new_owner);
