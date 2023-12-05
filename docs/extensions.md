@@ -39,3 +39,23 @@ To use a scripted trigger simply add `test = name_of_condition` in a trigger whe
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
+
+### Variable effect commands syntax
+
+Usually, we use `change_variable` to "add" to a variable, and `check_variable` to "check" the contents of a variable, this can be confusing for modders, as such we added the following:
+```sh
+set_variable = {
+	which = varname
+	value = 100
+}
+```
+
+Can now be simply written as: `set_variable = { varname 100 }`
+
+Additionally, the following contractions are also supported:
+
+```sh
+change_variable = { varname 1000 }
+add_variable = { varname 100 } #same as above
+sub_variable = { varname 100 } #equivalent to "add_variable = { varname -100 }"
+```
