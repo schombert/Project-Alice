@@ -120,6 +120,13 @@ void set_map_mode(sys::state& state, mode mode) {
 		if(state.ui_state.map_rank_legend)
 			state.ui_state.map_rank_legend->set_visible(state, false);
 	}
+	if(mode == mode::recruitment) {
+		if(state.ui_state.map_rec_legend)
+			state.ui_state.map_rec_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rec_legend)
+			state.ui_state.map_rec_legend->set_visible(state, false);
+	}
 
 	switch(mode) {
 	case mode::state_select:

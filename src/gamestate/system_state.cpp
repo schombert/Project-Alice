@@ -1779,6 +1779,11 @@ void state::on_create() {
 		ui_state.map_rank_legend = legend_win.get();
 		ui_state.root->add_child_to_front(std::move(legend_win));
 	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rec>(*this, "alice_map_legend_rec");
+		ui_state.map_rec_legend = legend_win.get();
+		ui_state.root->add_child_to_front(std::move(legend_win));
+	}
 
 	{ // One on the lobby
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");

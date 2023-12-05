@@ -1337,4 +1337,7 @@ aml_rank_s1;Great
 aml_rank_s2;Secondary
 aml_rank_s3;Civ
 aml_rank_s4;Unciv
+aml_rec_s1;Available
+aml_rec_s2;All used
+aml_rec_s3;None
 ;;;;;;;;;;;;;x

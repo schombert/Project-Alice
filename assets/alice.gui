@@ -2759,6 +2759,68 @@ guiTypes = {
 	# 4th col: icon x = 458, text x = 486, size x = 614 (+150)
 	
 	windowType = {
+		name = "alice_map_legend_rec"
+		position = { 0 0 }
+		size = { 314 54 }
+		Orientation = UPPER_LEFT
+		
+		iconType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 314 54 }
+			spriteType = "console_background"
+		}
+		iconType = {
+			name = "s1_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s1_label"
+			text = "aml_rec_s1"
+			position = { 36 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s2_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 158 8 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s2_label"
+			text = "aml_rec_s2"
+			position = { 186 9 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		iconType = {
+			name = "s3_ico"
+			spriteType = "GFX_alice_white_rectangle"
+			position = { 8 28 }
+			Orientation = "UPPER_LEFT"
+		}
+		instantTextBoxType = {
+			name = "s3_label"
+			text = "aml_rec_s3"
+			position = { 36 29 }
+			font = "Arial16"
+			borderSize = { 0 0 }
+			maxsize = { 120 16 }
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	windowType = {
 		name = "alice_map_legend_rank"
 		position = { 0 0 }
 		size = { 314 54 }
