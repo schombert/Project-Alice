@@ -45,10 +45,11 @@ Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = {
 This is an extension that allows you to use CSV files instead of scripting pops manually, this allowing you to edit the pop files on a spreadsheet program, for example:
 
 ```
-825;100;albanian;orthodox;clergymen;
-825;150;albanian;orthodox;aristocrats;
-825;744;albanian;orthodox;capitalists;
-825;4019578;albanian;orthodox;farmers;
+province-id;size;culture;religion;pop-type;rebel-faction(optional)
+825;100;albanian;orthodox;clergymen;jacobin
+825;150;albanian;orthodox;aristocrats;jacobin
+825;744;albanian;orthodox;capitalists;jacobin
+825;4019578;albanian;orthodox;farmers;jacobin
 ...
 ```
 
