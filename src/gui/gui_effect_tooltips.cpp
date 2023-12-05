@@ -209,10 +209,16 @@ uint32_t es_generic_scope(EFFECT_DISPLAY_PARAMS) {
 }
 
 uint32_t es_if_scope(EFFECT_DISPLAY_PARAMS) {
-	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_if"));
+	text::close_layout_box(layout, box);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
 }
 uint32_t es_else_if_scope(EFFECT_DISPLAY_PARAMS) {
-	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_else_if"));
+	text::close_layout_box(layout, box);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
 }
 
 inline auto random_or_every(uint16_t tval) {
