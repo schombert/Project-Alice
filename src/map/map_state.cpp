@@ -363,15 +363,9 @@ void map_state::update(sys::state& state) {
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 
-	if(pgup_key_down) {
-		zoom_change += 0.1f;
-	}
-	if(pgdn_key_down) {
-		zoom_change -= 0.1f;
-	}
-
 	glm::vec2 mouse_pos{ state.mouse_x_position, state.mouse_y_position };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
+	glm::vec2 screen_center = screen_size / 2.f;
 	auto view_mode = state.user_settings.map_is_globe ? map_view::globe : map_view::flat;
 	glm::vec2 pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
@@ -384,6 +378,27 @@ void map_state::update(sys::state& state) {
 	glm::vec2 pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
 		pos += pos_before_zoom - pos_after_zoom;
+	}
+
+	static float keyboard_zoom_change = 0.f;
+	if(pgup_key_down) {
+		keyboard_zoom_change += 0.1f;
+	}
+	if(pgdn_key_down) {
+		keyboard_zoom_change -= 0.1f;
+	}
+
+	glm::vec2 pos_before_keyboard_zoom;
+	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
+
+	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
+	zoom += keyboard_zoom_diff;
+	keyboard_zoom_change *= std::exp(-seconds_since_last_update * 20);
+	zoom = glm::clamp(zoom, min_zoom, max_zoom);
+
+	glm::vec2 pos_after_keyboard_zoom;
+	if(valid_pos && screen_to_map(screen_center, screen_size, view_mode, pos_after_keyboard_zoom)) {
+		pos += pos_before_keyboard_zoom - pos_after_keyboard_zoom;
 	}
 
 
