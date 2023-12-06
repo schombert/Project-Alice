@@ -59,35 +59,38 @@ Additionally, the order of execution for `if` and `else`/`else_if` statments all
 
 ```
 if = {
-  limit = { a = yes }
-  money = 1
-  if = {
-    limit = { b = yes }
-	money = 50
-  } else {
-    money = 100
-  }
+	limit = { a = yes }
+		money = 1
+	if = {
+		limit = { b = yes }
+		money = 50
+	} else {
+		money = 100
+	}
 }
 ```
 This is equivalent to:
 ```
 if = {
-  limit = { a = yes b = yes }
-  money = 1
-  money = 50
+	limit = { a = yes b = yes }
+	money = 1
+	money = 50
 } else_if {
-  limit = { a = yes }
-  money = 1
-  money = 100
+	limit = { a = yes b = no }
+	money = 1
+} else_if {
+	limit = { a = yes }
+	money = 1
+	money = 100
 }
 ```
 
 Additionally, negation of statments are implicit, in other words:
 ```
 if = {
-  limit = { test == yes }
+	limit = { test == yes }
 } else {
-  limit = { test != yes }
+	limit = { test != yes }
 }
 ```
 
