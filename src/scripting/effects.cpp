@@ -48,7 +48,7 @@ uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
 			ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 			els = true;
 		}
-	} else {
+	} else if(!els) {
 		ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
 		els = true;
 	}
