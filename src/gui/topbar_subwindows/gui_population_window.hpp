@@ -1434,7 +1434,7 @@ public:
 	}
 };
 
-class pop_national_focus_button : public button_element_base {
+class pop_national_focus_button : public right_click_button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
@@ -1453,6 +1453,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override;
+	void button_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
+	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
