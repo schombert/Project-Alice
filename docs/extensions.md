@@ -15,7 +15,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 ### New Trigger Conditions
 
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
-- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works for trigger conditions.
+- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 
 ### Scripted Triggers
 

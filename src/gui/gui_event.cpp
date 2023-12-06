@@ -294,7 +294,6 @@ void event_option_button::on_update(sys::state& state) noexcept {
 }
 
 void event_auto_button::button_action(sys::state& state) noexcept {
-
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 	auto index = retrieve<int32_t>(state, parent);
 
@@ -319,28 +318,26 @@ void event_auto_button::button_action(sys::state& state) noexcept {
 }
 
 void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	auto index = retrieve<int32_t>(state, parent);
 
-		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-		auto index = retrieve<int32_t>(state, parent);
-
-		if(std::holds_alternative<event::pending_human_n_event>(content)) {
-			auto phe = std::get<event::pending_human_n_event>(content);
-			effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
-					trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-			auto phe = std::get<event::pending_human_f_n_event>(content);
-			effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
-					trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
-		} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-			auto phe = std::get<event::pending_human_p_event>(content);
-			effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
-					trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
-		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-			auto phe = std::get<event::pending_human_f_p_event>(content);
-			effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
-					trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
-		}
-	
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
+				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
+				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
+				trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
+				trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
+	}
 }
 
 void event_option_button::button_action(sys::state& state) noexcept {
@@ -409,6 +406,15 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		populate_event_submap(state, sub, phe);
 	}
 	text::add_to_layout_box(state, contents, box, description, sub);
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto phe = std::get<event::pending_human_n_event>(content);
+		effect_description(state, contents, state.world.national_event_get_immediate_effect(phe.e), phe.primary_slot,
+				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto phe = std::get<event::pending_human_f_n_event>(content);
+		effect_description(state, contents, state.world.free_national_event_get_immediate_effect(phe.e),
+				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+	}
 	text::close_layout_box(contents, box);
 	calibrate_scrollbar(state);
 }

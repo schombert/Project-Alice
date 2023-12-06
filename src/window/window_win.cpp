@@ -252,10 +252,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 	case WM_KEYDOWN: // fallthrough
 	case WM_SYSKEYDOWN:
-		if((HIWORD(lParam) & KF_REPEAT) != 0)
-			return 0;
+	{
+		sys::virtual_key key = sys::virtual_key(wParam);
+		switch(key) {
+		case sys::virtual_key::BACK: [[fallthrough]];
+		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
+		case sys::virtual_key::LEFT: [[fallthrough]];
+		case sys::virtual_key::RIGHT: [[fallthrough]];
+		case sys::virtual_key::UP: [[fallthrough]];
+		case sys::virtual_key::DOWN:
+			break;
+		default:
+			if((HIWORD(lParam) & KF_REPEAT) != 0)
+				return 0;
+		}
 		state->on_key_down(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
+	}
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());

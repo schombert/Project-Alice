@@ -988,7 +988,7 @@ public:
 	}
 };
 
-int32_t status_frame(sys::state& state, dcon::army_id a) {
+inline int32_t status_frame(sys::state& state, dcon::army_id a) {
 	auto is_understr = [&]() {
 		for(auto m : state.world.army_get_army_membership(a)) {
 			if(m.get_regiment().get_strength() < 1.0f)
@@ -1014,7 +1014,7 @@ int32_t status_frame(sys::state& state, dcon::army_id a) {
 		return 0;
 	}
 }
-int32_t status_frame(sys::state& state, dcon::navy_id a) {
+inline int32_t status_frame(sys::state& state, dcon::navy_id a) {
 	auto trange = state.world.navy_get_army_transport(a);
 
 	auto is_understr = [&]() {
@@ -1307,7 +1307,7 @@ public:
 	}
 };
 
-outline_color to_color(sys::state& state, unit_var display_unit) {
+inline outline_color to_color(sys::state& state, unit_var display_unit) {
 	dcon::nation_id controller;
 	bool selected = false;
 	if(std::holds_alternative<dcon::army_id>(display_unit)) {
@@ -1333,7 +1333,7 @@ outline_color to_color(sys::state& state, unit_var display_unit) {
 	}
 }
 
-bool color_equivalent(outline_color a, outline_color b) {
+inline bool color_equivalent(outline_color a, outline_color b) {
 	switch(a) {
 		case outline_color::blue:
 		case outline_color::gold:
@@ -1342,7 +1342,7 @@ bool color_equivalent(outline_color a, outline_color b) {
 			return a == b;
 	}
 }
-bool color_less(outline_color a, outline_color b) {
+inline bool color_less(outline_color a, outline_color b) {
 	if(a == outline_color::gray)
 		return false;
 	if(b == outline_color::gray)
@@ -1409,7 +1409,7 @@ public:
 
 using grid_row = std::array<unit_var, 4>;
 
-bool unit_var_ordering(sys::state& state, unit_var a, unit_var b) {
+inline bool unit_var_ordering(sys::state& state, unit_var a, unit_var b) {
 	if(std::holds_alternative<std::monostate>(a))
 		return false;
 	if(std::holds_alternative<std::monostate>(b))

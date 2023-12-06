@@ -346,6 +346,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 
 	if(!state.world.free_provincial_event_get_name(e))
 		return; // event without data
+	if(state.world.free_provincial_event_get_only_once(e) && state.world.free_provincial_event_get_has_been_triggered(e))
+		return;
 
 	state.world.free_provincial_event_set_has_been_triggered(e, true);
 
@@ -516,7 +518,7 @@ void update_events(sys::state& state) {
 		auto mod = state.world.free_provincial_event_get_mtth(id);
 		auto t = state.world.free_provincial_event_get_trigger(id);
 
-		
+		if(state.world.free_provincial_event_get_only_once(id) == false || state.world.free_provincial_event_get_has_been_triggered(id) == false) {
 			ve::execute_serial_fast<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](ve::contiguous_tags<dcon::province_id> ids) {
 						/*
@@ -525,12 +527,12 @@ void update_events(sys::state& state) {
 						*/
 						auto owners = state.world.province_get_nation_from_province_ownership(ids);
 						auto some_exist = t ? (owners != dcon::nation_id{}) &&
-																			trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
-																: (owners != dcon::nation_id{});
+							trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+							: (owners != dcon::nation_id{});
 						if(ve::compress_mask(some_exist).v != 0) {
 							auto chances = mod
 								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0)
-								: ve::fp_vector{2.0f};
+								: ve::fp_vector{ 2.0f };
 							auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
 							auto adj_chance_2 = adj_chance * adj_chance;
 							auto adj_chance_4 = adj_chance_2 * adj_chance_2;
@@ -541,14 +543,14 @@ void update_events(sys::state& state) {
 									[&](dcon::province_id p, dcon::nation_id o, float c, bool condition) {
 										if(condition) {
 											if(float(rng::get_random(state, uint32_t((i << 1) ^ p.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= c) {
-												p_events_triggered.local().push_back(event_prov_pair{p, id});
+												p_events_triggered.local().push_back(event_prov_pair{ p, id });
 											}
 										}
 									},
 									ids, owners, adj_chance_16, some_exist);
 						}
 					});
-		
+		}
 	});
 
 	auto total_p_vector = p_events_triggered.combine([](auto& a, auto& b) {

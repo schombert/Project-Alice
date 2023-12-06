@@ -113,15 +113,19 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				bool fail = false;
 				bool army_play = false;
 				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, id).empty())
+					if(command::can_move_army(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
-					army_play = true;
+					} else {
+						command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+						army_play = true;
+					}
 				}
 				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, id).empty())
+					if(command::can_move_navy(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					} else {
+						command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					}
 				}
 
 				if(!fail) {

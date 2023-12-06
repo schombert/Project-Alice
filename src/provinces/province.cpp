@@ -1590,6 +1590,9 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 	if(controller == nation_as)
 		return true;
 
+	if(state.world.nation_get_in_sphere_of(controller) == nation_as)
+		return true;
+
 	auto coverl = state.world.nation_get_overlord_as_subject(controller);
 	if(state.world.overlord_get_ruler(coverl) == nation_as)
 		return true;
