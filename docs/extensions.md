@@ -76,9 +76,6 @@ if = {
 	money = 1
 	money = 50
 } else_if {
-	limit = { a = yes b = no }
-	money = 1
-} else_if {
 	limit = { a = yes }
 	money = 1
 	money = 100
