@@ -4,14 +4,8 @@
 
 namespace effect {
 
-struct effect_local_state {
-	static constexpr inline uint32_t max_if_depth = 16;
-	bool if_is_triggered[max_if_depth] = { false };
-	uint32_t if_depth = 0;
-};
-
 #define EFFECT_PARAMTERS                                                                                                         \
-	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_hi, uint32_t r_lo, effect_local_state els
+	uint16_t const *tval, sys::state &ws, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_hi, uint32_t r_lo, bool& els
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS);
 
@@ -32,40 +26,32 @@ uint32_t es_generic_scope(EFFECT_PARAMTERS) {
 }
 
 uint32_t es_if_scope(EFFECT_PARAMTERS) {
-	els.if_is_triggered[els.if_depth] = false;
+	uint32_t ret = 0;
+	els = false;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot)) {
-			els.if_is_triggered[els.if_depth] = true;
-			els.if_depth++;
-			assert(els.if_depth < effect_local_state::max_if_depth);
-			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-			els.if_depth--;
-			return ret;
+			ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els = true;
 		}
+	} else {
+		ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+		els = true;
 	}
-	els.if_depth++;
-	assert(els.if_depth < effect_local_state::max_if_depth);
-	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-	els.if_depth--;
 	return ret;
 }
 uint32_t es_else_if_scope(EFFECT_PARAMTERS) {
+	uint32_t ret = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		if(trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot) && !els.if_is_triggered[els.if_depth]) {
-			els.if_is_triggered[els.if_depth] = true;
-			els.if_depth++;
-			assert(els.if_depth < effect_local_state::max_if_depth);
-			uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-			els.if_depth--;
-			return ret;
+		if(!els && trigger::evaluate(ws, limit, primary_slot, this_slot, from_slot)) {
+			ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+			els = true;
 		}
+	} else {
+		ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
+		els = true;
 	}
-	els.if_depth++;
-	assert(els.if_depth < effect_local_state::max_if_depth);
-	uint32_t ret = apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo, els);
-	els.if_depth--;
 	return ret;
 }
 
