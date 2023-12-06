@@ -503,8 +503,10 @@ constexpr inline uint16_t pop_type_scope_state = first_scope_code + 0x0037;
 constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
 constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
 constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
+constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
+constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003B;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003D;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none

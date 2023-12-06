@@ -208,6 +208,19 @@ uint32_t es_generic_scope(EFFECT_DISPLAY_PARAMS) {
 	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
 }
 
+uint32_t es_if_scope(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_if"));
+	text::close_layout_box(layout, box);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
+}
+uint32_t es_else_if_scope(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_else_if"));
+	text::close_layout_box(layout, box);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
+}
+
 inline auto random_or_every(uint16_t tval) {
 	return (tval & effect::is_random_scope) != 0 ? "random" : "every";
 }
@@ -6825,6 +6838,8 @@ es_pop_type_scope_state,						// constexpr inline uint16_t pop_type_scope_state 
 es_pop_type_scope_province,					// constexpr inline uint16_t pop_type_scope_province = first_scope_code + 0x0038;
 es_region_proper_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x0039;
 es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
+es_if_scope, // constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
+es_else_if_scope, // constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {
