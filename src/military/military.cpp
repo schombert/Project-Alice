@@ -923,7 +923,8 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
 			*/
-			total += int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
+			total += std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
+											int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
 		}
 	}
 	return total;
@@ -6716,7 +6717,7 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		for(auto rg : ar.get_army().get_army_membership()) {
 			auto pop = rg.get_regiment().get_pop_from_regiment_source();
-			if(pop && pop.get_poptype() != state.culture_definitions.soldiers) {
+			if(!pop || pop.get_poptype() != state.culture_definitions.soldiers) {
 				rg.get_regiment().set_strength(0.0f);
 				rg.get_regiment().set_pop_from_regiment_source(dcon::pop_id{});
 			}
@@ -6756,7 +6757,8 @@ void advance_mobilizations(sys::state& state) {
 								*/
 
 								auto available =
-										int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
+										std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
+											int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
 								if(available > 0) {
 
 									bool army_is_new = false;
@@ -6776,7 +6778,9 @@ void advance_mobilizations(sys::state& state) {
 										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry ?state.military_definitions.infantry : state.military_definitions.irregular);
 										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.try_create_army_membership(new_reg, a);
-										state.world.try_create_regiment_source(new_reg, pop.get_pop());
+										auto p = pop.get_pop();
+										assert(p);
+										state.world.try_create_regiment_source(new_reg, p);
 
 										--available;
 										--to_mobilize;
