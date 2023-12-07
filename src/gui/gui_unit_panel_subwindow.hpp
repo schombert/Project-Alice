@@ -273,7 +273,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "reorg_bg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<opaque_element_base>(state, id);
 
 		} else if(name == "reorg_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
