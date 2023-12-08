@@ -88,7 +88,7 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 0, 138, 33 }, // host game
 	ui_active_rect{ 703, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
 	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 200, 23 }, // ip address textbox
-	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 3, 200, 23 }, // password textbox
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 3 + 12, 200, 23 }, // password textbox
 	ui_active_rect{ 765, 54 + 156 * 2 + 36 * 2, 76, 23 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
