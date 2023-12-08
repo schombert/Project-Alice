@@ -215,7 +215,15 @@ void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, state.open_gl.msaa_rbo);
 	if(auto r = glCheckFramebufferStatus(GL_FRAMEBUFFER); r != GL_FRAMEBUFFER_COMPLETE) {
-		notify_user_of_fatal_opengl_error("MSAA framebuffer wasn't completed: " + std::string(framebuffer_error(r)));
+		//notify_user_of_fatal_opengl_error("MSAA framebuffer wasn't completed: " + std::string(framebuffer_error(r)));
+		state.user_settings.antialias_level--;
+		deinitialize_msaa(state);
+		if(state.user_settings.antialias_level != 0) {
+			initialize_msaa(state, size_x, size_y);
+		} else {
+			state.open_gl.msaa_enabled = false;
+		}
+		return;
 	}
 	// configure second post-processing framebuffer
 	glGenFramebuffers(1, &state.open_gl.msaa_interbuffer);
