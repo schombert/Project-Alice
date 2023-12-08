@@ -1111,6 +1111,8 @@ et_add_selector;enable province selector;;;habilita el selector provincial;;;;;;
 et_remove_selector;disable province selector;;;deshabilita el selector provincial;;;;;;;;;x
 et_add_immigrator;enable province immigrator;;;habilita el inmigrador provincial;;;;;;;;;x
 et_remove_immigrator;disable province immigrator;;;deshabilita el inmigrador provincial;;;;;;;;;x
+et_if;If;;;Si;;;;;;;;;x
+et_else_if;Else;;;De lo contrario;;;;;;;;;x
 modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
 modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x

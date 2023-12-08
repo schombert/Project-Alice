@@ -208,19 +208,6 @@ uint32_t es_generic_scope(EFFECT_DISPLAY_PARAMS) {
 	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
 }
 
-uint32_t es_if_scope(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_if"));
-	text::close_layout_box(layout, box);
-	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
-}
-uint32_t es_else_if_scope(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ef_tt_else_if"));
-	text::close_layout_box(layout, box);
-	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
-}
-
 inline auto random_or_every(uint16_t tval) {
 	return (tval & effect::is_random_scope) != 0 ? "random" : "every";
 }
@@ -237,6 +224,21 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index() + 1], -1,
 				this_slot, from_slot, indentation + 2 * indentation_amount, false);
 	}
+}
+
+uint32_t es_if_scope(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "et_if"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
+}
+uint32_t es_else_if_scope(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "et_else_if"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, this_slot, from_slot, indentation);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation + 1);
 }
 
 uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
