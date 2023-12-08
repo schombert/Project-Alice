@@ -11,7 +11,7 @@ dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_buil
 void ef_scope_if(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::if_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
@@ -26,7 +26,7 @@ void ef_scope_if(token_generator& gen, error_handler& err, effect_building_conte
 void ef_scope_else_if(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
-	context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::else_if_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
