@@ -9,6 +9,68 @@ namespace ui {
 //	REORGANISATION WINDOW
 //======================================================================================================================================
 
+template<class T>
+class subunit_organisation_progress_bar : public vertical_progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
+			progress = fat.get_org();
+		}
+	}
+};
+
+template<class T>
+class subunit_strength_progress_bar : public vertical_progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
+			progress = fat.get_strength();
+		}
+	}
+};
+
+class regiment_pop_icon : public tinted_image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto reg_id = retrieve<dcon::regiment_id>(state, parent);
+		auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
+		if(!base_pop) {
+			frame = state.world.pop_type_get_sprite(state.culture_definitions.soldiers) - 1;
+			color = sys::pack_color(255, 75, 75);
+		} else {
+			frame = state.world.pop_type_get_sprite(state.world.pop_get_poptype(base_pop)) - 1;
+			if(state.world.pop_get_size(base_pop) < state.defines.pop_min_size_for_regiment) {
+				color = sys::pack_color(220, 75, 75);
+			} else if(state.world.pop_get_size(base_pop) < state.defines.pop_size_per_regiment) {
+				color = sys::pack_color(200, 200, 0);
+			} else {
+				color = sys::pack_color(255, 255, 255);
+			}
+		}
+	}
+};
+
+template<class T>
+class subunit_details_type_icon : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T content = any_cast<T>(payload);
+			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+			if(utid)
+				frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
+		}
+	}
+};
+
 enum class reorg_win_action : uint8_t {
 	close = 0,
 	balance = 1,
@@ -46,55 +108,74 @@ public:
 };
 
 template<class T>
+class subunit_details_type_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T content = any_cast<T>(payload);
+			dcon::unit_type_id utid = dcon::fatten(state.world, content).get_type();
+			if(utid)
+				set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			else
+				set_text(state, "");
+		}
+	}
+};
+
+class subunit_details_regiment_amount : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::regiment_id{};
+			parent->impl_get(state, payload);
+			dcon::regiment_id content = any_cast<dcon::regiment_id>(payload);
+			if(content)
+				set_text(state, text::format_wholenum(int32_t(state.world.regiment_get_strength(content) * state.defines.pop_size_per_regiment)));
+			else
+				set_text(state, "");
+		}
+	}
+};
+class subunit_details_ship_amount : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = dcon::ship_id{};
+			parent->impl_get(state, payload);
+			dcon::ship_id content = any_cast<dcon::ship_id>(payload);
+			if(content)
+				set_text(state, text::format_percentage(state.world.ship_get_strength(content), 0));
+			else
+				set_text(state, "");
+		}
+	}
+};
+
+template<class T>
+class subunit_details_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if(parent) {
+			Cyto::Any payload = T{};
+			parent->impl_get(state, payload);
+			T content = any_cast<T>(payload);
+			std::string str{ state.to_string_view(dcon::fatten(state.world, content).get_name()) };
+			set_text(state, str);
+		}
+	}
+};
+
+template<class T>
 class reorg_unit_listbox_row : public listbox_row_element_base<T> {
 using listrow = listbox_row_element_base<T>;
-private:
-	simple_text_element_base* str_land = nullptr;
-	simple_text_element_base* str_naval = nullptr;
-	simple_text_element_base* subunit_type = nullptr;
-	simple_text_element_base* subunit_name = nullptr;
-	image_element_base* subunit_icon = nullptr;
-	vertical_progress_bar* subunit_strbar = nullptr;
-	vertical_progress_bar* subunit_orgbar = nullptr;
-	image_element_base* rebellion_icon = nullptr;
-	button_element_base* connectedpop_icon = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override {
 		listrow::base_data.position.y += 128;	// Nudge
 		listrow::base_data.position.x += 256;
 		listrow::on_create(state);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto fat = dcon::fatten(state.world, listbox_row_element_base<T>::content);
-		subunit_name->set_text(state, std::string{state.to_string_view(fat.get_name())});
-		dcon::unit_type_id utid = dcon::fatten(state.world, listrow::content).get_type();
-		if(!utid)
-			return;
-
-		subunit_type->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
-		subunit_icon->frame = state.military_definitions.unit_base_definitions[utid].icon - 1;
-		subunit_orgbar->progress = (fat.get_org() * 100);
-		subunit_strbar->progress = (fat.get_strength() * 100);
-
-		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
-			rebellion_icon->set_visible(state, true);
-			connectedpop_icon->set_visible(state, true);
-			connectedpop_icon->frame = fat.get_pop_from_regiment_source().get_poptype().get_sprite() - 1;
-
-			// TODO - im not sure why this stuff isnt working, but it doesnt matter much
-			if(fat.get_pop_from_regiment_source().get_rebel_faction_from_pop_rebellion_membership().is_valid()) {
-				rebellion_icon->frame = fat.get_pop_from_regiment_source().get_rebel_faction_from_pop_rebellion_membership().get_type().get_icon() - 1;
-			} else if(fat.get_pop_from_regiment_source().get_movement_from_pop_movement_membership().is_valid()) {
-				rebellion_icon->frame = fat.get_pop_from_regiment_source().get_movement_from_pop_movement_membership().get_associated_issue_option().get_parent_issue().get_issue_type() - 1;
-			} else {
-				rebellion_icon->set_visible(state, false);
-			}
-		} else {
-			rebellion_icon->set_visible(state, false);
-			connectedpop_icon->set_visible(state, false);
-		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -105,53 +186,29 @@ public:
 			return make_element_by_type<reorg_unit_transfer_button<T>>(state, id);
 
 		} else if(name == "unit_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			subunit_icon = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_details_type_icon<T>>(state, id);
 		} else if(name == "subunit_name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			subunit_name = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_details_name<T>>(state, id);
 		} else if(name == "subunit_type") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			subunit_type = ptr.get();
-			return ptr;
-
-		} else if(name == "subunut_strength") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			str_land = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_details_type_text<T>>(state, id);
+		} else if(name == "subunit_strength") {
+			return make_element_by_type<subunit_details_regiment_amount>(state, id);
 		} else if(name == "subunit_strength_naval") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			str_naval = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_details_ship_amount>(state, id);
 		} else if(name == "connected_pop") {
-			auto ptr = make_element_by_type<button_element_base>(state, id);
-			connectedpop_icon = ptr.get();
-			return ptr;
-
+			if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+				return make_element_by_type<regiment_pop_icon>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
 		} else if(name == "rebel_faction") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			rebellion_icon = ptr.get();
-			return ptr;
-
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "org_bar") {
-			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
-			subunit_orgbar = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_organisation_progress_bar<T>>(state, id);
 		} else if(name == "str_bar") {
-			auto ptr = make_element_by_type<vertical_progress_bar>(state, id);
-			subunit_strbar = ptr.get();
-			return ptr;
-
+			return make_element_by_type<subunit_strength_progress_bar<T>>(state, id);
 		} else if(name == "transferbutton") {
 			return make_element_by_type<reorg_unit_transfer_button<T>>(state, id);
-
 		} else {
 			return nullptr;
 		}
