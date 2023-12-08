@@ -3919,6 +3919,9 @@ void state::single_game_tick() {
 
 	military::advance_mobilizations(*this);
 
+	province::update_colonization(*this);
+	military::update_cbs(*this); // may add/remove cbs to a nation
+
 	event::update_events(*this);
 
 	culture::update_research(*this, uint32_t(ymd_date.year));
@@ -3927,9 +3930,6 @@ void state::single_game_tick() {
 	nations::update_rankings(*this);				// depends on industrial score, military scores
 	nations::update_great_powers(*this);		// depends on rankings
 	nations::update_influence(*this);				// depends on rankings, great powers
-
-	province::update_colonization(*this);
-	military::update_cbs(*this); // may add/remove cbs to a nation
 
 	nations::update_crisis(*this);
 	politics::update_elections(*this);
