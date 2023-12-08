@@ -3495,7 +3495,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military::apply_base_unit_stat_modifiers(*this);
 
 	province::update_connected_regions(*this);
-
 	province::restore_unsaved_values(*this);
 
 	culture::update_all_nations_issue_rules(*this);
@@ -3587,6 +3586,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
+
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
@@ -3660,10 +3662,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 void state::single_game_tick() {
 	// do update logic
-	province::update_connected_regions(*this);
-	province::update_cached_values(*this);
-	nations::update_cached_values(*this);
-
+	
 	current_date += 1;
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
@@ -4126,6 +4125,9 @@ void state::single_game_tick() {
 	military::update_blackflag_status(*this);
 	ai::daily_cleanup(*this);
 
+	province::update_connected_regions(*this);
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
 	/*
 	 * END OF DAY: update cached data
 	 */

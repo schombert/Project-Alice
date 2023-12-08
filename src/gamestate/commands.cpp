@@ -3044,16 +3044,14 @@ bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 		return true;
 	if(!military::can_retreat_from_battle(state, b))
 		return false;
-	auto both_human = state.world.nation_get_is_player_controlled(military::get_land_battle_lead_attacker(state, b)) && state.world.nation_get_is_player_controlled(military::get_land_battle_lead_defender(state, b));
-	return both_human;
+	return state.network_mode != sys::network_mode_type::single_player;
 }
 bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	if(!b)
 		return true;
 	if(!military::can_retreat_from_battle(state, b))
 		return false;
-	auto both_human = state.world.nation_get_is_player_controlled(military::get_naval_battle_lead_attacker(state, b)) && state.world.nation_get_is_player_controlled(military::get_naval_battle_lead_defender(state, b));
-	return both_human;
+	return state.network_mode != sys::network_mode_type::single_player;
 }
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
@@ -5129,6 +5127,9 @@ void execute_pending_commands(sys::state& state) {
 	}
 
 	if(command_executed) {
+		province::update_connected_regions(state);
+		province::update_cached_values(state);
+		nations::update_cached_values(state);
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
 }
