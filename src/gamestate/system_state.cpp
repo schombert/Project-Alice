@@ -296,8 +296,9 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		}
 		// Hide province upon selecting multiple armies / navies :)
 		if(!selected_armies.empty() || !selected_navies.empty()) {
-			if(this->ui_state.province_window) {
-				this->ui_state.province_window->set_visible(*this, false);
+			if(ui_state.province_window) {
+				ui_state.province_window->set_visible(*this, false);
+				map_state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
 			}
 			// Play selection sound effect
 			if(!selected_armies.empty()) {

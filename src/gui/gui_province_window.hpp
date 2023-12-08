@@ -1420,6 +1420,7 @@ public:
 		auto content = retrieve<dcon::province_id>(state, parent);
 		command::finish_colonization(state, state.local_player_nation, content);
 		state.ui_state.province_window->set_visible(state, false);
+		state.map_state.set_selected_province(dcon::province_id{});
 	}
 
 	void on_update(sys::state& state) noexcept override {
