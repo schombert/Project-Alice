@@ -1301,38 +1301,6 @@ void update_armies(sys::state& state) {
 		auto location = ar.get_location_from_army_location();
 		/* If on an unsieged province, siege it! */
 		if(location.get_nation_from_province_control() && !location.get_rebel_faction_from_province_rebel_control()) {
-			/* On a restricted area, so move the fuck out of it */
-			if(!allow_in_area(state, location, arc.get_controller())) {
-				dcon::province_fat_id best_prov = location;
-				float best_weight = 0.f;
-				for(const auto adj : location.get_province_adjacency()) {
-					auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
-					auto prov = adj.get_connected_provinces(indx);
-					/* sea province */
-					if(prov.id.index() >= state.province_definitions.first_sea_province.index())
-						continue;
-					/* impassable */
-					if((adj.get_type() & province::border::impassible_bit) != 0)
-						continue;
-					if(allow_in_area(state, prov, arc.get_controller())) {
-						best_prov = prov;
-						break;
-					} else {
-						float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())) % 100);
-						if(weight >= best_weight) {
-							best_weight = weight;
-							best_prov = prov;
-						}
-					}
-				}
-				if(best_prov != location) {
-					ar.get_path().resize(1);
-					ar.get_path()[0] = best_prov;
-					ar.set_arrival_time(military::arrival_time_to(state, ar.id, best_prov));
-					ar.set_dig_in(0);
-					ar.set_is_rebel_hunter(false);
-				}
-			}
 			return;
 		}
 		dcon::province_fat_id best_prov = location;
