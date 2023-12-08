@@ -1635,7 +1635,9 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbarbutton_production") {
+		if(name == "topbar_bg") { //TODO: maybe create topbar_background class with mouse_test() function that makes the edges for showing tooltip a little nicer
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
