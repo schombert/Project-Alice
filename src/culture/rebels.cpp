@@ -1256,10 +1256,9 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	return text::resolve_string_substitution(state, state.world.rebel_faction_get_type(reb).get_name(), sub);
 }
 
-bool allow_in_area(sys::state& state, dcon::province_id p, dcon::province_id l, dcon::rebel_faction_id reb) {
+bool allow_in_area(sys::state& state, dcon::province_id p, dcon::rebel_faction_id reb) {
 	auto rf = dcon::fatten(state.world, reb);
 	auto prov = dcon::fatten(state.world, p);
-	auto location = dcon::fatten(state.world, l);
 	switch(culture::rebel_area(rf.get_type().get_area())) {
 	case culture::rebel_area::all:
 		return true;
@@ -1270,11 +1269,11 @@ bool allow_in_area(sys::state& state, dcon::province_id p, dcon::province_id l, 
 	case culture::rebel_area::religion:
 		return prov.get_dominant_religion() == rf.get_religion();
 	case culture::rebel_area::nation_religion:
-		return prov.get_dominant_religion() == rf.get_defection_target().get_religion() && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+		return prov.get_dominant_religion() == rf.get_defection_target().get_religion() && prov.get_province_ownership().get_nation() == rf.get_rebellion_within().get_ruler();
 	case culture::rebel_area::nation_culture:
-		return prov.get_dominant_culture() == rf.get_defection_target().get_primary_culture() && prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+		return prov.get_dominant_culture() == rf.get_defection_target().get_primary_culture() && prov.get_province_ownership().get_nation() == rf.get_rebellion_within().get_ruler();
 	case culture::rebel_area::nation:
-		return prov.get_province_ownership().get_nation() == location.get_province_ownership().get_nation();
+		return prov.get_province_ownership().get_nation() == rf.get_rebellion_within().get_ruler();
 	default:
 		break;
 	}
@@ -1301,8 +1300,41 @@ void update_armies(sys::state& state) {
 		auto area = arc.get_controller().get_type().get_area();
 		auto location = ar.get_location_from_army_location();
 		/* If on an unsieged province, siege it! */
-		if(location.get_nation_from_province_control() && !location.get_rebel_faction_from_province_rebel_control())
+		if(location.get_nation_from_province_control() && !location.get_rebel_faction_from_province_rebel_control()) {
+			/* On a restricted area, so move the fuck out of it */
+			if(!allow_in_area(state, location, arc.get_controller())) {
+				dcon::province_fat_id best_prov = location;
+				float best_weight = 0.f;
+				for(const auto adj : location.get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != location.id ? 0 : 1;
+					auto prov = adj.get_connected_provinces(indx);
+					/* sea province */
+					if(prov.id.index() >= state.province_definitions.first_sea_province.index())
+						continue;
+					/* impassable */
+					if((adj.get_type() & province::border::impassible_bit) != 0)
+						continue;
+					if(allow_in_area(state, prov, arc.get_controller())) {
+						best_prov = prov;
+						break;
+					} else {
+						float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())) % 100);
+						if(weight >= best_weight) {
+							best_weight = weight;
+							best_prov = prov;
+						}
+					}
+				}
+				if(best_prov != location) {
+					ar.get_path().resize(1);
+					ar.get_path()[0] = best_prov;
+					ar.set_arrival_time(military::arrival_time_to(state, ar.id, best_prov));
+					ar.set_dig_in(0);
+					ar.set_is_rebel_hunter(false);
+				}
+			}
 			return;
+		}
 		dcon::province_fat_id best_prov = location;
 		float best_weight = 0.f;// trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(best_prov), trigger::to_generic(best_prov), 0);;
 		for(const auto adj : location.get_province_adjacency()) {
@@ -1314,7 +1346,7 @@ void update_armies(sys::state& state) {
 			/* impassable */
 			if((adj.get_type() & province::border::impassible_bit) != 0)
 				continue;
-			if(allow_in_area(state, prov, location, arc.get_controller())) {
+			if(allow_in_area(state, prov, arc.get_controller())) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
 				float weight = float(rng::get_random(state, uint32_t(prov.id.index() * ar.id.index())) % 100);
 				//if(prov.get_army_location().begin() != prov.get_army_location().end()) {
