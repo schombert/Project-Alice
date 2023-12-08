@@ -406,6 +406,8 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		populate_event_submap(state, sub, phe);
 	}
 	text::add_to_layout_box(state, contents, box, description, sub);
+	text::close_layout_box(contents, box);
+
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		effect_description(state, contents, state.world.national_event_get_immediate_effect(phe.e), phe.primary_slot,
@@ -415,7 +417,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		effect_description(state, contents, state.world.free_national_event_get_immediate_effect(phe.e),
 				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
 	}
-	text::close_layout_box(contents, box);
+
 	calibrate_scrollbar(state);
 }
 
