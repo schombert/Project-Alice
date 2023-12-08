@@ -326,6 +326,19 @@ public:
 	}
 };
 
+class menubar_background : public opaque_element_base {
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
+			if(y < 30)
+				return message_result::unseen;
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 
@@ -336,6 +349,8 @@ public:
 			state.ui_state.msg_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
+		} else if(name == "minimap_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "openbutton") {
 			return make_element_by_type<open_msg_log_button>(state, id);
 		} else if(name == "chat_window") {
@@ -350,6 +365,8 @@ public:
 			return make_element_by_type<minimap_zoom_in_button>(state, id);
 		} else if(name == "map_zoom_out") {
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
+		} else if(name == "menubar_bg") {
+			return make_element_by_type<menubar_background>(state, id);
 		} else if(name == "menubar_mail_bg") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_settings") {
