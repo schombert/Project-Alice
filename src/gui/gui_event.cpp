@@ -406,6 +406,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		populate_event_submap(state, sub, phe);
 	}
 	text::add_to_layout_box(state, contents, box, description, sub);
+	text::add_divider_to_layout_box(state, contents, box);
 	text::close_layout_box(contents, box);
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
