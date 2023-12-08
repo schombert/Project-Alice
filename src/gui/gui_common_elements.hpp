@@ -610,7 +610,7 @@ public:
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi).get_name(), text::text_color::yellow);
 			text::close_layout_box(contents, box);
-			describe_reform(state, contents, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi));
+			reform_description(state, contents, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi));
 			text::add_line_break_to_layout(state, contents);
 		}
 	}
