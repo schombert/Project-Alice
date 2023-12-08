@@ -278,6 +278,7 @@ guiTypes = {
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
+				text = "gaussianblur_label"
 				orientation = "UPPER_LEFT"
 				format = left
 			}
