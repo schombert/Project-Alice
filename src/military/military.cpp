@@ -3278,7 +3278,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			assert(false);
 		}
 	} else { // crisis offer
-		bool crisis_attackers_won = from == state.primary_crisis_attacker;
+		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
