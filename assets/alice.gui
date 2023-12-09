@@ -428,6 +428,36 @@ guiTypes = {
 				position = { 269 202 }
 				quadTextureSprite = "option_next"
 			}
+			# Language
+			instantTextBoxType = {
+				name = "language_label"
+				position = { 58 228 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "auto_save_lb"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				name = "language_value"
+				position = { 58 248 }
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "language_left"
+				position = { 51 246 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "language_right"
+				position = { 269 246 }
+				quadTextureSprite = "option_next"
+			}
 		}
 
 		windowType = {

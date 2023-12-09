@@ -21,6 +21,8 @@ tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
 gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
 gamma_label;Gamma;Gamma;Gamma;Gamma;;;;;;;;;x
+language_label;Language;Parlar;Sprachen;Lenguaje;;;;;;;;;x
+language_code;English;Frencais;Deutsch;Espanol;Polski;Italiano;Svenska;Ceska;Magyar;Nederland;Portugues;Ruski;Finnish;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x

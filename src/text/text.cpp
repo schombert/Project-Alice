@@ -663,12 +663,12 @@ std::string produce_simple_string(sys::state const& state, dcon::text_sequence_i
 	if(!id)
 		return result;
 
-	auto& seq = state.text_sequences[state.current_language][id];
+	auto& seq = state.text_sequences[state.user_settings.current_language][id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
-		if(std::holds_alternative<dcon::text_key>(state.text_components[state.current_language][i + seq.starting_component])) {
-			result += state.to_string_view(std::get<dcon::text_key>(state.text_components[state.current_language][i + seq.starting_component]));
-		} else if(std::holds_alternative<variable_type>(state.text_components[state.current_language][i + seq.starting_component])) {
+		if(std::holds_alternative<dcon::text_key>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
+			result += state.to_string_view(std::get<dcon::text_key>(state.text_components[state.user_settings.current_language][i + seq.starting_component]));
+		} else if(std::holds_alternative<variable_type>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
 			result += '?';
 		}
 	}
@@ -694,7 +694,7 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
-		return create_text_entry(state, local_key_copy, txt, state.current_language, err);
+		return create_text_entry(state, local_key_copy, txt, state.user_settings.current_language, err);
 	}
 }
 
@@ -1224,21 +1224,21 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
-	auto seq = state.text_sequences[state.current_language][source_text];
+	auto seq = state.text_sequences[state.user_settings.current_language][source_text];
 	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-		if(std::holds_alternative<dcon::text_key>(state.text_components[state.current_language][i])) {
-			auto tkey = std::get<dcon::text_key>(state.text_components[state.current_language][i]);
+		if(std::holds_alternative<dcon::text_key>(state.text_components[state.user_settings.current_language][i])) {
+			auto tkey = std::get<dcon::text_key>(state.text_components[state.user_settings.current_language][i]);
 			std::string_view text = state.to_string_view(tkey);
 			add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
-		} else if(std::holds_alternative<text::line_break>(state.text_components[state.current_language][i])) {
+		} else if(std::holds_alternative<text::line_break>(state.text_components[state.user_settings.current_language][i])) {
 			add_line_break_to_layout_box(state, dest, box);
-		} else if(std::holds_alternative<text::text_color>(state.text_components[state.current_language][i])) {
-			if(std::get<text::text_color>(state.text_components[state.current_language][i]) == text_color::reset)
+		} else if(std::holds_alternative<text::text_color>(state.text_components[state.user_settings.current_language][i])) {
+			if(std::get<text::text_color>(state.text_components[state.user_settings.current_language][i]) == text_color::reset)
 				current_color = dest.fixed_parameters.color;
 			else
-				current_color = std::get<text::text_color>(state.text_components[state.current_language][i]);
-		} else if(std::holds_alternative<text::variable_type>(state.text_components[state.current_language][i])) {
-			auto var_type = std::get<text::variable_type>(state.text_components[state.current_language][i]);
+				current_color = std::get<text::text_color>(state.text_components[state.user_settings.current_language][i]);
+		} else if(std::holds_alternative<text::variable_type>(state.text_components[state.user_settings.current_language][i])) {
+			auto var_type = std::get<text::variable_type>(state.text_components[state.user_settings.current_language][i]);
 			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 				auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 				add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
@@ -1564,15 +1564,15 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 	std::string result;
 
 	if(source_text) {
-		auto seq = state.text_sequences[state.current_language][source_text];
+		auto seq = state.text_sequences[state.user_settings.current_language][source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-			if(std::holds_alternative<dcon::text_key>(state.text_components[state.current_language][i])) {
-				auto tkey = std::get<dcon::text_key>(state.text_components[state.current_language][i]);
+			if(std::holds_alternative<dcon::text_key>(state.text_components[state.user_settings.current_language][i])) {
+				auto tkey = std::get<dcon::text_key>(state.text_components[state.user_settings.current_language][i]);
 				std::string_view text = state.to_string_view(tkey);
 				// add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
 				result += text;
-			} else if(std::holds_alternative<text::variable_type>(state.text_components[state.current_language][i])) {
-				auto var_type = std::get<text::variable_type>(state.text_components[state.current_language][i]);
+			} else if(std::holds_alternative<text::variable_type>(state.text_components[state.user_settings.current_language][i])) {
+				auto var_type = std::get<text::variable_type>(state.text_components[state.user_settings.current_language][i]);
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 					auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 					// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);

@@ -1821,56 +1821,56 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-	auto start_position = text_data[current_language].data() + tag.index();
-	auto data_size = text_data[current_language].size();
+	auto start_position = text_data[user_settings.current_language].data() + tag.index();
+	auto data_size = text_data[user_settings.current_language].size();
 	auto end_position = start_position;
-	for(; end_position < text_data[current_language].data() + data_size; ++end_position) {
+	for(; end_position < text_data[user_settings.current_language].data() + data_size; ++end_position) {
 		if(*end_position == 0)
 			break;
 	}
-	return std::string_view(text_data[current_language].data() + tag.index(), size_t(end_position - start_position));
+	return std::string_view(text_data[user_settings.current_language].data() + tag.index(), size_t(end_position - start_position));
 }
 
 dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
 	auto res = add_to_pool(new_text);
 	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[current_language][res.index() + i] = char(tolower(text_data[current_language][res.index() + i]));
+		text_data[user_settings.current_language][res.index() + i] = char(tolower(text_data[user_settings.current_language][res.index() + i]));
 	}
 	return res;
 }
 dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
 	auto res = add_to_pool(new_text);
 	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[current_language][res.index() + i] = char(tolower(text_data[current_language][res.index() + i]));
+		text_data[user_settings.current_language][res.index() + i] = char(tolower(text_data[user_settings.current_language][res.index() + i]));
 	}
 	return res;
 }
 dcon::text_key state::add_to_pool(std::string const& new_text) {
-	auto start = text_data[current_language].size();
+	auto start = text_data[user_settings.current_language].size();
 	auto size = new_text.length();
 	if(size == 0)
 		return dcon::text_key();
-	text_data[current_language].resize(start + size + 1, char(0));
-	std::copy_n(new_text.c_str(), size + 1, text_data[current_language].data() + start);
+	text_data[user_settings.current_language].resize(start + size + 1, char(0));
+	std::copy_n(new_text.c_str(), size + 1, text_data[user_settings.current_language].data() + start);
 	return dcon::text_key(uint32_t(start));
 }
 dcon::text_key state::add_to_pool(std::string_view new_text) {
-	auto start = text_data[current_language].size();
+	auto start = text_data[user_settings.current_language].size();
 	auto length = new_text.length();
 	if(length == 0)
 		return dcon::text_key();
-	text_data[current_language].resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, text_data[current_language].data() + start);
-	text_data[current_language].back() = 0;
+	text_data[user_settings.current_language].resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, text_data[user_settings.current_language].data() + start);
+	text_data[user_settings.current_language].back() = 0;
 	return dcon::text_key(uint32_t(start));
 }
 
 dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data[current_language].data(), text_data[current_language].data() + text_data[current_language].size(),
+		auto search_result = std::search(text_data[user_settings.current_language].data(), text_data[user_settings.current_language].data() + text_data[user_settings.current_language].size(),
 				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if(search_result != text_data[current_language].data() + text_data[current_language].size()) {
-			return dcon::text_key(uint32_t(search_result - text_data[current_language].data()));
+		if(search_result != text_data[user_settings.current_language].data() + text_data[user_settings.current_language].size()) {
+			return dcon::text_key(uint32_t(search_result - text_data[user_settings.current_language].data()));
 		} else {
 			return add_to_pool(new_text);
 		}
@@ -2011,6 +2011,7 @@ void state::save_user_settings() const {
 	US_SAVE(antialias_level);
 	US_SAVE(gaussianblur_level);
 	US_SAVE(gamma);
+	US_SAVE(current_language);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2062,6 +2063,7 @@ void state::load_user_settings() {
 			US_LOAD(antialias_level);
 			US_LOAD(gaussianblur_level);
 			US_LOAD(gamma);
+			US_LOAD(current_language);
 #undef US_LOAD
 		} while(false);
 

@@ -10,14 +10,14 @@ TEST_CASE("text from csv", "[parsers]") {
 		text::consume_csv_file(*state, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more"), err);
 		REQUIRE(err.fatal == false);
 
-		REQUIRE(state->text_components[state->current_language].size() == size_t(3));
-		REQUIRE(state->text_sequences[state->current_language].size() == size_t(1));
+		REQUIRE(state->text_components[state->user_settings.current_language].size() == size_t(3));
+		REQUIRE(state->text_sequences[state->user_settings.current_language].size() == size_t(1));
 
 		auto key = state->key_to_text_sequence.find(std::string_view("label"))->second;
 		REQUIRE(bool(key) == true);
-		REQUIRE(state->text_sequences[state->current_language][key].component_count == 3);
+		REQUIRE(state->text_sequences[state->user_settings.current_language][key].component_count == 3);
 		REQUIRE(state->to_string_view(
-		            std::get<dcon::text_key>(state->text_components[state->current_language][state->text_sequences[state->current_language][key].starting_component + 2])) == "more");
+		            std::get<dcon::text_key>(state->text_components[state->user_settings.current_language][state->text_sequences[state->user_settings.current_language][key].starting_component + 2])) == "more");
 	}
 	SECTION("multiple_lines") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -26,22 +26,22 @@ TEST_CASE("text from csv", "[parsers]") {
 		text::consume_csv_file(*state, RANGE_SZ("#klajdlkjasd\nLABEL;Text$d$more\r\nBBB;extra;;;;\nCCC;last;;"), err);
 		REQUIRE(err.fatal == false);
 
-		REQUIRE(state->text_components[state->current_language].size() == size_t(5));
-		REQUIRE(state->text_sequences[state->current_language].size() == size_t(3));
+		REQUIRE(state->text_components[state->user_settings.current_language].size() == size_t(5));
+		REQUIRE(state->text_sequences[state->user_settings.current_language].size() == size_t(3));
 
 		{
 			auto key = state->key_to_text_sequence.find(std::string_view("label"))->second;
 			REQUIRE(bool(key) == true);
-			REQUIRE(state->text_sequences[state->current_language][key].component_count == 3);
+			REQUIRE(state->text_sequences[state->user_settings.current_language][key].component_count == 3);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->current_language][state->text_sequences[state->current_language][key].starting_component + 2])) == "more");
+			            std::get<dcon::text_key>(state->text_components[state->user_settings.current_language][state->text_sequences[state->user_settings.current_language][key].starting_component + 2])) == "more");
 		}
 		{
 			auto key = state->key_to_text_sequence.find(std::string_view("ccc"))->second;
 			REQUIRE(bool(key) == true);
-			REQUIRE(state->text_sequences[state->current_language][key].component_count == 1);
+			REQUIRE(state->text_sequences[state->user_settings.current_language][key].component_count == 1);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->current_language][state->text_sequences[state->current_language][key].starting_component])) == "last");
+			            std::get<dcon::text_key>(state->text_components[state->user_settings.current_language][state->text_sequences[state->user_settings.current_language][key].starting_component])) == "last");
 		}
 	}
 }
@@ -58,16 +58,16 @@ TEST_CASE("text game files parsing", "[parsers]") {
 		text::load_text_data(*state, err);
 
 		{
-			REQUIRE(state->text_components[state->current_language].size() > size_t(100));
-			REQUIRE(state->text_sequences[state->current_language].size() > size_t(100));
+			REQUIRE(state->text_components[state->user_settings.current_language].size() > size_t(100));
+			REQUIRE(state->text_sequences[state->user_settings.current_language].size() > size_t(100));
 
 			auto it = state->key_to_text_sequence.find(std::string_view("player_lost_desc"));
 			REQUIRE(it != state->key_to_text_sequence.end());
 			auto key = it->second;
 			REQUIRE(bool(key) == true);
-			REQUIRE(state->text_sequences[state->current_language][key].component_count == 3);
+			REQUIRE(state->text_sequences[state->user_settings.current_language][key].component_count == 3);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->current_language][state->text_sequences[state->current_language][key].starting_component + 2])) == " disconnected. Choose your action.");
+			            std::get<dcon::text_key>(state->text_components[state->user_settings.current_language][state->text_sequences[state->user_settings.current_language][key].starting_component + 2])) == " disconnected. Choose your action.");
 		}
 	}
 }

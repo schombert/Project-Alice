@@ -362,6 +362,7 @@ struct user_settings_s {
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
+	uint8_t current_language = 0;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -445,7 +446,6 @@ struct alignas(64) state {
 	std::vector<value_modifier_segment> value_modifier_segments;
 	tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
 
-	uint8_t current_language = 0;
 	std::vector<char> text_data[sys::max_languages]; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components[sys::max_languages];
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences[sys::max_languages];
