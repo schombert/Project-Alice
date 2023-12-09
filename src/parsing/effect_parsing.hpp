@@ -270,19 +270,23 @@ struct ef_sub_unit {
 	}
 	void finish(effect_building_context&) { }
 };
-struct ef_set_variable {
+struct ef_variable {
 	float value = 0.0f;
 	dcon::national_variable_id which_;
+	uint32_t any_index = 0;
 	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		which_ = context.outer_context.get_national_variable(std::string(v));
 	}
-	void finish(effect_building_context&) { }
-};
-struct ef_change_variable {
-	float value = 0.0f;
-	dcon::national_variable_id which_;
-	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
-		which_ = context.outer_context.get_national_variable(std::string(v));
+	void free_value(std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		if(any_index == 0) {
+			which_ = context.outer_context.get_national_variable(std::string(v));
+		} else if(any_index == 1) {
+			value = parse_float(v, line, err);
+		} else {
+			err.accumulated_errors +=
+				"too many free values " + std::string(v) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		++any_index;
 	}
 	void finish(effect_building_context&) { }
 };
@@ -3296,7 +3300,7 @@ struct effect_body {
 			}
 		}
 	}
-	void set_variable(ef_set_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
+	void set_variable(ef_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
 					"set_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3306,15 +3310,25 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
 	}
-	void change_variable(ef_change_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
+	void change_variable(ef_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
-					"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					"change_variable/add_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 		context.compiled_effect.push_back(effect::change_variable);
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
+	}
+	void sub_variable(ef_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"sub_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(value.which_).value);
+		context.add_float_to_payload(-(value.value)); // negative of (inverse of add_variable/change_variable)
 	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {

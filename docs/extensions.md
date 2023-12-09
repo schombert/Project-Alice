@@ -136,3 +136,23 @@ province-id;size;culture;religion;pop-type;rebel-faction(optional)
 This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
 
 Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
+
+### Variable effect commands syntax
+
+Usually, we use `change_variable` to "add" to a variable, and `check_variable` to "check" the contents of a variable, this can be confusing for modders, as such we added the following:
+```sh
+set_variable = {
+	which = varname
+	value = 100
+}
+```
+
+Can now be simply written as: `set_variable = { varname 100 }`
+
+Additionally, the following contractions are also supported:
+
+```sh
+change_variable = { varname 1000 }
+add_variable = { varname 100 } #same as above
+sub_variable = { varname 100 } #equivalent to "add_variable = { varname -100 }"
+```
