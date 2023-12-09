@@ -3738,7 +3738,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 				assert(p_region > 0);
 				bool p_region_is_coastal = state.province_definitions.connected_region_is_coastal[p_region - 1];
 
-				if(full_loops_through == 0 || 10.0f * (1 + full_loops_through) <= military::peacetime_attrition_limit(state, n, p)) {
+				if(10.0f * (1 + full_loops_through) <= military::peacetime_attrition_limit(state, n, p)) {
 					uint32_t nearest_index = 0;
 					dcon::army_id nearest;
 					float nearest_distance = 1.0f;

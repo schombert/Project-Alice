@@ -209,28 +209,6 @@ public:
 	}
 };
 
-class topbar_nation_ruling_party_text : public nation_ruling_party_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
-		ruling_party = ruling_party + " (" +
-										text::get_name_as_string(state,
-												state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) +
-										")";
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::close_layout_box(contents, box);
-	}
-};
-
-
 class topbar_nation_infamy_text : public expanded_hitbox_text {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1635,7 +1613,9 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbarbutton_production") {
+		if(name == "topbar_bg") { //TODO: maybe create topbar_background class with mouse_test() function that makes the edges for showing tooltip a little nicer
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
@@ -1752,7 +1732,7 @@ public:
 		} else if(name == "politics_party_icon") {
 			return make_element_by_type<nation_ruling_party_ideology_plupp>(state, id);
 		} else if(name == "politics_ruling_party") {
-			return make_element_by_type<topbar_nation_ruling_party_text>(state, id);
+			return make_element_by_type<nation_ruling_party_text>(state, id);
 		} else if(name == "politics_supressionpoints_value") {
 			return make_element_by_type<nation_suppression_points_text>(state, id);
 		} else if(name == "politics_infamy_value") {

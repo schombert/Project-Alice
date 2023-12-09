@@ -33,6 +33,13 @@ int main(int argc, char **argv) {
 					memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
 					i++;
 				}
+			} else if(native_string(argv[i]) == NATIVE("-password")) {
+				if(i + 1 < argc) {
+					auto str = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+					std::memset(game_state.network_state.password, '\0', sizeof(game_state.network_state.password));
+					std::memcpy(game_state.network_state.password, str.c_str(), std::min(sizeof(game_state.network_state.password), str.length()));
+					i++;
+				}
 			} else if(native_string(argv[i]) == NATIVE("-v6")) {
 				game_state.network_state.as_v6 = true;
 			} else if(native_string(argv[i]) == NATIVE("-v4")) {

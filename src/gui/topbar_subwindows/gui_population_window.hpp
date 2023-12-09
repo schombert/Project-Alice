@@ -670,10 +670,10 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
 	float cl_mod = cfrac * (state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor) ?
 														state.defines.con_poor_clergy : state.defines.con_midrich_clergy);
-	float lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
+	float lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-								 (state.world.province_get_is_colonial(loc) ? state.defines.con_colonial_factor : 1.0f);
+								 (state.world.province_get_is_colonial(loc) ? state.defines.con_colonial_factor : 1.0f)) / 10;
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -1434,7 +1434,7 @@ public:
 	}
 };
 
-class pop_national_focus_button : public button_element_base {
+class pop_national_focus_button : public right_click_button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
@@ -1453,6 +1453,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override;
+	void button_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
+	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

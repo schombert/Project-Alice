@@ -20,6 +20,7 @@ fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
 gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
+gamma_label;Gamma;Gamma;Gamma;Gamma;;;;;;;;;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
@@ -549,7 +550,7 @@ sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our mo
 mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
-mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in §Y$PROV$§W are:;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
@@ -1110,6 +1111,8 @@ et_add_selector;enable province selector;;;habilita el selector provincial;;;;;;
 et_remove_selector;disable province selector;;;deshabilita el selector provincial;;;;;;;;;x
 et_add_immigrator;enable province immigrator;;;habilita el inmigrador provincial;;;;;;;;;x
 et_remove_immigrator;disable province immigrator;;;deshabilita el inmigrador provincial;;;;;;;;;x
+et_if;If;;;Si;;;;;;;;;x
+et_else_if;Else;;;De lo contrario;;;;;;;;;x
 modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
 modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x

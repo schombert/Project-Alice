@@ -147,7 +147,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -266,7 +266,7 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -923,7 +923,8 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
 			*/
-			total += int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
+			total += std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
+											int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
 		}
 	}
 	return total;
@@ -2651,8 +2652,13 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// added the war goal's sphere with max influence.
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
 		if(secondary_nation) {
-			if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
-				take_from_sphere(state, secondary_nation, from);
+			if(secondary_nation != target) {
+				if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
+					take_from_sphere(state, secondary_nation, from);
+			} else { // we see this in the independence cb
+				if(state.world.nation_get_owned_province_count(from) != 0)
+					take_from_sphere(state, from, dcon::nation_id{});
+			}
 		} else {
 			take_from_sphere(state, target, from);
 		}
@@ -2675,9 +2681,16 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// po_release_puppet: nation stops being a vassal
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		assert(secondary_nation);
-		auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
-		if(ol) {
-			nations::release_vassal(state, ol);
+		if(secondary_nation != target) {
+			auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
+		} else { // we see this in the independence cb
+			auto ol = state.world.nation_get_overlord_as_subject(from);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
 		}
 	}
 
@@ -3277,7 +3290,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			assert(false);
 		}
 	} else { // crisis offer
-		bool crisis_attackers_won = from == state.primary_crisis_attacker;
+		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
@@ -6716,7 +6729,7 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		for(auto rg : ar.get_army().get_army_membership()) {
 			auto pop = rg.get_regiment().get_pop_from_regiment_source();
-			if(pop && pop.get_poptype() != state.culture_definitions.soldiers) {
+			if(!pop || pop.get_poptype() != state.culture_definitions.soldiers) {
 				rg.get_regiment().set_strength(0.0f);
 				rg.get_regiment().set_pop_from_regiment_source(dcon::pop_id{});
 			}
@@ -6756,7 +6769,8 @@ void advance_mobilizations(sys::state& state) {
 								*/
 
 								auto available =
-										int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
+										std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
+											int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
 								if(available > 0) {
 
 									bool army_is_new = false;
@@ -6776,7 +6790,9 @@ void advance_mobilizations(sys::state& state) {
 										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry ?state.military_definitions.infantry : state.military_definitions.irregular);
 										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.try_create_army_membership(new_reg, a);
-										state.world.try_create_regiment_source(new_reg, pop.get_pop());
+										auto p = pop.get_pop();
+										assert(p);
+										state.world.try_create_regiment_source(new_reg, p);
 
 										--available;
 										--to_mobilize;
