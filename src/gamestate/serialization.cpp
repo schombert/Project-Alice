@@ -627,9 +627,11 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.effect_data_indices);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
-	sz += serialize_size(state.text_data);
-	sz += serialize_size(state.text_components);
-	sz += serialize_size(state.text_sequences);
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		sz += serialize_size(state.text_data[i]);
+		sz += serialize_size(state.text_components[i]);
+		sz += serialize_size(state.text_sequences[i]);
+	}
 	sz += serialize_size(state.key_to_text_sequence);
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
@@ -971,7 +973,7 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state) {
+void write_save_file(sys::state& state, bool autosave) {
 	save_header header;
 	header.count = state.scenario_counter;
 	header.timestamp = state.scenario_time_stamp;
@@ -997,8 +999,16 @@ void write_save_file(sys::state& state) {
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	auto ymd_date = state.current_date.to_ymd(state.start_date);
-	auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+	std::string base_str;
+	if(autosave) {
+		base_str = std::string("autosave_") + std::to_string(uint32_t(state.autosave_counter)) + ".bin";
+		state.autosave_counter++;
+		if(state.autosave_counter >= 5)
+			state.autosave_counter = 0;
+	} else {
+		auto ymd_date = state.current_date.to_ymd(state.start_date);
+		base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+	}
 
 	auto sdir = simple_fs::get_or_create_save_game_directory();
 	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));

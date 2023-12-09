@@ -4149,15 +4149,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this);
+		write_save_file(*this, true);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	default:
 		break;

@@ -543,6 +543,7 @@ struct alignas(64) state {
 	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
 	ui::state ui_state;                                              // transient information for the state of the ui
 	text::font_manager font_collection;
+	uint8_t autosave_counter = 0;
 
 	// synchronization data (between main update logic and ui thread)
 	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
