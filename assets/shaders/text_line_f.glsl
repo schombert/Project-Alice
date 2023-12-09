@@ -7,6 +7,8 @@ layout (binding = 1) uniform sampler2D texture1;
 layout (binding = 2) uniform sampler2D texture2;
 layout (binding = 3) uniform sampler2D texture3;
 
+layout (location = 12) uniform float is_black;
+
 layout (location = 11) uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
@@ -14,8 +16,8 @@ vec4 gamma_correct(vec4 colour) {
 
 void main() {
 	float border_size = 0.05;
-	vec3 inner_color = vec3(0.0, 0.0, 0.0);
-	vec3 outer_color = vec3(1.0, 1.0, 1.0);
+	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
+	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
 	vec4 color_in = texture(texture0, tex_coord);
 	if(type == 0.f) {
 		color_in = texture(texture0, tex_coord);
