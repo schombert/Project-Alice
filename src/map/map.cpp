@@ -1176,7 +1176,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
 		auto& f = state.font_collection.fonts[2];
-		if(!f.loaded || !f.glyph_loaded)
+		if(!f.loaded)
 			return;
 
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
