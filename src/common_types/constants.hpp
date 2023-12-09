@@ -577,3 +577,7 @@ enum class army_activity {
 	attack_transport = 8,
 };
 }
+
+namespace sys {
+constexpr inline uint8_t max_languages = 8;
+}

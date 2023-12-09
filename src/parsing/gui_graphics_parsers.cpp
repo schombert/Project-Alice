@@ -403,10 +403,10 @@ void button::buttontext(association_type, std::string_view txt, error_handler& e
 		target.data.button.txt = it->second;
 	} else {
 		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.push_back(new_key);
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
+		auto component_sz = context.full_state.text_components[context.full_state.current_language].size();
+		context.full_state.text_components[context.full_state.current_language].push_back(new_key);
+		auto seq_size = context.full_state.text_sequences[context.full_state.current_language].size();
+		context.full_state.text_sequences[context.full_state.current_language].push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
 		target.data.button.txt = new_id;
 		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
@@ -510,10 +510,10 @@ void textbox::text(association_type, std::string_view txt, error_handler& err, i
 		target.data.text.txt = it->second;
 	} else {
 		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.push_back(new_key);
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
+		auto component_sz = context.full_state.text_components[context.full_state.current_language].size();
+		context.full_state.text_components[context.full_state.current_language].push_back(new_key);
+		auto seq_size = context.full_state.text_sequences[context.full_state.current_language].size();
+		context.full_state.text_sequences[context.full_state.current_language].push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
 		target.data.text.txt = new_id;
 		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
