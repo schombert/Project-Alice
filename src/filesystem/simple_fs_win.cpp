@@ -50,6 +50,7 @@ file::file(native_string const& full_path) {
 		absolute_path = full_path;
 		mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 		if(mapping_handle) {
+			GetFileTime(file_handle, NULL, NULL, &mod_time);
 			content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 			if(content.data) {
 				_LARGE_INTEGER pvalue;
@@ -63,6 +64,7 @@ file::file(HANDLE file_handle, native_string const& full_path) : file_handle(fil
 	absolute_path = full_path;
 	mapping_handle = CreateFileMappingW(file_handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
 	if(mapping_handle) {
+		GetFileTime(file_handle, NULL, NULL, &mod_time);
 		content.data = (char const*)MapViewOfFile(mapping_handle, FILE_MAP_READ, 0, 0, 0);
 		if(content.data) {
 			_LARGE_INTEGER pvalue;
@@ -329,6 +331,10 @@ native_string get_full_name(unopened_file const& f) {
 
 native_string get_file_name(unopened_file const& f) {
 	return f.file_name;
+}
+
+time_t get_mod_time(unopened_file const& f) {
+	return static_cast<time_t>(f.mod_time.dwLowDateTime);
 }
 
 native_string get_full_name(file const& f) {

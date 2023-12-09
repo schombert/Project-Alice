@@ -67,6 +67,7 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 std::optional<file> open_file(unopened_file const& f);
 native_string get_full_name(unopened_file const& f);
 native_string get_file_name(unopened_file const& f);
+time_t get_mod_time(unopened_file const& f);
 
 // opened file functions
 file_contents view_contents(file const& f);

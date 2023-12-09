@@ -37,6 +37,7 @@ file::file(file&& other) noexcept {
 #endif
 	content = other.content;
 	absolute_path = std::move(other.absolute_path);
+	mod_time = other.mod_time;
 
 	other.file_descriptor = -1;
 #if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
@@ -54,6 +55,7 @@ void file::operator=(file&& other) noexcept {
 #endif
 	content = other.content;
 	absolute_path = std::move(other.absolute_path);
+	mod_time = other.mod_time;
 
 	other.file_descriptor = -1;
 #if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
@@ -69,6 +71,7 @@ file::file(native_string const& full_path) {
 		absolute_path = full_path;
 		struct stat sb;
 		if(fstat(file_descriptor, &sb) != -1) {
+			mod_time = sb.st_mtime;
 			content.file_size = sb.st_size;
 #if _POSIX_C_SOURCE >= 200112L
 			posix_fadvise(file_descriptor, 0, static_cast<off_t>(content.file_size), POSIX_FADV_WILLNEED);
@@ -91,6 +94,7 @@ file::file(int file_descriptor, native_string const& full_path) : file_descripto
 	absolute_path = full_path;
 	struct stat sb;
 	if(fstat(file_descriptor, &sb) != -1) {
+		mod_time = sb.st_mtime;
 		content.file_size = sb.st_size;
 #if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 		mapping_handle = mmap(0, content.file_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0);
@@ -406,6 +410,10 @@ native_string get_full_name(unopened_file const& f) {
 
 native_string get_file_name(unopened_file const& f) {
 	return f.file_name;
+}
+
+time_t get_mod_time(unopened_file const& f) {
+	return f.mod_time;
 }
 
 native_string get_full_name(file const& f) {

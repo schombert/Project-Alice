@@ -70,6 +70,7 @@ public:
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 	friend native_string get_full_name(unopened_file const& f);
 	friend native_string get_file_name(unopened_file const& f);
+	friend time_t get_mod_time(unopened_file const& f);
 };
 
 class file {
@@ -78,6 +79,7 @@ class file {
 
 	native_string absolute_path;
 	file_contents content;
+	FILETIME mod_time;
 
 	file(native_string const& full_path);
 	file(HANDLE file_handle, native_string const& full_path);

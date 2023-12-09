@@ -145,10 +145,11 @@ struct save_item {
 	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	sys::date save_date;
+	time_t time;
 	bool is_new_game = false;
 
 	bool operator==(save_item const& o) const {
-		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name;
+		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && time == o.time && is_new_game == o.is_new_game && file_name == o.file_name;
 	}
 	bool operator!=(save_item const& o) const {
 		return !(*this == o);
@@ -346,7 +347,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
+		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), (time_t)-1, true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -357,13 +358,14 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.tag, h.cgov, h.d, false });
+					
+					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.tag, h.cgov, h.d, simple_fs::get_mod_time(f), false });
 				}
 			}
 		}
 
 		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			return b.file_name < a.file_name;
+			return a.time > b.time;
 		});
 
 		update(state);
