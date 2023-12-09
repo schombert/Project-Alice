@@ -32,6 +32,7 @@ struct xy_pair {
 	int16_t x = 0;
 	int16_t y = 0;
 };
+static_assert(sizeof(xy_pair) == 4);
 
 struct gfx_object {
 	constexpr static uint8_t always_transparent = 0x10;
@@ -108,7 +109,6 @@ struct text_base_data {
 	dcon::text_sequence_id txt; // 4bytes
 	uint16_t font_handle = 0; // 6bytes
 	uint8_t flags = 0; // 7bytes
-	uint8_t padding = 0; // 8bytes
 
 	alignment get_alignment() const {
 		return alignment(flags & alignment_mask);
@@ -128,9 +128,9 @@ struct button_data : public text_base_data {
 	static constexpr uint8_t clicksound_mask = (0x03 << clicksound_bit_offset);
 	static constexpr uint8_t is_checkbox_mask = (0x01 << (clicksound_bit_offset + 2));
 
-	dcon::gfx_object_id button_image; // 2bytes
-	sys::virtual_key shortcut = sys::virtual_key::NONE; // 3bytes
-	uint8_t padding = 0; //4bytes
+	//8bytes
+	dcon::gfx_object_id button_image; // 8+2bytes
+	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+3bytes
 
 	clicksound get_clicksound() const {
 		return clicksound(text_base_data::flags & clicksound_mask);
@@ -139,7 +139,7 @@ struct button_data : public text_base_data {
 		return (text_base_data::flags & is_checkbox_mask) != 0;
 	}
 };
-static_assert(sizeof(button_data) == 4);
+static_assert(sizeof(button_data) == sizeof(text_base_data) + 4);
 
 inline constexpr int32_t text_background_bit_offset = 2;
 enum class text_background : uint8_t { // 2 bits
@@ -170,7 +170,7 @@ struct text_data : public text_base_data {
 		return (text_base_data::flags & is_edit_mask) != 0;
 	}
 };
-static_assert(sizeof(text_data) == 4);
+static_assert(sizeof(text_data) == sizeof(text_base_data) + 4);
 
 struct image_data {
 	static constexpr uint8_t frame_mask = 0x7F;
@@ -179,7 +179,6 @@ struct image_data {
 	float scale = 1.0f; // 4bytes
 	dcon::gfx_object_id gfx_object; // 6bytes
 	uint8_t flags = 0; // 7bytes
-	uint8_t padding = 0; // 8bytes
 
 	bool is_mask() const {
 		return (flags & is_mask_mask) != 0;
@@ -188,23 +187,18 @@ struct image_data {
 		return (flags & frame_mask);
 	}
 };
-static_assert(sizeof(image_data) == 8);
 
 struct overlapping_data {
 	float spacing = 1.0f; // 4bytes
 	alignment image_alignment = alignment::left; // 5bytes
-	uint8_t padding[3] = {}; // 8bytes
 };
-static_assert(sizeof(overlapping_data) == 8);
 
 struct list_box_data {
 	xy_pair border_size; // 4bytes
 	xy_pair offset; // 8bytes
 	dcon::gfx_object_id background_image; // 10bytes
 	uint8_t spacing = 0; // 11bytes
-	uint8_t padding[5] = {}; // 16bytes
 };
-static_assert(sizeof(list_box_data) == 16);
 
 enum class step_size : uint8_t { // 2 bits
 	one = 0x00,
@@ -241,7 +235,6 @@ struct scrollbar_data {
 		return (flags & is_horizontal_mask) != 0;
 	}
 };
-static_assert(sizeof(scrollbar_data) == 10);
 
 struct window_data {
 	static constexpr uint8_t is_dialog_mask = 0x01;
@@ -262,7 +255,6 @@ struct window_data {
 		return (flags & is_moveable_mask) != 0;
 	}
 };
-static_assert(sizeof(window_data) == 4);
 
 struct position_data { };
 
@@ -289,15 +281,18 @@ struct element_data {
 		position_data position; //+0
 
 		internal_data() {
+			std::memset(this, 0, sizeof(internal_data));
 			position = position_data{};
 		}
 	} data; // +12 = 24
+	static_assert(sizeof(internal_data) == 12);
 
 	uint8_t flags = 0; // 25
 	uint8_t ex_flags = 0; // 26
+	uint8_t padding[2] = {}; // 28
 
 	element_data() {
-		memset(this, 0, sizeof(element_data));
+		std::memset(this, 0, sizeof(element_data));
 	}
 
 	element_type get_element_type() const {
