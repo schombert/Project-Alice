@@ -147,7 +147,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -266,7 +266,7 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -2652,8 +2652,13 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// added the war goal's sphere with max influence.
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
 		if(secondary_nation) {
-			if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
-				take_from_sphere(state, secondary_nation, from);
+			if(secondary_nation != target) {
+				if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
+					take_from_sphere(state, secondary_nation, from);
+			} else { // we see this in the independence cb
+				if(state.world.nation_get_owned_province_count(from) != 0)
+					take_from_sphere(state, from, dcon::nation_id{});
+			}
 		} else {
 			take_from_sphere(state, target, from);
 		}
@@ -2676,9 +2681,16 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// po_release_puppet: nation stops being a vassal
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		assert(secondary_nation);
-		auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
-		if(ol) {
-			nations::release_vassal(state, ol);
+		if(secondary_nation != target) {
+			auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
+		} else { // we see this in the independence cb
+			auto ol = state.world.nation_get_overlord_as_subject(from);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
 		}
 	}
 
