@@ -627,11 +627,9 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.effect_data_indices);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
-	for(uint32_t i = 0; i < sys::max_languages; i++) {
-		sz += serialize_size(state.text_data[i]);
-		sz += serialize_size(state.text_components[i]);
-		sz += serialize_size(state.text_sequences[i]);
-	}
+	sz += serialize_size(state.text_data);
+	sz += serialize_size(state.text_components);
+	sz += serialize_size(state.text_sequences);
 	sz += serialize_size(state.key_to_text_sequence);
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
