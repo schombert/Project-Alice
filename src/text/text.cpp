@@ -135,15 +135,18 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, uint32_t language, parsers::error_handler& err) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, uint32_t language, parsers::error_handler& err, bool& impedance_warn) {
 	auto to_lower_temp = lowercase_str(key);
 	auto sequence_record = create_text_sequence(state, content, language);
 
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-		// maybe report an error here -- repeated definition
-		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
-		//leave previous in place
-		//state.text_sequences[it->second] = sequence_record;
+		if(state.text_sequences[language].size() < it->second.value) {
+			const auto nh = state.text_sequences[language].size();
+			state.text_sequences[language].push_back(sequence_record);
+		} else if(!impedance_warn) {
+			err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
+			impedance_warn = true;
+		}
 		return it->second;
 	} else {
 		const auto nh = state.text_sequences[language].size();
@@ -161,9 +164,10 @@ void consume_csv_file(sys::state& state, char const* file_content, uint32_t file
 									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 									 : file_content;
 	while(start < file_content + file_size) {
+		bool b = false;
 		start = parsers::parse_first_and_fixed_amount_csv_values<6>(start, file_content + file_size, ';',
-				[&state, &err](std::string_view key, std::string_view content, uint32_t language) {
-					create_text_entry(state, key, content, language, err);
+				[&state, &err, &b](std::string_view key, std::string_view content, uint32_t language) {
+					create_text_entry(state, key, content, language, err, b);
 				});
 	}
 }
@@ -694,7 +698,8 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
-		return create_text_entry(state, local_key_copy, txt, state.user_settings.current_language, err);
+		bool b = false;
+		return create_text_entry(state, local_key_copy, txt, state.user_settings.current_language, err, b);
 	}
 }
 
