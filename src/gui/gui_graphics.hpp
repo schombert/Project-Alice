@@ -47,7 +47,6 @@ struct gfx_object {
 	uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
 	uint8_t flags = 0; // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
-	uint8_t padding[6] = {}; // 16bytes
 
 	object_type get_object_type() const {
 		return object_type(flags & type_mask);
@@ -65,7 +64,7 @@ struct gfx_object {
 		return (flags & do_transparency_check) != 0;
 	}
 };
-static_assert(sizeof(gfx_object) == 16);
+static_assert(sizeof(gfx_object) == 10);
 
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,
