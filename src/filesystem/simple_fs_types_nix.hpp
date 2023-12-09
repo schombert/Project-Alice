@@ -53,6 +53,7 @@ public:
 class unopened_file {
 	native_string absolute_path;
 	native_string file_name;
+	time_t mod_time;
 
 public:
 	unopened_file(native_string_view absolute_path, native_string_view file_name)
@@ -75,7 +76,6 @@ class file {
 
 	native_string absolute_path;
 	file_contents content;
-	time_t mod_time;
 
 	file(native_string const& full_path);
 	file(int file_descriptor, native_string const& full_path);
