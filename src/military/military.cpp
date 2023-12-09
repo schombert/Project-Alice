@@ -2029,7 +2029,10 @@ void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::sub
 	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
 	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
 	if(!primary_defender) {
-		primary_defender = state.world.war_get_primary_defender(war);
+		primary_defender = war.get_over_tag().get_nation_from_identity_holder().id;
+		if(!primary_defender) {
+			primary_defender = state.world.war_get_primary_defender(war);
+		}
 	}
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
