@@ -550,7 +550,7 @@ sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our mo
 mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
-mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in §Y$PROV$§W are:;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
