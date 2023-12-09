@@ -591,6 +591,31 @@ public:
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return text::get_name_as_string(state, fat_id.get_ruling_party());
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
+		ruling_party = ruling_party + " (" + text::get_name_as_string(state,
+			state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
+			text::add_divider_to_layout_box(state, contents, box);
+			text::close_layout_box(contents, box);
+		}
+		for(auto pi : state.culture_definitions.party_issues) {
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi).get_name(), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+			reform_description(state, contents, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi));
+			text::add_line_break_to_layout(state, contents);
+		}
+	}
 };
 
 class nation_government_type_text : public standard_nation_text {

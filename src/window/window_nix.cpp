@@ -123,6 +123,22 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 	case GLFW_RELEASE:
 		state->on_key_up(virtual_key, get_current_modifiers(mods));
 		break;
+	case GLFW_REPEAT:
+		switch(virtual_key) {
+		case sys::virtual_key::BACK: [[fallthrough]];
+		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
+		case sys::virtual_key::LEFT: [[fallthrough]];
+		case sys::virtual_key::RIGHT: [[fallthrough]];
+		case sys::virtual_key::UP: [[fallthrough]];
+		case sys::virtual_key::DOWN:
+			state->on_key_down(virtual_key, get_current_modifiers(mods));
+			break;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
 	}
 }
 

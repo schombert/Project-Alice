@@ -8,6 +8,36 @@ dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_buil
 	return make_trigger(gen, err, tr_context);
 }
 
+void ef_scope_if(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	context.compiled_effect.push_back(uint16_t(effect::if_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+}
+
+void ef_scope_else_if(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	context.compiled_effect.push_back(uint16_t(effect::else_if_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+}
+
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 

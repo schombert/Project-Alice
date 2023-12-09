@@ -278,6 +278,7 @@ guiTypes = {
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
+				text = "gaussianblur_label"
 				orientation = "UPPER_LEFT"
 				format = left
 			}
@@ -2953,6 +2954,7 @@ guiTypes = {
 			name = "s3_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3056,6 +3058,7 @@ guiTypes = {
 			name = "s3_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3225,6 +3228,7 @@ guiTypes = {
 			name = "s7_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 8 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3247,6 +3251,7 @@ guiTypes = {
 			name = "s8_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 158 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3269,6 +3274,7 @@ guiTypes = {
 			name = "s9_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3400,6 +3406,7 @@ guiTypes = {
 			name = "s5_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 158 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {

@@ -113,15 +113,19 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				bool fail = false;
 				bool army_play = false;
 				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, id).empty())
+					if(command::can_move_army(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
-					army_play = true;
+					} else {
+						command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+						army_play = true;
+					}
 				}
 				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, id).empty())
+					if(command::can_move_navy(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					} else {
+						command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					}
 				}
 
 				if(!fail) {
@@ -292,8 +296,9 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		}
 		// Hide province upon selecting multiple armies / navies :)
 		if(!selected_armies.empty() || !selected_navies.empty()) {
-			if(this->ui_state.province_window) {
-				this->ui_state.province_window->set_visible(*this, false);
+			if(ui_state.province_window) {
+				ui_state.province_window->set_visible(*this, false);
+				map_state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
 			}
 			// Play selection sound effect
 			if(!selected_armies.empty()) {
@@ -3490,7 +3495,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military::apply_base_unit_stat_modifiers(*this);
 
 	province::update_connected_regions(*this);
-
 	province::restore_unsaved_values(*this);
 
 	culture::update_all_nations_issue_rules(*this);
@@ -3582,6 +3586,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
+
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
@@ -3655,10 +3662,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 void state::single_game_tick() {
 	// do update logic
-	province::update_connected_regions(*this);
-	province::update_cached_values(*this);
-	nations::update_cached_values(*this);
-
+	
 	current_date += 1;
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
@@ -3914,6 +3918,9 @@ void state::single_game_tick() {
 
 	military::advance_mobilizations(*this);
 
+	province::update_colonization(*this);
+	military::update_cbs(*this); // may add/remove cbs to a nation
+
 	event::update_events(*this);
 
 	culture::update_research(*this, uint32_t(ymd_date.year));
@@ -3922,9 +3929,6 @@ void state::single_game_tick() {
 	nations::update_rankings(*this);				// depends on industrial score, military scores
 	nations::update_great_powers(*this);		// depends on rankings
 	nations::update_influence(*this);				// depends on rankings, great powers
-
-	province::update_colonization(*this);
-	military::update_cbs(*this); // may add/remove cbs to a nation
 
 	nations::update_crisis(*this);
 	politics::update_elections(*this);
@@ -4121,6 +4125,9 @@ void state::single_game_tick() {
 	military::update_blackflag_status(*this);
 	ai::daily_cleanup(*this);
 
+	province::update_connected_regions(*this);
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
 	/*
 	 * END OF DAY: update cached data
 	 */

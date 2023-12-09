@@ -72,7 +72,7 @@ public:
 			return ptr;
 
 		} else if(name == "use_leader") {
-			return make_element_by_type<checkbox_button>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 
 		} else if(name == "army") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
@@ -261,6 +261,14 @@ public:
 		} else if(name == "admirals") {
 			return make_element_by_type<military_admiral_count>(state, id);
 
+		} else if(name == "auto_create") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "auto_create_text") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "auto_assign") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "auto_assign_text") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
