@@ -1389,7 +1389,7 @@ private:
 		dcon::nation_id target = wargoal_against;
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;
-		auto secondary_tag = state.world.nation_get_identity_from_identity_holder(offer_made_to);
+		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 		if(allowed_substate_regions) {
 			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
@@ -1519,8 +1519,6 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(offer_made_to);
-		} else if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(offer_made_to));
 		} else if(payload.holds_type<get_target>()) {
 			payload.emplace<get_target>(get_target{ wargoal_against });
 		} else if(payload.holds_type<get_offer_to>()) {
