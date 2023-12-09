@@ -42,12 +42,11 @@ struct gfx_object {
 	constexpr static uint8_t type_mask = 0x0F;
 
 	xy_pair size; // 4bytes
-
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0;						 // secondary texture handle or border size -- 8bytes
-
-	uint8_t flags = 0;						// 9bytes
+	uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
+	uint8_t flags = 0; // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
+	uint8_t padding[6] = {}; // 16bytes
 
 	object_type get_object_type() const {
 		return object_type(flags & type_mask);
@@ -65,6 +64,7 @@ struct gfx_object {
 		return (flags & do_transparency_check) != 0;
 	}
 };
+static_assert(sizeof(gfx_object) == 16);
 
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,
@@ -105,14 +105,16 @@ enum class orientation : uint8_t { // 3 bits
 struct text_base_data {
 	static constexpr uint8_t alignment_mask = 0x03;
 
-	dcon::text_sequence_id txt;
-	uint16_t font_handle = 0;
-	uint8_t flags = 0;
+	dcon::text_sequence_id txt; // 4bytes
+	uint16_t font_handle = 0; // 6bytes
+	uint8_t flags = 0; // 7bytes
+	uint8_t padding = 0; // 8bytes
 
 	alignment get_alignment() const {
 		return alignment(flags & alignment_mask);
 	}
 };
+static_assert(sizeof(text_base_data) == 8);
 
 inline constexpr int32_t clicksound_bit_offset = 2;
 enum class clicksound : uint8_t { // 2 bits
@@ -126,8 +128,9 @@ struct button_data : public text_base_data {
 	static constexpr uint8_t clicksound_mask = (0x03 << clicksound_bit_offset);
 	static constexpr uint8_t is_checkbox_mask = (0x01 << (clicksound_bit_offset + 2));
 
-	dcon::gfx_object_id button_image;
-	sys::virtual_key shortcut = sys::virtual_key::NONE;
+	dcon::gfx_object_id button_image; // 2bytes
+	sys::virtual_key shortcut = sys::virtual_key::NONE; // 3bytes
+	uint8_t padding = 0; //4bytes
 
 	clicksound get_clicksound() const {
 		return clicksound(text_base_data::flags & clicksound_mask);
@@ -136,6 +139,7 @@ struct button_data : public text_base_data {
 		return (text_base_data::flags & is_checkbox_mask) != 0;
 	}
 };
+static_assert(sizeof(button_data) == 4);
 
 inline constexpr int32_t text_background_bit_offset = 2;
 enum class text_background : uint8_t { // 2 bits
@@ -151,7 +155,7 @@ struct text_data : public text_base_data {
 	static constexpr uint8_t is_instant_mask = (0x01 << (text_background_bit_offset + 3));
 	static constexpr uint8_t is_edit_mask = (0x01 << (text_background_bit_offset + 4));
 
-	xy_pair border_size;
+	xy_pair border_size; // 4bytes
 
 	text_background get_text_background() const {
 		return text_background(text_base_data::flags & background_mask);
@@ -166,15 +170,16 @@ struct text_data : public text_base_data {
 		return (text_base_data::flags & is_edit_mask) != 0;
 	}
 };
+static_assert(sizeof(text_data) == 4);
 
 struct image_data {
 	static constexpr uint8_t frame_mask = 0x7F;
 	static constexpr uint8_t is_mask_mask = 0x80;
 
-	float scale = 1.0f;
-	dcon::gfx_object_id gfx_object;
-
-	uint8_t flags = 0;
+	float scale = 1.0f; // 4bytes
+	dcon::gfx_object_id gfx_object; // 6bytes
+	uint8_t flags = 0; // 7bytes
+	uint8_t padding = 0; // 8bytes
 
 	bool is_mask() const {
 		return (flags & is_mask_mask) != 0;
@@ -183,18 +188,23 @@ struct image_data {
 		return (flags & frame_mask);
 	}
 };
+static_assert(sizeof(image_data) == 8);
 
 struct overlapping_data {
-	float spacing = 1.0f;
-	alignment image_alignment = alignment::left;
+	float spacing = 1.0f; // 4bytes
+	alignment image_alignment = alignment::left; // 5bytes
+	uint8_t padding[3] = {}; // 8bytes
 };
+static_assert(sizeof(overlapping_data) == 8);
 
 struct list_box_data {
-	xy_pair border_size;
-	xy_pair offset;
-	dcon::gfx_object_id background_image;
-	uint8_t spacing = 0;
+	xy_pair border_size; // 4bytes
+	xy_pair offset; // 8bytes
+	dcon::gfx_object_id background_image; // 10bytes
+	uint8_t spacing = 0; // 11bytes
+	uint8_t padding[5] = {}; // 16bytes
 };
+static_assert(sizeof(list_box_data) == 16);
 
 enum class step_size : uint8_t { // 2 bits
 	one = 0x00,
@@ -212,12 +222,11 @@ struct scrollbar_data {
 	static constexpr uint8_t is_lockable_mask = 0x10;
 	static constexpr uint8_t is_horizontal_mask = 0x20;
 
-	xy_pair border_size;
-	uint16_t max_value = 1;
-	dcon::gui_def_id first_child;
-	uint8_t num_children = 0;
-
-	uint8_t flags = 0;
+	xy_pair border_size; // 4bytes
+	uint16_t max_value = 1; // 6bytes
+	dcon::gui_def_id first_child; // 8bytes
+	uint8_t num_children = 0; // 9bytes
+	uint8_t flags = 0; // 10bytes
 
 	step_size get_step_size() const {
 		return step_size(step_size_mask & flags);
@@ -232,15 +241,16 @@ struct scrollbar_data {
 		return (flags & is_horizontal_mask) != 0;
 	}
 };
+static_assert(sizeof(scrollbar_data) == 10);
 
 struct window_data {
 	static constexpr uint8_t is_dialog_mask = 0x01;
 	static constexpr uint8_t is_fullscreen_mask = 0x02;
 	static constexpr uint8_t is_moveable_mask = 0x04;
 
-	dcon::gui_def_id first_child;
-	uint8_t num_children = 0;
-	uint8_t flags = 0;
+	dcon::gui_def_id first_child; // 2bytes
+	uint8_t num_children = 0; // 3bytes
+	uint8_t flags = 0; // 4bytes
 
 	bool is_dialog() const {
 		return (flags & is_dialog_mask) != 0;
@@ -252,6 +262,7 @@ struct window_data {
 		return (flags & is_moveable_mask) != 0;
 	}
 };
+static_assert(sizeof(window_data) == 4);
 
 struct position_data { };
 
@@ -262,27 +273,27 @@ struct element_data {
 
 	static constexpr uint8_t ex_is_top_level = 0x01;
 
-	xy_pair position;		 // 4
-	xy_pair size;				 // 8
-	dcon::text_key name; // 12
+	xy_pair position; // 4bytes
+	xy_pair size; // 8bytes
+	dcon::text_key name; // 12bytes
 
 	union alignas(4) internal_data {
-		text_base_data text_common;		// +5
-		button_data button;						// +5 + ? +3
-		text_data text;								// +5 + ? +4
-		image_data image;							// +6
+		text_base_data text_common; // +5
+		button_data button; // +5 + ? +3
+		text_data text; // +5 + ? +4
+		image_data image; // +6
 		overlapping_data overlapping; //+5
-		list_box_data list_box;				// +11
-		scrollbar_data scrollbar;			//+10
-		window_data window;						// +4
-		position_data position;				//+0
+		list_box_data list_box; // +11
+		scrollbar_data scrollbar; //+10
+		window_data window; // +4
+		position_data position; //+0
 
 		internal_data() {
 			position = position_data{};
 		}
 	} data; // +12 = 24
 
-	uint8_t flags = 0;		// 25
+	uint8_t flags = 0; // 25
 	uint8_t ex_flags = 0; // 26
 
 	element_data() {
