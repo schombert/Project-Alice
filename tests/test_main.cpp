@@ -12,7 +12,7 @@
 #define RANGE(x) (x), (x) + ((sizeof(x)) / sizeof((x)[0])) - 1
 #define RANGE_SZ(x) (x), ((sizeof(x)) / sizeof((x)[0])) - 1
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 #define NATIVE_SEP "\\"
 #else
 #define NATIVE_SEP "/"

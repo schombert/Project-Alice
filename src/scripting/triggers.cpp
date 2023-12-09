@@ -4,8 +4,10 @@
 
 namespace trigger {
 
-#ifdef WIN32
+#ifdef _WIN64
 #define CALLTYPE __vectorcall
+#elif defined(_WIN32)
+#define CALLTYPE 
 #else
 #define CALLTYPE
 #endif

@@ -641,7 +641,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
 	// dcon::load_record loaded;
-	sz += state.world.serialize_size(loaded);
+	sz += size_t(state.world.serialize_size(loaded));
 
 	return sz;
 }
@@ -782,7 +782,7 @@ size_t sizeof_save_section(sys::state& state) {
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
-	sz += state.world.serialize_size(loaded);
+	sz += size_t(state.world.serialize_size(loaded));
 
 	return sz;
 }

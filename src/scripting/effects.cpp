@@ -84,7 +84,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -142,7 +142,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -189,7 +189,7 @@ uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -244,7 +244,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -294,7 +294,7 @@ uint32_t es_x_greater_power_scope(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -577,7 +577,7 @@ uint32_t es_x_pop_scope_nation(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -634,7 +634,7 @@ uint32_t es_x_pop_scope_state(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -687,7 +687,7 @@ uint32_t es_x_pop_scope_province(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -728,7 +728,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -781,7 +781,7 @@ uint32_t es_x_owned_scope_state(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -832,7 +832,7 @@ uint32_t es_x_core_scope(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -881,7 +881,7 @@ uint32_t es_x_core_scope_province(EFFECT_PARAMTERS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -926,7 +926,7 @@ uint32_t es_x_state_scope(EFFECT_PARAMTERS) {
 			}
 		}
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -969,7 +969,7 @@ uint32_t es_x_substate_scope(EFFECT_PARAMTERS) {
 			}
 		}
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
@@ -2966,7 +2966,7 @@ uint32_t ef_remove_random_military_reforms(EFFECT_PARAMTERS) {
 			active_reforms.push_back(ws.world.reform_get_options(issue)[0]);
 	}
 	for(int32_t i = tval[1] - 1; active_reforms.size() != 0 && i >= 0; --i) {
-		auto r = rng::get_random(ws, r_hi, uint32_t(r_lo + i)) % active_reforms.size();
+		auto r = size_t(rng::get_random(ws, r_hi, uint32_t(r_lo + i))) % active_reforms.size();
 		politics::set_reform_option(ws, nation_id, active_reforms[r]);
 		active_reforms[r] = active_reforms.back();
 		active_reforms.pop_back();
@@ -2984,7 +2984,7 @@ uint32_t ef_remove_random_economic_reforms(EFFECT_PARAMTERS) {
 			active_reforms.push_back(ws.world.reform_get_options(issue)[0]);
 	}
 	for(int32_t i = tval[1] - 1; active_reforms.size() != 0 && i >= 0; --i) {
-		auto r = rng::get_random(ws, r_hi, uint32_t(r_lo + i)) % active_reforms.size();
+		auto r = size_t(rng::get_random(ws, r_hi, uint32_t(r_lo + i))) % active_reforms.size();
 		politics::set_reform_option(ws, nation_id, active_reforms[r]);
 		active_reforms[r] = active_reforms.back();
 		active_reforms.pop_back();

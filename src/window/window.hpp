@@ -2,7 +2,7 @@
 
 // #include "system_state.hpp"
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 
 typedef struct HWND__* HWND;
 typedef struct HDC__* HDC;

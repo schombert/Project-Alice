@@ -51,7 +51,7 @@ aaedev@gmail.com 2012
 #include "fonts.hpp"
 #include "system_state.hpp"
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 #pragma warning(disable : 4996)
 #endif
 

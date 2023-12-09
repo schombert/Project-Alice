@@ -271,7 +271,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -323,7 +323,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -367,7 +367,7 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -424,7 +424,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -468,7 +468,7 @@ uint32_t es_x_greater_power_scope(EFFECT_DISPLAY_PARAMS) {
 		}
 
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -680,7 +680,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -738,7 +738,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -790,7 +790,7 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -843,7 +843,7 @@ uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -889,7 +889,7 @@ uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 		}
 		if(rlist.size() != 0) {
-			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
@@ -935,7 +935,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 			}
 
 			if(rlist.size() != 0) {
-				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+				auto r = size_t(rng::get_random(ws, r_hi, r_lo)) % rlist.size();
 
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);

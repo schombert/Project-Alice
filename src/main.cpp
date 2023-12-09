@@ -1,6 +1,7 @@
 #ifdef LOCAL_USER_SETTINGS
 #include "local_user_settings.hpp"
 #endif
+
 #include "common_types.cpp"
 #include "system_state.cpp"
 #include "parsers.cpp"
@@ -54,7 +55,7 @@
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 // WINDOWS implementations go here
 
 #include "simple_fs_win.cpp"

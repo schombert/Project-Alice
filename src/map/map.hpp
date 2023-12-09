@@ -34,7 +34,7 @@ struct image {
 	}
 	image(image const& other) = delete;
 
-	image(image&& other) {
+	image(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;
@@ -42,7 +42,7 @@ struct image {
 		other.data = nullptr;
 	}
 
-	image& operator=(image&& other) {
+	image& operator=(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;

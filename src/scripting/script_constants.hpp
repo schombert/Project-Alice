@@ -2712,6 +2712,7 @@ union payload {
 static_assert(sizeof(payload) == 2);
 
 inline int32_t get_trigger_non_scope_payload_size(uint16_t const* data) {
+	assert(data[0] & trigger::code_mask < sizeof(trigger::data_sizes) / sizeof(trigger::data_sizes[0]));
 	return trigger::data_sizes[data[0] & trigger::code_mask];
 }
 inline int32_t get_trigger_scope_payload_size(uint16_t const* data) {

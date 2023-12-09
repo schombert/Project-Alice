@@ -4166,7 +4166,7 @@ void state::single_game_tick() {
 
 sys::checksum_key state::get_save_checksum() {
 	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size_t(world.serialize_size(loaded))]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
 	world.serialize(start, loaded);
 
@@ -4192,7 +4192,7 @@ sys::checksum_key state::get_scenario_checksum() {
 void state::debug_save_oos_dump() {
 	// save for further inspection
 	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size_t(world.serialize_size(loaded))]);
 	auto buffer_position = reinterpret_cast<std::byte*>(save_buffer.get());
 	world.serialize(buffer_position, loaded);
 	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - save_buffer.get();
@@ -4211,24 +4211,33 @@ void state::debug_save_oos_dump() {
 }
 
 void state::debug_scenario_oos_dump() {
-	// save for further inspection
-	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	auto buffer_position = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(buffer_position, loaded);
-	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
-
 	auto sdir = simple_fs::get_or_create_oos_directory();
-	auto ymd_date = current_date.to_ymd(start_date);
-	std::string party_name = "ScnS";
-	if(network_mode == sys::network_mode_type::client) {
-		party_name = "ScenC";
-	} else if(network_mode == sys::network_mode_type::host) {
-		party_name = "ScenH";
+	{
+		// save for further inspection
+		dcon::load_record loaded = world.make_serialize_record_store_save();
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size_t(world.serialize_size(loaded))]);
+		auto buffer_position = reinterpret_cast<std::byte*>(buffer.get());
+		world.serialize(buffer_position, loaded);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+
+		auto ymd_date = current_date.to_ymd(start_date);
+		std::string party_name = "ScnS";
+		if(network_mode == sys::network_mode_type::client) {
+			party_name = "ScnC";
+		} else if(network_mode == sys::network_mode_type::host) {
+			party_name = "ScnH";
+		}
+		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(world.nation_get_identity_from_identity_holder(local_player_nation)));
+		auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
-	auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(world.nation_get_identity_from_identity_holder(local_player_nation)));
-	auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this)]);
+		auto buffer_position = sys::write_scenario_section(buffer.get(), *this);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		auto base_str = "ScnAll.bin";
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
 }
 
 void state::game_loop() {

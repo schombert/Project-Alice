@@ -221,7 +221,7 @@ bool has_fixed_suffix_ci(char const* start, char const* end, char const (&t)[N])
 	return true;
 }
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 template<size_t N>
 bool native_has_fixed_suffix_ci(wchar_t const* start, wchar_t const* end, const wchar_t (&t)[N]) {
 	if(end - start < ((std::ptrdiff_t)N - 1))

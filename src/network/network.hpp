@@ -2,14 +2,16 @@
 
 #include <array>
 #include <string>
-#ifdef _WIN64 // WINDOWS
+#if defined(_WIN64) || defined(_WIN32)
+// WINDOWS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS 1
 #ifndef WINSOCK2_IMPORTED
 #define WINSOCK2_IMPORTED
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
-#else // NIX
+#else
+// LINIX
 #include <netinet/in.h>
 #include <sys/socket.h>
 #endif
@@ -24,7 +26,7 @@ namespace network {
 
 inline constexpr short default_server_port = 1984;
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 typedef SOCKET socket_t;
 #else
 typedef int socket_t;

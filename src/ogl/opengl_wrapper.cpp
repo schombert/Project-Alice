@@ -31,7 +31,7 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 	std::string full_message = message;
 	full_message += "\n";
 	full_message += opengl_get_error_name(glGetError());
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 	MessageBoxA(nullptr, full_message.c_str(), "OpenGL error", MB_OK);
 #else
 	std::fprintf(stderr, "OpenGL error: %s\n", full_message.c_str());

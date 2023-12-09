@@ -134,7 +134,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	full_message += message;
 	full_message += "\n";
 
-#ifdef _WIN64
+#if defined(_WIN64) || defined(_WIN32)
 	OutputDebugStringA(full_message.c_str());
 #else
 	printf("%s", full_message.c_str());

@@ -1237,7 +1237,7 @@ void font::make_glyph(char ch_in) {
 	if(index_in_this_font) {
 		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
-		FT_Glyph g_result;
+		FT_Glyph g_result{};
 		FT_Get_Glyph(font_face->glyph, &g_result);
 
 		auto texture_number = uint8_t(ch_in) >> 6;
