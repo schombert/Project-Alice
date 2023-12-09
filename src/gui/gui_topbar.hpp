@@ -777,32 +777,6 @@ public:
 	}
 };
 
-class topbar_background : public opaque_element_base {
-public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
-			if((y > (base_data.size.y - 16)) or ((x+y*0.8) > base_data.size.x))
-				return message_result::unseen; // perhaps this kinda stuff should be parametrized with geometric primitives that can me mod-defined
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-class topbar_paper_background : public opaque_element_base {
-public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
-			if( (x > 160) and (y > 50) )
-				return message_result::unseen;
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
 class topbar_tab_button : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1661,10 +1635,10 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbar_bg") { //TODO: maybe create topbar_background class with mouse_test() function that makes the edges for showing tooltip a little nicer
-			return make_element_by_type<topbar_background>(state, id);
+		if(name == "topbar_bg") {
+			return make_element_by_type<partially_transparent_image>(state, id);
 		} else if(name == "topbar_paper") {
-			return make_element_by_type<topbar_paper_background>(state, id);
+			return make_element_by_type<partially_transparent_image>(state, id);
 		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 

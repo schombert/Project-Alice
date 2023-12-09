@@ -326,19 +326,6 @@ public:
 	}
 };
 
-class menubar_background : public opaque_element_base {
-public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
-			if(y < 30)
-				return message_result::unseen;
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 
@@ -366,7 +353,7 @@ public:
 		} else if(name == "map_zoom_out") {
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_bg") {
-			return make_element_by_type<menubar_background>(state, id);
+			return make_element_by_type<partially_transparent_image>(state, id);
 		} else if(name == "menubar_mail_bg") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_settings") {

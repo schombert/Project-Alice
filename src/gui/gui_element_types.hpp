@@ -115,6 +115,57 @@ public:
 	}
 };
 
+class partially_transparent_image : public opaque_element_base {
+	uint8_t* texture = nullptr;
+	int32_t size_x = 0, size_y = 0;
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		dcon::gfx_object_id gid{};
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(not gid)
+			return message_result::unseen;
+		if(not texture) { // this assumes that a texture is loaded and neverchanging in size when the test_mouse function is called for the first time
+			dcon::texture_id tid = state.ui_defs.gfx[gid].primary_texture_handle;
+			auto& texhandle = state.open_gl.asset_textures[tid];
+			texture = texhandle.data;
+			size_x = texhandle.size_x;
+			size_y = texhandle.size_y;
+			return message_result::unseen;
+		} else return message_result::consumed;/*
+		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
+			if(
+				texture[
+					(
+						((x * (int32_t)state.user_settings.ui_scale) % size_x)
+						+
+						((y * (int32_t)state.user_settings.ui_scale) * size_x)
+					) * 4 + 3
+				] == 0x00
+			) {
+				return message_result::unseen;
+			}
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}*/
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		opaque_element_base::on_create(state);
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		state.ui_defs.gfx[gid].flags |= ui::gfx_object::do_transparency_check;
+	}
+};
+
 class progress_bar : public opaque_element_base {
 public:
 	float progress = 0.f;
