@@ -1881,6 +1881,13 @@ public:
 		}
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		/* Properly updates the window when ownership changes - prevents weird bugs */
+		if(state.province_ownership_changed.load(std::memory_order_acquire) == true) {
+			set_active_province(state, active_province);
+		}
+	}
+
 	friend class province_national_focus_button;
 };
 
