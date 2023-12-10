@@ -796,7 +796,8 @@ float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_mil_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions) {
@@ -883,7 +884,8 @@ float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_con_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 
@@ -950,7 +952,8 @@ float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_literacy_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 inline constexpr float ideology_change_rate = 0.10f;
