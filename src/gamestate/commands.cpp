@@ -1761,6 +1761,8 @@ void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
 	if(state.world.movement_get_nation_from_movement_within(m) != source)
 		return false;
+	if(state.world.movement_get_pop_movement_membership(m).begin() == state.world.movement_get_pop_movement_membership(m).end())
+		return false;
 	return state.world.nation_get_suppression_points(source) >= rebel::get_suppression_point_cost(state, m);
 }
 void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::issue_option_id iopt,
