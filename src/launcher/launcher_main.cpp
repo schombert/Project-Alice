@@ -496,6 +496,12 @@ void mouse_click() {
 			// ready to launch
 		}
 		return;
+	case ui_obj_ip_addr:
+		return;
+	case ui_obj_password:
+		return;
+	case ui_obj_player_name:
+		return;
 	default:
 		break;
 	}
