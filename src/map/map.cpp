@@ -178,14 +178,18 @@ void create_line_vbo(GLuint& vbo, std::vector<border_vertex>& vertices) {
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, direction_));
 	// Set up vertex attribute format for the border id
 	glVertexAttribFormat(3, 1, GL_INT, GL_FALSE, offsetof(border_vertex, border_id_));
+	// Set up vertex attribute format for the tex coord
+	glVertexAttribFormat(4, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, texture_coord_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
 }
 
 void create_unit_arrow_vbo(GLuint& vbo) {
@@ -371,6 +375,10 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_color);
 	if(stripes_texture)
 		glDeleteTextures(1, &stripes_texture);
+	if(river_body_texture)
+		glDeleteTextures(1, &river_body_texture);
+	if(river_movement_texture)
+		glDeleteTextures(1, &river_movement_texture);
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 	if(province_fow)
@@ -493,6 +501,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, river_body_texture);
+	glActiveTexture(GL_TEXTURE15);
+	glBindTexture(GL_TEXTURE_2D, river_movement_texture);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -519,7 +531,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		};
 
 	load_shader(terrain_shader);
-
 	{ // Land specific shader uniform
 		glUniform1f(4, time_counter);
 		// get_land()
@@ -537,13 +548,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines[1] = 4; // get_water_political()
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
-
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
 	// Draw the rivers
 	load_shader(line_river_shader);
-	glUniform1f(4, (zoom > 8) ? 0.001f : 0.00055f);
+	glUniform1f(4, (zoom > 5) ? 0.0055f : 0.00055f);
+	glUniform1f(12, time_counter);
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
@@ -1364,6 +1375,10 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	river_body_texture = load_dds_texture(map_terrain_dir, NATIVE("river_body.dds"));
+	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_BORDER);
+	river_movement_texture = load_dds_texture(map_terrain_dir, NATIVE("river_movement.dds"));
+	set_gltex_parameters(river_movement_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_BORDER);
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);

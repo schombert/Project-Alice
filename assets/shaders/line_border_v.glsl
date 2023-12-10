@@ -2,8 +2,11 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
+layout (location = 4) in vec2 texture_coord;
 
 out vec2 tex_coord;
+out vec2 map_coord;
+
 // Camera position
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
@@ -60,6 +63,7 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
+	/*
 	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
 	float thickness = border_width / zoom_level;
 	vec2 normal_vector = normalize(normal_direction) * thickness;
@@ -67,11 +71,36 @@ void main() {
 	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position;
 
-
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += extend_vector + normal_vector;
 	world_pos.x /= map_size.x / map_size.y;
+	*/
 
+	/*
+	float thickness = border_width * 0.25f;
+	vec2 rot_direction = vec2(-direction.y, direction.x);
+	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
+	// Extend the border slightly to make it fit together with any other border in any octagon direction.
+	vec2 extend_vector = -normalize(direction) * thickness;
+	extend_vector *= mod(type, 2) == 0? 0 : 1;
+	vec2 world_pos = vertex_position;
+	world_pos.x *= map_size.x / map_size.y;
+	world_pos += normal_vector + extend_vector;
+	world_pos.x /= map_size.x / map_size.y;
+	*/
+
+	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
+	float thickness = border_width / zoom_level;
+	vec2 rot_direction = vec2(-direction.y, direction.x);
+	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
+	// Extend the border slightly to make it fit together with any other border in any octagon direction.
+	vec2 extend_vector = -normalize(direction) * thickness / (1.f + sqrt(3.1415f));
+	vec2 world_pos = vertex_position;
+	world_pos.x *= map_size.x / map_size.y;
+	world_pos += normal_vector + extend_vector;
+	world_pos.x /= map_size.x / map_size.y;
+
+	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
-	tex_coord = vertex_position;
+	tex_coord = texture_coord;
 }

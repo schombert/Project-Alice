@@ -50,13 +50,13 @@ void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec
 
 	int32_t border_index = int32_t(line_vertices.size());
 	// First vertex of the line segment
-	line_vertices.emplace_back(pos1, normal_direction, direction, border_id);
-	line_vertices.emplace_back(pos1, -normal_direction, direction, border_id);
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
+	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), border_id);
+	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), border_id);
+	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), border_id);
 	// Second vertex of the line segment
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, border_id);
-	line_vertices.emplace_back(pos2, normal_direction, -direction, border_id);
-	line_vertices.emplace_back(pos1, normal_direction, direction, border_id);
+	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), border_id);
+	line_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.f, 0.f), border_id);
+	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), border_id);
 
 	BorderDirection::Information direction_information(border_index, border_id);
 	switch(dir) {
@@ -428,13 +428,14 @@ std::vector<border_vertex> create_river_vertices(display_data const& data, parse
 	std::vector<BorderDirection> last_row(size.x);
 	auto map_size = glm::vec2(data.size_x, data.size_y);
 
+	glm::vec2 prev_pos(0.f);
 	auto add_river = [&](uint32_t x0, uint32_t y0, bool river_u, bool river_d, bool river_r, bool river_l) {
 		glm::vec2 map_pos(x0, y0);
 
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
-			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, river_vertices))
+			//if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, river_vertices))
 			add_line(map_pos, map_size, pos1, pos2, 0, x0, dir, river_vertices, current_row, 0.0f);
-			};
+		};
 
 		if(river_l && river_u && !river_r && !river_d) { // Upper left
 			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_LEFT);
@@ -458,7 +459,7 @@ std::vector<border_vertex> create_river_vertices(display_data const& data, parse
 				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), direction::RIGHT);
 			}
 		}
-		};
+	};
 
 	for(int y = 1; y < size.y - 1; y++) {
 		for(int x = 1; x < size.x - 1; x++) {
@@ -475,6 +476,35 @@ std::vector<border_vertex> create_river_vertices(display_data const& data, parse
 		// Move the border_direction rows a step down
 		std::swap(last_row, current_row);
 		std::fill(current_row.begin(), current_row.end(), BorderDirection{});
+	}
+
+	uint32_t newn = uint32_t(river_vertices.size()) / 6;
+	while(newn <= 1) {
+		newn = 0;
+		for(uint32_t n = 0; n < uint32_t(river_vertices.size()) / 6; n++) {
+			uint32_t i = n * 6;
+			glm::vec2 p1;
+			p1 = glm::max(river_vertices[i + 0].position_, river_vertices[i + 1].position_);
+			p1 = glm::max(p1, river_vertices[i + 2].position_);
+			p1 = glm::max(p1, river_vertices[i + 3].position_);
+			p1 = glm::max(p1, river_vertices[i + 4].position_);
+			p1 = glm::max(p1, river_vertices[i + 5].position_);
+			glm::vec2 p2;
+			p2 = glm::max(river_vertices[i + 6].position_, river_vertices[i + 7].position_);
+			p2 = glm::max(p2, river_vertices[i + 8].position_);
+			p2 = glm::max(p2, river_vertices[i + 9].position_);
+			p2 = glm::max(p2, river_vertices[i + 10].position_);
+			p2 = glm::max(p2, river_vertices[i + 11].position_);
+			if(p1.y > p2.y) {
+				map::border_vertex tmp[6];
+				for(uint32_t k = 0; k < 6; k++) {
+					tmp[k] = river_vertices[i + 0 + k];
+					river_vertices[i + 0 + k] = river_vertices[i + 6 + k];
+					river_vertices[i + 6 + k] = tmp[k];
+				}
+				newn = n;
+			}
+		}
 	}
 	return river_vertices;
 }

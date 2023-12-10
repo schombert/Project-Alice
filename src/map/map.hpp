@@ -67,11 +67,12 @@ struct screen_vertex {
 };
 struct border_vertex {
 	border_vertex(){};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id)
-			: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
+	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, int32_t border_id)
+			: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id), texture_coord_(texture_coord) {};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
+	glm::vec2 texture_coord_;
 	int32_t border_id_;
 };
 struct unit_arrow_vertex {
@@ -175,6 +176,8 @@ public:
 	GLuint province_color = 0;
 	GLuint province_highlight = 0;
 	GLuint stripes_texture = 0;
+	GLuint river_body_texture = 0;
+	GLuint river_movement_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
 
