@@ -2028,14 +2028,9 @@ void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::sub
 
 	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
 	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
-	if(!primary_defender) {
-		primary_defender = war.get_over_tag().get_nation_from_identity_holder().id;
-		if(!primary_defender) {
-			primary_defender = state.world.war_get_primary_defender(war);
-		}
-	}
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+
 	text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
 	text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
 	text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
@@ -2193,6 +2188,8 @@ war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n) {
 dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender,
 		dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state,
 		dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary) {
+	assert(primary_attacker);
+	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
 
 	auto real_target = primary_defender;

@@ -1721,7 +1721,8 @@ public:
 			return make_element_by_type<war_bg>(state, id);
 		} else if(name == "war_name") {
 			auto ptr = make_element_by_type<war_name_text>(state, id);
-			//ptr->base_data.position.x += 90; // Nudge
+			ptr->base_data.size.x += 128; // Nudge
+			ptr->base_data.position.x -= 64; // Nudge
 			return ptr;
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
