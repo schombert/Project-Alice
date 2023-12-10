@@ -353,7 +353,7 @@ public:
 		} else if(name == "map_zoom_out") {
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_bg") {
-			return make_element_by_type<partially_transparent_image>(state, id);
+			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "menubar_mail_bg") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menubar_msg_settings") {
