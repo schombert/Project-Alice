@@ -160,56 +160,26 @@ void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribBinding(index, 0);
 }
 
-void create_line_vbo(GLuint& vbo, std::vector<border_vertex>& vertices) {
+void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	if(vertices.size() != 0)
-		glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
 
 	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, vbo, 0, sizeof(border_vertex));
+	glBindVertexBuffer(0, vbo, 0, sizeof(curved_line_vertex));
 
 	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, position_));
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, normal_direction_));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, normal_direction_));
 	// Set up vertex attribute format for the direction
-	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, direction_));
-	// Set up vertex attribute format for the border id
-	glVertexAttribFormat(3, 1, GL_INT, GL_FALSE, offsetof(border_vertex, border_id_));
-	// Set up vertex attribute format for the tex coord
-	glVertexAttribFormat(4, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, texture_coord_));
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glEnableVertexAttribArray(3);
-	glEnableVertexAttribArray(4);
-	glVertexAttribBinding(0, 0);
-	glVertexAttribBinding(1, 0);
-	glVertexAttribBinding(2, 0);
-	glVertexAttribBinding(3, 0);
-	glVertexAttribBinding(4, 0);
-}
-
-void create_unit_arrow_vbo(GLuint& vbo) {
-	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, vbo, 0, sizeof(unit_arrow_vertex));
-
-	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, position_));
-	// Set up vertex attribute format for the normal direction
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, normal_direction_));
-	// Set up vertex attribute format for the direction
-	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, direction_));
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, texture_coord_));
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, texture_coord_));
 	// Set up vertex attribute format for the type
-	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, type_));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, type_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -272,15 +242,15 @@ void display_data::create_border_ogl_objects() {
 	// Create and bind the VAO
 	glGenVertexArrays(1, &border_vao);
 	glBindVertexArray(border_vao);
-	create_line_vbo(border_vbo, border_vertices);
+	create_unit_arrow_vbo(border_vbo, border_vertices);
 
 	glGenVertexArrays(1, &river_vao);
 	glBindVertexArray(river_vao);
-	create_line_vbo(river_vbo, river_vertices);
+	create_unit_arrow_vbo(river_vbo, river_vertices);
 
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
-	create_unit_arrow_vbo(unit_arrow_vbo);
+	create_unit_arrow_vbo(unit_arrow_vbo, unit_arrow_vertices);
 
 	glGenVertexArrays(1, &text_line_vao);
 	glBindVertexArray(text_line_vao);
@@ -828,55 +798,45 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void add_arrow(
-	std::vector<unit_arrow_vertex>& unit_arrow_vertices,
-	glm::vec2 const& pos1,
-	glm::vec2 const& pos2,
-	glm::vec2 const& prev_normal_dir,
-	glm::vec2 const& curr_normal_dir,
-	glm::vec2 const& curr_dir,
-	float const& progress) {
+void add_arrow(std::vector<curved_line_vertex>& buffer, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 prev_normal_dir, glm::vec2 curr_normal_dir, glm::vec2 curr_dir, float progress) {
 	if(progress != 0) {
 		auto pos3 = glm::mix(pos1, pos2, progress);
 		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-
 		// Filled unit arrow
-		float type = 2;
+		float type = 2.f;
 		// First vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		buffer.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
 		// Second vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-
+		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
 		// Unfilled unit arrow
-		type = 0;
+		type = 0.f;
 		// First vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		buffer.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
 		// Second vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
 	} else {
 		// Unfilled unit arrow
-		float type = 0;
+		float type = 0.f;
 		// First vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		buffer.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
+		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
 		// Second vertex of the line segment
-		unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		unit_arrow_vertices.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
+		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
+		buffer.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
+		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
 	}
 }
 
-void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
-
+void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
 	glm::vec2 curr_dir = normalize(end - start);
 
 	start /= glm::vec2(size_x, size_y);
@@ -918,7 +878,6 @@ void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 
 		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
 		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
 	}
-
 	if(end_arrow) {
 		// First vertex of the line segment
 		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
@@ -934,7 +893,7 @@ void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 
 constexpr inline uint32_t num_b_segments = 16;
 constexpr inline float control_point_length_factor = 0.3f;
 
-void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y) {
+void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y) {
 	auto control_point_length = glm::length(end - start) * control_point_length_factor;
 
 	auto start_control_point = start_per * control_point_length + start;
@@ -987,7 +946,6 @@ void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2
 
 		last_normal = next_normal;
 	}
-
 	{
 		next_normal = glm::vec2(end_per.y, -end_per.x);
 		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
@@ -1054,7 +1012,7 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) 
 	}
 }
 
-void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
+void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
 	auto path = state.world.navy_get_path(selected_navy);
 	if(auto ps = path.size(); ps > 0) {
 		auto progress = military::fractional_distance_covered(state, selected_navy);
@@ -1095,7 +1053,7 @@ void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 }
 
 
-void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
+void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
 	auto path = state.world.army_get_path(selected_army);
 	if(auto ps = path.size(); ps > 0) {
 		auto progress = military::fractional_distance_covered(state, selected_army);
@@ -1219,7 +1177,7 @@ void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& ar
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
 	if(unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * unit_arrow_vertices.size(), unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * unit_arrow_vertices.size(), unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

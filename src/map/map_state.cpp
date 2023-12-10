@@ -77,7 +77,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
 	if(map_data.unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	/*

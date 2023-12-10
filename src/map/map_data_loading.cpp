@@ -36,15 +36,12 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	uint8_t const* data = start + data_offset;
 
 	// Calculate how much extra we add at the poles
-	auto free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
-	auto top_free_space = (free_space * 3) / 5;
+	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+	uint32_t top_free_space = (free_space * 3) / 5;
 
-	// Fill the output with the given data
-	
-
-	// Copy over the bmp data to the middle of the output_data
-	for(int y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
-		for(int x = 0; x < int(size_x); ++x) {
+	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
+	for(uint32_t y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
+		for(uint32_t x = 0; x < int(size_x); ++x) {
 			output_data[y * size_x + x] = *data;
 			data++;
 		}

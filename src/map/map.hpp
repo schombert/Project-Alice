@@ -65,19 +65,10 @@ struct screen_vertex {
 	screen_vertex(float x, float y) : position_(x, y){};
 	glm::vec2 position_;
 };
-struct border_vertex {
-	border_vertex(){};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, int32_t border_id)
-			: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id), texture_coord_(texture_coord) {};
-	glm::vec2 position_;
-	glm::vec2 normal_direction_;
-	glm::vec2 direction_;
-	glm::vec2 texture_coord_;
-	int32_t border_id_;
-};
-struct unit_arrow_vertex {
-	unit_arrow_vertex(){};
-	unit_arrow_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type)
+
+struct curved_line_vertex {
+	curved_line_vertex(){};
+	curved_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type)
 			: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{type} {};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
@@ -137,9 +128,9 @@ public:
 	uint32_t size_y;
 
 	std::vector<border> borders;
-	std::vector<border_vertex> border_vertices;
-	std::vector<border_vertex> river_vertices;
-	std::vector<unit_arrow_vertex> unit_arrow_vertices;
+	std::vector<curved_line_vertex> border_vertices;
+	std::vector<curved_line_vertex> river_vertices;
+	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
@@ -201,9 +192,11 @@ public:
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 
-std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
-void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
-void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
+std::vector<curved_line_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
+void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
+glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
+void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map
