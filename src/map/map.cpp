@@ -621,7 +621,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(text_line_shader);
-		auto const& f = state.font_collection.fonts[1];
+		glUniform1f(12, state.font_collection.map_font_is_black ? 1.f : 0.f);
+		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
 		glActiveTexture(GL_TEXTURE1);
@@ -1174,7 +1175,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
-		auto& f = state.font_collection.fonts[1];
+		auto& f = state.font_collection.fonts[2];
+		if(!f.loaded)
+			return;
+
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		// y = a + bx + cx^2 + dx^3
