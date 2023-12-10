@@ -540,7 +540,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_leader_bg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "current_leader_prestige_bar") {
