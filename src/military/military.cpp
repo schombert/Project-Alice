@@ -49,6 +49,26 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 	}
 }
 
+void invalidate_unowned_wargoals(sys::state& state) {
+	for(auto wg : state.world.in_wargoal) {
+		if(wg.get_war_from_wargoals_attached()) {
+			auto s = wg.get_associated_state();
+			if(s) {
+				bool found_state = false;
+				for(auto si : wg.get_target_nation().get_state_ownership()) {
+					if(si.get_state().get_definition() == s) {
+						found_state = true;
+						break;
+					}
+				}
+				if(!found_state) {
+					state.world.delete_wargoal(wg);
+				}
+			}
+		}
+	}
+}
+
 void restore_unsaved_values(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto w = state.world.nation_get_war_participant(n);
