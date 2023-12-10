@@ -1613,17 +1613,13 @@ public:
 	}
 };
 
-class war_name_text : public generic_multiline_text<dcon::war_id> {
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
-		contents.fixed_parameters.suppress_hyperlinks = true;
-
-		auto war = dcon::fatten(state.world, id);
-
-		auto box = text::open_layout_box(contents);
+class war_name_text : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto w = retrieve<dcon::war_id>(state, parent);
 		text::substitution_map sub;
-		military::populate_war_text_subsitutions(state, war, sub);
-		text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
-		text::close_layout_box(contents, box);
+		military::populate_war_text_subsitutions(state, w, sub);
+		auto s = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+		set_text(state, s);
 	}
 };
 
@@ -1720,10 +1716,7 @@ public:
 		if(name == "diplo_war_entrybg") {
 			return make_element_by_type<war_bg>(state, id);
 		} else if(name == "war_name") {
-			auto ptr = make_element_by_type<war_name_text>(state, id);
-			ptr->base_data.size.x += 128; // Nudge
-			ptr->base_data.position.x -= 64; // Nudge
-			return ptr;
+			return make_element_by_type<war_name_text>(state, id);
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
 			ptr->base_data.position.y -= 4; // Nudge
