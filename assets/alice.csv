@@ -62,7 +62,7 @@ empty_neighboring_province;Empty neighboring province;;;Provincia vecina vacia;;
 poor_strata_pop;poor strata pop;;;Pop de estrato pobre;;;;;;;;;x
 middle_strata_pop;middle strata pop;;;Pop de estrata media;;;;;;;;;x
 rich_strata_pop;rich strata pop;;;Pop de estrata rica;;;;;;;;;x
-pop;pop;;;Pop;;;;;;;;;x
+pop;Pop;Pop;Pop;Pop;Pop;Pop;;;;;;;x
 owned_province;province belonging to;;;Provincia perteneciente a;;;;;;;;;x
 singular_nation;that nation;;;Esa nacion;;;;;;;;;x
 singular_state;that state;;;Ese estado;;;;;;;;;x
@@ -102,7 +102,7 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
-change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
+change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x
 union_culture_accepted;All cultures in the nation's primary culture group become accepted;;;Todas las culturas en el grupo primario de culturas de la nacion se vuelven aceptadas;;;;;;;;;x
@@ -270,7 +270,7 @@ technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
 primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
 primary_culture_pop;the primary culture of the nation the pop is in;;;;;;;;;;;;x
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
-culture;culture;;;Cultura;;;;;;;;;x
+culture;Culture;;;Cultura;;;;;;;;;x
 dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
 a_primary_or_accepted;a primary or accepted culture;;;Una cultura primaria o aceptada;;;;;;;;;x
 rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;x
@@ -287,7 +287,7 @@ rebel_religion;the rebel religion;;;Religion rebelde;;;;;;;;;x
 this_nation_religion;the national religion of this nation;;;La religion nacional de esta nacion;;;;;;;;;x
 from_nation_religion;the national religion of the from nation;;;La religion nacional de esa nacion;;;;;;;;;x
 province_terrain;province terrain;;;Terreno de provincia;;;;;;;;;x
-rgo_production;Rgo production;;;Produccion de RGO;;;;;;;;;x
+rgo_production;RGO production;;;Produccion de RGO;;;;;;;;;x
 a_secondary_power;a colonial power;;;Un poder colonial;;;;;;;;;x
 owner;owner;;;Due�o;;;;;;;;;x
 an_active_rebel;an active rebel faction;;;Una faccion activa;;;;;;;;;x
