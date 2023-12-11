@@ -840,6 +840,8 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 			auto adj = produce_simple_string(state, adj_id);
 			if(!fat_id.get_definition().get_name())
 				return get_name_as_string(state, fat_id.get_capital());
+			if(!adj_id)
+				return get_name_as_string(state, fat_id.get_definition());
 			return adj + " " + get_name_as_string(state, fat_id.get_definition());
 		}
 	}
