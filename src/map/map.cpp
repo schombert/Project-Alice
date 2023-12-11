@@ -527,9 +527,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1f(13, 0.f); // Pass 1
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
 	glUniform1f(13, 1.f); // Pass 2
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
 
 	// Default border parameters
 	constexpr float sizes[] = {
@@ -641,7 +641,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, 0.005f);
 		glBindVertexArray(unit_arrow_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)unit_arrow_vertices.size());
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)unit_arrow_vertices.size());
 	}
 
 	if(!drag_box_vertices.empty()) {
@@ -800,95 +800,46 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void add_arrow(std::vector<curved_line_vertex>& buffer, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 prev_normal_dir, glm::vec2 curr_normal_dir, glm::vec2 curr_dir, float progress) {
-	if(progress != 0) {
-		auto pos3 = glm::mix(pos1, pos2, progress);
-		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-		// Filled unit arrow
-		float type = 2.f;
-		// First vertex of the line segment
-		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		buffer.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		// Second vertex of the line segment
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		// Unfilled unit arrow
-		type = 0.f;
-		// First vertex of the line segment
-		buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		buffer.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		// Second vertex of the line segment
-		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		buffer.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-	} else {
-		// Unfilled unit arrow
-		float type = 0.f;
-		// First vertex of the line segment
-		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-		buffer.emplace_back(pos1, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type);
-		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		// Second vertex of the line segment
-		buffer.emplace_back(pos2, -curr_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type);
-		buffer.emplace_back(pos2, +curr_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type);
-		buffer.emplace_back(pos1, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type);
-	}
-}
-
 void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
+	constexpr float type_filled = 2.f;
+	constexpr float type_unfilled = 0.f;
+	constexpr float type_end = 1.f;
 	glm::vec2 curr_dir = normalize(end - start);
-
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
-
+	// A---C Order: A->B->C->D
+	// |\ /| Reminder: This is how trianglestrips work
+	// | x |
+	// |/ \|
+	// B---D
 	if(fill_progress != 0) {
 		auto pos3 = glm::mix(start, end, fill_progress);
 		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-
-		// Filled unit arrow
-		// First vertex of the line segment
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 2.0f);
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
-		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 2.0f);
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
-
-		// Unfilled unit arrow
+		// A-C-E Order: A->B->C->D->E->F
+		// |/|/|
+		// B-D-F
+		// Here be the filled part of the arrow
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type_filled);//A
+		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type_filled);//B
+		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
+		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
 		if(fill_progress < 1.0f) {
-			// First vertex of the line segment
-			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-			buffer.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
-			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			// Second vertex of the line segment
-			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
-			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+			// Not filled - transition from "filled" to "unfilled"
+			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
+			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//E
+			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//F
 		}
 	} else {
-		// Unfilled unit arrow
-		// First vertex of the line segment
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
+		// All unfilled!
+		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type_unfilled);//A
+		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type_unfilled);//B
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
 	}
 	if(end_arrow) {
-		// First vertex of the line segment
-		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
-		buffer.emplace_back(end, -next_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 1.0f);
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
-		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 1.0f);
-		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_end);//C
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_end);//D
 	}
 }
 
