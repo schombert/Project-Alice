@@ -523,7 +523,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Draw the rivers
 	load_shader(line_river_shader);
-	glUniform1f(4, (zoom > 5) ? 0.003f : 0.00055f);
+	glUniform1f(4, (zoom > 5) ? 0.004f : 0.00055f);
 	glUniform1f(12, time_counter);
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
