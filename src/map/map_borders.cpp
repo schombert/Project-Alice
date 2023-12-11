@@ -17,13 +17,10 @@ enum direction : uint8_t {
 };
 
 struct border_direction {
-	border_direction() {
-	};
+	border_direction() {}
 	struct information {
-		information() {
-		};
-		information(int32_t index_, int32_t id_) : index{ index_ }, id{ id_ } {
-		};
+		information() {}
+		information(int32_t index_, int32_t id_) : index{ index_ }, id{ id_ } {}
 		int32_t index = -1;
 		int32_t id = -1;
 	};
@@ -370,32 +367,26 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<glm::v
 	uint32_t ic = (x + 0) + (y + 0) * size.x;
 	if(!marked[ic] && is_river(river_data[ic])) {
 		marked[ic] = true;
-		if(rivers.empty()) {
-			rivers.push_back(std::vector<glm::vec2>());
-		}
 		rivers.back().push_back(glm::vec2(float(x), float(y)));
-		//...
-		uint32_t iu = (x + 0) + (y - 1) * size.x;
-		if(!marked[iu] && is_river(river_data[iu])) {
-			river_explore_helper(x, y - 1, rivers, river_data, marked, size);
-		} else {
-			uint32_t id = (x + 0) + (y + 1) * size.x;
-			if(!marked[id] && is_river(river_data[id])) {
-				river_explore_helper(x, y + 1, rivers, river_data, marked, size);
-			} else {
-				uint32_t il = (x - 1) + (y + 0) * size.x;
-				if(!marked[il] && is_river(river_data[il])) {
-					river_explore_helper(x - 1, y, rivers, river_data, marked, size);
-				} else {
-					uint32_t ir = (x + 1) + (y + 0) * size.x;
-					if(!marked[ir] && is_river(river_data[ir])) {
-						river_explore_helper(x + 1, y, rivers, river_data, marked, size);
-					} else {
+		uint32_t branch_count = 0;
+		for(int32_t tx = -1; tx <= 1; tx++) {
+			for(int32_t ty = -1; ty <= 1; ty++) {
+				if(tx == 0 && ty == 0)
+					continue;
+				uint32_t index = (x + tx) + (y + ty) * size.x;
+				if(!marked[index] && is_river(river_data[index])) {
+					if(branch_count > 0) {
+						// this river is a branch
 						rivers.push_back(std::vector<glm::vec2>());
+						rivers.back().push_back(glm::vec2(float(x), float(y)));
 					}
+					river_explore_helper(x + tx, y + ty, rivers, river_data, marked, size);
+					branch_count++;
 				}
 			}
 		}
+		if(branch_count == 0)
+			rivers.push_back(std::vector<glm::vec2>()); // No match, but has a center, so make new river
 	}
 }
 
@@ -409,33 +400,38 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 
 	std::vector<curved_line_vertex> river_vertices;
 	std::vector<std::vector<glm::vec2>> rivers;
+	rivers.push_back(std::vector<glm::vec2>());
 	std::vector<bool> marked(data.size_x * data.size_y, false);
 	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
 		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++)
 			river_explore_helper(x, y, rivers, river_data, marked, size);
 	}
 
+	// remove empty rivers or rivers with 1 vertice
+	for(uint32_t i = 0; i < rivers.size(); i++) {
+		if(rivers[i].size() <= 1) {
+			rivers.erase(rivers.begin() + i);
+			--i;
+		}
+	}
+
 	for(auto& river : rivers) {
-		// We will make adjacent vertices be equal for elimination, this
-		// will make the std::unique algorithm eliminate adjacent "equal"
-		// elements of our river vector
-		for(uint32_t i = 0; i < river.size(); i++) {
-			// Continous straight line removal
-			for(uint32_t j = 0; (i + j < river.size()) && (river[i].y == river[i + j].y || river[i].x == river[i + j].x); j++)
-				river[i + j] = river[i];
+		if(river.size() == 2)
+			continue;
+		for(uint32_t i = 1; i < river.size() - 1; i++) {
+			if(std::abs(river[i].x - river[i + 1].x) <= 1.f || std::abs(river[i].y - river[i + 1].y) <= 1.f)
+				river[i + 1] = river[i];
 		}
 		// Ensure no duplicates
 		river.erase(std::unique(river.begin(), river.end()), river.end());
 	}
 
 	for(const auto& river : rivers) {
-		if(river.empty())
-			continue;
-		if(auto rs = river.size() - 1; rs >= 2) { //last back element is used as "initiator"
+		if(auto rs = river.size() - 1; rs > 1) { //last back element is used as "initiator"
 			glm::vec2 current_pos = river[rs];
 			glm::vec2 next_pos = put_in_local(river[rs - 1], current_pos, size.x);
 			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-			for(int32_t i = int32_t(rs); i-- > 0;) {
+			for(int32_t i = int32_t(rs); i > 0; i--) {
 				glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 				next_pos = put_in_local(river[i], current_pos, size.x);
 				if(i > 0) {
@@ -454,7 +450,7 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				} else {
 					next_perpendicular = glm::normalize(current_pos - next_pos);
 				}
-				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y);
+				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 5);
 				prev_perpendicular = -1.0f * next_perpendicular;
 				current_pos = river[i];
 			}

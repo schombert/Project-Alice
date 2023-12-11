@@ -890,10 +890,10 @@ void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2
 	}
 }
 
-constexpr inline uint32_t num_b_segments = 16;
+constexpr inline uint32_t default_num_b_segments = 16;
 constexpr inline float control_point_length_factor = 0.3f;
 
-void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y) {
+void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments) {
 	auto control_point_length = glm::length(end - start) * control_point_length_factor;
 
 	auto start_control_point = start_per * control_point_length + start;
@@ -1044,7 +1044,7 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = duplicates::get_navy_location(state, path[i]);
@@ -1085,7 +1085,7 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = duplicates::get_army_location(state, path[i]);
@@ -1334,9 +1334,9 @@ void display_data::load_map(sys::state& state) {
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	river_body_texture = load_dds_texture(map_terrain_dir, NATIVE("river_body.dds"));
-	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_BORDER);
+	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	river_movement_texture = load_dds_texture(map_terrain_dir, NATIVE("river_movement.dds"));
-	set_gltex_parameters(river_movement_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_BORDER);
+	set_gltex_parameters(river_movement_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
