@@ -838,6 +838,8 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 			auto adj_id = fat_id.get_nation_from_state_ownership().get_adjective();
 			auto adj = produce_simple_string(state, adj_id);
+			if(!fat_id.get_definition().get_name())
+				return get_name_as_string(state, fat_id.get_capital());
 			return adj + " " + get_name_as_string(state, fat_id.get_definition());
 		}
 	}
