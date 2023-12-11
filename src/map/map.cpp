@@ -473,8 +473,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, province_fow);
 	glActiveTexture(GL_TEXTURE14);
 	glBindTexture(GL_TEXTURE_2D, river_body_texture);
-	glActiveTexture(GL_TEXTURE15);
-	glBindTexture(GL_TEXTURE_2D, river_movement_texture);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -1231,6 +1229,7 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
@@ -1252,10 +1251,8 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
-	river_body_texture = load_dds_texture(map_terrain_dir, NATIVE("river_body.dds"));
+	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
-	river_movement_texture = load_dds_texture(map_terrain_dir, NATIVE("river_movement.dds"));
-	set_gltex_parameters(river_movement_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);

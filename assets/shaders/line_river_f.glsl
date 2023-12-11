@@ -8,7 +8,6 @@ layout (binding = 0) uniform sampler2D provinces_texture_sampler;
 layout (binding = 5) uniform sampler2D colormap_water;
 layout (binding = 13) uniform sampler2D province_fow;
 layout (binding = 14) uniform sampler2D river_body;
-layout (binding = 15) uniform sampler2D river_movement;
 
 layout (location = 11) uniform float gamma;
 layout (location = 12) uniform float time;
@@ -18,16 +17,9 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	vec4 out_color = texture(river_body, vec2(tex_coord.y, (0.5f * (1.f - tex_type)) + tex_coord.x / 2.f));
+	vec4 out_color = texture(river_body, vec2(tex_coord.y, mod(tex_coord.x - time, 1.f)));
 	vec4 water_color = texture(colormap_water, map_coord);
-	vec4 movement = texture(river_movement, vec2(tex_coord.y, mod(tex_coord.x - time, 1.f)));
-	//out_color.rgb = (water_color.rgb + 0.275f) * movement.a + out_color.rgb * (1.f - movement.a);
-	out_color.rgb = mix(out_color.rgb, water_color.rgb, 0.5f);
-	out_color.rgb += movement.rgb;
-
-	out_color.a += 0.5f;
-	out_color.a *= out_color.a * out_color.a * out_color.a;
-
+	out_color.rgb *= water_color.rgb;
 	if(pass == 0.f) {
 		out_color = vec4(0.f,0.f,0.f,1.f);//vec4(water_color.r, water_color.g, water_color.b, 1.f);
 	}
