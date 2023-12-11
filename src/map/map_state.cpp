@@ -80,35 +80,6 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	/*
-	std::vector<std::vector<glm::vec2>> arrows;
-	std::vector<float> progresses;
-	for(auto selected_army : state.selected_armies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_army));
-
-		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
-		auto path = state.world.army_get_path(selected_army);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_army_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto army_pos = get_army_location(state, path[i]);
-			arrows.back().push_back(army_pos);
-		}
-	}
-	for(auto selected_navy : state.selected_navies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_navy));
-
-		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);
-		auto path = state.world.navy_get_path(selected_navy);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_navy_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto navy_pos = get_navy_location(state, path[i]);
-			arrows.back().push_back(navy_pos);
-		}
-	}
-	map_data.set_unit_arrows(arrows, progresses);
-	*/
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
