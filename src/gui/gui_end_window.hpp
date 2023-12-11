@@ -2,6 +2,7 @@
 #include "dcon_generated.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_nation_picker.hpp"
+#include "gui_ledger_window.hpp"
 
 namespace ui {
 
@@ -198,6 +199,32 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 
+	}
+};
+
+class end_window_ledger_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.ui_state.r_ledger_window) {
+			auto window = make_element_by_type<ledger_window>(state, "ledger");
+			state.ui_state.r_ledger_window = window.get();
+			state.ui_state.end_screen->add_child_to_front(std::move(window));
+		} else if(state.ui_state.r_ledger_window->is_visible()) {
+			state.ui_state.r_ledger_window->set_visible(state, false);
+		} else {
+			state.ui_state.r_ledger_window->set_visible(state, true);
+			state.ui_state.end_screen->move_child_to_front(state.ui_state.r_ledger_window);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("m_ledger_button"));
+		text::close_layout_box(contents, box);
 	}
 };
 
