@@ -363,30 +363,65 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 	});
 }
 
-void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<glm::vec2>>& rivers, std::vector<uint8_t> const& river_data, std::vector<bool>& marked, glm::ivec2 size) {
+struct river_vertex {
+	float x = 0.f;
+	float y = 0.f;
+	bool keep = false;
+	// TODO: add padding
+	river_vertex(float x_, float y_, bool keep_) : x(x_), y(y_), keep(keep_) { }
+	bool operator==(river_vertex const& o) const {
+		return x == o.x && y == o.y && keep == o.keep;
+	}
+	glm::vec2 to_vec2() const {
+		return glm::vec2(x, y);
+	}
+};
+
+void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<bool>& marked, glm::ivec2 size) {
+	assert(!rivers.empty());
 	uint32_t ic = (x + 0) + (y + 0) * size.x;
 	if(!marked[ic] && is_river(river_data[ic])) {
 		marked[ic] = true;
-		rivers.back().push_back(glm::vec2(float(x), float(y)));
+		rivers.back().emplace_back(float(x), float(y), rivers.back().empty());
 		uint32_t branch_count = 0;
-		for(int32_t tx = -1; tx <= 1; tx++) {
-			for(int32_t ty = -1; ty <= 1; ty++) {
-				if(tx == 0 && ty == 0)
+		for(int32_t ty = -1; ty <= 1; ty++) {
+			for(int32_t tx = -1; tx <= 1; tx++) {
+				// We are checking for the cuadrant of:
+				// [ -1 -1 ] [ +0 -1 ] [ +1 -1 ]
+				// [ -1 +0 ] [ +0 +0 ] [ +1 +0 ]
+				// [ -1 +1 ] [ +0 +1 ] [ +1 +1 ]
+				// We do not want (-1, -1), (1, -1), (-1, +1) and (+1, +1)
+				// This means that there must be atleast one zero
+				// To obtain this we multiply x*y, getting the following:
+				// [  1 ] [  0 ] [ -1 ]
+				// [  0 ] [  0 ] [  0 ]
+				// [ -1 ] [  0 ] [  1 ]
+				if(tx * ty != 0 || (tx == 0 && ty == 0))
 					continue;
 				uint32_t index = (x + tx) + (y + ty) * size.x;
 				if(!marked[index] && is_river(river_data[index])) {
 					if(branch_count > 0) {
 						// this river is a branch
-						rivers.push_back(std::vector<glm::vec2>());
-						rivers.back().push_back(glm::vec2(float(x), float(y)));
+						if(!rivers.back().empty())
+							rivers.back().back().keep = true;
+						rivers.push_back(std::vector<river_vertex>());
+						// Why -tx and -ty?
+						// We have (x1,y1) for the center (branching origin from "master" river)
+						// and we have (x2,y2) start of the branch river
+						// We need to coordinate it so that (x1,y1) is roughly equal to (x2,y2)
+						// "Why not just set x2=x1 and y2=y1?": Because bezier curves.
+						// Suppose we have x1 = 2, y1 = 2
+						// Now we have the quadrant from which the branch ocurred:
+						// (0, -1) (up) -> 2 - 0 = 2, 2 - -1 = 2 + 1 = 3
+						rivers.back().emplace_back(float(x - tx), float(y - ty), true);
 					}
-					river_explore_helper(x + tx, y + ty, rivers, river_data, marked, size);
+					river_explore_helper(uint32_t(int32_t(x) + tx), uint32_t(int32_t(y) + ty), rivers, river_data, marked, size);
 					branch_count++;
 				}
 			}
 		}
 		if(branch_count == 0)
-			rivers.push_back(std::vector<glm::vec2>()); // No match, but has a center, so make new river
+			rivers.push_back(std::vector<river_vertex>()); // No match, but has a center, so make new river
 	}
 }
 
@@ -399,8 +434,8 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 	load_river_crossings(context, river_data, size);
 
 	std::vector<curved_line_vertex> river_vertices;
-	std::vector<std::vector<glm::vec2>> rivers;
-	rivers.push_back(std::vector<glm::vec2>());
+	std::vector<std::vector<river_vertex>> rivers;
+	rivers.push_back(std::vector<river_vertex>());
 	std::vector<bool> marked(data.size_x * data.size_y, false);
 	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
 		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++)
@@ -419,7 +454,9 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 		if(river.size() == 2)
 			continue;
 		for(uint32_t i = 1; i < river.size() - 1; i++) {
-			if(std::abs(river[i].x - river[i + 1].x) <= 1.f || std::abs(river[i].y - river[i + 1].y) <= 1.f)
+			if(river[i + 1].keep || river[i].keep)
+				continue;
+			if(std::abs(river[i].x - river[i + 1].x) <= 4.f && std::abs(river[i].y - river[i + 1].y) <= 4.f)
 				river[i + 1] = river[i];
 		}
 		// Ensure no duplicates
@@ -428,14 +465,14 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 
 	for(const auto& river : rivers) {
 		if(auto rs = river.size() - 1; rs > 1) { //last back element is used as "initiator"
-			glm::vec2 current_pos = river[rs];
-			glm::vec2 next_pos = put_in_local(river[rs - 1], current_pos, size.x);
+			glm::vec2 current_pos = river[rs].to_vec2();
+			glm::vec2 next_pos = put_in_local(river[rs - 1].to_vec2(), current_pos, size.x);
 			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 			for(int32_t i = int32_t(rs); i > 0; i--) {
 				glm::vec2 next_perpendicular{ 0.0f, 0.0f };
-				next_pos = put_in_local(river[i], current_pos, size.x);
+				next_pos = put_in_local(river[i].to_vec2(), current_pos, size.x);
 				if(i > 0) {
-					glm::vec2 next_next_pos = put_in_local(river[i - 1], next_pos, size.x);
+					glm::vec2 next_next_pos = put_in_local(river[i - 1].to_vec2(), next_pos, size.x);
 					glm::vec2 a_per = glm::normalize(next_pos - current_pos);
 					glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
 					glm::vec2 temp = a_per + b_per;
@@ -452,7 +489,7 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				}
 				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 5);
 				prev_perpendicular = -1.0f * next_perpendicular;
-				current_pos = river[i];
+				current_pos = river[i].to_vec2();
 			}
 		}
 	}
