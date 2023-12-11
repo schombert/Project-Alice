@@ -521,12 +521,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
-	// Draw the rivers
+	// Draw the rivers, once for the "black" outline
+	// and twice for the blue one
 	load_shader(line_river_shader);
 	glUniform1f(4, (zoom > 5) ? 0.004f : 0.00055f);
 	glUniform1f(12, time_counter);
+	glUniform1f(13, 0.f); // Pass 1
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+	glUniform1f(13, 1.f); // Pass 2
 	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
 
 	// Default border parameters

@@ -402,19 +402,21 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 				if(!marked[index] && is_river(river_data[index])) {
 					if(branch_count > 0) {
 						// this river is a branch
-						glm::vec2 prev_vertice{ float(x), float(y) };
-						if(!rivers.back().empty()) {
+						if(!rivers.back().empty()) // Tag tail as "keep"
 							rivers.back().back().keep = true;
-						}
 						rivers.push_back(std::vector<river_vertex>());
+						rivers.back().emplace_back(float(x), float(y), true);
 					}
 					river_explore_helper(uint32_t(int32_t(x) + tx), uint32_t(int32_t(y) + ty), rivers, river_data, marked, size);
 					branch_count++;
 				}
 			}
 		}
-		if(branch_count == 0)
+		if(branch_count == 0) {
+			if(!rivers.back().empty()) // Tag tail as "keep"
+				rivers.back().back().keep = true;
 			rivers.push_back(std::vector<river_vertex>()); // No match, but has a center, so make new river
+		}
 	}
 }
 
@@ -447,10 +449,10 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 	for(auto& river : rivers) {
 		if(river.size() == 2)
 			continue;
-		for(uint32_t i = 1; i < river.size() - 1; i++) {
+		for(uint32_t i = 1; i < river.size() - 2; i++) {
 			if(river[i + 1].keep || river[i].keep)
 				continue;
-			if(std::abs(river[i].x - river[i + 1].x) <= 4.f && std::abs(river[i].y - river[i + 1].y) <= 4.f)
+			if(std::abs(river[i].x - river[i + 1].x) <= 1.f && std::abs(river[i].y - river[i + 1].y) <= 1.f)
 				river[i + 1] = river[i];
 		}
 		// Ensure no duplicates

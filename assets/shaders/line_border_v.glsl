@@ -7,6 +7,7 @@ layout (location = 4) in float type;
 
 out vec2 tex_coord;
 out vec2 map_coord;
+out float tex_type;
 
 // Camera position
 layout (location = 0) uniform vec2 offset;
@@ -93,4 +94,5 @@ void main() {
 	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
+	tex_type = type;
 }
