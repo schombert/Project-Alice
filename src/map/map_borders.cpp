@@ -402,8 +402,10 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 				if(!marked[index] && is_river(river_data[index])) {
 					if(branch_count > 0) {
 						// this river is a branch
-						if(!rivers.back().empty())
+						glm::vec2 prev_vertice{ float(x), float(y) };
+						if(!rivers.back().empty()) {
 							rivers.back().back().keep = true;
+						}
 						rivers.push_back(std::vector<river_vertex>());
 						// Why -tx and -ty?
 						// We have (x1,y1) for the center (branching origin from "master" river)
@@ -414,6 +416,7 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 						// Now we have the quadrant from which the branch ocurred:
 						// (0, -1) (up) -> 2 - 0 = 2, 2 - -1 = 2 + 1 = 3
 						rivers.back().emplace_back(float(x - tx), float(y - ty), true);
+						rivers.back().emplace_back(float(x), float(y), true);
 					}
 					river_explore_helper(uint32_t(int32_t(x) + tx), uint32_t(int32_t(y) + ty), rivers, river_data, marked, size);
 					branch_count++;
@@ -468,7 +471,7 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 			glm::vec2 current_pos = river[rs].to_vec2();
 			glm::vec2 next_pos = put_in_local(river[rs - 1].to_vec2(), current_pos, size.x);
 			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-			for(int32_t i = int32_t(rs); i > 0; i--) {
+			for(int32_t i = int32_t(rs); i >= 0; i--) {
 				glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 				next_pos = put_in_local(river[i].to_vec2(), current_pos, size.x);
 				if(i > 0) {
@@ -487,7 +490,7 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				} else {
 					next_perpendicular = glm::normalize(current_pos - next_pos);
 				}
-				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 5);
+				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 2);
 				prev_perpendicular = -1.0f * next_perpendicular;
 				current_pos = river[i].to_vec2();
 			}

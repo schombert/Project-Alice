@@ -2,7 +2,8 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
-layout (location = 4) in vec2 texture_coord;
+layout (location = 3) in vec2 texture_coord;
+layout (location = 4) in float type;
 
 out vec2 tex_coord;
 out vec2 map_coord;
@@ -63,41 +64,30 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	/*
+/*
 	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
 	float thickness = border_width / zoom_level;
-	vec2 normal_vector = normalize(normal_direction) * thickness;
+	vec2 rot_direction = vec2(-direction.y, direction.x);
+	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
+	vec2 extend_vector = -normalize(direction) * thickness / (1.f + sqrt(10.f));
 	vec2 world_pos = vertex_position;
-
 	world_pos.x *= map_size.x / map_size.y;
-	world_pos += extend_vector + normal_vector;
+	world_pos += normal_vector + extend_vector;
 	world_pos.x /= map_size.x / map_size.y;
-	*/
-
-	/*
-	float thickness = border_width * 0.25f;
+*/
+	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
+	float thickness = border_width / zoom_level;
 	vec2 rot_direction = vec2(-direction.y, direction.x);
 	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.
 	vec2 extend_vector = -normalize(direction) * thickness;
-	extend_vector *= mod(type, 2) == 0? 0 : 1;
+	extend_vector *= 0.f;
 	vec2 world_pos = vertex_position;
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector + extend_vector;
-	world_pos.x /= map_size.x / map_size.y;
-	*/
 
-	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
-	float thickness = border_width / zoom_level;
-	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
-	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness / (1.f + sqrt(3.1415f));
-	vec2 world_pos = vertex_position;
 	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector + extend_vector;
+	world_pos += normal_vector;
+	//world_pos += extend_vector;
 	world_pos.x /= map_size.x / map_size.y;
 
 	map_coord = world_pos;

@@ -15,8 +15,9 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	vec4 out_color = texture(river_body, vec2(tex_coord.y, 0.5f + (tex_coord.x / 2.f)));
-	vec4 movement = texture(river_movement, vec2(tex_coord.y, 1.f - mod(tex_coord.x + time, 1.f)));
+	//vec4 out_color = vec4(tex_coord.x, tex_coord.y, 1.f, 1.f);
+	vec4 out_color = texture(river_body, vec2(tex_coord.y, 0.5f + tex_coord.x / 2.f));
+	vec4 movement = texture(river_movement, vec2(tex_coord.y, mod(tex_coord.x + time, 1.f)));
 	out_color += movement;
 
 	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
