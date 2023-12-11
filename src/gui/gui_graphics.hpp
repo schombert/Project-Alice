@@ -396,6 +396,7 @@ struct state {
 	element_base* province_window = nullptr;
 	element_base* search_window = nullptr;
 	element_base* ledger_window = nullptr;
+	element_base* r_ledger_window = nullptr; // end screen ledger window
 	element_base* diplomacy_subwindow = nullptr;
 	element_base* politics_subwindow = nullptr;
 	element_base* population_subwindow = nullptr;
