@@ -407,15 +407,6 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 							rivers.back().back().keep = true;
 						}
 						rivers.push_back(std::vector<river_vertex>());
-						// Why -tx and -ty?
-						// We have (x1,y1) for the center (branching origin from "master" river)
-						// and we have (x2,y2) start of the branch river
-						// We need to coordinate it so that (x1,y1) is roughly equal to (x2,y2)
-						// "Why not just set x2=x1 and y2=y1?": Because bezier curves.
-						// Suppose we have x1 = 2, y1 = 2
-						// Now we have the quadrant from which the branch ocurred:
-						// (0, -1) (up) -> 2 - 0 = 2, 2 - -1 = 2 + 1 = 3
-						rivers.back().emplace_back(float(x - tx), float(y - ty), true);
 						rivers.back().emplace_back(float(x), float(y), true);
 					}
 					river_explore_helper(uint32_t(int32_t(x) + tx), uint32_t(int32_t(y) + ty), rivers, river_data, marked, size);
@@ -427,6 +418,8 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 			rivers.push_back(std::vector<river_vertex>()); // No match, but has a center, so make new river
 	}
 }
+
+void add_arrow(std::vector<curved_line_vertex>& buffer, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 prev_normal_dir, glm::vec2 curr_normal_dir, glm::vec2 curr_dir, float progress);
 
 // Needs to be called after load_province_data for the mid points to set
 // and load_border_data for the province_adjacencies to be set
@@ -441,8 +434,9 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 	rivers.push_back(std::vector<river_vertex>());
 	std::vector<bool> marked(data.size_x * data.size_y, false);
 	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
-		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++)
+		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++) {
 			river_explore_helper(x, y, rivers, river_data, marked, size);
+		}
 	}
 
 	// remove empty rivers or rivers with 1 vertice
@@ -467,11 +461,12 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 	}
 
 	for(const auto& river : rivers) {
-		if(auto rs = river.size() - 1; rs > 1) { //last back element is used as "initiator"
-			glm::vec2 current_pos = river[rs].to_vec2();
-			glm::vec2 next_pos = put_in_local(river[rs - 1].to_vec2(), current_pos, size.x);
+		/*
+		if(auto rs = river.size(); rs > 1) { //last back element is used as "initiator"
+			glm::vec2 current_pos = river[rs - 1].to_vec2();
+			glm::vec2 next_pos = put_in_local(river[rs - 2].to_vec2(), current_pos, size.x);
 			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-			for(int32_t i = int32_t(rs); i >= 0; i--) {
+			for(auto i = rs; i-- > 0;) {
 				glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 				next_pos = put_in_local(river[i].to_vec2(), current_pos, size.x);
 				if(i > 0) {
@@ -494,6 +489,67 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				prev_perpendicular = -1.0f * next_perpendicular;
 				current_pos = river[i].to_vec2();
 			}
+		}
+		*/
+		auto progress = 0.f;
+		glm::vec2 prev_normal_dir;
+		{
+			auto prev_pos = river[0].to_vec2();
+			auto next_pos = river[1].to_vec2();
+			auto direction1 = glm::normalize(next_pos - prev_pos);
+			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
+		}
+		for(int i = 0; i < static_cast<int>(river.size()) - 2; i++) {
+			auto pos1 = river[i].to_vec2();
+			auto pos2 = river[i + 1].to_vec2();
+			auto pos3 = river[i + 2].to_vec2();
+			glm::vec2 curr_dir = glm::normalize(pos2 - pos1);
+			glm::vec2 next_dir = glm::normalize(pos3 - pos2);
+			glm::vec2 average_direction = normalize(curr_dir + next_dir);
+			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
+			if(pos1 == pos3) {
+				prev_normal_dir = -glm::vec2(-curr_dir.y, curr_dir.x);
+				continue;
+			}
+
+			// Rescale the coordinate to 0-1
+			pos1 /= size;
+			pos2 /= size;
+
+			int32_t border_index = int32_t(river_vertices.size());
+
+			float current_progress = i == 0 ? progress : 0;
+			add_arrow(river_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, curr_dir, current_progress);
+
+			prev_normal_dir = curr_normal_dir;
+		}
+		{
+			int i = static_cast<int>(river.size()) - 2;
+			auto pos1 = river[i].to_vec2();
+			auto pos2 = river[i + 1].to_vec2();
+
+			glm::vec2 direction = glm::normalize(pos2 - pos1);
+			glm::vec2 curr_normal_dir = glm::vec2(-direction.y, direction.x);
+
+			// Rescale the coordinate to 0-1
+			pos1 /= size;
+			pos2 /= size;
+
+			int32_t border_index = int32_t(river_vertices.size());
+
+			float current_progress = i == 0 ? progress : 0;
+			add_arrow(river_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, direction, current_progress);
+
+			// Type for arrow
+			float type = 1;
+			// First vertex of the line segment
+			river_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
+			river_vertices.emplace_back(pos2, -curr_normal_dir, +direction, glm::vec2(0.0f, 1.0f), type);
+			river_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
+			// Second vertex of the line segment
+			river_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
+			river_vertices.emplace_back(pos2, +curr_normal_dir, -direction, glm::vec2(1.0f, 0.0f), type);
+			river_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
 		}
 	}
 	return river_vertices;

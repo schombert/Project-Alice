@@ -523,7 +523,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Draw the rivers
 	load_shader(line_river_shader);
-	glUniform1f(4, (zoom > 5) ? 0.001f : 0.00055f);
+	glUniform1f(4, (zoom > 5) ? 0.003f : 0.00055f);
 	glUniform1f(12, time_counter);
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
@@ -1094,92 +1094,7 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 }
 
 void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses) {
-	unit_arrow_vertices.clear();
-	for(size_t arrow_index = 0; arrow_index < arrows.size(); arrow_index++) {
-		auto& arrow = arrows[arrow_index];
-		auto progress = progresses[arrow_index];
-		if(arrow.size() <= 1)
-			continue;
-		glm::vec2 prev_normal_dir;
-		{
-			auto prev_pos = arrow[0];
-			auto next_pos = arrow[1];
-			if(next_pos.x + size_x / 2 < prev_pos.x)
-				next_pos.x += size_x;
-			if(next_pos.x - size_x / 2 > prev_pos.x)
-				next_pos.x -= size_x;
-
-			auto direction1 = normalize(next_pos - prev_pos);
-			prev_normal_dir = glm::vec2(-direction1.y, direction1.x);
-		}
-		for(int i = 0; i < static_cast<int>(arrow.size()) - 2; i++) {
-			auto pos1 = arrow[i];
-			auto pos2 = arrow[i + 1];
-			auto pos3 = arrow[i + 2];
-			if(pos2.x + size_x / 2 < pos1.x)
-				pos2.x += size_x;
-			if(pos2.x - size_x / 2 > pos1.x)
-				pos2.x -= size_x;
-
-			if(pos3.x + size_x / 2 < pos2.x)
-				pos3.x += size_x;
-			if(pos3.x - size_x / 2 > pos2.x)
-				pos3.x -= size_x;
-
-			glm::vec2 curr_dir = normalize(pos2 - pos1);
-			glm::vec2 next_dir = normalize(pos3 - pos2);
-			glm::vec2 average_direction = normalize(curr_dir + next_dir);
-			glm::vec2 curr_normal_dir = glm::vec2(-average_direction.y, average_direction.x);
-			if(pos1 == pos3) {
-				prev_normal_dir = -glm::vec2(-curr_dir.y, curr_dir.x);
-				continue;
-			}
-
-			// Rescale the coordinate to 0-1
-			pos1 /= glm::vec2(size_x, size_y);
-			pos2 /= glm::vec2(size_x, size_y);
-
-			int32_t border_index = int32_t(unit_arrow_vertices.size());
-
-			float current_progress = i == 0 ? progress : 0;
-			add_arrow(unit_arrow_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, curr_dir, current_progress);
-
-			prev_normal_dir = curr_normal_dir;
-		}
-		{
-			int i = static_cast<int>(arrow.size()) - 2;
-			auto pos1 = arrow[i];
-			auto pos2 = arrow[i + 1];
-
-			glm::vec2 direction = normalize(pos2 - pos1);
-			glm::vec2 curr_normal_dir = glm::vec2(-direction.y, direction.x);
-
-			// Rescale the coordinate to 0-1
-			pos1 /= glm::vec2(size_x, size_y);
-			pos2 /= glm::vec2(size_x, size_y);
-
-			int32_t border_index = int32_t(unit_arrow_vertices.size());
-
-			float current_progress = i == 0 ? progress : 0;
-			add_arrow(unit_arrow_vertices, pos1, pos2, prev_normal_dir, curr_normal_dir, direction, current_progress);
-
-			// Type for arrow
-			float type = 1;
-			// First vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
-			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, +direction, glm::vec2(0.0f, 1.0f), type);
-			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
-			// Second vertex of the line segment
-			unit_arrow_vertices.emplace_back(pos2, -curr_normal_dir, -direction, glm::vec2(1.0f, 1.0f), type);
-			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, -direction, glm::vec2(1.0f, 0.0f), type);
-			unit_arrow_vertices.emplace_back(pos2, +curr_normal_dir, +direction, glm::vec2(0.0f, 0.0f), type);
-		}
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-	if(unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * unit_arrow_vertices.size(), unit_arrow_vertices.data(), GL_STATIC_DRAW);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// TODO: Remove this unused function
 }
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
