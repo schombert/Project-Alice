@@ -116,6 +116,9 @@ void update_connected_regions(sys::state& state) {
 		}
 	}
 
+	// we also invalidate wargoals here that are now unowned
+	military::invalidate_unowned_wargoals(state);
+
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 

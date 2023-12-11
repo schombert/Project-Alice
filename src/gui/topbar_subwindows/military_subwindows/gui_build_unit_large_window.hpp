@@ -906,6 +906,43 @@ public:
 		return message_result::unseen;
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		if(state.military_definitions.unit_base_definitions[unit_type].is_land) {
+			dcon::unit_type_id utid = dcon::unit_type_id{ 0 };
+			uint32_t count = 0;
+			uint8_t unit_def_count = 0;
+			for(auto testing : state.military_definitions.unit_base_definitions) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
+					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].primary_culture) {
+						//continue;
+					}
+				}
+				unit_def_count++;
+			}
+			utid = dcon::unit_type_id{ unit_def_count };
+			for(auto ucon : state.world.nation_get_province_land_construction(state.local_player_nation)) {
+				count++;
+				if(count) {
+					return;
+				}
+			}
+			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+				auto p = po.get_province();
+				state.world.for_each_culture([&](dcon::culture_id c) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						count++;
+					}
+				});
+				if(count) {
+					return;
+				}
+			}
+			state.ui_state.unit_window_army->set_visible(state, true);
+			state.ui_state.unit_window_navy->set_visible(state, true);
+			set_visible(state, false);
+		}
+	}
+
 	std::vector<element_base*> army_elements;
 	std::vector<element_base*> navy_elements;
 	ui::units_build_listbox* units_listbox = nullptr;
