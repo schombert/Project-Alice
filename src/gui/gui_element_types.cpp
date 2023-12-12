@@ -942,7 +942,8 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 
 template<class T>
 void piechart<T>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
+	if(distribution.size() > 0)
+		ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
 }
 
 template<class T>

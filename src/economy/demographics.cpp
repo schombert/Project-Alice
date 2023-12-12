@@ -796,7 +796,8 @@ float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_mil_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions) {
@@ -824,10 +825,10 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
 		auto cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 															ve::fp_vector{state.defines.con_poor_clergy}, ve::fp_vector{state.defines.con_midrich_clergy});
-		auto lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
+		auto lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 			 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 			state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-			 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f);
+			 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f)) / 10;
 
 		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 		auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -858,10 +859,10 @@ float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
 	float lx_mod = state.world.pop_get_luxury_needs_satisfaction(ids) * state.defines.con_luxury_goods;
 	float cl_mod = cfrac * ve::select(state.world.pop_type_get_strata(types) == int32_t(culture::pop_strata::poor),
 														state.defines.con_poor_clergy, state.defines.con_midrich_clergy);
-	float lit_mod = (state.world.nation_get_plurality(owner) / 10.0f) *
+	float lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 		 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 		 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-		ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f);
+		ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f)) / 10;
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -883,7 +884,8 @@ float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_con_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 
@@ -950,7 +952,8 @@ float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
 			sum += pop.get_pop().get_size() * get_estimated_literacy_change(state, pop.get_pop());
 		}
 	}
-	return sum / state.world.nation_get_demographics(n, demographics::total);
+	auto t = state.world.nation_get_demographics(n, demographics::total);
+	return t != 0.f ? sum / t : 0.f;
 }
 
 inline constexpr float ideology_change_rate = 0.10f;

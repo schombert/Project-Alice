@@ -20,6 +20,7 @@ fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
 gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
+gamma_label;Gamma;Gamma;Gamma;Gamma;;;;;;;;;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
@@ -61,7 +62,7 @@ empty_neighboring_province;Empty neighboring province;;;Provincia vecina vacia;;
 poor_strata_pop;poor strata pop;;;Pop de estrato pobre;;;;;;;;;x
 middle_strata_pop;middle strata pop;;;Pop de estrata media;;;;;;;;;x
 rich_strata_pop;rich strata pop;;;Pop de estrata rica;;;;;;;;;x
-pop;pop;;;Pop;;;;;;;;;x
+pop;Pop;Pop;Pop;Pop;Pop;Pop;;;;;;;x
 owned_province;province belonging to;;;Provincia perteneciente a;;;;;;;;;x
 singular_nation;that nation;;;Esa nacion;;;;;;;;;x
 singular_state;that state;;;Ese estado;;;;;;;;;x
@@ -101,7 +102,7 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
-change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
+change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x
 union_culture_accepted;All cultures in the nation's primary culture group become accepted;;;Todas las culturas en el grupo primario de culturas de la nacion se vuelven aceptadas;;;;;;;;;x
@@ -269,7 +270,7 @@ technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
 primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
 primary_culture_pop;the primary culture of the nation the pop is in;;;;;;;;;;;;x
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
-culture;culture;;;Cultura;;;;;;;;;x
+culture;Culture;;;Cultura;;;;;;;;;x
 dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
 a_primary_or_accepted;a primary or accepted culture;;;Una cultura primaria o aceptada;;;;;;;;;x
 rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;x
@@ -286,7 +287,7 @@ rebel_religion;the rebel religion;;;Religion rebelde;;;;;;;;;x
 this_nation_religion;the national religion of this nation;;;La religion nacional de esta nacion;;;;;;;;;x
 from_nation_religion;the national religion of the from nation;;;La religion nacional de esa nacion;;;;;;;;;x
 province_terrain;province terrain;;;Terreno de provincia;;;;;;;;;x
-rgo_production;Rgo production;;;Produccion de RGO;;;;;;;;;x
+rgo_production;RGO production;;;Produccion de RGO;;;;;;;;;x
 a_secondary_power;a colonial power;;;Un poder colonial;;;;;;;;;x
 owner;owner;;;Dueï¿½o;;;;;;;;;x
 an_active_rebel;an active rebel faction;;;Una faccion activa;;;;;;;;;x
@@ -549,7 +550,7 @@ sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our mo
 mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
-mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in §Y$PROV$§W are:;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
@@ -1110,6 +1111,8 @@ et_add_selector;enable province selector;;;habilita el selector provincial;;;;;;
 et_remove_selector;disable province selector;;;deshabilita el selector provincial;;;;;;;;;x
 et_add_immigrator;enable province immigrator;;;habilita el inmigrador provincial;;;;;;;;;x
 et_remove_immigrator;disable province immigrator;;;deshabilita el inmigrador provincial;;;;;;;;;x
+et_if;If;;;Si;;;;;;;;;x
+et_else_if;Else;;;De lo contrario;;;;;;;;;x
 modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
 modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
@@ -1340,4 +1343,5 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+alice_no_possible_units;No possible units can be built, and no units are in construction.
 ;;;;;;;;;;;;;x

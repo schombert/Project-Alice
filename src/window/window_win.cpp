@@ -391,6 +391,18 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	game_state.on_create();
 
+	{
+		auto root = simple_fs::get_root(game_state.common_fs);
+		auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+		auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
+		if(auto f = simple_fs::peek_file(cursors_dir, NATIVE("normal.cur")); f) {
+			auto path = simple_fs::get_full_name(*f);
+			HCURSOR h_cursor = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			SetCursor(h_cursor);
+			SetClassLongPtr(game_state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(h_cursor));
+		}
+	}
+
 	MSG msg;
 	// pump message loop
 	while(true) {

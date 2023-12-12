@@ -200,7 +200,8 @@ public:
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change * 30.f});
-		auto avg_literacy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
+		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -208,28 +209,6 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
-
-class topbar_nation_ruling_party_text : public nation_ruling_party_text {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
-		ruling_party = ruling_party + " (" +
-										text::get_name_as_string(state,
-												state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) +
-										")";
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
-		text::add_divider_to_layout_box(state, contents, box);
-		text::close_layout_box(contents, box);
-	}
-};
-
 
 class topbar_nation_infamy_text : public expanded_hitbox_text {
 public:
@@ -510,9 +489,9 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto mil_change = demographics::get_estimated_mil_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
+				text::fp_two_places{total != 0.f ? state.world.nation_get_demographics(nation_id, demographics::militancy) / total : 0.f});
 		text::add_to_substitution_map(sub, text::variable_type::val,
 				text::fp_four_places{mil_change * 30.f});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
@@ -551,9 +530,9 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto con_change = demographics::get_estimated_con_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
+				text::fp_two_places{total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f});
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change * 30.f});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -1635,7 +1614,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbarbutton_production") {
+		if(name == "topbar_bg") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
+		} else if(name == "topbar_paper") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
+		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
@@ -1752,7 +1735,7 @@ public:
 		} else if(name == "politics_party_icon") {
 			return make_element_by_type<nation_ruling_party_ideology_plupp>(state, id);
 		} else if(name == "politics_ruling_party") {
-			return make_element_by_type<topbar_nation_ruling_party_text>(state, id);
+			return make_element_by_type<nation_ruling_party_text>(state, id);
 		} else if(name == "politics_supressionpoints_value") {
 			return make_element_by_type<nation_suppression_points_text>(state, id);
 		} else if(name == "politics_infamy_value") {

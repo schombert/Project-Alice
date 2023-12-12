@@ -182,7 +182,8 @@ vec4 get_land_political_close() {
 
 	// Mix together the primary and secondary colors with the stripes
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
-	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + texture(province_highlight, prov_id), 0.0, 1.0).rgb;
+	float prov_highlight = texture(province_highlight, prov_id).r * (abs(cos(time * 3.f)) + 1.f);
+	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
 	political *= texture(province_fow, prov_id).rgb;
 	political = political - 0.7;
 
@@ -206,7 +207,8 @@ vec4 get_terrain_political_far() {
 
 	// Mix together the primary and secondary colors with the stripes
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
-	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + texture(province_highlight, prov_id), 0.0, 1.0).rgb;
+	float prov_highlight = texture(province_highlight, prov_id).r * (abs(cos(time * 3.f)) + 1.f);
+	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
 	political = political - 0.7;
 
 	// The "foldable map" overlay effect

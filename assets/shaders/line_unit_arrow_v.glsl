@@ -67,7 +67,7 @@ void main() {
 	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
 	// Extend the border slightly to make it fit together with any other border in any octagon direction.
 	vec2 extend_vector = -normalize(direction) * thickness;
-	extend_vector *= mod(type, 2) == 0? 0 : 1;
+	extend_vector *= type == 1.f ? 2.f : 0.f;
 	vec2 world_pos = vertex_position;
 
 
@@ -77,5 +77,5 @@ void main() {
 	world_pos.x /= map_size.x / map_size.y;
 
 	gl_Position = calc_gl_position(world_pos);
-	tex_coord = texture_coord / 2 + vec2(0.5 * mod(type, 2), 0.5 * floor(type / 2));
+	tex_coord = texture_coord / 2.f + vec2(0.5 * mod(type, 2.f), 0.5 * floor(type / 2.f));
 }

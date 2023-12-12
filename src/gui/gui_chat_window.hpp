@@ -244,6 +244,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
+		map_mode::set_map_mode(state, map_mode::mode::political);
 		command::notify_stop_game(state, state.local_player_nation);
 	}
 };

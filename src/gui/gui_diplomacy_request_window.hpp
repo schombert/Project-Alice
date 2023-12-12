@@ -188,6 +188,10 @@ class diplomacy_request_desc_text : public scrollable_text {
 		}
 	}
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.y = int16_t(150);
+		scrollable_text::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
 		switch(base_data.data.text.get_alignment()) {
