@@ -137,6 +137,10 @@ public:
 	std::vector<uint8_t> median_terrain_type;
 	std::vector<uint32_t> province_area;
 
+	bool use_curved_rivers = false;
+	bool use_textured_borders = false;
+	bool use_textured_rivers = false;
+
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 
@@ -176,7 +180,11 @@ public:
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
-	GLuint line_river_shader = 0;
+	GLuint legacy_line_border_shader = 0;
+	GLuint line_river_1_shader = 0;
+	GLuint line_river_2_shader = 0;
+	GLuint line_river_3_shader = 0;
+	GLuint legacy_line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
@@ -193,7 +201,9 @@ public:
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 };
 
-std::vector<curved_line_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
+void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+void create_curved_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
 void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);

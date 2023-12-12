@@ -382,8 +382,16 @@ display_data::~display_data() {
 		glDeleteProgram(terrain_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
-	if(line_river_shader)
-		glDeleteProgram(line_river_shader);
+	if(legacy_line_border_shader)
+		glDeleteProgram(legacy_line_border_shader);
+	if(line_river_1_shader)
+		glDeleteProgram(line_river_1_shader);
+	if(line_river_2_shader)
+		glDeleteProgram(line_river_2_shader);
+	if(line_river_3_shader)
+		glDeleteProgram(line_river_3_shader);
+	if(legacy_line_river_shader)
+		glDeleteProgram(legacy_line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
 	if(text_line_shader)
@@ -417,7 +425,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	// Line shaders
 	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
-	auto line_river_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_f.glsl"));
+	auto line_river_1_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_1_f.glsl"));
+	auto line_river_2_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_2_f.glsl"));
+	auto line_river_3_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_3_f.glsl"));
 
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
@@ -427,12 +437,24 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
 
-	line_border_shader = create_program(*line_vshader, *line_border_fshader);
-	line_river_shader = create_program(*line_vshader, *line_river_fshader);
+	if(use_textured_borders) {
+		line_border_shader = create_program(*line_vshader, *line_border_fshader);
+	} else {
+		legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
+	}
+	if(use_textured_rivers) {
+		line_river_1_shader = create_program(*line_vshader, *black_color_fshader);
+		line_river_2_shader = create_program(*line_vshader, *line_river_2_fshader);
+		line_river_3_shader = create_program(*line_vshader, *line_river_3_fshader);
+	} else {
+		legacy_line_river_shader = create_program(*line_vshader, *line_river_3_fshader);
+	}
+
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
-	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
+	drag_box_shader = create_program(*screen_vshader, *white_color_fshader);
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -525,19 +547,32 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Draw the rivers, once for the "black" outline
 	// and twice for the blue one
-	load_shader(line_river_shader);
-	glUniform1f(12, time_counter);
-	if(zoom > 5) {
-		glUniform1f(4, 0.001f);
-		glUniform1f(13, 0.f); // Pass 1
-		glBindVertexArray(river_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
-		glUniform1f(13, 1.f); // Pass 2
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+	if(state.map_state.map_data.use_textured_rivers) {
+		glUniform1f(12, time_counter);
+		if(zoom > 5) {
+			load_shader(line_river_1_shader);
+			glUniform1f(12, time_counter);
+			glUniform1f(4, 0.001f);
+			glBindVertexArray(river_vao);
+			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+			load_shader(line_river_2_shader);
+			glUniform1f(12, time_counter);
+			glUniform1f(4, 0.001f);
+			glBindVertexArray(river_vao);
+			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+		} else {
+			load_shader(line_river_3_shader);
+			glUniform1f(12, time_counter);
+			glUniform1f(4, 0.00033f);
+			glBindVertexArray(river_vao);
+			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+		}
 	} else {
+		load_shader(legacy_line_river_shader);
 		glUniform1f(4, 0.00033f);
-		glUniform1f(13, 3.f); // Pass 3
 		glBindVertexArray(river_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
@@ -554,7 +589,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	constexpr float border_type_regional = 2.f;
 	constexpr float border_type_coastal = 3.f;
 	// Draw the borders
-	load_shader(line_border_shader);
+	if(state.map_state.map_data.use_textured_borders) {
+		load_shader(line_border_shader);
+	} else {
+		load_shader(legacy_line_border_shader);
+	}
 	glBindVertexArray(border_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	if(zoom > 8) { // Render all borders
@@ -1230,6 +1269,23 @@ void display_data::load_map(sys::state& state) {
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Temporal development settings
+	auto dev_settings = simple_fs::open_file(assets_dir, NATIVE("dev_settings.txt"));
+	if(dev_settings) {
+		auto contents = simple_fs::view_contents(*dev_settings);
+		if(contents.file_size >= 3) {
+			if(contents.data[0] == 'Y' || contents.data[0] == 'y') {
+				use_curved_rivers = true;
+			} else if(contents.data[1] == 'Y' || contents.data[1] == 'y') {
+				use_textured_rivers = true;
+			} else if(contents.data[2] == 'Y' || contents.data[2] == 'y') {
+				use_textured_borders = true;
+			}
+		}
+	}
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 	load_shaders(root);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
@@ -1247,10 +1303,14 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
-	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
-	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	national_border_texture = load_dds_texture(assets_dir, NATIVE("border_national.dds"));
-	set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_NEAREST, GL_REPEAT);
+	if(use_textured_rivers) {
+		river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
+		set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	}
+	if(use_textured_borders) {
+		national_border_texture = load_dds_texture(assets_dir, NATIVE("border_national.dds"));
+		set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_NEAREST, GL_REPEAT);
+	}
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1296,3 +1356,8 @@ void display_data::load_map(sys::state& state) {
 }
 
 } // namespace map
+
+//static_assert(sizeof(std::pair<dcon::text_key, dcon::text_sequence_id>) == sizeof(dcon::text_key) + sizeof(dcon::text_sequence_id));
+//static_assert(sizeof(std::pair<text::text_sequence, dcon::text_sequence_id> == sizeof(dcon::text_sequence) + sizeof(dcon::text_sequence_id)));
+//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
+//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
