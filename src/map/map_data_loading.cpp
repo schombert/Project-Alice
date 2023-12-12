@@ -40,8 +40,8 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	uint32_t top_free_space = (free_space * 3) / 5;
 
 	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
-	for(uint32_t y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
-		for(uint32_t x = 0; x < int(size_x); ++x) {
+	for(uint32_t y = top_free_space + size_y - 1; y >= uint32_t(top_free_space); --y) {
+		for(uint32_t x = 0; x < uint32_t(size_x); ++x) {
 			output_data[y * size_x + x] = *data;
 			data++;
 		}

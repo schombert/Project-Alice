@@ -483,7 +483,7 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				} else {
 					next_perpendicular = glm::normalize(current_pos - next_pos);
 				}
-				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 4);
+				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, int32_t(i) == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 4);
 				prev_perpendicular = -1.0f * next_perpendicular;
 				current_pos = river[i].to_vec2();
 			}
