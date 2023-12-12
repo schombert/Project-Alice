@@ -17,16 +17,20 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	vec4 out_color = texture(river_body, vec2(tex_coord.y, mod(tex_coord.x - time, 1.f)));
-	vec4 water_color = texture(colormap_water, map_coord);
-	out_color.rgb *= water_color.rgb;
+	vec4 out_color;
 	if(pass == 0.f) {
-		out_color = vec4(0.f,0.f,0.f,1.f);//vec4(water_color.r, water_color.g, water_color.b, 1.f);
+		out_color = vec4(0.f, 0.f, 0.f, 1.f);
+		vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
+		out_color.rgb *= texture(province_fow, prov_id).r;
+	} else if(pass == 1.f) {
+		out_color = texture(colormap_water, map_coord);
+		vec4 graymap = texture(river_body, vec2(tex_coord.y, tex_coord.x - time));
+		out_color.rgb *= vec3(graymap.r, graymap.r, graymap.r);
+		out_color.a = graymap.a;
+		vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
+		out_color.rgb *= texture(province_fow, prov_id).r;
+	} else {
+		out_color = texture(colormap_water, map_coord);
 	}
-
-	//out_color = vec4(tex_coord.x, tex_coord.y, 1.f, 1.f);
-
-	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
-	out_color.rgb *= texture(province_fow, prov_id).r;
 	frag_color = gamma_correct(out_color);
 }

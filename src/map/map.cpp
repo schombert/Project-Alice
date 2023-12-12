@@ -522,14 +522,22 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	// Draw the rivers, once for the "black" outline
 	// and twice for the blue one
 	load_shader(line_river_shader);
-	glUniform1f(4, (zoom > 5) ? 0.004f : 0.00055f);
 	glUniform1f(12, time_counter);
-	glUniform1f(13, 0.f); // Pass 1
-	glBindVertexArray(river_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
-	glUniform1f(13, 1.f); // Pass 2
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+	if(zoom > 5) {
+		glUniform1f(4, 0.001f);
+		glUniform1f(13, 0.f); // Pass 1
+		glBindVertexArray(river_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+		glUniform1f(13, 1.f); // Pass 2
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+	} else {
+		glUniform1f(4, 0.00033f);
+		glUniform1f(13, 3.f); // Pass 3
+		glBindVertexArray(river_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+	}
 
 	// Default border parameters
 	constexpr float sizes[] = {
@@ -1203,7 +1211,7 @@ void display_data::load_map(sys::state& state) {
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
-	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);

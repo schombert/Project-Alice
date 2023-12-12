@@ -65,34 +65,15 @@ vec4 flat_coords(vec2 world_pos) {
 // Each triangle in the quad is made up by two vertices on the same position and
 // another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-/*
 	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
 	float thickness = border_width / zoom_level;
 	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
-	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness / (1.f + sqrt(10.f));
+	vec2 normal_vector = normalize(normal_direction) * thickness;
 	vec2 world_pos = vertex_position;
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector + extend_vector;
-	world_pos.x /= map_size.x / map_size.y;
-*/
-	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
-	float thickness = border_width / zoom_level;
-	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness / abs(dot(normalize(normal_direction), normalize(rot_direction)));
-	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness;
-	extend_vector *= 0.f;
-	vec2 world_pos = vertex_position;
-
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector;
-	//world_pos += extend_vector;
-	world_pos.x /= map_size.x / map_size.y;
+	world_pos += vec2(normal_vector.x / (map_size.x / map_size.y), normal_vector.y);
 
 	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
-	tex_coord = texture_coord;
+	tex_coord = vec2(sin(pow(vertex_position.x, vertex_position.y)) * map_size.x, texture_coord.y);
 	tex_type = type;
 }
