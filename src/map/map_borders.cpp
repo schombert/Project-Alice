@@ -425,8 +425,8 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
 	assert(size.x >= 1.f && size.y >= 1.f);
 
-	std::vector<border_direction> current_row(size.x);
-	std::vector<border_direction> last_row(size.x);
+	std::vector<border_direction> current_row(uint32_t(size.x));
+	std::vector<border_direction> last_row(uint32_t(size.x));
 	auto add_river = [&](uint32_t x0, uint32_t y0, bool river_u, bool river_d, bool river_r, bool river_l) {
 		glm::vec2 map_pos(x0, y0);
 		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
@@ -458,12 +458,12 @@ void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vert
 	};
 	for(int y = 1; y < size.y - 1; y++) {
 		for(int x = 1; x < size.x - 1; x++) {
-			auto river_center = is_river(river_data[(x + 0) + (y + 0) * size.x]);
+			auto river_center = is_river(river_data[(x + 0) + (y + 0) * uint32_t(size.x)]);
 			if(river_center) {
-				auto river_u = is_river(river_data[(x + 0) + (y - 1) * size.x]);
-				auto river_d = is_river(river_data[(x + 0) + (y + 1) * size.x]);
-				auto river_r = is_river(river_data[(x + 1) + (y + 0) * size.x]);
-				auto river_l = is_river(river_data[(x - 1) + (y + 0) * size.x]);
+				auto river_u = is_river(river_data[(x + 0) + (y - 1) * uint32_t(size.x)]);
+				auto river_d = is_river(river_data[(x + 0) + (y + 1) * uint32_t(size.x)]);
+				auto river_r = is_river(river_data[(x + 1) + (y + 0) * uint32_t(size.x)]);
+				auto river_l = is_river(river_data[(x - 1) + (y + 0) * uint32_t(size.x)]);
 				add_river(x, y, river_u, river_d, river_r, river_l);
 			}
 		}
@@ -479,7 +479,7 @@ void create_curved_river_vertices(glm::vec2 size, std::vector<curved_line_vertex
 
 	std::vector<std::vector<river_vertex>> rivers;
 	rivers.push_back(std::vector<river_vertex>());
-	std::vector<bool> marked(data.size_x * data.size_y, false);
+	std::vector<bool> marked(uint32_t(size.x) * uint32_t(size.y), false);
 	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
 		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++) {
 			river_explore_helper(x, y, rivers, river_data, marked, size);
