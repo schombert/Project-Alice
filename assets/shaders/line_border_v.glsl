@@ -2,8 +2,13 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
+layout (location = 3) in vec2 texture_coord;
+layout (location = 4) in float type;
 
 out vec2 tex_coord;
+out vec2 map_coord;
+out float tex_type;
+
 // Camera position
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
@@ -62,16 +67,13 @@ vec4 flat_coords(vec2 world_pos) {
 void main() {
 	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
 	float thickness = border_width / zoom_level;
+	vec2 rot_direction = vec2(-direction.y, direction.x);
 	vec2 normal_vector = normalize(normal_direction) * thickness;
-	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness / (1 + sqrt(2));
 	vec2 world_pos = vertex_position;
+	world_pos += vec2(normal_vector.x / (map_size.x / map_size.y), normal_vector.y);
 
-
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += extend_vector + normal_vector;
-	world_pos.x /= map_size.x / map_size.y;
-
+	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
-	tex_coord = vertex_position;
+	tex_coord = vec2(sin(pow(vertex_position.x, vertex_position.y)) * map_size.x, texture_coord.y);
+	tex_type = type;
 }
