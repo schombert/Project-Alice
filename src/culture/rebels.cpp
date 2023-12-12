@@ -272,6 +272,7 @@ void update_pop_movement_membership(sys::state& state) {
 					}
 				}
 			});
+
 			if(max_option) {
 				if(auto m = get_movement_by_position(state, owner, max_option); m) {
 					add_pop_to_movement(state, p, m);
@@ -376,23 +377,9 @@ bool pop_is_compatible_with_rebel_faction(sys::state& state, dcon::pop_id p, dco
 	here. Instead I will go with: pop is not an accepted culture and either its primary culture is associated with that identity
 	*or* there is no core in the province associated with its primary identity.
 	*/
-	auto type = fatten(state.world, state.world.rebel_faction_get_type(t));
 	auto fac = fatten(state.world, t);
 	auto pop = fatten(state.world, p);
-	if(type.get_independence() != 0 || type.get_defection() != 0) {
-		if(type.get_independence() == uint8_t(culture::rebel_independence::pan_nationalist) ||
-				type.get_defection() == uint8_t(culture::rebel_defection::pan_nationalist)) {
-			if(pop.get_is_primary_or_accepted_culture())
-				return true;
-		} else {
-			if(pop.get_is_primary_or_accepted_culture())
-				return false;
-		}
-		for(auto core : pop.get_province_from_pop_location().get_core()) {
-			if(core.get_identity().get_primary_culture() == pop.get_culture())
-				return true;
-		}
-	}
+
 	if(fac.get_primary_culture() && fac.get_primary_culture() != pop.get_culture())
 		return false;
 	if(fac.get_religion() && fac.get_religion() != pop.get_religion())
@@ -402,6 +389,17 @@ bool pop_is_compatible_with_rebel_faction(sys::state& state, dcon::pop_id p, dco
 		return false;
 	if(fac.get_type().get_ideology() && fac.get_type().get_ideology_restriction() && fac.get_type().get_ideology() != pop.get_dominant_ideology())
 		return false;
+	if(fac.get_defection_target()) {
+		if(pop.get_is_primary_or_accepted_culture())
+			return false;
+		if(pop.get_culture() == fac.get_defection_target().get_primary_culture())
+			return true;
+		for(auto core : pop.get_province_from_pop_location().get_core()) {
+			if(core.get_identity().get_primary_culture() == pop.get_culture())
+				return false;
+		}
+		return true;
+	}
 	return true;
 }
 
@@ -409,6 +407,8 @@ bool pop_is_compatible_with_rebel_type(sys::state& state, dcon::pop_id p, dcon::
 	auto fac = fatten(state.world, t);
 	auto pop = fatten(state.world, p);
 
+	if(fac.get_ideology() && fac.get_ideology() != pop.get_dominant_ideology())
+		return false;
 	if(fac.get_independence() != 0 || fac.get_defection() != 0) {
 		if(fac.get_independence() == uint8_t(culture::rebel_independence::pan_nationalist) ||
 				fac.get_defection() == uint8_t(culture::rebel_defection::pan_nationalist)) {
@@ -422,15 +422,6 @@ bool pop_is_compatible_with_rebel_type(sys::state& state, dcon::pop_id p, dcon::
 			if(core.get_identity().get_primary_culture() == pop.get_culture())
 				return true;
 		}
-		return false;
-	}
-	//Discriminated pops focus on independence rather than political issues
-	else {
-		if(!pop.get_is_primary_or_accepted_culture()) {
-			return false;
-		}
-	}
-	if(fac.get_ideology() && fac.get_ideology() != pop.get_dominant_ideology()) {
 		return false;
 	}
 	return true;
@@ -714,6 +705,7 @@ void delete_faction(sys::state& state, dcon::rebel_faction_id reb) {
 
 void update_factions(sys::state& state) {
 	update_pop_rebel_membership(state);
+
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
 	for(auto last = state.world.rebel_faction_size(); last-- > 0;) {
 		dcon::rebel_faction_id m{dcon::rebel_faction_id::value_base_t(last)};
@@ -870,7 +862,7 @@ void rebel_hunting_check(sys::state& state) {
 	}
 }
 
-inline constexpr float rebel_size_reduction = 1.0f;
+inline constexpr float rebel_size_reduction = 0.25f;
 
 void rebel_risings_check(sys::state& state) {
 	static std::vector<dcon::army_id> new_armies;
@@ -1173,11 +1165,6 @@ void execute_rebel_victories(sys::state& state) {
 			}
 			if(auto iid = state.world.rebel_faction_get_type(reb).get_ideology(); iid) {
 				politics::force_nation_ideology(state, within, iid);
-			}
-
-			//The pops won, reset their militancy to avoid death spiraling
-			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(reb)) {
-				members.get_pop().set_militancy(0.0f);
 			}
 
 			/*
