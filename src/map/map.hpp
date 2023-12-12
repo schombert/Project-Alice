@@ -168,7 +168,8 @@ public:
 	GLuint province_highlight = 0;
 	GLuint stripes_texture = 0;
 	GLuint river_body_texture = 0;
-	GLuint river_movement_texture = 0;
+	GLuint national_border_texture = 0;
+	GLuint provincial_border_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
 
