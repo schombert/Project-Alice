@@ -547,6 +547,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// Draw the rivers, once for the "black" outline
 	// and twice for the blue one
+	auto river_draw_mode = state.map_state.map_data.use_curved_rivers ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
 	if(state.map_state.map_data.use_textured_rivers) {
 		glUniform1f(12, time_counter);
 		if(zoom > 5) {
@@ -555,27 +556,27 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform1f(4, 0.001f);
 			glBindVertexArray(river_vao);
 			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 			load_shader(line_river_2_shader);
 			glUniform1f(12, time_counter);
 			glUniform1f(4, 0.001f);
 			glBindVertexArray(river_vao);
 			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 		} else {
 			load_shader(line_river_3_shader);
 			glUniform1f(12, time_counter);
 			glUniform1f(4, 0.00033f);
 			glBindVertexArray(river_vao);
 			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 		}
 	} else {
 		load_shader(legacy_line_river_shader);
 		glUniform1f(4, 0.00033f);
 		glBindVertexArray(river_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)river_vertices.size());
+		glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 	}
 
 	// Default border parameters
@@ -607,7 +608,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[1]);
@@ -618,7 +619,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[0]);
@@ -629,7 +630,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[0]);
@@ -640,7 +641,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	} else if(zoom > 5) { // Render state borders also
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -652,7 +653,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[0]);
@@ -663,7 +664,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[0]);
@@ -674,7 +675,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	} else {
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -686,7 +687,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
 		glUniform1f(4, sizes[0]);
@@ -697,7 +698,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, first.data(), count.data(), GLsizei(count.size()));
+		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
 	/*
