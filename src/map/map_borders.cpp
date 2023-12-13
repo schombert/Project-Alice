@@ -46,14 +46,10 @@ void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec
 	pos2 /= map_size;
 
 	int32_t border_index = int32_t(line_vertices.size());
-	// First vertex of the line segment
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	// Second vertex of the line segment
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
+	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));//A
+	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), float(border_id));//B
+	line_vertices.emplace_back(pos2, +normal_direction, -direction, glm::vec2(1.f, 0.f), float(border_id));//C
+	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));//D
 
 	border_direction::information direction_information(border_index, border_id);
 	switch(dir) {
