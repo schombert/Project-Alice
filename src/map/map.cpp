@@ -545,6 +545,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
+	constexpr float thickness_sizes[] = {
+		0.00085f,// * 2.f,
+		0.00055f,// * 2.f,
+		0.00033f,// * 2.f
+	};
+
 	// Draw the rivers, once for the "black" outline
 	// and twice for the blue one
 	auto river_draw_mode = state.map_state.map_data.use_curved_rivers ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
@@ -566,25 +572,20 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		} else {
 			load_shader(line_river_3_shader);
 			glUniform1f(12, time_counter);
-			glUniform1f(4, 0.00033f);
+			glUniform1f(4, thickness_sizes[2]);
 			glBindVertexArray(river_vao);
 			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 		}
 	} else {
 		load_shader(legacy_line_river_shader);
-		glUniform1f(4, 0.00033f);
+		glUniform1f(4, thickness_sizes[2]);
 		glBindVertexArray(river_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 		glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
 	}
 
 	// Default border parameters
-	constexpr float sizes[] = {
-		0.00085f * 2.f,
-		0.00055f * 2.f,
-		0.00033f * 2.f
-	};
 	constexpr float border_type_national = 0.f;
 	constexpr float border_type_provincial = 1.f;
 	constexpr float border_type_regional = 2.f;
@@ -600,7 +601,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(zoom > 8) { // Render all borders
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[2]);
+		glUniform1f(4, thickness_sizes[2]);
 		glUniform1f(12, border_type_provincial);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) == 0) {
@@ -611,7 +612,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[1]);
+		glUniform1f(4, thickness_sizes[1]);
 		glUniform1f(12, border_type_regional);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::state_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
@@ -622,7 +623,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[0]);
+		glUniform1f(4, thickness_sizes[0]);
 		glUniform1f(12, border_type_national);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::national_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
@@ -633,7 +634,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[0]);
+		glUniform1f(4, thickness_sizes[0]);
 		glUniform1f(12, border_type_coastal);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::coastal_bit)) != 0) {
@@ -645,7 +646,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	} else if(zoom > 5) { // Render state borders also
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[1]);
+		glUniform1f(4, thickness_sizes[1]);
 		glUniform1f(12, border_type_regional);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::state_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
@@ -656,7 +657,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[0]);
+		glUniform1f(4, thickness_sizes[0]);
 		glUniform1f(12, border_type_national);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::national_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
@@ -667,7 +668,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[0]);
+		glUniform1f(4, thickness_sizes[0]);
 		glUniform1f(12, border_type_coastal);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::coastal_bit)) != 0) {
@@ -679,7 +680,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	} else {
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[1]);
+		glUniform1f(4, thickness_sizes[1]);
 		glUniform1f(12, border_type_provincial);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::national_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
@@ -690,7 +691,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 		first.clear();
 		count.clear();
-		glUniform1f(4, sizes[0]);
+		glUniform1f(4, thickness_sizes[0]);
 		glUniform1f(12, border_type_regional);
 		for(auto& border : borders) {
 			if((border.type_flag & (province::border::coastal_bit)) != 0) {
