@@ -806,8 +806,10 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 			std::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
 	float en_mod_b =
 			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
-
-	float total = (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a));
+	//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
+	float war_exhaustion =
+		state.world.nation_get_war_exhaustion(owner) * 0.005f;
+	float total = (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion);
 
 	{
 		auto box = text::open_layout_box(contents);
@@ -879,6 +881,9 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 				text::fp_two_places{state.defines.mil_non_accepted}, text::variable_type::y,
 				text::fp_percentage{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f});
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::seperatism, false);
+	}
+	if(war_exhaustion > 0) {
+		text::add_line(state, contents, "pop_mil_13", text::variable_type::val, text::fp_three_places{war_exhaustion});
 	}
 }
 

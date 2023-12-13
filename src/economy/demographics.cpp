@@ -704,6 +704,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	national-war-exhaustion x (sum of support-for-each-issue x issues-war-exhaustion-effect) / 100.0
 	+ (for pops not in colonies) pops-social-issue-support x define:MIL_REQUIRE_REFORM
 	+ (for pops not in colonies) pops-political-issue-support x define:MIL_REQUIRE_REFORM
+	+ (Nation's war exhaustion x 0.005)
 	*/
 
 	auto const conservatism_key = pop_demographics::to_key(state, state.culture_definitions.conservative);
@@ -743,11 +744,12 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 				ve::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
 		auto en_mod_b =
 				ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
-
+		//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
+		auto war_exhaustion = state.world.nation_get_war_exhaustion(owner) * 0.005f;
 		auto old_mil = state.world.pop_get_militancy(ids);
 
 		state.world.pop_set_militancy(ids,
-				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a)), 0.0f)), 10.0f));
+				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion), 0.0f)), 10.0f));
 	});
 }
 
@@ -785,8 +787,10 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 			std::min(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_lack_everyday_need;
 	float en_mod_b =
 			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
+	float war_exhaustion =
+		state.world.nation_get_war_exhaustion(owner) * 0.005f;
 
-	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a));
+	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion);
 }
 
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {

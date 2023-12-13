@@ -614,6 +614,7 @@ pop_mil_9;Local pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_10;National pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_11;National non-colonial pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;;;;;;;;;;;;x
+pop_mil_13;From war exhaustion §R+$val$§!;;;;;;;;;;;;x
 pop_lit_1;Monthly literacy change: ;;;;;;;;;;;;x
 pop_lit_2;Is the product of:;;;;;;;;;;;;x
 pop_lit_3;From the local clergymen percentage ($val$): $x$;;;;;;;;;;;;x
