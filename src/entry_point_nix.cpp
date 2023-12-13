@@ -57,6 +57,13 @@ int main(int argc, char **argv) {
 
 		network::init(game_state);
 	}
+	else
+	{
+		parsers::error_handler err{ "" };
+		game_state.load_scenario_data(err);
+		if(!err.accumulated_errors.empty())
+			window::emit_error_message(err.accumulated_errors, true);
+	}
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state.load_user_settings();
@@ -66,7 +73,7 @@ int main(int argc, char **argv) {
 
 	std::thread update_thread([&]() { game_state.game_loop(); });
 
-	window::create_window(game_state, window::creation_parameters());
+	window::create_window(game_state, window::creation_parameters{1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen});
 
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
