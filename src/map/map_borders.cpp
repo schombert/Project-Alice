@@ -422,22 +422,69 @@ void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_
 
 // Needs to be called after load_province_data for the mid points to set
 // and load_border_data for the province_adjacencies to be set
-std::vector<curved_line_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
-	glm::vec2 size{ float(data.size_x), float(data.size_y) };
+void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
 	assert(size.x >= 1.f && size.y >= 1.f);
 
-	load_river_crossings(context, river_data, size);
+	std::vector<border_direction> current_row(uint32_t(size.x));
+	std::vector<border_direction> last_row(uint32_t(size.x));
+	auto add_river = [&](uint32_t x0, uint32_t y0, bool river_u, bool river_d, bool river_r, bool river_l) {
+		glm::vec2 map_pos(x0, y0);
+		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
+			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, buffer))
+			add_line(map_pos, size, pos1, pos2, 0, x0, dir, buffer, current_row, 0.0f);
+		};
+		if(river_l && river_u && !river_r && !river_d) { // Upper left
+			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_LEFT);
+		} else if(river_l && river_d && !river_r && !river_u) { // Lower left
+			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
+		} else if(river_r && river_u && !river_l && !river_d) { // Upper right
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_RIGHT);
+		} else if(river_r && river_d && !river_l && !river_u) { // Lower right
+			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_RIGHT);
+		} else {
+			if(river_u) {
+				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), direction::UP);
+			}
+			if(river_d) {
+				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN);
+			}
+			if(river_l) {
+				add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), direction::LEFT);
+			}
+			if(river_r) {
+				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), direction::RIGHT);
+			}
+		}
+	};
+	for(int y = 1; y < size.y - 1; y++) {
+		for(int x = 1; x < size.x - 1; x++) {
+			auto river_center = is_river(river_data[(x + 0) + (y + 0) * uint32_t(size.x)]);
+			if(river_center) {
+				auto river_u = is_river(river_data[(x + 0) + (y - 1) * uint32_t(size.x)]);
+				auto river_d = is_river(river_data[(x + 0) + (y + 1) * uint32_t(size.x)]);
+				auto river_r = is_river(river_data[(x + 1) + (y + 0) * uint32_t(size.x)]);
+				auto river_l = is_river(river_data[(x - 1) + (y + 0) * uint32_t(size.x)]);
+				add_river(x, y, river_u, river_d, river_r, river_l);
+			}
+		}
 
-	std::vector<curved_line_vertex> river_vertices;
+		// Move the border_direction rows a step down
+		std::swap(last_row, current_row);
+		std::fill(current_row.begin(), current_row.end(), border_direction{});
+	}
+}
+
+void create_curved_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
+	assert(size.x >= 1.f && size.y >= 1.f);
+
 	std::vector<std::vector<river_vertex>> rivers;
 	rivers.push_back(std::vector<river_vertex>());
-	std::vector<bool> marked(data.size_x * data.size_y, false);
+	std::vector<bool> marked(uint32_t(size.x) * uint32_t(size.y), false);
 	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
 		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++) {
 			river_explore_helper(x, y, rivers, river_data, marked, size);
 		}
 	}
-
 	// remove empty rivers or rivers with 1 vertice
 	for(uint32_t i = 0; i < rivers.size(); i++) {
 		if(rivers[i].size() <= 1) {
@@ -445,7 +492,6 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 			--i;
 		}
 	}
-
 	for(auto& river : rivers) {
 		if(river.size() == 2)
 			continue;
@@ -483,12 +529,12 @@ std::vector<curved_line_vertex> create_river_vertices(display_data const& data, 
 				} else {
 					next_perpendicular = glm::normalize(current_pos - next_pos);
 				}
-				add_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, int32_t(i) == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 4);
+				add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, int32_t(i) == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 4);
 				prev_perpendicular = -1.0f * next_perpendicular;
 				current_pos = river[i].to_vec2();
 			}
 		}
 	}
-	return river_vertices;
 }
+
 }

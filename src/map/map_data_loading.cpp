@@ -336,7 +336,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
 	// Load the province map
-	auto provinces_png = open_file(map_dir, NATIVE("alice_provinces.png"));
+	auto provinces_png = simple_fs::open_file(map_dir, NATIVE("alice_provinces.png"));
 	map::image provinces_image;
 	if(provinces_png) {
 		provinces_image = load_stb_image(*provinces_png);
@@ -344,7 +344,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		size_y = uint32_t(provinces_image.size_y);
 		context.new_maps = true;
 	} else {
-		auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+		auto provinces_bmp = simple_fs::open_file(map_dir, NATIVE("provinces.bmp"));
 		if(provinces_bmp) {
 			provinces_image = load_stb_image(*provinces_bmp);
 			size_x = uint32_t(provinces_image.size_x);
@@ -363,7 +363,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		auto size = glm::ivec2(size_x, size_y);
 		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
 	} else {
-		auto river_file = open_file(map_dir, NATIVE("alice_rivers.png"));
+		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
 		river_data.resize(size_x * size_y, uint8_t(255));
 
 		image river_image_data;
@@ -389,7 +389,30 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		}
 	}
 
-	river_vertices = create_river_vertices(*this, context, river_data);
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// Temporal development settings
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
+	auto dev_settings = simple_fs::open_file(assets_dir, NATIVE("dev_settings.txt"));
+	if(dev_settings) {
+		auto contents = simple_fs::view_contents(*dev_settings);
+		if(contents.file_size >= 3) {
+			if(contents.data[0] == 'Y' || contents.data[0] == 'y') {
+				use_curved_rivers = true;
+			} else if(contents.data[1] == 'Y' || contents.data[1] == 'y') {
+				use_textured_rivers = true;
+			} else if(contents.data[2] == 'Y' || contents.data[2] == 'y') {
+				use_textured_borders = true;
+			}
+		}
+	}
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
+	if(use_curved_rivers) {
+		create_curved_river_vertices(glm::vec2(float(size_x), float(size_y)), river_vertices, context, river_data);
+	} else {
+		create_standard_river_vertices(glm::vec2(float(size_x), float(size_y)), river_vertices, context, river_data);
+	}
 }
 
 // Called to load the terrain and province map data
