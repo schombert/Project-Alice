@@ -67,6 +67,8 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
+	map_data.unit_arrow_counts.clear();
+	map_data.unit_arrow_starts.clear();
 
 	for(auto selected_army : state.selected_armies) {
 		auto old_size = map_data.unit_arrow_vertices.size();

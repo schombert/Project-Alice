@@ -866,41 +866,47 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
 	constexpr float type_filled = 2.f;
 	constexpr float type_unfilled = 0.f;
-	constexpr float type_end = 1.f;
+	constexpr float type_end = 3.f;
 	glm::vec2 curr_dir = normalize(end - start);
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
-	// A---C Order: A->B->C->D
-	// |\ /| Reminder: This is how trianglestrips work
-	// | x |
-	// |/ \|
-	// B---D
+
 	if(fill_progress != 0) {
-		auto pos3 = glm::mix(start, end, fill_progress);
-		auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-		// A-C-E Order: A->B->C->D->E->F
-		// |/|/|
-		// B-D-F
-		// Here be the filled part of the arrow
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type_filled);//A
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type_filled);//B
-		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
 		if(fill_progress < 1.0f) {
-			// Not filled - transition from "filled" to "unfilled"
+			auto pos3 = glm::mix(start, end, fill_progress);
+			auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+
+			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
+			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
 			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
 			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
-			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//E
-			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//F
+
+			// Not filled - transition from "filled" to "unfilled"
+			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
+		} else {
+			// Not filled - transition from "filled" to "unfilled"
+			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
 		}
 	} else {
 		// All unfilled!
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), type_unfilled);//A
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), type_unfilled);//B
+		if(buffer.back().type_ == type_filled) {
+			buffer.emplace_back(buffer[buffer.size() - 2]);//C
+			buffer.emplace_back(buffer[buffer.size() - 2]);//D
+			buffer[buffer.size() - 2].type_ = type_unfilled;
+			buffer[buffer.size() - 1].type_ = type_unfilled;
+		}
 		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
 		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
 	}
 	if(end_arrow) {
+		if(buffer.back().type_ == type_filled) {
+			buffer.emplace_back(buffer[buffer.size() - 2]);//C
+			buffer.emplace_back(buffer[buffer.size() - 2]);//D
+			buffer[buffer.size() - 2].type_ = type_unfilled;
+			buffer[buffer.size() - 1].type_ = type_unfilled;
+		}
 		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_end);//C
 		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_end);//D
 	}
@@ -1100,6 +1106,11 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		glm::vec2 next_pos = put_in_local(duplicates::get_navy_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
@@ -1141,6 +1152,12 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{0,0}, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
