@@ -573,9 +573,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	load_shader(textured_line_shader);
 	glUniform1f(6, time_counter);
-	glUniform1f(4, 0.0002f);
+	glUniform1f(4, 0.00008f);
+
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+
 	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Default border parameters

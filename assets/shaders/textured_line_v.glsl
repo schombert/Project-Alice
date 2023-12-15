@@ -6,6 +6,7 @@ layout (location = 3) in float distance;
 
 out float tex_coord;
 out float o_dist;
+out vec2 map_coord;
 
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
@@ -64,6 +65,7 @@ void main() {
 	world_pos += normal_vector;
 	world_pos.x /= map_size.x / map_size.y;
 
+	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
 	o_dist = time + distance / (2.0f * width);
