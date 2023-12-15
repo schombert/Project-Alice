@@ -494,8 +494,9 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		float distance = 0.0f;
 
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
-		river_vertices.emplace_back(current_pos, +start_normal, 0.0f, distance);//C
-		river_vertices.emplace_back(current_pos, -start_normal, 1.0f, distance);//D
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+		river_vertices.emplace_back(norm_pos, +start_normal, 0.0f, distance);//C
+		river_vertices.emplace_back(norm_pos, -start_normal, 1.0f, distance);//D
 
 		for(auto i = river.size() - 1; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
