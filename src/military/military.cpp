@@ -943,8 +943,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
 			*/
-			total += std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
-											int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
+			total += int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment);
 		}
 	}
 	return total;
@@ -6791,9 +6790,7 @@ void advance_mobilizations(sys::state& state) {
 								define:POP_SIZE_PER_REGIMENT.
 								*/
 
-								auto available =
-										std::max(pop.get_pop().get_size() > state.defines.pop_size_per_regiment ? 1 : 0,
-											int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
+								auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 								if(available > 0) {
 
 									bool army_is_new = false;
