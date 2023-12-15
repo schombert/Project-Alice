@@ -233,7 +233,7 @@ static_assert(sizeof(national_modifier_definition) ==
 struct commodity_modifier {
 	float amount = 0.0f;
 	dcon::commodity_id type;
-	uint8_t padding[3];
+	uint8_t padding[3] = {0};
 };
 static_assert(sizeof(commodity_modifier) ==
 	sizeof(commodity_modifier::amount)
