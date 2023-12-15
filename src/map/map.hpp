@@ -140,6 +140,8 @@ public:
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
+	std::vector<GLint> unit_arrow_starts;
+	std::vector<GLsizei> unit_arrow_counts;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;

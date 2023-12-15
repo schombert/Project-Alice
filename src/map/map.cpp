@@ -702,7 +702,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, 0.005f);
 		glBindVertexArray(unit_arrow_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)unit_arrow_vertices.size());
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
 	}
 
 	if(!drag_box_vertices.empty()) {
