@@ -449,9 +449,6 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	// Line shaders
 	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
-	//auto line_river_1_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_1_f.glsl"));
-	auto line_river_2_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_2_f.glsl"));
-	auto line_river_3_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_3_f.glsl"));
 
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
@@ -462,13 +459,11 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
-
 	legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
 	
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
 	textured_line_shader = create_program(*tline_vshader, *tline_fshader);
-
 
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
