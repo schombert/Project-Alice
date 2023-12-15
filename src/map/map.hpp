@@ -78,6 +78,9 @@ struct curved_line_vertex {
 };
 
 struct textured_line_vertex {
+	textured_line_vertex() { };
+	textured_line_vertex(glm::vec2 position, glm::vec2 normal_direction, float texture_coordinate, float distance)
+		: position_(position), normal_direction_(normal_direction), texture_coordinate_(texture_coordinate), distance_(distance) { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	float texture_coordinate_;
