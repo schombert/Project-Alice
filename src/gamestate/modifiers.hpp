@@ -233,7 +233,12 @@ static_assert(sizeof(national_modifier_definition) ==
 struct commodity_modifier {
 	float amount = 0.0f;
 	dcon::commodity_id type;
+	uint8_t padding[3];
 };
+static_assert(sizeof(commodity_modifier) ==
+	sizeof(commodity_modifier::amount)
+	+ sizeof(commodity_modifier::type)
+	+ sizeof(commodity_modifier::padding));
 
 struct unit_variable_stats {
 	int32_t build_time = 0;
