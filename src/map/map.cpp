@@ -989,8 +989,8 @@ void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::
 	end /= glm::vec2(size_x, size_y);
 
 	distance += glm::distance(start, end);
-	buffer.emplace_back(end, +next_normal_dir, 0.0f, distance);//C
-	buffer.emplace_back(end, -next_normal_dir, 1.0f, distance);//D
+	buffer.emplace_back(textured_line_vertex{ end, +next_normal_dir, 0.0f, distance });//C
+	buffer.emplace_back(textured_line_vertex{ end, -next_normal_dir, 1.0f, distance });//D
 }
 
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
