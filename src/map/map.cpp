@@ -160,6 +160,34 @@ void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribBinding(index, 0);
 }
 
+void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& data) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex));
+
+	// Set up vertex attribute format for the position
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, position_));
+	// Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, normal_direction_));
+	// Set up vertex attribute format for the direction
+	glVertexAttribFormat(2, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, texture_coordinate_));
+	// Set up vertex attribute format for the texture coordinates
+	glVertexAttribFormat(3, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, distance_));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+}
+
 void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
@@ -246,7 +274,7 @@ void display_data::create_border_ogl_objects() {
 
 	glGenVertexArrays(1, &river_vao);
 	glBindVertexArray(river_vao);
-	create_unit_arrow_vbo(river_vbo, river_vertices);
+	create_textured_line_vbo(river_vbo, river_vertices);
 
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
@@ -384,12 +412,8 @@ display_data::~display_data() {
 		glDeleteProgram(line_border_shader);
 	if(legacy_line_border_shader)
 		glDeleteProgram(legacy_line_border_shader);
-	if(line_river_1_shader)
-		glDeleteProgram(line_river_1_shader);
-	if(line_river_2_shader)
-		glDeleteProgram(line_river_2_shader);
-	if(line_river_3_shader)
-		glDeleteProgram(line_river_3_shader);
+	if(textured_line_shader)
+		glDeleteProgram(textured_line_shader);
 	if(legacy_line_river_shader)
 		glDeleteProgram(legacy_line_river_shader);
 	if(line_unit_arrow_shader)
@@ -439,18 +463,12 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
 
-	if(use_textured_borders) {
-		line_border_shader = create_program(*line_vshader, *line_border_fshader);
-	} else {
-		legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
-	}
-	if(use_textured_rivers) {
-		line_river_1_shader = create_program(*line_vshader, *black_color_fshader);
-		line_river_2_shader = create_program(*line_vshader, *line_river_2_fshader);
-		line_river_3_shader = create_program(*line_vshader, *line_river_3_fshader);
-	} else {
-		legacy_line_river_shader = create_program(*line_vshader, *line_river_3_fshader);
-	}
+	legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
+	
+	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
+	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
+	textured_line_shader = create_program(*tline_vshader, *tline_fshader);
+
 
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
@@ -551,39 +569,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		0.00033f,// * 2.f
 	};
 
-	// Draw the rivers, once for the "black" outline
-	// and twice for the blue one
-	auto river_draw_mode = state.map_state.map_data.use_curved_rivers ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
-	if(state.map_state.map_data.use_textured_rivers) {
-		glUniform1f(12, time_counter);
-		if(zoom > 5) {
-			load_shader(line_river_1_shader);
-			glUniform1f(12, time_counter);
-			glUniform1f(4, 0.001f);
-			glBindVertexArray(river_vao);
-			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
-			load_shader(line_river_2_shader);
-			glUniform1f(12, time_counter);
-			glUniform1f(4, 0.001f);
-			glBindVertexArray(river_vao);
-			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
-		} else {
-			load_shader(line_river_3_shader);
-			glUniform1f(12, time_counter);
-			glUniform1f(4, thickness_sizes[2]);
-			glBindVertexArray(river_vao);
-			glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-			glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
-		}
-	} else {
-		load_shader(legacy_line_river_shader);
-		glUniform1f(4, thickness_sizes[2]);
-		glBindVertexArray(river_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-		glDrawArrays(river_draw_mode, 0, (GLsizei)river_vertices.size());
-	}
+	// Draw the rivers
+
+	load_shader(textured_line_shader);
+	glUniform1f(6, time_counter);
+	glUniform1f(4, 0.0002f);
+	glBindVertexArray(river_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
+	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -591,11 +584,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	constexpr float border_type_regional = 2.f;
 	constexpr float border_type_coastal = 3.f;
 	// Draw the borders
-	if(state.map_state.map_data.use_textured_borders) {
-		load_shader(line_border_shader);
-	} else {
-		load_shader(legacy_line_border_shader);
-	}
+	//if(state.map_state.map_data.use_textured_borders) {
+	//	load_shader(line_border_shader);
+	//}
+	load_shader(legacy_line_border_shader);
+	
 	glBindVertexArray(border_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	if(zoom > 8) { // Render all borders
@@ -702,24 +695,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
-	/*
-	// SCHOMBERT: enabling this will render any special borders you make with the test bit set
-	{
-		glUniform1f(4, 0.0016f);
-		uint8_t visible_borders = (province::border::test_bit);
-
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		for(auto& border : borders) {
-			if(border.type_flag & visible_borders) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, &first[0], &count[0], GLsizei(count.size()));
-	}
-	*/
 
 	if(!unit_arrow_vertices.empty()) {
 		// Draw the unit arrows
@@ -1007,6 +982,69 @@ void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec
 	}
 }
 
+void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance) {
+	start /= glm::vec2(size_x, size_y);
+	end /= glm::vec2(size_x, size_y);
+
+	distance += glm::distance(start, end);
+	buffer.emplace_back(end, +next_normal_dir, 0.0f, distance);//C
+	buffer.emplace_back(end, -next_normal_dir, 1.0f, distance);//D
+}
+
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
+	auto control_point_length = glm::length(end - start) * control_point_length_factor;
+
+	auto start_control_point = start_per * control_point_length + start;
+	auto end_control_point = end_per * control_point_length + end;
+
+	auto bpoint = [=](float t) {
+		auto u = 1.0f - t;
+		return 0.0f
+			+ (u * u * u) * start
+			+ (3.0f * u * u * t) * start_control_point
+			+ (3.0f * u * t * t) * end_control_point
+			+ (t * t * t) * end;
+		};
+
+	auto last_normal = glm::vec2(-start_per.y, start_per.x);
+	glm::vec2 next_normal{ 0.0f, 0.0f };
+
+	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
+		auto t_start = float(i) / float(num_b_segments);
+		auto t_end = float(i + 1) / float(num_b_segments);
+		auto t_next = float(i + 2) / float(num_b_segments);
+
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+		auto next_point = bpoint(t_next);
+
+		next_normal = glm::normalize(end_point - start_point) + glm::normalize(end_point - next_point);
+		auto temp = glm::normalize(end_point - start_point);
+		if(glm::length(next_normal) < 0.00001f) {
+			next_normal = glm::normalize(glm::vec2(-temp.y, temp.x));
+		} else {
+			next_normal = glm::normalize(next_normal);
+			if(glm::dot(glm::vec2(-temp.y, temp.x), next_normal) < 0) {
+				next_normal = -next_normal;
+			}
+		}
+
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
+
+		last_normal = next_normal;
+	}
+	{
+		next_normal = glm::vec2(end_per.y, -end_per.x);
+		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
+		auto t_end = 1.0f;
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+
+		
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
+	}
+}
+
 namespace duplicates {
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto pt = state.world.province_get_port_to(p);
@@ -1271,23 +1309,6 @@ void display_data::load_map(sys::state& state) {
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// Temporal development settings
-	auto dev_settings = simple_fs::open_file(assets_dir, NATIVE("dev_settings.txt"));
-	if(dev_settings) {
-		auto contents = simple_fs::view_contents(*dev_settings);
-		if(contents.file_size >= 3) {
-			if(contents.data[0] == 'Y' || contents.data[0] == 'y') {
-				use_curved_rivers = true;
-			} else if(contents.data[1] == 'Y' || contents.data[1] == 'y') {
-				use_textured_rivers = true;
-			} else if(contents.data[2] == 'Y' || contents.data[2] == 'y') {
-				use_textured_borders = true;
-			}
-		}
-	}
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	load_shaders(root);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
@@ -1305,14 +1326,15 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
-	if(use_textured_rivers) {
-		river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
-		set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	}
-	if(use_textured_borders) {
-		national_border_texture = load_dds_texture(assets_dir, NATIVE("border_national.dds"));
-		set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_NEAREST, GL_REPEAT);
-	}
+	
+	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
+	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	
+	//if(use_textured_borders) {
+	//	national_border_texture = load_dds_texture(assets_dir, NATIVE("border_national.dds"));
+	//	set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_NEAREST, GL_REPEAT);
+	//}
+
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);

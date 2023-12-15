@@ -379,8 +379,12 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 				for(uint32_t x = 0; x < size_x; ++x) {
 
 					uint8_t* ptr = river_image_data.data + (x + size_x * y) * 4;
-					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * ty] != uint8_t(255))
-						river_data[ty * size_x + x] = 0;
+					if(ptr[0] + ptr[2] < 128 * 2 && ptr[1] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 0; // source
+					else if(ptr[1] + ptr[2] < 128 * 2 && ptr[0] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/ )
+						river_data[ty * size_x + x] = 1; // merge
+					else if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 /*&& terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 2;
 					else
 						river_data[ty * size_x + x] = 255;
 					
@@ -389,30 +393,10 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		}
 	}
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// Temporal development settings
-	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
-	auto dev_settings = simple_fs::open_file(assets_dir, NATIVE("dev_settings.txt"));
-	if(dev_settings) {
-		auto contents = simple_fs::view_contents(*dev_settings);
-		if(contents.file_size >= 3) {
-			if(contents.data[0] == 'Y' || contents.data[0] == 'y') {
-				use_curved_rivers = true;
-			} else if(contents.data[1] == 'Y' || contents.data[1] == 'y') {
-				use_textured_rivers = true;
-			} else if(contents.data[2] == 'Y' || contents.data[2] == 'y') {
-				use_textured_borders = true;
-			}
-		}
-	}
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
-	if(use_curved_rivers) {
-		create_curved_river_vertices(glm::vec2(float(size_x), float(size_y)), river_vertices, context, river_data);
-	} else {
-		create_standard_river_vertices(glm::vec2(float(size_x), float(size_y)), river_vertices, context, river_data);
-	}
+	
+	create_curved_river_vertices(context, river_data);
 }
 
 // Called to load the terrain and province map data

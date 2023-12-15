@@ -297,6 +297,12 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 bool is_river(uint8_t river_data) {
 	return river_data < 16;
 }
+bool is_river_source(uint8_t river_data) {
+	return river_data == 0;
+}
+bool is_river_merge(uint8_t river_data) {
+	return river_data == 1;
+}
 
 // Set the river crossing bit for the province adjencencies
 // Will march a line between each adjecent province centroid. If it hits a river it will set the bit
@@ -364,176 +370,158 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 }
 
 struct river_vertex {
-	float x = 0.f;
-	float y = 0.f;
-	bool keep = false;
-	// TODO: add padding
-	river_vertex(float x_, float y_, bool keep_) : x(x_), y(y_), keep(keep_) { }
-	bool operator==(river_vertex const& o) const {
-		return x == o.x && y == o.y && keep == o.keep;
-	}
-	glm::vec2 to_vec2() const {
-		return glm::vec2(x, y);
-	}
+	float x = 0.0f;
+	float y = 0.0f;
 };
 
-void river_explore_helper(uint32_t x, uint32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<bool>& marked, glm::ivec2 size) {
-	assert(!rivers.empty());
-	uint32_t ic = (x + 0) + (y + 0) * size.x;
-	if(!marked[ic] && is_river(river_data[ic])) {
-		marked[ic] = true;
-		rivers.back().emplace_back(float(x), float(y), rivers.back().empty());
-		uint32_t branch_count = 0;
-		for(int32_t ty = -1; ty <= 1; ty++) {
-			for(int32_t tx = -1; tx <= 1; tx++) {
-				// We are checking for the cuadrant of:
-				// [ -1 -1 ] [ +0 -1 ] [ +1 -1 ]
-				// [ -1 +0 ] [ +0 +0 ] [ +1 +0 ]
-				// [ -1 +1 ] [ +0 +1 ] [ +1 +1 ]
-				// We do not want (-1, -1), (1, -1), (-1, +1) and (+1, +1)
-				// This means that there must be atleast one zero
-				// To obtain this we multiply x*y, getting the following:
-				// [  1 ] [  0 ] [ -1 ]
-				// [  0 ] [  0 ] [  0 ]
-				// [ -1 ] [  0 ] [  1 ]
-				if(tx * ty != 0 || (tx == 0 && ty == 0))
-					continue;
-				uint32_t index = (x + tx) + (y + ty) * size.x;
-				if(!marked[index] && is_river(river_data[index])) {
-					if(branch_count > 0) {
-						// this river is a branch
-						if(!rivers.back().empty()) // Tag tail as "keep"
-							rivers.back().back().keep = true;
-						rivers.push_back(std::vector<river_vertex>());
-						rivers.back().emplace_back(float(x), float(y), true);
-					}
-					river_explore_helper(uint32_t(int32_t(x) + tx), uint32_t(int32_t(y) + ty), rivers, river_data, marked, size);
-					branch_count++;
-				}
-			}
-		}
-		if(branch_count == 0) {
-			if(!rivers.back().empty()) // Tag tail as "keep"
-				rivers.back().back().keep = true;
-			rivers.push_back(std::vector<river_vertex>()); // No match, but has a center, so make new river
-		}
+std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<bool>& marked, glm::ivec2 size, int32_t old_x = -1, int32_t old_y = -1) {
+
+	std::vector<river_vertex> constructed;
+
+	if(old_x != -1 && old_y != -1) {
+		constructed.push_back(river_vertex{ float(old_x + 0.5f), float(old_y + 0.5f) });
 	}
-}
 
-// Needs to be called after load_province_data for the mid points to set
-// and load_border_data for the province_adjacencies to be set
-void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
-	assert(size.x >= 1.f && size.y >= 1.f);
+	marked[x + y * size.x] = true;
+	auto process_non_merge = [&](int32_t xin, int32_t yin, bool& forward_found) {
+		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && is_river(river_data[xin + yin * size.x]) && !marked[xin + yin * size.x] && !is_river_merge(river_data[xin + yin * size.x]) && !is_river_source(river_data[xin + yin * size.x])) {
 
-	std::vector<border_direction> current_row(uint32_t(size.x));
-	std::vector<border_direction> last_row(uint32_t(size.x));
-	auto add_river = [&](uint32_t x0, uint32_t y0, bool river_u, bool river_d, bool river_r, bool river_l) {
-		glm::vec2 map_pos(x0, y0);
-		auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, direction dir) {
-			// if(!extend_if_possible(x0, 0, dir, last_row, current_row, size, buffer))
-			add_line(map_pos, size, pos1, pos2, 0, x0, dir, buffer, current_row, 0.0f);
-		};
-		if(river_l && river_u && !river_r && !river_d) { // Upper left
-			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_LEFT);
-		} else if(river_l && river_d && !river_r && !river_u) { // Lower left
-			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_LEFT);
-		} else if(river_r && river_u && !river_l && !river_d) { // Upper right
-			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), direction::UP_RIGHT);
-		} else if(river_r && river_d && !river_l && !river_u) { // Lower right
-			add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN_RIGHT);
-		} else {
-			if(river_u) {
-				add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), direction::UP);
-			}
-			if(river_d) {
-				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), direction::DOWN);
-			}
-			if(river_l) {
-				add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), direction::LEFT);
-			}
-			if(river_r) {
-				add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), direction::RIGHT);
+			marked[xin + yin * size.x] = true;
+			if(!forward_found) {
+				forward_found = true;
+				return glm::ivec2{xin, yin};
+			} else {
+				rivers.emplace_back(make_directional_river(xin, yin, rivers, river_data, marked, size, x, y));
 			}
 		}
+		return glm::ivec2{ 0, 0 };
 	};
-	for(int y = 1; y < size.y - 1; y++) {
-		for(int x = 1; x < size.x - 1; x++) {
-			auto river_center = is_river(river_data[(x + 0) + (y + 0) * uint32_t(size.x)]);
-			if(river_center) {
-				auto river_u = is_river(river_data[(x + 0) + (y - 1) * uint32_t(size.x)]);
-				auto river_d = is_river(river_data[(x + 0) + (y + 1) * uint32_t(size.x)]);
-				auto river_r = is_river(river_data[(x + 1) + (y + 0) * uint32_t(size.x)]);
-				auto river_l = is_river(river_data[(x - 1) + (y + 0) * uint32_t(size.x)]);
-				add_river(x, y, river_u, river_d, river_r, river_l);
+	auto process_merge = [&](int32_t xin, int32_t yin, bool& merge_found) {
+		if(merge_found)
+			return glm::ivec2{ 0, 0 };
+
+		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && is_river(river_data[xin + yin * size.x]) && !marked[xin + yin * size.x] && is_river_merge(river_data[xin + yin * size.x]) && !is_river_source(river_data[xin + yin * size.x])) {
+
+			marked[xin + yin * size.x] = true;
+			merge_found = true;
+			return glm::ivec2{ xin, yin };
+		}
+		return glm::ivec2{ 0, 0 };
+	};
+	auto process_post_merge = [&](int32_t xin, int32_t yin, bool& forward_found) {
+		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && is_river(river_data[xin + yin * size.x]) && !is_river_merge(river_data[xin + yin * size.x]) && !is_river_source(river_data[xin + yin * size.x])) {
+			if(!forward_found) {
+				forward_found = true;
+				return glm::ivec2{ xin, yin };
 			}
 		}
+		return glm::ivec2{ 0, 0 };
+	};
 
-		// Move the border_direction rows a step down
-		std::swap(last_row, current_row);
-		std::fill(current_row.begin(), current_row.end(), border_direction{});
+	bool forward_progress = false;
+	do {
+		forward_progress = false;
+		constructed.push_back(river_vertex{ float(x + 0.5f), float(y + 0.5f) });
+
+		auto res = process_non_merge(x - 1, y, forward_progress);
+		res += process_non_merge(x + 1, y, forward_progress);
+		res += process_non_merge(x, y - 1, forward_progress);
+		res += process_non_merge(x, y + 1, forward_progress);
+
+		if(forward_progress) {
+			old_x = x;
+			old_y = y;
+			x = res.x;
+			y = res.y;
+		}
+
+	} while(forward_progress);
+
+	bool merge_found = false;
+	auto resb = process_merge(x - 1, y, merge_found);
+	resb += process_merge(x + 1, y, merge_found);
+	resb += process_merge(x, y - 1, merge_found);
+	resb += process_merge(x, y + 1, merge_found);
+
+	if(merge_found) {
+		constructed.push_back(river_vertex{ float(resb.x + 0.5f), float(resb.y + 0.5f) });
+
+		old_x = x;
+		old_y = y;
+		x = resb.x;
+		y = resb.y;
+
+		bool post_progress = false;
+		auto resc = process_post_merge(x - 1, y, post_progress);
+		resc += process_post_merge(x + 1, y, post_progress);
+		resc += process_post_merge(x, y - 1, post_progress);
+		resc += process_post_merge(x, y + 1, post_progress);
+
+		if(post_progress) {
+			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f) });
+		}
 	}
+
+	return constructed;
 }
 
-void create_curved_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data) {
-	assert(size.x >= 1.f && size.y >= 1.f);
+void display_data::create_curved_river_vertices(parsers::scenario_building_context & context, std::vector<uint8_t> const& river_data) {
 
 	std::vector<std::vector<river_vertex>> rivers;
-	rivers.push_back(std::vector<river_vertex>());
-	std::vector<bool> marked(uint32_t(size.x) * uint32_t(size.y), false);
-	for(uint32_t y = 1; y < uint32_t(size.y) - 1; y++) {
-		for(uint32_t x = 1; x < uint32_t(size.x) - 1; x++) {
-			river_explore_helper(x, y, rivers, river_data, marked, size);
+
+	std::vector<bool> marked(size_x * size_y, false);
+
+	for(uint32_t y = 0; y < size_y; y++) {
+		for(uint32_t x = 0; x < size_x; x++) {
+			if(is_river_source(river_data[x + y * size_x]))
+				rivers.emplace_back(make_directional_river(x, y, rivers, river_data, marked, glm::ivec2(int32_t(size_x), int32_t(size_y))));
 		}
 	}
-	// remove empty rivers or rivers with 1 vertice
-	for(uint32_t i = 0; i < rivers.size(); i++) {
+	// remove empty rivers or rivers with 1 vertex
+	for(auto i = rivers.size(); i-- > 0; ) {
 		if(rivers[i].size() <= 1) {
-			rivers.erase(rivers.begin() + i);
-			--i;
+			rivers[i] = std::move(rivers.back());
+			rivers.pop_back();
 		}
-	}
-	for(auto& river : rivers) {
-		if(river.size() == 2)
-			continue;
-		for(uint32_t i = 1; i < river.size() - 2; i++) {
-			if(river[i + 1].keep || river[i].keep)
-				continue;
-			if(std::abs(river[i].x - river[i + 1].x) <= 1.f && std::abs(river[i].y - river[i + 1].y) <= 1.f)
-				river[i + 1] = river[i];
-		}
-		// Ensure no duplicates
-		river.erase(std::unique(river.begin(), river.end()), river.end());
 	}
 
 	for(const auto& river : rivers) {
-		if(auto rs = river.size(); rs > 1) { //last back element is used as "initiator"
-			glm::vec2 current_pos = river[rs - 1].to_vec2();
-			glm::vec2 next_pos = put_in_local(river[rs - 2].to_vec2(), current_pos, size.x);
-			glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-			for(auto i = rs; i-- > 0;) {
-				glm::vec2 next_perpendicular{ 0.0f, 0.0f };
-				next_pos = put_in_local(river[i].to_vec2(), current_pos, size.x);
-				if(i > 0) {
-					glm::vec2 next_next_pos = put_in_local(river[i - 1].to_vec2(), next_pos, size.x);
-					glm::vec2 a_per = glm::normalize(next_pos - current_pos);
-					glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
-					glm::vec2 temp = a_per + b_per;
-					if(glm::length(temp) < 0.00001f) {
-						next_perpendicular = -a_per;
-					} else {
-						next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-						if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
-							next_perpendicular *= -1.0f;
-						}
-					}
+		river_starts.push_back(GLint(river_vertices.size()));
+
+		glm::vec2 current_pos = glm::vec2(river.back().x, river.back().y);
+		glm::vec2 next_pos = put_in_local(glm::vec2(river[river.size() - 2].x, river[river.size() - 2].y), current_pos, float(size_x));
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+		float distance = 0.0f;
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		river_vertices.emplace_back(current_pos, +start_normal, 0.0f, distance);//C
+		river_vertices.emplace_back(current_pos, -start_normal, 1.0f, distance);//D
+
+		for(auto i = river.size() - 1; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(glm::vec2(river[i - 1].x, river[i - 1].y), next_pos, float(size_x));
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
 				} else {
-					next_perpendicular = glm::normalize(current_pos - next_pos);
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+						next_perpendicular *= -1.0f;
+					}
 				}
-				add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, int32_t(i) == int32_t(rs - 1) ? 1.f : 0.0f, i == 0, size.x, size.y, 4);
-				prev_perpendicular = -1.0f * next_perpendicular;
-				current_pos = river[i].to_vec2();
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
+			add_tl_bezier_to_buffer(river_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), 4, distance);
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = glm::vec2(river[i].x, river[i].y);
 		}
+
+		river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
 	}
 }
 

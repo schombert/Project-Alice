@@ -77,6 +77,13 @@ struct curved_line_vertex {
 	float type_;
 };
 
+struct textured_line_vertex {
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	float texture_coordinate_;
+	float distance_;
+};
+
 struct text_line_vertex {
 	text_line_vertex() { };
 	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
@@ -129,17 +136,15 @@ public:
 
 	std::vector<border> borders;
 	std::vector<curved_line_vertex> border_vertices;
-	std::vector<curved_line_vertex> river_vertices;
+	std::vector<textured_line_vertex> river_vertices;
+	std::vector<GLint> river_starts;
+	std::vector<GLsizei> river_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 	std::vector<uint32_t> province_area;
-
-	bool use_curved_rivers = false;
-	bool use_textured_borders = false;
-	bool use_textured_rivers = false;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
@@ -181,9 +186,7 @@ public:
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
 	GLuint legacy_line_border_shader = 0;
-	GLuint line_river_1_shader = 0;
-	GLuint line_river_2_shader = 0;
-	GLuint line_river_3_shader = 0;
+	GLuint textured_line_shader = 0;
 	GLuint legacy_line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
@@ -199,15 +202,18 @@ public:
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
+
+	void create_curved_river_vertices(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
 };
 
 void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
 void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
-void create_curved_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+
 void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map
