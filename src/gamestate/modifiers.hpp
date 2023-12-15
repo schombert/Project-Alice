@@ -277,10 +277,26 @@ struct unit_variable_stats {
 		discipline_or_evasion -= other.discipline_or_evasion;
 	}
 };
+static_assert(sizeof(unit_variable_stats) ==
+	sizeof(unit_variable_stats::build_time)
+	+ sizeof(unit_variable_stats::default_organisation)
+	+ sizeof(unit_variable_stats::maximum_speed)
+	+ sizeof(unit_variable_stats::defence_or_hull)
+	+ sizeof(unit_variable_stats::attack_or_gun_power)
+	+ sizeof(unit_variable_stats::supply_consumption)
+	+ sizeof(unit_variable_stats::support)
+	+ sizeof(unit_variable_stats::siege_or_torpedo_attack)
+	+ sizeof(unit_variable_stats::reconnaissance_or_fire_range)
+	+ sizeof(unit_variable_stats::discipline_or_evasion));
 
 struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
+	uint8_t padding[3] = { 0 };
 };
+static_assert(sizeof(unit_modifier) ==
+	sizeof(unit_variable_stats)
+	+ sizeof(unit_modifier::type)
+	+ sizeof(unit_modifier::padding));
 
 struct rebel_org_modifier {
 	float amount = 0.0f;
