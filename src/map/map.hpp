@@ -208,11 +208,10 @@ public:
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
 
-	void create_curved_river_vertices(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+	void create_curved_river_vertices(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data);
 };
 
 void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
-void create_standard_river_vertices(glm::vec2 size, std::vector<curved_line_vertex>& buffer, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
 
 void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);

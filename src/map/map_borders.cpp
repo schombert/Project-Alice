@@ -372,14 +372,15 @@ void load_river_crossings(parsers::scenario_building_context& context, std::vect
 struct river_vertex {
 	float x = 0.0f;
 	float y = 0.0f;
+	bool keep = false;
 };
 
-std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<bool>& marked, glm::ivec2 size, int32_t old_x = -1, int32_t old_y = -1) {
+std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vector<std::vector<river_vertex>>& rivers, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data, std::vector<bool>& marked, glm::ivec2 size, int32_t old_x = -1, int32_t old_y = -1) {
 
 	std::vector<river_vertex> constructed;
 
 	if(old_x != -1 && old_y != -1) {
-		constructed.push_back(river_vertex{ float(old_x + 0.5f), float(old_y + 0.5f) });
+		constructed.push_back(river_vertex{ float(old_x + 0.5f), float(old_y + 0.5f), false });
 	}
 
 	marked[x + y * size.x] = true;
@@ -391,7 +392,8 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 				forward_found = true;
 				return glm::ivec2{xin, yin};
 			} else {
-				rivers.emplace_back(make_directional_river(xin, yin, rivers, river_data, marked, size, x, y));
+				constructed.back().keep = true;
+				rivers.emplace_back(make_directional_river(xin, yin, rivers, river_data, terrain_data, marked, size, x, y));
 			}
 		}
 		return glm::ivec2{ 0, 0 };
@@ -417,11 +419,21 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		}
 		return glm::ivec2{ 0, 0 };
 	};
+	auto process_sea_extend = [&](int32_t xin, int32_t yin, bool& merge_found) {
+		if(merge_found)
+			return glm::ivec2{ 0, 0 };
+
+		if(xin >= 0 && yin >= 0 && xin < size.x && yin < size.y && (xin != old_x || yin != old_y) && terrain_data[xin + yin * size.x] == 255) {
+			merge_found = true;
+			return glm::ivec2{ xin, yin };
+		}
+		return glm::ivec2{ 0, 0 };
+	};
 
 	bool forward_progress = false;
 	do {
 		forward_progress = false;
-		constructed.push_back(river_vertex{ float(x + 0.5f), float(y + 0.5f) });
+		constructed.push_back(river_vertex{ float(x + 0.5f), float(y + 0.5f), false });
 
 		auto res = process_non_merge(x - 1, y, forward_progress);
 		res += process_non_merge(x + 1, y, forward_progress);
@@ -444,7 +456,7 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 	resb += process_merge(x, y + 1, merge_found);
 
 	if(merge_found) {
-		constructed.push_back(river_vertex{ float(resb.x + 0.5f), float(resb.y + 0.5f) });
+		constructed.push_back(river_vertex{ float(resb.x + 0.5f), float(resb.y + 0.5f), false });
 
 		old_x = x;
 		old_y = y;
@@ -458,14 +470,27 @@ std::vector<river_vertex> make_directional_river(int32_t x, int32_t y, std::vect
 		resc += process_post_merge(x, y + 1, post_progress);
 
 		if(post_progress) {
-			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f) });
+			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), false });
+		}
+	} else if(terrain_data[x + y * size.x] != 255) {
+		bool post_progress = false;
+		auto resc = process_sea_extend(x - 1, y, post_progress);
+		resc += process_sea_extend(x + 1, y, post_progress);
+		resc += process_sea_extend(x, y - 1, post_progress);
+		resc += process_sea_extend(x, y + 1, post_progress);
+
+		if(post_progress) {
+			constructed.push_back(river_vertex{ float(resc.x + 0.5f), float(resc.y + 0.5f), false });
 		}
 	}
-
+	if(!constructed.empty()) {
+		constructed.front().keep = true;
+		constructed.back().keep = true;
+	}
 	return constructed;
 }
 
-void display_data::create_curved_river_vertices(parsers::scenario_building_context & context, std::vector<uint8_t> const& river_data) {
+void display_data::create_curved_river_vertices(parsers::scenario_building_context & context, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data) {
 
 	std::vector<std::vector<river_vertex>> rivers;
 
@@ -474,7 +499,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 	for(uint32_t y = 0; y < size_y; y++) {
 		for(uint32_t x = 0; x < size_x; x++) {
 			if(is_river_source(river_data[x + y * size_x]))
-				rivers.emplace_back(make_directional_river(x, y, rivers, river_data, marked, glm::ivec2(int32_t(size_x), int32_t(size_y))));
+				rivers.emplace_back(make_directional_river(x, y, rivers, river_data, terrain_data, marked, glm::ivec2(int32_t(size_x), int32_t(size_y))));
 		}
 	}
 	// remove empty rivers or rivers with 1 vertex
@@ -482,6 +507,25 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		if(rivers[i].size() <= 1) {
 			rivers[i] = std::move(rivers.back());
 			rivers.pop_back();
+		}
+	}
+
+	// mark merge points as keep
+	// boy, this sure is wildly inefficient ...
+
+	for(const auto& river : rivers) {
+		auto back_point = river.back();
+		for(auto& other_river : rivers) {
+			bool found_merge = false;
+			for(auto& pt : other_river) {
+				if(pt.x == back_point.x && pt.y == back_point.y) {
+					pt.keep = true;
+					found_merge = true;
+					break;
+				}
+			}
+			if(found_merge)
+				break;
 		}
 	}
 
@@ -495,14 +539,24 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		river_vertices.emplace_back(norm_pos, +start_normal, 0.0f, distance);//C
-		river_vertices.emplace_back(norm_pos, -start_normal, 1.0f, distance);//D
+		river_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
+		river_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
+
+
 
 		for(auto i = river.size() - 1; i-- > 0;) {
+			if(!river[i].keep && i % 3 != 0) {
+				continue; // skip
+			}
+
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
 			if(i > 0) {
-				glm::vec2 next_next_pos = put_in_local(glm::vec2(river[i - 1].x, river[i - 1].y), next_pos, float(size_x));
+				auto nexti = i - 1;
+				while(!river[nexti].keep && nexti % 3 != 0) {
+					nexti--;
+				}
+				glm::vec2 next_next_pos = put_in_local(glm::vec2(river[nexti].x, river[nexti].y), next_pos, float(size_x));
 				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
 				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
 				glm::vec2 temp = a_per + b_per;
