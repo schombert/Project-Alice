@@ -1452,13 +1452,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, content);
-
-		auto box = text::open_layout_box(contents, 0);
-		text::substitution_map sub{};
-		text::add_to_substitution_map(sub, text::variable_type::date, fat_id.get_start_date());
-		text::localised_format_box(state, contents, box, "war_start_date_desc", sub);
-		text::close_layout_box(contents, box);
-
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::date, fat_id.get_start_date());
+			text::localised_format_box(state, contents, box, "war_start_date_desc", sub);
+			text::close_layout_box(contents, box);
+		}
 		for(auto o : fat_id.get_war_participant()) {
 			if(o.get_is_attacker() == IsAttacker) {
 				auto name = o.get_nation().get_name();
