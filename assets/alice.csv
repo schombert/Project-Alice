@@ -1344,5 +1344,7 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+is_primary_culture;§Y$NAME$§W is primary culture.
+is_primary_religion;§Y$NAME$§W is primary religion.
 alice_no_possible_units;No possible units can be built, and no units are in construction.
 ;;;;;;;;;;;;;x
