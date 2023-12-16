@@ -276,6 +276,8 @@ void display_data::create_border_ogl_objects() {
 	glBindVertexArray(river_vao);
 	create_textured_line_vbo(river_vbo, river_vertices);
 
+	create_textured_line_vbo(coastal_border_vbo, coastal_vertices);
+
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
 	create_unit_arrow_vbo(unit_arrow_vbo, unit_arrow_vertices);
@@ -383,6 +385,8 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_fow);
 	if(unit_arrow_texture)
 		glDeleteTextures(1, &unit_arrow_texture);
+	if(coastal_border_texture)
+		glDeleteTextures(1, &coastal_border_texture);
 
 	if(land_vao)
 		glDeleteVertexArrays(1, &land_vao);
@@ -405,6 +409,8 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &unit_arrow_vbo);
 	if(text_line_vbo)
 		glDeleteBuffers(1, &text_line_vbo);
+	if(coastal_border_vbo)
+		glDeleteBuffers(1, &coastal_border_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -422,6 +428,8 @@ display_data::~display_data() {
 		glDeleteProgram(text_line_shader);
 	if(drag_box_shader)
 		glDeleteProgram(drag_box_shader);
+	if(borders_shader)
+		glDeleteProgram(borders_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -464,6 +472,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
 	textured_line_shader = create_program(*tline_vshader, *tline_fshader);
+
+	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
+	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
+	borders_shader = create_program(*tlineb_vshader, *tlineb_fshader);
 
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
@@ -573,19 +585,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 
-	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
+	//glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
 	constexpr float border_type_provincial = 1.f;
 	constexpr float border_type_regional = 2.f;
 	constexpr float border_type_coastal = 3.f;
-	// Draw the borders
-	//if(state.map_state.map_data.use_textured_borders) {
-	//	load_shader(line_border_shader);
-	//}
+
 	load_shader(legacy_line_border_shader);
-	
+
 	glBindVertexArray(border_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
 	if(zoom > 8) { // Render all borders
@@ -594,7 +603,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, thickness_sizes[2]);
 		glUniform1f(12, border_type_provincial);
 		for(auto& border : borders) {
-			if((border.type_flag & (province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) == 0) {
+			if((border.type_flag & (province::border::state_bit | province::border::national_bit | province::border::coastal_bit)) == 0) {
 				first.push_back(border.start_index);
 				count.push_back(border.count);
 			}
@@ -632,7 +641,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
+		//glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	} else if(zoom > 5) { // Render state borders also
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -666,7 +675,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
+		//glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	} else {
 		std::vector<GLint> first;
 		std::vector<GLsizei> count;
@@ -689,9 +698,50 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				count.push_back(border.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
+		//glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
+	// coasts
+	{
+		if(map_view_mode == map_view::globe) {
+			glDisable(GL_CULL_FACE);
+		}
+
+		glUseProgram(borders_shader);
+		glUniform2f(0, offset.x + 0.f, offset.y);
+		glUniform1f(1, screen_size.x / screen_size.y);
+		glUniform1f(2, zoom);
+		glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
+		glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		glUniform1f(11, state.user_settings.gamma);
+
+		{
+			GLuint vertex_subroutines[2] = {};
+			if(map_view_mode == map_view::globe) {
+				vertex_subroutines[0] = 0; // globe_coords()
+				vertex_subroutines[1] = 2; // globe_coords()
+			} else {
+				vertex_subroutines[0] = 1; // flat_coords()
+				vertex_subroutines[1] = 3; // globe_coords()
+			}
+			glUniformSubroutinesuiv(GL_VERTEX_SHADER, 2, vertex_subroutines);
+		}
+
+		glUniform1f(4, 0.0002f); // width
+
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, coastal_border_texture);
+
+		glBindVertexArray(river_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, coastal_border_vbo);
+
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
+
+		if(map_view_mode == map_view::globe) {
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+		}
+	}
 
 	if(!unit_arrow_vertices.empty()) {
 		// Draw the unit arrows
@@ -1343,12 +1393,10 @@ void display_data::load_map(sys::state& state) {
 	
 	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
 	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	
-	//if(use_textured_borders) {
-	//	national_border_texture = load_dds_texture(assets_dir, NATIVE("border_national.dds"));
-	//	set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_NEAREST, GL_REPEAT);
-	//}
 
+	coastal_border_texture = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
+	set_gltex_parameters(coastal_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
