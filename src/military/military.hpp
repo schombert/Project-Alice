@@ -452,5 +452,9 @@ dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_ba
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
 bool rebel_army_in_province(sys::state& state, dcon::province_id p);
+dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
+dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
+void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest);
+void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 
 } // namespace military

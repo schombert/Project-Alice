@@ -142,6 +142,9 @@ public:
 	std::vector<textured_line_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
+	std::vector<textured_line_vertex> coastal_vertices;
+	std::vector<GLint> coastal_starts;
+	std::vector<GLsizei> coastal_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
@@ -168,6 +171,7 @@ public:
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
+	GLuint coastal_border_vbo = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
@@ -186,6 +190,7 @@ public:
 	GLuint provincial_border_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
+	GLuint coastal_border_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
@@ -196,6 +201,7 @@ public:
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
+	GLuint borders_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
@@ -203,6 +209,9 @@ public:
 	void load_provinces_mid_point(parsers::scenario_building_context& context);
 	void load_terrain_data(parsers::scenario_building_context& context);
 	void load_median_terrain_type(parsers::scenario_building_context& context);
+
+	uint16_t safe_get_province(glm::ivec2 pt);
+	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();

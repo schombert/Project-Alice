@@ -304,8 +304,219 @@ bool is_river_merge(uint8_t river_data) {
 	return river_data == 1;
 }
 
-// Set the river crossing bit for the province adjencencies
-// Will march a line between each adjecent province centroid. If it hits a river it will set the bit
+uint16_t display_data::safe_get_province(glm::ivec2 pt) {
+	while(pt.x < 0) {
+		pt.x += int32_t(size_x);
+	}
+	while(pt.x >= int32_t(size_x)) {
+		pt.x -= int32_t(size_x);
+	}
+	if(pt.y < 0) {
+		pt.y = 0;
+	}
+	if(pt.y >= int32_t(size_y)) {
+		pt.y = int32_t(size_y - 1);
+	}
+	return province_id_map[pt.x + pt.y * size_x];
+}
+
+bool coastal_point(sys::state& state, uint16_t a, uint16_t b) {
+	bool a_sea = a == 0 || province::from_map_id(a).index() >= state.province_definitions.first_sea_province.index();
+	bool b_sea = b == 0 || province::from_map_id(b).index() >= state.province_definitions.first_sea_province.index();
+	return a_sea != b_sea;
+}
+
+std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, std::vector<bool>& visited, int32_t start_x, int32_t start_y) {
+	std::vector<glm::vec2> points;
+
+	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
+		if(next_found)
+			return glm::ivec2(0, 0);
+		if(visited[i + j  * dat.size_x])
+			return glm::ivec2(0, 0);
+		if(j % 2 == 0) {
+			if(coastal_point(state, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i - 1, j / 2)))) {
+				visited[i + j * dat.size_x] = true;
+				
+				// test for colinearity
+				/*if(points.size() > 2) {
+					auto l = points[points.size() - 1];
+					auto n = points[points.size() - 2];
+					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
+						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+						points.pop_back();
+					}
+				}*/
+				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
+				next_found = true;
+				return glm::ivec2(i, j);
+			}
+		} else {
+			if(coastal_point(state, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i, j / 2 + 1)))) {
+				visited[i + j * dat.size_x] = true;
+
+				// test for colinearity
+				/*if(points.size() > 2) {
+					auto l = points[points.size() - 1];
+					auto n = points[points.size() - 2];
+					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
+						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+						points.pop_back();
+					}
+				}*/
+				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
+				next_found = true;
+				return glm::ivec2(i, j);
+			}
+		}
+
+		return glm::ivec2(0, 0);
+	};
+
+	points.push_back(glm::vec2(float(start_x), 0.5f + float(start_y) / 2.0f));
+	visited[start_x + start_y * dat.size_x] = true;
+
+	bool progress = false;
+	do {
+		progress = false;
+		glm::ivec2 temp{ 0, 0 };
+
+		if(start_y % 2 == 0) {
+			bool left_is_sea = dat.safe_get_province(glm::ivec2(start_x - 1, start_y / 2)) == 0 || province::from_map_id(dat.safe_get_province(glm::ivec2(start_x - 1, start_y / 2))).index() >= state.province_definitions.first_sea_province.index();
+			if(left_is_sea) {
+				temp += add_next(start_x, start_y + 1, progress);
+				temp += add_next(start_x, start_y + 2, progress);
+				temp += add_next(start_x - 1, start_y + 1, progress);
+			} else {
+				temp += add_next(start_x - 1, start_y - 1, progress);
+				temp += add_next(start_x, start_y - 2, progress);
+				temp += add_next(start_x, start_y - 1, progress);
+			}
+		} else {
+			bool top_is_sea = dat.safe_get_province(glm::ivec2(start_x, start_y / 2)) == 0 || province::from_map_id(dat.safe_get_province(glm::ivec2(start_x, start_y / 2))).index() >= state.province_definitions.first_sea_province.index();
+			if(top_is_sea) {
+				temp += add_next(start_x, start_y + 1, progress);
+				temp += add_next(start_x - 1, start_y, progress);
+				temp += add_next(start_x, start_y - 1, progress);
+			} else {
+				temp += add_next(start_x + 1, start_y - 1, progress);
+				temp += add_next(start_x + 1, start_y, progress);
+				temp += add_next(start_x + 1, start_y + 1, progress);
+			}
+		}
+		if(progress) {
+			start_x = temp.x;
+			start_y = temp.y;
+		}
+	} while(progress);
+
+	return points;
+}
+
+void add_coastal_loop_vertices(display_data& dat, std::vector<glm::vec2> const& points) {
+	if(points.size() < 3)
+		return;
+
+	auto first = dat.coastal_vertices.size();
+	dat.coastal_starts.push_back(GLint(first));
+
+	glm::vec2 current_pos = glm::vec2(points.back().x, points.back().y);
+	glm::vec2 next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+	glm::vec2 prev_direction = glm::normalize(next_pos - current_pos);
+	float distance = 0.0f;
+
+	auto current_normal = glm::vec2(-prev_direction.y, prev_direction.x);
+	auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +current_normal, 0.0f, distance });
+	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -current_normal, 1.0f, distance });
+
+	auto raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+	raw_dist.x *= 2.0f;
+	distance += glm::length(raw_dist);
+
+	for(auto i = points.size() - 1; i-- > 1; ) {
+		current_pos = glm::vec2(points[i].x, points[i].y);
+		next_pos = put_in_local(glm::vec2(points[i - 1].x, points[i - 1].y), current_pos, float(dat.size_x));
+		auto next_direction = glm::normalize(next_pos - current_pos);
+		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
+		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+
+		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+		raw_dist.x *= 2.0f;
+		distance += glm::length(raw_dist);
+
+		current_normal = next_normal;
+	}
+
+	// case i == 0
+	{
+		current_pos = glm::vec2(points[0].x, points[0].y);
+		next_pos = put_in_local(glm::vec2(points.back().x, points.back().y), current_pos, float(dat.size_x));
+		auto next_direction = glm::normalize(next_pos - current_pos);
+		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
+		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+
+		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+		raw_dist.x *= 2.0f;
+		distance += glm::length(raw_dist);
+
+		current_normal = next_normal;
+	}
+
+	// wrap-around
+	{
+		current_pos = glm::vec2(points.back().x, points.back().y);
+		next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+		auto next_direction = glm::normalize(next_pos - current_pos);
+		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
+		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+
+		dat.coastal_vertices[first].normal_direction_ = corner_normal;
+		dat.coastal_vertices[first + 1].normal_direction_ = -corner_normal;
+	}
+
+	dat.coastal_counts.push_back(GLsizei(dat.coastal_vertices.size() - dat.coastal_starts.back()));
+}
+
+void display_data::make_coastal_borders(sys::state& state, std::vector<bool>& visited) {
+	for(int32_t j = 0; j < int32_t(size_y); ++j) {
+		for(int32_t i = 0; i < int32_t(size_x); ++i) {
+			// left verticals
+			{
+				bool was_visited = visited[i + (j * 2) * size_x];
+				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i - 1, j)))) {
+					auto res = make_coastal_loop(*this, state, visited, i, j * 2);
+					add_coastal_loop_vertices(*this, res);
+				}
+			}
+
+			// horizontals
+			if(j < int32_t(size_y) - 1) {
+				bool was_visited = visited[i + (j * 2 + 1) * size_x];
+				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i - 1, j)))) {
+					auto res = make_coastal_loop(*this, state, visited, i, j * 2 + 1);
+					add_coastal_loop_vertices(*this, res);
+				}
+			}
+		}
+	}
+}
+
+
+// Set the river crossing bit for the province adjacencies
+// Will march a line between each adjacent province centroid. If it hits a river it will set the bit
 void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size) {
 	auto& world = context.state.world;
 	world.for_each_province_adjacency([&](dcon::province_adjacency_id id) {
