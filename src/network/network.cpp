@@ -568,19 +568,21 @@ void send_and_receive_commands(sys::state& state) {
 
 					// Find a scenario with a matching checksum
 					auto dir = simple_fs::get_or_create_scenario_directory();
-					for(const auto uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
+					for(const auto& uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
 						auto f = simple_fs::open_file(uf);
 						if(f) {
 							auto contents = simple_fs::view_contents(*f);
 							sys::scenario_header scen_header;
 							if(contents.file_size > sizeof(sys::scenario_header)) {
 								sys::read_scenario_header(reinterpret_cast<const uint8_t*>(contents.data), scen_header);
-								if(scen_header.checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
-									if(sys::try_read_scenario_and_save_file(state, simple_fs::get_file_name(uf))) {
-										state.fill_unsaved_data();
-										found_match = true;
-										break;
-									}
+								if(!scen_header.checksum.is_equal(state.network_state.s_hshake.scenario_checksum))
+									continue; // Same checksum
+								if(scen_header.version != sys::scenario_file_version)
+									continue; // Same version of scenario
+								if(sys::try_read_scenario_and_save_file(state, simple_fs::get_file_name(uf))) {
+									state.fill_unsaved_data();
+									found_match = true;
+									break;
 								}
 							}
 						}
