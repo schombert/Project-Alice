@@ -219,7 +219,7 @@ railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
 fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado capital;;;;;;;;;x
-war_start_date_desc;War started in $year$.$month$.$day$
+war_start_date_desc;War started in §Y$year$.$month$.$day$§W
 set_national_variable_to;Set national variable $text$ to $value$;;;;;;;;;;;;x
 increase_national_variable_by;Increase national variable $text$ by $value$;;;;;;;;;;;;x
 decrease_national_variable_by;Decrease national variable $text$ by $value$;;;;;;;;;;;;x
