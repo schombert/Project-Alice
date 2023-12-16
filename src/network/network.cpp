@@ -564,10 +564,33 @@ void send_and_receive_commands(sys::state& state) {
 			/* Send our client's handshake */
 			int r = socket_recv(state.network_state.socket_fd, &state.network_state.s_hshake, sizeof(state.network_state.s_hshake), &state.network_state.recv_count, [&]() {
 				if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
+					bool found_match = false;
+
+					// Find a scenario with a matching checksum
+					auto dir = simple_fs::get_or_create_scenario_directory();
+					for(const auto uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
+						auto f = simple_fs::open_file(uf);
+						if(f) {
+							auto contents = simple_fs::view_contents(*f);
+							sys::scenario_header scen_header;
+							if(contents.file_size > sizeof(sys::scenario_header)) {
+								sys::read_scenario_header(reinterpret_cast<const uint8_t*>(contents.data), scen_header);
+								if(scen_header.checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
+									if(sys::try_read_scenario_and_save_file(state, simple_fs::get_file_name(uf))) {
+										state.fill_unsaved_data();
+										found_match = true;
+										break;
+									}
+								}
+							}
+						}
+						if(!found_match) {
 #ifdef _WIN64
-					//MessageBoxA(NULL, "Scenario is not the same as the host!", "Network error", MB_OK);
+							MessageBoxA(NULL, "Could not find a scenario with a matching checksum!", "Network error", MB_OK);
 #endif
-					//std::abort();
+							//std::abort();
+						}
+					}
 				}
 				state.session_host_checksum = state.network_state.s_hshake.save_checksum;
 				state.game_seed = state.network_state.s_hshake.seed;
