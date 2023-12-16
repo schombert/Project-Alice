@@ -8,11 +8,6 @@ float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
 		value += subj.get_subject().get_military_score();
-	//Leaders currently make minor nations (especially spherelings) seem much more powerful than they are, so it's getting axed here
-	auto gen_range = state.world.nation_get_leader_loyalty(n);
-	auto num_leaders = float((gen_range.end() - gen_range.begin()));
-	value -= num_leaders;
-
 	return value;
 }
 
@@ -171,12 +166,8 @@ void prune_alliances(sys::state& state) {
 		if(!n.get_is_player_controlled() && !n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
 			prune_targets.clear();
 			for(auto dr : n.get_diplomatic_relation()) {
-				auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-				if(military::can_use_cb_against(state, n, other)) {
-					prune_targets.push_back(other);
-					continue;
-				}
 				if(dr.get_are_allied()) {
+					auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 					if(other.get_in_sphere_of() != n) {
 						prune_targets.push_back(other);
 					}
@@ -278,11 +269,6 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
 	if(!ai_is_close_enough(state, target, from))
 		return false;
-
-	//We'd rather want to kill them rather than ally
-	if(military::can_use_cb_against(state, from, target)) {
-		return false;
-	}
 
 	// And also if they're powerful enough to be considered for an alliance
 	auto target_score = estimate_strength(state, target);
@@ -399,10 +385,10 @@ void initialize_ai_tech_weights(sys::state& state) {
 	for(auto t : state.world.in_technology) {
 		float base = 1000.0f;
 		if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::army)
-			base *= 3.0f;
+			base *= 1.5f;
 
 		if(t.get_increase_building(economy::province_building_type::naval_base))
-			base *= 9.0f;
+			base *= 1.1f;
 		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
 			base *= 0.9f;
 
@@ -410,19 +396,19 @@ void initialize_ai_tech_weights(sys::state& state) {
 		auto& vals = mod.get_national_values();
 		for(uint32_t i = 0; i < sys::national_modifier_definition::modifier_definition_size; ++i) {
 			if(vals.offsets[i] == sys::national_mod_offsets::research_points) {
-				base *= 6.0f;
+				base *= 3.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::research_points_modifier) {
-				base *= 6.0f;
+				base *= 3.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::education_efficiency) {
-				base *= 3.0f;
+				base *= 2.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::education_efficiency_modifier) {
-				base *= 3.0f;
+				base *= 2.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::pop_growth) {
-				base *= 9.0f;
+				base *= 1.6f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::max_national_focus) {
-				base *= 9.0f;
+				base *= 1.7f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::colonial_life_rating) {
-				base *= 15.0f;
+				base *= 1.6f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
@@ -481,51 +467,14 @@ void update_influence_priorities(sys::state& state) {
 				}
 			}
 
-			//We probably don't want to fight a forever lasting sphere war, let's find some other uncontested nations
-			if(t.get_in_sphere_of()) {
-				weight /= 4.0f;
-			}
-
-			//Prioritize primary culture before culture groups; should ensure Prussia spheres all of the NGF first before trying to contest Austria
-			if(t.get_primary_culture() == state.world.nation_get_primary_culture(n.nation)) {
-				weight += 1.0f;
-				weight *= 4000.0f;
-			}
-
-			else if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
-				weight *= 100.0f;
-			}
-			//Focus on gaining influence against nations we have active wargoals against
-			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of() != n.nation && t.get_in_sphere_of()) {
-				weight += 1.0f;
-				weight *= 1000.0f;
-			}
-			//If it doesn't neighbor us or a friendly sphere and isn't coastal, please don't sphere it, we don't want sphere gore
-			bool is_reachable = false;
-			for(auto adj : state.world.nation_get_nation_adjacency(t)) {
-				auto casted_adj = adj.get_connected_nations(0) != t ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
-				if(casted_adj == n.nation) {
-					is_reachable = true;
-					break;
-				}
-				if(casted_adj.get_in_sphere_of() == n.nation) {
-					is_reachable = true;
-					break;
-				}
-			};
-
-			//Is coastal? Technically reachable
-			if(state.world.nation_get_central_ports(t) > 0) {
-				is_reachable = true;
+			if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
+				weight += 4.0f;
+			} else if(t.get_in_sphere_of()) {
+				weight /= 3.0f;
 			}
 
 			if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n.nation, t.id)) {
 				weight *= 3.0f;
-				is_reachable = true;
-			}
-
-			if(!is_reachable) {
-				weight *= 0.0f;
 			}
 
 			targets.push_back(weighted_nation{ t.id, weight });
@@ -583,9 +532,6 @@ void perform_influence_actions(sys::state& state) {
 				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
 			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
 				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
-			//De-sphere countries we have wargoals against
-			} else if(military::can_use_cb_against(state, gprl.get_great_power(), gprl.get_influence_target()) && state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere && clevel == nations::influence::level_friendly) {
-				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
 			}
 		}
 	}
@@ -1887,23 +1833,11 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon:
 
 void update_war_intervention(sys::state& state) {
 	for(auto& gp : state.great_nations) {
-		if(state.world.nation_get_is_player_controlled(gp.nation) == false){
+		if(state.world.nation_get_is_player_controlled(gp.nation) == false && state.world.nation_get_is_at_war(gp.nation) == false) {
 			bool as_attacker = false;
 			dcon::war_id intervention_target;
 			[&]() {
 				for(auto w : state.world.in_war) {
-					//GPs will try to intervene in wars to protect smaller nations in the same cultural union
-					if(command::can_intervene_in_war(state, gp.nation, w, false)) {
-						for(auto par : w.get_war_participant()) {
-							if(!par.get_is_attacker()
-								&& state.world.nation_get_primary_culture(gp.nation).get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(par.get_nation()).get_group_from_culture_group_membership()
-								&& !nations::is_great_power(state, par.get_nation())
-							){
-								intervention_target = w;
-								return;
-							}
-						}
-					}
 					if(w.get_is_great()) {
 						if(command::can_intervene_in_war(state, gp.nation, w, false)) {
 							for(auto par : w.get_war_participant()) {
@@ -2011,6 +1945,7 @@ void update_cb_fabrication(sys::state& state) {
 				continue;
 			if(n.get_constructing_cb_type())
 				continue;
+
 			auto ol = n.get_overlord_as_subject().get_ruler().id;
 			if(n.get_ai_rival()
 				&& n.get_ai_rival().get_in_sphere_of() != n
@@ -2800,14 +2735,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(war_duration < 365) {
 			return false;
 		}
-		//The country is ruined and it's been a bit into the war, we'll recover later
-		if(state.world.nation_get_war_exhaustion(n) > 80) {
-			return true;
-		}
-		//Stalemated war, peace out
-		if(war_duration > (365 * 6) && (overall_score <= 10 && overall_score >= -10)) {
-			return true;
-		}
 		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
@@ -2835,9 +2762,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(overall_score < 0.0f) { // we are losing
 			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
 				return true;
-			if(state.world.nation_get_war_exhaustion(n) > 80) {
-				return true;
-			}
 		} else {
 			if(my_side_against_target <= overall_po_value)
 				return true;
@@ -2848,20 +2772,13 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			return false;
 
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
+
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
-		//Stalemated war, peace out
-		if(war_duration > (365 * 6) && (scoreagainst_me <= 10 && scoreagainst_me >= -10)) {
-			return true;
-		}
 
 		if(overall_score < 0.0f) { // we are losing	
 			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
-			if(state.world.nation_get_war_exhaustion(n) > 80) {
-				return true;
-			}
 
 		} else { // we are winning
 			if(my_po_target > 0 && my_po_target >= overall_po_value)
@@ -2909,52 +2826,7 @@ void make_war_decs(sys::state& state) {
 			return;
 
 		auto base_strength = estimate_strength(state, n);
-		float best_difference = 2.0f;
-
-		//Great powers should look for non-neighbor nations to use their existing wargoals on; helpful for forcing unification/repay debts wars to happen
-		
-		if(nations::is_great_power(state, n)) {
-			for(auto target : state.world.in_nation) {
-				if(target == n)
-					continue;
-				if(nations::are_allied(state, n, target))
-					continue;
-				if(target.get_in_sphere_of() == n)
-					continue;
-				if(state.world.nation_get_in_sphere_of(target) == n)
-					continue;
-				if(military::has_truce_with(state, n, target))
-					continue;
-				if(!military::can_use_cb_against(state, n, target))
-					continue;
-				//If it neighbors one of our spheres and we can pathfind to each other's capitals, we don't need naval supremacy to reach this nation
-				//Generally here to help Prussia realize it doesn't need a navy to attack Denmark
-				for(auto adj : state.world.nation_get_nation_adjacency(target)) {
-					auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
-					auto neighbor = other;
-					if(neighbor.get_in_sphere_of() == n){
-						auto path = province::make_safe_land_path(state, state.world.nation_get_capital(n), state.world.nation_get_capital(neighbor), n);
-						if(path.empty()) {
-							continue;
-						}
-						auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, target) - estimate_defensive_strength(state, target);
-						if(str_difference > best_difference) {
-							best_difference = str_difference;
-							targets.set(n, target.id);
-							break;
-						}
-					}
-				}
-				if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, target) && !naval_supremacy(state, n, target))
-					continue;
-				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, target) - estimate_defensive_strength(state, target);
-				if(str_difference > best_difference) {
-					best_difference = str_difference;
-					targets.set(n, target.id);
-				}
-			}
-		}
-
+		float best_difference = 2.f;
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
@@ -3866,7 +3738,7 @@ void distribute_guards(sys::state& state, dcon::nation_id n) {
 				assert(p_region > 0);
 				bool p_region_is_coastal = state.province_definitions.connected_region_is_coastal[p_region - 1];
 
-				if(full_loops_through == 0 || 10.0f * (1 + full_loops_through) <= military::peacetime_attrition_limit(state, n, p)) {
+				if(10.0f * (1 + full_loops_through) <= military::peacetime_attrition_limit(state, n, p)) {
 					uint32_t nearest_index = 0;
 					dcon::army_id nearest;
 					float nearest_distance = 1.0f;

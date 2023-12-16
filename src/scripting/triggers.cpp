@@ -1704,7 +1704,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_nation) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(c);
 
 	auto tident = ws.world.nation_get_identity_from_identity_holder(to_nation(this_slot));
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(to_nation(this_slot));
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 
@@ -1727,7 +1727,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_state) {
 
 	auto tnation = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
 	auto tident = ws.world.nation_get_identity_from_identity_holder(tnation);
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(tnation);
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 
@@ -1741,7 +1741,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_province) {
 
 	auto tnation = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
 	auto tident = ws.world.nation_get_identity_from_identity_holder(tnation);
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(tnation);
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 

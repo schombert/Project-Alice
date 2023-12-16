@@ -155,4 +155,8 @@ void effect_description(sys::state& state, text::layout_base& layout, dcon::effe
 void invention_description(sys::state& state, text::layout_base& contents, dcon::invention_id inv_id, int32_t indent) noexcept;
 void technology_description(sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept;
 
+void reform_description(sys::state& state, text::columnar_layout& contents, dcon::issue_option_id ref);
+void reform_description(sys::state& state, text::columnar_layout& contents, dcon::reform_option_id ref);
+void reform_rules_description(sys::state& state, text::columnar_layout& contents, uint32_t rules);
+
 } // namespace ui

@@ -6,55 +6,7 @@
 
 namespace ui {
 
-
-void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::issue_option_id ref) {
-	auto reform = fatten(state.world, ref);
-
-	auto total = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
-	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
-	if(total > 0) {
-		text::add_line(state, contents, "there_are_backing", text::variable_type::val, text::fp_percentage{ support / total });
-	}
-
-	auto mod_id = reform.get_modifier();
-	if(bool(mod_id)) {
-		modifier_description(state, contents, mod_id);
-	}
-
-	auto time_limit = state.world.nation_get_last_issue_or_reform_change(state.local_player_nation);
-	auto parent = state.world.issue_option_get_parent_issue(ref);
-	if(parent.get_issue_type() != uint8_t(culture::issue_type::party) && time_limit && !(time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) {
-		text::add_line_with_condition(state, contents, "too_soon_for_reform", false, text::variable_type::date, time_limit + int32_t(state.defines.min_delay_between_reforms * 30));
-	}
-
-	auto allow = reform.get_allow();
-	if(allow) {
-		//allow_reform_cond
-		text::add_line(state, contents, "allow_reform_cond");
-		trigger_description(state, contents, allow, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1);
-	}
-
-	auto ext = reform.get_on_execute_trigger();
-	if(ext) {
-		text::add_line(state, contents, "reform_effect_if_desc");
-		trigger_description(state, contents, ext, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1);
-	}
-	auto ex = reform.get_on_execute_effect();
-	if(ex) {
-		if(ext)
-			text::add_line(state, contents, "reform_effect_then_desc");
-		else
-			text::add_line(state, contents, "reform_effect_desc");
-
-		effect_description(state, contents, ex, trigger::to_generic(state.local_player_nation),
-				trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-				uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
-	}
-
-	auto rules = reform.get_rules();
-
+void reform_rules_description(sys::state& state, text::columnar_layout& contents, uint32_t rules) {
 	if((rules & (issue_rule::primary_culture_voting | issue_rule::culture_voting | issue_rule::culture_voting | issue_rule::all_voting | issue_rule::largest_share | issue_rule::dhont | issue_rule::sainte_laque | issue_rule::same_as_ruling_party | issue_rule::rich_only | issue_rule::state_vote | issue_rule::population_vote)) !=
 			0) {
 		text::add_line(state, contents, "voting_rules");
@@ -145,6 +97,54 @@ void describe_reform(sys::state& state, text::columnar_layout& contents, dcon::i
 	}
 }
 
+void reform_description(sys::state& state, text::columnar_layout& contents, dcon::issue_option_id ref) {
+	auto reform = fatten(state.world, ref);
+
+	auto total = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
+	if(total > 0) {
+		text::add_line(state, contents, "there_are_backing", text::variable_type::val, text::fp_percentage{ support / total });
+	}
+
+	auto mod_id = reform.get_modifier();
+	if(bool(mod_id)) {
+		modifier_description(state, contents, mod_id);
+	}
+
+	auto time_limit = state.world.nation_get_last_issue_or_reform_change(state.local_player_nation);
+	auto parent = state.world.issue_option_get_parent_issue(ref);
+	if(parent.get_issue_type() != uint8_t(culture::issue_type::party) && time_limit && !(time_limit + int32_t(state.defines.min_delay_between_reforms * 30) <= state.current_date)) {
+		text::add_line_with_condition(state, contents, "too_soon_for_reform", false, text::variable_type::date, time_limit + int32_t(state.defines.min_delay_between_reforms * 30));
+	}
+
+	auto allow = reform.get_allow();
+	if(allow) {
+		//allow_reform_cond
+		text::add_line(state, contents, "allow_reform_cond");
+		trigger_description(state, contents, allow, trigger::to_generic(state.local_player_nation),
+				trigger::to_generic(state.local_player_nation), -1);
+	}
+
+	auto ext = reform.get_on_execute_trigger();
+	if(ext) {
+		text::add_line(state, contents, "reform_effect_if_desc");
+		trigger_description(state, contents, ext, trigger::to_generic(state.local_player_nation),
+				trigger::to_generic(state.local_player_nation), -1);
+	}
+	auto ex = reform.get_on_execute_effect();
+	if(ex) {
+		if(ext)
+			text::add_line(state, contents, "reform_effect_then_desc");
+		else
+			text::add_line(state, contents, "reform_effect_desc");
+
+		effect_description(state, contents, ex, trigger::to_generic(state.local_player_nation),
+				trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
+				uint32_t((ref.index() << 2) ^ state.local_player_nation.index()));
+	}
+	reform_rules_description(state, contents, reform.get_rules());
+}
+
 class reforms_reform_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -162,11 +162,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			auto content = retrieve<dcon::issue_option_id>(state, parent);
-
-			describe_reform(state, contents, content);
-		}
+		auto content = retrieve<dcon::issue_option_id>(state, parent);
+		reform_description(state, contents, content);
 	}
 };
 

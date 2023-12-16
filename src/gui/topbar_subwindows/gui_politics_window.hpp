@@ -156,7 +156,7 @@ class issue_option_text : public simple_text_element_base {
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto option = retrieve<dcon::issue_option_id>(state, parent);
-		describe_reform(state, contents, option);
+		reform_description(state, contents, option);
 	}
 };
 
@@ -239,7 +239,7 @@ public:
 			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(party, pi).get_name(),
 					text::text_color::yellow);
 			text::close_layout_box(contents, box);
-			describe_reform(state, contents, state.world.political_party_get_party_issues(party, pi));
+			reform_description(state, contents, state.world.political_party_get_party_issues(party, pi));
 			text::add_line_break_to_layout(state, contents);
 		}
 	}
@@ -330,7 +330,7 @@ public:
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, ruling_party.get_party_issues(pi).get_name(), text::text_color::yellow);
 			text::close_layout_box(contents, box);
-			describe_reform(state, contents, ruling_party.get_party_issues(pi));
+			reform_description(state, contents, ruling_party.get_party_issues(pi));
 			text::add_line_break_to_layout(state, contents);
 		}
 	}

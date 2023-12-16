@@ -838,9 +838,19 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 			auto adj_id = fat_id.get_nation_from_state_ownership().get_adjective();
 			auto adj = produce_simple_string(state, adj_id);
+			if(!fat_id.get_definition().get_name()) {
+				if(!adj_id) {
+					return get_name_as_string(state, fat_id.get_capital());
+				}
+				return adj + " " + get_name_as_string(state, fat_id.get_capital());
+			} else if(!adj_id) {
+				return get_name_as_string(state, fat_id.get_definition());
+			}
 			return adj + " " + get_name_as_string(state, fat_id.get_definition());
 		}
 	}
+	if(!fat_id.get_definition().get_name())
+		return get_name_as_string(state, fat_id.get_capital());
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
@@ -850,7 +860,10 @@ std::string get_province_state_name(sys::state const& state, dcon::province_id p
 	if(state_instance_id) {
 		return get_dynamic_state_name(state, state_instance_id);
 	} else {
-		return get_name_as_string(state, fat_id.get_abstract_state_membership_as_province().get_state());
+		auto sdef = fat_id.get_abstract_state_membership_as_province().get_state();
+		if(!sdef.get_name())
+			return get_name_as_string(state, fat_id.get_state_membership().get_capital());
+		return get_name_as_string(state, sdef);
 	}
 }
 

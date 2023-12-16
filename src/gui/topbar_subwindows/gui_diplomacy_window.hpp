@@ -895,18 +895,29 @@ public:
 	}
 };
 
-class primary_culture : public simple_text_element_base {
+class nation_primary_culture : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto pc = state.world.nation_get_primary_culture(retrieve<dcon::nation_id>(state, parent));
-		set_text(state, text::produce_simple_string(state, pc.get_name()));
+		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
+		std::string t = text::produce_simple_string(state, pc.get_name());
+		t += ", ";
+		t += text::produce_simple_string(state, pr.get_name());
+		set_text(state, t);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		text::add_line(state, contents, "is_primary_culture", text::variable_type::name, state.world.culture_get_name(state.world.nation_get_primary_culture(content)));
+		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(state.world.nation_get_religion(content)));
 	}
 };
 
-class accepted_cultures : public simple_text_element_base {
+class nation_accepted_cultures : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto ac = state.world.nation_get_accepted_cultures(retrieve<dcon::nation_id>(state, parent));
-
 		std::string t;
 		if(ac.size() > 0) {
 			t += text::produce_simple_string(state, state.world.culture_get_name(ac[0]));
@@ -915,8 +926,16 @@ class accepted_cultures : public simple_text_element_base {
 			t += ", " ;
 			t += text::produce_simple_string(state, state.world.culture_get_name(ac[i]));
 		}
-
 		set_text(state, text::produce_simple_string(state, t));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto ac = state.world.nation_get_accepted_cultures(retrieve<dcon::nation_id>(state, parent));
+		for(const auto c : ac) {
+			text::add_line(state, contents, "is_accepted_culture2", text::variable_type::name, state.world.culture_get_name(c));
+		}
 	}
 };
 
@@ -1248,9 +1267,9 @@ public:
 		} else if(name == "country_population") {
 			return make_element_by_type<nation_population_text>(state, id);
 		} else if(name == "country_primary_cultures") {
-			return make_element_by_type<primary_culture>(state, id);
+			return make_element_by_type<nation_primary_culture>(state, id);
 		} else if(name == "country_accepted_cultures") {
-			return make_element_by_type<accepted_cultures>(state, id);
+			return make_element_by_type<nation_accepted_cultures>(state, id);
 		} else if(name == "war_extra_info_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			war_elements[0] = ptr.get();
@@ -1432,8 +1451,14 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
-
 		auto fat_id = dcon::fatten(state.world, content);
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::date, fat_id.get_start_date());
+			text::localised_format_box(state, contents, box, "war_start_date_desc", sub);
+			text::close_layout_box(contents, box);
+		}
 		for(auto o : fat_id.get_war_participant()) {
 			if(o.get_is_attacker() == IsAttacker) {
 				auto name = o.get_nation().get_name();
@@ -1613,17 +1638,13 @@ public:
 	}
 };
 
-class war_name_text : public generic_multiline_text<dcon::war_id> {
-	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::war_id id) noexcept override {
-		contents.fixed_parameters.suppress_hyperlinks = true;
-
-		auto war = dcon::fatten(state.world, id);
-
-		auto box = text::open_layout_box(contents);
+class war_name_text : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto w = retrieve<dcon::war_id>(state, parent);
 		text::substitution_map sub;
-		military::populate_war_text_subsitutions(state, war, sub);
-		text::add_to_layout_box(state, contents, box, state.world.war_get_name(war), sub);
-		text::close_layout_box(contents, box);
+		military::populate_war_text_subsitutions(state, w, sub);
+		auto s = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+		set_text(state, s);
 	}
 };
 
@@ -1720,9 +1741,7 @@ public:
 		if(name == "diplo_war_entrybg") {
 			return make_element_by_type<war_bg>(state, id);
 		} else if(name == "war_name") {
-			auto ptr = make_element_by_type<war_name_text>(state, id);
-			//ptr->base_data.position.x += 90; // Nudge
-			return ptr;
+			return make_element_by_type<war_name_text>(state, id);
 		} else if(name == "attackers_mil_strength") {
 			auto ptr = make_element_by_type<war_side_strength_text<true>>(state, id);
 			ptr->base_data.position.y -= 4; // Nudge

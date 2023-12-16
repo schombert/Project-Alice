@@ -116,6 +116,9 @@ void update_connected_regions(sys::state& state) {
 		}
 	}
 
+	// we also invalidate wargoals here that are now unowned
+	military::invalidate_unowned_wargoals(state);
+
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 
@@ -926,6 +929,16 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
+	/* Properly cleanup rebels when the province ownership changes */
+	for(auto ar : state.world.province_get_army_location_as_location(id)) {
+		if(ar.get_army() && ar.get_army().get_army_rebel_control().get_controller()) {
+			assert(!ar.get_army().get_army_control().get_controller());
+			state.world.army_set_controller_from_army_control(ar.get_army(), dcon::nation_id{});
+			state.world.army_set_controller_from_army_rebel_control(ar.get_army(), dcon::rebel_faction_id{});
+			state.world.army_set_is_retreating(ar.get_army(), true);
+		}
+	}
+
 	if(state_is_new && old_owner) {
 		/*
 		spawn event
@@ -1588,6 +1601,9 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 		return false;
 
 	if(controller == nation_as)
+		return true;
+
+	if(state.world.nation_get_in_sphere_of(controller) == nation_as)
 		return true;
 
 	auto coverl = state.world.nation_get_overlord_as_subject(controller);

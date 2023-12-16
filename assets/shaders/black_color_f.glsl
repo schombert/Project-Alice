@@ -5,5 +5,5 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	frag_color = gamma_correct(vec4(0.85, 0.85, 0.85, 1.));
+	frag_color = gamma_correct(vec4(0.f, 0.f, 0.f, 1.f));
 }

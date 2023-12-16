@@ -113,15 +113,19 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				bool fail = false;
 				bool army_play = false;
 				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, id).empty())
+					if(command::can_move_army(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
-					army_play = true;
+					} else {
+						command::move_army(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+						army_play = true;
+					}
 				}
 				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, id).empty())
+					if(command::can_move_navy(*this, local_player_nation, a, id).empty()) {
 						fail = true;
-					command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					} else {
+						command::move_navy(*this, local_player_nation, a, id, (uint8_t(mod) & uint8_t(key_modifiers::modifiers_shift)) == 0);
+					}
 				}
 
 				if(!fail) {
@@ -292,8 +296,9 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 		}
 		// Hide province upon selecting multiple armies / navies :)
 		if(!selected_armies.empty() || !selected_navies.empty()) {
-			if(this->ui_state.province_window) {
-				this->ui_state.province_window->set_visible(*this, false);
+			if(ui_state.province_window) {
+				ui_state.province_window->set_visible(*this, false);
+				map_state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
 			}
 			// Play selection sound effect
 			if(!selected_armies.empty()) {
@@ -1636,6 +1641,7 @@ void state::on_create() {
 	{
 		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(*this, "chat_list");
 		new_elm->base_data.position.x += 156; // nudge
+		new_elm->base_data.position.y += 24; // nudge
 		new_elm->impl_on_update(*this);
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
@@ -3490,7 +3496,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military::apply_base_unit_stat_modifiers(*this);
 
 	province::update_connected_regions(*this);
-
 	province::restore_unsaved_values(*this);
 
 	culture::update_all_nations_issue_rules(*this);
@@ -3582,6 +3587,9 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	}
 	ui_date = current_date;
 
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
+
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
 	ai::update_ai_general_status(*this);
@@ -3655,10 +3663,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 void state::single_game_tick() {
 	// do update logic
-	province::update_connected_regions(*this);
-	province::update_cached_values(*this);
-	nations::update_cached_values(*this);
-
+	
 	current_date += 1;
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
@@ -3914,6 +3919,9 @@ void state::single_game_tick() {
 
 	military::advance_mobilizations(*this);
 
+	province::update_colonization(*this);
+	military::update_cbs(*this); // may add/remove cbs to a nation
+
 	event::update_events(*this);
 
 	culture::update_research(*this, uint32_t(ymd_date.year));
@@ -3922,9 +3930,6 @@ void state::single_game_tick() {
 	nations::update_rankings(*this);				// depends on industrial score, military scores
 	nations::update_great_powers(*this);		// depends on rankings
 	nations::update_influence(*this);				// depends on rankings, great powers
-
-	province::update_colonization(*this);
-	military::update_cbs(*this); // may add/remove cbs to a nation
 
 	nations::update_crisis(*this);
 	politics::update_elections(*this);
@@ -4121,6 +4126,9 @@ void state::single_game_tick() {
 	military::update_blackflag_status(*this);
 	ai::daily_cleanup(*this);
 
+	province::update_connected_regions(*this);
+	province::update_cached_values(*this);
+	nations::update_cached_values(*this);
 	/*
 	 * END OF DAY: update cached data
 	 */
@@ -4204,24 +4212,80 @@ void state::debug_save_oos_dump() {
 }
 
 void state::debug_scenario_oos_dump() {
-	// save for further inspection
-	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	auto buffer_position = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(buffer_position, loaded);
-	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+	{
+		// save for further inspection
+		dcon::load_record loaded = world.make_serialize_record_store_save();
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+		auto buffer_position = reinterpret_cast<std::byte*>(buffer.get());
+		world.serialize(buffer_position, loaded);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 
-	auto sdir = simple_fs::get_or_create_oos_directory();
-	auto ymd_date = current_date.to_ymd(start_date);
-	std::string party_name = "ScnS";
-	if(network_mode == sys::network_mode_type::client) {
-		party_name = "ScenC";
-	} else if(network_mode == sys::network_mode_type::host) {
-		party_name = "ScenH";
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		auto ymd_date = current_date.to_ymd(start_date);
+		std::string party_name = "ScnS";
+		if(network_mode == sys::network_mode_type::client) {
+			party_name = "ScenC";
+		} else if(network_mode == sys::network_mode_type::host) {
+			party_name = "ScenH";
+		}
+		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(world.nation_get_identity_from_identity_holder(local_player_nation)));
+		auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
-	auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(world.nation_get_identity_from_identity_holder(local_player_nation)));
-	auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	/*
+	ptr_in = deserialize(ptr_in, state.text_components);
+	ptr_in = deserialize(ptr_in, state.text_sequences);
+	ptr_in = deserialize(ptr_in, state.key_to_text_sequence);
+	{ // ui definitions
+		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
+		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
+		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
+		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
+	}
+	*/
+	auto sdir = simple_fs::get_or_create_oos_directory();
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this)]);
+		auto buffer_position = sys::write_scenario_section(buffer.get(), *this);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("all.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(text_components)]);
+		auto buffer_position = serialize(buffer.get(), text_components);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("text_components.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(text_sequences)]);
+		auto buffer_position = serialize(buffer.get(), text_sequences);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("text_sequences.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(key_to_text_sequence)]);
+		auto buffer_position = serialize(buffer.get(), key_to_text_sequence);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("key_to_text_sequence.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.gfx)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.gfx);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.gfx.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.textures)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.textures);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.textures.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.gui)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.gui);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.gui.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
 }
 
 void state::game_loop() {

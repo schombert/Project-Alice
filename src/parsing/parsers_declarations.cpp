@@ -197,6 +197,14 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::national_syndicalist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocratic"))
 		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocratic));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot1"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot1));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot2"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot2));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot3"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot3));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot4"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot4));
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
@@ -3151,6 +3159,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
 		new_war.set_is_great(context.great_war);
+		new_war.set_original_target(context.defenders[0]);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		auto it = context.outer_context.state.key_to_text_sequence.find(

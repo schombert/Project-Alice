@@ -601,11 +601,14 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	if(!c)
 		return 0.01f;
 
+	//Occupied provinces don't employ RGOs
+	if(state.world.province_get_nation_from_province_ownership(p) != state.world.province_get_nation_from_province_control(p))
+		return 0.0f;
+
 	bool is_mine = state.world.commodity_get_is_mine(c);
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size +
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
-
 	auto sz = state.world.province_get_rgo_size(p);
 	auto pmod = state.world.province_get_modifier_values(p,  is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
 	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);
@@ -3655,116 +3658,6 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 	state.world.try_create_factory_location(new_fac, state_cap);
 }
 
-dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
-	float distance = 2.0f;
-	dcon::province_id closest;
-	auto region = state.world.province_get_connected_region_id(start);
-
-	for(auto p : state.world.nation_get_province_ownership(by)) {
-		if(!p.get_province().get_land_rally_point())
-			continue;
-		if(p.get_province().get_connected_region_id() != region)
-			continue;
-		if(p.get_province().get_nation_from_province_control() != by)
-			continue;
-		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
-			distance = dist;
-			closest = p.get_province();
-		}
-	}
-
-	return closest;
-}
-dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
-	float distance = 2.0f;
-	dcon::province_id closest;
-
-	for(auto p : state.world.nation_get_province_ownership(by)) {
-		if(!p.get_province().get_naval_rally_point())
-			continue;
-		if(p.get_province().get_nation_from_province_control() != by)
-			continue;
-		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
-			distance = dist;
-			closest = p.get_province();
-		}
-	}
-
-	return closest;
-}
-void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest) {
-	if(state.world.nation_get_is_player_controlled(by) == false)
-		return; // AI doesn't use rally points or templates
-	if(!dest)
-		dest = find_land_rally_pt(state, by, start);
-	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
-		return;
-	if(state.world.army_get_battle_from_army_battle_participation(a))
-		return;
-
-	if(dest == start) { // merge in place
-		for(auto ar : state.world.province_get_army_location(start)) {
-			if(ar.get_army().get_controller_from_army_control() == by && ar.get_army() != a) {
-				auto regs = state.world.army_get_army_membership(a);
-				while(regs.begin() != regs.end()) {
-					(*regs.begin()).set_army(ar.get_army());
-				}
-				return;
-			}
-		}
-	} else {
-		auto path = province::make_land_path(state, start, dest, by, a);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.army_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
-		}
-		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.army_set_moving_to_merge(a, true);
-	}
-}
-void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
-	if(state.world.nation_get_is_player_controlled(by) == false)
-		return; // AI doesn't use rally points or templates
-	if(!dest)
-		dest = find_naval_rally_pt(state, by, start);
-	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
-		return;
-
-	if(dest == start) { // merge in place
-		for(auto ar : state.world.province_get_navy_location(start)) {
-			if(ar.get_navy().get_controller_from_navy_control() == by && ar.get_navy() != a) {
-				auto regs = state.world.navy_get_navy_membership(a);
-				while(regs.begin() != regs.end()) {
-					(*regs.begin()).set_navy(ar.get_navy());
-				}
-				return;
-			}
-		}
-	} else {
-		auto path = province::make_naval_path(state, start, dest);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.navy_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
-		}
-		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.navy_set_moving_to_merge(a, true);
-	}
-}
-
 void resolve_constructions(sys::state& state) {
 
 	for(uint32_t i = state.world.province_land_construction_size(); i-- > 0;) {
@@ -3798,7 +3691,7 @@ void resolve_constructions(sys::state& state) {
 			state.world.try_create_army_membership(new_reg, a);
 			state.world.try_create_regiment_source(new_reg, c.get_pop());
 			military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
-			move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
+			military::move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
 
 			if(c.get_nation() == state.local_player_nation) {
 				notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
@@ -3844,7 +3737,7 @@ void resolve_constructions(sys::state& state) {
 					a.set_controller_from_navy_control(c.get_nation());
 					a.set_location_from_navy_location(p);
 					state.world.try_create_navy_membership(new_ship, a);
-					move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
+					military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
 					if(c.get_nation() == state.local_player_nation) {
 						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {

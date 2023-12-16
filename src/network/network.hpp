@@ -32,7 +32,8 @@ typedef int socket_t;
 
 struct client_handshake_data {
 	sys::player_name nickname;
-	uint8_t reserved[64];
+	uint8_t password[16] = {0};
+	uint8_t reserved[48] = {0};
 };
 
 struct server_handshake_data {
@@ -40,7 +41,7 @@ struct server_handshake_data {
 	sys::checksum_key save_checksum;
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
-	uint8_t reserved[64];
+	uint8_t reserved[64] = {0};
 };
 
 struct client_data {
@@ -77,6 +78,7 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
+	uint8_t password[16] = {0};
 
 	command::payload recv_buffer;
 	size_t recv_count = 0;
