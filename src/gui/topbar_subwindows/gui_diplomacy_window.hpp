@@ -1453,7 +1453,7 @@ public:
 		dcon::war_id content = retrieve<dcon::war_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, content);
 
-		sys::year_month_day start_date = fat_id.get_start_date().to_ymd();
+		sys::year_month_day start_date = fat_id.get_start_date().to_ymd(state.start_date);
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::date, start_date);
