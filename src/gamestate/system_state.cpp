@@ -4219,7 +4219,6 @@ void state::debug_scenario_oos_dump() {
 		auto buffer_position = reinterpret_cast<std::byte*>(buffer.get());
 		world.serialize(buffer_position, loaded);
 		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
-
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		auto ymd_date = current_date.to_ymd(start_date);
 		std::string party_name = "ScnS";
