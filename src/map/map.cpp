@@ -188,6 +188,33 @@ void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& da
 	glVertexAttribBinding(3, 0);
 }
 
+void create_textured_line_b_vbo(GLuint& vbo, std::vector<textured_line_vertex_b>& data) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex_b) * data.size(), data.data(), GL_STATIC_DRAW);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex_b));
+
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, position));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, previous_point));
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, next_point));
+	glVertexAttribFormat(3, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, texture_coordinate));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, distance));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
+}
+
 void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
@@ -278,7 +305,7 @@ void display_data::create_border_ogl_objects() {
 
 	glGenVertexArrays(1, &coastal_vao);
 	glBindVertexArray(coastal_vao);
-	create_textured_line_vbo(coastal_border_vbo, coastal_vertices);
+	create_textured_line_b_vbo(coastal_border_vbo, coastal_vertices);
 
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
@@ -720,18 +747,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(11, state.user_settings.gamma);
 
 		{
-			GLuint vertex_subroutines[2] = {};
+			GLuint vertex_subroutines[1] = {};
 			if(map_view_mode == map_view::globe) {
 				vertex_subroutines[0] = 0; // globe_coords()
-				vertex_subroutines[1] = 2; // globe_coords()
 			} else {
 				vertex_subroutines[0] = 1; // flat_coords()
-				vertex_subroutines[1] = 3; // globe_coords()
 			}
-			glUniformSubroutinesuiv(GL_VERTEX_SHADER, 2, vertex_subroutines);
+			glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
 		}
 
-		glUniform1f(4, 0.0002f); // width
+		glUniform1f(4, 0.0004f); // width
 
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, coastal_border_texture);

@@ -442,66 +442,65 @@ void add_coastal_loop_vertices(display_data& dat, std::vector<glm::vec2> const& 
 	glm::vec2 prev_direction = glm::normalize(next_pos - current_pos);
 	float distance = 0.0f;
 
-	auto current_normal = glm::vec2(-prev_direction.y, prev_direction.x);
 	auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
-	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +current_normal, 0.0f, distance });
-	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -current_normal, 1.0f, distance });
+	auto old_pos = glm::vec2{ 0,0 };
+
+	dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+	dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 	auto raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 	raw_dist.x *= 2.0f;
 	distance += glm::length(raw_dist);
 
 	for(auto i = points.size() - 1; i-- > 1; ) {
+		old_pos = current_pos;
 		current_pos = glm::vec2(points[i].x, points[i].y);
 		next_pos = put_in_local(glm::vec2(points[i - 1].x, points[i - 1].y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
-		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 		raw_dist.x *= 2.0f;
 		distance += glm::length(raw_dist);
-
-		current_normal = next_normal;
 	}
 
 	// case i == 0
 	{
+		old_pos = current_pos;
 		current_pos = glm::vec2(points[0].x, points[0].y);
 		next_pos = put_in_local(glm::vec2(points.back().x, points.back().y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
-		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 		raw_dist.x *= 2.0f;
 		distance += glm::length(raw_dist);
 
-		current_normal = next_normal;
 	}
 
 	// wrap-around
 	{
+		old_pos = current_pos;
 		current_pos = glm::vec2(points.back().x, points.back().y);
 		next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
 		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
-		dat.coastal_vertices[first].normal_direction_ = corner_normal;
-		dat.coastal_vertices[first + 1].normal_direction_ = -corner_normal;
+		dat.coastal_vertices[first].previous_point = old_pos / glm::vec2(dat.size_x, dat.size_y);
+		dat.coastal_vertices[first + 1].next_point = old_pos / glm::vec2(dat.size_x, dat.size_y);
 	}
 
 	dat.coastal_counts.push_back(GLsizei(dat.coastal_vertices.size() - dat.coastal_starts.back()));

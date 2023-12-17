@@ -78,13 +78,18 @@ struct curved_line_vertex {
 };
 
 struct textured_line_vertex {
-	textured_line_vertex() { };
-	textured_line_vertex(glm::vec2 position, glm::vec2 normal_direction, float texture_coordinate, float distance)
-		: position_(position), normal_direction_(normal_direction), texture_coordinate_(texture_coordinate), distance_(distance) { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	float texture_coordinate_;
 	float distance_;
+};
+
+struct textured_line_vertex_b {
+	glm::vec2 position;
+	glm::vec2 previous_point;
+	glm::vec2 next_point;
+	float texture_coordinate;
+	float distance;
 };
 
 struct text_line_vertex {
@@ -142,7 +147,7 @@ public:
 	std::vector<textured_line_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
-	std::vector<textured_line_vertex> coastal_vertices;
+	std::vector<textured_line_vertex_b> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
