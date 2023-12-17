@@ -12,7 +12,7 @@ layout (binding = 9) uniform sampler2D colormap_political;
 layout (binding = 10) uniform sampler2D province_highlight;
 layout (binding = 11) uniform sampler2D stripes_texture;
 layout (binding = 13) uniform sampler2D province_fow;
-layout (binding = 14) uniform sampler2D diag_border_identifier;
+layout (binding = 15) uniform sampler2D diag_border_identifier;
 
 // location 0 : offset
 // location 1 : zoom

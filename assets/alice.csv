@@ -219,6 +219,7 @@ railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
 fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado capital;;;;;;;;;x
+war_start_date_desc;War started in §Y$date$§W
 set_national_variable_to;Set national variable $text$ to $value$;;;;;;;;;;;;x
 increase_national_variable_by;Increase national variable $text$ by $value$;;;;;;;;;;;;x
 decrease_national_variable_by;Decrease national variable $text$ by $value$;;;;;;;;;;;;x
@@ -614,6 +615,7 @@ pop_mil_9;Local pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_10;National pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_11;National non-colonial pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;;;;;;;;;;;;x
+pop_mil_13;From war exhaustion §R+$val$§!;;;;;;;;;;;;x
 pop_lit_1;Monthly literacy change: ;;;;;;;;;;;;x
 pop_lit_2;Is the product of:;;;;;;;;;;;;x
 pop_lit_3;From the local clergymen percentage ($val$): $x$;;;;;;;;;;;;x
@@ -1343,5 +1345,7 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+is_primary_culture;§Y$NAME$§W is primary culture.
+is_primary_religion;§Y$NAME$§W is primary religion.
 alice_no_possible_units;No possible units can be built, and no units are in construction.
 ;;;;;;;;;;;;;x

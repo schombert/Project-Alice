@@ -94,15 +94,7 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 
 
 void display_data::update_borders(sys::state& state) {
-	uint32_t border_id = 0;
-	for(; border_id < state.world.province_adjacency_size(); border_id++) {
-		auto& border = borders[border_id];
-		border.type_flag = state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
-	}
-	for(; border_id < borders.size(); border_id++) {
-		auto& border = borders[border_id];
-		border.type_flag = province::border::test_bit;
-	}
+
 }
 
 void add_nation_visible_provinces(sys::state& state, std::vector<dcon::province_id>& list, dcon::nation_id n) {
@@ -160,24 +152,24 @@ void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normaliz
 	glVertexAttribBinding(index, 0);
 }
 
-void create_line_vbo(GLuint& vbo, std::vector<border_vertex>& vertices) {
+void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& data) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	if(vertices.size() != 0)
-		glBufferData(GL_ARRAY_BUFFER, sizeof(border_vertex) * vertices.size(), &vertices[0], GL_STATIC_DRAW);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
 
 	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, vbo, 0, sizeof(border_vertex));
+	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex));
 
 	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, position_));
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, normal_direction_));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, normal_direction_));
 	// Set up vertex attribute format for the direction
-	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(border_vertex, direction_));
-	// Set up vertex attribute format for the border id
-	glVertexAttribFormat(3, 1, GL_INT, GL_FALSE, offsetof(border_vertex, border_id_));
+	glVertexAttribFormat(2, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, texture_coordinate_));
+	// Set up vertex attribute format for the texture coordinates
+	glVertexAttribFormat(3, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, distance_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -188,24 +180,53 @@ void create_line_vbo(GLuint& vbo, std::vector<border_vertex>& vertices) {
 	glVertexAttribBinding(3, 0);
 }
 
-void create_unit_arrow_vbo(GLuint& vbo) {
+void create_textured_line_b_vbo(GLuint& vbo, std::vector<textured_line_vertex_b>& data) {
 	// Create and populate the border VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex_b) * data.size(), data.data(), GL_STATIC_DRAW);
 
 	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, vbo, 0, sizeof(unit_arrow_vertex));
+	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex_b));
+
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, position));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, previous_point));
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, next_point));
+	glVertexAttribFormat(3, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, texture_coordinate));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, distance));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glVertexAttribBinding(3, 0);
+	glVertexAttribBinding(4, 0);
+}
+
+void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
+	// Create and populate the border VBO
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	if(!data.empty())
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
+
+	// Bind the VBO to 0 of the VAO
+	glBindVertexBuffer(0, vbo, 0, sizeof(curved_line_vertex));
 
 	// Set up vertex attribute format for the position
-	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, position_));
+	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
-	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, normal_direction_));
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, normal_direction_));
 	// Set up vertex attribute format for the direction
-	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, direction_));
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, texture_coord_));
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, texture_coord_));
 	// Set up vertex attribute format for the type
-	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(unit_arrow_vertex, type_));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, type_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -268,15 +289,19 @@ void display_data::create_border_ogl_objects() {
 	// Create and bind the VAO
 	glGenVertexArrays(1, &border_vao);
 	glBindVertexArray(border_vao);
-	create_line_vbo(border_vbo, border_vertices);
+	create_textured_line_b_vbo(border_vbo, border_vertices);
 
 	glGenVertexArrays(1, &river_vao);
 	glBindVertexArray(river_vao);
-	create_line_vbo(river_vbo, river_vertices);
+	create_textured_line_vbo(river_vbo, river_vertices);
+
+	glGenVertexArrays(1, &coastal_vao);
+	glBindVertexArray(coastal_vao);
+	create_textured_line_b_vbo(coastal_border_vbo, coastal_vertices);
 
 	glGenVertexArrays(1, &unit_arrow_vao);
 	glBindVertexArray(unit_arrow_vao);
-	create_unit_arrow_vbo(unit_arrow_vbo);
+	create_unit_arrow_vbo(unit_arrow_vbo, unit_arrow_vertices);
 
 	glGenVertexArrays(1, &text_line_vao);
 	glBindVertexArray(text_line_vao);
@@ -371,17 +396,31 @@ display_data::~display_data() {
 		glDeleteTextures(1, &province_color);
 	if(stripes_texture)
 		glDeleteTextures(1, &stripes_texture);
+	if(river_body_texture)
+		glDeleteTextures(1, &river_body_texture);
+	if(national_border_texture)
+		glDeleteTextures(1, &national_border_texture);
+	if(state_border_texture)
+		glDeleteTextures(1, &state_border_texture);
+	if(prov_border_texture)
+		glDeleteTextures(1, &prov_border_texture);
+	if(imp_border_texture)
+		glDeleteTextures(1, &imp_border_texture);
 	if(province_highlight)
 		glDeleteTextures(1, &province_highlight);
 	if(province_fow)
 		glDeleteTextures(1, &province_fow);
 	if(unit_arrow_texture)
 		glDeleteTextures(1, &unit_arrow_texture);
+	if(coastal_border_texture)
+		glDeleteTextures(1, &coastal_border_texture);
 
 	if(land_vao)
 		glDeleteVertexArrays(1, &land_vao);
 	if(river_vao)
 		glDeleteVertexArrays(1, &river_vao);
+	if(coastal_vao)
+		glDeleteVertexArrays(1, &coastal_vao);
 	if(border_vao)
 		glDeleteVertexArrays(1, &border_vao);
 	if(unit_arrow_vao)
@@ -399,19 +438,27 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &unit_arrow_vbo);
 	if(text_line_vbo)
 		glDeleteBuffers(1, &text_line_vbo);
+	if(coastal_border_vbo)
+		glDeleteBuffers(1, &coastal_border_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
-	if(line_river_shader)
-		glDeleteProgram(line_river_shader);
+	if(legacy_line_border_shader)
+		glDeleteProgram(legacy_line_border_shader);
+	if(textured_line_shader)
+		glDeleteProgram(textured_line_shader);
+	if(legacy_line_river_shader)
+		glDeleteProgram(legacy_line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
 	if(text_line_shader)
 		glDeleteProgram(text_line_shader);
 	if(drag_box_shader)
 		glDeleteProgram(drag_box_shader);
+	if(borders_shader)
+		glDeleteProgram(borders_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -439,7 +486,6 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	// Line shaders
 	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
 	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
-	auto line_river_fshader = try_load_shader(root, NATIVE("assets/shaders/line_river_f.glsl"));
 
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
@@ -449,12 +495,20 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
 	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
+	legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
+	
+	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
+	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
+	textured_line_shader = create_program(*tline_vshader, *tline_fshader);
 
-	line_border_shader = create_program(*line_vshader, *line_border_fshader);
-	line_river_shader = create_program(*line_vshader, *line_river_fshader);
+	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
+	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
+	borders_shader = create_program(*tlineb_vshader, *tlineb_fshader);
+
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
-	drag_box_shader = create_program(*screen_vshader, *black_color_fshader);
+	drag_box_shader = create_program(*screen_vshader, *white_color_fshader);
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -494,6 +548,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, province_fow);
 	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, river_body_texture);
+	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
 
 	// Load general shader stuff, used by both land and borders
@@ -521,7 +577,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		};
 
 	load_shader(terrain_shader);
-
 	{ // Land specific shader uniform
 		glUniform1f(4, time_counter);
 		// get_land()
@@ -539,120 +594,114 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines[1] = 4; // get_water_political()
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
-
 	glBindVertexArray(land_vao);
 	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 
 	// Draw the rivers
-	load_shader(line_river_shader);
-	glUniform1f(4, (zoom > 8) ? 0.001f : 0.00055f);
+
+	load_shader(textured_line_shader);
+	glUniform1f(6, time_counter);
+	glUniform1f(4, 0.00008f);
+
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-	glDrawArrays(GL_TRIANGLES, 0, (GLsizei)river_vertices.size());
+
+	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Default border parameters
-	constexpr float sizes[] = {
-		0.00085f,
-		0.00055f,
-		0.00033f
-	};
-	// Draw the borders
-	load_shader(line_border_shader);
+	constexpr float border_type_national = 0.f;
+	constexpr float border_type_provincial = 1.f;
+	constexpr float border_type_regional = 2.f;
+	constexpr float border_type_coastal = 3.f;
+
+	// NORMAL BORDERS
+	glUseProgram(borders_shader);
+	glUniform2f(0, offset.x + 0.f, offset.y);
+	glUniform1f(1, screen_size.x / screen_size.y);
+	glUniform1f(2, zoom);
+	glUniform2f(3, GLfloat(size_x), GLfloat(size_y));
+	glUniformMatrix3fv(5, 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+	glUniform1f(11, state.user_settings.gamma);
+
+	{
+		GLuint vertex_subroutines[1] = {};
+		if(map_view_mode == map_view::globe) {
+			vertex_subroutines[0] = 0; // globe_coords()
+		} else {
+			vertex_subroutines[0] = 1; // flat_coords()
+		}
+		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
+	}
+
 	glBindVertexArray(border_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
-	if(zoom > 8) { // Render all borders
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[2]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) == 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
+
+	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
+
+	
+	if(zoom > 8) { // Render province borders
+		glUniform1f(4, 0.0001f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, prov_border_texture);
+
+		for(auto b : borders) {
+			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-		first.clear();
-		count.clear();
-		glUniform1f(4, sizes[1]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::state_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
+	}
+	if(zoom > 5) { // Render state borders
+		glUniform1f(4, 0.0002f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, state_border_texture);
+
+		for(auto b : borders) {
+			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 			}
 		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-		first.clear();
-		count.clear();
-		glUniform1f(4, sizes[0]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::national_bit)) != 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-	} else if(zoom > 5) { // Render state borders also
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[1]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::state_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-		first.clear();
-		count.clear();
-		glUniform1f(4, sizes[0]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::national_bit)) != 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-	} else {
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		glUniform1f(4, sizes[1]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::national_bit)) != 0 && (border.type_flag & (province::border::coastal_bit)) == 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
-		first.clear();
-		count.clear();
-		glUniform1f(4, sizes[0]);
-		for(auto& border : borders) {
-			if((border.type_flag & (province::border::coastal_bit)) != 0) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
-			}
-		}
-		glMultiDrawArrays(GL_TRIANGLES, first.data(), count.data(), GLsizei(count.size()));
 	}
 
-	/*
-	// SCHOMBERT: enabling this will render any special borders you make with the test bit set
+	// impassible borders
+
 	{
-		glUniform1f(4, 0.0016f);
-		uint8_t visible_borders = (province::border::test_bit);
+		glUniform1f(4, 0.0003f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, imp_border_texture);
 
-		std::vector<GLint> first;
-		std::vector<GLsizei> count;
-		for(auto& border : borders) {
-			if(border.type_flag & visible_borders) {
-				first.push_back(border.start_index);
-				count.push_back(border.count);
+		for(auto b : borders) {
+			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index,  b.count);
 			}
 		}
-
-		glMultiDrawArrays(GL_TRIANGLES, &first[0], &count[0], GLsizei(count.size()));
 	}
-	*/
+
+	// national borders
+	{
+		glUniform1f(4, 0.0003f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, national_border_texture);
+
+		for(auto b : borders) {
+			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+			}
+		}
+	}
+
+	// coasts
+	{
+
+		glUniform1f(4, 0.0004f); // width
+
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, coastal_border_texture);
+
+		glBindVertexArray(coastal_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, coastal_border_vbo);
+
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
+	}
 
 	if(!unit_arrow_vertices.empty()) {
 		// Draw the unit arrows
@@ -660,7 +709,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, 0.005f);
 		glBindVertexArray(unit_arrow_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, (GLsizei)unit_arrow_vertices.size());
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
 	}
 
 	if(!drag_box_vertices.empty()) {
@@ -819,66 +868,59 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
-
+void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 prev_normal_dir, glm::vec2 next_normal_dir, float fill_progress, bool end_arrow, float size_x, float size_y) {
+	constexpr float type_filled = 2.f;
+	constexpr float type_unfilled = 0.f;
+	constexpr float type_end = 3.f;
 	glm::vec2 curr_dir = normalize(end - start);
-
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 
 	if(fill_progress != 0) {
-        auto pos3 = glm::mix(start, end, fill_progress);
-        auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+		if(fill_progress < 1.0f) {
+			auto pos3 = glm::mix(start, end, fill_progress);
+			auto midd_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
 
-		// Filled unit arrow
-		// First vertex of the line segment
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 2.0f);
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 2.0f);
-		buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 2.0f);
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 2.0f);
+			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
+			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
+			buffer.emplace_back(pos3, +midd_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+			buffer.emplace_back(pos3, -midd_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
 
-		// Unfilled unit arrow
-        if(fill_progress < 1.0f) {
-			// First vertex of the line segment
-			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-			buffer.emplace_back(pos3, -midd_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
-			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			// Second vertex of the line segment
-			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
-			buffer.emplace_back(pos3, +midd_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-        }
-    } else {
-		// Unfilled unit arrow
-		// First vertex of the line segment
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-		buffer.emplace_back(start, -prev_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 0.0f);
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 0.0f);
-		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 0.0f);
-		buffer.emplace_back(start, +prev_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 0.0f);
-    }
-
-    if(end_arrow) {
-		// First vertex of the line segment
-		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
-		buffer.emplace_back(end, -next_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 1.0f);
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
-		// Second vertex of the line segment
-		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
-		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 1.0f);
-		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
-    }
+			// Not filled - transition from "filled" to "unfilled"
+			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
+		} else {
+			// Not filled - transition from "filled" to "unfilled"
+			buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_filled);//C
+			buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_filled);//D
+		}
+	} else {
+		// All unfilled!
+		if(buffer.back().type_ == type_filled) {
+			buffer.emplace_back(buffer[buffer.size() - 2]);//C
+			buffer.emplace_back(buffer[buffer.size() - 2]);//D
+			buffer[buffer.size() - 2].type_ = type_unfilled;
+			buffer[buffer.size() - 1].type_ = type_unfilled;
+		}
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_unfilled);//C
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_unfilled);//D
+	}
+	if(end_arrow) {
+		if(buffer.back().type_ == type_filled) {
+			buffer.emplace_back(buffer[buffer.size() - 2]);//C
+			buffer.emplace_back(buffer[buffer.size() - 2]);//D
+			buffer[buffer.size() - 2].type_ = type_unfilled;
+			buffer[buffer.size() - 1].type_ = type_unfilled;
+		}
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), type_end);//C
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), type_end);//D
+	}
 }
 
-constexpr inline uint32_t num_b_segments = 16;
+constexpr inline uint32_t default_num_b_segments = 16;
 constexpr inline float control_point_length_factor = 0.3f;
 
-void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y) {
+void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments) {
 	auto control_point_length = glm::length(end - start) * control_point_length_factor;
 
 	auto start_control_point = start_per * control_point_length + start;
@@ -931,7 +973,6 @@ void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2
 
 		last_normal = next_normal;
 	}
-
 	{
 		next_normal = glm::vec2(end_per.y, -end_per.x);
 		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
@@ -954,6 +995,71 @@ void add_bezier_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2
 	}
 }
 
+void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance) {
+	start /= glm::vec2(size_x, size_y);
+	end /= glm::vec2(size_x, size_y);
+
+	auto d = start - end;
+	d.x *= 2.0f;
+	distance += 0.5f * glm::length(d);
+	buffer.emplace_back(textured_line_vertex{ end, +next_normal_dir, 0.0f, distance });//C
+	buffer.emplace_back(textured_line_vertex{ end, -next_normal_dir, 1.0f, distance });//D
+}
+
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
+	auto control_point_length = glm::length(end - start) * control_point_length_factor;
+
+	auto start_control_point = start_per * control_point_length + start;
+	auto end_control_point = end_per * control_point_length + end;
+
+	auto bpoint = [=](float t) {
+		auto u = 1.0f - t;
+		return 0.0f
+			+ (u * u * u) * start
+			+ (3.0f * u * u * t) * start_control_point
+			+ (3.0f * u * t * t) * end_control_point
+			+ (t * t * t) * end;
+		};
+
+	auto last_normal = glm::vec2(-start_per.y, start_per.x);
+	glm::vec2 next_normal{ 0.0f, 0.0f };
+
+	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
+		auto t_start = float(i) / float(num_b_segments);
+		auto t_end = float(i + 1) / float(num_b_segments);
+		auto t_next = float(i + 2) / float(num_b_segments);
+
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+		auto next_point = bpoint(t_next);
+
+		next_normal = glm::normalize(end_point - start_point) + glm::normalize(end_point - next_point);
+		auto temp = glm::normalize(end_point - start_point);
+		if(glm::length(next_normal) < 0.00001f) {
+			next_normal = glm::normalize(glm::vec2(-temp.y, temp.x));
+		} else {
+			next_normal = glm::normalize(next_normal);
+			if(glm::dot(glm::vec2(-temp.y, temp.x), next_normal) < 0) {
+				next_normal = -next_normal;
+			}
+		}
+
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
+
+		last_normal = next_normal;
+	}
+	{
+		next_normal = glm::vec2(end_per.y, -end_per.x);
+		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
+		auto t_end = 1.0f;
+		auto start_point = bpoint(t_start);
+		auto end_point = bpoint(t_end);
+
+		
+		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
+	}
+}
+
 namespace duplicates {
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto pt = state.world.province_get_port_to(p);
@@ -968,7 +1074,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
-	return vertex.position_ * map_size;
+	return vertex.position * map_size;
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
@@ -998,7 +1104,7 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) 
 	}
 }
 
-void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
+void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y) {
 	auto path = state.world.navy_get_path(selected_navy);
 	if(auto ps = path.size(); ps > 0) {
 		auto progress = military::fractional_distance_covered(state, selected_navy);
@@ -1007,6 +1113,11 @@ void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 		glm::vec2 next_pos = put_in_local(duplicates::get_navy_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
@@ -1030,7 +1141,7 @@ void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = duplicates::get_navy_location(state, path[i]);
@@ -1039,7 +1150,7 @@ void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 }
 
 
-void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
+void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y) {
 	auto path = state.world.army_get_path(selected_army);
 	if(auto ps = path.size(); ps > 0) {
 		auto progress = military::fractional_distance_covered(state, selected_army);
@@ -1048,6 +1159,12 @@ void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
+
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+
+		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{0,0}, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
+		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
 
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
@@ -1071,12 +1188,16 @@ void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buff
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y);
+			add_bezier_to_buffer(buffer, current_pos, next_pos, prev_perpendicular, next_perpendicular, i == ps - 1 ? progress : 0.0f, i == 0, size_x, size_y, default_num_b_segments);
 
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = duplicates::get_army_location(state, path[i]);
 		}
 	}
+}
+
+void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses) {
+	// TODO: Remove this unused function
 }
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
@@ -1209,6 +1330,7 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
@@ -1233,6 +1355,25 @@ void display_data::load_map(sys::state& state) {
 	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
 	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
 	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	
+	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
+	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	national_border_texture = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
+	set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	state_border_texture = load_dds_texture(assets_dir, NATIVE("state_border.dds"));
+	set_gltex_parameters(state_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	prov_border_texture = load_dds_texture(assets_dir, NATIVE("prov_border.dds"));
+	set_gltex_parameters(prov_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	imp_border_texture = load_dds_texture(assets_dir, NATIVE("imp_border.dds"));
+	set_gltex_parameters(imp_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	coastal_border_texture = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
+	set_gltex_parameters(coastal_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	
 	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
 	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -1278,3 +1419,8 @@ void display_data::load_map(sys::state& state) {
 }
 
 } // namespace map
+
+//static_assert(sizeof(std::pair<dcon::text_key, dcon::text_sequence_id>) == sizeof(dcon::text_key) + sizeof(dcon::text_sequence_id));
+//static_assert(sizeof(std::pair<text::text_sequence, dcon::text_sequence_id> == sizeof(dcon::text_sequence) + sizeof(dcon::text_sequence_id)));
+//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
+//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));

@@ -644,7 +644,7 @@ guiTypes = {
 		name = "alice_page_count"
 		font = "vic_18_black"
 		borderSize = { 0 0}
-		maxsize = { 32 18 }
+		maxsize = { 48 18 }
 		orientation = "UPPER_LEFT"
 		format = centre
 	}

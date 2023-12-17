@@ -1,23 +1,19 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
-layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in vec2 direction;
-layout (location = 3) in vec2 texture_coord;
-layout (location = 4) in float type;
+layout (location = 1) in vec2 prev_point;
+layout (location = 2) in vec2 next_point;
+layout (location = 3) in float texture_coord;
+layout (location = 4) in float distance;
 
-out vec2 tex_coord;
+out float tex_coord;
+out float o_dist;
 out vec2 map_coord;
-out float tex_type;
 
-// Camera position
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
-// Zoom: big numbers = close
 layout (location = 2) uniform float zoom;
-// The size of the map in pixels
 layout (location = 3) uniform vec2 map_size;
-// The scaling factor for the width
-layout (location = 4) uniform float border_width;
+layout (location = 4) uniform float width;
 layout (location = 5) uniform mat3 rotation;
 
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
@@ -46,9 +42,10 @@ vec4 globe_coords(vec2 world_pos) {
 	new_world_pos.xyz += 0.5; 	// Move the globe to the center
 
 	return vec4(
-		(2. * new_world_pos.x - 1.f) / aspect_ratio  * zoom,
+		(2. * new_world_pos.x - 1.f)  * zoom,
 		(2. * new_world_pos.z - 1.f) * zoom,
-		(2. * new_world_pos.y - 1.f), 1.0);
+		(2. * new_world_pos.y - 1.f) - 1.0f,
+		1.0);
 }
 
 layout(index = 1) subroutine(calc_gl_position_class)
@@ -56,24 +53,27 @@ vec4 flat_coords(vec2 world_pos) {
 	world_pos += vec2(-offset.x, offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
+		(2. * world_pos.x - 1.f) * zoom * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0, 1.0);
+		abs(world_pos.x - 0.5) * 2.1f,
+		1.0);
 }
 
-// The borders are drawn by seperate quads.
-// Each triangle in the quad is made up by two vertices on the same position and
-// another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	float zoom_level = 1.5f * clamp(zoom, 2.f, 10.f) - 0.5f;
-	float thickness = border_width / zoom_level;
-	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness;
-	vec2 world_pos = vertex_position;
-	world_pos += vec2(normal_vector.x / (map_size.x / map_size.y), normal_vector.y);
-
-	map_coord = world_pos;
-	gl_Position = calc_gl_position(world_pos);
-	tex_coord = vec2(sin(pow(vertex_position.x, vertex_position.y)) * map_size.x, texture_coord.y);
-	tex_type = type;
+	vec4 central_pos = calc_gl_position(vertex_position);
+	vec2 bpt = central_pos.xy;
+	vec2 apt = calc_gl_position(prev_point).xy;
+	vec2 cpt = calc_gl_position(next_point).xy;
+	
+	vec2 adir = normalize(bpt - apt);
+	vec2 bdir = normalize(cpt - bpt);
+	
+	vec2 anorm = vec2(-adir.y, adir.x);
+	vec2 bnorm = vec2(-bdir.y, bdir.x);
+	vec2 corner_normal = (anorm + bnorm) / (1.0f + max(-0.5f, dot(anorm, bnorm))) * zoom * width;
+	
+	gl_Position = central_pos + vec4(corner_normal.x, corner_normal.y, 0.0f, 0.0f);
+	gl_Position.x /= aspect_ratio;
+	tex_coord = texture_coord;
+	o_dist = distance / (2.0f * width);
 }
