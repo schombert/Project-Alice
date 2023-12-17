@@ -428,9 +428,9 @@ enum class text_component_type : uint8_t {
 };
 struct text_component {
 	union text_component_data {
-		line_break line_break;
-		text_color text_color;
-		variable_type variable_type;
+		text::line_break line_break;
+		text::text_color text_color;
+		text::variable_type variable_type;
 		dcon::text_key text_key;
 		text_component_data() {
 			std::memset(this, 0, sizeof(*this));
