@@ -70,7 +70,7 @@ void main() {
 	
 	vec2 anorm = vec2(-adir.y, adir.x);
 	vec2 bnorm = vec2(-bdir.y, bdir.x);
-	vec2 corner_normal = (anorm + bnorm) / (1.0f + dot(anorm, bnorm)) * zoom * width;
+	vec2 corner_normal = (anorm + bnorm) / (1.0f + max(0.0f, dot(anorm, bnorm))) * zoom * width;
 	
 	gl_Position = central_pos + vec4(corner_normal.x, corner_normal.y, 0.0f, 0.0f);
 	gl_Position.x /= aspect_ratio;
