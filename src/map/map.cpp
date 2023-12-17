@@ -18,6 +18,9 @@
 #include "parsers_declarations.hpp"
 #include "math_fns.hpp"
 
+#include "xac.hpp"
+#include "xac.cpp"
+
 namespace map {
 
 image load_stb_image(simple_fs::file& file) {
@@ -152,12 +155,6 @@ void display_data::update_fog_of_war(sys::state& state) {
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, true);
 		gen_prov_color_texture(province_fow, province_fows);
 	}
-}
-
-void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const* offset) {
-	glVertexAttribFormat(index, size, type, normalized, stride);
-	glEnableVertexAttribArray(index);
-	glVertexAttribBinding(index, 0);
 }
 
 void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& data) {
@@ -398,6 +395,10 @@ display_data::~display_data() {
 		glDeleteVertexArrays(1, &unit_arrow_vao);
 	if(text_line_vao)
 		glDeleteVertexArrays(1, &text_line_vao);
+	if(drag_box_vao)
+		glDeleteVertexArrays(1, &drag_box_vao);
+	if(static_mesh_vao)
+		glDeleteVertexArrays(1, &static_mesh_vao);
 
 	if(land_vbo)
 		glDeleteBuffers(1, &land_vbo);
@@ -409,8 +410,12 @@ display_data::~display_data() {
 		glDeleteBuffers(1, &unit_arrow_vbo);
 	if(text_line_vbo)
 		glDeleteBuffers(1, &text_line_vbo);
+	if(drag_box_vbo)
+		glDeleteBuffers(1, &drag_box_vbo);
 	if(coastal_border_vbo)
 		glDeleteBuffers(1, &coastal_border_vbo);
+	if(static_mesh_vbo)
+		glDeleteBuffers(1, &static_mesh_vbo);
 
 	if(terrain_shader)
 		glDeleteProgram(terrain_shader);
@@ -430,6 +435,8 @@ display_data::~display_data() {
 		glDeleteProgram(drag_box_shader);
 	if(borders_shader)
 		glDeleteProgram(borders_shader);
+	if(model3d_shader)
+		glDeleteProgram(model3d_shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -476,6 +483,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
 	borders_shader = create_program(*tlineb_vshader, *tlineb_fshader);
+
+	auto model3d_vshader = try_load_shader(root, NATIVE("assets/shaders/model3d_v.glsl"));
+	auto model3d_fshader = try_load_shader(root, NATIVE("assets/shaders/model3d_f.glsl"));
+	model3d_shader = create_program(*model3d_vshader, *model3d_fshader);
 
 	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
@@ -742,6 +753,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glCullFace(GL_BACK);
 		}
 	}
+
+	/*
+	{
+		load_shader(model3d_shader);
+		glUniform1f(6, time_counter);
+		glBindVertexArray(static_mesh_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, static_mesh_vbo);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		glMultiDrawArrays(GL_TRIANGLES, static_mesh_starts.data(), static_mesh_counts.data(), GLsizei(static_mesh_starts.size()));
+	}
+	*/
 
 	if(!unit_arrow_vertices.empty()) {
 		// Draw the unit arrows
@@ -1366,6 +1388,107 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
+void load_static_meshes(sys::state& state) {
+	struct static_mesh_vertex {
+		glm::vec3 position_;
+		glm::vec2 normal_;
+		glm::vec2 texture_coord_;
+	};
+	std::vector<static_mesh_vertex> static_mesh_vertices;
+	auto old_size = static_mesh_vertices.size();
+
+	{
+		static_mesh_vertex smv;
+		smv.position_ = glm::vec3(0.f, 0.f, 1.f);
+		static_mesh_vertices.push_back(smv);
+	}{
+		static_mesh_vertex smv;
+		smv.position_ = glm::vec3(0.5f, 1.f, 1.f);
+		static_mesh_vertices.push_back(smv);
+	}{
+		static_mesh_vertex smv;
+		smv.position_ = glm::vec3(1.f, 0.f, 1.f);
+		static_mesh_vertices.push_back(smv);
+	}
+	state.map_state.map_data.static_mesh_starts.push_back(0);
+	state.map_state.map_data.static_mesh_counts.push_back(3);
+
+	auto root = simple_fs::get_root(state.common_fs);
+	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
+	auto f = simple_fs::open_file(gfx_anims, NATIVE("capital_bigben.xac"));
+	if(f) {
+		parsers::error_handler err(simple_fs::native_to_utf8(simple_fs::get_full_name(*f)));
+		auto contents = simple_fs::view_contents(*f);
+		emfx::xac_context context{};
+		emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
+		//emfx::finish(context);
+
+		for(auto const& node : context.nodes) {
+			for(auto const& mesh : node.meshes) {
+				uint32_t vertex_offset = 0;
+				for(auto const& sub : mesh.submeshes) {
+					for(size_t i = 0; i < sub.indices.size(); i += 3) {
+						static_mesh_vertex smv;
+						auto index = sub.indices[i + 0] + vertex_offset;
+						{
+							auto vv = mesh.vertices[index];
+							auto vn = mesh.normals[index];
+							auto vt = mesh.texcoords[index];
+							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+							static_mesh_vertices.push_back(smv);
+						}
+						index = sub.indices[i + 1] + vertex_offset;
+						{
+							auto vv = mesh.vertices[index];
+							auto vn = mesh.normals[index];
+							auto vt = mesh.texcoords[index];
+							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+							static_mesh_vertices.push_back(smv);
+						}
+						index = sub.indices[i + 2] + vertex_offset;
+						{
+							auto vv = mesh.vertices[index];
+							auto vn = mesh.normals[index];
+							auto vt = mesh.texcoords[index];
+							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+							static_mesh_vertices.push_back(smv);
+						}
+					}
+					vertex_offset += sub.num_vertices;
+				}
+			}
+		}
+
+		state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
+		state.map_state.map_data.static_mesh_counts.push_back(GLsizei(static_mesh_vertices.size() - old_size));
+	} else {
+		std::abort();
+	}
+
+	glGenBuffers(1, &state.map_state.map_data.static_mesh_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, state.map_state.map_data.static_mesh_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(static_mesh_vertex) * static_mesh_vertices.size(), &static_mesh_vertices[0], GL_STATIC_DRAW);
+	glGenVertexArrays(1, &state.map_state.map_data.static_mesh_vao);
+	glBindVertexArray(state.map_state.map_data.static_mesh_vao);
+	glBindVertexBuffer(0, state.map_state.map_data.static_mesh_vbo, 0, sizeof(static_mesh_vertex)); // Bind the VBO to 0 of the VAO
+	glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, position_)); // Set up vertex attribute format for the position
+	glVertexAttribFormat(1, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, normal_)); // Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, texture_coord_)); // Set up vertex attribute format for the texture coordinates
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glVertexAttribBinding(0, 0);
+	glVertexAttribBinding(1, 0);
+	glVertexAttribBinding(2, 0);
+	glBindVertexArray(0);
+}
+
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
@@ -1374,6 +1497,7 @@ void display_data::load_map(sys::state& state) {
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 
 	load_shaders(root);
+	load_static_meshes(state);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
 	set_gltex_parameters(terrain_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);

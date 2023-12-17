@@ -145,6 +145,8 @@ public:
 	std::vector<textured_line_vertex> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
+	std::vector<GLint> static_mesh_starts;
+	std::vector<GLsizei> static_mesh_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
@@ -170,6 +172,8 @@ public:
 	GLuint text_line_vbo = 0;
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
+	GLuint static_mesh_vao = 0;
+	GLuint static_mesh_vbo = 0;
 	uint32_t land_vertex_count = 0;
 	GLuint coastal_border_vbo = 0;
 
@@ -202,6 +206,7 @@ public:
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
 	GLuint borders_shader = 0;
+	GLuint model3d_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
