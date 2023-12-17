@@ -1179,11 +1179,6 @@ void execute_rebel_victories(sys::state& state) {
 				members.get_pop().set_militancy(std::max(members.get_pop().get_militancy() - 5.0f, 0.0f));
 			}
 
-			//The pops won, reset their militancy to avoid death spiraling
-			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(reb)) {
-				members.get_pop().set_militancy(0.0f);
-			}
-
 			/*
 			If the rebel type has "break alliances on win" then the nation loses all of its alliances, all of its non-substate
 			vassals, all of its sphere members, and loses all of its influence and has its influence level set to neutral.
