@@ -275,8 +275,8 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 						auto& border = map_state.map_data.borders[id];
 						auto& vertex = map_state.map_data.border_vertices[border.start_index + border.count / 2];
 
-						auto map_x = vertex.position_.x;
-						auto map_y = vertex.position_.y;
+						auto map_x = vertex.position.x;
+						auto map_y = vertex.position.y;
 
 						glm::vec2 map_pos(map_x, 1.0f - map_y);
 						auto screen_size = glm::vec2{ float(x_size), float(y_size) };

@@ -158,8 +158,8 @@ public:
 		auto& border = state.map_state.map_data.borders[id];
 		auto& vertex = state.map_state.map_data.border_vertices[border.start_index + border.count / 2];
 
-		map_x = vertex.position_.x;
-		map_y = vertex.position_.y;
+		map_x = vertex.position.x;
+		map_y = vertex.position.y;
 	}
 
 	void on_update(sys::state& state) noexcept override {

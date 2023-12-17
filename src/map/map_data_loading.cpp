@@ -400,6 +400,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	std::vector<bool> borders_visited;
 	borders_visited.resize(size_x * size_y * 2, false);
 	make_coastal_borders(context.state, borders_visited);
+	make_borders(context.state, borders_visited);
 }
 
 // Called to load the terrain and province map data

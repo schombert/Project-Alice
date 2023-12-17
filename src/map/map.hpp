@@ -114,10 +114,12 @@ struct text_line_generator_data {
 };
 
 struct border {
-	int start_index = -1;
-	int count = -1;
-	uint8_t type_flag;
+	int start_index = 0;
+	int count = 0;
+	dcon::province_adjacency_id adj;
+	uint16_t padding = 0;
 };
+
 enum class map_view;
 class display_data {
 public:
@@ -143,7 +145,7 @@ public:
 	uint32_t size_y;
 
 	std::vector<border> borders;
-	std::vector<curved_line_vertex> border_vertices;
+	std::vector<textured_line_vertex_b> border_vertices;
 	std::vector<textured_line_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
@@ -193,7 +195,9 @@ public:
 	GLuint stripes_texture = 0;
 	GLuint river_body_texture = 0;
 	GLuint national_border_texture = 0;
-	GLuint provincial_border_texture = 0;
+	GLuint state_border_texture = 0;
+	GLuint prov_border_texture = 0;
+	GLuint imp_border_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
 	GLuint coastal_border_texture = 0;
@@ -218,6 +222,7 @@ public:
 
 	uint16_t safe_get_province(glm::ivec2 pt);
 	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
+	void make_borders(sys::state& state, std::vector<bool>& visited);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
