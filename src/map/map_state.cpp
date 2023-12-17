@@ -67,12 +67,20 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
+	map_data.unit_arrow_counts.clear();
+	map_data.unit_arrow_starts.clear();
 
 	for(auto selected_army : state.selected_armies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_army_path(state, map_data.unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 	for(auto selected_navy : state.selected_navies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_navy_path(state, map_data.unit_arrow_vertices, selected_navy, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);

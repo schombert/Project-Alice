@@ -4231,12 +4231,59 @@ void state::debug_scenario_oos_dump() {
 		auto base_str = party_name + "-" + tag + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
+	/*
+	ptr_in = deserialize(ptr_in, state.text_components);
+	ptr_in = deserialize(ptr_in, state.text_sequences);
+	ptr_in = deserialize(ptr_in, state.key_to_text_sequence);
+	{ // ui definitions
+		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
+		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
+		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
+		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
+	}
+	*/
+	auto sdir = simple_fs::get_or_create_oos_directory();
 	{
-		auto sdir = simple_fs::get_or_create_oos_directory();
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(*this)]);
 		auto buffer_position = sys::write_scenario_section(buffer.get(), *this);
-		size_t total_size_used = buffer_position - buffer.get();
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native("SCNALL.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("all.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(text_components)]);
+		auto buffer_position = serialize(buffer.get(), text_components);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("text_components.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(text_sequences)]);
+		auto buffer_position = serialize(buffer.get(), text_sequences);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("text_sequences.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(key_to_text_sequence)]);
+		auto buffer_position = serialize(buffer.get(), key_to_text_sequence);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("key_to_text_sequence.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.gfx)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.gfx);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.gfx.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.textures)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.textures);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.textures.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
+	}
+	{
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[serialize_size(ui_defs.gui)]);
+		auto buffer_position = serialize(buffer.get(), ui_defs.gui);
+		size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+		simple_fs::write_file(sdir, NATIVE("ui_defs.gui.BIN"), reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 	}
 }
 

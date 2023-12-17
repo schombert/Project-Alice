@@ -77,6 +77,16 @@ struct curved_line_vertex {
 	float type_;
 };
 
+struct textured_line_vertex {
+	textured_line_vertex() { };
+	textured_line_vertex(glm::vec2 position, glm::vec2 normal_direction, float texture_coordinate, float distance)
+		: position_(position), normal_direction_(normal_direction), texture_coordinate_(texture_coordinate), distance_(distance) { };
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	float texture_coordinate_;
+	float distance_;
+};
+
 struct text_line_vertex {
 	text_line_vertex() { };
 	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
@@ -129,8 +139,15 @@ public:
 
 	std::vector<border> borders;
 	std::vector<curved_line_vertex> border_vertices;
-	std::vector<curved_line_vertex> river_vertices;
+	std::vector<textured_line_vertex> river_vertices;
+	std::vector<GLint> river_starts;
+	std::vector<GLsizei> river_counts;
+	std::vector<textured_line_vertex> coastal_vertices;
+	std::vector<GLint> coastal_starts;
+	std::vector<GLsizei> coastal_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
+	std::vector<GLint> unit_arrow_starts;
+	std::vector<GLsizei> unit_arrow_counts;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
@@ -154,6 +171,8 @@ public:
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
+	GLuint coastal_vao = 0;
+	GLuint coastal_border_vbo = 0;
 
 	// Textures
 	GLuint provinces_texture_handle = 0;
@@ -172,14 +191,18 @@ public:
 	GLuint provincial_border_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
+	GLuint coastal_border_texture = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
-	GLuint line_river_shader = 0;
+	GLuint legacy_line_border_shader = 0;
+	GLuint textured_line_shader = 0;
+	GLuint legacy_line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
+	GLuint borders_shader = 0;
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
@@ -188,16 +211,23 @@ public:
 	void load_terrain_data(parsers::scenario_building_context& context);
 	void load_median_terrain_type(parsers::scenario_building_context& context);
 
+	uint16_t safe_get_province(glm::ivec2 pt);
+	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
+
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
+
+	void create_curved_river_vertices(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data);
 };
 
-std::vector<curved_line_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
+void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
+
 void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
 void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map

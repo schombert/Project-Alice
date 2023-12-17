@@ -1,21 +1,20 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in vec2 direction;
-layout (location = 3) in vec2 texture_coord;
-layout (location = 4) in float type;
+layout (location = 2) in float texture_coord;
+layout (location = 3) in float distance;
 
-out vec2 tex_coord;
-// Camera position
+out float tex_coord;
+out float o_dist;
+out vec2 map_coord;
+
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
-// Zoom: big numbers = close
 layout (location = 2) uniform float zoom;
-// The size of the map in pixels
 layout (location = 3) uniform vec2 map_size;
-// The scaling factor for the width
-layout (location = 4) uniform float border_width;
+layout (location = 4) uniform float width;
 layout (location = 5) uniform mat3 rotation;
+layout (location = 6) uniform float time;
 
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
 subroutine uniform calc_gl_position_class calc_gl_position;
@@ -58,24 +57,16 @@ vec4 flat_coords(vec2 world_pos) {
 		0.0, 1.0);
 }
 
-// The borders are drawn by seperate quads.
-// Each triangle in the quad is made up by two vertices on the same position and
-// another one in the "direction" vector. Then all the vertices are offset in the "normal_direction".
 void main() {
-	float thickness = border_width * 0.25f;
-	vec2 rot_direction = vec2(-direction.y, direction.x);
-	vec2 normal_vector = normalize(normal_direction) * thickness;
-	// Extend the border slightly to make it fit together with any other border in any octagon direction.
-	vec2 extend_vector = -normalize(direction) * thickness;
-	extend_vector *= round(type) == 3.f ? 2.f : 0.f;
+	vec2 normal_vector = normalize(normal_direction) * width;
 	vec2 world_pos = vertex_position;
-
 
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += normal_vector;
-	world_pos += extend_vector;
 	world_pos.x /= map_size.x / map_size.y;
 
+	map_coord = world_pos;
 	gl_Position = calc_gl_position(world_pos);
-	tex_coord = texture_coord / 2.f + vec2(0.5 * mod(round(type), 2.f), 0.5 * floor(mod(type, 3.0f) / 2.f));
+	tex_coord = texture_coord;
+	o_dist = time + distance / (2.0f * width);
 }
