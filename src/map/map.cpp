@@ -276,6 +276,8 @@ void display_data::create_border_ogl_objects() {
 	glBindVertexArray(river_vao);
 	create_textured_line_vbo(river_vbo, river_vertices);
 
+	glGenVertexArrays(1, &coastal_vao);
+	glBindVertexArray(coastal_vao);
 	create_textured_line_vbo(coastal_border_vbo, coastal_vertices);
 
 	glGenVertexArrays(1, &unit_arrow_vao);
@@ -392,6 +394,8 @@ display_data::~display_data() {
 		glDeleteVertexArrays(1, &land_vao);
 	if(river_vao)
 		glDeleteVertexArrays(1, &river_vao);
+	if(coastal_vao)
+		glDeleteVertexArrays(1, &coastal_vao);
 	if(border_vao)
 		glDeleteVertexArrays(1, &border_vao);
 	if(unit_arrow_vao)
@@ -585,7 +589,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(river_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
 
-	//glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
+	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -703,9 +707,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	// coasts
 	{
-		if(map_view_mode == map_view::globe) {
-			glDisable(GL_CULL_FACE);
-		}
+		//if(map_view_mode == map_view::globe) {
+		//	glDisable(GL_CULL_FACE);
+		//}
 
 		glUseProgram(borders_shader);
 		glUniform2f(0, offset.x + 0.f, offset.y);
@@ -732,15 +736,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, coastal_border_texture);
 
-		glBindVertexArray(river_vao);
+		glBindVertexArray(coastal_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, coastal_border_vbo);
 
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 
-		if(map_view_mode == map_view::globe) {
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-		}
+		//if(map_view_mode == map_view::globe) {
+		//	glEnable(GL_CULL_FACE);
+		//	glCullFace(GL_BACK);
+		//}
 	}
 
 	if(!unit_arrow_vertices.empty()) {

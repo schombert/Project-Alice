@@ -23,7 +23,8 @@ subroutine uniform calc_x_adjust_class calc_x_adjust;
 
 layout(index = 2) subroutine(calc_x_adjust_class)
 float globe_x_adjust(float y_in) {
-	return 0.5f / sqrt((1.0f - y_in) * y_in);
+	//return 1.0f;
+	return min(4.0f, 0.25f / ((1.0f - y_in) * y_in));
 }
 
 layout(index = 3) subroutine(calc_x_adjust_class)
@@ -67,7 +68,7 @@ vec4 flat_coords(vec2 world_pos) {
 	return vec4(
 		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0,
+		abs(world_pos.x - 0.5) * 2.1f,
 		1.0);
 }
 

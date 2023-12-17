@@ -171,6 +171,7 @@ public:
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
+	GLuint coastal_vao = 0;
 	GLuint coastal_border_vbo = 0;
 
 	// Textures

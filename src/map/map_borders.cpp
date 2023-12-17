@@ -329,6 +329,9 @@ bool coastal_point(sys::state& state, uint16_t a, uint16_t b) {
 std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, std::vector<bool>& visited, int32_t start_x, int32_t start_y) {
 	std::vector<glm::vec2> points;
 
+	int32_t dropped_points_counter = 0;
+	constexpr int32_t dropped_points_max = 64;
+
 	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
 		if(next_found)
 			return glm::ivec2(0, 0);
@@ -339,14 +342,21 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				visited[i + j * dat.size_x] = true;
 				
 				// test for colinearity
-				/*if(points.size() > 2) {
+				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
+	
+				if(points.size() > 2) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
-					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
-						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+					if(dropped_points_counter < dropped_points_max &&
+						std::sqrt((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y)) + std::sqrt((l.x - float(i)) * (l.x - float(i)) + (l.y - 0.5f - float(j) / 2.0f) * (l.y - 0.5f - float(j) / 2.0f))
+						== std::sqrt((n.x - float(i)) * (n.x - float(i)) + (n.y - 0.5f - float(j) / 2.0f) * (n.y - 0.5f - float(j) / 2.0f))) {
+						++dropped_points_counter;
 						points.pop_back();
+					} else {
+						dropped_points_counter = 0;
 					}
-				}*/
+				}
+				
 				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
 				next_found = true;
 				return glm::ivec2(i, j);
@@ -356,14 +366,21 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				visited[i + j * dat.size_x] = true;
 
 				// test for colinearity
-				/*if(points.size() > 2) {
+				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
+				
+				if(points.size() > 2) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
-					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
-						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+					if(dropped_points_counter < dropped_points_max &&
+						std::sqrt((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y)) + std::sqrt((l.x - 0.5f - float(i)) * (l.x - 0.5f - float(i)) + (l.y - 0.5f - float(j) / 2.0f) * (l.y - 0.5f - float(j) / 2.0f))
+						== std::sqrt((n.x - 0.5f - float(i)) * (n.x - 0.5f - float(i)) + (n.y - 0.5f - float(j) / 2.0f) * (n.y - 0.5f - float(j) / 2.0f))) {
+						++dropped_points_counter;
 						points.pop_back();
+					} else {
+						dropped_points_counter = 0;
 					}
-				}*/
+				}
+				
 				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
 				next_found = true;
 				return glm::ivec2(i, j);
@@ -373,7 +390,7 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 		return glm::ivec2(0, 0);
 	};
 
-	points.push_back(glm::vec2(float(start_x), 0.5f + float(start_y) / 2.0f));
+	points.push_back(glm::vec2(float(start_x) + (start_y % 2 == 0 ? 0.0f : 0.5f), 0.5f + float(start_y) / 2.0f));
 	visited[start_x + start_y * dat.size_x] = true;
 
 	bool progress = false;
@@ -505,7 +522,7 @@ void display_data::make_coastal_borders(sys::state& state, std::vector<bool>& vi
 			// horizontals
 			if(j < int32_t(size_y) - 1) {
 				bool was_visited = visited[i + (j * 2 + 1) * size_x];
-				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i - 1, j)))) {
+				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i, j + 1)))) {
 					auto res = make_coastal_loop(*this, state, visited, i, j * 2 + 1);
 					add_coastal_loop_vertices(*this, res);
 				}
