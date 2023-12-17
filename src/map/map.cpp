@@ -493,6 +493,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -862,8 +864,14 @@ void add_arrow_to_buffer(std::vector<map::unit_arrow_vertex>& buffer, glm::vec2 
     }
 
     if(end_arrow) {
-        buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 1.0f);//C
-        buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);//D
+		// First vertex of the line segment
+		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
+		buffer.emplace_back(end, -next_normal_dir, +curr_dir, glm::vec2(0.0f, 1.0f), 1.0f);
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
+		// Second vertex of the line segment
+		buffer.emplace_back(end, -next_normal_dir, -curr_dir, glm::vec2(1.0f, 1.0f), 1.0f);
+		buffer.emplace_back(end, +next_normal_dir, -curr_dir, glm::vec2(1.0f, 0.0f), 1.0f);
+		buffer.emplace_back(end, +next_normal_dir, +curr_dir, glm::vec2(0.0f, 0.0f), 1.0f);
     }
 }
 
@@ -1206,6 +1214,9 @@ void display_data::load_map(sys::state& state) {
 	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 
 	load_shaders(root);
+
+	diag_border_identifier = make_gl_texture(&diagonal_borders[0], size_x, size_y, 1);
+	set_gltex_parameters(diag_border_identifier, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
 	set_gltex_parameters(terrain_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);

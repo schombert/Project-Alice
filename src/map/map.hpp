@@ -144,6 +144,7 @@ public:
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 	std::vector<uint32_t> province_area;
+	std::vector<uint8_t> diagonal_borders;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
@@ -177,6 +178,7 @@ public:
 	GLuint stripes_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
+	GLuint diag_border_identifier = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;

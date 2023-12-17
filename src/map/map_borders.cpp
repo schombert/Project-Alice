@@ -16,6 +16,14 @@ enum direction : uint8_t {
 	RIGHT = 1 << 0,
 };
 
+enum class diagonal_border : uint8_t {
+	UP_LEFT = 4,
+	UP_RIGHT = 3,
+	DOWN_LEFT = 2,
+	DOWN_RIGHT = 1,
+	NOTHING = 0,
+};
+
 struct BorderDirection {
 	BorderDirection() {
 	};
@@ -166,7 +174,8 @@ void add_border(
 	std::vector<BorderDirection>& current_row,
 	std::vector<BorderDirection>& last_row,
 	parsers::scenario_building_context& context,
-	glm::vec2& map_size)
+	glm::vec2& map_size,
+	std::vector<uint8_t>& diagonal_borders)
 {
 	uint8_t diff_u = id_ul != id_ur;
 	uint8_t diff_d = id_dl != id_dr;
@@ -182,16 +191,20 @@ void add_border(
 		auto& current_border_vertices = borders_list_vertices[border_index];
 		if(!extend_if_possible(x0, border_index, dir, last_row, current_row, map_size, current_border_vertices))
 			add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5f);
-		};
+	};
 
 	if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
 		add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ul, id_dl, direction::UP_LEFT);
+		diagonal_borders[x0 + y0 * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_LEFT);
 	} else if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
 		add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ul, id_dl, direction::DOWN_LEFT);
+		diagonal_borders[x0 + (y0 + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_LEFT);
 	} else if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
 		add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ur, id_dr, direction::UP_RIGHT);
+		diagonal_borders[(x0 + 1) + y0 * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_RIGHT);
 	} else if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
-		add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ur, id_dr, direction::DOWN_LEFT);
+		add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ur, id_dr, direction::DOWN_RIGHT);
+		diagonal_borders[(x0 + 1) + (y0 + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_RIGHT);
 	} else {
 		if(diff_u) {
 			add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), id_ul, id_ur, direction::UP);
@@ -214,6 +227,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 	glm::vec2 map_size(size_x, size_y);
 
 	std::vector<std::vector<border_vertex>> borders_list_vertices;
+	diagonal_borders = std::vector<uint8_t>(size_x * size_y, 0);
 
 	// The borders of the current row and last row
 	std::vector<BorderDirection> current_row(size_x);
@@ -227,7 +241,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size);
+				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size, diagonal_borders);
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 
@@ -264,7 +278,7 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
 
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size);
+				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size, diagonal_borders);
 
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
