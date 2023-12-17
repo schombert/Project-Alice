@@ -413,8 +413,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 	auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
 	{
-		bool select_up_left = glm::dot(glm::vec2(-1.0f, -1.0f), next_pos - current_pos) < glm::dot(glm::vec2(1.0f, 1.0f), next_pos - current_pos);
-		old_pos = select_up_left ? glm::vec2(-1.0f, -1.0f) : glm::vec2(1.0f, 1.0f) + current_pos;
+		old_pos = 2.0f * current_pos - next_pos;
 
 		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
 		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
@@ -446,8 +445,7 @@ void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const
 		old_pos = current_pos;
 		current_pos = glm::vec2(points[0].x, points[0].y);
 
-		bool select_up_left = glm::dot(glm::vec2(-1.0f, -1.0f),  current_pos - old_pos) > glm::dot(glm::vec2(1.0f, 1.0f), current_pos - old_pos);
-		next_pos = select_up_left ? glm::vec2(-1.0f, -1.0f) : glm::vec2(1.0f, 1.0f) + current_pos;
+		next_pos = 2.0f * current_pos - old_pos;
 
 		auto next_direction = glm::normalize(next_pos - current_pos);
 

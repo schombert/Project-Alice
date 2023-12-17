@@ -997,7 +997,9 @@ void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 
-	distance += glm::distance(start, end);
+	auto d = start - end;
+	d.x *= 2.0f;
+	distance += 0.5f * glm::length(d);
 	buffer.emplace_back(textured_line_vertex{ end, +next_normal_dir, 0.0f, distance });//C
 	buffer.emplace_back(textured_line_vertex{ end, -next_normal_dir, 1.0f, distance });//D
 }
