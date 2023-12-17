@@ -586,12 +586,12 @@ void send_and_receive_commands(sys::state& state) {
 								}
 							}
 						}
-						if(!found_match) {
+					}
+					if(!found_match) {
 #ifdef _WIN64
-							MessageBoxA(NULL, "Could not find a scenario with a matching checksum!", "Network error", MB_OK);
+						MessageBoxA(NULL, "Could not find a scenario with a matching checksum!", "Network error", MB_OK);
 #endif
-							//std::abort();
-						}
+						std::abort();
 					}
 				}
 				state.session_host_checksum = state.network_state.s_hshake.save_checksum;
