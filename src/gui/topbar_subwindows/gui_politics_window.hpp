@@ -388,7 +388,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("next_election"));
 			text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::black);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), text::text_color::black);
+			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), black_text ? text::text_color::black : text::text_color::white);
 			text::close_layout_box(contents, box);
 		}
 	}
