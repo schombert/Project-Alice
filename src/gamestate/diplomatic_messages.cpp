@@ -128,6 +128,8 @@ void decline(sys::state& state, message const& m) {
 		});
 
 		break;
+	case type::state_transfer:
+		break;
 	}
 }
 
@@ -370,6 +372,15 @@ void accept(sys::state& state, message const& m) {
 			});
 		}
 		break;
+	case type::state_transfer:
+		if(command::can_state_transfer(state, m.from, m.to, m.data.state)) {
+			for(const auto ab : state.world.state_definition_get_abstract_state_membership(m.data.state)) {
+				if(ab.get_province().get_province_ownership().get_nation() == m.from) {
+					province::change_province_owner(state, ab.get_province(), m.to);
+				}
+			}
+		}
+		break;
 	}
 }
 
@@ -399,6 +410,8 @@ bool ai_will_accept(sys::state& state, message const& m) {
 			return ai::will_join_crisis_with_offer(state, m.to, m.data.crisis_offer);
 		case type::crisis_peace_offer:
 			return ai::will_accept_crisis_peace_offer(state, m.to, m.data.peace);
+		case type::state_transfer:
+			return false;
 	}
 	return false;
 }

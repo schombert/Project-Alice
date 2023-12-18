@@ -29,6 +29,7 @@ enum class diplomacy_action : uint8_t {
 	crisis_backdown,
 	crisis_support,
 	add_wargoal,
+	state_transfer,
 };
 
 enum class gp_choice_actions {
@@ -1806,6 +1807,62 @@ public:
 			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
+	}
+};
+
+class diplomacy_action_state_transfer_button : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, text::produce_simple_string(state, "state_transfer_button"));
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		disabled = true;
+		for(const auto s : state.world.nation_get_state_ownership(content)) {
+			if(command::can_state_transfer(state, state.local_player_nation, content, s.get_state().get_definition())) {
+				disabled = false;
+				break;
+			}
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+
+		sys::state_selection_data seldata;
+		seldata.single_state_select = true;
+		for(const auto s : state.world.nation_get_state_ownership(content)) {
+			if(command::can_state_transfer(state, state.local_player_nation, content, s.get_state().get_definition())) {
+				seldata.selectable_states.push_back(s.get_state().get_definition());
+			}
+		}
+		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
+			command::state_transfer(state, state.local_player_nation, content, sdef);
+			impl_on_update(state);
+		};
+		seldata.on_cancel = [&](sys::state& state) {
+			impl_on_update(state);
+		};
+		state.start_state_selection(seldata);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+		auto source = state.local_player_nation;
+
+		text::add_line(state, contents, "state_transfer_desc");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_2", !((state.world.nation_get_is_great_power(source) && state.world.nation_get_is_great_power(target) && state.current_crisis != sys::crisis_type::none)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
 	}
 };
 
