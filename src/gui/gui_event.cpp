@@ -383,7 +383,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 
 	auto contents = text::create_endless_layout(delegate->internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-					delegate->base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+					delegate->base_data.data.text.font_handle, 0, text::alignment::left, delegate->black_text ? text::text_color::black : text::text_color::white, false});
 
 	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
@@ -430,7 +430,7 @@ void event_name_text::on_update(sys::state& state) noexcept {
 
 	auto contents = text::create_endless_layout(internal_layout,
 			text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-					base_data.data.text.font_handle, -15, text::alignment::center, text::text_color::black, false});
+					base_data.data.text.font_handle, -15, text::alignment::center, black_text ? text::text_color::black : text::text_color::white, false});
 
 	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
