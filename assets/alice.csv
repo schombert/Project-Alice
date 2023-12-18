@@ -320,7 +320,7 @@ num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
 exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
-set;set;;;Establece;;;;;;;;;x
+att_set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
 located_in;located in;;;;;;;;;;;;x
 the_owner_of_region;the owner of every province in;;;;;;;;;;;;x

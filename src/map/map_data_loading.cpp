@@ -397,10 +397,16 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
 	
 	create_curved_river_vertices(context, river_data, terrain_id_map);
-	std::vector<bool> borders_visited;
-	borders_visited.resize(size_x * size_y * 2, false);
-	make_coastal_borders(context.state, borders_visited);
-	make_borders(context.state, borders_visited);
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_coastal_borders(context.state, borders_visited);
+	}
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_borders(context.state, borders_visited);
+	}
 }
 
 // Called to load the terrain and province map data
