@@ -197,23 +197,22 @@ public:
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
 				state.local_player_nation = dcon::nation_id{ };
-			}
-			state.fill_unsaved_data();
-			/* Notify all clients that we loaded this specific savefile
-			please note how we haven't cleared the save_slock yet, this
-			is so we can properly give the clients an unaltered savefile. */
-			if(state.network_mode == sys::network_mode_type::host) {
-				for(const auto n : players)
-					state.world.nation_set_is_player_controlled(n, true);
-				state.local_player_nation = old_local_player_nation;
-				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-
+				/* Notify all clients that we loaded this specific savefile
+				please note how we haven't cleared the save_slock yet, this
+				is so we can properly give the clients an unaltered savefile. */
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
 				network::broadcast_to_clients(state, c);
+			}
+			state.fill_unsaved_data();
+			if(state.network_mode == sys::network_mode_type::host) {
+				for(const auto n : players)
+					state.world.nation_set_is_player_controlled(n, true);
+				state.local_player_nation = old_local_player_nation;
+				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 			}
 		}
 		state.network_state.save_slock.store(false, std::memory_order::release);
