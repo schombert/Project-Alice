@@ -1358,22 +1358,16 @@ public:
 		base_data.size.y -= 24;
 		base_data.size.x -= 10;
 		scrollable_text::on_create(state);
-		
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-
-			auto layout = text::create_endless_layout(delegate->internal_layout,
-					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::left,
-				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false});
-			technology_description(state, layout, content);
-			calibrate_scrollbar(state);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		auto layout = text::create_endless_layout(delegate->internal_layout,
+				text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
+			base_data.data.text.font_handle, 0, text::alignment::left,
+			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false});
+		technology_description(state, layout, content);
+		calibrate_scrollbar(state);
 	}
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
