@@ -413,12 +413,20 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		auto imm = state.world.national_event_get_immediate_effect(phe.e);
 		if(imm) {
 			effect_description(state, contents, imm, phe.primary_slot, trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
+			for(auto& l : delegate->internal_layout.contents) {
+				if(l.color == text::text_color::white)
+					l.color = text::text_color::black;
+			}
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto phe = std::get<event::pending_human_f_n_event>(content);
 		auto imm = state.world.free_national_event_get_immediate_effect(phe.e);
 		if(imm) {
 			effect_description(state, contents, imm, trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+			for(auto& l : delegate->internal_layout.contents) {
+				if(l.color == text::text_color::white)
+					l.color = text::text_color::black;
+			}
 		}
 	}
 
