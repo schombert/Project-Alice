@@ -1838,11 +1838,11 @@ public:
 				seldata.selectable_states.push_back(s.get_state().get_definition());
 			}
 		}
-		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
+		seldata.on_select = [this, content](sys::state& state, dcon::state_definition_id sdef) {
 			command::state_transfer(state, state.local_player_nation, content, sdef);
 			impl_on_update(state);
 		};
-		seldata.on_cancel = [&](sys::state& state) {
+		seldata.on_cancel = [this](sys::state& state) {
 			impl_on_update(state);
 		};
 		state.start_state_selection(seldata);
