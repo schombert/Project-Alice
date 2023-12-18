@@ -1833,7 +1833,7 @@ public:
 
 		sys::state_selection_data seldata;
 		seldata.single_state_select = true;
-		for(const auto s : state.world.nation_get_state_ownership(content)) {
+		for(const auto s : state.world.nation_get_state_ownership(state.local_player_nation)) {
 			if(command::can_state_transfer(state, state.local_player_nation, content, s.get_state().get_definition())) {
 				seldata.selectable_states.push_back(s.get_state().get_definition());
 			}
@@ -1859,7 +1859,7 @@ public:
 		text::add_line(state, contents, "state_transfer_desc");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_1", state.world.nation_get_is_player_controlled(target));
-		text::add_line_with_condition(state, contents, "state_transfer_explain_2", !((state.world.nation_get_is_great_power(source) && state.world.nation_get_is_great_power(target) && state.current_crisis != sys::crisis_type::none)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_2", state.current_crisis == sys::crisis_type::none);
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));

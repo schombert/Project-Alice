@@ -741,10 +741,11 @@ dec_op_explain_4;The target's opinion of a great power cannot be made worse than
 iaction_explain_5;You are a great power
 iaction_explain_6;The target is not a great power
 state_transfer_di;State transfer
+state_transfer_button;State transfer
 state_transfer_offer;$actor$ is offering to give us the states of:
 state_transfer_desc;Transfers the ownership of one state to another nation, useful for negotiations beyond the game's scope
 state_transfer_explain_1;The target nation is a player
-state_transfer_explain_2;If we're a great power: There isn't any crisis currently
+state_transfer_explain_2;There isn't any crisis currently
 state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace

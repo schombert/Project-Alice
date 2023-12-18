@@ -2328,7 +2328,7 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 		return false;
 	if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
 		return false;
-	if(state.world.nation_get_is_great_power(asker) && state.world.nation_get_is_great_power(target) && state.current_crisis != sys::crisis_type::none)
+	if(state.current_crisis != sys::crisis_type::none)
 		return false;
 	auto ol = state.world.nation_get_overlord_as_subject(asker);
 	if(state.world.overlord_get_ruler(ol))
