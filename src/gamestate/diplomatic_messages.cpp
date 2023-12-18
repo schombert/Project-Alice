@@ -379,7 +379,9 @@ void accept(sys::state& state, message const& m) {
 					province::change_province_owner(state, ab.get_province(), m.to);
 				}
 			}
-			state.province_ownership_changed.store(true, std::memory_order::acquire);
+			province::update_connected_regions(state);
+			province::update_cached_values(state);
+			nations::update_cached_values(state);
 		}
 		break;
 	}
