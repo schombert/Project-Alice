@@ -718,7 +718,7 @@ class diplomacy_action_war_subisides_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 		set_button_text(state, text::produce_simple_string(state, subsidies ? "cancel_warsubsidies_button" : "warsubsidies_button"));
 		disabled = subsidies
@@ -728,7 +728,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 		if(subsidies) {
 			command::cancel_war_subsidies(state, state.local_player_nation, target);
@@ -743,7 +743,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto target = retrieve<dcon::nation_id>(state, parent);
-		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(state.local_player_nation, target);
+		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, state.local_player_nation);
 		bool subsidies = state.world.unilateral_relationship_get_war_subsidies(rel);
 
 		if(subsidies) {
