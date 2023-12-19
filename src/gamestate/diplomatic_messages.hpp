@@ -16,7 +16,8 @@ enum class type_t : uint8_t {
 	be_crisis_primary_attacker = 5,
 	peace_offer = 6,
 	take_crisis_side_offer = 7,
-	crisis_peace_offer = 8
+	crisis_peace_offer = 8,
+	state_transfer = 9
 };
 
 struct message {
@@ -27,6 +28,7 @@ struct message {
 		dcon::war_id war;
 		dcon::peace_offer_id peace;
 		sys::crisis_join_offer crisis_offer;
+		dcon::state_definition_id state;
 
 		dtype() { }
 	} data;

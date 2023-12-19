@@ -2312,6 +2312,59 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	diplomatic_message::post(state, m);
 }
 
+void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::state_transfer;
+	p.source = asker;
+	p.data.state_transfer.target = target;
+	p.data.state_transfer.state = sid;
+	add_to_command_queue(state, p);
+}
+bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
+	/* (No state specified) To state transfer: Can't be same asker into target, both must be players. If any are great powers,
+	they can't state transfer when a crisis occurs. They can't be subjects. They can't be in a state of war */
+	if(asker == target)
+		return false;
+	if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
+		return false;
+	if(state.current_crisis != sys::crisis_type::none)
+		return false;
+	auto ol = state.world.nation_get_overlord_as_subject(asker);
+	if(state.world.overlord_get_ruler(ol))
+		return false;
+	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	if(state.world.overlord_get_ruler(ol2))
+		return false;
+	if(state.world.nation_get_is_at_war(asker) || state.world.nation_get_is_at_war(target))
+		return false;
+	//Redundant, if we're at war already, we will return false:
+	//if(military::are_at_war(state, asker, target))
+	//	return false;
+	// "Asker gives to target"
+	for(const auto ab : state.world.state_definition_get_abstract_state_membership(sid)) {
+		if(ab.get_province().get_province_ownership().get_nation() == asker) {
+			// Must be controlled by us (if not, it means there are rebels, and we don't allow
+			// state transfers on states with rebels)
+			if(ab.get_province().get_province_control().get_nation() != asker)
+				return false;
+		}
+	}
+	return true;
+}
+void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
+	if(!can_state_transfer(state, asker, target, sid))
+		return;
+
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
+	m.to = target;
+	m.from = asker;
+	m.type = diplomatic_message::type::state_transfer;
+	m.data.state = sid;
+	diplomatic_message::post(state, m);
+}
+
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4306,30 +4359,16 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-
-	// Mirror the calls done by the client
-	std::vector<dcon::nation_id> players;
-	for(const auto n : state.world.in_nation)
-		if(n.get_is_player_controlled())
-			players.push_back(n);
-	dcon::nation_id old_local_player_nation = state.local_player_nation;
-	// Reload the current game state
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sizeof_save_section(state)]);
-	write_save_section(buffer.get(), state);
-	state.preload();
-	read_save_section(buffer.get(), buffer.get() + sizeof_save_section(state), state);
-	state.local_player_nation = dcon::nation_id{};
-	state.fill_unsaved_data();
-	for(const auto n : players)
-		state.world.nation_set_is_player_controlled(n, true);
-	state.local_player_nation = old_local_player_nation;
-	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	state.selected_armies.clear();
 	state.selected_armies.clear();
 	state.selected_navies.clear();
+	/* And clear the save stuff */
+	state.network_state.current_save_buffer.reset();
+	state.network_state.current_save_length = 0;
 	/* Clear AI data */
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
@@ -4653,6 +4692,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::toggle_immigrator_province:
 		return can_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
 
+	case command_type::state_transfer:
+		return can_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5007,6 +5048,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_immigrator_province:
 		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::state_transfer:
+		execute_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
 		break;
 	case command_type::release_subject:
 		execute_release_subject(state, c.source, c.data.diplo_action.target);

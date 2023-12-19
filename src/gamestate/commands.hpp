@@ -97,6 +97,8 @@ enum class command_type : uint8_t {
 	toggle_hunt_rebels = 88,
 	toggle_select_province = 89,
 	toggle_immigrator_province = 90,
+	state_transfer = 91,
+	release_subject = 92,
 
 	// network
 	notify_player_ban = 106,
@@ -111,7 +113,6 @@ enum class command_type : uint8_t {
 	notify_pause_game = 115, // visual aid mostly
 	advance_tick = 120,
 	chat_message = 121,
-	release_subject = 122,
 
 	// console cheats
 	c_switch_nation = 128,
@@ -268,6 +269,11 @@ struct message_data {
 	dcon::nation_id from;
 	diplomatic_message::type type;
 	bool accept;
+};
+
+struct state_transfer_data {
+	dcon::nation_id target;
+	dcon::state_definition_id state;
 };
 
 struct call_to_arms_data {
@@ -462,6 +468,7 @@ struct payload {
 		pending_human_f_p_event_data pending_human_f_p_event;
 		cb_fabrication_data cb_fabrication;
 		message_data message;
+		state_transfer_data state_transfer;
 		call_to_arms_data call_to_arms;
 		new_war_data new_war;
 		new_war_goal_data new_war_goal;
@@ -794,6 +801,9 @@ bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_vie
 
 void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
+bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 
 void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target);
