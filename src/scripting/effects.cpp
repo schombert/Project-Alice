@@ -2375,6 +2375,7 @@ uint32_t ef_infrastructure(EFFECT_PARAMTERS) {
 	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value),
 		0,
 		int32_t(ws.world.nation_get_max_building_level(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)), economy::province_building_type::railroad))));
+	ws.railroad_built.store(true, std::memory_order::acquire);
 	return 0;
 }
 uint32_t ef_infrastructure_state(EFFECT_PARAMTERS) {
@@ -2384,6 +2385,7 @@ uint32_t ef_infrastructure_state(EFFECT_PARAMTERS) {
 			0,
 			int32_t(ws.world.nation_get_max_building_level(ws.world.province_get_nation_from_province_ownership(p), economy::province_building_type::railroad))));
 	});
+	ws.railroad_built.store(true, std::memory_order::acquire);
 	return 0;
 }
 
@@ -4578,6 +4580,7 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS)
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
 			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
+	ws.railroad_built.store(true, std::memory_order::acquire);
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) {
@@ -4587,21 +4590,26 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) 
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
 			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
+	ws.railroad_built.store(true, std::memory_order::acquire);
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f) {
 			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
+			ws.railroad_built.store(true, std::memory_order::acquire);
+		}
 	}
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f) {
 			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
+			ws.railroad_built.store(true, std::memory_order::acquire);
+		}
 	}
 	return 0;
 }

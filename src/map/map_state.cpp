@@ -306,6 +306,12 @@ void map_state::update(sys::state& state) {
 
 	update_unit_arrows(state, map_data);
 
+	// Update railroads, only if railroads are being built and we have 'em enabled
+	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acq_rel)) {
+		state.map_state.map_data.update_railroad_paths(state);
+		state.railroad_built.store(false, std::memory_order::acquire);
+	}
+
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
 	last_update_time = now;

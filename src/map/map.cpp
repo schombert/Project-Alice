@@ -491,13 +491,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Draw the railroads
-	glActiveTexture(GL_TEXTURE14);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
-	load_shader(shaders[shader_railroad_line]);
-	glUniform1f(4, 0.0001f);
-	glBindVertexArray(vao_array[vo_railroad]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
-	glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
+	if(!railroad_vertices.empty()) {
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
+		load_shader(shaders[shader_railroad_line]);
+		glUniform1f(4, 0.0002f);
+		glBindVertexArray(vao_array[vo_railroad]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
+	}
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -1378,8 +1380,6 @@ void display_data::load_map(sys::state& state) {
 		test_color[i] = 255;
 	}
 	set_province_color(test_color);
-
-	update_railroad_paths(state);
 }
 
 } // namespace map

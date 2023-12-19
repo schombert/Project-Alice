@@ -3808,6 +3808,7 @@ void resolve_constructions(sys::state& state) {
 							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
 							sys::message_base_type::rr_complete
 						});
+						ws.railroad_built.store(true, std::memory_order::acquire);
 						break;
 					default:
 						break;
