@@ -17,6 +17,7 @@
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 #include "math_fns.hpp"
+#include "prng.hpp"
 
 namespace map {
 
@@ -1077,12 +1078,24 @@ void display_data::update_railroad_paths(sys::state& state) {
 		auto const p2 = adj.get_connected_provinces(1);
 		if(p1.get_building_level(economy::province_building_type::railroad) == 0 || p2.get_building_level(economy::province_building_type::railroad) == 0)
 			continue;
+		auto const m1 = p1.get_mid_point();
+		auto const m2 = p2.get_mid_point();
+
+		if(adj.id.index() % 2 == 0 && glm::distance(m1, m2) < 100.f)
+			continue;
+
 		std::vector<glm::vec2> railroad;
-		railroad.emplace_back(p1.get_mid_point());
-		auto mid = ((p1.get_mid_point() + p2.get_mid_point()) / glm::vec2(2.f, 2.f));
-		auto perpendicular = glm::normalize(p2.get_mid_point() - p1.get_mid_point());
-		mid += glm::vec2(-perpendicular.y, perpendicular.x);
-		railroad.emplace_back(mid);
+		railroad.emplace_back(m1);
+		auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
+		const auto rp = rng::get_random_pair(state, adj.id.index(), p2.id.index() ^ p1.id.index());
+		const float rf1 = float(rng::reduce(uint32_t(rp.high), 8192)) / (8192.f * 100.f);
+		const float rf2 = float(rng::reduce(uint32_t(rp.low), 8192)) / (8192.f * 100.f);
+		//
+		auto const perpendicular_1 = glm::vec2(rf1, rf2);
+		auto const perpendicular_2 = glm::vec2(rf2, rf1);
+		//
+		railroad.emplace_back(mid + glm::vec2(-perpendicular_1.y, perpendicular_1.x));
+		railroad.emplace_back(mid - glm::vec2(-perpendicular_2.y, perpendicular_2.x));
 		railroad.emplace_back(p2.get_mid_point());
 		if(!railroad.empty())
 			railroads.push_back(railroad);
@@ -1119,7 +1132,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 			} else {
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
-			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), 4, distance);
+			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = railroad[i];
 		}
