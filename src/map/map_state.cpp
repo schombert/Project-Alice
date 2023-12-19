@@ -83,11 +83,11 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
-	if(map_data.unit_arrow_vertices.size() > 0) {
+	if(!map_data.unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {

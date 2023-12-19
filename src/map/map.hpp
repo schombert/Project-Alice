@@ -138,17 +138,17 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses);
+	void update_railroad_paths(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
-
-	uint32_t size_x;
-	uint32_t size_y;
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b> border_vertices;
 	std::vector<textured_line_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
+	std::vector<textured_line_vertex> railroad_vertices;
+	std::vector<GLint> railroad_starts;
+	std::vector<GLsizei> railroad_counts;
 	std::vector<textured_line_vertex_b> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
@@ -165,55 +165,62 @@ public:
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
 
-	// Meshes
-	GLuint land_vao = 0;
-	GLuint land_vbo = 0;
-	GLuint border_vao = 0;
-	GLuint border_vbo = 0;
-	GLuint river_vao = 0;
-	GLuint river_vbo = 0;
-	GLuint unit_arrow_vao = 0;
-	GLuint unit_arrow_vbo = 0;
-	GLuint text_line_vao = 0;
-	GLuint text_line_vbo = 0;
-	GLuint drag_box_vao = 0;
-	GLuint drag_box_vbo = 0;
+	uint32_t size_x;
+	uint32_t size_y;
 	uint32_t land_vertex_count = 0;
-	GLuint coastal_vao = 0;
-	GLuint coastal_border_vbo = 0;
 
+	// Meshes
+	static constexpr uint32_t vo_land = 0;
+	static constexpr uint32_t vo_border = 1;
+	static constexpr uint32_t vo_river = 2;
+	static constexpr uint32_t vo_unit_arrow = 3;
+	static constexpr uint32_t vo_text_line = 4;
+	static constexpr uint32_t vo_drag_box = 5;
+	static constexpr uint32_t vo_coastal = 6;
+	static constexpr uint32_t vo_railroad = 7;
+	static constexpr uint32_t vo_count = 8;
+	GLuint vao_array[vo_count] = { 0 };
+	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
-	GLuint provinces_texture_handle = 0;
-	GLuint terrain_texture_handle = 0;
-	GLuint terrainsheet_texture_handle = 0;
-	GLuint water_normal = 0;
-	GLuint colormap_water = 0;
-	GLuint colormap_terrain = 0;
-	GLuint colormap_political = 0;
-	GLuint overlay = 0;
-	GLuint province_color = 0;
-	GLuint province_highlight = 0;
-	GLuint stripes_texture = 0;
-	GLuint river_body_texture = 0;
-	GLuint national_border_texture = 0;
-	GLuint state_border_texture = 0;
-	GLuint prov_border_texture = 0;
-	GLuint imp_border_texture = 0;
-	GLuint unit_arrow_texture = 0;
-	GLuint province_fow = 0;
-	GLuint coastal_border_texture = 0;
-	GLuint diag_border_identifier = 0;
-
+	static constexpr uint32_t texture_provinces = 0;
+	static constexpr uint32_t texture_terrain = 1;
+	static constexpr uint32_t texture_water_normal = 2;
+	static constexpr uint32_t texture_colormap_water = 3;
+	static constexpr uint32_t texture_colormap_terrain = 4;
+	static constexpr uint32_t texture_colormap_political = 5;
+	static constexpr uint32_t texture_overlay = 6;
+	static constexpr uint32_t texture_province_highlight = 7;
+	static constexpr uint32_t texture_stripes = 8;
+	static constexpr uint32_t texture_river_body = 9;
+	static constexpr uint32_t texture_national_border = 10;
+	static constexpr uint32_t texture_state_border = 11;
+	static constexpr uint32_t texture_prov_border = 12;
+	static constexpr uint32_t texture_imp_border = 13;
+	static constexpr uint32_t texture_unit_arrow = 14;
+	static constexpr uint32_t texture_province_fow = 15;
+	static constexpr uint32_t texture_coastal_border = 16;
+	static constexpr uint32_t texture_diag_border_identifier = 17;
+	static constexpr uint32_t texture_railroad = 18;
+	static constexpr uint32_t texture_count = 19;
+	GLuint textures[texture_count] = { 0 };
+	// Texture Array
+	static constexpr uint32_t texture_array_terrainsheet = 0;
+	static constexpr uint32_t texture_array_province_color = 1;
+	static constexpr uint32_t texture_array_count = 2;
+	GLuint texture_arrays[texture_array_count] = { 0 };
 	// Shaders
-	GLuint terrain_shader = 0;
-	GLuint line_border_shader = 0;
-	GLuint legacy_line_border_shader = 0;
-	GLuint textured_line_shader = 0;
-	GLuint legacy_line_river_shader = 0;
-	GLuint line_unit_arrow_shader = 0;
-	GLuint text_line_shader = 0;
-	GLuint drag_box_shader = 0;
-	GLuint borders_shader = 0;
+	static constexpr uint32_t shader_terrain = 0;
+	static constexpr uint32_t shader_line_border = 1;
+	static constexpr uint32_t shader_legacy_line_border = 2;
+	static constexpr uint32_t shader_textured_line = 3;
+	static constexpr uint32_t shader_legacy_line_river = 4;
+	static constexpr uint32_t shader_line_unit_arrow = 5;
+	static constexpr uint32_t shader_text_line = 6;
+	static constexpr uint32_t shader_drag_box = 7;
+	static constexpr uint32_t shader_borders = 8;
+	static constexpr uint32_t shader_railroad_line = 9;
+	static constexpr uint32_t shader_count = 10;
+	GLuint shaders[shader_count] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

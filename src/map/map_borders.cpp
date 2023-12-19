@@ -38,50 +38,6 @@ struct border_direction {
 	information right;
 };
 
-// Create a new vertices to make a line segment
-void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir, std::vector<curved_line_vertex>& line_vertices, std::vector<border_direction>& current_row, float offset) {
-	glm::vec2 direction = normalize(offset2 - offset1);
-	glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
-
-	// Offset the map position
-	map_pos += glm::vec2(offset);
-	// Get the map coordinates
-	glm::vec2 pos1 = offset1 + map_pos;
-	glm::vec2 pos2 = offset2 + map_pos;
-
-	// Rescale the coordinate to 0-1
-	pos1 /= map_size;
-	pos2 /= map_size;
-
-	int32_t border_index = int32_t(line_vertices.size());
-	// First vertex of the line segment
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	// Second vertex of the line segment
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-
-	border_direction::information direction_information(border_index, border_id);
-	switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
-	}
-};
-
 // Will check if there is an border there already and extend if it can
 bool extend_if_possible(uint32_t x, int32_t border_id, direction dir, std::vector<border_direction>& last_row, std::vector<border_direction>& current_row, glm::vec2 map_size, std::vector<curved_line_vertex>& border_vertices) {
 	if((dir & direction::LEFT) != 0 && x == 0)
