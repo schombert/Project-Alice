@@ -197,22 +197,23 @@ public:
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
 				state.local_player_nation = dcon::nation_id{ };
-				/* Notify all clients that we loaded this specific savefile
-				please note how we haven't cleared the save_slock yet, this
-				is so we can properly give the clients an unaltered savefile. */
+				/* Save the buffer before we fill the unsaved data */
+				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+				state.fill_unsaved_data();
+				for(const auto n : players)
+					state.world.nation_set_is_player_controlled(n, true);
+				state.local_player_nation = old_local_player_nation;
+				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+				/* Now send the saved buffer before filling the unsaved data to the clients
+				henceforth. */
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_to_clients(state, c);
-			}
-			state.fill_unsaved_data();
-			if(state.network_mode == sys::network_mode_type::host) {
-				for(const auto n : players)
-					state.world.nation_set_is_player_controlled(n, true);
-				state.local_player_nation = old_local_player_nation;
-				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
+			} else {
+				state.fill_unsaved_data();
 			}
 		}
 		state.network_state.save_slock.store(false, std::memory_order::release);

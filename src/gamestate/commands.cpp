@@ -4313,6 +4313,9 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.selected_armies.clear();
 	state.selected_armies.clear();
 	state.selected_navies.clear();
+	/* And clear the save stuff */
+	state.network_state.current_save_buffer.reset();
+	state.network_state.current_save_length = 0;
 	/* Clear AI data */
 	for(const auto n : state.world.in_nation)
 		if(state.world.nation_get_is_player_controlled(n))
