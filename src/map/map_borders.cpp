@@ -949,13 +949,10 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
 
-
-
 		for(auto i = river.size() - 1; i-- > 0;) {
 			if(!river[i].keep && i % 3 != 0) {
 				continue; // skip
 			}
-
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
 			if(i > 0) {
@@ -982,7 +979,6 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = glm::vec2(river[i].x, river[i].y);
 		}
-
 		river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
 	}
 }

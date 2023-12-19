@@ -495,7 +495,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
 		load_shader(shaders[shader_railroad_line]);
-		glUniform1f(4, 0.0002f);
+		glUniform1f(4, 0.0005f);
+		glUniform1f(6, 0.0f);
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
@@ -1075,69 +1076,68 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 	}
 }
 
-void create_railroad_network(sys::state& state, std::vector<glm::vec2>& railroad, std::vector<bool>& visited, dcon::province_id prov) {
-	const auto fat_id = dcon::fatten(state.world, prov);
-	for(const auto adj : fat_id.get_province_adjacency_as_connected_provinces()) {
-		auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == prov ? 1 : 0);
-		if(other.get_building_level(economy::province_building_type::railroad) == 0)
-			continue;
-		if(visited[other.id.index()])
-			continue;
-		visited[other.id.index()] = true;
-		railroad.push_back(other.get_mid_point());
-		create_railroad_network(state, railroad, visited, other.id);
+static void extend_railroad_network(sys::state& state, std::vector<glm::vec2>& railroad, std::vector<bool>& marked, dcon::province_adjacency_id adj, dcon::province_id prov) {
+	if(marked[adj.index()])
+		return;
+	marked[adj.index()] = true;
+	auto fat_id = dcon::fatten(state.world, adj);
+	auto const p1 = fat_id.get_connected_provinces(0);
+	auto const p2 = fat_id.get_connected_provinces(1);
+	assert(p1.is_valid() && p2.is_valid());
+	if(p1.get_building_level(economy::province_building_type::railroad) > 0
+	&& p2.get_building_level(economy::province_building_type::railroad) > 0) {
+		/*
+		for(const auto a : p1.get_province_adjacency()) {
+			extend_railroad_network(state, railroad, marked, a, p1.id);
+			break;
+		}
+		if(p1.id != prov)
+			railroad.emplace_back(p1.get_mid_point());
+		if(p2.id != prov)
+			railroad.emplace_back(p2.get_mid_point());
+		for(const auto a : p2.get_province_adjacency()) {
+			extend_railroad_network(state, railroad, marked, a, p2.id);
+			break;
+		}
+		*/
+		if(p1.id != prov)
+			railroad.emplace_back(p1.get_mid_point());
+		if(p2.id != prov)
+			railroad.emplace_back(p2.get_mid_point());
 	}
 }
 
 void display_data::update_railroad_paths(sys::state& state) {
-	railroad_vertices.clear();
-	railroad_starts.clear();
-	railroad_counts.clear();
-
-	//auto n = state.world.province_size();
-	//std::vector<bool> visited((n * n - n) / 2, false);
-	std::vector<bool> visited(state.world.province_size(), false);
+	// Count number of adjacencies that have infrastructure
+	std::vector<bool> marked(state.world.province_adjacency_size(), false);
 	std::vector<std::vector<glm::vec2>> railroads;
-	for(const auto p : state.world.in_province) {
-		if(p.get_building_level(economy::province_building_type::railroad) == 0)
-			continue;
-		if(visited[p.id.index()])
-			continue;
-		visited[p.id.index()] = true;
-
-		// Only apply "visited" to this specific network
-		std::vector<bool> local_visited(state.world.province_size(), false);
-		local_visited[p.id.index()] = true;
+	for(const auto adj : state.world.in_province_adjacency) {
 		std::vector<glm::vec2> railroad;
-		railroad.push_back(p.get_mid_point());
-		create_railroad_network(state, railroad, local_visited, p.id);
-		// Needs atleast 2 points for making a new network
+		extend_railroad_network(state, railroad, marked, adj, dcon::province_id{});
 		if(railroad.size() >= 2)
 			railroads.push_back(std::move(railroad));
 	}
 
+	railroad_vertices.clear();
+	railroad_starts.clear();
+	railroad_counts.clear();
 	for(const auto& railroad : railroads) {
 		railroad_starts.push_back(GLint(railroad_vertices.size()));
 
-		glm::vec2 current_pos = glm::vec2(railroad.back().x, railroad.back().y);
-		glm::vec2 next_pos = put_in_local(glm::vec2(railroad[railroad.size() - 2].x, railroad[railroad.size() - 2].y), current_pos, float(size_x));
+		glm::vec2 current_pos = railroad.back();
+		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-		float distance = 0.0f;
-
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
-		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
-
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+		float distance = 0.0f;
 		for(auto i = railroad.size() - 1; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
-			next_pos = put_in_local(glm::vec2(railroad[i].x, railroad[i].y), current_pos, float(size_x));
+			next_pos = put_in_local(railroad[i], current_pos, float(size_x));
 			if(i > 0) {
 				auto nexti = i - 1;
-				while(nexti % 3 != 0) {
-					nexti--;
-				}
-				glm::vec2 next_next_pos = put_in_local(glm::vec2(railroad[nexti].x, railroad[nexti].y), next_pos, float(size_x));
+				glm::vec2 next_next_pos = put_in_local(railroad[nexti], next_pos, float(size_x));
 				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
 				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
 				glm::vec2 temp = a_per + b_per;
@@ -1152,17 +1152,36 @@ void display_data::update_railroad_paths(sys::state& state) {
 			} else {
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
-			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), 4, distance);
+			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
 			prev_perpendicular = -1.0f * next_perpendicular;
-			current_pos = glm::vec2(railroad[i].x, railroad[i].y);
+			current_pos = railroad[i];
 		}
+		/*
+		glm::vec2 current_pos = railroad.back();
+		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto current_norm_pos = current_pos / glm::vec2(size_x, size_y);
+		auto next_norm_pos = next_pos / glm::vec2(size_x, size_y);
+		railroad_vertices.emplace_back(textured_line_vertex{ current_norm_pos, +start_normal, 0.0f, 0.f });//C
+		railroad_vertices.emplace_back(textured_line_vertex{ current_norm_pos, -start_normal, 1.0f, 0.f });//D
+		glm::vec2 next_perpendicular = glm::normalize(current_pos - next_pos);
+		//add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
+		//add_tl_segment_buffer(railroad_vertices, current_pos, next_pos, next_perpendicular, float(size_x), float(size_y), distance);
+		auto d = glm::abs(current_norm_pos - next_norm_pos);
+		d.x *= 2.0f;
+		float distance = 0.5f * glm::length(d);
+		railroad_vertices.emplace_back(textured_line_vertex{ next_norm_pos, +start_normal, 0.0f, distance });//C
+		railroad_vertices.emplace_back(textured_line_vertex{ next_norm_pos, -start_normal, 1.0f, distance });//D
+		*/
 		railroad_counts.push_back(GLsizei(railroad_vertices.size() - railroad_starts.back()));
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
-	assert(!railroad_vertices.empty());
-	glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * railroad_vertices.size(), railroad_vertices.data(), GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if(!railroad_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * railroad_vertices.size(), &railroad_vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
 }
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
@@ -1247,15 +1266,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-
-				// First vertex of the line segment
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
-				// Second vertex of the line segment
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, size);
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
 			}
 
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
@@ -1269,11 +1279,11 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			}
 		}
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 	if(text_line_vertices.size() > 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
@@ -1383,8 +1393,3 @@ void display_data::load_map(sys::state& state) {
 }
 
 } // namespace map
-
-//static_assert(sizeof(std::pair<dcon::text_key, dcon::text_sequence_id>) == sizeof(dcon::text_key) + sizeof(dcon::text_sequence_id));
-//static_assert(sizeof(std::pair<text::text_sequence, dcon::text_sequence_id> == sizeof(dcon::text_sequence) + sizeof(dcon::text_sequence_id)));
-//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
-//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
