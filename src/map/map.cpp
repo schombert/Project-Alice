@@ -752,7 +752,7 @@ void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2
 	constexpr float type_filled = 2.f;
 	constexpr float type_unfilled = 0.f;
 	constexpr float type_end = 3.f;
-	glm::vec2 curr_dir = normalize(end - start);
+	glm::vec2 curr_dir = glm::normalize(end - start);
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 
@@ -878,7 +878,6 @@ void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec
 void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance) {
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
-
 	auto d = start - end;
 	d.x *= 2.0f;
 	distance += 0.5f * glm::length(d);
@@ -935,7 +934,6 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 		auto start_point = bpoint(t_start);
 		auto end_point = bpoint(t_end);
 
-		
 		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
 	}
 }
@@ -995,10 +993,9 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-
+		
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
-
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(duplicates::get_navy_location(state, path[i]), current_pos, size_x);
@@ -1012,7 +1009,6 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 					next_perpendicular = -a_per;
 				} else {
 					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-
 					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
 						next_perpendicular *= -1.0f;
 					}
@@ -1039,13 +1035,11 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
-
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{0,0}, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
-
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
@@ -1059,7 +1053,6 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 					next_perpendicular = -a_per;
 				} else {
 					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-
 					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
 						next_perpendicular *= -1.0f;
 					}
@@ -1084,26 +1077,19 @@ static void extend_railroad_network(sys::state& state, std::vector<glm::vec2>& r
 	auto const p1 = fat_id.get_connected_provinces(0);
 	auto const p2 = fat_id.get_connected_provinces(1);
 	assert(p1.is_valid() && p2.is_valid());
-	if(p1.get_building_level(economy::province_building_type::railroad) > 0
-	&& p2.get_building_level(economy::province_building_type::railroad) > 0) {
-		/*
-		for(const auto a : p1.get_province_adjacency()) {
-			extend_railroad_network(state, railroad, marked, a, p1.id);
-			break;
-		}
-		if(p1.id != prov)
+	assert(p1.id != p2.id);
+	if(p1.get_building_level(economy::province_building_type::railroad) >= 0
+	&& p2.get_building_level(economy::province_building_type::railroad) >= 0) {
+		//if(auto const it = p1.get_province_adjacency(); it.begin() != it.end()) {
+		//	extend_railroad_network(state, railroad, marked, *it.begin(), p1.id);
+		//}
+		//if(p1.id != prov)
 			railroad.emplace_back(p1.get_mid_point());
-		if(p2.id != prov)
+		//if(p2.id != prov)
 			railroad.emplace_back(p2.get_mid_point());
-		for(const auto a : p2.get_province_adjacency()) {
-			extend_railroad_network(state, railroad, marked, a, p2.id);
-			break;
-		}
-		*/
-		if(p1.id != prov)
-			railroad.emplace_back(p1.get_mid_point());
-		if(p2.id != prov)
-			railroad.emplace_back(p2.get_mid_point());
+		//if(auto const it = p2.get_province_adjacency(); it.begin() != it.end()) {
+		//	extend_railroad_network(state, railroad, marked, *it.begin(), p2.id);
+		//}
 	}
 }
 
@@ -1114,8 +1100,8 @@ void display_data::update_railroad_paths(sys::state& state) {
 	for(const auto adj : state.world.in_province_adjacency) {
 		std::vector<glm::vec2> railroad;
 		extend_railroad_network(state, railroad, marked, adj, dcon::province_id{});
-		if(railroad.size() >= 2)
-			railroads.push_back(std::move(railroad));
+		if(!railroad.empty())
+			railroads.push_back(railroad);
 	}
 
 	railroad_vertices.clear();
@@ -1123,7 +1109,6 @@ void display_data::update_railroad_paths(sys::state& state) {
 	railroad_counts.clear();
 	for(const auto& railroad : railroads) {
 		railroad_starts.push_back(GLint(railroad_vertices.size()));
-
 		glm::vec2 current_pos = railroad.back();
 		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
@@ -1136,8 +1121,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(railroad[i], current_pos, float(size_x));
 			if(i > 0) {
-				auto nexti = i - 1;
-				glm::vec2 next_next_pos = put_in_local(railroad[nexti], next_pos, float(size_x));
+				glm::vec2 next_next_pos = put_in_local(railroad[i - 1], next_pos, float(size_x));
 				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
 				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
 				glm::vec2 temp = a_per + b_per;
@@ -1145,9 +1129,8 @@ void display_data::update_railroad_paths(sys::state& state) {
 					next_perpendicular = -a_per;
 				} else {
 					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular))
 						next_perpendicular *= -1.0f;
-					}
 				}
 			} else {
 				next_perpendicular = glm::normalize(current_pos - next_pos);
@@ -1156,6 +1139,7 @@ void display_data::update_railroad_paths(sys::state& state) {
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = railroad[i];
 		}
+
 		/*
 		glm::vec2 current_pos = railroad.back();
 		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
