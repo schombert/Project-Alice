@@ -491,7 +491,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 
 	// Draw the railroads
-	if(!railroad_vertices.empty()) {
+	if(zoom > 5 && !railroad_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
 		load_shader(shaders[shader_railroad_line]);
@@ -1069,37 +1069,50 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 	}
 }
 
-static void extend_railroad_network(sys::state& state, std::vector<glm::vec2>& railroad, std::vector<bool>& marked, dcon::province_adjacency_id adj, dcon::province_id prov) {
+static bool extend_railroad_network(sys::state& state, std::vector<glm::vec2>& railroad, std::vector<bool>& marked, std::vector<bool>& provinces_marked, dcon::province_adjacency_id adj) {
 	if(marked[adj.index()])
-		return;
+		return false;
 	marked[adj.index()] = true;
 	auto fat_id = dcon::fatten(state.world, adj);
 	auto const p1 = fat_id.get_connected_provinces(0);
 	auto const p2 = fat_id.get_connected_provinces(1);
-	assert(p1.is_valid() && p2.is_valid());
-	assert(p1.id != p2.id);
-	if(p1.get_building_level(economy::province_building_type::railroad) >= 0
-	&& p2.get_building_level(economy::province_building_type::railroad) >= 0) {
-		//if(auto const it = p1.get_province_adjacency(); it.begin() != it.end()) {
-		//	extend_railroad_network(state, railroad, marked, *it.begin(), p1.id);
-		//}
-		//if(p1.id != prov)
+	if(p1.get_building_level(economy::province_building_type::railroad) > 0
+	&& p2.get_building_level(economy::province_building_type::railroad) > 0) {
+		/*if(!provinces_marked[p1.id.index()]) {
 			railroad.emplace_back(p1.get_mid_point());
-		//if(p2.id != prov)
+			provinces_marked[p1.id.index()] = true;
+			for(const auto a : p1.get_province_adjacency()) {
+				if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
+					break;
+			}
+		}
+		if(!provinces_marked[p2.id.index()]) {
 			railroad.emplace_back(p2.get_mid_point());
-		//if(auto const it = p2.get_province_adjacency(); it.begin() != it.end()) {
-		//	extend_railroad_network(state, railroad, marked, *it.begin(), p2.id);
-		//}
+			provinces_marked[p2.id.index()] = true;
+			for(const auto a : p2.get_province_adjacency()) {
+				if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
+					break;
+			}
+		}*/
+		railroad.emplace_back(p2.get_mid_point());
+		railroad.emplace_back(p1.get_mid_point());
+		for(const auto a : p1.get_province_adjacency()) {
+			if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
+				return true;
+		}
+		return true;
 	}
+	return false;
 }
 
 void display_data::update_railroad_paths(sys::state& state) {
 	// Count number of adjacencies that have infrastructure
-	std::vector<bool> marked(state.world.province_adjacency_size(), false);
+	std::vector<bool> marked(state.world.province_adjacency_size() + 1, false);
 	std::vector<std::vector<glm::vec2>> railroads;
 	for(const auto adj : state.world.in_province_adjacency) {
+		std::vector<bool> provinces_marked(state.world.province_size() + 1, false);
 		std::vector<glm::vec2> railroad;
-		extend_railroad_network(state, railroad, marked, adj, dcon::province_id{});
+		extend_railroad_network(state, railroad, marked, provinces_marked, adj);
 		if(!railroad.empty())
 			railroads.push_back(railroad);
 	}
@@ -1135,35 +1148,18 @@ void display_data::update_railroad_paths(sys::state& state) {
 			} else {
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
-			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
+			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), 4, distance);
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = railroad[i];
 		}
-
-		/*
-		glm::vec2 current_pos = railroad.back();
-		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
-		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
-		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
-		auto current_norm_pos = current_pos / glm::vec2(size_x, size_y);
-		auto next_norm_pos = next_pos / glm::vec2(size_x, size_y);
-		railroad_vertices.emplace_back(textured_line_vertex{ current_norm_pos, +start_normal, 0.0f, 0.f });//C
-		railroad_vertices.emplace_back(textured_line_vertex{ current_norm_pos, -start_normal, 1.0f, 0.f });//D
-		glm::vec2 next_perpendicular = glm::normalize(current_pos - next_pos);
-		//add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
-		//add_tl_segment_buffer(railroad_vertices, current_pos, next_pos, next_perpendicular, float(size_x), float(size_y), distance);
-		auto d = glm::abs(current_norm_pos - next_norm_pos);
-		d.x *= 2.0f;
-		float distance = 0.5f * glm::length(d);
-		railroad_vertices.emplace_back(textured_line_vertex{ next_norm_pos, +start_normal, 0.0f, distance });//C
-		railroad_vertices.emplace_back(textured_line_vertex{ next_norm_pos, -start_normal, 1.0f, distance });//D
-		*/
 		railroad_counts.push_back(GLsizei(railroad_vertices.size() - railroad_starts.back()));
+		assert(railroad_counts.back() > 1);
 	}
+	assert(railroad_counts.size() == railroad_starts.size());
 
 	if(!railroad_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * railroad_vertices.size(), &railroad_vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * railroad_vertices.size(), railroad_vertices.data(), GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }
