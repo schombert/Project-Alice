@@ -1068,51 +1068,22 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		}
 	}
 }
-
-static bool extend_railroad_network(sys::state& state, std::vector<glm::vec2>& railroad, std::vector<bool>& marked, std::vector<bool>& provinces_marked, dcon::province_adjacency_id adj) {
-	if(marked[adj.index()])
-		return false;
-	marked[adj.index()] = true;
-	auto fat_id = dcon::fatten(state.world, adj);
-	auto const p1 = fat_id.get_connected_provinces(0);
-	auto const p2 = fat_id.get_connected_provinces(1);
-	if(p1.get_building_level(economy::province_building_type::railroad) > 0
-	&& p2.get_building_level(economy::province_building_type::railroad) > 0) {
-		/*if(!provinces_marked[p1.id.index()]) {
-			railroad.emplace_back(p1.get_mid_point());
-			provinces_marked[p1.id.index()] = true;
-			for(const auto a : p1.get_province_adjacency()) {
-				if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
-					break;
-			}
-		}
-		if(!provinces_marked[p2.id.index()]) {
-			railroad.emplace_back(p2.get_mid_point());
-			provinces_marked[p2.id.index()] = true;
-			for(const auto a : p2.get_province_adjacency()) {
-				if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
-					break;
-			}
-		}*/
-		railroad.emplace_back(p2.get_mid_point());
-		railroad.emplace_back(p1.get_mid_point());
-		for(const auto a : p1.get_province_adjacency()) {
-			if(extend_railroad_network(state, railroad, marked, provinces_marked, a))
-				return true;
-		}
-		return true;
-	}
-	return false;
-}
-
 void display_data::update_railroad_paths(sys::state& state) {
 	// Count number of adjacencies that have infrastructure
 	std::vector<bool> marked(state.world.province_adjacency_size() + 1, false);
 	std::vector<std::vector<glm::vec2>> railroads;
 	for(const auto adj : state.world.in_province_adjacency) {
-		std::vector<bool> provinces_marked(state.world.province_size() + 1, false);
+		auto const p1 = adj.get_connected_provinces(0);
+		auto const p2 = adj.get_connected_provinces(1);
+		if(p1.get_building_level(economy::province_building_type::railroad) == 0 || p2.get_building_level(economy::province_building_type::railroad) == 0)
+			continue;
 		std::vector<glm::vec2> railroad;
-		extend_railroad_network(state, railroad, marked, provinces_marked, adj);
+		railroad.emplace_back(p1.get_mid_point());
+		auto mid = ((p1.get_mid_point() + p2.get_mid_point()) / glm::vec2(2.f, 2.f));
+		auto perpendicular = glm::normalize(p2.get_mid_point() - p1.get_mid_point());
+		mid += glm::vec2(-perpendicular.y, perpendicular.x);
+		railroad.emplace_back(mid);
+		railroad.emplace_back(p2.get_mid_point());
 		if(!railroad.empty())
 			railroads.push_back(railroad);
 	}
