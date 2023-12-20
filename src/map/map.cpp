@@ -496,7 +496,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
 		load_shader(shaders[shader_railroad_line]);
-		glUniform1f(4, 0.0005f);
+		glUniform1f(4, 0.0001f);
 		glUniform1f(6, 0.0f);
 		glBindVertexArray(vao_array[vo_railroad]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
