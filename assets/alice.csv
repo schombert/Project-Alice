@@ -1358,5 +1358,8 @@ aml_rec_s2;All used
 aml_rec_s3;None
 is_primary_culture;§Y$NAME$§W is primary culture.
 is_primary_religion;§Y$NAME$§W is primary religion.
+tt_can_use_nation;The conditions needed to allow the use of this wargoal:
+et_on_add;The effects executed from adding this wargoal to a war:
+et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
 alice_no_possible_units;No possible units can be built, and no units are in construction.
 ;;;;;;;;;;;;;x
