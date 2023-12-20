@@ -1069,37 +1069,78 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		}
 	}
 }
-void display_data::update_railroad_paths(sys::state& state) {
-	// Count number of adjacencies that have infrastructure
-	std::vector<bool> marked(state.world.province_adjacency_size() + 1, false);
-	std::vector<std::vector<glm::vec2>> railroads;
-	for(const auto adj : state.world.in_province_adjacency) {
-		auto const p1 = adj.get_connected_provinces(0);
-		auto const p2 = adj.get_connected_provinces(1);
-		if(p1.get_building_level(economy::province_building_type::railroad) == 0 || p2.get_building_level(economy::province_building_type::railroad) == 0)
-			continue;
-		auto const m1 = p1.get_mid_point();
-		auto const m2 = p2.get_mid_point();
 
-		if(adj.id.index() % 2 == 0 && glm::distance(m1, m2) < 100.f)
-			continue;
+void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railroad, dcon::province_id p1, dcon::province_id p2) {
+	auto const m1 = state.world.province_get_mid_point(p1);
+	auto const m2 = state.world.province_get_mid_point(p2);
+	railroad.emplace_back(m1);
+	//
+	auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
+	const auto rp = rng::get_random(state, p1.index(), p2.index() ^ p1.index());
+	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.1f);
+	auto const perpendicular = glm::normalize(m2 - m1) * glm::vec2(rf, rf);
+	railroad.emplace_back(mid + glm::vec2(-perpendicular.y, perpendicular.x));
+}
 
-		std::vector<glm::vec2> railroad;
-		railroad.emplace_back(m1);
-		auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
-		const auto rp = rng::get_random_pair(state, adj.id.index(), p2.id.index() ^ p1.id.index());
-		const float rf1 = float(rng::reduce(uint32_t(rp.high), 8192)) / (8192.f * 100.f);
-		const float rf2 = float(rng::reduce(uint32_t(rp.low), 8192)) / (8192.f * 100.f);
-		//
-		auto const perpendicular_1 = glm::vec2(rf1, rf2);
-		auto const perpendicular_2 = glm::vec2(rf2, rf1);
-		//
-		railroad.emplace_back(mid + glm::vec2(-perpendicular_1.y, perpendicular_1.x));
-		railroad.emplace_back(mid - glm::vec2(-perpendicular_2.y, perpendicular_2.x));
-		railroad.emplace_back(p2.get_mid_point());
-		if(!railroad.empty())
-			railroads.push_back(railroad);
+bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited_adj, std::vector<bool>& visited, std::vector<dcon::province_id>& provinces, dcon::province_id p) {
+	if(state.world.province_get_building_level(p, economy::province_building_type::railroad) == 0)
+		return false;
+	if(visited[p.index()])
+		return false;
+	visited[p.index()] = true;
+	provinces.push_back(p);
+	for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
+		const auto pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
+		visited_adj[adj.id.index()] = true;
+		if(get_provinces_part_of_rr_path(state, visited_adj, visited, provinces, pa.id))
+			break;
 	}
+	return true;
+}
+
+void display_data::update_railroad_paths(sys::state& state) {
+	// Create paths for the main railroad sections
+	std::vector<bool> visited(state.world.province_size() + 1, false);
+	std::vector<bool> visited_adj(state.world.province_adjacency_size() + 1, false);
+	std::vector<std::vector<glm::vec2>> railroads;
+	for(const auto p : state.world.in_province) {
+		std::vector<dcon::province_id> provinces;
+		if(get_provinces_part_of_rr_path(state, visited_adj, visited, provinces, p)) {
+			if(provinces.size() > 1) {
+				std::vector<glm::vec2> railroad;
+				for(uint32_t i = 0; i < uint32_t(provinces.size() - 1); i++)
+					create_railroad_connection(state, railroad, provinces[i], provinces[i + 1]);
+				railroad.emplace_back(state.world.province_get_mid_point(provinces.back()));
+				assert(!railroad.empty());
+				railroads.push_back(railroad);
+			}
+		}
+	}
+
+	// Populate paths with railroads - only account provinces that have been visited
+	// but not the adjacencies
+	for(const auto p1 : state.world.in_province) {
+		if(visited[p1.id.index()]) {
+			auto const p1_level = p1.get_building_level(economy::province_building_type::railroad);
+			auto max_adj = std::clamp<uint8_t>(p1_level, 2, 4);
+			for(const auto adj : p1.get_province_adjacency_as_connected_provinces()) {
+				if(max_adj == 0)
+					break;
+				max_adj--;
+				if(visited_adj[adj.id.index()])
+					continue;
+				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
+				if(p2.get_building_level(economy::province_building_type::railroad) == 0)
+					continue;
+				std::vector<glm::vec2> railroad;
+				create_railroad_connection(state, railroad, p1.id, p2.id);
+				railroad.emplace_back(state.world.province_get_mid_point(p2.id));
+				assert(!railroad.empty());
+				railroads.push_back(railroad);
+			}
+		}
+	}
+
 
 	railroad_vertices.clear();
 	railroad_starts.clear();
