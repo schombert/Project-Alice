@@ -99,6 +99,7 @@ enum class command_type : uint8_t {
 	toggle_immigrator_province = 90,
 	state_transfer = 91,
 	release_subject = 92,
+	enable_debt = 93,
 
 	// network
 	notify_player_ban = 106,
@@ -758,6 +759,8 @@ void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
+
+void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled);
 
 /*
 PEACE OFFER COMMANDS:

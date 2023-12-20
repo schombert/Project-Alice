@@ -1071,7 +1071,8 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	return 0.0f;
+	auto v = state.world.nation_get_stockpiles(n, economy::money);
+	return v < 0.0f ? -v : 0.0f;
 }
 
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {

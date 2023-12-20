@@ -3558,6 +3558,16 @@ object {
 		type{ bitfield }
 	}
 	property{
+		name{ is_debt_spending }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ bankrupt_until }
+		type{ sys::date }
+		tag{ save }
+	}
+	property{
 		name{ is_colonial_nation }
 		type{ bitfield }
 	}
