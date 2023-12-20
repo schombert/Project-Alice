@@ -1055,7 +1055,7 @@ struct debt_item_data {
 
 class debtor_name : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		debt_item_data dat = retrieve< debt_item_data>(state, parent);
 		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(dat.n)));
 	}
@@ -1063,7 +1063,7 @@ public:
 
 class debtor_amount : public simple_text_element_base {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		debt_item_data dat = retrieve< debt_item_data>(state, parent);
 		set_text(state, text::format_money(dat.amount));
 	}
@@ -1130,10 +1130,10 @@ public:
 
 class enable_debt_toggle : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept {
+	void on_update(sys::state& state) noexcept override {
 		frame = state.world.nation_get_is_debt_spending(state.local_player_nation) ? 1 : 0;
 	}
-	void button_action(sys::state& state) noexcept {
+	void button_action(sys::state& state) noexcept override {
 		command::enable_debt(state, state.local_player_nation, !state.world.nation_get_is_debt_spending(state.local_player_nation));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
