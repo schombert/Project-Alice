@@ -1101,6 +1101,9 @@ msg_war_join_on;;;;;;;;;;;;;x
 msg_cb_fab_finished;;;;;;;;;;;;;x
 msg_cb_fab_cancelled;;;;;;;;;;;;;x
 msg_crisis_voluntary_join;;;;;;;;;;;;;x
+msg_bankruptcy_title;Bankruptcy
+amsg_bankruptcy;When a nation goes bankrupt
+msg_bankruptcy_1;$x$ has gone bankrupt
 uv_sort_a;Att;;;Atq;;;;;;;;;x
 uv_sort_b;Def;;;Def;;;;;;;;;x
 uv_sort_c;Org;;;Org;;;;;;;;;x
@@ -1362,4 +1365,5 @@ tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
 alice_no_possible_units;No possible units can be built, and no units are in construction.
+alice_debt_spending;Enable debt spending
 ;;;;;;;;;;;;;x

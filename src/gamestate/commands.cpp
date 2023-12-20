@@ -4104,6 +4104,19 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::enable_debt;
+	p.source = source;
+	p.data.make_leader.is_general = debt_is_enabled;
+	add_to_command_queue(state, p);
+}
+
+void execute_enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
+	state.world.nation_set_is_debt_spending(source, debt_is_enabled);
+}
+
 static void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
@@ -4695,6 +4708,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::state_transfer:
 		return can_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
 
+	case command_type::enable_debt:
+		return true;
+
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5054,6 +5070,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::release_subject:
 		execute_release_subject(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::enable_debt:
+		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
 		break;
 
 		// common mp commands

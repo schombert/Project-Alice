@@ -3471,6 +3471,12 @@ guiTypes = {
 			format = left
 		}
 	}
+	
+	checkboxType = {
+		name = "alice_debt_checkbox"
+		position = { x= 165 y = 490 }
+		quadTextureSprite = "GFX_checkbox_default"
+	}
 
 	windowType = {
 		name = "alice_macro_builder"
