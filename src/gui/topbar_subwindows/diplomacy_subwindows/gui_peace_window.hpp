@@ -10,11 +10,13 @@ public:
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto war = military::find_war_between(state, target, state.local_player_nation);
 
-		auto we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
-		auto they_lead = (target == state.world.war_get_primary_attacker(war) || target == state.world.war_get_primary_defender(war));
+		auto const we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
+		auto const they_lead = (target == state.world.war_get_primary_attacker(war) || target == state.world.war_get_primary_defender(war));
 
-		text::add_line(state, contents, we_lead ? "po_welead" : "po_wenotlead");
-		text::add_line(state, contents, they_lead ? "po_theylead" : "po_theynotlead");
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, we_lead ? std::string_view("po_welead") : std::string_view("po_wenotlead"));
+		text::localised_format_box(state, contents, box, they_lead ? std::string_view("po_theylead") : std::string_view("po_theynotlead"));
+		text::close_layout_box(contents, box);
 	}
 };
 
