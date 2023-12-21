@@ -17,10 +17,10 @@ enum direction : uint8_t {
 };
 
 enum class diagonal_border : uint8_t {
-	UP_LEFT = 4,
-	UP_RIGHT = 3,
-	DOWN_LEFT = 2,
-	DOWN_RIGHT = 1,
+	UP_LEFT = 0x01,
+	UP_RIGHT = uint8_t(0x01 << 2),
+	DOWN_LEFT = uint8_t(0x01 << 4),
+	DOWN_RIGHT = uint8_t(0x01 << 6),
 	NOTHING = 0,
 };
 
@@ -174,20 +174,34 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
 
-			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				uint8_t diff_u = prov_id_ul != prov_id_ur;
-				uint8_t diff_d = prov_id_dl != prov_id_dr;
-				uint8_t diff_l = prov_id_ul != prov_id_dl;
-				uint8_t diff_r = prov_id_ur != prov_id_dr;
-				if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
-					diagonal_borders[x + y  * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_LEFT);
-				} else if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
-					diagonal_borders[x + (y  + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_LEFT);
-				} else if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
-					diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_RIGHT);
-				} else if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
-					diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_RIGHT);
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
 				}
+			}
+
+			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 
@@ -221,6 +235,33 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
+
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+				}
+			}
 
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 

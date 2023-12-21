@@ -445,12 +445,8 @@ display_data::~display_data() {
 		glDeleteProgram(terrain_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
-	if(legacy_line_border_shader)
-		glDeleteProgram(legacy_line_border_shader);
 	if(textured_line_shader)
 		glDeleteProgram(textured_line_shader);
-	if(legacy_line_river_shader)
-		glDeleteProgram(legacy_line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
 	if(text_line_shader)
@@ -483,10 +479,6 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	terrain_shader = create_program(*map_vshader, *map_fshader);
 
-	// Line shaders
-	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
-	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
-
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
@@ -494,9 +486,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
 
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
-	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
-	legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
 	
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
@@ -1337,7 +1327,14 @@ void display_data::load_map(sys::state& state) {
 
 	load_shaders(root);
 
-	diag_border_identifier = make_gl_texture(&diagonal_borders[0], size_x, size_y, 1);
+	glGenTextures(1, &diag_border_identifier);
+	if(diag_border_identifier) {
+		glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
 	set_gltex_parameters(diag_border_identifier, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);

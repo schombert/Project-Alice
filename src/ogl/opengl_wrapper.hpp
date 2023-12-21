@@ -124,11 +124,11 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 	std::string full_message("OpenGL error ");
 	full_message += std::to_string(id);
 	full_message += " ";
-	full_message += " source: ";
+	full_message += "; Source: ";
 	full_message += source_str;
-	full_message += " type: ";
+	full_message += " ; Type: ";
 	full_message += error_type;
-	full_message += " severity: ";
+	full_message += "; Severity: ";
 	full_message += severity_str;
 	full_message += "; ";
 	full_message += message;

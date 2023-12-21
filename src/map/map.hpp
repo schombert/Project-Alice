@@ -207,9 +207,7 @@ public:
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
-	GLuint legacy_line_border_shader = 0;
 	GLuint textured_line_shader = 0;
-	GLuint legacy_line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
