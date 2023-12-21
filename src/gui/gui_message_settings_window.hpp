@@ -106,6 +106,8 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_cb_fab_finished",						  // cb_fab_finished
 		"amsg_cb_fab_cancelled",						  // cb_fab_cancelled
 		"amsg_crisis_voluntary_join",				  // crisis_voluntary_join
+		"amsg_army_built", // army_built
+		"amsg_navy_built", // navy_built
 		"amsg_bankruptcy", //bankruptcy
 	};
 	return std::string{key_str[type]};
