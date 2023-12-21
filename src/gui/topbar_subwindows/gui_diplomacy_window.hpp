@@ -2182,6 +2182,8 @@ public:
 		add_action_button<diplomacy_action_window<diplomacy_action_remove_from_sphere_button>>(state, options_offset);
 		options_offset.y += options_size.y;
 		add_action_button<diplomacy_action_window<diplomacy_action_justify_war_button>>(state, options_offset);
+		options_offset.y += options_size.y;
+		add_action_button<diplomacy_action_window<diplomacy_action_state_transfer_button>>(state, options_offset);
 
 		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state,
 				state.ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition);

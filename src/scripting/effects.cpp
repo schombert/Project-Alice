@@ -1747,7 +1747,10 @@ uint32_t ef_treasury(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 	auto& t = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
-	t = std::max(0.0f, t + amount);
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
+		t += amount;
+	else
+		t = std::max(0.0f, t + amount);
 	return 0;
 }
 uint32_t ef_war_exhaustion(EFFECT_PARAMTERS) {
@@ -2867,7 +2870,11 @@ uint32_t ef_add_tax_relative_income(EFFECT_PARAMTERS) {
 	auto combined_amount = income * amount;
 	assert(std::isfinite(combined_amount));
 	auto& v = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
-	v = std::max(v + combined_amount, 0.0f); // temporary measure since there is no debt
+
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
+		v = v + combined_amount;
+	else
+		v = std::max(v + combined_amount, 0.0f); // temporary measure since there is no debt
 	return 0;
 }
 uint32_t ef_neutrality(EFFECT_PARAMTERS) {

@@ -48,6 +48,8 @@ class map_legend_title : public simple_text_element_base {
 			return "mapmode_15";
 		case map_mode::mode::terrain:
 			return "mapmode_1";
+		case map_mode::mode::religion:
+			return "mapmode_24";
 		default:
 			return "???";
 		}

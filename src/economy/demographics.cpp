@@ -832,7 +832,7 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 			 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 			state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-			 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f)) / 10;
+			 ve::select(state.world.province_get_is_colonial(loc), ve::fp_vector{state.defines.con_colonial_factor}, 1.0f)) / 10.f;
 
 		auto pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 		auto omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);
@@ -866,7 +866,7 @@ float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
 	float lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 		 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 		 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-		ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f)) / 10;
+		ve::select(state.world.province_get_is_colonial(loc), state.defines.con_colonial_factor, 1.0f)) / 10.f;
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);

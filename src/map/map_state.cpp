@@ -47,7 +47,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
-	return vertex.position_ * map_size;
+	return vertex.position * map_size;
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {

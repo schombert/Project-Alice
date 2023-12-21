@@ -12,6 +12,7 @@ layout (binding = 9) uniform sampler2D colormap_political;
 layout (binding = 10) uniform sampler2D province_highlight;
 layout (binding = 11) uniform sampler2D stripes_texture;
 layout (binding = 13) uniform sampler2D province_fow;
+layout (binding = 15) uniform sampler2D diag_border_identifier;
 
 // location 0 : offset
 // location 1 : zoom
@@ -172,13 +173,22 @@ vec4 get_land_political_close() {
     float grey = dot( terrain.rgb, GREYIFY );
  	terrain.rgb = vec3(grey);
 
-	vec2 prov_id = texture(provinces_texture_sampler, tex_coord).xy;
+	float test = texture(diag_border_identifier, tex_coord).x;
+
+	vec2 rel_coord = mod(tex_coord * map_size, vec2(1)) - vec2(0.5);
+	vec2 tex_coords = tex_coord;
+	float id = step(0, rel_coord.x) + 2*step(0, rel_coord.y) + 1;
+	tex_coords += (test * 255 == id) && (abs(rel_coord.x) + abs(rel_coord.y) > 0.5) ? sign(rel_coord) * vec2(1) / map_size : vec2(0);
+
+	//vec2 tex_coords = tex_coord + ((abs(rel_coord.x) + abs(rel_coord.y)) > 0.5 ? rel_coord / map_size : vec2(0));
+
+	vec2 prov_id = texture(provinces_texture_sampler, tex_coords).xy;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
 	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
 
-	vec2 stripe_coord = tex_coord * vec2(512., 512. * map_size.y / map_size.x);
+	vec2 stripe_coord = tex_coords * vec2(512., 512. * map_size.y / map_size.x);
 
 	// Mix together the primary and secondary colors with the stripes
 	float stripeFactor = texture(stripes_texture, stripe_coord).a;
@@ -190,6 +200,8 @@ vec4 get_land_political_close() {
 	// Mix together the terrain and map mode color
 	terrain.rgb = mix(terrain.rgb, political, 0.3);
 	terrain.rgb *= 1.5;
+	//terrain.rgb += vec3((test * 255) == id);
+	//terrain.r += ((abs(rel_coord.y) + abs(rel_coord.x)) > 0.5 ? 6 : 0) * 0.3;
 	return terrain;
 }
 

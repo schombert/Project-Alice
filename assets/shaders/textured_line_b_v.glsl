@@ -1,8 +1,9 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
-layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in float texture_coord;
-layout (location = 3) in float distance;
+layout (location = 1) in vec2 prev_point;
+layout (location = 2) in vec2 next_point;
+layout (location = 3) in float texture_coord;
+layout (location = 4) in float distance;
 
 out float tex_coord;
 out float o_dist;
@@ -17,19 +18,6 @@ layout (location = 5) uniform mat3 rotation;
 
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
 subroutine uniform calc_gl_position_class calc_gl_position;
-
-subroutine float calc_x_adjust_class(float y_in);
-subroutine uniform calc_x_adjust_class calc_x_adjust;
-
-layout(index = 2) subroutine(calc_x_adjust_class)
-float globe_x_adjust(float y_in) {
-	return 0.5f / sqrt((1.0f - y_in) * y_in);
-}
-
-layout(index = 3) subroutine(calc_x_adjust_class)
-float no_x_adjust(float y_in) {
-	return 1.0f;
-}
 
 layout(index = 0) subroutine(calc_gl_position_class)
 vec4 globe_coords(vec2 world_pos) {
@@ -54,7 +42,7 @@ vec4 globe_coords(vec2 world_pos) {
 	new_world_pos.xyz += 0.5; 	// Move the globe to the center
 
 	return vec4(
-		(2. * new_world_pos.x - 1.f) / aspect_ratio  * zoom,
+		(2. * new_world_pos.x - 1.f)  * zoom,
 		(2. * new_world_pos.z - 1.f) * zoom,
 		(2. * new_world_pos.y - 1.f) - 1.0f,
 		1.0);
@@ -65,23 +53,27 @@ vec4 flat_coords(vec2 world_pos) {
 	world_pos += vec2(-offset.x, offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
+		(2. * world_pos.x - 1.f) * zoom * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0,
+		abs(world_pos.x - 0.5) * 2.1f,
 		1.0);
 }
 
 void main() {
-	vec2 normal_vector = normal_direction * width;
-	vec2 world_pos = vertex_position;
-	normal_vector.x *= calc_x_adjust(world_pos.y);
-
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector;
-	world_pos.x /= map_size.x / map_size.y;
-
-	map_coord = world_pos;
-	gl_Position = calc_gl_position(world_pos);
+	vec4 central_pos = calc_gl_position(vertex_position);
+	vec2 bpt = central_pos.xy;
+	vec2 apt = calc_gl_position(prev_point).xy;
+	vec2 cpt = calc_gl_position(next_point).xy;
+	
+	vec2 adir = normalize(bpt - apt);
+	vec2 bdir = normalize(cpt - bpt);
+	
+	vec2 anorm = vec2(-adir.y, adir.x);
+	vec2 bnorm = vec2(-bdir.y, bdir.x);
+	vec2 corner_normal = (anorm + bnorm) / (1.0f + max(-0.5f, dot(anorm, bnorm))) * zoom * width;
+	
+	gl_Position = central_pos + vec4(corner_normal.x, corner_normal.y, 0.0f, 0.0f);
+	gl_Position.x /= aspect_ratio;
 	tex_coord = texture_coord;
 	o_dist = distance / (2.0f * width);
 }

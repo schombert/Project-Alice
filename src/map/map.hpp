@@ -78,13 +78,18 @@ struct curved_line_vertex {
 };
 
 struct textured_line_vertex {
-	textured_line_vertex() { };
-	textured_line_vertex(glm::vec2 position, glm::vec2 normal_direction, float texture_coordinate, float distance)
-		: position_(position), normal_direction_(normal_direction), texture_coordinate_(texture_coordinate), distance_(distance) { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	float texture_coordinate_;
 	float distance_;
+};
+
+struct textured_line_vertex_b {
+	glm::vec2 position;
+	glm::vec2 previous_point;
+	glm::vec2 next_point;
+	float texture_coordinate;
+	float distance;
 };
 
 struct text_line_vertex {
@@ -109,10 +114,12 @@ struct text_line_generator_data {
 };
 
 struct border {
-	int start_index = -1;
-	int count = -1;
-	uint8_t type_flag;
+	int start_index = 0;
+	int count = 0;
+	dcon::province_adjacency_id adj;
+	uint16_t padding = 0;
 };
+
 enum class map_view;
 class display_data {
 public:
@@ -138,11 +145,11 @@ public:
 	uint32_t size_y;
 
 	std::vector<border> borders;
-	std::vector<curved_line_vertex> border_vertices;
+	std::vector<textured_line_vertex_b> border_vertices;
 	std::vector<textured_line_vertex> river_vertices;
 	std::vector<GLint> river_starts;
 	std::vector<GLsizei> river_counts;
-	std::vector<textured_line_vertex> coastal_vertices;
+	std::vector<textured_line_vertex_b> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
@@ -153,6 +160,7 @@ public:
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 	std::vector<uint32_t> province_area;
+	std::vector<uint8_t> diagonal_borders;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
@@ -171,6 +179,7 @@ public:
 	GLuint drag_box_vao = 0;
 	GLuint drag_box_vbo = 0;
 	uint32_t land_vertex_count = 0;
+	GLuint coastal_vao = 0;
 	GLuint coastal_border_vbo = 0;
 
 	// Textures
@@ -187,10 +196,13 @@ public:
 	GLuint stripes_texture = 0;
 	GLuint river_body_texture = 0;
 	GLuint national_border_texture = 0;
-	GLuint provincial_border_texture = 0;
+	GLuint state_border_texture = 0;
+	GLuint prov_border_texture = 0;
+	GLuint imp_border_texture = 0;
 	GLuint unit_arrow_texture = 0;
 	GLuint province_fow = 0;
 	GLuint coastal_border_texture = 0;
+	GLuint diag_border_identifier = 0;
 
 	// Shaders
 	GLuint terrain_shader = 0;
@@ -212,6 +224,7 @@ public:
 
 	uint16_t safe_get_province(glm::ivec2 pt);
 	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
+	void make_borders(sys::state& state, std::vector<bool>& visited);
 
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();

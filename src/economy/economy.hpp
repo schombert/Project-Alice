@@ -209,8 +209,12 @@ int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
-
+void go_bankrupt(sys::state& state, dcon::nation_id n);
 dcon::modifier_id get_province_selector_modifier(sys::state& state);
 dcon::modifier_id get_province_immigrator_modifier(sys::state& state);
+
+bool can_take_loans(sys::state& state, dcon::nation_id n);
+float interest_payment(sys::state& state, dcon::nation_id n);
+float max_loan(sys::state& state, dcon::nation_id n);
 
 } // namespace economy

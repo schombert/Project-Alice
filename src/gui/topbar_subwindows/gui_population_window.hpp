@@ -673,7 +673,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float lit_mod = ((state.world.nation_get_plurality(owner) / 10.0f) *
 								 (state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::literacy_con_impact) + 1.0f) *
 								 state.defines.con_literacy * state.world.pop_get_literacy(ids) *
-								 (state.world.province_get_is_colonial(loc) ? state.defines.con_colonial_factor : 1.0f)) / 10;
+								 (state.world.province_get_is_colonial(loc) ? state.defines.con_colonial_factor : 1.0f)) / 10.f;
 
 	float pmod = state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::pop_consciousness_modifier);
 	float omod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_pop_consciousness_modifier);

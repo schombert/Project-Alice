@@ -284,6 +284,7 @@ enum class message_setting_type : uint8_t {
 	// split
 	army_built = 98, // added
 	navy_built = 99, // added
+	bankruptcy = 100,
 	count = 128
 };
 
@@ -359,7 +360,8 @@ enum class message_base_type : uint8_t {
 	crisis_voluntary_join = 68, // added
 	army_built = 69, // added
 	navy_built = 70, // added
-	count = 71
+	bankruptcy = 71,
+	count = 72
 };
 
 struct msg_setting_entry {
@@ -479,6 +481,7 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::crisis_voluntary_join,	message_setting_type::count,				message_setting_type::count}, //crisis_voluntary_join = 68, // added
 	msg_setting_entry{ message_setting_type::army_built,				message_setting_type::count,				message_setting_type::count}, //army_built = 69, // added
 	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
+	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
 };
 
 namespace  message_response {
