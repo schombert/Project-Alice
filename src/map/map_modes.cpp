@@ -29,6 +29,7 @@
 #include "modes/crisis.hpp"
 #include "modes/colonial.hpp"
 #include "modes/rgo_output.hpp"
+#include "modes/religion.hpp"
 
 #include "gui_element_types.hpp"
 
@@ -36,7 +37,7 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2, 0);
-	
+
 	assert(state.state_selection.has_value());
 	if(state.state_selection) {
 		for(const auto s : state.state_selection->selectable_states) {
@@ -44,7 +45,7 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 
 			for(const auto m : state.world.state_definition_get_abstract_state_membership_as_state(s)) {
 				auto p = m.get_province();
-				
+
 				auto i = province::to_map_id(p.id);
 
 				prov_color[i] = color;
@@ -61,7 +62,7 @@ void set_map_mode(sys::state& state, mode mode) {
 	std::vector<uint32_t> prov_color;
 
 
-	
+
 	switch(mode) {
 		case map_mode::mode::migration:
 		case map_mode::mode::population:
@@ -84,6 +85,48 @@ void set_map_mode(sys::state& state, mode mode) {
 	} else {
 		if(state.ui_state.map_civ_level_legend)
 			state.ui_state.map_civ_level_legend->set_visible(state, false);
+	}
+	if(mode == mode::colonial) {
+		if(state.ui_state.map_col_legend)
+			state.ui_state.map_col_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_col_legend)
+			state.ui_state.map_col_legend->set_visible(state, false);
+	}
+	if(mode == mode::diplomatic) {
+		if(state.ui_state.map_dip_legend)
+			state.ui_state.map_dip_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_dip_legend)
+			state.ui_state.map_dip_legend->set_visible(state, false);
+	}
+	if(mode == mode::infrastructure) {
+		if(state.ui_state.map_rr_legend)
+			state.ui_state.map_rr_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rr_legend)
+			state.ui_state.map_rr_legend->set_visible(state, false);
+	}
+	if(mode == mode::naval) {
+		if(state.ui_state.map_nav_legend)
+			state.ui_state.map_nav_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_nav_legend)
+			state.ui_state.map_nav_legend->set_visible(state, false);
+	}
+	if(mode == mode::rank) {
+		if(state.ui_state.map_rank_legend)
+			state.ui_state.map_rank_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rank_legend)
+			state.ui_state.map_rank_legend->set_visible(state, false);
+	}
+	if(mode == mode::recruitment) {
+		if(state.ui_state.map_rec_legend)
+			state.ui_state.map_rec_legend->set_visible(state, true);
+	} else {
+		if(state.ui_state.map_rec_legend)
+			state.ui_state.map_rec_legend->set_visible(state, false);
 	}
 
 	switch(mode) {
@@ -159,6 +202,9 @@ void set_map_mode(sys::state& state, mode mode) {
 	case mode::rgo_output:
 		// TODO
 		prov_color = rgo_output_map_from(state);
+		break;
+	case mode::religion:
+		prov_color = religion_map_from(state);
 		break;
 	default:
 		return;

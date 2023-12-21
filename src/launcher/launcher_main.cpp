@@ -42,6 +42,7 @@ static int32_t mouse_x = 0;
 static int32_t mouse_y = 0;
 
 static std::string ip_addr = "127.0.0.1";
+static std::string password = "";
 static std::string player_name = "AnonAnon";
 
 static HWND m_hwnd = nullptr;
@@ -61,11 +62,12 @@ constexpr inline int32_t ui_obj_play_game = 4;
 constexpr inline int32_t ui_obj_host_game = 5;
 constexpr inline int32_t ui_obj_join_game = 6;
 constexpr inline int32_t ui_obj_ip_addr = 7;
-constexpr inline int32_t ui_obj_player_name = 8;
+constexpr inline int32_t ui_obj_password = 8;
+constexpr inline int32_t ui_obj_player_name = 9;
 
 constexpr inline int32_t ui_list_count = 14;
 
-constexpr inline int32_t ui_list_first = 9;
+constexpr inline int32_t ui_list_first = 10;
 constexpr inline int32_t ui_list_checkbox = 0;
 constexpr inline int32_t ui_list_move_up = 1;
 constexpr inline int32_t ui_list_move_down = 2;
@@ -86,6 +88,7 @@ constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 555, 48 + 156 * 2 + 36 * 0, 138, 33 }, // host game
 	ui_active_rect{ 703, 48 + 156 * 2 + 36 * 0, 138, 33 }, // join game
 	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 2, 200, 23 }, // ip address textbox
+	ui_active_rect{ 555, 54 + 156 * 2 + 36 * 3 + 12, 200, 23 }, // password textbox
 	ui_active_rect{ 765, 54 + 156 * 2 + 36 * 2, 76, 23 }, // player name textbox
 
 	ui_active_rect{ 60 + 6, 75 + 32 * 0 + 4, 24, 24 },
@@ -462,6 +465,11 @@ void mouse_click() {
 				}
 			}
 
+			if(!password.empty()) {
+				temp_command_line += NATIVE(" -password ");
+				temp_command_line += simple_fs::utf8_to_native(password);
+			}
+
 			STARTUPINFO si;
 			ZeroMemory(&si, sizeof(si));
 			si.cb = sizeof(si);
@@ -487,6 +495,12 @@ void mouse_click() {
 
 			// ready to launch
 		}
+		return;
+	case ui_obj_ip_addr:
+		return;
+	case ui_obj_password:
+		return;
+	case ui_obj_player_name:
 		return;
 	default:
 		break;
@@ -1021,6 +1035,15 @@ void render() {
 		ui_rects[ui_obj_ip_addr].width,
 		ui_rects[ui_obj_ip_addr].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+
+	launcher::ogl::render_new_text("Password", 10, launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent("IP Address", 10, 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+		ui_rects[ui_obj_password].x,
+		ui_rects[ui_obj_password].y,
+		ui_rects[ui_obj_password].width,
+		ui_rects[ui_obj_password].height,
+		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
+
 	launcher::ogl::render_new_text("Nickname", 8, launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent("Nickname", 8, 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_player_name].x,
@@ -1052,6 +1075,8 @@ void render() {
 	// Text fields
 	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	float ps_x_pos = ui_rects[ui_obj_password].x + 6.f;
+	launcher::ogl::render_new_text(password.c_str(), uint32_t(password.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
@@ -1348,6 +1373,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 								player_name.pop_back();
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
 							player_name.push_back(turned_into);
+						}
+					} else if(obj_under_mouse == ui_obj_password) {
+						if(turned_into == '\b') {
+							if(!password.empty())
+								password.pop_back();
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && password.size() < 16) {
+							password.push_back(turned_into);
 						}
 					}
 				}

@@ -36,15 +36,12 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	uint8_t const* data = start + data_offset;
 
 	// Calculate how much extra we add at the poles
-	auto free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
-	auto top_free_space = (free_space * 3) / 5;
+	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+	uint32_t top_free_space = (free_space * 3) / 5;
 
-	// Fill the output with the given data
-	
-
-	// Copy over the bmp data to the middle of the output_data
-	for(int y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
-		for(int x = 0; x < int(size_x); ++x) {
+	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
+	for(uint32_t y = top_free_space + size_y - 1; y >= uint32_t(top_free_space); --y) {
+		for(uint32_t x = 0; x < uint32_t(size_x); ++x) {
 			output_data[y * size_x + x] = *data;
 			data++;
 		}
@@ -339,7 +336,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
 	// Load the province map
-	auto provinces_png = open_file(map_dir, NATIVE("alice_provinces.png"));
+	auto provinces_png = simple_fs::open_file(map_dir, NATIVE("alice_provinces.png"));
 	map::image provinces_image;
 	if(provinces_png) {
 		provinces_image = load_stb_image(*provinces_png);
@@ -347,7 +344,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		size_y = uint32_t(provinces_image.size_y);
 		context.new_maps = true;
 	} else {
-		auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+		auto provinces_bmp = simple_fs::open_file(map_dir, NATIVE("provinces.bmp"));
 		if(provinces_bmp) {
 			provinces_image = load_stb_image(*provinces_bmp);
 			size_x = uint32_t(provinces_image.size_x);
@@ -366,7 +363,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		auto size = glm::ivec2(size_x, size_y);
 		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
 	} else {
-		auto river_file = open_file(map_dir, NATIVE("alice_rivers.png"));
+		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
 		river_data.resize(size_x * size_y, uint8_t(255));
 
 		image river_image_data;
@@ -382,8 +379,12 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 				for(uint32_t x = 0; x < size_x; ++x) {
 
 					uint8_t* ptr = river_image_data.data + (x + size_x * y) * 4;
-					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * ty] != uint8_t(255))
-						river_data[ty * size_x + x] = 0;
+					if(ptr[0] + ptr[2] < 128 * 2 && ptr[1] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 0; // source
+					else if(ptr[1] + ptr[2] < 128 * 2 && ptr[0] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/ )
+						river_data[ty * size_x + x] = 1; // merge
+					else if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 /*&& terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 2;
 					else
 						river_data[ty * size_x + x] = 255;
 					
@@ -392,7 +393,20 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		}
 	}
 
-	river_vertices = create_river_vertices(*this, context, river_data);
+
+	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
+	
+	create_curved_river_vertices(context, river_data, terrain_id_map);
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_coastal_borders(context.state, borders_visited);
+	}
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_borders(context.state, borders_visited);
+	}
 }
 
 // Called to load the terrain and province map data

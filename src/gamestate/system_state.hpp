@@ -152,6 +152,7 @@ struct user_settings_s {
 		message_response::ignore,//crisis_voluntary_joi_on = 97,
 		message_response::log,//army_built = 98,
 		message_response::log,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::log,//revolt = 0,
@@ -254,6 +255,7 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -356,6 +358,7 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;

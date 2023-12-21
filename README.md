@@ -11,7 +11,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - Start the game by running launch_alice.exe.
 - Mods may or may not run with more or less problems (see the October update and the compatibility patches channel in the discord for more information about particular mods).
 
-DO NOT EXPECT A BUG-FREE EXPERIENCE IN AN ALPHA RELEASE.
+DO NOT EXPECT A BUG-FREE EXPERIENCE IN A BETA RELEASE.
 I suggest monthly autosaves, although you need to remember to clean out your save directory once and a while if you do so, because a full game's worth of monthly autosaves is several GB.
 
 ## Contributing
@@ -19,6 +19,7 @@ I suggest monthly autosaves, although you need to remember to clean out your sav
 
 ## Updates
 
+- [December 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/december/december.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/december/december_cn.md)
 - [November 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/november.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/november_cn.md)
 - [October 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/october/october.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/october/october_cn.md)
 - [September 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/september/september.md) [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/september/september_cn.md)

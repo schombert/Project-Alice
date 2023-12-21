@@ -15,7 +15,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 ### New Trigger Conditions
 
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
-- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works for trigger conditions.
+- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 
 ### Scripted Triggers
 
@@ -34,6 +34,86 @@ name_of_condition = {
 You should add an entry for `name_of_condition` to your csv file, since it will appear in tool tips when you use the scripted trigger. The three parameter entries define the content that the trigger will be tested upon (you must pick *one* of the possibilities). A scripted trigger can only be used in a context where the various parameters either match or where the parameter of the scripted trigger is `none` (you can think of `none` as matching everything). For example, if the main parameter is `province` then you could only evaluate the scripted trigger when there was a province in scope. The `this_parameter` and `from_parameter` are optional and may be omitted (they default to `none`). You can define more than one scripted trigger with the same name, so long as they have different parameter types. When using a scripted trigger with multiple versions, the one that fits the current parameters will automatically be selected.
 
 To use a scripted trigger simply add `test = name_of_condition` in a trigger wherever you want to evaluate your scripted trigger and it will work as if you had copied its content into that location. I advise you not to use scripted triggers from within other scripted triggers while defining them. You can safely refer to scripted triggers earlier in the same file, but doing so across files will put you at the mercy of the file loading order.
+
+### If/Else
+
+If and Else statments are now provided to avoid code duplication and make your life easier. A `else` with a limit is equivalent to an `else_if` with a limit, and a `else_if` without a limit is equal to a `else` without a limit. In other words, `else` and `else_if` are essentially synonyms, provided for code clarity.
+
+For example:
+```
+if = { #run if limit is true
+  limit = { ... }
+  ...
+} else_if = { #run only if the limit above is false, and this limit is true
+  limit = { ... }
+  ...
+} else = { #only if both cases are not fullfilled AND the limit is true
+  limit = { ... }
+  ...
+}
+```
+
+No limit specified equals to an `always = yes`.
+
+Additionally, the order of execution for `if` and `else`/`else_if` statments allows for nested code:
+
+```
+if = {
+	limit = { a = yes }
+		money = 1
+	if = {
+		limit = { b = yes }
+		money = 50
+	} else {
+		money = 100
+	}
+}
+```
+This is equivalent to:
+```
+if = {
+	limit = { a = yes b = yes }
+	money = 1
+	money = 50
+} else_if {
+	limit = { a = yes }
+	money = 1
+	money = 100
+}
+```
+
+Additionally, negation of statments are implicit, in other words:
+```
+if = {
+	limit = { test == yes }
+} else {
+	limit = { test != yes }
+}
+```
+
+Is implicitly assumed for every `else` after a `if`, this means that an explicit negation (rewriting everything inside a big NOT statment) is not required for `else` statments, as they now logically are tied to all stamtents beforehand being false, and the statment of it's own limit being true.
+
+An issue which might exist due to the volatility of the syntax could be:
+```
+else_if = {
+  limit = { ... }
+} if = {
+  limit = { ... }
+}
+```
+
+The behaviour of this statment is that, since there is no preceding `if` before the `else_if`, the `else_if` will be able to run as if it was chained with an `if` that evaluated to false, in the case of it's limit evaluating to true, then it will run its own effect. However, the other `if` statment will run regardless of the previous expression.
+
+As the lexicographical order of the statments are sequential, this is, every `else_if` and `else` must be preceded by an `if` statment, otherwise they will be chained to the nearest *preceding* `if` statment before them for their lexicographical evaluation, otherwise they will act as an `if` in itself if none is present.
+
+```
+else_if = {
+  limit = { ... }
+} else_if = {
+  limit = { ... }
+}
+```
+These `else_if` statments are chained together, if the first runs, the second will not, and viceversa. If no preceding `if` exists before them, the first `else_if` takes the role of the `if` statment.
 
 ### Abbreviated `.gui` syntax
  

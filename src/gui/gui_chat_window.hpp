@@ -211,6 +211,9 @@ public:
 	}
 
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override {
+		if(s.empty())
+			return;
+
 		dcon::nation_id target{};
 		if(s.length() > 4 && s[0] == '@') {
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
@@ -244,6 +247,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
+		map_mode::set_map_mode(state, map_mode::mode::political);
 		command::notify_stop_game(state, state.local_player_nation);
 	}
 };

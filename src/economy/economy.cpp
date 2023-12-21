@@ -5,6 +5,40 @@
 
 namespace economy {
 
+bool can_take_loans(sys::state& state, dcon::nation_id n) {
+	if(!state.world.nation_get_is_player_controlled(n) || !state.world.nation_get_is_debt_spending(n))
+		return false;
+
+	/*
+	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
+	*/
+	auto last_br = state.world.nation_get_bankrupt_until(n);
+	if(last_br && last_br < state.current_date)
+		return false;
+
+	return true;
+}
+
+float interest_payment(sys::state& state, dcon::nation_id n) {
+	/*
+	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 
+	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
+	*/
+	auto debt = state.world.nation_get_stockpiles(n, money);
+	if(debt >= 0)
+		return 0.0f;
+
+	return -debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+}
+float max_loan(sys::state& state, dcon::nation_id n) {
+	/*
+	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. 
+	*/
+	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
+	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
+	return total_tax_base * mod;
+}
+
 int32_t most_recent_price_record_index(sys::state& state) {
 	return (state.current_date.value >> 4) % 32;
 }
@@ -601,11 +635,14 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	if(!c)
 		return 0.01f;
 
+	//Occupied provinces don't employ RGOs
+	if(state.world.province_get_nation_from_province_ownership(p) != state.world.province_get_nation_from_province_control(p))
+		return 0.0f;
+
 	bool is_mine = state.world.commodity_get_is_mine(c);
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size +
 	// technology-general-farm-or-mine-size-bonus + provincial-mine-or-farm-size-modifier + 1)
-
 	auto sz = state.world.province_get_rgo_size(p);
 	auto pmod = state.world.province_get_modifier_values(p,  is_mine ? sys::provincial_mod_offsets::mine_rgo_size : sys::provincial_mod_offsets::farm_rgo_size);
 	auto nmod = state.world.nation_get_modifier_values(n, is_mine ? sys::national_mod_offsets::mine_rgo_size : sys::national_mod_offsets::farm_rgo_size);
@@ -989,7 +1026,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 												(factory_per_level_employment / needs_scaling_factor);
 			if(money_made < min_wages) {
 				auto diff = min_wages - money_made;
-				if(state.world.nation_get_stockpiles(n, money) > diff) {
+				if(state.world.nation_get_stockpiles(n, money) > diff || can_take_loans(state, n)) {
 					state.world.factory_set_full_profit(f, min_wages);
 					state.world.nation_get_stockpiles(n, money) -= diff;
 					state.world.nation_get_subsidies_spending(n) += diff;
@@ -2218,11 +2255,25 @@ void daily_update(sys::state& state) {
 			float total = full_spending_cost(state, n, effective_prices);
 
 			// step 2: limit to actual budget
-			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+			float budget = 0.0f;
+			float spending_scale = 0.0f;
+			if(state.world.nation_get_is_player_controlled(n)) {
+				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
+				sp -= interest_payment(state, n);
+
+				if(can_take_loans(state, n)) {
+					budget = total;
+					spending_scale = 1.0f;
+				} else {
+					budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
+					spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+				}
+			} else {
+				budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
+				spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+			}
 
 			assert(spending_scale >= 0);
-			assert(budget >= 0);
 			assert(std::isfinite(spending_scale));
 			assert(std::isfinite(budget));
 
@@ -2867,6 +2918,18 @@ void daily_update(sys::state& state) {
 
 				n.get_stockpiles(money) -= capped_payout;
 				uni.get_target().get_stockpiles(money) += capped_payout;
+			}
+		}
+	}
+
+	/*
+	BANKRUPTCY
+	*/
+	for(auto n : state.world.in_nation) {
+		auto m = n.get_stockpiles(money);
+		if(m < 0) {
+			if(m < -max_loan(state, n)) {
+				go_bankrupt(state, n);
 			}
 		}
 	}
@@ -3655,116 +3718,6 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 	state.world.try_create_factory_location(new_fac, state_cap);
 }
 
-dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
-	float distance = 2.0f;
-	dcon::province_id closest;
-	auto region = state.world.province_get_connected_region_id(start);
-
-	for(auto p : state.world.nation_get_province_ownership(by)) {
-		if(!p.get_province().get_land_rally_point())
-			continue;
-		if(p.get_province().get_connected_region_id() != region)
-			continue;
-		if(p.get_province().get_nation_from_province_control() != by)
-			continue;
-		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
-			distance = dist;
-			closest = p.get_province();
-		}
-	}
-
-	return closest;
-}
-dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
-	float distance = 2.0f;
-	dcon::province_id closest;
-
-	for(auto p : state.world.nation_get_province_ownership(by)) {
-		if(!p.get_province().get_naval_rally_point())
-			continue;
-		if(p.get_province().get_nation_from_province_control() != by)
-			continue;
-		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
-			distance = dist;
-			closest = p.get_province();
-		}
-	}
-
-	return closest;
-}
-void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest) {
-	if(state.world.nation_get_is_player_controlled(by) == false)
-		return; // AI doesn't use rally points or templates
-	if(!dest)
-		dest = find_land_rally_pt(state, by, start);
-	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
-		return;
-	if(state.world.army_get_battle_from_army_battle_participation(a))
-		return;
-
-	if(dest == start) { // merge in place
-		for(auto ar : state.world.province_get_army_location(start)) {
-			if(ar.get_army().get_controller_from_army_control() == by && ar.get_army() != a) {
-				auto regs = state.world.army_get_army_membership(a);
-				while(regs.begin() != regs.end()) {
-					(*regs.begin()).set_army(ar.get_army());
-				}
-				return;
-			}
-		}
-	} else {
-		auto path = province::make_land_path(state, start, dest, by, a);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.army_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
-		}
-		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.army_set_moving_to_merge(a, true);
-	}
-}
-void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
-	if(state.world.nation_get_is_player_controlled(by) == false)
-		return; // AI doesn't use rally points or templates
-	if(!dest)
-		dest = find_naval_rally_pt(state, by, start);
-	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
-		return;
-
-	if(dest == start) { // merge in place
-		for(auto ar : state.world.province_get_navy_location(start)) {
-			if(ar.get_navy().get_controller_from_navy_control() == by && ar.get_navy() != a) {
-				auto regs = state.world.navy_get_navy_membership(a);
-				while(regs.begin() != regs.end()) {
-					(*regs.begin()).set_navy(ar.get_navy());
-				}
-				return;
-			}
-		}
-	} else {
-		auto path = province::make_naval_path(state, start, dest);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.navy_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
-		}
-		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.navy_set_moving_to_merge(a, true);
-	}
-}
-
 void resolve_constructions(sys::state& state) {
 
 	for(uint32_t i = state.world.province_land_construction_size(); i-- > 0;) {
@@ -3798,7 +3751,7 @@ void resolve_constructions(sys::state& state) {
 			state.world.try_create_army_membership(new_reg, a);
 			state.world.try_create_regiment_source(new_reg, c.get_pop());
 			military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
-			move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
+			military::move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
 
 			if(c.get_nation() == state.local_player_nation) {
 				notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
@@ -3844,7 +3797,7 @@ void resolve_constructions(sys::state& state) {
 					a.set_controller_from_navy_control(c.get_nation());
 					a.set_location_from_navy_location(p);
 					state.world.try_create_navy_membership(new_ship, a);
-					move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
+					military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
 					if(c.get_nation() == state.local_player_nation) {
 						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
@@ -4118,6 +4071,50 @@ dcon::modifier_id get_province_selector_modifier(sys::state& state) {
 
 dcon::modifier_id get_province_immigrator_modifier(sys::state& state) {
 	return state.economy_definitions.immigrator_modifier;
+}
+
+void go_bankrupt(sys::state& state, dcon::nation_id n) {
+	auto& debt = state.world.nation_get_stockpiles(n, economy::money);
+
+	/*
+	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
+	*/
+	auto existing_br = state.world.nation_get_bankrupt_until(n);
+	if(existing_br && existing_br <  state.current_date) {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	} else if(debt >= -state.defines.small_debt_limit) {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_small, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	} else {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	}
+
+	sys::add_modifier_to_nation(state, n, state.national_definitions.in_bankrupcy, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
+	sys::add_modifier_to_nation(state, n, state.national_definitions.bad_debter, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));
+
+	debt = 0.0f;
+	state.world.nation_set_is_debt_spending(n, false);
+	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));
+
+	notification::post(state, notification::message{
+		[n](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_bankruptcy_1", text::variable_type::x, n);
+		},
+		"msg_bankruptcy_title",
+		n, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::bankruptcy
+	});
 }
 
 } // namespace economy

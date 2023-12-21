@@ -24,7 +24,6 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
 		dcon::cb_type_id selected = parent ? retrieve<dcon::cb_type_id>(state, parent->parent) : dcon::cb_type_id{};
-
 		if(content == selected)
 			send(state, parent, element_selection_wrapper<dcon::cb_type_id>{dcon::cb_type_id{}});
 		else
@@ -33,9 +32,35 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
+	}
 
-		auto fat = dcon::fatten(state.world, content);
-		set_button_text(state, text::produce_simple_string(state, fat.get_name()));
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, content);
+		text::add_line(state, contents, "tt_can_use_nation");
+		auto allowed_substates = fat_id.get_allowed_substate_regions();
+		if(allowed_substates) {
+			text::add_line_with_condition(state, contents, "is_substate", state.world.nation_get_is_substate(target));
+			if(state.world.nation_get_is_substate(target)) {
+				auto ruler = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+				trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(ruler), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			}
+		} else {
+			trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+		}
+		text::add_line(state, contents, "et_on_add");
+		effect_description(state, contents, fat_id.get_on_add(), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), trigger::to_generic(target),
+			uint32_t(state.current_date.value), uint32_t((state.local_player_nation.index() << 7) ^ target.index() ^ (fat_id.id.index() << 3)));
+		text::add_line(state, contents, "et_on_po_accepted");
+		auto windx = 0;//wargoal.index()
+		effect_description(state, contents, fat_id.get_on_po_accepted(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation),
+				uint32_t((state.current_date.value << 8) ^ target.index()), uint32_t(state.local_player_nation.index() ^ (windx << 3)));
 	}
 };
 
@@ -752,9 +777,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
-			Cyto::Any payload = bool{};
-			parent->impl_get(state, payload);
-			bool content = any_cast<bool>(payload);
+			bool content = retrieve<bool>(state, parent);
 			Cyto::Any b_payload = element_selection_wrapper<bool>{ !content };
 			parent->impl_get(state, b_payload);
 		}
@@ -1389,7 +1412,7 @@ private:
 		dcon::nation_id target = wargoal_against;
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;
-		auto secondary_tag = state.world.nation_get_identity_from_identity_holder(offer_made_to);
+		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 		if(allowed_substate_regions) {
 			for(auto v : state.world.nation_get_overlord_as_ruler(target)) {
@@ -1519,8 +1542,6 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(offer_made_to);
-		} else if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(offer_made_to));
 		} else if(payload.holds_type<get_target>()) {
 			payload.emplace<get_target>(get_target{ wargoal_against });
 		} else if(payload.holds_type<get_offer_to>()) {

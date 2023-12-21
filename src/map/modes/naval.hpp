@@ -16,20 +16,22 @@ std::vector<uint32_t> naval_map_from(sys::state& state) {
 			uint32_t color = 0x222222;
 			uint32_t stripe_color = 0x222222;
 
-			if(fat_id.get_is_coast()) {
-				auto state_id = fat_id.get_abstract_state_membership();
-				color = ogl::color_from_hash(state_id.get_state().id.index());
-				stripe_color = 0x00FF00; // light green
-
-				auto state_has_naval_base = military::state_has_naval_base(state, fat_id.get_state_membership());
-				auto naval_base_lvl = fat_id.get_building_level(economy::province_building_type::naval_base);
-				auto max_naval_base_lvl = state.world.nation_get_max_building_level(nation, economy::province_building_type::naval_base);
-
-				if(state_has_naval_base && naval_base_lvl == 0) {
-					stripe_color = ogl::color_from_hash(state_id.get_state().id.index());
-				} else if(naval_base_lvl == max_naval_base_lvl) {
-					stripe_color = 0x005500; // dark green
+			if(province::has_naval_base_being_built(state, prov_id)) {
+				color = 0x00FF00;
+				stripe_color = 0x005500;
+			} else if(province::can_build_naval_base(state, prov_id, state.local_player_nation)) {
+				if(state.world.province_get_building_level(prov_id, economy::province_building_type::naval_base) != 0) {
+					color = 0x00FF00;
+					stripe_color = 0x00FF00;
+				} else {
+					color = sys::pack_color(50, 150, 200);
+					stripe_color = sys::pack_color(50, 150, 200);
 				}
+			} else if(state.world.province_get_building_level(prov_id, economy::province_building_type::naval_base) != 0) {
+				color = 0x005500;
+				stripe_color = 0x005500;
+			} else { // no naval base, not build target
+
 			}
 
 			auto i = province::to_map_id(prov_id);

@@ -172,6 +172,10 @@ protected:
 			text::add_to_layout_box(state, contents, box, std::string("."));
 		}
 		text::close_layout_box(contents, box);
+		for(auto& txt : contents.base_layout.contents) {
+			if(txt.color == text::text_color::black)
+				txt.color = text::text_color::white;
+		}
 	}
 
 public:

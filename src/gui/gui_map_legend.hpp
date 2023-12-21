@@ -48,6 +48,8 @@ class map_legend_title : public simple_text_element_base {
 			return "mapmode_15";
 		case map_mode::mode::terrain:
 			return "mapmode_1";
+		case map_mode::mode::religion:
+			return "mapmode_24";
 		default:
 			return "???";
 		}
@@ -189,6 +191,166 @@ public:
 			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(250, 250, 5));
 		} else if(name == "s4_ico") {
 			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(64, 64, 64));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_col : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(46, 247, 15));
+		} else if(name == "s2_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(247, 15, 15));
+		} else if(name == "s3_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(140, 247, 15));
+		} else if(name == "s4_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(250, 250, 5));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_dip : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") { // Viewpoint
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FF00));
+		} else if(name == "s2_ico") { // Ally
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0xFFAA00));
+		} else if(name == "s3_ico") { // Enemy
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x0000FF));
+		} else if(name == "s4_ico") { // Puppet
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x009900));
+		} else if(name == "s5_ico") { // Sphere
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x55AA55));
+		} else if(name == "s6_ico") { // Other
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x222222));
+		} else if(name == "s7_ico") { // Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x222222));
+		} else if(name == "s8_ico") { // Non Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FF00));
+		} else if(name == "s9_ico") { // Union Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x222222));
+		} else if(name == "s7_ico_b") { // Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FF00));
+		} else if(name == "s8_ico_b") { // Non Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0xFFFFFF));
+		} else if(name == "s9_ico_b") { // Union Core
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FFFF));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_rr : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") { // Level 0
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(41, 5, 245));
+		} else if(name == "s2_ico") { // Level 5
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(14, 240, 44));
+		} else if(name == "s3_ico") { // Upgrading
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(222, 7, 46));
+		} else if(name == "s3_ico_b") { // Upgrading
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(232, 228, 111));
+		} else if(name == "s4_ico") { // Max level
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(232, 228, 111));
+		} else if(name == "s5_ico") { // Blocked
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(222, 7, 46));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_nav : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") { // No base
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x222222));
+		} else if(name == "s2_ico") { // Max level
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x005500));
+		} else if(name == "s3_ico") { // Upgrading
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x005500));
+		} else if(name == "s3_ico_b") { // Upgrading
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FF00));
+		} else if(name == "s4_ico") { // Upgradeable
+			return make_element_by_type<tinted_image_element_base>(state, id, uint32_t(0x00FF00));
+		} else if(name == "s5_ico") { // Constructible
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(50, 150, 200));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_rank : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(int32_t(48 * 0.65f), int32_t(242 * 0.65f), int32_t(51 * 0.65f)));
+		} else if(name == "s2_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(int32_t(36 * 0.65f), int32_t(47 * 0.65f), int32_t(255 * 0.65f)));
+		} else if(name == "s3_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(int32_t(238 * 0.65f), int32_t(252 * 0.65f), int32_t(38 * 0.65f)));
+		} else if(name == "s4_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(int32_t(250 * 0.65f), int32_t(5 * 0.65f), int32_t(5 * 0.65f)));
+		} else {
+			return nullptr;
+		}
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto new_position = xy_pair{ int16_t((state.ui_state.root->base_data.size.x - base_data.size.x) / 2), int16_t((state.ui_state.root->base_data.size.y - base_data.size.y) - (state.ui_state.msg_log_window->is_visible() ? state.ui_state.msg_log_window->base_data.size.y + 54 : 12)) };
+		base_data.position = new_position;
+		window_element_base::impl_render(state, new_position.x, new_position.y);
+	}
+};
+
+class map_legend_rec : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "s1_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(53, 196, 53));
+		} else if(name == "s2_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(212, 214, 62));
+		} else if(name == "s3_ico") {
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(155, 156, 149));
 		} else {
 			return nullptr;
 		}

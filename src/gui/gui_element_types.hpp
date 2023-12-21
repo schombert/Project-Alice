@@ -115,6 +115,73 @@ public:
 	}
 };
 
+class partially_transparent_image : public opaque_element_base {
+	uint8_t* texture = nullptr;
+	int32_t size_x = 0, size_y = 0;
+public:
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
+			if( // texture memory layout RGBA accessed through uint8_t pointer
+				texture[
+					(
+						((x * (int32_t)state.user_settings.ui_scale) % size_x)
+						+
+						((y * (int32_t)state.user_settings.ui_scale) * size_x)
+					) * 4 + 3
+				] == 0x00
+			) {
+				return message_result::unseen;
+			}
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		opaque_element_base::on_create(state);
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		assert(gid);
+		dcon::texture_id tid = state.ui_defs.gfx[gid].primary_texture_handle;
+		auto& texhandle = state.open_gl.asset_textures[tid];
+		texture = texhandle.data;
+		size_x = texhandle.size_x;
+		size_y = texhandle.size_y;
+		assert(texture);
+	}
+
+	// MAYBE this function has to be changed when make_element_by_type() is changed
+	static std::unique_ptr<partially_transparent_image> make_element_by_type_alias(sys::state& state, dcon::gui_def_id id) {
+		auto res = std::make_unique<partially_transparent_image>();
+		std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
+
+		dcon::gfx_object_id gfx_handle;
+
+		if(res->base_data.get_element_type() == ui::element_type::image) {
+			gfx_handle = res->base_data.data.image.gfx_object;
+		} else if(res->base_data.get_element_type() == ui::element_type::button) {
+			gfx_handle = res->base_data.data.button.button_image;
+		}
+
+		if(gfx_handle) {
+			auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
+			if(tex_handle) {
+				state.ui_defs.gfx[gfx_handle].flags |= ui::gfx_object::do_transparency_check;;
+			}
+		}
+
+		make_size_from_graphics(state, res->base_data);
+		res->on_create(state);
+		return res;
+	}
+};
+
+
 class progress_bar : public opaque_element_base {
 public:
 	float progress = 0.f;
@@ -786,7 +853,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto layout = text::create_endless_layout(internal_layout,
 				text::layout_parameters{0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-						base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+						base_data.data.text.font_handle, 0, text::alignment::left, black_text ? text::text_color::black : text::text_color::white, false});
 		auto box = text::open_layout_box(layout, 0);
 		text::add_to_layout_box(state, layout, box, text_id);
 		text::close_layout_box(layout, box);
@@ -988,7 +1055,7 @@ public:
 	}
 };
 
-int32_t status_frame(sys::state& state, dcon::army_id a) {
+inline int32_t status_frame(sys::state& state, dcon::army_id a) {
 	auto is_understr = [&]() {
 		for(auto m : state.world.army_get_army_membership(a)) {
 			if(m.get_regiment().get_strength() < 1.0f)
@@ -1014,7 +1081,7 @@ int32_t status_frame(sys::state& state, dcon::army_id a) {
 		return 0;
 	}
 }
-int32_t status_frame(sys::state& state, dcon::navy_id a) {
+inline int32_t status_frame(sys::state& state, dcon::navy_id a) {
 	auto trange = state.world.navy_get_army_transport(a);
 
 	auto is_understr = [&]() {
@@ -1307,7 +1374,7 @@ public:
 	}
 };
 
-outline_color to_color(sys::state& state, unit_var display_unit) {
+inline outline_color to_color(sys::state& state, unit_var display_unit) {
 	dcon::nation_id controller;
 	bool selected = false;
 	if(std::holds_alternative<dcon::army_id>(display_unit)) {
@@ -1333,7 +1400,7 @@ outline_color to_color(sys::state& state, unit_var display_unit) {
 	}
 }
 
-bool color_equivalent(outline_color a, outline_color b) {
+inline bool color_equivalent(outline_color a, outline_color b) {
 	switch(a) {
 		case outline_color::blue:
 		case outline_color::gold:
@@ -1342,7 +1409,7 @@ bool color_equivalent(outline_color a, outline_color b) {
 			return a == b;
 	}
 }
-bool color_less(outline_color a, outline_color b) {
+inline bool color_less(outline_color a, outline_color b) {
 	if(a == outline_color::gray)
 		return false;
 	if(b == outline_color::gray)
@@ -1409,7 +1476,7 @@ public:
 
 using grid_row = std::array<unit_var, 4>;
 
-bool unit_var_ordering(sys::state& state, unit_var a, unit_var b) {
+inline bool unit_var_ordering(sys::state& state, unit_var a, unit_var b) {
 	if(std::holds_alternative<std::monostate>(a))
 		return false;
 	if(std::holds_alternative<std::monostate>(b))

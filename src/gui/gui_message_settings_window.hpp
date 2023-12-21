@@ -106,6 +106,7 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_cb_fab_finished",						  // cb_fab_finished
 		"amsg_cb_fab_cancelled",						  // cb_fab_cancelled
 		"amsg_crisis_voluntary_join",				  // crisis_voluntary_join
+		"amsg_bankruptcy", //bankruptcy
 	};
 	return std::string{key_str[type]};
 }
@@ -269,9 +270,8 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i = 0; i < 98; ++i) {
+		for(auto i = 0; i <= 100; ++i)
 			row_contents.push_back(i);
-		}
 		update(state);
 	}
 };
@@ -297,12 +297,7 @@ public:
 		if(name == "close") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "message_settings_items") {
-			// Nudge required for listbox before it is created...
-			//state.ui_defs.gui[id].size.x -= 21; // Nudge
-			auto ptr = make_element_by_type<message_settings_listbox>(state, id);
-			//ptr->base_data.position.x += 21; // Nudge
-			//ptr->base_data.position.y += 21; // Nudge
-			return ptr;
+			return make_element_by_type<message_settings_listbox>(state, id);
 		} else {
 			return nullptr;
 		}

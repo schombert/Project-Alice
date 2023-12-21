@@ -666,9 +666,9 @@ std::string produce_simple_string(sys::state const& state, dcon::text_sequence_i
 	auto& seq = state.text_sequences[id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
-		if(std::holds_alternative<dcon::text_key>(state.text_components[i + seq.starting_component])) {
-			result += state.to_string_view(std::get<dcon::text_key>(state.text_components[i + seq.starting_component]));
-		} else if(std::holds_alternative<variable_type>(state.text_components[i + seq.starting_component])) {
+		if(state.text_components[i + seq.starting_component].type == text::text_component_type::text_key) {
+			result += state.to_string_view(state.text_components[i + seq.starting_component].data.text_key);
+		} else if(state.text_components[i + seq.starting_component].type == text::text_component_type::variable_type) {
 			result += '?';
 		}
 	}
@@ -838,9 +838,19 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 			auto adj_id = fat_id.get_nation_from_state_ownership().get_adjective();
 			auto adj = produce_simple_string(state, adj_id);
+			if(!fat_id.get_definition().get_name()) {
+				if(!adj_id) {
+					return get_name_as_string(state, fat_id.get_capital());
+				}
+				return adj + " " + get_name_as_string(state, fat_id.get_capital());
+			} else if(!adj_id) {
+				return get_name_as_string(state, fat_id.get_definition());
+			}
 			return adj + " " + get_name_as_string(state, fat_id.get_definition());
 		}
 	}
+	if(!fat_id.get_definition().get_name())
+		return get_name_as_string(state, fat_id.get_capital());
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
@@ -850,7 +860,10 @@ std::string get_province_state_name(sys::state const& state, dcon::province_id p
 	if(state_instance_id) {
 		return get_dynamic_state_name(state, state_instance_id);
 	} else {
-		return get_name_as_string(state, fat_id.get_abstract_state_membership_as_province().get_state());
+		auto sdef = fat_id.get_abstract_state_membership_as_province().get_state();
+		if(!sdef.get_name())
+			return get_name_as_string(state, fat_id.get_state_membership().get_capital());
+		return get_name_as_string(state, sdef);
 	}
 }
 
@@ -1226,19 +1239,19 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 
 	auto seq = state.text_sequences[source_text];
 	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-		if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
-			auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+		if(state.text_components[i].type == text::text_component_type::text_key) {
+			auto tkey = state.text_components[i].data.text_key;
 			std::string_view text = state.to_string_view(tkey);
 			add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
-		} else if(std::holds_alternative<text::line_break>(state.text_components[i])) {
+		} else if(state.text_components[i].type == text::text_component_type::line_break) {
 			add_line_break_to_layout_box(state, dest, box);
-		} else if(std::holds_alternative<text::text_color>(state.text_components[i])) {
-			if(std::get<text::text_color>(state.text_components[i]) == text_color::reset)
+		} else if(state.text_components[i].type == text::text_component_type::text_color) {
+			if(state.text_components[i].data.text_color == text_color::reset)
 				current_color = dest.fixed_parameters.color;
 			else
-				current_color = std::get<text::text_color>(state.text_components[i]);
-		} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
-			auto var_type = std::get<text::variable_type>(state.text_components[i]);
+				current_color = state.text_components[i].data.text_color;
+		} else if(state.text_components[i].type == text::text_component_type::variable_type) {
+			auto var_type = state.text_components[i].data.variable_type;
 			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 				auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 				add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
@@ -1566,13 +1579,13 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 	if(source_text) {
 		auto seq = state.text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-			if(std::holds_alternative<dcon::text_key>(state.text_components[i])) {
-				auto tkey = std::get<dcon::text_key>(state.text_components[i]);
+			if(state.text_components[i].type == text::text_component_type::text_key) {
+				auto tkey = state.text_components[i].data.text_key;
 				std::string_view text = state.to_string_view(tkey);
 				// add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
 				result += text;
-			} else if(std::holds_alternative<text::variable_type>(state.text_components[i])) {
-				auto var_type = std::get<text::variable_type>(state.text_components[i]);
+			} else if(state.text_components[i].type == text::text_component_type::variable_type) {
+				auto var_type = state.text_components[i].data.variable_type;
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 					auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 					// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);

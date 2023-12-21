@@ -203,7 +203,7 @@ public:
 	}
 };
 
-class province_national_focus_button : public button_element_base {
+class province_national_focus_button : public right_click_button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
@@ -228,7 +228,10 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override;
-
+	void button_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, content, dcon::national_focus_id{});
+	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -1417,6 +1420,7 @@ public:
 		auto content = retrieve<dcon::province_id>(state, parent);
 		command::finish_colonization(state, state.local_player_nation, content);
 		state.ui_state.province_window->set_visible(state, false);
+		state.map_state.set_selected_province(dcon::province_id{});
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1861,13 +1865,6 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
-
-			header_window->impl_on_update(state);
-			foreign_details_window->impl_on_update(state);
-			local_details_window->impl_on_update(state);
-			local_buildings_window->impl_on_update(state);
-			colony_window->impl_on_update(state);
-
 			if(!is_visible())
 				set_visible(state, true);
 			else
@@ -1875,6 +1872,14 @@ public:
 		} else {
 			set_visible(state, false);
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		header_window->impl_on_update(state);
+		foreign_details_window->impl_on_update(state);
+		local_details_window->impl_on_update(state);
+		local_buildings_window->impl_on_update(state);
+		colony_window->impl_on_update(state);
 	}
 
 	friend class province_national_focus_button;

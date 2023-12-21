@@ -49,6 +49,26 @@ void apply_base_unit_stat_modifiers(sys::state& state) {
 	}
 }
 
+void invalidate_unowned_wargoals(sys::state& state) {
+	for(auto wg : state.world.in_wargoal) {
+		if(wg.get_war_from_wargoals_attached()) {
+			auto s = wg.get_associated_state();
+			if(s) {
+				bool found_state = false;
+				for(auto si : wg.get_target_nation().get_state_ownership()) {
+					if(si.get_state().get_definition() == s) {
+						found_state = true;
+						break;
+					}
+				}
+				if(!found_state) {
+					state.world.delete_wargoal(wg);
+				}
+			}
+		}
+	}
+}
+
 void restore_unsaved_values(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		auto w = state.world.nation_get_war_participant(n);
@@ -147,7 +167,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -266,7 +286,7 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	if(allowed_countries) {
 		bool any_allowed = [&]() {
 			for(auto n : state.world.in_nation) {
-				if(n != target && n != actor) {
+				if(n != actor) {
 					if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
 								 trigger::to_generic(n.id))) {
 						if(allowed_states) { // check whether any state within the target is valid for free / liberate
@@ -923,7 +943,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
 			*/
-			total += int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment));
+			total += int32_t(pop.get_pop().get_size() * mobilization_size / state.defines.pop_size_per_regiment);
 		}
 	}
 	return total;
@@ -2029,6 +2049,7 @@ void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::sub
 	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
+
 	text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
 	text::add_to_substitution_map(sub, text::variable_type::second_country, primary_defender);
 	text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
@@ -2186,6 +2207,8 @@ war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n) {
 dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dcon::nation_id primary_defender,
 		dcon::cb_type_id primary_wargoal, dcon::state_definition_id primary_wargoal_state,
 		dcon::national_identity_id primary_wargoal_tag, dcon::nation_id primary_wargoal_secondary) {
+	assert(primary_attacker);
+	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
 
 	auto real_target = primary_defender;
@@ -2651,8 +2674,13 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// added the war goal's sphere with max influence.
 	if((bits & cb_flag::po_add_to_sphere) != 0) {
 		if(secondary_nation) {
-			if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
-				take_from_sphere(state, secondary_nation, from);
+			if(secondary_nation != target) {
+				if(state.world.nation_get_owned_province_count(secondary_nation) != 0)
+					take_from_sphere(state, secondary_nation, from);
+			} else { // we see this in the independence cb
+				if(state.world.nation_get_owned_province_count(from) != 0)
+					take_from_sphere(state, from, dcon::nation_id{});
+			}
 		} else {
 			take_from_sphere(state, target, from);
 		}
@@ -2675,9 +2703,16 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 	// po_release_puppet: nation stops being a vassal
 	if((bits & cb_flag::po_release_puppet) != 0) {
 		assert(secondary_nation);
-		auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
-		if(ol) {
-			nations::release_vassal(state, ol);
+		if(secondary_nation != target) {
+			auto ol = state.world.nation_get_overlord_as_subject(secondary_nation);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
+		} else { // we see this in the independence cb
+			auto ol = state.world.nation_get_overlord_as_subject(from);
+			if(ol) {
+				nations::release_vassal(state, ol);
+			}
 		}
 	}
 
@@ -3277,7 +3312,7 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			assert(false);
 		}
 	} else { // crisis offer
-		bool crisis_attackers_won = from == state.primary_crisis_attacker;
+		bool crisis_attackers_won = (from == state.primary_crisis_attacker) == (state.world.peace_offer_get_is_concession(offer) == false);
 
 		for(auto& par : state.crisis_participants) {
 			if(!par.id)
@@ -6716,7 +6751,7 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		for(auto rg : ar.get_army().get_army_membership()) {
 			auto pop = rg.get_regiment().get_pop_from_regiment_source();
-			if(pop && pop.get_poptype() != state.culture_definitions.soldiers) {
+			if(!pop || pop.get_poptype() != state.culture_definitions.soldiers) {
 				rg.get_regiment().set_strength(0.0f);
 				rg.get_regiment().set_pop_from_regiment_source(dcon::pop_id{});
 			}
@@ -6755,8 +6790,7 @@ void advance_mobilizations(sys::state& state) {
 								define:POP_SIZE_PER_REGIMENT.
 								*/
 
-								auto available =
-										int32_t(std::ceil(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment));
+								auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 								if(available > 0) {
 
 									bool army_is_new = false;
@@ -6776,13 +6810,17 @@ void advance_mobilizations(sys::state& state) {
 										auto new_reg = military::create_new_regiment(state, dcon::nation_id{}, mob_infantry ?state.military_definitions.infantry : state.military_definitions.irregular);
 										state.world.regiment_set_org(new_reg, 0.1f);
 										state.world.try_create_army_membership(new_reg, a);
-										state.world.try_create_regiment_source(new_reg, pop.get_pop());
+										auto p = pop.get_pop();
+										assert(p);
+										state.world.try_create_regiment_source(new_reg, p);
 
 										--available;
 										--to_mobilize;
 									}
-									if(army_is_new)
+									if(army_is_new) {
 										military::army_arrives_in_province(state, a, back.where, military::crossing_type::none, dcon::land_battle_id{});
+										military::move_land_to_merge(state, n, a, back.where, dcon::province_id{});
+									}
 								}
 							}
 
@@ -6926,6 +6964,115 @@ bool rebel_army_in_province(sys::state& state, dcon::province_id p) {
 			return true;
 	}
 	return false;
+}
+dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
+	float distance = 2.0f;
+	dcon::province_id closest;
+	auto region = state.world.province_get_connected_region_id(start);
+
+	for(auto p : state.world.nation_get_province_ownership(by)) {
+		if(!p.get_province().get_land_rally_point())
+			continue;
+		if(p.get_province().get_connected_region_id() != region)
+			continue;
+		if(p.get_province().get_nation_from_province_control() != by)
+			continue;
+		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
+			distance = dist;
+			closest = p.get_province();
+		}
+	}
+
+	return closest;
+}
+dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start) {
+	float distance = 2.0f;
+	dcon::province_id closest;
+
+	for(auto p : state.world.nation_get_province_ownership(by)) {
+		if(!p.get_province().get_naval_rally_point())
+			continue;
+		if(p.get_province().get_nation_from_province_control() != by)
+			continue;
+		if(auto dist = province::sorting_distance(state, start, p.get_province()); !closest || dist < distance) {
+			distance = dist;
+			closest = p.get_province();
+		}
+	}
+
+	return closest;
+}
+void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest) {
+	if(state.world.nation_get_is_player_controlled(by) == false)
+		return; // AI doesn't use rally points or templates
+	if(!dest)
+		dest = find_land_rally_pt(state, by, start);
+	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
+		return;
+	if(state.world.army_get_battle_from_army_battle_participation(a))
+		return;
+
+	if(dest == start) { // merge in place
+		for(auto ar : state.world.province_get_army_location(start)) {
+			if(ar.get_army().get_controller_from_army_control() == by && ar.get_army() != a) {
+				auto regs = state.world.army_get_army_membership(a);
+				while(regs.begin() != regs.end()) {
+					(*regs.begin()).set_army(ar.get_army());
+				}
+				return;
+			}
+		}
+	} else {
+		auto path = province::make_land_path(state, start, dest, by, a);
+		if(path.empty())
+			return;
+
+		auto existing_path = state.world.army_get_path(a);
+		auto new_size = uint32_t(path.size());
+		existing_path.resize(new_size);
+
+		for(uint32_t k = 0; k < new_size; ++k) {
+			assert(path[k]);
+			existing_path[k] = path[k];
+		}
+		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		state.world.army_set_moving_to_merge(a, true);
+	}
+}
+void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
+	if(state.world.nation_get_is_player_controlled(by) == false)
+		return; // AI doesn't use rally points or templates
+	if(!dest)
+		dest = find_naval_rally_pt(state, by, start);
+	if(!dest || state.world.province_get_nation_from_province_control(dest) != by)
+		return;
+
+	if(dest == start) { // merge in place
+		for(auto ar : state.world.province_get_navy_location(start)) {
+			if(ar.get_navy().get_controller_from_navy_control() == by && ar.get_navy() != a) {
+				auto regs = state.world.navy_get_navy_membership(a);
+				while(regs.begin() != regs.end()) {
+					(*regs.begin()).set_navy(ar.get_navy());
+				}
+				return;
+			}
+		}
+	} else {
+		auto path = province::make_naval_path(state, start, dest);
+		if(path.empty())
+			return;
+
+		auto existing_path = state.world.navy_get_path(a);
+		auto new_size = uint32_t(path.size());
+		existing_path.resize(new_size);
+
+		for(uint32_t k = 0; k < new_size; ++k) {
+			assert(path[k]);
+			existing_path[k] = path[k];
+		}
+		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		state.world.navy_set_moving_to_merge(a, true);
+	}
 }
 
 } // namespace military

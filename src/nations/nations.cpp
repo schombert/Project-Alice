@@ -587,7 +587,7 @@ void update_great_powers(sys::state& state) {
 	
 	for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
 		auto n = state.nations_by_rank[i];
-		if(n && !state.world.nation_get_is_great_power(n)) {
+		if(n && !state.world.nation_get_is_great_power(n) && state.world.nation_get_owned_province_count(n) > 0) {
 			at_least_one_added = true;
 			state.world.nation_set_is_great_power(n, true);
 			state.great_nations.push_back(sys::great_nation(state.current_date, n));
@@ -1071,7 +1071,8 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	return 0.0f;
+	auto v = state.world.nation_get_stockpiles(n, economy::money);
+	return v < 0.0f ? -v : 0.0f;
 }
 
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {

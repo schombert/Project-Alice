@@ -32,7 +32,8 @@ typedef int socket_t;
 
 struct client_handshake_data {
 	sys::player_name nickname;
-	uint8_t reserved[64];
+	uint8_t password[16] = {0};
+	uint8_t reserved[48] = {0};
 };
 
 struct server_handshake_data {
@@ -40,7 +41,7 @@ struct server_handshake_data {
 	sys::checksum_key save_checksum;
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
-	uint8_t reserved[64];
+	uint8_t reserved[64] = {0};
 };
 
 struct client_data {
@@ -77,6 +78,7 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
+	uint8_t password[16] = {0};
 
 	command::payload recv_buffer;
 	size_t recv_count = 0;
@@ -96,6 +98,9 @@ struct network_state {
 
 	server_handshake_data s_hshake;
 
+	uint32_t current_save_length = 0;
+	std::unique_ptr<uint8_t[]> current_save_buffer;
+
 	sys::player_name nickname;
 	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
 
@@ -111,6 +116,8 @@ void finish(sys::state& state);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n);
+uint32_t write_network_save(sys::state& state, std::unique_ptr<uint8_t[]>& buffer);
+void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length);
 void broadcast_to_clients(sys::state& state, command::payload& c);
 
 }

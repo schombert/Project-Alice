@@ -47,7 +47,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
-	return vertex.position_ * map_size;
+	return vertex.position * map_size;
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
@@ -67,48 +67,27 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
+	map_data.unit_arrow_counts.clear();
+	map_data.unit_arrow_starts.clear();
 
 	for(auto selected_army : state.selected_armies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_army_path(state, map_data.unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 	for(auto selected_navy : state.selected_navies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_navy_path(state, map_data.unit_arrow_vertices, selected_navy, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
 	if(map_data.unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	/*
-	std::vector<std::vector<glm::vec2>> arrows;
-	std::vector<float> progresses;
-	for(auto selected_army : state.selected_armies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_army));
-
-		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
-		auto path = state.world.army_get_path(selected_army);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_army_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto army_pos = get_army_location(state, path[i]);
-			arrows.back().push_back(army_pos);
-		}
-	}
-	for(auto selected_navy : state.selected_navies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_navy));
-
-		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);
-		auto path = state.world.navy_get_path(selected_navy);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_navy_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto navy_pos = get_navy_location(state, path[i]);
-			arrows.back().push_back(navy_pos);
-		}
-	}
-	map_data.set_unit_arrows(arrows, progresses);
-	*/
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
@@ -363,15 +342,9 @@ void map_state::update(sys::state& state) {
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 
-	if(pgup_key_down) {
-		zoom_change += 0.1f;
-	}
-	if(pgdn_key_down) {
-		zoom_change -= 0.1f;
-	}
-
 	glm::vec2 mouse_pos{ state.mouse_x_position, state.mouse_y_position };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
+	glm::vec2 screen_center = screen_size / 2.f;
 	auto view_mode = state.user_settings.map_is_globe ? map_view::globe : map_view::flat;
 	glm::vec2 pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
@@ -384,6 +357,27 @@ void map_state::update(sys::state& state) {
 	glm::vec2 pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
 		pos += pos_before_zoom - pos_after_zoom;
+	}
+
+	static float keyboard_zoom_change = 0.f;
+	if(pgup_key_down) {
+		keyboard_zoom_change += 0.1f;
+	}
+	if(pgdn_key_down) {
+		keyboard_zoom_change -= 0.1f;
+	}
+
+	glm::vec2 pos_before_keyboard_zoom;
+	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
+
+	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
+	zoom += keyboard_zoom_diff;
+	keyboard_zoom_change *= std::exp(-seconds_since_last_update * 20);
+	zoom = glm::clamp(zoom, min_zoom, max_zoom);
+
+	glm::vec2 pos_after_keyboard_zoom;
+	if(valid_pos && screen_to_map(screen_center, screen_size, view_mode, pos_after_keyboard_zoom)) {
+		pos += pos_before_keyboard_zoom - pos_after_keyboard_zoom;
 	}
 
 

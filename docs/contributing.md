@@ -6,10 +6,6 @@ Help that I am currently looking for:
 
 I would like to find someone who could essentially redo all of the existing Victoria 2 UI assets in a new artistic style to give the game its own distinctive visual identity. Yes, I know that this is no trivial thing.
 
-#### Maps:
-
-Currently, we make a somewhat ugly compromise to stretch the existing game maps over the globe. I would love to be able to ship a proper map that covers the globe. Working on the map requires basic image-editing skills and a whole mountain of patience.
-
 #### Testers:
 
 I am looking for people who can build a C++ project and run it, but who don't want to (or aren't comfortable) contributing code. Testers are expected to build the project and poke at it on a semi-regular basis to find bugs, especially those that don't appear for the software/hardware combinations that I am not developing on. Speak to our project coordinator if you are interested in being a tester.
