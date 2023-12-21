@@ -276,7 +276,7 @@ void accept(sys::state& state, message const& m) {
 	case type::none:
 		break;
 	case type::access_request: {
-		if(!command::can_ask_for_access(state, m.from, m.to))
+		if(!command::can_ask_for_access(state, m.from, m.to, true))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
@@ -298,7 +298,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::alliance_request: {
-		if(!command::can_ask_for_alliance(state, m.from, m.to))
+		if(!command::can_ask_for_alliance(state, m.from, m.to, true))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_accept);
@@ -306,7 +306,7 @@ void accept(sys::state& state, message const& m) {
 		break;
 	}
 	case type::call_ally_request: {
-		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
+		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
 			return;
 
 		military::add_to_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
@@ -400,7 +400,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::alliance_request:
 			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:
-			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
+			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
 				return false;
 			return ai::will_join_war(state, m.to, m.data.war, military::get_role(state, m.data.war, m.from) == military::war_role::attacker);
 		case type::be_crisis_primary_defender:
