@@ -151,6 +151,22 @@ guiTypes = {
 				position = { 51 123 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Dynamic railroads (Y/N)
+			instantTextBoxType = {
+				name = "railroad_label"
+				position = { 194 124 }
+				text = "railroad_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "railroad_checkbox"
+				position = { 167 123 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Projection settings for the map: equirectangular, orthographic
 			instantTextBoxType = {
 				name = "projection_label"

@@ -86,6 +86,11 @@ public:
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };
+class railroad_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
 
 class map_label_left : public button_element_base {
 public:
