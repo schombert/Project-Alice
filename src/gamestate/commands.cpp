@@ -2189,7 +2189,7 @@ void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nat
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have
 	military access.
@@ -2197,7 +2197,7 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
@@ -2229,11 +2229,11 @@ void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.givemilaccess_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.givemilaccess_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
@@ -2264,7 +2264,7 @@ void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must not have an alliance. Must not be in a war against each other. Costs defines:ALLIANCE_DIPLOMATIC_COST diplomatic points.
 	Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with
@@ -2273,7 +2273,7 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.alliance_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, asker);
@@ -2374,11 +2374,11 @@ void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id targ
 	p.data.call_to_arms.war = w;
 	add_to_command_queue(state, p);
 }
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost) {
 	if(asker == target)
 		return false;
 
-	if(state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
 	if(!nations::are_allied(state, asker, target) && !(state.world.war_get_primary_defender(w) == asker && state.world.nation_get_in_sphere_of(asker) == target))
@@ -2444,12 +2444,12 @@ void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nat
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
 	if(source == target)
 		return false;
 
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
-	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelaskmilaccess_diplomatic_cost)
 		return false;
 
 	if(state.world.unilateral_relationship_get_military_access(rel))
@@ -2483,10 +2483,10 @@ void cancel_given_military_access(sys::state& state, dcon::nation_id source, dco
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
 
-	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
 		return false;
 
 	if(state.world.unilateral_relationship_get_military_access(rel))
@@ -2522,11 +2522,11 @@ void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	p.data.diplo_action.target = target;
 	add_to_command_queue(state, p);
 }
-bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
 	if(source == target)
 		return false;
 
-	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelalliance_diplomatic_cost)
+	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelalliance_diplomatic_cost)
 		return false;
 
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, source);
@@ -4104,6 +4104,19 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 	}
 }
 
+void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::enable_debt;
+	p.source = source;
+	p.data.make_leader.is_general = debt_is_enabled;
+	add_to_command_queue(state, p);
+}
+
+void execute_enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
+	state.world.nation_set_is_debt_spending(source, debt_is_enabled);
+}
+
 static void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
@@ -4695,6 +4708,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::state_transfer:
 		return can_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
 
+	case command_type::enable_debt:
+		return true;
+
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5054,6 +5070,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::release_subject:
 		execute_release_subject(state, c.source, c.data.diplo_action.target);
+		break;
+	case command_type::enable_debt:
+		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
 		break;
 
 		// common mp commands

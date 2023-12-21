@@ -318,39 +318,37 @@ void display_data::create_meshes() {
 
 	std::vector<map_vertex> land_vertices;
 
-	auto add_quad = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0, glm::vec2 pos1) {
-		// Rescale the coordinate to 0-1
-		pos0 /= map_size;
-		pos1 /= map_size;
-
-		// First vertex of the quad
+	auto add_vertex = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0) {
 		vertices.emplace_back(pos0.x, pos0.y);
-		vertices.emplace_back(pos1.x, pos0.y);
-		vertices.emplace_back(pos1.x, pos1.y);
-		// Second vertex of the quad
-		vertices.emplace_back(pos1.x, pos1.y);
-		vertices.emplace_back(pos0.x, pos1.y);
-		vertices.emplace_back(pos0.x, pos0.y);
-		};
+	};
 
 	glm::vec2 last_pos(0, 0);
 	glm::vec2 pos(0, 0);
 	glm::vec2 map_size(size_x, size_y);
-	glm::vec2 sections(200, 200);
-	for(int y = 0; y < sections.y; y++) {
-		pos.y = last_pos.y + (map_size.y / sections.y);
-		if(y == sections.y - 1)
-			pos.y = map_size.y;
-
-		last_pos.x = 0;
-		for(int x = 0; x < sections.x; x++) {
-			pos.x = last_pos.x + (map_size.x / sections.x);
-			if(x == sections.x - 1)
-				pos.x = map_size.x;
-			add_quad(land_vertices, last_pos, pos);
-			last_pos.x = pos.x;
+	glm::ivec2 sections(200, 200);
+	for(int y = 0; y <= sections.y; y++) {
+		pos.y = float(y) / float(sections.y);
+		for(int x = 0; x <= sections.x; x++) {
+			pos.x = float(x) / float(sections.x);
+			add_vertex(land_vertices, pos);
 		}
-		last_pos.y = pos.y;
+	}
+
+	map_indices.clear();
+	for(int y = 0; y < sections.y; y++) {
+		auto top_row_start = y * (sections.x + 1);
+		auto bottom_row_start = (y + 1) * (sections.x + 1);
+
+		map_indices.push_back(uint16_t(bottom_row_start + 0));
+		map_indices.push_back(uint16_t(top_row_start + 0));
+		
+
+		for(int x = 0; x < sections.x; x++) {
+			map_indices.push_back(uint16_t(bottom_row_start + 1 + x));
+			map_indices.push_back(uint16_t(top_row_start + 1 + x));
+		}
+
+		map_indices.push_back(std::numeric_limits<uint16_t>::max());
 	}
 
 	land_vertex_count = ((uint32_t)land_vertices.size());
@@ -358,7 +356,7 @@ void display_data::create_meshes() {
 	// Create and populate the VBO
 	glGenBuffers(1, &land_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), &land_vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), land_vertices.data(), GL_STATIC_DRAW);
 
 	// Create and bind the VAO
 	glGenVertexArrays(1, &land_vao);
@@ -445,12 +443,8 @@ display_data::~display_data() {
 		glDeleteProgram(terrain_shader);
 	if(line_border_shader)
 		glDeleteProgram(line_border_shader);
-	if(legacy_line_border_shader)
-		glDeleteProgram(legacy_line_border_shader);
 	if(textured_line_shader)
 		glDeleteProgram(textured_line_shader);
-	if(legacy_line_river_shader)
-		glDeleteProgram(legacy_line_river_shader);
 	if(line_unit_arrow_shader)
 		glDeleteProgram(line_unit_arrow_shader);
 	if(text_line_shader)
@@ -483,10 +477,6 @@ void display_data::load_shaders(simple_fs::directory& root) {
 
 	terrain_shader = create_program(*map_vshader, *map_fshader);
 
-	// Line shaders
-	auto line_vshader = try_load_shader(root, NATIVE("assets/shaders/line_border_v.glsl"));
-	auto line_border_fshader = try_load_shader(root, NATIVE("assets/shaders/line_border_f.glsl"));
-
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
@@ -494,9 +484,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
 
 	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
-	auto black_color_fshader = try_load_shader(root, NATIVE("assets/shaders/black_color_f.glsl"));
 	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
-	legacy_line_border_shader = create_program(*line_vshader, *black_color_fshader);
 	
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
@@ -576,6 +564,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
 		};
 
+	glEnable(GL_PRIMITIVE_RESTART);
+	//glDisable(GL_CULL_FACE);
+	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
+
 	load_shader(terrain_shader);
 	{ // Land specific shader uniform
 		glUniform1f(4, time_counter);
@@ -595,8 +587,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
 	glBindVertexArray(land_vao);
-	glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
+	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 
+	//glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
+	glDisable(GL_PRIMITIVE_RESTART);
+	//glEnable(GL_CULL_FACE);
 	// Draw the rivers
 
 	load_shader(textured_line_shader);
@@ -1337,7 +1332,14 @@ void display_data::load_map(sys::state& state) {
 
 	load_shaders(root);
 
-	diag_border_identifier = make_gl_texture(&diagonal_borders[0], size_x, size_y, 1);
+	glGenTextures(1, &diag_border_identifier);
+	if(diag_border_identifier) {
+		glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
+		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
 	set_gltex_parameters(diag_border_identifier, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);

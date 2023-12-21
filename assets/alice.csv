@@ -1110,6 +1110,9 @@ msg_war_join_on;;;;;;;;;;;;;x
 msg_cb_fab_finished;;;;;;;;;;;;;x
 msg_cb_fab_cancelled;;;;;;;;;;;;;x
 msg_crisis_voluntary_join;;;;;;;;;;;;;x
+msg_bankruptcy_title;Bankruptcy
+amsg_bankruptcy;When a nation goes bankrupt
+msg_bankruptcy_1;$x$ has gone bankrupt
 uv_sort_a;Att;;;Atq;;;;;;;;;x
 uv_sort_b;Def;;;Def;;;;;;;;;x
 uv_sort_c;Org;;;Org;;;;;;;;;x
@@ -1310,7 +1313,8 @@ alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side
 alice_unit_disable_rebel_hunt;Stop hunting rebels;;;;;;;;;;;;x
 alice_regiment_battle_info;$m$ $name$ 即$type$劬\nOrganisation: 即$organisation$劬\nStrength: 即$strength$劬;;;;;;;;;;;;x
 alice_understaffed_regiment;刪This regiment is understaffed and will only have $value$ soldiers!劬;;;;;;;;;;;;x
-alice_tech_queue_info;Press SHIFT to add to queue, right click to remove;;;;;;;;;;;;x
+alice_tech_queue_info;Press 即SHIFT劬 to add to queue, 即Right-click劬 to remove;;;;;;;;;;;;x
+alice_province_building_build;即SHIFT劬 to build on the entire state.\n即SHIFT + Right-click劬 to build on the entire country.;;;;;;;;;;;;x
 alice_commodity_shortage;刪There is a shortage of this commodity;;;;;;;;;;;;x
 alice_commodity_surplus;佈There is a surplus of this commodity;;;;;;;;;;;;x
 alice_trade_flow_produced;即Domestic production:;;;;;;;;;;;;x
@@ -1368,5 +1372,12 @@ aml_rec_s2;All used
 aml_rec_s3;None
 is_primary_culture;即$NAME$劬 is primary culture.
 is_primary_religion;即$NAME$劬 is primary religion.
+tt_can_use_nation;The conditions needed to allow the use of this wargoal:
+et_on_add;The effects executed from adding this wargoal to a war:
+et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
 alice_no_possible_units;No possible units can be built, and no units are in construction.
+alice_debt_spending;Enable/disable debt spending
+alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
+alice_currently_bankrupt;We are bankrupt (until $x$)
+alice_no_loans_possible;We are currently unable to take loans
 ;;;;;;;;;;;;;x

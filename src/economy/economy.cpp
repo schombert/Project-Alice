@@ -5,6 +5,40 @@
 
 namespace economy {
 
+bool can_take_loans(sys::state& state, dcon::nation_id n) {
+	if(!state.world.nation_get_is_player_controlled(n) || !state.world.nation_get_is_debt_spending(n))
+		return false;
+
+	/*
+	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
+	*/
+	auto last_br = state.world.nation_get_bankrupt_until(n);
+	if(last_br && state.current_date < last_br)
+		return false;
+
+	return true;
+}
+
+float interest_payment(sys::state& state, dcon::nation_id n) {
+	/*
+	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 
+	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
+	*/
+	auto debt = state.world.nation_get_stockpiles(n, money);
+	if(debt >= 0)
+		return 0.0f;
+
+	return -debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+}
+float max_loan(sys::state& state, dcon::nation_id n) {
+	/*
+	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. 
+	*/
+	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
+	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
+	return std::max(0.0f, total_tax_base * mod);
+}
+
 int32_t most_recent_price_record_index(sys::state& state) {
 	return (state.current_date.value >> 4) % 32;
 }
@@ -992,7 +1026,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 												(factory_per_level_employment / needs_scaling_factor);
 			if(money_made < min_wages) {
 				auto diff = min_wages - money_made;
-				if(state.world.nation_get_stockpiles(n, money) > diff) {
+				if(state.world.nation_get_stockpiles(n, money) > diff || can_take_loans(state, n)) {
 					state.world.factory_set_full_profit(f, min_wages);
 					state.world.nation_get_stockpiles(n, money) -= diff;
 					state.world.nation_get_subsidies_spending(n) += diff;
@@ -2221,11 +2255,25 @@ void daily_update(sys::state& state) {
 			float total = full_spending_cost(state, n, effective_prices);
 
 			// step 2: limit to actual budget
-			float budget = state.world.nation_get_stockpiles(n, economy::money); // (TODO: make debt possible)
-			float spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+			float budget = 0.0f;
+			float spending_scale = 0.0f;
+			if(state.world.nation_get_is_player_controlled(n)) {
+				auto& sp = state.world.nation_get_stockpiles(n, economy::money);
+				sp -= interest_payment(state, n);
+
+				if(can_take_loans(state, n)) {
+					budget = total;
+					spending_scale = 1.0f;
+				} else {
+					budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
+					spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+				}
+			} else {
+				budget = std::max(0.0f, state.world.nation_get_stockpiles(n, economy::money));
+				spending_scale = (total < 0.001f || total <= budget) ? 1.0f : budget / total;
+			}
 
 			assert(spending_scale >= 0);
-			assert(budget >= 0);
 			assert(std::isfinite(spending_scale));
 			assert(std::isfinite(budget));
 
@@ -2870,6 +2918,18 @@ void daily_update(sys::state& state) {
 
 				n.get_stockpiles(money) -= capped_payout;
 				uni.get_target().get_stockpiles(money) += capped_payout;
+			}
+		}
+	}
+
+	/*
+	BANKRUPTCY
+	*/
+	for(auto n : state.world.in_nation) {
+		auto m = n.get_stockpiles(money);
+		if(m < 0) {
+			if(m < -max_loan(state, n)) {
+				go_bankrupt(state, n);
 			}
 		}
 	}
@@ -4011,6 +4071,50 @@ dcon::modifier_id get_province_selector_modifier(sys::state& state) {
 
 dcon::modifier_id get_province_immigrator_modifier(sys::state& state) {
 	return state.economy_definitions.immigrator_modifier;
+}
+
+void go_bankrupt(sys::state& state, dcon::nation_id n) {
+	auto& debt = state.world.nation_get_stockpiles(n, economy::money);
+
+	/*
+	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
+	*/
+	auto existing_br = state.world.nation_get_bankrupt_until(n);
+	if(existing_br && state.current_date < existing_br) {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	} else if(debt >= -state.defines.small_debt_limit) {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_small, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	} else {
+		for(auto gn : state.great_nations) {
+			if(gn.nation && gn.nation != n) {
+				event::fire_fixed_event(state, state.national_definitions.on_debtor_default, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
+			}
+		}
+	}
+
+	sys::add_modifier_to_nation(state, n, state.national_definitions.in_bankrupcy, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
+	sys::add_modifier_to_nation(state, n, state.national_definitions.bad_debter, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));
+
+	debt = 0.0f;
+	state.world.nation_set_is_debt_spending(n, false);
+	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
+
+	notification::post(state, notification::message{
+		[n](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_bankruptcy_1", text::variable_type::x, n);
+		},
+		"msg_bankruptcy_title",
+		n, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::bankruptcy
+	});
 }
 
 } // namespace economy

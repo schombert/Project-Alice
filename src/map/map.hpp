@@ -182,6 +182,8 @@ public:
 	GLuint coastal_vao = 0;
 	GLuint coastal_border_vbo = 0;
 
+	std::vector<uint16_t> map_indices;
+
 	// Textures
 	GLuint provinces_texture_handle = 0;
 	GLuint terrain_texture_handle = 0;
@@ -207,9 +209,7 @@ public:
 	// Shaders
 	GLuint terrain_shader = 0;
 	GLuint line_border_shader = 0;
-	GLuint legacy_line_border_shader = 0;
 	GLuint textured_line_shader = 0;
-	GLuint legacy_line_river_shader = 0;
 	GLuint line_unit_arrow_shader = 0;
 	GLuint text_line_shader = 0;
 	GLuint drag_box_shader = 0;
