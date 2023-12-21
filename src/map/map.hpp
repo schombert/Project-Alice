@@ -34,7 +34,7 @@ struct image {
 	}
 	image(image const& other) = delete;
 
-	image(image&& other) {
+	image(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;
@@ -42,7 +42,7 @@ struct image {
 		other.data = nullptr;
 	}
 
-	image& operator=(image&& other) {
+	image& operator=(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;
@@ -74,22 +74,22 @@ struct curved_line_vertex {
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
-	float type_;
+	float type_ = 0.f;
 };
 
 struct textured_line_vertex {
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
-	float texture_coordinate_;
-	float distance_;
+	float texture_coordinate_ = 0.f;
+	float distance_ = 0.f;
 };
 
 struct textured_line_vertex_b {
 	glm::vec2 position;
 	glm::vec2 previous_point;
 	glm::vec2 next_point;
-	float texture_coordinate;
-	float distance;
+	float texture_coordinate = 0.f;
+	float distance = 0.f;
 };
 
 struct text_line_vertex {
@@ -100,8 +100,8 @@ struct text_line_vertex {
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
-	float type_;
-	float thickness_;
+	float type_ = 0.f;
+	float thickness_ = 0.f;
 };
 
 struct text_line_generator_data {
@@ -211,15 +211,13 @@ public:
 	// Shaders
 	static constexpr uint32_t shader_terrain = 0;
 	static constexpr uint32_t shader_line_border = 1;
-	static constexpr uint32_t shader_legacy_line_border = 2;
-	static constexpr uint32_t shader_textured_line = 3;
-	static constexpr uint32_t shader_legacy_line_river = 4;
-	static constexpr uint32_t shader_line_unit_arrow = 5;
-	static constexpr uint32_t shader_text_line = 6;
-	static constexpr uint32_t shader_drag_box = 7;
-	static constexpr uint32_t shader_borders = 8;
-	static constexpr uint32_t shader_railroad_line = 9;
-	static constexpr uint32_t shader_count = 10;
+	static constexpr uint32_t shader_textured_line = 2;
+	static constexpr uint32_t shader_line_unit_arrow = 3;
+	static constexpr uint32_t shader_text_line = 4;
+	static constexpr uint32_t shader_drag_box = 5;
+	static constexpr uint32_t shader_borders = 6;
+	static constexpr uint32_t shader_railroad_line = 7;
+	static constexpr uint32_t shader_count = 8;
 	GLuint shaders[shader_count] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
