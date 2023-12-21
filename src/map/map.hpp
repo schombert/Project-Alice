@@ -182,6 +182,8 @@ public:
 	GLuint coastal_vao = 0;
 	GLuint coastal_border_vbo = 0;
 
+	std::vector<uint16_t> map_indices;
+
 	// Textures
 	GLuint provinces_texture_handle = 0;
 	GLuint terrain_texture_handle = 0;
