@@ -219,6 +219,8 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<fonts_mode_checkbox>(state, id);
 		} else if(name == "fow_checkbox") {
 			return make_element_by_type<fow_checkbox>(state, id);
+		} else if(name == "railroad_checkbox") {
+			return make_element_by_type<railroad_checkbox>(state, id);
 		} else if(name == "map_label_value") {
 			return make_element_by_type<map_label_display>(state, id);
 		} else if(name == "map_label_left") {
