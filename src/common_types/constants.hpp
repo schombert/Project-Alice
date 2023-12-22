@@ -173,6 +173,8 @@ enum class autosave_frequency : uint8_t {
 	daily = 3,
 };
 
+constexpr inline int32_t max_autosaves = 16;
+
 enum class map_label_mode : uint8_t {
 	none = 0,
 	linear = 1,

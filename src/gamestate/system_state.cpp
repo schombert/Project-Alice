@@ -2076,6 +2076,25 @@ void state::load_user_settings() {
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
 	}
+
+	// find most recent autosave
+
+	auto saves = simple_fs::get_or_create_save_game_directory();
+	uint64_t max_timestamp = 0;
+	for(int32_t i = 0; i < sys::max_autosaves; ++i) {
+		auto asfile = simple_fs::open_file(saves, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(i)) + native_string(NATIVE(".bin")));
+		if(asfile) {
+			auto content = simple_fs::view_contents(*asfile);
+			save_header header;
+			if(content.file_size > sizeof_save_header(header)) {
+				read_save_header((uint8_t const*)(content.data), header);
+				if(header.timestamp > max_timestamp) {
+					max_timestamp = header.timestamp;
+					autosave_counter = (i + 1) % sys::max_autosaves;
+				}
+			}
+		}
+	}
 }
 
 void state::update_ui_scale(float new_scale) {
@@ -4151,15 +4170,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this);
+		write_save_file(*this, true);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	default:
 		break;
