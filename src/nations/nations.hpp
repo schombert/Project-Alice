@@ -336,6 +336,7 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);
+void update_revanchism(sys::state& state);
 
 void monthly_flashpoint_update(sys::state& state);
 void daily_update_flashpoint_tension(sys::state& state);
