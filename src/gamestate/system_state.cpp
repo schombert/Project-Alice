@@ -1515,8 +1515,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if((std::chrono::steady_clock::now() - tooltip_timer) > tooltip_delay) {
 			//floating by mouse
 			if(user_settings.bind_tooltip_mouse) {
-				int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale);
-				int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale);
+				int32_t aim_x = int32_t(mouse_x_position / user_settings.ui_scale) + 10;
+				int32_t aim_y = int32_t(mouse_y_position / user_settings.ui_scale) + 10;
 				int32_t wsize_x = int32_t(x_size / user_settings.ui_scale);
 				int32_t wsize_y = int32_t(y_size / user_settings.ui_scale);
 				//this only works if the tooltip isnt bigger than the entire window, wont crash though
@@ -2077,6 +2077,25 @@ void state::load_user_settings() {
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
+	}
+
+	// find most recent autosave
+
+	auto saves = simple_fs::get_or_create_save_game_directory();
+	uint64_t max_timestamp = 0;
+	for(int32_t i = 0; i < sys::max_autosaves; ++i) {
+		auto asfile = simple_fs::open_file(saves, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(i)) + native_string(NATIVE(".bin")));
+		if(asfile) {
+			auto content = simple_fs::view_contents(*asfile);
+			save_header header;
+			if(content.file_size > sizeof_save_header(header)) {
+				read_save_header((uint8_t const*)(content.data), header);
+				if(header.timestamp > max_timestamp) {
+					max_timestamp = header.timestamp;
+					autosave_counter = (i + 1) % sys::max_autosaves;
+				}
+			}
+		}
 	}
 }
 
@@ -3305,6 +3324,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	nations::update_revanchism(*this);
 	fill_unsaved_data(); // we need this to run triggers
 
 	// run pending triggers and effects
@@ -4152,15 +4172,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this);
+		write_save_file(*this, true);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this);
+			write_save_file(*this, true);
 		break;
 	default:
 		break;

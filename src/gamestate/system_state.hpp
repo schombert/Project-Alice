@@ -466,6 +466,7 @@ struct alignas(64) state {
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
 	uint32_t scenario_counter = 0;		// as above
+	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
 	native_string loaded_scenario_file;

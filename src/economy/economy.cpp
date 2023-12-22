@@ -13,7 +13,7 @@ bool can_take_loans(sys::state& state, dcon::nation_id n) {
 	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
 	*/
 	auto last_br = state.world.nation_get_bankrupt_until(n);
-	if(last_br && last_br < state.current_date)
+	if(last_br && state.current_date < last_br)
 		return false;
 
 	return true;
@@ -36,7 +36,7 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
-	return total_tax_base * mod;
+	return std::max(0.0f, total_tax_base * mod);
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
@@ -4085,7 +4085,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
 	*/
 	auto existing_br = state.world.nation_get_bankrupt_until(n);
-	if(existing_br && existing_br <  state.current_date) {
+	if(existing_br && state.current_date < existing_br) {
 		for(auto gn : state.great_nations) {
 			if(gn.nation && gn.nation != n) {
 				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
@@ -4110,7 +4110,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 
 	debt = 0.0f;
 	state.world.nation_set_is_debt_spending(n, false);
-	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));
+	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
 
 	notification::post(state, notification::message{
 		[n](sys::state& state, text::layout_base& contents) {
