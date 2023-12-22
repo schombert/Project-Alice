@@ -290,16 +290,12 @@ void display_data::create_meshes() {
 	for(int y = 0; y < sections.y; y++) {
 		auto top_row_start = y * (sections.x + 1);
 		auto bottom_row_start = (y + 1) * (sections.x + 1);
-
 		map_indices.push_back(uint16_t(bottom_row_start + 0));
 		map_indices.push_back(uint16_t(top_row_start + 0));
-		
-
 		for(int x = 0; x < sections.x; x++) {
 			map_indices.push_back(uint16_t(bottom_row_start + 1 + x));
 			map_indices.push_back(uint16_t(top_row_start + 1 + x));
 		}
-
 		map_indices.push_back(std::numeric_limits<uint16_t>::max());
 	}
 
@@ -308,14 +304,8 @@ void display_data::create_meshes() {
 	// Fill and bind the VAO
 	glBindVertexArray(vao_array[vo_land]);
 	// Create and populate the VBO
-	glGenBuffers(1, &land_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_land]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), land_vertices.data(), GL_STATIC_DRAW);
-
-	// Create and bind the VAO
-	glGenVertexArrays(1, &land_vao);
-	glBindVertexArray(land_vao);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo_array[vo_land], 0, sizeof(map_vertex));
 	// Set up vertex attribute format for the position
@@ -466,7 +456,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	//glDisable(GL_CULL_FACE);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 
-	load_shader(terrain_shader);
+	load_shader(shaders[shader_terrain]);
 	{ // Land specific shader uniform
 		glUniform1f(4, time_counter);
 		// get_land()
@@ -484,7 +474,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines[1] = 4; // get_water_political()
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
-	glBindVertexArray(land_vao);
+	glBindVertexArray(vao_array[vo_land]);
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 
 	//glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);

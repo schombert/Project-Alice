@@ -164,6 +164,7 @@ public:
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
+	std::vector<uint16_t> map_indices;
 
 	uint32_t size_x;
 	uint32_t size_y;
@@ -181,8 +182,6 @@ public:
 	static constexpr uint32_t vo_count = 8;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
-	std::vector<uint16_t> map_indices;
-
 	// Textures
 	static constexpr uint32_t texture_provinces = 0;
 	static constexpr uint32_t texture_terrain = 1;
