@@ -1176,7 +1176,7 @@ void execute_rebel_victories(sys::state& state) {
 			}
 			//The pops won, reset their militancy to avoid death spiraling
 			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(reb)) {
-				members.get_pop().set_militancy(std::max(members.get_pop().get_militancy() - 5.0f, 0.0f));
+				members.get_pop().set_militancy(std::max(members.get_pop().get_militancy() - 8.0f, 0.0f));
 			}
 
 			/*

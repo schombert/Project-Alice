@@ -402,7 +402,7 @@ void initialize_ai_tech_weights(sys::state& state) {
 			base *= 3.0f;
 
 		if(t.get_increase_building(economy::province_building_type::naval_base))
-			base *= 9.0f;
+			base *= 4.5f;
 		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
 			base *= 0.9f;
 
@@ -418,11 +418,11 @@ void initialize_ai_tech_weights(sys::state& state) {
 			} else if(vals.offsets[i] == sys::national_mod_offsets::education_efficiency_modifier) {
 				base *= 3.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::pop_growth) {
-				base *= 9.0f;
+				base *= 5.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::max_national_focus) {
-				base *= 9.0f;
+				base *= 4.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::colonial_life_rating) {
-				base *= 15.0f;
+				base *= 4.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
@@ -493,10 +493,10 @@ void update_influence_priorities(sys::state& state) {
 			}
 
 			else if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
-				weight *= 100.0f;
+				weight *= 4.0f;
 			}
 			//Focus on gaining influence against nations we have active wargoals against
-			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of() != n.nation && t.get_in_sphere_of()) {
+			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of() && t.get_in_sphere_of() != n.nation) {
 				weight += 1.0f;
 				weight *= 1000.0f;
 			}
@@ -519,8 +519,9 @@ void update_influence_priorities(sys::state& state) {
 				is_reachable = true;
 			}
 
+			//Prefer neighbors
 			if(state.world.get_nation_adjacency_by_nation_adjacency_pair(n.nation, t.id)) {
-				weight *= 3.0f;
+				weight *= 10.0f;
 				is_reachable = true;
 			}
 
