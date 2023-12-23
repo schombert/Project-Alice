@@ -128,7 +128,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<u
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 33;
+constexpr inline uint32_t save_file_version = 34;
 constexpr inline uint32_t scenario_file_version = 114 + save_file_version;
 
 struct scenario_header {
@@ -183,7 +183,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
 bool try_read_scenario_as_save_file(sys::state& state, native_string_view name);
 
-void write_save_file(sys::state& state);
+void write_save_file(sys::state& state, bool autosave = false);
 bool try_read_save_file(sys::state& state, native_string_view name);
 
 } // namespace sys

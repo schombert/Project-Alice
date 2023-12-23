@@ -39,36 +39,34 @@ namespace demographics {
 
 inline constexpr float small_pop_size = 100.0f;
 
-dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v) {
-	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(count_special_keys + v.index()));
-}
-dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v) {
-	return dcon::demographics_key(
-			dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.ideology_size() + v.index()));
-}
 dcon::demographics_key to_key(sys::state const& state, dcon::pop_type_id v) {
 	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(
-			count_special_keys + state.world.ideology_size() + state.world.issue_option_size() + v.index()));
-}
-dcon::demographics_key to_key(sys::state const& state, dcon::culture_id v) {
-	return dcon::demographics_key(
-			dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.ideology_size() +
-																							 state.world.issue_option_size() + state.world.pop_type_size() + v.index()));
-}
-dcon::demographics_key to_key(sys::state const& state, dcon::religion_id v) {
-	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(
-			count_special_keys + state.world.ideology_size() + state.world.issue_option_size() + state.world.pop_type_size() +
-			state.world.culture_size() + v.index()));
+			count_special_keys + v.index()));
 }
 dcon::demographics_key to_employment_key(sys::state const& state, dcon::pop_type_id v) {
 	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(
-			count_special_keys + state.world.ideology_size() + state.world.issue_option_size() + state.world.pop_type_size() +
-			state.world.culture_size() + state.world.religion_size() + v.index()));
+		count_special_keys + state.world.pop_type_size() + v.index()));
+}
+dcon::demographics_key to_key(sys::state const& state, dcon::culture_id v) {
+	return dcon::demographics_key(
+			dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.pop_type_size() * 2 + v.index()));
+}
+dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v) {
+	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size() + v.index()));
+}
+dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v) {
+	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size() + state.world.ideology_size() + v.index()));
+}
+dcon::demographics_key to_key(sys::state const& state, dcon::religion_id v) {
+	return dcon::demographics_key(dcon::pop_demographics_key::value_base_t(count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size() + state.world.ideology_size() + state.world.issue_option_size() + v.index()));
 }
 
 uint32_t size(sys::state const& state) {
 	return count_special_keys + state.world.ideology_size() + state.world.issue_option_size() +
 				 uint32_t(2) * state.world.pop_type_size() + state.world.culture_size() + state.world.religion_size();
+}
+uint32_t common_size(sys::state const& state) {
+	return count_special_keys + uint32_t(2) * state.world.pop_type_size();
 }
 
 template<typename F>
@@ -97,9 +95,24 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 	});
 }
 
-void regenerate_from_pop_data(sys::state& state) {
+inline constexpr uint32_t extra_demo_grouping = 8;
 
-	concurrency::parallel_for(uint32_t(0), size(state), [&](uint32_t index) {
+template<bool full>
+void regenerate_from_pop_data(sys::state& state) {
+	auto const sz = size(state);
+	auto const csz = common_size(state);
+	auto const extra_size = sz - csz;
+	auto const extra_group_size = (extra_size + extra_demo_grouping - 1) / extra_demo_grouping;
+
+	concurrency::parallel_for(uint32_t(0), full ?  sz : csz + extra_group_size, [&](uint32_t base_index) {
+		auto index = base_index;
+		if constexpr(!full) {
+			if(index >= csz) {
+				index += extra_size * (state.current_date.value % extra_demo_grouping);
+				if(index >= sz)
+					return;
+			}
+		}
 		dcon::demographics_key key{dcon::demographics_key::value_base_t(index)};
 		if(index < count_special_keys) {
 			switch(index) {
@@ -266,42 +279,14 @@ void regenerate_from_pop_data(sys::state& state) {
 				});
 				break;
 			}
-		} else if(key.index() < to_key(state, dcon::issue_option_id(0)).index()) { // ideology
-			dcon::ideology_id pkey{dcon::ideology_id::value_base_t(index - count_special_keys)};
-			auto pdemo_key = pop_demographics::to_key(state, pkey);
-			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
-			});
-		} else if(key.index() < to_key(state, dcon::pop_type_id(0)).index()) { // issue option
-			dcon::issue_option_id pkey{dcon::issue_option_id::value_base_t(index - (count_special_keys + state.world.ideology_size()))};
-			auto pdemo_key = pop_demographics::to_key(state, pkey);
-			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
-			});
-		} else if(key.index() < to_key(state, dcon::culture_id(0)).index()) { // pop type
-			dcon::pop_type_id pkey{dcon::pop_type_id::value_base_t(
-					index - (count_special_keys + state.world.ideology_size() + state.world.issue_option_size()))};
+		// common - pop type - employment - culture - ideology - issue option - religion
+		} else if(key.index() < to_employment_key(state, dcon::pop_type_id(0)).index()) { // pop type
+			dcon::pop_type_id pkey{ dcon::pop_type_id::value_base_t(index - (count_special_keys)) };
 			sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
 				return state.world.pop_get_poptype(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
 			});
-		} else if(key.index() < to_key(state, dcon::religion_id(0)).index()) { // culture
-			dcon::culture_id pkey{
-					dcon::culture_id::value_base_t(index - (count_special_keys + state.world.ideology_size() +
-																										 state.world.issue_option_size() + state.world.pop_type_size()))};
-			sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_culture(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
-			});
-		} else if(key.index() < to_employment_key(state, dcon::pop_type_id(0)).index()) { // religion
-			dcon::religion_id pkey{dcon::religion_id::value_base_t(
-					index - (count_special_keys + state.world.ideology_size() + state.world.issue_option_size() +
-											state.world.pop_type_size() + state.world.culture_size()))};
-			sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
-				return state.world.pop_get_religion(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
-			});
-		} else { // employment amounts
-			dcon::pop_type_id pkey{dcon::pop_type_id::value_base_t(
-					index - (count_special_keys + state.world.ideology_size() + state.world.issue_option_size() +
-											state.world.pop_type_size() + state.world.culture_size() + state.world.religion_size()))};
+		} else if(key.index() < to_key(state, dcon::culture_id(0)).index()) { // employment
+			dcon::pop_type_id pkey{ dcon::pop_type_id::value_base_t(index - (count_special_keys + state.world.pop_type_size())) };
 			if(state.world.pop_type_get_has_unemployment(pkey)) {
 				sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
 					return state.world.pop_get_poptype(p) == pkey ? state.world.pop_get_employment(p) : 0.0f;
@@ -311,6 +296,30 @@ void regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_get_poptype(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
 				});
 			}
+		} else if(key.index() < to_key(state, dcon::ideology_id(0)).index()) { // culture
+			dcon::culture_id pkey{
+					dcon::culture_id::value_base_t(index - (count_special_keys + state.world.pop_type_size() * 2)) };
+			sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
+				return state.world.pop_get_culture(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
+			});
+		} else if(key.index() < to_key(state, dcon::issue_option_id(0)).index()) { // ideology
+			dcon::ideology_id pkey{dcon::ideology_id::value_base_t(index - (count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size()))};
+			auto pdemo_key = pop_demographics::to_key(state, pkey);
+			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
+			});
+		} else if(key.index() < to_key(state, dcon::religion_id(0)).index()) { // issue option
+			dcon::issue_option_id pkey{dcon::issue_option_id::value_base_t(index - (count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size() + state.world.ideology_size()))};
+			auto pdemo_key = pop_demographics::to_key(state, pkey);
+			sum_over_demographics(state, key, [pdemo_key](sys::state const& state, dcon::pop_id p) {
+				return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
+			});
+		} else  { // religion
+			dcon::religion_id pkey{dcon::religion_id::value_base_t(
+					index - (count_special_keys + state.world.pop_type_size() * 2 + state.world.culture_size() + state.world.ideology_size() + state.world.issue_option_size()))};
+			sum_over_demographics(state, key, [pkey](sys::state const& state, dcon::pop_id p) {
+				return state.world.pop_get_religion(p) == pkey ? state.world.pop_get_size(p) : 0.0f;
+			});
 		}
 	});
 
@@ -658,6 +667,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 	});
+}
+
+void regenerate_from_pop_data_full(sys::state& state) {
+	regenerate_from_pop_data<true>(state);
+}
+void regenerate_from_pop_data_daily(sys::state& state) {
+	regenerate_from_pop_data<false>(state);
 }
 
 inline constexpr uint32_t executions_per_block = 16 / ve::vector_size;

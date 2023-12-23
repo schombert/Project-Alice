@@ -463,7 +463,7 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 }
 
 void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const& points) {
-	if(points.size() < 4)
+	if(points.size() < 3)
 		return;
 
 	auto first = dat.border_vertices.size();
