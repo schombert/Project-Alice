@@ -3333,11 +3333,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
-	demographics::regenerate_from_pop_data(*this);
+	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
 
 	culture::create_initial_ideology_and_issues_distribution(*this);
-	demographics::regenerate_from_pop_data(*this);
+	demographics::regenerate_from_pop_data_full(*this);
 
 	military::reinforce_regiments(*this);
 
@@ -3521,7 +3521,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	culture::update_all_nations_issue_rules(*this);
 	culture::restore_unsaved_values(*this);
 	nations::restore_state_instances(*this);
-	demographics::regenerate_from_pop_data(*this);
+	demographics::regenerate_from_pop_data_full(*this);
 
 	sys::repopulate_modifier_effects(*this);
 	military::restore_unsaved_values(*this);
@@ -3869,7 +3869,7 @@ void state::single_game_tick() {
 	demographics::remove_size_zero_pops(*this);
 
 	// basic repopulation of demographics derived values
-	demographics::regenerate_from_pop_data(*this);
+	demographics::regenerate_from_pop_data_daily(*this);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)
 	concurrency::parallel_for(0, 17, [&](int32_t index) {
