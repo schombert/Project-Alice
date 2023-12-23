@@ -173,7 +173,7 @@ void prune_alliances(sys::state& state) {
 			for(auto dr : n.get_diplomatic_relation()) {
 				auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 				if(military::can_use_cb_against(state, n, other)) {
-					prune_targets.push_back(other);
+					command::execute_cancel_alliance(state, n, other);
 					continue;
 				}
 				if(dr.get_are_allied()) {
@@ -496,7 +496,7 @@ void update_influence_priorities(sys::state& state) {
 				weight *= 4.0f;
 			}
 			//Focus on gaining influence against nations we have active wargoals against
-			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of() && t.get_in_sphere_of() != n.nation) {
+			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of()) {
 				weight += 1.0f;
 				weight *= 1000.0f;
 			}
@@ -1888,21 +1888,19 @@ bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, dcon:
 
 void update_war_intervention(sys::state& state) {
 	for(auto& gp : state.great_nations) {
-		if(state.world.nation_get_is_player_controlled(gp.nation) == false){
+		if(state.world.nation_get_is_player_controlled(gp.nation) == false && state.world.nation_get_is_at_war(gp.nation) == false){
 			bool as_attacker = false;
 			dcon::war_id intervention_target;
 			[&]() {
 				for(auto w : state.world.in_war) {
 					//GPs will try to intervene in wars to protect smaller nations in the same cultural union
 					if(command::can_intervene_in_war(state, gp.nation, w, false)) {
-						for(auto par : w.get_war_participant()) {
-							if(!par.get_is_attacker()
-								&& state.world.nation_get_primary_culture(gp.nation).get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(par.get_nation()).get_group_from_culture_group_membership()
-								&& !nations::is_great_power(state, par.get_nation())
-							){
-								intervention_target = w;
-								return;
-							}
+						auto par = state.world.war_get_primary_defender(w);
+						if(state.world.nation_get_primary_culture(gp.nation).get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(par).get_group_from_culture_group_membership()
+							&& !nations::is_great_power(state, par)
+						){
+							intervention_target = w;
+							return;
 						}
 					}
 					if(w.get_is_great()) {
@@ -2569,6 +2567,11 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 
 void add_gw_goals(sys::state& state) {
 	for(auto w : state.world.in_war) {
+		for(auto par : w.get_war_participant()) {
+			if(par.get_nation().get_is_player_controlled() == false) {
+				add_free_ai_cbs_to_war(state, par.get_nation(), w);
+			}
+		}
 		if(w.get_is_great()) {
 			for(auto par : w.get_war_participant()) {
 				if(par.get_nation().get_is_player_controlled() == false) {
@@ -2797,18 +2800,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
 			return true; // offer contains everything
-
-		if(war_duration < 365) {
-			return false;
-		}
-		//The country is ruined and it's been a bit into the war, we'll recover later
-		if(state.world.nation_get_war_exhaustion(n) > 80) {
-			return true;
-		}
-		//Stalemated war, peace out
-		if(war_duration > (365 * 6) && (overall_score <= 10 && overall_score >= -10)) {
-			return true;
-		}
 		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
@@ -2852,17 +2843,10 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
-		//Stalemated war, peace out
-		if(war_duration > (365 * 6) && (scoreagainst_me <= 10 && scoreagainst_me >= -10)) {
-			return true;
-		}
 
 		if(overall_score < 0.0f) { // we are losing	
 			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
-			if(state.world.nation_get_war_exhaustion(n) > 80) {
-				return true;
-			}
 
 		} else { // we are winning
 			if(my_po_target > 0 && my_po_target >= overall_po_value)
