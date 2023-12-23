@@ -2567,11 +2567,6 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 
 void add_gw_goals(sys::state& state) {
 	for(auto w : state.world.in_war) {
-		for(auto par : w.get_war_participant()) {
-			if(par.get_nation().get_is_player_controlled() == false) {
-				add_free_ai_cbs_to_war(state, par.get_nation(), w);
-			}
-		}
 		if(w.get_is_great()) {
 			for(auto par : w.get_war_participant()) {
 				if(par.get_nation().get_is_player_controlled() == false) {
