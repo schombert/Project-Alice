@@ -17,10 +17,10 @@ enum direction : uint8_t {
 };
 
 enum class diagonal_border : uint8_t {
-	UP_LEFT = 4,
-	UP_RIGHT = 3,
-	DOWN_LEFT = 2,
-	DOWN_RIGHT = 1,
+	UP_LEFT = 0x01,
+	UP_RIGHT = uint8_t(0x01 << 2),
+	DOWN_LEFT = uint8_t(0x01 << 4),
+	DOWN_RIGHT = uint8_t(0x01 << 6),
 	NOTHING = 0,
 };
 
@@ -36,50 +36,6 @@ struct border_direction {
 	information down;
 	information left;
 	information right;
-};
-
-// Create a new vertices to make a line segment
-void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir, std::vector<curved_line_vertex>& line_vertices, std::vector<border_direction>& current_row, float offset) {
-	glm::vec2 direction = normalize(offset2 - offset1);
-	glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
-
-	// Offset the map position
-	map_pos += glm::vec2(offset);
-	// Get the map coordinates
-	glm::vec2 pos1 = offset1 + map_pos;
-	glm::vec2 pos2 = offset2 + map_pos;
-
-	// Rescale the coordinate to 0-1
-	pos1 /= map_size;
-	pos2 /= map_size;
-
-	int32_t border_index = int32_t(line_vertices.size());
-	// First vertex of the line segment
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	// Second vertex of the line segment
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-
-	border_direction::information direction_information(border_index, border_id);
-	switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
-	}
 };
 
 // Will check if there is an border there already and extend if it can
@@ -174,20 +130,34 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
 
-			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				uint8_t diff_u = prov_id_ul != prov_id_ur;
-				uint8_t diff_d = prov_id_dl != prov_id_dr;
-				uint8_t diff_l = prov_id_ul != prov_id_dl;
-				uint8_t diff_r = prov_id_ur != prov_id_dr;
-				if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
-					diagonal_borders[x + y  * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_LEFT);
-				} else if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
-					diagonal_borders[x + (y  + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_LEFT);
-				} else if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
-					diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] = uint8_t(diagonal_border::UP_RIGHT);
-				} else if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
-					diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] = uint8_t(diagonal_border::DOWN_RIGHT);
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
 				}
+			}
+
+			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 
@@ -221,6 +191,33 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_ur = province_id_map[0 + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
+
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+				}
+			}
 
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
 
@@ -422,7 +419,7 @@ std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state,
 }
 
 void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const& points) {
-	if(points.size() < 4)
+	if(points.size() < 3)
 		return;
 
 	auto first = dat.border_vertices.size();
@@ -993,13 +990,10 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
 
-
-
 		for(auto i = river.size() - 1; i-- > 0;) {
 			if(!river[i].keep && i % 3 != 0) {
 				continue; // skip
 			}
-
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
 			if(i > 0) {
@@ -1026,7 +1020,6 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = glm::vec2(river[i].x, river[i].y);
 		}
-
 		river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
 	}
 }

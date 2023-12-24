@@ -365,6 +365,7 @@ struct user_settings_s {
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
+	bool railroads_enabled = true;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -465,6 +466,7 @@ struct alignas(64) state {
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
 	uint32_t scenario_counter = 0;		// as above
+	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
 	native_string loaded_scenario_file;
@@ -555,6 +557,7 @@ struct alignas(64) state {
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
 	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
+	std::atomic<bool> railroad_built = true; // game state -> map
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;

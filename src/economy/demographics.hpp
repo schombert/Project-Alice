@@ -50,7 +50,8 @@ dcon::demographics_key to_employment_key(sys::state const& state, dcon::pop_type
 
 uint32_t size(sys::state const& state);
 
-void regenerate_from_pop_data(sys::state& state);
+void regenerate_from_pop_data_full(sys::state& state);
+void regenerate_from_pop_data_daily(sys::state& state);
 
 struct ideology_buffer {
 	tagged_vector<ve::vectorizable_buffer<float, dcon::pop_id>, dcon::ideology_id> temp_buffers;

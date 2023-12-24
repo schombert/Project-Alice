@@ -1270,6 +1270,8 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 			return false;
 		case diplomacy_action::add_wargoal:
 			return false;
+		case diplomacy_action::state_transfer:
+			return false;
 		}
 		return false;
 	}
@@ -1344,6 +1346,8 @@ public:
 		case diplomacy_action::crisis_support:
 			break;
 		case diplomacy_action::add_wargoal:
+			break;
+		case diplomacy_action::state_transfer:
 			break;
 		}
 		if(parent) {

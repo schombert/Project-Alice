@@ -12,6 +12,7 @@ map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
+railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
@@ -1366,5 +1367,8 @@ tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
 alice_no_possible_units;No possible units can be built, and no units are in construction.
-alice_debt_spending;Enable debt spending
+alice_debt_spending;Enable/disable debt spending
+alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
+alice_currently_bankrupt;We are bankrupt (until $x$)
+alice_no_loans_possible;We are currently unable to take loans
 ;;;;;;;;;;;;;x
