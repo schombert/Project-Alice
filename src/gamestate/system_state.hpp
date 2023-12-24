@@ -365,6 +365,7 @@ struct user_settings_s {
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
+	bool inherit_colors = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

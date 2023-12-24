@@ -135,6 +135,22 @@ guiTypes = {
 				position = { 167 99 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Inherit colors (Y/N)
+			instantTextBoxType = {
+				name = "inherit_colors_label"
+				position = { 78 148 }
+				text = "inherit_colors_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "inherit_colors_checkbox"
+				position = { 51 147 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Fog of War (Y/N)
 			instantTextBoxType = {
 				name = "fow_label"

@@ -2012,6 +2012,7 @@ void state::save_user_settings() const {
 	US_SAVE(antialias_level);
 	US_SAVE(gaussianblur_level);
 	US_SAVE(gamma);
+	US_SAVE(inherit_colors);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2063,6 +2064,7 @@ void state::load_user_settings() {
 			US_LOAD(antialias_level);
 			US_LOAD(gaussianblur_level);
 			US_LOAD(gamma);
+			US_LOAD(inherit_colors);
 #undef US_LOAD
 		} while(false);
 

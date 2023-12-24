@@ -10,10 +10,17 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto id = fat_id.get_nation_from_province_ownership();
 		uint32_t color = 0;
-		if(bool(id))
+		if(bool(id)) {
 			color = id.get_color();
-		else // If no owner use default color
+			if(state.user_settings.inherit_colors) {
+				auto ovr = id.get_overlord_as_subject().get_ruler();
+				if(bool(ovr)) {
+					color = ovr.get_color();
+				}
+			}
+		} else { // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;
+		}
 		auto i = province::to_map_id(prov_id);
 
 		auto occupier = fat_id.get_nation_from_province_control();

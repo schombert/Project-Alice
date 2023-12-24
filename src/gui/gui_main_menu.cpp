@@ -113,6 +113,14 @@ bool tooltip_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.bind_tooltip_mouse;
 }
 
+bool inherit_colors_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.inherit_colors;
+}
+void inherit_colors_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.inherit_colors = !state.user_settings.inherit_colors;
+	send(state, parent, notify_setting_update{});
+}
+
 void fow_checkbox::on_create(sys::state& state) noexcept {
 	checkbox_button::on_create(state);
 	disabled = (state.network_mode != sys::network_mode_type::single_player);

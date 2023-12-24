@@ -80,6 +80,13 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+
+class inherit_colors_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
+
 class fow_checkbox : public checkbox_button {
 public:
 	void on_create(sys::state& state) noexcept override;
@@ -212,6 +219,8 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<projection_mode_display>(state, id);
 		} else if(name == "fonts_checkbox") {
 			return make_element_by_type<fonts_mode_checkbox>(state, id);
+		} else if(name == "inherit_colors_checkbox") {
+			return make_element_by_type<inherit_colors_checkbox>(state, id);
 		} else if(name == "fow_checkbox") {
 			return make_element_by_type<fow_checkbox>(state, id);
 		} else if(name == "map_label_value") {
