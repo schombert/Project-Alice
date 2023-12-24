@@ -396,20 +396,21 @@ public:
 		orginialunit_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
 	}
 
+	void on_visible(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+	void on_hide(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<T>>()) {
 			unitToReorg = any_cast<element_selection_wrapper<T>>(payload).data;
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		else if(payload.holds_type<T>()) {
+		} else if(payload.holds_type<T>()) {
 			payload.emplace<T>(unitToReorg);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		// SELECTION GETS
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<T2>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<T2>>()) {
 			auto content = any_cast<element_selection_wrapper<T2>>(payload).data;
 			if(!selectedsubunits.empty()) {
 				if(auto result = std::find(selectedsubunits.begin(), selectedsubunits.end(), content); result != selectedsubunits.end()) {
@@ -425,11 +426,7 @@ public:
 		} else if(payload.holds_type<std::vector<T2>>()) {
 			payload.emplace<std::vector<T2>>(selectedsubunits);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		//	REORGANISATION WINDOW ACTIONS 
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
 				case reorg_win_action::close:

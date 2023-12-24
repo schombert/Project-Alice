@@ -17,6 +17,7 @@
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 #include "math_fns.hpp"
+#include "prng.hpp"
 
 namespace map {
 
@@ -67,9 +68,8 @@ void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint fil
 GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
 	auto image = load_stb_image(file);
 
-	GLuint texture_handle;
+	GLuint texture_handle = 0;
 	glGenTextures(1, &texture_handle);
-
 	if(texture_handle) {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
 
@@ -88,7 +88,6 @@ GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int3
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
 	}
-
 	return texture_handle;
 }
 
@@ -138,30 +137,21 @@ void display_data::update_fog_of_war(sys::state& state) {
 		}
 		for(auto p : state.world.in_province)
 			province_fows[province::to_map_id(p)] = uint32_t(state.map_state.visible_provinces[province::to_map_id(p)] ? 0xFFFFFFFF : 0x7B7B7B7B);
-		gen_prov_color_texture(province_fow, province_fows);
+		gen_prov_color_texture(textures[texture_province_fow], province_fows);
 	} else {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, true);
-		gen_prov_color_texture(province_fow, province_fows);
+		gen_prov_color_texture(textures[texture_province_fow], province_fows);
 	}
 }
 
-void setupVertexAttrib(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void const* offset) {
-	glVertexAttribFormat(index, size, type, normalized, stride);
-	glEnableVertexAttribArray(index);
-	glVertexAttribBinding(index, 0);
-}
-
-void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& data) {
+void create_textured_line_vbo(GLuint vbo, std::vector<textured_line_vertex>& data) {
 	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	if(!data.empty())
 		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex));
-
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
@@ -180,16 +170,13 @@ void create_textured_line_vbo(GLuint& vbo, std::vector<textured_line_vertex>& da
 	glVertexAttribBinding(3, 0);
 }
 
-void create_textured_line_b_vbo(GLuint& vbo, std::vector<textured_line_vertex_b>& data) {
+void create_textured_line_b_vbo(GLuint vbo, std::vector<textured_line_vertex_b>& data) {
 	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	if(!data.empty())
 		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex_b) * data.size(), data.data(), GL_STATIC_DRAW);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(textured_line_vertex_b));
-
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, position));
 	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, previous_point));
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(textured_line_vertex_b, next_point));
@@ -207,16 +194,13 @@ void create_textured_line_b_vbo(GLuint& vbo, std::vector<textured_line_vertex_b>
 	glVertexAttribBinding(4, 0);
 }
 
-void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
+void create_unit_arrow_vbo(GLuint vbo, std::vector<curved_line_vertex>& data) {
 	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	if(!data.empty())
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * data.size(), data.data(), GL_STATIC_DRAW);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(curved_line_vertex));
-
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(curved_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
@@ -239,14 +223,11 @@ void create_unit_arrow_vbo(GLuint& vbo, std::vector<curved_line_vertex>& data) {
 	glVertexAttribBinding(4, 0);
 }
 
-void create_text_line_vbo(GLuint& vbo) {
+void create_text_line_vbo(GLuint vbo) {
 	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(text_line_vertex));
-
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, position_));
 	// Set up vertex attribute format for the normal direction
@@ -271,14 +252,11 @@ void create_text_line_vbo(GLuint& vbo) {
 	glVertexAttribBinding(5, 0);
 }
 
-void create_drag_box_vbo(GLuint& vbo) {
+void create_drag_box_vbo(GLuint vbo) {
 	// Create and populate the border VBO
-	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
 	// Bind the VBO to 0 of the VAO
 	glBindVertexBuffer(0, vbo, 0, sizeof(screen_vertex));
-
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(screen_vertex, position_));
 	glEnableVertexAttribArray(0);
@@ -286,36 +264,10 @@ void create_drag_box_vbo(GLuint& vbo) {
 }
 
 void display_data::create_border_ogl_objects() {
-	// Create and bind the VAO
-	glGenVertexArrays(1, &border_vao);
-	glBindVertexArray(border_vao);
-	create_textured_line_b_vbo(border_vbo, border_vertices);
-
-	glGenVertexArrays(1, &river_vao);
-	glBindVertexArray(river_vao);
-	create_textured_line_vbo(river_vbo, river_vertices);
-
-	glGenVertexArrays(1, &coastal_vao);
-	glBindVertexArray(coastal_vao);
-	create_textured_line_b_vbo(coastal_border_vbo, coastal_vertices);
-
-	glGenVertexArrays(1, &unit_arrow_vao);
-	glBindVertexArray(unit_arrow_vao);
-	create_unit_arrow_vbo(unit_arrow_vbo, unit_arrow_vertices);
-
-	glGenVertexArrays(1, &text_line_vao);
-	glBindVertexArray(text_line_vao);
-	create_text_line_vbo(text_line_vbo);
-
-	glGenVertexArrays(1, &drag_box_vao);
-	glBindVertexArray(drag_box_vao);
-	create_drag_box_vbo(drag_box_vbo);
-
-	glBindVertexArray(0);
+	// TODO: remove unused function
 }
 
 void display_data::create_meshes() {
-
 	std::vector<map_vertex> land_vertices;
 
 	auto add_vertex = [map_size = glm::vec2(float(size_x), float(size_y))](std::vector<map_vertex>& vertices, glm::vec2 pos0) {
@@ -338,121 +290,56 @@ void display_data::create_meshes() {
 	for(int y = 0; y < sections.y; y++) {
 		auto top_row_start = y * (sections.x + 1);
 		auto bottom_row_start = (y + 1) * (sections.x + 1);
-
 		map_indices.push_back(uint16_t(bottom_row_start + 0));
 		map_indices.push_back(uint16_t(top_row_start + 0));
-		
-
 		for(int x = 0; x < sections.x; x++) {
 			map_indices.push_back(uint16_t(bottom_row_start + 1 + x));
 			map_indices.push_back(uint16_t(top_row_start + 1 + x));
 		}
-
 		map_indices.push_back(std::numeric_limits<uint16_t>::max());
 	}
 
 	land_vertex_count = ((uint32_t)land_vertices.size());
 
+	// Fill and bind the VAO
+	glBindVertexArray(vao_array[vo_land]);
 	// Create and populate the VBO
-	glGenBuffers(1, &land_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, land_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_land]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(map_vertex) * land_vertices.size(), land_vertices.data(), GL_STATIC_DRAW);
-
-	// Create and bind the VAO
-	glGenVertexArrays(1, &land_vao);
-	glBindVertexArray(land_vao);
-
 	// Bind the VBO to 0 of the VAO
-	glBindVertexBuffer(0, land_vbo, 0, sizeof(map_vertex));
-
+	glBindVertexBuffer(0, vbo_array[vo_land], 0, sizeof(map_vertex));
 	// Set up vertex attribute format for the position
 	glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(map_vertex, position_));
 	glEnableVertexAttribArray(0);
 	glVertexAttribBinding(0, 0);
 
+	// Fill and bind the VAOs and VBOs
+	glBindVertexArray(vao_array[vo_border]);
+	create_textured_line_b_vbo(vbo_array[vo_border], border_vertices);
+	glBindVertexArray(vao_array[vo_river]);
+	create_textured_line_vbo(vbo_array[vo_river], river_vertices);
+	glBindVertexArray(vao_array[vo_railroad]);
+	create_textured_line_vbo(vbo_array[vo_railroad], railroad_vertices);
+	glBindVertexArray(vao_array[vo_coastal]);
+	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
+	glBindVertexArray(vao_array[vo_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_text_line]);
+	create_text_line_vbo(vbo_array[vo_text_line]);
+	glBindVertexArray(vao_array[vo_drag_box]);
+	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(0);
-
-	create_border_ogl_objects();
 }
 
 display_data::~display_data() {
-	if(provinces_texture_handle)
-		glDeleteTextures(1, &provinces_texture_handle);
-	if(terrain_texture_handle)
-		glDeleteTextures(1, &terrain_texture_handle);
-	if(terrainsheet_texture_handle)
-		glDeleteTextures(1, &terrainsheet_texture_handle);
-	if(water_normal)
-		glDeleteTextures(1, &water_normal);
-	if(colormap_water)
-		glDeleteTextures(1, &colormap_water);
-	if(colormap_terrain)
-		glDeleteTextures(1, &colormap_terrain);
-	if(overlay)
-		glDeleteTextures(1, &overlay);
-	if(province_color)
-		glDeleteTextures(1, &province_color);
-	if(stripes_texture)
-		glDeleteTextures(1, &stripes_texture);
-	if(river_body_texture)
-		glDeleteTextures(1, &river_body_texture);
-	if(national_border_texture)
-		glDeleteTextures(1, &national_border_texture);
-	if(state_border_texture)
-		glDeleteTextures(1, &state_border_texture);
-	if(prov_border_texture)
-		glDeleteTextures(1, &prov_border_texture);
-	if(imp_border_texture)
-		glDeleteTextures(1, &imp_border_texture);
-	if(province_highlight)
-		glDeleteTextures(1, &province_highlight);
-	if(province_fow)
-		glDeleteTextures(1, &province_fow);
-	if(unit_arrow_texture)
-		glDeleteTextures(1, &unit_arrow_texture);
-	if(coastal_border_texture)
-		glDeleteTextures(1, &coastal_border_texture);
-
-	if(land_vao)
-		glDeleteVertexArrays(1, &land_vao);
-	if(river_vao)
-		glDeleteVertexArrays(1, &river_vao);
-	if(coastal_vao)
-		glDeleteVertexArrays(1, &coastal_vao);
-	if(border_vao)
-		glDeleteVertexArrays(1, &border_vao);
-	if(unit_arrow_vao)
-		glDeleteVertexArrays(1, &unit_arrow_vao);
-	if(text_line_vao)
-		glDeleteVertexArrays(1, &text_line_vao);
-
-	if(land_vbo)
-		glDeleteBuffers(1, &land_vbo);
-	if(border_vbo)
-		glDeleteBuffers(1, &border_vbo);
-	if(river_vbo)
-		glDeleteBuffers(1, &river_vbo);
-	if(unit_arrow_vbo)
-		glDeleteBuffers(1, &unit_arrow_vbo);
-	if(text_line_vbo)
-		glDeleteBuffers(1, &text_line_vbo);
-	if(coastal_border_vbo)
-		glDeleteBuffers(1, &coastal_border_vbo);
-
-	if(terrain_shader)
-		glDeleteProgram(terrain_shader);
-	if(line_border_shader)
-		glDeleteProgram(line_border_shader);
-	if(textured_line_shader)
-		glDeleteProgram(textured_line_shader);
-	if(line_unit_arrow_shader)
-		glDeleteProgram(line_unit_arrow_shader);
-	if(text_line_shader)
-		glDeleteProgram(text_line_shader);
-	if(drag_box_shader)
-		glDeleteProgram(drag_box_shader);
-	if(borders_shader)
-		glDeleteProgram(borders_shader);
+	/* We don't need to check against 0, since the delete functions already do that for us */
+	glDeleteTextures(texture_count, textures);
+	glDeleteTextures(texture_count, texture_arrays);
+	glDeleteVertexArrays(vo_count, vao_array);
+	glDeleteBuffers(vo_count, vbo_array);
+	/* Flags shader for deletion, but doesn't delete them until they're no longer in the rendering context */
+	for(const auto shader : shaders)
+		glDeleteProgram(shader);
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -474,29 +361,29 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	// Map shaders
 	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
 	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
+	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
 
-	terrain_shader = create_program(*map_vshader, *map_fshader);
-
+	// Line shaders
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
 
 	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/text_line_v.glsl"));
 	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
 
-	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
-	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
-	
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
-	textured_line_shader = create_program(*tline_vshader, *tline_fshader);
 
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
-	borders_shader = create_program(*tlineb_vshader, *tlineb_fshader);
 
-	line_unit_arrow_shader = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
-	text_line_shader = create_program(*text_line_vshader, *text_line_fshader);
-	drag_box_shader = create_program(*screen_vshader, *white_color_fshader);
+	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
+	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
+	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
+	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
+	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
+	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
+	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -510,35 +397,35 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, provinces_texture_handle);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_provinces]);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, terrain_texture_handle);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, terrainsheet_texture_handle);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
 	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, water_normal);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, colormap_water);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_water]);
 	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, colormap_terrain);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_terrain]);
 	glActiveTexture(GL_TEXTURE7);
-	glBindTexture(GL_TEXTURE_2D, overlay);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_overlay]);
 	glActiveTexture(GL_TEXTURE8);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_province_color]);
 	glActiveTexture(GL_TEXTURE9);
-	glBindTexture(GL_TEXTURE_2D, colormap_political);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_colormap_political]);
 	glActiveTexture(GL_TEXTURE10);
-	glBindTexture(GL_TEXTURE_2D, province_highlight);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glActiveTexture(GL_TEXTURE11);
-	glBindTexture(GL_TEXTURE_2D, stripes_texture);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
 	glActiveTexture(GL_TEXTURE12);
-	glBindTexture(GL_TEXTURE_2D, unit_arrow_texture);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
 	glActiveTexture(GL_TEXTURE13);
-	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glActiveTexture(GL_TEXTURE14);
-	glBindTexture(GL_TEXTURE_2D, river_body_texture);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
 	glActiveTexture(GL_TEXTURE15);
-	glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_diag_border_identifier]);
 
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
@@ -562,13 +449,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		else
 			vertex_subroutines = 1; // flat_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
-		};
+	};
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	//glDisable(GL_CULL_FACE);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
 
-	load_shader(terrain_shader);
+	load_shader(shaders[shader_terrain]);
 	{ // Land specific shader uniform
 		glUniform1f(4, time_counter);
 		// get_land()
@@ -586,22 +473,31 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			fragment_subroutines[1] = 4; // get_water_political()
 		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, fragment_subroutines);
 	}
-	glBindVertexArray(land_vao);
+	glBindVertexArray(vao_array[vo_land]);
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 
 	//glDrawArrays(GL_TRIANGLES, 0, land_vertex_count);
 	glDisable(GL_PRIMITIVE_RESTART);
 	//glEnable(GL_CULL_FACE);
 	// Draw the rivers
-
-	load_shader(textured_line_shader);
-	glUniform1f(6, time_counter);
+	load_shader(shaders[shader_textured_line]);
 	glUniform1f(4, 0.00008f);
-
-	glBindVertexArray(river_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, river_vbo);
-
+	glUniform1f(6, time_counter);
+	glBindVertexArray(vao_array[vo_river]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
 	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
+
+	// Draw the railroads
+	if(zoom > 5 && !railroad_vertices.empty()) {
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
+		load_shader(shaders[shader_railroad_line]);
+		glUniform1f(4, 0.0001f);
+		glUniform1f(6, 0.0f);
+		glBindVertexArray(vao_array[vo_railroad]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, railroad_starts.data(), railroad_counts.data(), GLsizei(railroad_starts.size()));
+	}
 
 	// Default border parameters
 	constexpr float border_type_national = 0.f;
@@ -610,7 +506,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	constexpr float border_type_coastal = 3.f;
 
 	// NORMAL BORDERS
-	glUseProgram(borders_shader);
+	glUseProgram(shaders[shader_borders]);
 	glUniform2f(0, offset.x + 0.f, offset.y);
 	glUniform1f(1, screen_size.x / screen_size.y);
 	glUniform1f(2, zoom);
@@ -628,16 +524,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
 	}
 
-	glBindVertexArray(border_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, border_vbo);
+	glBindVertexArray(vao_array[vo_border]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 
 	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
-
 	
 	if(zoom > 8) { // Render province borders
 		glUniform1f(4, 0.0001f); // width
 		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, prov_border_texture);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
 
 		for(auto b : borders) {
 			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
@@ -648,75 +543,63 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	if(zoom > 5) { // Render state borders
 		glUniform1f(4, 0.0002f); // width
 		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, state_border_texture);
-
+		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 		for(auto b : borders) {
 			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
 				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 			}
 		}
 	}
-
 	// impassible borders
-
 	{
 		glUniform1f(4, 0.0003f); // width
 		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, imp_border_texture);
-
+		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 		for(auto b : borders) {
 			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
 				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index,  b.count);
 			}
 		}
 	}
-
 	// national borders
 	{
 		glUniform1f(4, 0.0003f); // width
 		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, national_border_texture);
-
+		glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 		for(auto b : borders) {
 			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
 				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 			}
 		}
 	}
-
 	// coasts
 	{
-
 		glUniform1f(4, 0.0004f); // width
-
 		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, coastal_border_texture);
-
-		glBindVertexArray(coastal_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, coastal_border_vbo);
-
+		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
+		glBindVertexArray(vao_array[vo_coastal]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_coastal]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
 	if(!unit_arrow_vertices.empty()) {
-		// Draw the unit arrows
-		load_shader(line_unit_arrow_shader);
-		glUniform1f(4, 0.005f);
-		glBindVertexArray(unit_arrow_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, unit_arrow_vbo);
+		load_shader(shaders[shader_line_unit_arrow]);
+		glUniform1f(4, 0.005f); // width
+		glBindVertexArray(vao_array[vo_unit_arrow]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
 	}
 
 	if(!drag_box_vertices.empty()) {
-		glUseProgram(drag_box_shader);
+		glUseProgram(shaders[shader_drag_box]);
 		glUniform1f(11, state.user_settings.gamma);
-		glBindVertexArray(drag_box_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
+		glBindVertexArray(vao_array[vo_drag_box]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_drag_box]);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
-		load_shader(text_line_shader);
+		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.font_collection.map_font_is_black ? 1.f : 0.f);
 		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
@@ -727,8 +610,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		glBindVertexArray(text_line_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
+		glBindVertexArray(vao_array[vo_text_line]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
 	}
 
@@ -811,11 +694,11 @@ void display_data::set_selected_province(sys::state& state, dcon::province_id pr
 	if(prov_id) {
 		province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
 	}
-	gen_prov_color_texture(province_highlight, province_highlights);
+	gen_prov_color_texture(textures[texture_province_highlight], province_highlights);
 }
 
 void display_data::set_province_color(std::vector<uint32_t> const& prov_color) {
-	gen_prov_color_texture(province_color, prov_color, 2);
+	gen_prov_color_texture(texture_arrays[texture_array_province_color], prov_color, 2);
 }
 
 void add_drag_box_line(std::vector<screen_vertex>& drag_box_vertices, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 size, bool vertical) {
@@ -856,10 +739,9 @@ void display_data::set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, g
 	add_drag_box_line(drag_box_vertices, { pos1.x, pos1.y }, { pos2.x, pos1.y }, size, false);
 	add_drag_box_line(drag_box_vertices, { pos1.x, pos2.y }, { pos2.x, pos2.y }, size, false);
 
-	glBindBuffer(GL_ARRAY_BUFFER, drag_box_vbo);
-	if(drag_box_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * drag_box_vertices.size(), &drag_box_vertices[0], GL_STATIC_DRAW);
-	}
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_drag_box]);
+	assert(!drag_box_vertices.empty());
+	glBufferData(GL_ARRAY_BUFFER, sizeof(screen_vertex) * drag_box_vertices.size(), &drag_box_vertices[0], GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
@@ -867,7 +749,7 @@ void add_arrow_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2
 	constexpr float type_filled = 2.f;
 	constexpr float type_unfilled = 0.f;
 	constexpr float type_end = 3.f;
-	glm::vec2 curr_dir = normalize(end - start);
+	glm::vec2 curr_dir = glm::normalize(end - start);
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 
@@ -993,7 +875,6 @@ void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec
 void add_tl_segment_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 next_normal_dir, float size_x, float size_y, float& distance) {
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
-
 	auto d = start - end;
 	d.x *= 2.0f;
 	distance += 0.5f * glm::length(d);
@@ -1050,7 +931,6 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 		auto start_point = bpoint(t_start);
 		auto end_point = bpoint(t_end);
 
-		
 		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
 	}
 }
@@ -1110,10 +990,9 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-
+		
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
-
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(duplicates::get_navy_location(state, path[i]), current_pos, size_x);
@@ -1127,7 +1006,6 @@ void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 					next_perpendicular = -a_per;
 				} else {
 					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-
 					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
 						next_perpendicular *= -1.0f;
 					}
@@ -1154,13 +1032,11 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 		glm::vec2 next_pos = put_in_local(duplicates::get_army_location(state, path[ps - 1]), current_pos, size_x);
 		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
 
-
 		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
 		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
 
 		buffer.emplace_back(norm_pos, +start_normal, glm::vec2{0,0}, glm::vec2(0.0f, 0.0f), progress > 0.0f ? 2.0f : 0.0f);
 		buffer.emplace_back(norm_pos, -start_normal, glm::vec2{ 0,0 }, glm::vec2(0.0f, 1.0f), progress > 0.0f ? 2.0f : 0.0f);
-
 		for(auto i = ps; i-- > 0;) {
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(duplicates::get_army_location(state, path[i]), current_pos, size_x);
@@ -1174,7 +1050,6 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 					next_perpendicular = -a_per;
 				} else {
 					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
-
 					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular)) {
 						next_perpendicular *= -1.0f;
 					}
@@ -1191,8 +1066,158 @@ void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buf
 	}
 }
 
-void display_data::set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses) {
-	// TODO: Remove this unused function
+void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railroad, dcon::province_id p1, dcon::province_id p2) {
+	auto const m1 = state.world.province_get_mid_point(p1);
+	auto const m2 = state.world.province_get_mid_point(p2);
+	railroad.emplace_back(m1);
+	//
+	auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
+	const auto rp = rng::get_random(state, p1.index(), p2.index() ^ p1.index());
+	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.1f);
+	auto const perpendicular = glm::normalize(m2 - m1) * glm::vec2(rf, rf);
+	railroad.emplace_back(mid + glm::vec2(-perpendicular.y, perpendicular.x));
+}
+
+bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited_adj, std::vector<bool>& visited_prov, std::vector<dcon::province_id>& provinces, dcon::province_id p) {
+	if(state.world.province_get_building_level(p, economy::province_building_type::railroad) == 0)
+		return false;
+	if(visited_prov[p.index()])
+		return false;
+	visited_prov[p.index()] = true;
+	provinces.push_back(p);
+
+	std::vector<dcon::province_adjacency_id> valid_adj;
+	for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
+		auto const pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
+		if(pa.get_building_level(economy::province_building_type::railroad) == 0
+			|| visited_prov[pa.id.index()])
+			continue;
+		valid_adj.push_back(adj.id);
+	}
+	std::sort(valid_adj.begin(), valid_adj.end(), [&](auto const a, auto const b) -> bool {
+		auto const ad = state.world.province_adjacency_get_distance(a);
+		auto const bd = state.world.province_adjacency_get_distance(b);
+		return ad < bd;
+	});
+	for(const auto a : valid_adj) {
+		auto const adj = dcon::fatten(state.world, a);
+		auto const pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
+		if(get_provinces_part_of_rr_path(state, visited_adj, visited_prov, provinces, pa.id)) {
+			visited_adj[adj.id.index()] = true;
+			break;
+		}
+	}
+	return true;
+}
+
+void display_data::update_railroad_paths(sys::state& state) {
+	// Create paths for the main railroad sections
+	std::vector<bool> visited_prov(state.world.province_size() + 1, false);
+	std::vector<bool> rr_ends(state.world.province_size() + 1, false);
+	std::vector<bool> visited_adj(state.world.province_adjacency_size() + 1, false);
+	std::vector<std::vector<glm::vec2>> railroads;
+	for(const auto p : state.world.in_province) {
+		std::vector<dcon::province_id> provinces;
+		if(get_provinces_part_of_rr_path(state, visited_adj, visited_prov, provinces, p)) {
+			if(provinces.size() > 1) {
+				std::vector<glm::vec2> railroad;
+				for(uint32_t i = 0; i < uint32_t(provinces.size() - 1); i++)
+					create_railroad_connection(state, railroad, provinces[i], provinces[i + 1]);
+				railroad.emplace_back(state.world.province_get_mid_point(provinces.back()));
+				assert(!railroad.empty());
+				railroads.push_back(railroad);
+				rr_ends[provinces.front().index()] = true;
+				rr_ends[provinces.back().index()] = true;
+			}
+		}
+	}
+
+	// Populate paths with railroads - only account provinces that have been visited
+	// but not the adjacencies
+	for(const auto p1 : state.world.in_province) {
+		if(visited_prov[p1.id.index()]) {
+			auto const p1_level = p1.get_building_level(economy::province_building_type::railroad);
+			auto admin_efficiency = province::state_admin_efficiency(state, p1.get_state_membership());
+			auto max_adj = std::max<uint32_t>(uint32_t(admin_efficiency * 2.75f), rr_ends[p1.id.index()] ? 3 : 1);
+			std::vector<dcon::province_adjacency_id> valid_adj;
+			for(const auto adj : p1.get_province_adjacency_as_connected_provinces()) {
+				if(max_adj == 0)
+					break;
+				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
+				if(p2.get_building_level(economy::province_building_type::railroad) == 0)
+					continue;
+				max_adj--;
+				if(visited_adj[adj.id.index()])
+					continue;
+				if(rr_ends[p1.id.index()] != rr_ends[p2.id.index()]
+				&& rr_ends[p1.id.index()] == false)
+					continue;
+				visited_adj[adj.id.index()] = true;
+				valid_adj.push_back(adj.id);
+			}
+			std::sort(valid_adj.begin(), valid_adj.end(), [&](auto const a, auto const b) -> bool {
+				auto const ad = state.world.province_adjacency_get_distance(a);
+				auto const bd = state.world.province_adjacency_get_distance(b);
+				return ad < bd;
+			});
+			for(const auto a : valid_adj) {
+				auto const adj = dcon::fatten(state.world, a);
+				auto const p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p1.id ? 1 : 0);
+				//
+				std::vector<glm::vec2> railroad;
+				create_railroad_connection(state, railroad, p1.id, p2.id);
+				railroad.emplace_back(state.world.province_get_mid_point(p2.id));
+				assert(!railroad.empty());
+				railroads.push_back(railroad);
+			}
+		}
+	}
+
+	railroad_vertices.clear();
+	railroad_starts.clear();
+	railroad_counts.clear();
+	for(const auto& railroad : railroads) {
+		railroad_starts.push_back(GLint(railroad_vertices.size()));
+		glm::vec2 current_pos = railroad.back();
+		glm::vec2 next_pos = put_in_local(railroad[railroad.size() - 2], current_pos, float(size_x));
+		glm::vec2 prev_perpendicular = glm::normalize(next_pos - current_pos);
+		auto start_normal = glm::vec2(-prev_perpendicular.y, prev_perpendicular.x);
+		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, 0.f });//C
+		railroad_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, 0.f });//D
+		float distance = 0.0f;
+		for(auto i = railroad.size() - 1; i-- > 0;) {
+			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
+			next_pos = put_in_local(railroad[i], current_pos, float(size_x));
+			if(i > 0) {
+				glm::vec2 next_next_pos = put_in_local(railroad[i - 1], next_pos, float(size_x));
+				glm::vec2 a_per = glm::normalize(next_pos - current_pos);
+				glm::vec2 b_per = glm::normalize(next_pos - next_next_pos);
+				glm::vec2 temp = a_per + b_per;
+				if(glm::length(temp) < 0.00001f) {
+					next_perpendicular = -a_per;
+				} else {
+					next_perpendicular = glm::normalize(glm::vec2{ -temp.y, temp.x });
+					if(glm::dot(a_per, -next_perpendicular) < glm::dot(a_per, next_perpendicular))
+						next_perpendicular *= -1.0f;
+				}
+			} else {
+				next_perpendicular = glm::normalize(current_pos - next_pos);
+			}
+			add_tl_bezier_to_buffer(railroad_vertices, current_pos, next_pos, prev_perpendicular, next_perpendicular, 0.0f, false, float(size_x), float(size_y), default_num_b_segments, distance);
+			prev_perpendicular = -1.0f * next_perpendicular;
+			current_pos = railroad[i];
+		}
+		railroad_counts.push_back(GLsizei(railroad_vertices.size() - railroad_starts.back()));
+		assert(railroad_counts.back() > 1);
+	}
+	assert(railroad_counts.size() == railroad_starts.size());
+
+	if(!railroad_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_railroad]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(textured_line_vertex) * railroad_vertices.size(), railroad_vertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
 }
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
@@ -1277,15 +1302,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-
-				// First vertex of the line segment
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, +curr_dir, glm::vec2(tx, ty + step), type, size);
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
-				// Second vertex of the line segment
-				//text_line_vertices.emplace_back(p0, -curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty + step), type, size);
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, -curr_dir, glm::vec2(tx + step, ty), type, size);
-				//text_line_vertices.emplace_back(p0, +curr_normal_dir, +curr_dir, glm::vec2(tx, ty), type, size);
 			}
 
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
@@ -1299,11 +1315,11 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			}
 		}
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, text_line_vbo);
 	if(text_line_vertices.size() > 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
@@ -1325,104 +1341,98 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 
 void display_data::load_map(sys::state& state) {
 	auto root = simple_fs::get_root(state.common_fs);
+	glGenVertexArrays(vo_count, vao_array);
+	glGenBuffers(vo_count, vbo_array);
+	load_shaders(root);
+	create_meshes();
+
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
-	auto map_items = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
+	auto map_items_dir = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
+	auto gfx_anims_dir = simple_fs::open_directory(root, NATIVE("gfx/anims"));
 
-	load_shaders(root);
-
-	glGenTextures(1, &diag_border_identifier);
-	if(diag_border_identifier) {
-		glBindTexture(GL_TEXTURE_2D, diag_border_identifier);
+	glGenTextures(1, &textures[texture_diag_border_identifier]);
+	if(textures[texture_diag_border_identifier]) {
+		glBindTexture(GL_TEXTURE_2D, textures[texture_diag_border_identifier]);
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8UI, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
+	set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
-	set_gltex_parameters(diag_border_identifier, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	textures[texture_terrain] = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
+	set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
-	terrain_texture_handle = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
-	set_gltex_parameters(terrain_texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	create_meshes();
-
-	provinces_texture_handle = load_province_map(province_id_map, size_x, size_y);
-
+	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	terrainsheet_texture_handle = load_texture_array_from_file(*texturesheet, 8, 8);
+	texture_arrays[texture_array_terrainsheet] = load_texture_array_from_file(*texturesheet, 8, 8);
 
-	water_normal = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
-	colormap_water = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
-	colormap_terrain = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
-	colormap_political = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
-	overlay = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
-	stripes_texture = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
+	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
+	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
+	textures[texture_colormap_terrain] = load_dds_texture(map_terrain_dir, NATIVE("colormap.dds"));
+	textures[texture_colormap_political] = load_dds_texture(map_terrain_dir, NATIVE("colormap_political.dds"));
+	textures[texture_overlay] = load_dds_texture(map_terrain_dir, NATIVE("map_overlay_tile.dds"));
+	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	
-	river_body_texture = load_dds_texture(assets_dir, NATIVE("river.dds"));
-	set_gltex_parameters(river_body_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
+	set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	national_border_texture = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
-	set_gltex_parameters(national_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	textures[texture_national_border] = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
+	set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	state_border_texture = load_dds_texture(assets_dir, NATIVE("state_border.dds"));
-	set_gltex_parameters(state_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	textures[texture_state_border] = load_dds_texture(assets_dir, NATIVE("state_border.dds"));
+	set_gltex_parameters(textures[texture_state_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	prov_border_texture = load_dds_texture(assets_dir, NATIVE("prov_border.dds"));
-	set_gltex_parameters(prov_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	textures[texture_prov_border] = load_dds_texture(assets_dir, NATIVE("prov_border.dds"));
+	set_gltex_parameters(textures[texture_prov_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	imp_border_texture = load_dds_texture(assets_dir, NATIVE("imp_border.dds"));
-	set_gltex_parameters(imp_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	textures[texture_imp_border] = load_dds_texture(assets_dir, NATIVE("imp_border.dds"));
+	set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	coastal_border_texture = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
-	set_gltex_parameters(coastal_border_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
-	
-	unit_arrow_texture = make_gl_texture(map_items, NATIVE("movearrow.tga"));
-	set_gltex_parameters(unit_arrow_texture, GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	textures[texture_coastal_border] = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
+	set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_railroad] = load_dds_texture(gfx_anims_dir, NATIVE("railroad.dds"));
+	set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_unit_arrow] = make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
+	set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes
-	glGenTextures(1, &province_color);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, province_color);
+	glGenTextures(1, &texture_arrays[texture_array_province_color]);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_province_color]);
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 256, 256, 2);
-	set_gltex_parameters(province_color, GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	set_gltex_parameters(texture_arrays[texture_array_province_color], GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	// Get the province_highlight handle
-	glGenTextures(1, &province_highlight);
-	glBindTexture(GL_TEXTURE_2D, province_highlight);
+	glGenTextures(1, &textures[texture_province_highlight]);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(province_highlight, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	set_gltex_parameters(textures[texture_province_highlight], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	// Get the province_fow handle
-	glGenTextures(1, &province_fow);
-	glBindTexture(GL_TEXTURE_2D, province_fow);
+	glGenTextures(1, &textures[texture_province_fow]);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(province_fow, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	set_gltex_parameters(textures[texture_province_fow], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	uint32_t province_size = state.world.province_size() + 1;
 	province_size += 256 - province_size % 256;
 
-	std::vector<uint32_t> testHighlight(province_size);
-	std::vector<uint32_t> testColor(province_size * 4);
-	gen_prov_color_texture(province_highlight, testHighlight);
-
-	for(uint32_t i = 0; i < testHighlight.size(); ++i) {
-		testHighlight[i] = 255;
+	std::vector<uint32_t> test_highlight(province_size);
+	gen_prov_color_texture(textures[texture_province_highlight], test_highlight);
+	for(uint32_t i = 0; i < test_highlight.size(); ++i) {
+		test_highlight[i] = 255;
 	}
-
-	for(uint32_t i = 0; i < testColor.size(); ++i) {
-		testColor[i] = 255;
+	std::vector<uint32_t> test_color(province_size * 4);
+	for(uint32_t i = 0; i < test_color.size(); ++i) {
+		test_color[i] = 255;
 	}
-
-	set_province_color(testColor);
+	set_province_color(test_color);
 }
 
 } // namespace map
-
-//static_assert(sizeof(std::pair<dcon::text_key, dcon::text_sequence_id>) == sizeof(dcon::text_key) + sizeof(dcon::text_sequence_id));
-//static_assert(sizeof(std::pair<text::text_sequence, dcon::text_sequence_id> == sizeof(dcon::text_sequence) + sizeof(dcon::text_sequence_id)));
-//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));
-//static_assert(sizeof(std::pair<ui::gfx_object, dcon::gfx_object_id> == sizeof(ui::gfx_object) + sizeof(dcon::gfx_object_id)));

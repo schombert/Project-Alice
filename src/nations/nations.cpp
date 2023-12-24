@@ -1272,8 +1272,11 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_leader((*leaders.begin()).get_leader());
 	}
 
-	for(auto ss : state.world.nation_get_overlord_as_ruler(n)) {
-		ss.get_subject().set_is_substate(false);
+	auto ss_range = state.world.nation_get_overlord_as_ruler(n);
+	while(ss_range.begin() != ss_range.end()) {
+		auto subj = (*ss_range.begin()).get_subject();
+		subj.set_is_substate(false);
+		nations::release_vassal(state, (*ss_range.begin()));
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(n);
