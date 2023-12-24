@@ -216,10 +216,10 @@ public:
 			} else {
 				state.fill_unsaved_data();
 			}
-			/* Savefiles might load with new railroads, so for responsiveness we
-			   update whenever one is loaded. */
-			state.railroad_built.store(true, std::memory_order::release);
 		}
+		/* Savefiles might load with new railroads, so for responsiveness we
+		   update whenever one is loaded. */
+		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
