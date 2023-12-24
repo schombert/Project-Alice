@@ -172,10 +172,6 @@ void prune_alliances(sys::state& state) {
 			prune_targets.clear();
 			for(auto dr : n.get_diplomatic_relation()) {
 				auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-				if(military::can_use_cb_against(state, n, other)) {
-					command::execute_cancel_alliance(state, n, other);
-					continue;
-				}
 				if(dr.get_are_allied()) {
 					if(other.get_in_sphere_of() != n) {
 						prune_targets.push_back(other);
@@ -278,11 +274,6 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
 	if(!ai_is_close_enough(state, target, from))
 		return false;
-
-	//We'd rather want to kill them rather than ally
-	if(military::can_use_cb_against(state, from, target)) {
-		return false;
-	}
 
 	// And also if they're powerful enough to be considered for an alliance
 	auto target_score = estimate_strength(state, target);
