@@ -1381,4 +1381,5 @@ alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
+may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 ;;;;;;;;;;;;;x
