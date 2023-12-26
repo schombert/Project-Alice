@@ -171,8 +171,8 @@ void prune_alliances(sys::state& state) {
 		if(!n.get_is_player_controlled() && !n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
 			prune_targets.clear();
 			for(auto dr : n.get_diplomatic_relation()) {
-				auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 				if(dr.get_are_allied()) {
+					auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
 					if(other.get_in_sphere_of() != n) {
 						prune_targets.push_back(other);
 					}
@@ -486,7 +486,7 @@ void update_influence_priorities(sys::state& state) {
 			else if(t.get_primary_culture().get_group_from_culture_group_membership() == state.world.nation_get_primary_culture(n.nation).get_group_from_culture_group_membership()) {
 				weight *= 4.0f;
 			}
-			//Focus on gaining influence against nations we have active wargoals against
+			//Focus on gaining influence against nations we have active wargoals against so we can remove their protector, even if it's us
 			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of()) {
 				weight += 1.0f;
 				weight *= 1000.0f;
@@ -575,8 +575,13 @@ void perform_influence_actions(sys::state& state) {
 				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
 			} else if(state.defines.addtosphere_influence_cost <= gprl.get_influence() && !current_sphere && clevel == nations::influence::level_friendly) {
 				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
-			//De-sphere countries we have wargoals against
-			} else if(military::can_use_cb_against(state, gprl.get_great_power(), gprl.get_influence_target()) && state.defines.removefromsphere_influence_cost <= gprl.get_influence() && current_sphere && clevel == nations::influence::level_friendly) {
+			//De-sphere countries we have wargoals against, desphering countries need to check for going over infamy
+			} else if(military::can_use_cb_against(state, gprl.get_great_power(), gprl.get_influence_target())
+				&& state.defines.removefromsphere_influence_cost <= gprl.get_influence()
+				&& current_sphere
+				&& clevel == nations::influence::level_friendly
+				&& (state.world.nation_get_infamy(gprl.get_great_power()) + state.defines.removefromsphere_infamy_cost) < state.defines.badboy_limit
+			) {
 				command::execute_remove_from_sphere(state, gprl.get_great_power(), gprl.get_influence_target(), gprl.get_influence_target().get_in_sphere_of());
 			}
 		}
@@ -2786,6 +2791,9 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 		if(concession && (is_attacking ? military::attacker_peace_cost(state, w) : military::defender_peace_cost(state, w)) <= overall_po_value)
 			return true; // offer contains everything
+		if(war_duration < 365) {
+			return false;
+		}
 		float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
 		if(overall_score >= 0) {
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
@@ -2813,9 +2821,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(overall_score < 0.0f) { // we are losing
 			if(my_side_against_target - scoreagainst_me <= overall_po_value + personal_score_saved)
 				return true;
-			if(state.world.nation_get_war_exhaustion(n) > 80) {
-				return true;
-			}
 		} else {
 			if(my_side_against_target <= overall_po_value)
 				return true;
@@ -2826,7 +2831,6 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			return false;
 
 		auto scoreagainst_me = military::directed_warscore(state, w, from, n);
-		auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
