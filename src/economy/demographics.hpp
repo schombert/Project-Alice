@@ -127,6 +127,21 @@ struct assimilation_buffer {
 	}
 };
 
+struct conversion_buffer {
+	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
+	uint32_t size = 0;
+	uint32_t reserved = 0;
+
+	conversion_buffer() : amounts(0), size(0) { }
+	void update(uint32_t s) {
+		size = s;
+		if(reserved < s) {
+			reserved = s;
+			amounts = ve::vectorizable_buffer<float, dcon::pop_id>(s);
+		}
+	}
+};
+
 struct migration_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	ve::vectorizable_buffer<dcon::province_id, dcon::pop_id> destinations;
@@ -155,6 +170,7 @@ void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions,
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void update_conversion(sys::state& state, uint32_t offset, uint32_t divisions, conversion_buffer& pbuf);
 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
@@ -168,6 +184,7 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
+void apply_conversion(sys::state& state, uint32_t offset, uint32_t divisions, conversion_buffer& pbuf);
 
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
@@ -188,5 +205,6 @@ float get_estimated_internal_migration(sys::state& state, dcon::pop_id n);
 float get_estimated_colonial_migration(sys::state& state, dcon::pop_id n);
 float get_estimated_emigration(sys::state& state, dcon::pop_id n);
 void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::vector<float>& national_amounts);
+float get_estimated_conversion(sys::state& state, dcon::pop_id n);
 
 } // namespace demographics

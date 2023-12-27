@@ -3685,7 +3685,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 
 void state::single_game_tick() {
 	// do update logic
-	
+
 	current_date += 1;
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
@@ -3707,13 +3707,14 @@ void state::single_game_tick() {
 	static demographics::issues_buffer isbuf(*this);
 	static demographics::promotion_buffer pbuf;
 	static demographics::assimilation_buffer abuf;
+	static demographics::conversion_buffer rbuf;
 	static demographics::migration_buffer mbuf;
 	static demographics::migration_buffer cmbuf;
 	static demographics::migration_buffer imbuf;
 
 	// calculate complex changes in parallel where we can, but don't actually apply the results
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
-	concurrency::parallel_for(0, 7, [&](int32_t index) {
+	concurrency::parallel_for(0, 8, [&](int32_t index) {
 		switch(index) {
 		case 0:
 		{
@@ -3769,6 +3770,14 @@ void state::single_game_tick() {
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_immigration(*this, o, days_in_month, imbuf);
+			break;
+		}
+		case 7:
+		{
+			auto o = uint32_t(ymd_date.day + 11);
+			if(o >= days_in_month)
+				o -= days_in_month;
+			demographics::update_conversion(*this, o, days_in_month, rbuf);
 			break;
 		}
 		}
@@ -3866,6 +3875,12 @@ void state::single_game_tick() {
 		if(o >= days_in_month)
 			o -= days_in_month;
 		demographics::apply_immigration(*this, o, days_in_month, imbuf);
+	}
+	{
+		auto o = uint32_t(ymd_date.day + 11);
+		if(o >= days_in_month)
+			o -= days_in_month;
+		demographics::apply_conversion(*this, o, days_in_month, rbuf);
 	}
 
 	demographics::remove_size_zero_pops(*this);

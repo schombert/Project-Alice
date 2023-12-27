@@ -34,17 +34,54 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(parent) {
-			Cyto::Any payload = dcon::religion_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::religion_id>(payload);
-
-			auto name = state.world.religion_get_name(content);
-			if(bool(name)) {
-				auto box = text::open_layout_box(contents, 0);
-				text::add_to_layout_box(state, contents, box, name);
-				text::close_layout_box(contents, box);
-			}
+			describe_conversion(state, contents, retrieve<dcon::pop_id>(state, parent));
 		}
+	}
+
+	void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
+		auto location = state.world.pop_get_province_from_pop_location(ids);
+		auto owner = state.world.province_get_nation_from_province_ownership(location);
+		auto conversion_chances = std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.conversion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
+
+		float base_amount =
+				state.defines.conversion_scale *
+				(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::conversion_rate) + 1.0f) *
+				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_conversion_rate) + 1.0f) *
+				conversion_chances;
+
+		auto pr = state.world.pop_get_religion(ids);
+		auto state_religion = state.world.nation_get_religion(owner);
+
+		// pops of the state religion do not convert
+		if(state_religion == pr)
+			base_amount = 0.0f;
+
+		// need at least 1 pop following the religion in the province
+		if(state.world.province_get_demographics(location, demographics::to_key(state, state_religion.id)) < 1.f)
+			base_amount = 0.0f;
+
+		text::add_line(state, contents, "pop_conver_1", text::variable_type::x, int64_t(std::max(0.0f, state.world.pop_get_size(ids) * base_amount)));
+		text::add_line_break_to_layout(state, contents);
+
+		if(state_religion == pr) {
+			text::add_line(state, contents, "pop_conver_2");
+			return;
+		}
+		// need at least 1 pop following the religion in the province
+		if(state.world.province_get_demographics(location, demographics::to_key(state, state_religion.id)) < 1.f) {
+			text::add_line(state, contents, "pop_conver_3");
+			return; // early exit
+		}
+		text::add_line(state, contents, "pop_conver_4");
+		text::add_line(state, contents, "pop_conver_5", text::variable_type::x, text::fp_three_places{state.defines.conversion_scale});
+		text::add_line(state, contents, "pop_conver_6", text::variable_type::x, text::fp_two_places{ std::max(0.0f,state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::global_conversion_rate) + 1.0f)});
+		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::global_conversion_rate, true);
+		text::add_line(state, contents, "pop_conver_7", text::variable_type::x, text::fp_two_places{ std::max(0.0f, state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::conversion_rate) + 1.0f)});
+		active_modifiers_description(state, contents, location, 15, sys::provincial_mod_offsets::conversion_rate, true);
+
+		text::add_line(state, contents, "pop_conver_8", text::variable_type::x, text::fp_four_places{conversion_chances});
+		additive_value_modifier_description(state, contents, state.culture_definitions.conversion_chance, trigger::to_generic(ids),
+				trigger::to_generic(ids), 0);
 	}
 };
 
@@ -69,7 +106,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::province_id>(state, parent);
@@ -82,7 +119,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		
+
 	}
 };
 
@@ -105,7 +142,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::state_instance_id>(state, parent);
@@ -118,7 +155,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		
+
 	}
 };
 
@@ -141,7 +178,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "pop_growth_1");
 			auto content = retrieve<dcon::nation_id>(state, parent);
@@ -154,7 +191,7 @@ public:
 				text::add_to_layout_box(state, contents, box, int64_t(result), text::text_color::red);
 			}
 			text::close_layout_box(contents, box);
-		
+
 	}
 };
 
@@ -401,10 +438,11 @@ public:
 		auto growth = int64_t(demographics::get_monthly_pop_increase(state, pop));
 		auto promote = -int64_t(demographics::get_estimated_type_change(state, pop));
 		auto assimilation = -int64_t(demographics::get_estimated_assimilation(state, pop));
+		auto conversion = -int64_t(demographics::get_estimated_conversion(state, pop));
 		auto internal_migration = -int64_t(demographics::get_estimated_internal_migration(state, pop));
 		auto colonial_migration = -int64_t(demographics::get_estimated_colonial_migration(state, pop));
 		auto emigration = -int64_t(demographics::get_estimated_emigration(state, pop));
-		auto total = int64_t(growth) + promote + assimilation + internal_migration + colonial_migration + emigration;
+		auto total = int64_t(growth) + promote + assimilation + conversion + internal_migration + colonial_migration + emigration;
 
 		{
 			auto box = text::open_layout_box(contents);
@@ -484,6 +522,17 @@ public:
 			}
 			text::close_layout_box(contents, box);
 		}
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "pop_size_8");
+			if(conversion >= 0) {
+				text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
+				text::add_to_layout_box(state, contents, box, conversion, text::text_color::green);
+			} else {
+				text::add_to_layout_box(state, contents, box, conversion, text::text_color::red);
+			}
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -507,9 +556,9 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 
 	text::add_line(state, contents, "pop_mig_3", text::variable_type::x, text::fp_three_places{scale}, text::variable_type::y,
 			text::fp_percentage{prov_mod}, text::variable_type::val, text::fp_two_places{migration_chance});
-	
+
 	active_modifiers_description(state, contents, loc, 0, sys::provincial_mod_offsets::immigrant_push, true);
-	
+
 	text::add_line(state, contents, "pop_mig_4");
 	additive_value_modifier_description(state, contents, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 }
@@ -518,7 +567,7 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-	
+
 	if(state.world.nation_get_is_colonial_nation(owner) == false) {
 		text::add_line(state, contents, "pop_cmig_1");
 		return;
@@ -768,7 +817,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier,
 				false);
 	}
-	
+
 }
 
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -1011,7 +1060,7 @@ void describe_assimilation(sys::state& state, text::columnar_layout& contents, d
 	if(!state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(pc))) {
 		base_amount /= 10.0f;
 	}
-	
+
 
 	/*
 	All pops have their assimilation numbers reduced by a factor of 100 per core in the province sharing their primary
@@ -1811,7 +1860,7 @@ class issue_with_explanation : public simple_text_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 			auto issue = retrieve<dcon::issue_option_id>(state, parent);
 
 			auto opt = fatten(state.world, issue);
@@ -1848,7 +1897,7 @@ class issue_with_explanation : public simple_text_element_base {
 				}
 			}();
 
-			
+
 			text::add_line(state, contents, "pop_issue_attraction_1", text::variable_type::x, text::fp_two_places{attraction_factor * owner_modifier});
 			text::add_line_break_to_layout(state, contents);
 			if(has_modifier) {
@@ -1866,9 +1915,9 @@ class issue_with_explanation : public simple_text_element_base {
 			} else {
 				if(auto mtrigger = state.world.pop_type_get_issues(pop_type, issue); mtrigger) {
 					multiplicative_value_modifier_description(state, contents, mtrigger, trigger::to_generic(ids), trigger::to_generic(ids), 0);
-				} 
+				}
 			}
-		
+
 	}
 };
 
@@ -1965,7 +2014,7 @@ class ideology_with_explanation : public simple_text_element_base {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 			auto i = retrieve<dcon::ideology_id>(state, parent);
 			auto ids = retrieve<dcon::pop_id>(state, parent);
 			auto type = state.world.pop_get_poptype(ids);
@@ -2019,7 +2068,7 @@ class ideology_with_explanation : public simple_text_element_base {
 				text::add_line_break_to_layout(state, contents);
 				text::add_line(state, contents, "pop_ideology_attraction_2");
 			}
-		
+
 	}
 };
 
@@ -2570,7 +2619,7 @@ public:
 		state.world.for_each_pop_type([&](dcon::pop_type_id ptid) {
 			auto mod_key = fat_id.get_poptype().get_promotion(ptid);
 			if(mod_key) {
-				auto chance = std::max(0.0f, 
+				auto chance = std::max(0.0f,
 						trigger::evaluate_additive_modifier(state, mod_key, trigger::to_generic(fat_id.id), trigger::to_generic(fat_id.id), 0));
 				distrib[dcon::pop_type_id::value_base_t(ptid.index())] = chance;
 				total += chance;
@@ -3082,7 +3131,7 @@ private:
 					left_side_listbox->row_contents.push_back(pop_left_side_data(province_id));
 		}
 	}
-	
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
