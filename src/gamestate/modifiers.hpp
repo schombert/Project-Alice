@@ -301,9 +301,14 @@ static_assert(sizeof(unit_modifier) ==
 	+ sizeof(unit_modifier::padding));
 
 struct rebel_org_modifier {
-	float amount = 0.0f;
-	dcon::rebel_type_id type; // no type set = all rebels
+	float amount = 0.0f; //4
+	dcon::rebel_type_id type; //1 - no type set = all rebels
+	uint8_t padding[3] = { 0, 0, 0 };
 };
+static_asset(sizeof(rebel_org_modifier) ==
+	sizeof(rebel_org_modifier::amount)
+	+ sizeof(rebel_org_modifier::type)
+	+ sizeof(rebel_org_modifier::padding));
 
 struct dated_modifier {
 	sys::date expiration;
