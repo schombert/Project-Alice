@@ -32,7 +32,7 @@ struct message {
 
 		dtype() { }
 	} data;
-	type_t type; //1
+	type_t type = diplomatic_message::type_t::none; //1
 	uint8_t padding = 0; //1
 
 	message() : type(diplomatic_message::type_t::none) { }
