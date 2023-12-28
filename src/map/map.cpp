@@ -1073,7 +1073,7 @@ void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railr
 	//
 	auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
 	const auto rp = rng::get_random(state, p1.index(), p2.index() ^ p1.index());
-	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.055f);
+	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.25f);
 	auto const perpendicular = glm::normalize(m2 - m1) * glm::vec2(rf, rf);
 	railroad.emplace_back(mid + glm::vec2(-perpendicular.y, perpendicular.x));
 }
