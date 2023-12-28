@@ -560,6 +560,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index,  b.count);
 			}
 		}
+	} else {
+		glUniform1f(4, 0.0003f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+		for(auto b : borders) {
+			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit)) == 0) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+			}
+		}
 	}
 	// national borders
 	{
