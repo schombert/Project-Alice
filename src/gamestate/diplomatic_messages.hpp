@@ -37,7 +37,7 @@ struct message {
 
 	message() : type(diplomatic_message::type_t::none) { }
 };
-static_asset(sizeof(message) ==
+static_assert(sizeof(message) ==
 	sizeof(message::from)
 	+ sizeof(message::to)
 	+ sizeof(message::when)
