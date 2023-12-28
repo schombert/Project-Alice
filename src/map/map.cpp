@@ -1082,7 +1082,7 @@ void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railr
 	//
 	auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
 	const auto rp = rng::get_random(state, p1.index(), p2.index() ^ p1.index());
-	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.1f);
+	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.25f);
 	auto const perpendicular = glm::normalize(m2 - m1) * glm::vec2(rf, rf);
 	railroad.emplace_back(mid + glm::vec2(-perpendicular.y, perpendicular.x));
 }
@@ -1100,6 +1100,10 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 		auto const pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
 		if(pa.get_building_level(economy::province_building_type::railroad) == 0
 			|| visited_prov[pa.id.index()])
+			continue;
+		// Do not display railroads if it's a strait OR an impassable land border!
+		if((adj.get_type() & province::border::impassible_bit) != 0
+			|| (adj.get_type() & province::border::non_adjacent_bit) != 0)
 			continue;
 		valid_adj.push_back(adj.id);
 	}
