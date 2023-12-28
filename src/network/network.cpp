@@ -593,7 +593,7 @@ void send_and_receive_commands(sys::state& state) {
 					}
 					if(!found_match) {
 #ifdef _WIN64
-						MessageBoxA(NULL, "Could not find a scenario with a matching checksum!", "Network error", MB_OK);
+						MessageBoxA(NULL, "Could not find a scenario with a matching checksum! This is most likely a false positive, so just ask the host for their scenario file and it should work.", "Network error", MB_OK);
 #endif
 						std::abort();
 					}
