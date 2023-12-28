@@ -551,7 +551,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 	// impassible borders
-	{
+	if(zoom > 5) {
 		glUniform1f(4, 0.0003f); // width
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
