@@ -4331,7 +4331,7 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed) {
 	// Monthly OOS check
-#ifndef OOS_DAILY_CHECK
+#ifdef OOS_DAILY_CHECK
 	if(!state.network_state.out_of_sync) {
 		sys::checksum_key current = state.get_save_checksum();
 		if(!current.is_equal(k)) {
