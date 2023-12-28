@@ -30,7 +30,7 @@ struct message {
 		sys::crisis_join_offer crisis_offer; //10
 		dcon::state_definition_id state; //2
 
-		dtype() { }
+		dtype() { memset(this, 0, sizeof(*this)); }
 	} data;
 	type_t type = diplomatic_message::type_t::none; //1
 	uint8_t padding = 0; //1
@@ -43,7 +43,7 @@ static_asset(sizeof(message) ==
 	+ sizeof(message::when)
 	+ sizeof(message::data)
 	+ sizeof(message::type)
-	+ sizeof(message::padding))
+	+ sizeof(message::padding));
 
 using type = type_t;
 
