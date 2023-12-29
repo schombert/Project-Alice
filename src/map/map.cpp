@@ -1416,7 +1416,7 @@ void load_static_meshes(sys::state& state) {
 		glm::vec2 texture_coord_;
 	};
 	std::vector<static_mesh_vertex> static_mesh_vertices;
-	static const std::array<native_string_view, state.map_state.map_data.max_static_meshes> xac_model_names = {
+	static const std::array<native_string_view, display_data::max_static_meshes> xac_model_names = {
 		NATIVE("capital_bigben"), //0
 		NATIVE("capital_eiffeltower"), //1
 		NATIVE("Panama_Canel"), //2
