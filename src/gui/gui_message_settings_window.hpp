@@ -298,6 +298,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "close") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "messagesettings_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "message_settings_items") {
 			return make_element_by_type<message_settings_listbox>(state, id);
 		} else {

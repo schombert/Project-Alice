@@ -584,7 +584,7 @@ void update_great_powers(sys::state& state) {
 			});
 		}
 	}
-	
+
 	for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
 		auto n = state.nations_by_rank[i];
 		if(n && !state.world.nation_get_is_great_power(n) && state.world.nation_get_owned_province_count(n) > 0) {
@@ -1376,9 +1376,9 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 			state.world.nation_get_substates_count(ol)--;
 		}
 		state.world.nation_get_vassals_count(ol)--;
+		state.world.delete_overlord(rel);
 		politics::update_displayed_identity(state, vas);
 		// TODO: notify player
-		state.world.delete_overlord(rel);
 	}
 }
 

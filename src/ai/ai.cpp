@@ -3068,7 +3068,7 @@ void update_budget(sys::state& state) {
 			int max_social = int(100.f * poor_militancy);
 
 			// Laissez faire prioritize tax free capitalists
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() > n.get_stockpiles(economy::money)) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
@@ -3080,7 +3080,7 @@ void update_budget(sys::state& state) {
 				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 0, max_poor_tax)));
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 0, max_rich_tax)));
-			} else if(n.get_last_treasury() > n.get_stockpiles(economy::money)) { // gaining money
+			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
 				}

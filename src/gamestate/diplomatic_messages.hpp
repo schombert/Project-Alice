@@ -21,21 +21,29 @@ enum class type_t : uint8_t {
 };
 
 struct message {
-	dcon::nation_id from;
-	dcon::nation_id to;
-	sys::date when;
+	dcon::nation_id from; //2
+	dcon::nation_id to; //2
+	sys::date when; //2
 	union dtype {
-		dcon::war_id war;
-		dcon::peace_offer_id peace;
-		sys::crisis_join_offer crisis_offer;
-		dcon::state_definition_id state;
+		dcon::war_id war; //2
+		dcon::peace_offer_id peace; //2
+		sys::crisis_join_offer crisis_offer; //10
+		dcon::state_definition_id state; //2
 
-		dtype() { }
+		dtype() { memset(this, 0, sizeof(*this)); }
 	} data;
-	type_t type;
+	type_t type = diplomatic_message::type_t::none; //1
+	uint8_t padding = 0; //1
 
 	message() : type(diplomatic_message::type_t::none) { }
 };
+static_assert(sizeof(message) ==
+	sizeof(message::from)
+	+ sizeof(message::to)
+	+ sizeof(message::when)
+	+ sizeof(message::data)
+	+ sizeof(message::type)
+	+ sizeof(message::padding));
 
 using type = type_t;
 

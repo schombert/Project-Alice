@@ -165,6 +165,8 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
+		if(i->file_name == state.loaded_save_file)\
+			return;
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;

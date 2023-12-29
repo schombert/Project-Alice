@@ -165,7 +165,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		set_visible(state, false);
-		filter_countries(state, [](dcon::nation_id) { return true; });
+		filter_countries(state, [&](dcon::nation_id id) { return state.world.nation_get_owned_province_count(id) != 0; });
 
 		country_listbox->list_scrollbar->base_data.position.x += 13;
 	}

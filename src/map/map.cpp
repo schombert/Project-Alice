@@ -529,46 +529,80 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	
-	if(zoom > 8) { // Render province borders
-		glUniform1f(4, 0.0001f); // width
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
-
-		for(auto b : borders) {
-			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
-				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-			}
-		}
-	}
-	if(zoom > 5) { // Render state borders
-		glUniform1f(4, 0.0002f); // width
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-		for(auto b : borders) {
-			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
-				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-			}
-		}
-	}
 	// impassible borders
-	{
-		glUniform1f(4, 0.0003f); // width
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
-		for(auto b : borders) {
-			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
-				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index,  b.count);
+	if(zoom > 5) {
+		if(zoom > 8) { // Render province borders
+			glUniform1f(4, 0.0001f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == 0) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
 			}
 		}
-	}
-	// national borders
-	{
-		glUniform1f(4, 0.0003f); // width
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
-		for(auto b : borders) {
-			if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
-				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+		{ // Render state borders
+			glUniform1f(4, 0.0002f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+		{
+			glUniform1f(4, 0.0003f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == province::border::impassible_bit) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+		// national borders
+		{
+			glUniform1f(4, 0.0003f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::impassible_bit)) == province::border::national_bit) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+	} else {
+		if(zoom > 8) { // Render province borders
+			glUniform1f(4, 0.0001f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == 0) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+		if(zoom > 5) { // Render state borders
+			glUniform1f(4, 0.0002f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit | province::border::state_bit)) == province::border::state_bit) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+		// national borders
+		{
+			glUniform1f(4, 0.0003f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) == province::border::national_bit) {
+					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
 			}
 		}
 	}
@@ -1073,7 +1107,7 @@ void create_railroad_connection(sys::state& state, std::vector<glm::vec2>& railr
 	//
 	auto mid = ((m1 + m2) / glm::vec2(2.f, 2.f));
 	const auto rp = rng::get_random(state, p1.index(), p2.index() ^ p1.index());
-	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.1f);
+	const float rf = float(rng::reduce(uint32_t(rp), 8192)) / (8192.f * 0.25f);
 	auto const perpendicular = glm::normalize(m2 - m1) * glm::vec2(rf, rf);
 	railroad.emplace_back(mid + glm::vec2(-perpendicular.y, perpendicular.x));
 }
@@ -1091,6 +1125,10 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 		auto const pa = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
 		if(pa.get_building_level(economy::province_building_type::railroad) == 0
 			|| visited_prov[pa.id.index()])
+			continue;
+		// Do not display railroads if it's a strait OR an impassable land border!
+		if((adj.get_type() & province::border::impassible_bit) != 0
+			|| (adj.get_type() & province::border::non_adjacent_bit) != 0)
 			continue;
 		valid_adj.push_back(adj.id);
 	}

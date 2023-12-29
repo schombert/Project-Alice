@@ -562,6 +562,7 @@ pop_size_4;From assimilation: ;;;;;;;;;;;;x
 pop_size_5;From internal migration: ;;;;;;;;;;;;x
 pop_size_6;From colonial migration: ;;;;;;;;;;;;x
 pop_size_7;From emigration: ;;;;;;;;;;;;x
+pop_size_8;From conversion: ;;;;;;;;;;;;x
 pop_l_migration_header;§YMigration away: $val$;;;;;;;;;;;;x
 pop_l_c_migration_header;§YColonial migration away: $val$;;;;;;;;;;;;x
 pop_l_emigration_header;§YEmigration away: $val$;;;;;;;;;;;;x
@@ -652,6 +653,14 @@ pop_assim_9;The local assimilation-rate modifier: $x$;;;;;;;;;;;;x
 pop_assim_10;0.1 for not having an overseas culture;;;;;;;;;;;;x
 pop_assim_11;$x$ from cores present in the province;;;;;;;;;;;;x
 pop_assim_12;Variable assimilation factors: $x$;;;;;;;;;;;;x
+pop_conver_1;Monthly pop conversion: $x$;;;;;;;;;;;;x
+pop_conver_2;Pops of the state religion do not convert;;;;;;;;;;;;x
+pop_conver_3;Pops do not convert unless there are pops of the state religion in the same province;;;;;;;;;;;;x
+pop_conver_4;Conversion is proportional to the size of the pop times the product of:;;;;;;;;;;;;x
+pop_conver_5;The base conversion scale: $x$;;;;;;;;;;;;x
+pop_conver_6;The national conversion-rate modifier: $x$;;;;;;;;;;;;x
+pop_conver_7;The local conversion-rate modifier: $x$;;;;;;;;;;;;x
+pop_conver_8;Variable conversion factors: $x$;;;;;;;;;;;;x
 pop_issue_attraction_1;Issue attraction: $x$;;;;;;;;;;;;x
 pop_issue_attraction_2;This reform is not currently possible;;;;;;;;;;;;x
 pop_issue_attraction_3;Issue attraction is the product of:;;;;;;;;;;;;x
@@ -1132,6 +1141,7 @@ et_if;If;;;Si;;;;;;;;;x
 et_else_if;Else;;;De lo contrario;;;;;;;;;x
 modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
 modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
+modifier_conversion_rate;Conversion Rate;;;;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ was banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
@@ -1371,4 +1381,5 @@ alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
+may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 ;;;;;;;;;;;;;x
