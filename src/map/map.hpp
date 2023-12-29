@@ -181,7 +181,8 @@ public:
 	static constexpr uint32_t vo_drag_box = 5;
 	static constexpr uint32_t vo_coastal = 6;
 	static constexpr uint32_t vo_railroad = 7;
-	static constexpr uint32_t vo_count = 8;
+	static constexpr uint32_t vo_static_mesh = 8;
+	static constexpr uint32_t vo_count = 9;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -220,8 +221,12 @@ public:
 	static constexpr uint32_t shader_drag_box = 5;
 	static constexpr uint32_t shader_borders = 6;
 	static constexpr uint32_t shader_railroad_line = 7;
-	static constexpr uint32_t shader_count = 8;
+	static constexpr uint32_t shader_map_standing_object = 8;
+	static constexpr uint32_t shader_count = 9;
 	GLuint shaders[shader_count] = { 0 };
+	// Textures for static meshes
+	static constexpr uint32_t max_static_meshes = 8;
+	GLuint static_mesh_textures[max_static_meshes] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

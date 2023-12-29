@@ -338,6 +338,7 @@ display_data::~display_data() {
 	/* We don't need to check against 0, since the delete functions already do that for us */
 	glDeleteTextures(texture_count, textures);
 	glDeleteTextures(texture_count, texture_arrays);
+	glDeleteTextures(max_static_meshes, static_mesh_textures);
 	glDeleteVertexArrays(vo_count, vao_array);
 	glDeleteBuffers(vo_count, vbo_array);
 	/* Flags shader for deletion, but doesn't delete them until they're no longer in the rendering context */
@@ -380,6 +381,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
 
+	auto model3d_vshader = try_load_shader(root, NATIVE("assets/shaders/model3d_v.glsl"));
+	auto model3d_fshader = try_load_shader(root, NATIVE("assets/shaders/model3d_f.glsl"));
+
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
 	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlineb_fshader);
@@ -387,6 +391,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_line_unit_arrow] = create_program(*line_unit_arrow_vshader, *line_unit_arrow_fshader);
 	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
 	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
+	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 }
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
@@ -619,16 +624,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	/*
-	{
-		load_shader(model3d_shader);
-		glUniform1f(6, time_counter);
-		glBindVertexArray(static_mesh_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, static_mesh_vbo);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
-		glMultiDrawArrays(GL_TRIANGLES, static_mesh_starts.data(), static_mesh_counts.data(), GLsizei(static_mesh_starts.size()));
+	for(uint32_t i = 0; i < max_static_meshes; i++) {
+		load_shader(shaders[shader_map_standing_object]);
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
+		glBindVertexArray(vao_array[vo_static_mesh]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+		glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 	}
-	*/
 
 	if(!unit_arrow_vertices.empty()) {
 		load_shader(shaders[shader_line_unit_arrow]);
@@ -1415,71 +1418,80 @@ void load_static_meshes(sys::state& state) {
 	}
 	state.map_state.map_data.static_mesh_starts.push_back(0);
 	state.map_state.map_data.static_mesh_counts.push_back(3);
+	state.map_state.map_data.static_mesh_textures[0] = GLuint(0);
 
+	static const std::array<native_string_view, state.map_state.map_data.max_static_meshes> xac_model_names = {
+		NATIVE("capital_bigben.xac"), //0
+		NATIVE("capital_eiffeltower.xac"), //1
+		NATIVE("Panama_Canel.xac"), //2
+		NATIVE("Kiel_Canal.xac"), //3
+		NATIVE("Suez_Canal.xac"), //4
+	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
-	auto f = simple_fs::open_file(gfx_anims, NATIVE("capital_bigben.xac"));
-	if(f) {
-		parsers::error_handler err(simple_fs::native_to_utf8(simple_fs::get_full_name(*f)));
-		auto contents = simple_fs::view_contents(*f);
-		emfx::xac_context context{};
-		emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
-		//emfx::finish(context);
-
-		for(auto const& node : context.nodes) {
-			for(auto const& mesh : node.meshes) {
-				uint32_t vertex_offset = 0;
-				for(auto const& sub : mesh.submeshes) {
-					for(size_t i = 0; i < sub.indices.size(); i += 3) {
-						static_mesh_vertex smv;
-						auto index = sub.indices[i + 0] + vertex_offset;
-						{
-							auto vv = mesh.vertices[index];
-							auto vn = mesh.normals[index];
-							auto vt = mesh.texcoords[index];
-							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
-							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
-							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
-							static_mesh_vertices.push_back(smv);
+	for(uint32_t k = 0; k < uint32_t(xac_model_names.size()); k++) {
+		auto f = simple_fs::open_file(gfx_anims, xac_model_names[k]);
+		if(f) {
+			parsers::error_handler err(simple_fs::native_to_utf8(simple_fs::get_full_name(*f)));
+			auto contents = simple_fs::view_contents(*f);
+			emfx::xac_context context{};
+			emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
+			//emfx::finish(context);
+			for(auto const& node : context.nodes) {
+				for(auto const& mesh : node.meshes) {
+					uint32_t vertex_offset = 0;
+					for(auto const& sub : mesh.submeshes) {
+						for(uint32_t i = 0; i < uint32_t(sub.indices.size()); i += 3) {
+							static_mesh_vertex smv;
+							auto index = sub.indices[i + 0] + vertex_offset;
+							{
+								auto vv = mesh.vertices[index];
+								auto vn = mesh.normals[index];
+								auto vt = mesh.texcoords[index];
+								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+								static_mesh_vertices.push_back(smv);
+							}
+							index = sub.indices[i + 1] + vertex_offset;
+							{
+								auto vv = mesh.vertices[index];
+								auto vn = mesh.normals[index];
+								auto vt = mesh.texcoords[index];
+								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+								static_mesh_vertices.push_back(smv);
+							}
+							index = sub.indices[i + 2] + vertex_offset;
+							{
+								auto vv = mesh.vertices[index];
+								auto vn = mesh.normals[index];
+								auto vt = mesh.texcoords[index];
+								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
+								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
+								static_mesh_vertices.push_back(smv);
+							}
 						}
-						index = sub.indices[i + 1] + vertex_offset;
-						{
-							auto vv = mesh.vertices[index];
-							auto vn = mesh.normals[index];
-							auto vt = mesh.texcoords[index];
-							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
-							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
-							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
-							static_mesh_vertices.push_back(smv);
-						}
-						index = sub.indices[i + 2] + vertex_offset;
-						{
-							auto vv = mesh.vertices[index];
-							auto vn = mesh.normals[index];
-							auto vt = mesh.texcoords[index];
-							smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
-							smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
-							smv.texture_coord_ = glm::vec2(vt.x, vt.y);
-							static_mesh_vertices.push_back(smv);
-						}
+						vertex_offset += sub.num_vertices;
+						const auto& mat = context.materials[sub.material_id];
+						state.map_state.map_data.static_mesh_textures[k] = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(mat.name));
 					}
-					vertex_offset += sub.num_vertices;
 				}
 			}
+			state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
+			state.map_state.map_data.static_mesh_counts.push_back(GLsizei(static_mesh_vertices.size() - old_size));
+		} else {
+			state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
+			state.map_state.map_data.static_mesh_counts.push_back(GLsizei(0));
 		}
-
-		state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
-		state.map_state.map_data.static_mesh_counts.push_back(GLsizei(static_mesh_vertices.size() - old_size));
-	} else {
-		std::abort();
 	}
 
-	glGenBuffers(1, &state.map_state.map_data.static_mesh_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, state.map_state.map_data.static_mesh_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(static_mesh_vertex) * static_mesh_vertices.size(), &static_mesh_vertices[0], GL_STATIC_DRAW);
-	glGenVertexArrays(1, &state.map_state.map_data.static_mesh_vao);
-	glBindVertexArray(state.map_state.map_data.static_mesh_vao);
-	glBindVertexBuffer(0, state.map_state.map_data.static_mesh_vbo, 0, sizeof(static_mesh_vertex)); // Bind the VBO to 0 of the VAO
+	glBindVertexArray(state.map_state.map_data.vao_array[state.map_state.map_data.vo_static_mesh]);
+	glBindVertexBuffer(0, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh], 0, sizeof(static_mesh_vertex)); // Bind the VBO to 0 of the VAO
 	glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, position_)); // Set up vertex attribute format for the position
 	glVertexAttribFormat(1, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, normal_)); // Set up vertex attribute format for the normal direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, texture_coord_)); // Set up vertex attribute format for the texture coordinates
@@ -1497,6 +1509,7 @@ void display_data::load_map(sys::state& state) {
 	glGenVertexArrays(vo_count, vao_array);
 	glGenBuffers(vo_count, vbo_array);
 	load_shaders(root);
+	load_static_meshes(state);
 	create_meshes();
 
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
