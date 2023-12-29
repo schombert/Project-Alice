@@ -47,7 +47,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
-	return vertex.position_ * map_size;
+	return vertex.position * map_size;
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
@@ -83,11 +83,11 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
-	if(map_data.unit_arrow_vertices.size() > 0) {
+	if(!map_data.unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
@@ -305,6 +305,12 @@ void map_state::update(sys::state& state) {
 		last_update_time = now;
 
 	update_unit_arrows(state, map_data);
+
+	// Update railroads, only if railroads are being built and we have 'em enabled
+	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acquire)) {
+		state.map_state.map_data.update_railroad_paths(state);
+		state.railroad_built.store(false, std::memory_order::release);
+	}
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);

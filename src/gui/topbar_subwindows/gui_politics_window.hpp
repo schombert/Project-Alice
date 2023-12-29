@@ -82,7 +82,7 @@ class nation_revanchism_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto revanchism = state.world.nation_get_revanchism(nation_id);
-		return std::to_string(int32_t(revanchism)) + '%';
+		return std::to_string(int32_t(revanchism * 100.0f)) + '%';
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -388,7 +388,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("next_election"));
 			text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::black);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), text::text_color::black);
+			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), black_text ? text::text_color::black : text::text_color::white);
 			text::close_layout_box(contents, box);
 		}
 	}

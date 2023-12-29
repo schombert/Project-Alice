@@ -685,6 +685,7 @@ public:
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += economy::interest_payment(state, state.local_player_nation);
 	}
 };
 
@@ -718,6 +719,7 @@ public:
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
 		// balance
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] -= economy::interest_payment(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
 	}
 };
@@ -1007,6 +1009,158 @@ public:
 	}
 };
 
+class debt_piechart : public piechart<dcon::nation_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		distribution.clear();
+		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+
+		if(t < 0.0f) {
+			int32_t num_gp = 7;
+			if(t <= 1000.0f) {
+				num_gp = 1;
+			} else if(t <= 2000.0f) {
+				num_gp = 2;
+			} else if(t <= 4000.0f) {
+				num_gp = 4;
+			}
+
+			float share = 10.0f;
+			for(auto n : state.nations_by_rank) {
+				if(state.world.nation_get_is_great_power(n) && n != state.local_player_nation) {
+					distribution.emplace_back(n, share);
+					share -= 1.0f;
+
+					--num_gp;
+					if(num_gp <= 0)
+						break;
+				}
+			}
+		}
+		update_chart(state);
+	}
+};
+
+struct debt_item_data {
+	dcon::nation_id n;
+	float amount;
+
+	bool operator==(debt_item_data o) const noexcept {
+		return n == o.n && amount == o.amount;
+	}
+	bool operator!=(debt_item_data o) const noexcept {
+		return !(*this == o);
+	}
+};
+
+class debtor_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		debt_item_data dat = retrieve< debt_item_data>(state, parent);
+		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(dat.n)));
+	}
+};
+
+class debtor_amount : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		debt_item_data dat = retrieve< debt_item_data>(state, parent);
+		set_text(state, text::format_money(dat.amount));
+	}
+};
+
+
+class debt_item : public listbox_row_element_base<debt_item_data> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "who") {
+			return make_element_by_type<debtor_name>(state, id);
+		} else if(name == "debt") {
+			return make_element_by_type<debtor_amount>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+class debt_listbox : public listbox_element_base<debt_item, debt_item_data> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "debt_listitem";
+	}
+
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		auto t = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+
+		if(t < 0.0f) {
+			int32_t num_gp = 7;
+			if(t <= 1000.0f) {
+				num_gp = 1;
+			} else if(t <= 2000.0f) {
+				num_gp = 2;
+			} else if(t <= 4000.0f) {
+				num_gp = 4;
+			}
+
+			float share = 10.0f;
+			float total_shares = 0.0f;
+			for(auto n : state.nations_by_rank) {
+				if(state.world.nation_get_is_great_power(n) && n != state.local_player_nation) {
+					row_contents.push_back(debt_item_data{n, share});
+					total_shares += share;
+					share -= 1.0f;
+
+					--num_gp;
+					if(num_gp <= 0)
+						break;
+				}
+			}
+
+			for(auto& r : row_contents) {
+				r.amount = -t * r.amount / total_shares;
+			}
+		}
+
+		update(state);
+	}
+};
+
+class enable_debt_toggle : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		frame = state.world.nation_get_is_debt_spending(state.local_player_nation) ? 1 : 0;
+		disabled = false;
+
+		auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+		if(last_br && state.current_date < last_br)
+			disabled = true;
+		if(economy::max_loan(state, state.local_player_nation) <= 0.0f)
+			disabled = true;
+	}
+	void button_action(sys::state& state) noexcept override {
+		command::enable_debt(state, state.local_player_nation, !state.world.nation_get_is_debt_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+		if(last_br && state.current_date < last_br) {
+			text::add_line(state, contents, "alice_currently_bankrupt", text::variable_type::x, last_br);
+		} else if(economy::max_loan(state, state.local_player_nation) <= 0.0f) {
+			text::add_line(state, contents, "alice_no_loans_possible");
+		} else {
+			text::add_line(state, contents, "alice_debt_spending");
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "alice_loan_size", text::variable_type::x, text::fp_currency{ economy::max_loan(state, state.local_player_nation) });
+		}
+	}
+};
+
 class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
@@ -1030,6 +1184,12 @@ public:
 		win101->set_visible(state, false);
 		add_child_to_front(std::move(win101));
 
+		{
+			auto debtbutton = make_element_by_type<enable_debt_toggle>(state,
+					state.ui_state.defs_by_name.find("alice_debt_checkbox")->second.definition);
+			add_child_to_front(std::move(debtbutton));
+		}
+
 		set_visible(state, false);
 	}
 
@@ -1044,6 +1204,24 @@ public:
 			return make_element_by_type<nation_budget_bank_text>(state, id);
 		} else if(name == "debt_val") {
 			return make_element_by_type<nation_budget_debt_text>(state, id);
+		} else if(name == "interest_val") {
+			return make_element_by_type<nation_budget_interest_text>(state, id);
+		} else if(name == "tab_takenloans") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "tab_givenloans") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "givenloans_text") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "take_loan") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "repay_loan") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "gunboat_alert") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "chart_debt") {
+			return make_element_by_type<debt_piechart>(state, id);
+		} else if(name == "debt_listbox") {
+			return make_element_by_type<debt_listbox>(state, id);
 		} else if(name == "chart_0") {
 			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::poor>>(state, id);
 		} else if(name == "chart_1") {

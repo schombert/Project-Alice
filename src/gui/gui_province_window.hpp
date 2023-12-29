@@ -493,6 +493,7 @@ public:
 
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
 

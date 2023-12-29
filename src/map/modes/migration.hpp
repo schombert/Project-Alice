@@ -44,8 +44,8 @@ std::vector<uint32_t> migration_map_from(sys::state& state) {
 			for(uint32_t i = 0; i < sz; ++i) {
 				nation_totals[i] = 0.0f;
 			}
-			float least_neg = 0.0f;
-			float greatest_pos = 0.0f;
+			float least_neg = -1.0f;
+			float greatest_pos = 1.0f;
 			for(auto p : state.world.in_province) {
 				auto owner = p.get_nation_from_province_ownership();
 				if(owner && uint32_t(owner.id.index()) < sz) {
@@ -64,6 +64,8 @@ std::vector<uint32_t> migration_map_from(sys::state& state) {
 					nation_totals[i] = 0.5f - 0.5f * nation_totals[i] / least_neg;
 				} else if(nation_totals[i] > 0.0f) {
 					nation_totals[i] = 0.5f + 0.5f * nation_totals[i] / greatest_pos;
+				} else {
+					nation_totals[i] = 0.5f;
 				}
 			}
 		}

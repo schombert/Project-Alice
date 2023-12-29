@@ -54,6 +54,8 @@ public:
 			return text::produce_simple_string(state, "back_crisis_di");
 		case diplomatic_message::type_t::crisis_peace_offer:
 			return text::produce_simple_string(state, "crisis_offer_di");
+		case diplomatic_message::type_t::state_transfer:
+			return text::produce_simple_string(state, "state_transfer_di");
 		}
 		return std::string("???");
 	}
@@ -154,6 +156,7 @@ class diplomacy_request_desc_text : public scrollable_text {
 			}
 			break;
 		case diplomatic_message::type_t::crisis_peace_offer:
+		{
 			auto is_concession = state.world.peace_offer_get_is_concession(diplomacy_request.data.peace);
 			if(is_concession) {
 				text::add_line(state, contents, "crisisofferdesc", text::variable_type::country, diplomacy_request.from);
@@ -184,6 +187,12 @@ class diplomacy_request_desc_text : public scrollable_text {
 			if(is_wp) {
 				text::add_line(state, contents, "peace_whitepeace");
 			}
+		} break;
+		case diplomatic_message::type_t::state_transfer:
+			text::add_line(state, contents, "state_transfer_offer", text::variable_type::actor, diplomacy_request.from);
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, diplomacy_request.data.state);
+			text::close_layout_box(contents, box);
 			break;
 		}
 	}

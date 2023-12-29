@@ -98,6 +98,9 @@ struct network_state {
 
 	server_handshake_data s_hshake;
 
+	uint32_t current_save_length = 0;
+	std::unique_ptr<uint8_t[]> current_save_buffer;
+
 	sys::player_name nickname;
 	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
 
@@ -113,6 +116,8 @@ void finish(sys::state& state);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n);
+uint32_t write_network_save(sys::state& state, std::unique_ptr<uint8_t[]>& buffer);
+void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length);
 void broadcast_to_clients(sys::state& state, command::payload& c);
 
 }

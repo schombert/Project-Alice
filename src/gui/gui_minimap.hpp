@@ -102,6 +102,9 @@ public:
 		case map_mode::mode::terrain:
 			text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
 			break;
+		case map_mode::mode::religion:
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_24"));
+			break;
 		}
 		text::close_layout_box(contents, box);
 	}

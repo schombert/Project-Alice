@@ -17,7 +17,7 @@ TEST_CASE("text from csv", "[parsers]") {
 		REQUIRE(bool(key) == true);
 		REQUIRE(state->text_sequences[key].component_count == 3);
 		REQUIRE(state->to_string_view(
-		            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
+		            state->text_components[state->text_sequences[key].starting_component + 2].data.text_key) == "more");
 	}
 	SECTION("multiple_lines") {
 		std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
@@ -34,14 +34,14 @@ TEST_CASE("text from csv", "[parsers]") {
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 3);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == "more");
+			            state->text_components[state->text_sequences[key].starting_component + 2].data.text_key) == "more");
 		}
 		{
 			auto key = state->key_to_text_sequence.find(std::string_view("ccc"))->second;
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 1);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component])) == "last");
+			            state->text_components[state->text_sequences[key].starting_component].data.text_key) == "last");
 		}
 	}
 }
@@ -67,7 +67,7 @@ TEST_CASE("text game files parsing", "[parsers]") {
 			REQUIRE(bool(key) == true);
 			REQUIRE(state->text_sequences[key].component_count == 3);
 			REQUIRE(state->to_string_view(
-			            std::get<dcon::text_key>(state->text_components[state->text_sequences[key].starting_component + 2])) == " disconnected. Choose your action.");
+			            state->text_components[state->text_sequences[key].starting_component + 2].data.text_key) == " disconnected. Choose your action.");
 		}
 	}
 }

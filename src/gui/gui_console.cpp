@@ -46,6 +46,7 @@ struct command_info {
 		instant_research,
 		game_info,
 		spectate,
+		conquer_tag,
 		change_owner,
 		change_control,
 		change_control_and_owner
@@ -170,14 +171,17 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "spectate", command_info::type::spectate, "Become spectator nation",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "conquer", command_info::type::conquer_tag, "Annexes an entire nation (use 'all' for the entire world)",
+				{command_info::argument_info{"tag", command_info::argument_info::type::text, false}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "chow", command_info::type::change_owner, "Change province owner to country",
-				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, false},
+				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "chcon", command_info::type::change_control, "Give province control to country",
-				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, false},
+				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "chcow", command_info::type::change_control_and_owner, "Give province to country",
-				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, false},
+				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 };
 
@@ -1192,30 +1196,55 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::spectate:
 		command::c_switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id));
 		break;
+	case command_info::type::conquer_tag:
+	{
+		auto tag = std::get<std::string>(pstate.arg_slots[0]);
+		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
+		if(tag == "ALL" || tag == "all") {
+			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
+			for(const auto po : state.world.in_province_ownership) {
+				if(po.get_nation() != state.local_player_nation)
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+			}
+		} else if(nid) {
+			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
+			for(const auto po : state.world.in_province_ownership) {
+				if(po.get_nation() == n)
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+			}
+		}
+		break;
+	}
 	case command_info::type::change_control_and_owner:
 	{
 		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
-		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
-		auto tag = std::get<std::string>(pstate.arg_slots[1]);
-		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
+		auto nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
 		command::c_change_owner(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::change_owner:
 	{
 		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
-		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
-		auto tag = std::get<std::string>(pstate.arg_slots[1]);
-		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
+		auto nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
 		command::c_change_owner(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::change_control:
 	{
 		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
-		//auto nid = state.local_player_nation; // i dont yet understand how to make second argument optional as in how to query whether it was supplied
-		auto tag = std::get<std::string>(pstate.arg_slots[1]);
-		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
+		auto nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
 		command::c_change_controller(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}

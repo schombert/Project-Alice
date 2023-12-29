@@ -16,6 +16,14 @@ enum direction : uint8_t {
 	RIGHT = 1 << 0,
 };
 
+enum class diagonal_border : uint8_t {
+	UP_LEFT = 0x01,
+	UP_RIGHT = uint8_t(0x01 << 2),
+	DOWN_LEFT = uint8_t(0x01 << 4),
+	DOWN_RIGHT = uint8_t(0x01 << 6),
+	NOTHING = 0,
+};
+
 struct border_direction {
 	border_direction() {}
 	struct information {
@@ -28,50 +36,6 @@ struct border_direction {
 	information down;
 	information left;
 	information right;
-};
-
-// Create a new vertices to make a line segment
-void add_line(glm::vec2 map_pos, glm::vec2 map_size, glm::vec2 offset1, glm::vec2 offset2, int32_t border_id, uint32_t x, direction dir, std::vector<curved_line_vertex>& line_vertices, std::vector<border_direction>& current_row, float offset) {
-	glm::vec2 direction = normalize(offset2 - offset1);
-	glm::vec2 normal_direction = glm::vec2(-direction.y, direction.x);
-
-	// Offset the map position
-	map_pos += glm::vec2(offset);
-	// Get the map coordinates
-	glm::vec2 pos1 = offset1 + map_pos;
-	glm::vec2 pos2 = offset2 + map_pos;
-
-	// Rescale the coordinate to 0-1
-	pos1 /= map_size;
-	pos2 /= map_size;
-
-	int32_t border_index = int32_t(line_vertices.size());
-	// First vertex of the line segment
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, -normal_direction, direction, glm::vec2(0.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	// Second vertex of the line segment
-	line_vertices.emplace_back(pos2, -normal_direction, -direction, glm::vec2(1.f, 1.f), float(border_id));
-	line_vertices.emplace_back(pos2, normal_direction, -direction, glm::vec2(1.f, 0.f), float(border_id));
-	line_vertices.emplace_back(pos1, normal_direction, direction, glm::vec2(0.f, 0.f), float(border_id));
-
-	border_direction::information direction_information(border_index, border_id);
-	switch(dir) {
-		case direction::UP:
-			current_row[x].up = direction_information;
-			break;
-		case direction::DOWN:
-			current_row[x].down = direction_information;
-			break;
-		case direction::LEFT:
-			current_row[x].left = direction_information;
-			break;
-		case direction::RIGHT:
-			current_row[x].right = direction_information;
-			break;
-		default:
-			break;
-	}
 };
 
 // Will check if there is an border there already and extend if it can
@@ -151,79 +115,51 @@ int32_t get_border_index(uint16_t map_province_id1, uint16_t map_province_id2, p
 	return border_index.index();
 }
 
-void add_border(
-	uint32_t x0,
-	uint32_t y0,
-	uint16_t id_ul,
-	uint16_t id_ur,
-	uint16_t id_dl,
-	uint16_t id_dr,
-	std::vector<std::vector<curved_line_vertex>>& borders_list_vertices,
-	std::vector<border_direction>& current_row,
-	std::vector<border_direction>& last_row,
-	parsers::scenario_building_context& context,
-	glm::vec2 map_size)
-{
-	uint8_t diff_u = id_ul != id_ur;
-	uint8_t diff_d = id_dl != id_dr;
-	uint8_t diff_l = id_ul != id_dl;
-	uint8_t diff_r = id_ur != id_dr;
-
-	glm::vec2 map_pos(x0, y0);
-
-	auto add_line_helper = [&](glm::vec2 pos1, glm::vec2 pos2, uint16_t id1, uint16_t id2, direction dir) {
-		auto border_index = get_border_index(id1, id2, context);
-		if(uint32_t(border_index) >= borders_list_vertices.size())
-			borders_list_vertices.resize(border_index + 1);
-		auto& current_border_vertices = borders_list_vertices[border_index];
-		if(!extend_if_possible(x0, border_index, dir, last_row, current_row, map_size, current_border_vertices))
-			add_line(map_pos, map_size, pos1, pos2, border_index, x0, dir, current_border_vertices, current_row, 0.5f);
-		};
-
-	if(diff_l && diff_u && !diff_r && !diff_d) { // Upper left
-		add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ul, id_dl, direction::UP_LEFT);
-	} else if(diff_l && diff_d && !diff_r && !diff_u) { // Lower left
-		add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ul, id_dl, direction::DOWN_LEFT);
-	} else if(diff_r && diff_u && !diff_l && !diff_d) { // Upper right
-		add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 0.0f), id_ur, id_dr, direction::UP_RIGHT);
-	} else if(diff_r && diff_d && !diff_l && !diff_u) { // Lower right
-		add_line_helper(glm::vec2(1.0f, 0.5f), glm::vec2(0.5f, 1.0f), id_ur, id_dr, direction::DOWN_LEFT);
-	} else {
-		if(diff_u) {
-			add_line_helper(glm::vec2(0.5f, 0.0f), glm::vec2(0.5f, 0.5f), id_ul, id_ur, direction::UP);
-		}
-		if(diff_d) {
-			add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(0.5f, 1.0f), id_dl, id_dr, direction::DOWN);
-		}
-		if(diff_l) {
-			add_line_helper(glm::vec2(0.0f, 0.5f), glm::vec2(0.5f, 0.5f), id_ul, id_dl, direction::LEFT);
-		}
-		if(diff_r) {
-			add_line_helper(glm::vec2(0.5f, 0.5f), glm::vec2(1.0f, 0.5f), id_ur, id_dr, direction::RIGHT);
-		}
-	}
-}
-
 void display_data::load_border_data(parsers::scenario_building_context& context) {
 	border_vertices.clear();
 
 	glm::vec2 map_size(size_x, size_y);
 
-	std::vector<std::vector<curved_line_vertex>> borders_list_vertices;
+	diagonal_borders = std::vector<uint8_t>(size_x * size_y, 0);
+
 	// The borders of the current row and last row
-	std::vector<border_direction> current_row(size_x);
-	std::vector<border_direction> last_row(size_x);
 	for(uint32_t y = 0; y < size_y - 1; y++) {
 		for(uint32_t x = 0; x < size_x - 1; x++) {
 			auto prov_id_ul = province_id_map[(x + 0) + (y + 0) * size_x];
 			auto prov_id_ur = province_id_map[(x + 1) + (y + 0) * size_x];
 			auto prov_id_dl = province_id_map[(x + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[(x + 1) + (y + 1) * size_x];
+
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[x + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[(x + 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[(x + 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[x + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+				}
+			}
+
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				add_border(x, y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size);
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
-
 
 					auto aval = context.state.world.get_province_adjacency_by_province_pair(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
 					if((context.state.world.province_adjacency_get_type(aval) & province::border::non_adjacent_bit) != 0)
@@ -256,8 +192,34 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 			auto prov_id_dl = province_id_map[((size_x - 1) + 0) + (y + 1) * size_x];
 			auto prov_id_dr = province_id_map[0 + (y + 1) * size_x];
 
+			if(prov_id_ur == prov_id_ul && prov_id_dl == prov_id_ul && prov_id_dr != prov_id_ur) { // Upper left
+				diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+			}
+			if(prov_id_ul == prov_id_dl && prov_id_dl == prov_id_dr && prov_id_ur != prov_id_dr) { // Lower left
+				diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+			}
+			if(prov_id_ul == prov_id_ur && prov_id_ur == prov_id_dr && prov_id_dl != prov_id_ul) { // Upper right
+				diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+			}
+			if(prov_id_dl == prov_id_dr && prov_id_ur == prov_id_dr && prov_id_ul != prov_id_dl) { // Lower right
+				diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+			}
+			if(prov_id_ul == prov_id_dr && prov_id_ur == prov_id_dl && prov_id_ul != prov_id_ur) {
+				if((prov_id_ul >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ul == 0)
+					&& (prov_id_ur < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ur != 0)) {
+
+					diagonal_borders[(size_x - 1) + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_RIGHT);
+					diagonal_borders[0 + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_LEFT);
+
+				} else if((prov_id_ur >= province::to_map_id(context.state.province_definitions.first_sea_province) || prov_id_ur == 0)
+					&& (prov_id_ul < province::to_map_id(context.state.province_definitions.first_sea_province) && prov_id_ul != 0)) {
+
+					diagonal_borders[0 + (y + 1) * uint32_t(map_size.x)] |= uint8_t(diagonal_border::UP_LEFT);
+					diagonal_borders[(size_x - 1) + y * uint32_t(map_size.x)] |= uint8_t(diagonal_border::DOWN_RIGHT);
+				}
+			}
+
 			if(prov_id_ul != prov_id_ur || prov_id_ul != prov_id_dl || prov_id_ul != prov_id_dr) {
-				add_border((size_x - 1), y, prov_id_ul, prov_id_ur, prov_id_dl, prov_id_dr, borders_list_vertices, current_row, last_row, context, map_size);
 
 				if(prov_id_ul != prov_id_ur && prov_id_ur != 0 && prov_id_ul != 0) {
 					context.state.world.try_create_province_adjacency(province::from_map_id(prov_id_ul), province::from_map_id(prov_id_ur));
@@ -270,27 +232,6 @@ void display_data::load_border_data(parsers::scenario_building_context& context)
 				}
 			}
 		}
-		// Move the border_direction rows a step down
-		std::swap(last_row, current_row);
-		std::fill(current_row.begin(), current_row.end(), border_direction{});
-	}
-
-	for(auto p : context.state.world.in_province) {
-		auto rng = p.get_province_adjacency();
-		int32_t num_adj = int32_t(rng.end() - rng.begin());
-		auto original_province = context.prov_id_to_original_id_map[p].id;
-		// assert(num_adj < 30);
-	}
-
-	borders.resize(borders_list_vertices.size());
-	for(uint32_t border_id = 0; border_id < borders.size(); border_id++) {
-		auto& border = borders[border_id];
-		auto& current_border_vertices = borders_list_vertices[border_id];
-		border.start_index = int32_t(border_vertices.size());
-		border.count = int32_t(current_border_vertices.size());
-		border.type_flag = context.state.world.province_adjacency_get_type(dcon::province_adjacency_id(dcon::province_adjacency_id::value_base_t(border_id)));
-
-		border_vertices.insert(border_vertices.end(), std::make_move_iterator(current_border_vertices.begin()), std::make_move_iterator(current_border_vertices.end()));
 	}
 }
 
@@ -326,8 +267,288 @@ bool coastal_point(sys::state& state, uint16_t a, uint16_t b) {
 	return a_sea != b_sea;
 }
 
+bool order_indifferent_compare(uint16_t a, uint16_t b, uint16_t c, uint16_t d) {
+	return (a == c && b == d) || (a == d && b == c);
+}
+
+std::vector<glm::vec2> make_border_section(display_data& dat, sys::state& state, std::vector<bool>& visited, uint16_t prov_prim, uint16_t prov_sec, int32_t start_x, int32_t start_y) {
+	std::vector<glm::vec2> points;
+
+	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
+		if(next_found)
+			return glm::ivec2(0, 0);
+		if(visited[i + j * dat.size_x])
+			return glm::ivec2(0, 0);
+		if(j % 2 == 0) {
+			if(order_indifferent_compare(prov_prim, prov_sec, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i - 1, j / 2)))) {
+				visited[i + j * dat.size_x] = true;
+
+				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
+				next_found = true;
+				return glm::ivec2(i, j);
+			}
+		} else {
+			if(order_indifferent_compare(prov_prim, prov_sec, dat.safe_get_province(glm::ivec2(i, j / 2)), dat.safe_get_province(glm::ivec2(i, j / 2 + 1)))) {
+				visited[i + j * dat.size_x] = true;
+
+				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
+				next_found = true;
+				return glm::ivec2(i, j);
+			}
+		}
+
+		return glm::ivec2(0, 0);
+	};
+
+
+	points.push_back(glm::vec2(float(start_x) + (start_y % 2 == 0 ? 0.0f : 0.5f), 0.5f + float(start_y) / 2.0f));
+	visited[start_x + start_y * dat.size_x] = true;
+
+	int32_t cur_x = start_x;
+	int32_t cur_y = start_y;
+
+	bool progress = false;
+	// clockwise
+	do {
+		progress = false;
+		glm::ivec2 temp{ 0, 0 };
+
+		if(cur_y % 2 == 0) {
+			bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+			if(left_is_s) {
+				temp += add_next(cur_x, cur_y + 1, progress);
+				temp += add_next(cur_x, cur_y + 2, progress);
+				temp += add_next(cur_x - 1, cur_y + 1, progress);
+			} else {
+				temp += add_next(cur_x - 1, cur_y - 1, progress);
+				temp += add_next(cur_x, cur_y - 2, progress);
+				temp += add_next(cur_x, cur_y - 1, progress);
+			}
+		} else {
+			bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+			if(top_is_s) {
+				temp += add_next(cur_x, cur_y + 1, progress);
+				temp += add_next(cur_x - 1, cur_y, progress);
+				temp += add_next(cur_x, cur_y - 1, progress);
+			} else {
+				temp += add_next(cur_x + 1, cur_y - 1, progress);
+				temp += add_next(cur_x + 1, cur_y, progress);
+				temp += add_next(cur_x + 1, cur_y + 1, progress);
+			}
+		}
+		if(progress) {
+			cur_x = temp.x;
+			cur_y = temp.y;
+		}
+	} while(progress);
+
+	//terminal point
+	if(cur_y % 2 == 0) {
+		bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+		if(left_is_s) {
+			points.push_back(glm::vec2(float(cur_x), 1.0f + float(cur_y) / 2.0f));
+		} else {
+			points.push_back(glm::vec2(float(cur_x), 0.0f + float(cur_y) / 2.0f));
+		}
+	} else {
+		bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+		if(top_is_s) {
+			points.push_back(glm::vec2(float(cur_x), 0.5f + float(cur_y) / 2.0f));
+		} else {
+			points.push_back(glm::vec2(1.0f + float(cur_x), 0.5f + float(cur_y) / 2.0f));
+		}
+	}
+
+	cur_x = start_x;
+	cur_y = start_y;
+
+	std::reverse(points.begin(), points.end());
+	//counter clockwise
+	progress = false;
+	do {
+		progress = false;
+		glm::ivec2 temp{ 0, 0 };
+
+		if(cur_y % 2 == 0) {
+			bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+			if(!left_is_s) {
+				temp += add_next(cur_x, cur_y + 1, progress);
+				temp += add_next(cur_x, cur_y + 2, progress);
+				temp += add_next(cur_x - 1, cur_y + 1, progress);
+			} else {
+				temp += add_next(cur_x - 1, cur_y - 1, progress);
+				temp += add_next(cur_x, cur_y - 2, progress);
+				temp += add_next(cur_x, cur_y - 1, progress);
+			}
+		} else {
+			bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+			if(!top_is_s) {
+				temp += add_next(cur_x, cur_y + 1, progress);
+				temp += add_next(cur_x - 1, cur_y, progress);
+				temp += add_next(cur_x, cur_y - 1, progress);
+			} else {
+				temp += add_next(cur_x + 1, cur_y - 1, progress);
+				temp += add_next(cur_x + 1, cur_y, progress);
+				temp += add_next(cur_x + 1, cur_y + 1, progress);
+			}
+		}
+		if(progress) {
+			cur_x = temp.x;
+			cur_y = temp.y;
+		}
+	} while(progress);
+
+	//terminal point
+	if(cur_y % 2 == 0) {
+		bool left_is_s = dat.safe_get_province(glm::ivec2(cur_x - 1, cur_y / 2)) == prov_sec;
+		if(!left_is_s) {
+			points.push_back(glm::vec2(float(cur_x), 1.0f + float(cur_y) / 2.0f));
+		} else {
+			points.push_back(glm::vec2(float(cur_x), 0.0f + float(cur_y) / 2.0f));
+		}
+	} else {
+		bool top_is_s = dat.safe_get_province(glm::ivec2(cur_x, cur_y / 2)) == prov_sec;
+		if(!top_is_s) {
+			points.push_back(glm::vec2(float(cur_x), 0.5f + float(cur_y) / 2.0f));
+		} else {
+			points.push_back(glm::vec2(1.0f + float(cur_x), 0.5f + float(cur_y) / 2.0f));
+		}
+	}
+
+	return points;
+}
+
+void add_border_segment_vertices(display_data& dat, std::vector<glm::vec2> const& points) {
+	if(points.size() < 3)
+		return;
+
+	auto first = dat.border_vertices.size();
+
+	glm::vec2 current_pos = glm::vec2(points.back().x, points.back().y);
+	glm::vec2 next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
+
+	float distance = 0.0f;
+	glm::vec2 old_pos;
+	glm::vec2 raw_dist;
+	auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+	{
+		old_pos = 2.0f * current_pos - next_pos;
+
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
+
+		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+		raw_dist.x *= 2.0f;
+		distance += 0.5f * glm::length(raw_dist);
+	}
+
+	for(auto i = points.size() - 1; i-- > 1; ) {
+		old_pos = current_pos;
+		current_pos = glm::vec2(points[i].x, points[i].y);
+		old_pos = put_in_local(old_pos, current_pos, float(dat.size_x));
+		next_pos = put_in_local(glm::vec2(points[i - 1].x, points[i - 1].y), current_pos, float(dat.size_x));
+		auto next_direction = glm::normalize(next_pos - current_pos);
+
+		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
+
+		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+		raw_dist.x *= 2.0f;
+		distance += 0.5f * glm::length(raw_dist);
+	}
+
+	// case i == 0
+	{
+		old_pos = current_pos;
+		current_pos = glm::vec2(points[0].x, points[0].y);
+
+		next_pos = 2.0f * current_pos - old_pos;
+
+		auto next_direction = glm::normalize(next_pos - current_pos);
+
+		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
+
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.border_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
+
+		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
+		raw_dist.x *= 2.0f;
+		distance += 0.5f * glm::length(raw_dist);
+
+	}
+}
+
+void display_data::make_borders(sys::state& state, std::vector<bool>& visited) {
+
+	borders.resize(state.world.province_adjacency_size());
+	for(auto adj : state.world.in_province_adjacency) {
+		borders[adj.id.index()].adj = adj;
+	}
+
+	for(int32_t j = 0; j < int32_t(size_y); ++j) {
+		for(int32_t i = 0; i < int32_t(size_x); ++i) {
+			// left verticals
+			{
+				bool was_visited = visited[i + (j * 2) * size_x];
+
+				auto prim = province::from_map_id(safe_get_province(glm::ivec2(i, j)));
+				auto sec = province::from_map_id(safe_get_province(glm::ivec2(i - 1, j)));
+
+				if(!was_visited && prim != sec && prim && sec) {
+					auto adj = state.world.get_province_adjacency_by_province_pair(prim, sec);
+					assert(adj);
+					int32_t border_index = adj.index();
+					if(borders[border_index].count != 0) {
+						border_index = int32_t(borders.size());
+						borders.emplace_back();
+						borders.back().adj = adj;
+					}
+
+					borders[border_index].start_index = int32_t(border_vertices.size());
+				
+					auto res = make_border_section(*this, state, visited, province::to_map_id(prim), province::to_map_id(sec), i, j * 2);
+					add_border_segment_vertices(*this, res);
+
+					borders[border_index].count = int32_t(border_vertices.size() - borders[border_index].start_index);
+				}
+			}
+
+			// horizontals
+			if(j < int32_t(size_y) - 1) {
+				bool was_visited = visited[i + (j * 2 + 1) * size_x];
+				auto prim = province::from_map_id(safe_get_province(glm::ivec2(i, j)));
+				auto sec = province::from_map_id(safe_get_province(glm::ivec2(i, j + 1)));
+
+				if(!was_visited && prim != sec && prim && sec) {
+					auto adj = state.world.get_province_adjacency_by_province_pair(prim, sec);
+					assert(adj);
+					int32_t border_index = adj.index();
+					if(borders[border_index].count != 0) {
+						border_index = int32_t(borders.size());
+						borders.emplace_back();
+						borders.back().adj = adj;
+					}
+
+					borders[border_index].start_index = int32_t(border_vertices.size());
+
+					auto res = make_border_section(*this, state, visited, province::to_map_id(prim), province::to_map_id(sec), i, j * 2 + 1);
+					add_border_segment_vertices(*this, res);
+
+					borders[border_index].count = int32_t(border_vertices.size() - borders[border_index].start_index);
+				}
+			}
+		}
+	}
+}
+
 std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, std::vector<bool>& visited, int32_t start_x, int32_t start_y) {
 	std::vector<glm::vec2> points;
+
+	int32_t dropped_points_counter = 0;
+	constexpr int32_t dropped_points_max = 64;
 
 	auto add_next = [&](int32_t i, int32_t j, bool& next_found) {
 		if(next_found)
@@ -339,14 +560,21 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				visited[i + j * dat.size_x] = true;
 				
 				// test for colinearity
-				/*if(points.size() > 2) {
+				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
+	
+				if(points.size() > 2) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
-					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
-						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+					if(dropped_points_counter < dropped_points_max &&
+						std::sqrt((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y)) + std::sqrt((l.x - float(i)) * (l.x - float(i)) + (l.y - 0.5f - float(j) / 2.0f) * (l.y - 0.5f - float(j) / 2.0f))
+						== std::sqrt((n.x - float(i)) * (n.x - float(i)) + (n.y - 0.5f - float(j) / 2.0f) * (n.y - 0.5f - float(j) / 2.0f))) {
+						++dropped_points_counter;
 						points.pop_back();
+					} else {
+						dropped_points_counter = 0;
 					}
-				}*/
+				}
+				
 				points.push_back(glm::vec2(float(i), 0.5f + float(j) / 2.0f));
 				next_found = true;
 				return glm::ivec2(i, j);
@@ -356,14 +584,21 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 				visited[i + j * dat.size_x] = true;
 
 				// test for colinearity
-				/*if(points.size() > 2) {
+				// this works, but it can result in the border textures being "slanted" because the normals are carried over between two corners
+				
+				if(points.size() > 2) {
 					auto l = points[points.size() - 1];
 					auto n = points[points.size() - 2];
-					if((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y) + (l.x - float(i)) * (l.x - float(i)) + (l.y - float(j) / 2.0f) * (l.y - float(j) / 2.0f)
-						== (n.x - float(i)) * (n.x - float(i)) + (n.y - float(j) / 2.0f) * (n.y - float(j) / 2.0f)) {
+					if(dropped_points_counter < dropped_points_max &&
+						std::sqrt((l.x - n.x) * (l.x - n.x) + (l.y - n.y) * (l.y - n.y)) + std::sqrt((l.x - 0.5f - float(i)) * (l.x - 0.5f - float(i)) + (l.y - 0.5f - float(j) / 2.0f) * (l.y - 0.5f - float(j) / 2.0f))
+						== std::sqrt((n.x - 0.5f - float(i)) * (n.x - 0.5f - float(i)) + (n.y - 0.5f - float(j) / 2.0f) * (n.y - 0.5f - float(j) / 2.0f))) {
+						++dropped_points_counter;
 						points.pop_back();
+					} else {
+						dropped_points_counter = 0;
 					}
-				}*/
+				}
+				
 				points.push_back(glm::vec2(float(i) + 0.5f, 0.5f + float(j) / 2.0f));
 				next_found = true;
 				return glm::ivec2(i, j);
@@ -373,7 +608,7 @@ std::vector<glm::vec2> make_coastal_loop(display_data& dat, sys::state& state, s
 		return glm::ivec2(0, 0);
 	};
 
-	points.push_back(glm::vec2(float(start_x), 0.5f + float(start_y) / 2.0f));
+	points.push_back(glm::vec2(float(start_x) + (start_y % 2 == 0 ? 0.0f : 0.5f), 0.5f + float(start_y) / 2.0f));
 	visited[start_x + start_y * dat.size_x] = true;
 
 	bool progress = false;
@@ -425,66 +660,68 @@ void add_coastal_loop_vertices(display_data& dat, std::vector<glm::vec2> const& 
 	glm::vec2 prev_direction = glm::normalize(next_pos - current_pos);
 	float distance = 0.0f;
 
-	auto current_normal = glm::vec2(-prev_direction.y, prev_direction.x);
 	auto norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
-	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +current_normal, 0.0f, distance });
-	dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -current_normal, 1.0f, distance });
+	auto old_pos = glm::vec2{ 0,0 };
+
+	dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+	dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 	auto raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 	raw_dist.x *= 2.0f;
 	distance += glm::length(raw_dist);
 
 	for(auto i = points.size() - 1; i-- > 1; ) {
+		old_pos = current_pos;
 		current_pos = glm::vec2(points[i].x, points[i].y);
+		old_pos = put_in_local(old_pos, current_pos, float(dat.size_x));
 		next_pos = put_in_local(glm::vec2(points[i - 1].x, points[i - 1].y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
-		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 		raw_dist.x *= 2.0f;
 		distance += glm::length(raw_dist);
-
-		current_normal = next_normal;
 	}
 
 	// case i == 0
 	{
+		old_pos = current_pos;
 		current_pos = glm::vec2(points[0].x, points[0].y);
+		old_pos = put_in_local(old_pos, current_pos, float(dat.size_x));
 		next_pos = put_in_local(glm::vec2(points.back().x, points.back().y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
-		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
 		raw_dist = (current_pos - next_pos) / glm::vec2(dat.size_x, dat.size_y);
 		raw_dist.x *= 2.0f;
 		distance += glm::length(raw_dist);
 
-		current_normal = next_normal;
 	}
 
 	// wrap-around
 	{
+		old_pos = current_pos;
 		current_pos = glm::vec2(points.back().x, points.back().y);
+		old_pos = put_in_local(old_pos, current_pos, float(dat.size_x));
 		next_pos = put_in_local(glm::vec2(points[points.size() - 2].x, points[points.size() - 2].y), current_pos, float(dat.size_x));
 		auto next_direction = glm::normalize(next_pos - current_pos);
 		auto next_normal = glm::vec2(-next_direction.y, next_direction.x);
-		auto corner_normal = (next_normal + current_normal) / (1.0f + glm::dot(next_normal, current_normal));
+
 		norm_pos = current_pos / glm::vec2(dat.size_x, dat.size_y);
 
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, +corner_normal, 0.0f, distance });
-		dat.coastal_vertices.emplace_back(textured_line_vertex{ norm_pos, -corner_normal, 1.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, old_pos / glm::vec2(dat.size_x, dat.size_y), next_pos / glm::vec2(dat.size_x, dat.size_y), 0.0f, distance });
+		dat.coastal_vertices.emplace_back(textured_line_vertex_b{ norm_pos, next_pos / glm::vec2(dat.size_x, dat.size_y), old_pos / glm::vec2(dat.size_x, dat.size_y), 1.0f, distance });
 
-		dat.coastal_vertices[first].normal_direction_ = corner_normal;
-		dat.coastal_vertices[first + 1].normal_direction_ = -corner_normal;
+		dat.coastal_vertices[first].previous_point = old_pos / glm::vec2(dat.size_x, dat.size_y);
+		dat.coastal_vertices[first + 1].next_point = old_pos / glm::vec2(dat.size_x, dat.size_y);
 	}
 
 	dat.coastal_counts.push_back(GLsizei(dat.coastal_vertices.size() - dat.coastal_starts.back()));
@@ -505,7 +742,7 @@ void display_data::make_coastal_borders(sys::state& state, std::vector<bool>& vi
 			// horizontals
 			if(j < int32_t(size_y) - 1) {
 				bool was_visited = visited[i + (j * 2 + 1) * size_x];
-				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i - 1, j)))) {
+				if(!was_visited && coastal_point(state, safe_get_province(glm::ivec2(i, j)), safe_get_province(glm::ivec2(i, j + 1)))) {
 					auto res = make_coastal_loop(*this, state, visited, i, j * 2 + 1);
 					add_coastal_loop_vertices(*this, res);
 				}
@@ -753,13 +990,10 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, +start_normal, 0.0f, distance });//C
 		river_vertices.emplace_back(textured_line_vertex{ norm_pos, -start_normal, 1.0f, distance });//D
 
-
-
 		for(auto i = river.size() - 1; i-- > 0;) {
 			if(!river[i].keep && i % 3 != 0) {
 				continue; // skip
 			}
-
 			glm::vec2 next_perpendicular{ 0.0f, 0.0f };
 			next_pos = put_in_local(glm::vec2(river[i].x, river[i].y), current_pos, float(size_x));
 			if(i > 0) {
@@ -786,7 +1020,6 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 			prev_perpendicular = -1.0f * next_perpendicular;
 			current_pos = glm::vec2(river[i].x, river[i].y);
 		}
-
 		river_counts.push_back(GLsizei(river_vertices.size() - river_starts.back()));
 	}
 }

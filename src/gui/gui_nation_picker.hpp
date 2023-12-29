@@ -142,13 +142,14 @@ public:
 
 struct save_item {
 	native_string file_name;
+	uint64_t timestamp = 0;
 	dcon::national_identity_id save_flag;
-	dcon::government_type_id as_gov;
 	sys::date save_date;
+	dcon::government_type_id as_gov;
 	bool is_new_game = false;
 
 	bool operator==(save_item const& o) const {
-		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name;
+		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
 	}
 	bool operator!=(save_item const& o) const {
 		return !(*this == o);
@@ -164,6 +165,8 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
+		if(i->file_name == state.loaded_save_file)\
+			return;
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
@@ -197,25 +200,28 @@ public:
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
 				state.local_player_nation = dcon::nation_id{ };
-			}
-			state.fill_unsaved_data();
-			/* Notify all clients that we loaded this specific savefile
-			please note how we haven't cleared the save_slock yet, this
-			is so we can properly give the clients an unaltered savefile. */
-			if(state.network_mode == sys::network_mode_type::host) {
+				/* Save the buffer before we fill the unsaved data */
+				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
 				state.local_player_nation = old_local_player_nation;
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-
+				/* Now send the saved buffer before filling the unsaved data to the clients
+				henceforth. */
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_to_clients(state, c);
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
+			} else {
+				state.fill_unsaved_data();
 			}
 		}
+		/* Savefiles might load with new railroads, so for responsiveness we
+		   update whenever one is loaded. */
+		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
@@ -346,7 +352,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), dcon::national_identity_id{ }, dcon::government_type_id{ }, sys::date(0), true });
+		row_contents.push_back(save_item{ NATIVE(""), 0, dcon::national_identity_id{ }, sys::date(0), dcon::government_type_id{ }, true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -357,13 +363,13 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.tag, h.cgov, h.d, false });
+					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.tag, h.d, h.cgov, false });
 				}
 			}
 		}
 
 		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			return b.file_name < a.file_name;
+			return a.timestamp > b.timestamp;
 		});
 
 		update(state);

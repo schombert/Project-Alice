@@ -718,6 +718,8 @@ void update_factions(sys::state& state) {
 	}
 }
 
+inline constexpr float org_gain_factor = 0.4f;
+
 void daily_update_rebel_organization(sys::state& state) {
 	// update brigade count
 	state.world.for_each_rebel_faction([&](dcon::rebel_faction_id rf) {
@@ -748,7 +750,7 @@ void daily_update_rebel_organization(sys::state& state) {
 					return 5.0f;
 				return 1.0f;
 			}();
-			total_change += pop.get_pop().get_savings() * pop.get_pop().get_literacy() * mil_factor;
+			total_change += pop.get_pop().get_savings() * pop.get_pop().get_literacy() * mil_factor * org_gain_factor;
 		}
 		auto reg_count = state.world.rebel_faction_get_possible_regiments(rf);
 		auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
@@ -862,7 +864,7 @@ void rebel_hunting_check(sys::state& state) {
 	}
 }
 
-inline constexpr float rebel_size_reduction = 0.25f;
+inline constexpr float rebel_size_reduction = 0.20f;
 
 void rebel_risings_check(sys::state& state) {
 	static std::vector<dcon::army_id> new_armies;

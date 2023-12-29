@@ -912,7 +912,7 @@ public:
 		// First, the new factories are taken into account
 		economy::for_each_new_factory(state, state_id, [&](economy::new_factory const& nf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(nf.type).id;
-			if(!visited_types[nf.type.index()] && get_filter(state, cid)) {
+			if(!visited_types[nf.type.index()] && get_filter(state, cid) && index < state.defines.factories_per_state) {
 				factories[index].activity = nf;
 				factories[index].id = dcon::factory_id{};
 				visited_types[nf.type.index()] = true;
@@ -923,7 +923,7 @@ public:
 		// Then, the factories being upgraded
 		economy::for_each_upgraded_factory(state, state_id, [&](economy::upgraded_factory const& uf) {
 			dcon::commodity_id cid = state.world.factory_type_get_output(uf.type).id;
-			if(!visited_types[uf.type.index()] && get_filter(state, cid)) {
+			if(!visited_types[uf.type.index()] && get_filter(state, cid) && index < state.defines.factories_per_state) {
 				factories[index].activity = uf;
 				province::for_each_province_in_state_instance(state, state_id, [&](dcon::province_id prov) {
 					for(auto fa : state.world.province_get_factory_location(prov)) {
@@ -944,7 +944,7 @@ public:
 				dcon::factory_id fid = state.world.factory_location_get_factory(flid);
 				dcon::factory_type_id ftid = state.world.factory_get_building_type(fid);
 				dcon::commodity_id cid = state.world.factory_type_get_output(ftid).id;
-				if(!visited_types[ftid.index()] && get_filter(state, cid)) {
+				if(!visited_types[ftid.index()] && get_filter(state, cid) && index < state.defines.factories_per_state) {
 					factories[index].activity = std::monostate{};
 					factories[index].id = fid;
 					infos[index]->set_visible(state, true);
