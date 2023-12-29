@@ -1,23 +1,21 @@
 // Goes from 0 to 1
-layout (location = 0) in vec2 vertex_position;
+layout (location = 0) in vec3 vertex_position;
 layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in float texture_coord;
+layout (location = 2) in vec2 texture_coord;
 
-out float tex_coord;
+out vec2 tex_coord;
 
 layout (location = 0) uniform vec2 offset;
 layout (location = 1) uniform float aspect_ratio;
 layout (location = 2) uniform float zoom;
 layout (location = 3) uniform vec2 map_size;
-layout (location = 4) uniform float width;
 layout (location = 5) uniform mat3 rotation;
-layout (location = 6) uniform float time;
 
-subroutine vec4 calc_gl_position_class(vec2 world_pos);
+subroutine vec4 calc_gl_position_class(vec3 world_pos);
 subroutine uniform calc_gl_position_class calc_gl_position;
 
 layout(index = 0) subroutine(calc_gl_position_class)
-vec4 globe_coords(vec2 world_pos) {
+vec4 globe_coords(vec3 world_pos) {
 	vec3 new_world_pos;
 	float section_x = 200;
 	float angle_x1 = 2 * PI * floor(world_pos.x * section_x) / section_x;
@@ -44,25 +42,17 @@ vec4 globe_coords(vec2 world_pos) {
 }
 
 layout(index = 1) subroutine(calc_gl_position_class)
-vec4 flat_coords(vec2 world_pos) {
-	world_pos += vec2(-offset.x, offset.y);
+vec4 flat_coords(vec3 world_pos) {
+	world_pos += vec3(-offset.x, offset.y, 0.f);
 	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
 		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0, 1.0);
+		(2. * world_pos.z - 1.f) * zoom, 1.0);
 }
 
 void main() {
-	vec2 normal_vector = normalize(normal_direction) * width;
-	vec2 world_pos = vertex_position;
-
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector;
-	world_pos.x /= map_size.x / map_size.y;
-
-	map_coord = world_pos;
-	gl_Position = calc_gl_position(world_pos);
+	vec3 world_pos = vec3(vertex_position.x * 0.02f, -vertex_position.z * 0.02f, vertex_position.y * 0.02f);
+	gl_Position = vec4(world_pos, 1.f);//calc_gl_position(world_pos);
 	tex_coord = texture_coord;
-	o_dist = time + distance / (2.0f * width);
 }

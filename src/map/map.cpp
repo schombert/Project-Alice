@@ -624,15 +624,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	for(uint32_t i = 0; i < max_static_meshes; i++) {
-		load_shader(shaders[shader_map_standing_object]);
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
-		glBindVertexArray(vao_array[vo_static_mesh]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
-		glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
-	}
-
 	if(!unit_arrow_vertices.empty()) {
 		load_shader(shaders[shader_line_unit_arrow]);
 		glUniform1f(4, 0.005f); // width
@@ -647,6 +638,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindVertexArray(vao_array[vo_drag_box]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_drag_box]);
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
+	}
+
+	for(uint32_t i = 0; i < max_static_meshes; i++) {
+		load_shader(shaders[shader_map_standing_object]);
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
+		glBindVertexArray(vao_array[vo_static_mesh]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+		glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
@@ -1394,6 +1394,21 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
 }
 
+
+emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material const& mat) {
+	for(const auto& layer : mat.layers) {
+		if(layer.map_type == emfx::xac_pp_material_map_type::diffuse) {
+			return layer;
+		}
+	}
+	for(const auto& layer : mat.layers) {
+		if(strstr(layer.texture.c_str(), "spec") == NULL) {
+			return layer;
+		}
+	}
+	return emfx::xac_pp_actor_material_layer{};
+}
+
 void load_static_meshes(sys::state& state) {
 	struct static_mesh_vertex {
 		glm::vec3 position_;
@@ -1401,36 +1416,18 @@ void load_static_meshes(sys::state& state) {
 		glm::vec2 texture_coord_;
 	};
 	std::vector<static_mesh_vertex> static_mesh_vertices;
-	auto old_size = static_mesh_vertices.size();
-
-	{
-		static_mesh_vertex smv;
-		smv.position_ = glm::vec3(0.f, 0.f, 1.f);
-		static_mesh_vertices.push_back(smv);
-	}{
-		static_mesh_vertex smv;
-		smv.position_ = glm::vec3(0.5f, 1.f, 1.f);
-		static_mesh_vertices.push_back(smv);
-	}{
-		static_mesh_vertex smv;
-		smv.position_ = glm::vec3(1.f, 0.f, 1.f);
-		static_mesh_vertices.push_back(smv);
-	}
-	state.map_state.map_data.static_mesh_starts.push_back(0);
-	state.map_state.map_data.static_mesh_counts.push_back(3);
-	state.map_state.map_data.static_mesh_textures[0] = GLuint(0);
-
 	static const std::array<native_string_view, state.map_state.map_data.max_static_meshes> xac_model_names = {
-		NATIVE("capital_bigben.xac"), //0
-		NATIVE("capital_eiffeltower.xac"), //1
-		NATIVE("Panama_Canel.xac"), //2
-		NATIVE("Kiel_Canal.xac"), //3
-		NATIVE("Suez_Canal.xac"), //4
+		NATIVE("capital_bigben"), //0
+		NATIVE("capital_eiffeltower"), //1
+		NATIVE("Panama_Canel"), //2
+		NATIVE("Kiel_Canal"), //3
+		NATIVE("Suez_Canal"), //4
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
 	for(uint32_t k = 0; k < uint32_t(xac_model_names.size()); k++) {
-		auto f = simple_fs::open_file(gfx_anims, xac_model_names[k]);
+		auto old_size = static_mesh_vertices.size();
+		auto f = simple_fs::open_file(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".xac"));
 		if(f) {
 			parsers::error_handler err(simple_fs::native_to_utf8(simple_fs::get_full_name(*f)));
 			auto contents = simple_fs::view_contents(*f);
@@ -1476,7 +1473,16 @@ void load_static_meshes(sys::state& state) {
 						}
 						vertex_offset += sub.num_vertices;
 						const auto& mat = context.materials[sub.material_id];
-						state.map_state.map_data.static_mesh_textures[k] = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(mat.name));
+						// This is how most models fallback to find their textures...
+						auto& texid = state.map_state.map_data.static_mesh_textures[k];
+						auto const& layer = get_diffuse_layer(mat);
+						if(layer.texture.empty()) {
+							texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
+							if(!texid)
+								texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_diffuse.dds"));
+						} else {
+							texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + ".dds"));
+						}
 					}
 				}
 			}

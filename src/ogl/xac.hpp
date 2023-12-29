@@ -267,11 +267,6 @@ namespace emfx {
 	
 	void parse_xac(xac_context& context, const char* start, const char* end, parsers::error_handler& err);
 	void finish(xac_context& context);
-	std::string get_canonical_material_name(xac_pp_actor_material const& mat);
-	xac_pp_actor_material_layer get_diffuse_layer(xac_pp_actor_material const& mat);
-	std::string get_diffuse_texture(xac_context const& context, xac_pp_actor_material const& mat);
-	xac_pp_actor_material_layer get_specular_layer(xac_pp_actor_material const& mat);
-	std::string get_specular_texture(xac_context const& context, xac_pp_actor_material const& mat);
 }
 
 
