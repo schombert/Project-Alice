@@ -40,8 +40,6 @@ Similarly, there is a need sometimes to be able to call functions on other ui el
 
 ## Localization and Translation
 
-### Fonts
+We will be using a system that is also generally based off work in the PrintUI project, but somewhat complicated because mods want to be able to combine additional text together. (Unlike with ui modding, which we can probably assume that only one mod will want to touch at a time.) Obviously, looking things up with text keys at runtime is totally impractical. At the same time, we need to load the text at runtime to enable locale switching, and we probably don't want to stash all text from all languages inside the scenario file. Thus, the scenario file will store the keys it saw on creation and slots for their text content. On launch, we will load the content of the localization files and point each key at its unparsed contents. Finally, we will parse the associated text as it is needed in the ui and cache the result. Since this text is only used in the ui, we can also safely reload the files (to switch language) in the ui thread.
 
-### Text substitution
-
-### Text lookup
+We will do localization via storing for each language and script combination a directory in the localization directory (with a z, which will keep it distinct from the v2 directory). For example, we might have localization\en-US. Inside that directory will be a fonts directory and a text directory. The text directory will include 1 or more .txt files containing the text that matches particular keys. The fonts directory will include a number of font files (in .otf and .ttf formats) and number index files. Each index file will describe one of the font slots that is referred to in the ui. The index file will form a hierarchy of fonts, starting from a base font where glyphs are drawn from first, and then naming fallback fonts to use (in order) to try when glyphs are not found. The index file will also store various font parameters (including size, but not including color) that define what a given font slot is supposed to look like (e.g. weight, whether it should be italic, etc).
