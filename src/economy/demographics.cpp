@@ -741,7 +741,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 				ids, ruling_ideology);
 		auto ref_mod = ve::select(state.world.province_get_is_colonial(loc), 0.0f,
 				(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
-						state.defines.mil_require_reform);
+						(state.defines.mil_require_reform * 0.25f));
 
 		auto sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
@@ -765,7 +765,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto old_mil = state.world.pop_get_militancy(ids);
 
 		state.world.pop_set_militancy(ids,
-				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion), 0.0f)), 10.0f));
+				ve::min(ve::max(0.0f, ve::select(owner != dcon::nation_id{}, (sub_t + (local_mod + old_mil * 0.99f)) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion), 0.0f)), 10.0f));
 	});
 }
 
@@ -784,7 +784,7 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 		: 0.0f;
 	float ref_mod = state.world.province_get_is_colonial(loc) ? 0.0f :
 			(state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
-					state.defines.mil_require_reform;
+					(state.defines.mil_require_reform * 0.25f);
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
@@ -805,8 +805,9 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 	float war_exhaustion =
 		state.world.nation_get_war_exhaustion(owner) * 0.005f;
+	auto old_mil = state.world.pop_get_militancy(ids);
 
-	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion);
+	return (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion) - old_mil * 0.01f;
 }
 
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n) {
@@ -863,7 +864,7 @@ void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions
 		auto old_con = state.world.pop_get_consciousness(ids);
 
 		state.world.pop_set_consciousness(ids,
-				ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod), 0.0f), 0.0f), 10.f));
+				ve::min(ve::max(ve::select(owner != dcon::nation_id{}, ((old_con * 0.99f + lx_mod) + (cl_mod + lit_mod)) + (local_mod + sep_mod), 0.0f), 0.0f), 10.f));
 	});
 }
 
@@ -893,8 +894,9 @@ float get_estimated_con_change(sys::state& state, dcon::pop_id ids) {
 
 	float sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier));
+	auto old_con = state.world.pop_get_consciousness(ids);
 
-	return (lx_mod + (cl_mod + lit_mod)) + (local_mod + sep_mod);
+	return (lx_mod + (cl_mod + lit_mod)) + (local_mod + sep_mod) - old_con * 0.01f;
 }
 
 float get_estimated_con_change(sys::state& state, dcon::nation_id n) {

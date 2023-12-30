@@ -618,7 +618,7 @@ pop_mil_8;From reform desire: §R+$x$;;;;;;;;;;;;x
 pop_mil_9;Local pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_10;National pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_11;National non-colonial pop militancy modifier: ;;;;;;;;;;;;x
-pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;;;;;;;;;;;;x
+pop_mil_12;From separatism: §R+$val$§! (§R+$x$§! times national separatism modifier §R$y$);;;;;;;;;;;;x
 pop_mil_13;From war exhaustion §R+$val$§!;;;;;;;;;;;;x
 pop_lit_1;Monthly literacy change: ;;;;;;;;;;;;x
 pop_lit_2;Is the product of:;;;;;;;;;;;;x
@@ -1383,4 +1383,6 @@ alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cau
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
+alice_mil_decay_description;Natural decay §G-$x$
+alice_con_decay_description;Natural decay §R-$x$
 ;;;;;;;;;;;;;x
