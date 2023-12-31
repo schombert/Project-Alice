@@ -1385,4 +1385,7 @@ alice_no_loans_possible;We are currently unable to take loans
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
+alice_x_from_y;$x$ from $y$
+alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
+alice_reinforce_rate_none;This regiment cannot currently be reinforced.
 ;;;;;;;;;;;;;x
