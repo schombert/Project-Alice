@@ -1,53 +1,49 @@
-# Progress as of September 2023
+# Progresso até Setembro de 2023
 
-Welcome back to the [September](https://www.youtube.com/watch?v=nfLEc09tTjI) update. As usual, this update comes with an [updated demo](https://github.com/schombert/Project-Alice/releases/download/v0.0.6-demo/2023-9-7-DEMO.zip).
+Bem-vindo de volta à atualização de [setembro](https://www.youtube.com/watch?v=nfLEc09tTjI). Como de costume, esta atualização vem com uma [demo atualizada](https://github.com/schombert/Project-Alice/releases/download/v0.0.6-demo/2023-9-7-DEMO.zip).
 
-## The little things
+## As pequenas coisas
 
-This is going to be a relatively wordy update, and I know everyone hates that. So before we get started, here are some pretty pictures:
+Esta será uma atualização relativamente detalhada, e sei que todos detestam isso. Portanto, antes de começarmos, aqui estão algumas imagens bonitas:
 
-Units gathering to a rally point:
-![rally point](rally_point.png)
+Unidades a reunirem em um ponto de encontro:
+![ponto de encontro](./images/rally_point.png)
 
-Box selection working:
-![box selection](box.png)
+Seleção de caixa funcionando:
+![seleção de caixa](./images/box.png)
 
-## Public alpha
+## Alpha público
 
-We are getting close to releasing a public alpha. Since we already have a demo available, this might not make much of a difference to some of you. To me, however, an alpha means two things. First, it means that, while there are still going to be bugs and rough spots, you could enjoy a complete game with some luck. Second, it means that I will be opening the door to bug reports from the general public. Depending on the number and quality of those bug reports, we may be able to move on to a beta next month (the difference being that in beta you probably won't see major bugs, while in alpha you probably will).
+Estamos perto de lançar um alpha público. Uma vez que já temos um demo disponível, isso pode não fazer muita diferença para alguns de vocês. Para mim, no entanto, um alpha significa duas coisas. Primeiro, significa que, embora ainda haja bugs e problemas, você poderá desfrutar de um jogo completo com um pouco de sorte. Em segundo lugar, significa que estarei abrindo as portas para relatórios de bugs do público em geral. Dependendo do número e qualidade desses relatórios, talvez possamos passar para uma beta no próximo mês (a diferença sendo que na beta provavelmente não verá grandes bugs, enquanto na alpha provavelmente verá).
 
-The alpha releases will probably have the same limitations as the demos. This means that they will only run on Windows 10 or newer and that they will require a CPU that supports AVX2 (this is most CPUs released in the last decade). Some people also report having problems running the demos on graphic cards with sufficiently ancient OpenGL support, although leaf has been providing a workaround for that where needed.
+Os lançamentos da alpha provavelmente terão as mesmas limitações das demos. Isso significa que eles só rodarão no Windows 10 ou mais recente e exigirão uma CPU que suporte AVX2 (isso inclui a maioria das CPUs lançadas na última década). Algumas pessoas também relatam problemas ao rodar as demos em placas gráficas com suporte OpenGL suficientemente antigo, embora a Leaf tenha fornecido uma solução alternativa quando necessário.
 
-### Making a bug report
+### Fazer um relatório de bug/problema
 
-If you don't intend to make any bug reports, you can skip this (somewhat long) section.
+Se você não pretende fazer relatórios de bug, pode saltar esta secção (um pouco longa).
 
-As already indicated, moving from alpha to beta will be driven largely by quality bug reports. Mechanically, making a bug report is easy: you just go to the bug-reports section of our discord and leave a message there. However, a simple bug report of "X is wrong" is typically not very useful, and maybe even useless. To fix a bug, a developer needs three things: to be able to identify it, to know what the correct behavior should be, and to be able to reproduce the bug for themselves. The bug report that you will be immediately inclined to write will probably not provide all of those.
+Como já indicado, a transição da alpha para a beta será impulsionada principalmente pela qualidade dos relatórios de bug. Mecanicamente, fazer um relatório de bug é fácil: você apenas vai para a seção de relatórios de bug do nosso Discord e deixa uma mensagem lá. No entanto, um simples relatório de bug como "X está errado" geralmente não é muito útil, e talvez até inútil. Para corrigir um bug, um desenvolvedor precisa de três coisas: ser capaz de identificá-lo, saber qual deve ser o comportamento correto e ser capaz de reproduzir o bug por si mesmo. O relatório de bug que inicialmente esteja inclinado a escrever provavelmente não fornecerá todas essas informações.
 
-Suppose, for the sake of argument, that you encountered a bug where declaring a war with a particular CB didn't give you the expected infamy. You might be tempted to make a post along the lines of "Declaring war with CB X didn't give the right amount of infamy." This may seem like it says everything that it needs to say, but it is actually pretty terrible in terms of getting the bug fixed. First, it doesn't pin down the bug very well. Does *every* war declared with that CB give the wrong amount of infamy or just some of them? And does this problem affect other CBs as well? The more you can tell us about the conditions where you have encountered the problem, the more likely a developer is to identify what the bug actually is.
+Suponha, por uma questão de argumento, que você encontrou um bug onde declarar uma guerra com um determinado CB não lhe deu a infâmia esperada. Você pode ser tentado a fazer um post com a informação de "Declarar guerra com CB X não deu a quantidade certa de infâmia." Isso pode parecer que diz tudo o que precisa ser dito, mas na verdade é bastante ineficaz em termos de correção de bugs. Em primeiro lugar, não identifica bem o bug. *Toda* guerra declarada com esse CB dá a quantidade errada de infâmia ou apenas algumas delas? E esse problema afeta outros CBs também? Quanto mais informações você puder nos fornecer sobre as condições em que encontrou o problema, mais provável é que um desenvolvedor identifique o que realmente é o bug.
 
-The next thing missing from this bug report is information about what should be happening. It is not enough to say that the CB gave you the wrong amount of infamy: you should explain the amount of infamy that you expected to get and why you expected that. Without that information, we may not know what sort of fix to make. In the current demos, for example, movement speed, combat, and sieges are all extra fast. In time, we will eventually slow them down, but I don't think that we will be able to slow them down to the exact speed that they were in V2. This is in part because I don't know the exact factor to slow them down by, and so a bug report telling me that, say, battles are too fast isn't going to help improve things because it doesn't really bring me any closer to figuring out how fast they should be.
+A próxima coisa ausente deste relatório de bug é informações sobre o que deveria estar acontecendo. Não basta dizer que o CB lhe deu a quantidade errada de infâmia: você deve explicar a quantidade de infâmia que esperava receber e por que esperava isso. Sem essa informação, talvez não saibamos que tipo de correção fazer. Nas demos atuais, por exemplo, a velocidade de movimento, combate e cercos é muito rápida. Com o tempo, eventualmente iremos desacelerá-los, mas não acredito que conseguiremos deixá-los na velocidade exata que estavam no V2. Isso se deve em parte ao fato de eu não saber o fator exato para desacelerá-los, e, portanto, um relatório de bug em que diz as batalhas são muito rápidas, por exemplo, não ajudará a melhorar as coisas, porque não me aproxima realmente de descobrir a rapidez que deveriam ter.
 
-Finally, to get a bug fixed a developer needs to know how to see it for themselves, because that is often the only way to see what exactly is going wrong and to know whether a particular change will really solve the problem. Even in our simple example, a good bug report for this problem needs a set of steps guiding the developer to reproduce it. If the CB is available from the start, that could be as simple as saying that declaring on nation A using nation B is enough to see the bug. However, if this is some sort of conditionally available CB, then you would need to include basically a short walk through explaining how to get to the point where we can see the bug. It may seem obvious to you, but finding a bug by trial and error is extremely wasteful of developer time. If the bug can't be seen in the first few years, you may also want to attach a save (and its corresponding scenario file, and the ordered list of mods, if any) where the bug can be easily found.
+Por fim, para corrigir um bug, um desenvolvedor precisa saber como vê-lo por si mesmo, porque muitas vezes essa é a única maneira de ver o que está errado e saber se uma determinada mudança realmente resolverá o problema. Mesmo em nosso exemplo simples, um bom relatório de bug para esse problema precisa de um conjunto de etapas que guie o desenvolvedor para reproduzi-lo. Se o CB estiver disponível desde o início, isso pode ser tão simples quanto dizer que declarar guerra à nação A usando a nação B é suficiente para ver o bug. No entanto, se este for um CB condicionalmente disponível, você precisaria incluir basicamente um pequeno guia explicando como chegar ao ponto em que podemos ver o bug. Pode parecer óbvio para você, mas encontrar um bug por tentativa e erro é extremamente custoso, e vai retirar imenso tempo do desenvolvedor. Se o bug não puder ser visto nos primeiros anos, você também pode querer anexar um save (e seu arquivo de cenário correspondente, e a lista ordenada de mods, se houver) onde o bug possa ser facilmente encontrado.
 
 ## Launcher
 
-The most recent major addition to Project Alice is the new launcher.
+A adição mais recente ao Project Alice é o novo launcher.
 
-![Launcher](launcher.png)
+![Launcher](./images/launcher.png)
 
-The launcher isn't just a place to select mods and start the game. Project Alice uses what we call "scenario files" to speed up loading the game. A scenario file is essentially an efficiently packaged version of the game data (as modified by a given set of mods). When running the game for the first time, or selecting a new combination of mods, you will first have to create a scenario file using the launcher (this will take more or less time depending on the speed of your computer, your hard drive, and the complexity of the mods). If you update a mod, you will need to recreate the scenario file for any changes in the mod to show up (and your old saves will not be available when using the new scenario file, so be warned). Scenario files are placed in `Your Documents\Project Alice\scenarios` while save files are located in `Your Documents\Project Alice\saves`.
+O launcher não é apenas um local para selecionar mods e iniciar o jogo. O Project Alice usa o que chamamos de "arquivos de cenário" para acelerar o carregamento do jogo. Um arquivo de cenário é essencialmente uma versão eficientemente empacotada dos dados do jogo (conforme modificado por um conjunto específico de mods). Ao executar o jogo pela primeira vez ou selecionar uma nova combinação de mods, você primeiro terá que criar um arquivo de cenário usando o launcher (isso levará mais ou menos tempo dependendo da velocidade do seu computador, do seu disco rígido e da complexidade dos mods). Se você atualizar um mod, precisará recriar o arquivo de cenário para que as alterações no mod apareçam (e seus salvamentos antigos não estarão disponíveis ao usar o novo arquivo de cenário, então esteja avisado). Os arquivos de cenário são colocados em `Documentos\Project Alice\cenários`, enquanto os arquivos de salvamento estão localizados em `Documentos\Project Alice\salvamentos`.
 
-## HPM Compatibility
+## Compatibilidade com HPM
 
-As a first step towards more general mod compatibility, we focused on getting HPM to load properly last month. In doing so, we discovered three minor bugs in the HPM files. Thus, to prevent the launcher from nagging you about them, we have also released a small HPM compatibility patch for them (available in the mod-compatibility-patches channel of the discord).
+Como primeiro passo em direção a uma compatibilidade de mods mais geral, focamos em fazer o HPM carregar corretamente no mês passado. Ao fazer isso, descobrimos três bugs menores nos arquivos do HPM. Portanto, para evitar que o launcher tenha problemas, lançamos um pequeno patch de compatibilidade do HPM para eles (disponível no canal de patches de compatibilidade de mods do Discord).
 
-![HPM globe](hpm_globe.png)
+![Globo do HPM](./images/hpm_globe.png)
 
-It still needs a few tweaks to make text fit properly in some places with the new fonts, but most of the changes that HPM made loaded painlessly.
+Ainda precisa de alguns ajustes para fazer o texto se encaixar corretamente em alguns lugares com as novas fontes, mas a maioria das mudanças que o HPM fez carregou sem problemas.
 
-![HPM ui](hpm_ref.png)
-
-## The End
-
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+![UI do HPM](./images/hpm_ref.png)

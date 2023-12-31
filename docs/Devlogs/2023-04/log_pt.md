@@ -1,60 +1,62 @@
-# Progress as of April 2023
+# Progresso até Abril de 2023
 
-Hello Alices! As April begins, we are still here, plugging away.
+Olá, Alices! À medida que abril se inicia, ainda estamos aqui, trabalhando incansavelmente.
 
-## New team members
+## Novos membros da equipe
 
-In March we added (Schombert kidnapped) four new programmers to the team. In order of appearance, they are Bruno who has added the diplomatic map mode:
+Em março, adicionamos (Schombert raptou) quatro novos programadores à equipe. Na ordem de aparição, eles são Bruno, que adicionou o modo de mapa diplomático:
 
-![Diplomatic map mode](Diplomatic_Map_Mode.png)
+![Modo de mapa diplomático](./images/Diplomatic_Map_Mode.png)
 
-Cap, who has added the infrastructure, civilization level, recruitment, supply, relations, rank, and revolt risk map modes (and maybe some others I am forgetting at this point)
+Cap, que adicionou os modos de mapa de infraestrutura, nível de civilização, recrutamento, suprimento, relações, classificação e risco de revolta (e talvez alguns outros que estou esquecendo neste momento)
 
-![Civilization level map mode](Civilization_Level_Map_Mode.png)
-![Rank map mode](Rank_Map_Mode.png)
+![Modo de mapa de nível de civilização](./images/Civilization_Level_Map_Mode.png)
+![Modo de mapa de classificação](./images/Rank_Map_Mode.png)
 
-Nick, who has added some improvements to the console as well as making a start on the population window
+Nick, que fez algumas melhorias na consola, bem como começou a trabalhar na janela de população
 
-![Population window](Population_Window_Start.png)
+![Janela de população](./images/Population_Window_Start.png)
 
-and Landau who has populated the contents of the decisions tab
+e Landau, que preencheu o conteúdo da guia de decisões
 
-![Decision tab](Populated_Decision_Tab_Landau.png)
+![Guia de decisões](./images/Populated_Decision_Tab_Landau.png)
 
-New programmers, artists, or people with other talents to contribute are always welcome to join the team.
+Novos programadores, artistas ou pessoas com outros talentos para contribuir são sempre bem-vindos à equipe.
 
-## Team Q&A
+## Perguntas e respostas da equipe
 
-For this month we asked Diana, the project coordinator and overall second in command "what are you interested in adding to Project Alice?"
+Para este mês, perguntamos a Diana, coordenadora do projeto e segunda no comando geral: "o que você está interessada em adicionar ao Projeto Alice?"
 
-> tbh, as of now I have little programming abilities. I wanted to help, but the only things I could do were advertising (the possibilities for which kinda shrunk) and managing people (but people here turned out to be quite good at managing themselves). I might try to fiddle more with the code later though. Once the project is closer to release, I want to bug mod creators to try to convince them to make mods compatible with it, and possibly help with that myself if modding compatibility is as preserved as I hope, as I can actually make mods for PDX games--I just avoid doing that due to lack of willpower. Apart from that, the project is kinda important to me; it's something I wished would happen for a long long time, especially because Victoria 2 is too slow for me.
+> Para ser honesta, até agora tenho poucas habilidades de programação. Eu queria ajudar, mas as únicas coisas que eu poderia fazer eram publicidade (cujas possibilidades meio que encolheram) e gerir pessoas (mas as pessoas aqui acabaram sendo bastante boas em se autogerir). No futuro talvez tentarei programar. Quando o projeto estiver mais próximo do lançamento, quero incomodar os criadores de mods para tentar convencê-los a tornar os mods compatíveis com o projecto, e possivelmente ajudar com isso, se a compatibilidade com mods for preservada como espero, já que eu posso criar mods para jogos PDX - apenas evito fazer isso por falta de vontade. Além disso, o projeto é importante para mim; é algo que desejei que acontecesse há muito tempo, especialmente porque o Victoria 2 é muito lento.
 
-## UI progress
+## Progresso da IU
 
-The slow process of implementing the user interface is still underway. This month we made significant progress on the province window, which now displays information such as national scores, RGO employment, and alliances, among other things. The politics windows has also seen significant improvements. Most of the information in the left-hand column is now filled in, along with the contents of the issues, reforms (for uncivilized nations), and decisions tabs. A first step towards making the population window work (mentioned above) has also been made.
+O processo lento de implementação da UI (interface do usuário) ainda está em andamento. Neste mês, fizemos progressos significativos na janela da província, que agora exibe informações como pontuações nacionais, emprego em RGO e alianças, entre outras coisas. A janela de política também viu melhorias significativas. A maioria das informações na coluna da esquerda agora está preenchida, juntamente com o conteúdo das guias de problemas, reformas (para nações não civilizadas) e decisões. Um primeiro passo para fazer a janela de população funcionar (mencionado acima) também foi dado.
 
-![Province windows](Province_and_Focus_Windows.png)
-![Top bar](Top_Bar.png)
-![Politics window](Political_Reforms_Window.png)
+![Janelas de província](./images/Province_and_Focus_Windows.png)
+![Barra superior](./images/Top_Bar.png)
+![Janela de política](./images/Political_Reforms_Window.png)
 
-## Map progress
+## Progresso do mapa
 
-At this point 15 of the 22 map modes have been added. Additionally, the borders between provinces have gotten a facelift. Now borders between nations are thicker than those between states, which are in turn thicker than those between provinces. And as you zoom out, the less important borders will disappear, leaving you with only the national borders when the map is most zoomed out.
+Neste momento, 15 dos 22 modos de mapa foram adicionados. Além disso, as fronteiras entre províncias passaram por uma renovação. Agora, as fronteiras entre nações são mais grossas do que as entre estados/districtos, que, por sua vez, são mais grossas do que as entre províncias. E à medida que você afasta o zoom, as fronteiras menos importantes vao desaparecendo, deixando apenas as fronteiras nacionais quando o mapa estiver mais afastado.
 
-![Zoom levels](Zoom_Levels.png)
+![Níveis de zoom](./images/Zoom_Levels.png)
 
-## Classic fonts
+## Fontes clássicas
 
-Last month we mentioned that MasterChef was working on bringing the classic fonts back as an option. This month we are happy to announce that the work has been completed, and for the ultra purists we have added the option to render the text using the original bitmaps.
+No mês passado, mencionamos que o MasterChef estava trabalhando para trazer de volta as fontes clássicas como uma opção. Este mês, estamos felizes em anunciar que o trabalho foi concluído e, para os ultra-puristas, adicionamos a opção de renderizar o texto usando os bitmaps originais.
 
-![Font comparison](Fonts_detail.png)
+![Comparação de fontes](./images/Fonts_detail.png)
 
-People with high-resolution monitors will probably want to stick with the new fonts; bitmap fonts don't look great when they are scaled up.
+Pessoas com monitores de alta resolução provavelmente vão querer ficar com as novas fontes; as fontes bitmap não ficam bem quando são ampliadas.
 
-## Game rules
+## Regras do jogo
 
-In terms of making the game actually *run*, an important first step was made this month by collecting a--mostly complete--description of the rules of the game. Not only is this description useful as a target to program towards, it is probably independently useful for players of Victoria 2 who simply want to know how the game actually works. Please feel free to share any corrections or fill in any omissions.
+Em termos de fazer o jogo realmente *correr*, um importante primeiro passo foi dado neste mês, construímos uma descrição - em grande parte completa - das regras do jogo. Não apenas essa descrição é útil como alvo a programar, mas provavelmente é útil de forma independente para os jogadores do Victoria 2 que simplesmente querem saber como o jogo realmente funciona. Sinta-se à vontade para compartilhar correções ou preencher quaisquer omissões.
 
-[Rules document](https://github.com/schombert/Project-Alice/blob/main/docs/rules.md)
+[Documento de regras](https://github.com/schombert/Project-Alice/blob/main/docs/rules.md)
 
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+## O Fim
+
+Até o próximo mês! (ou, se você não consegue aguardar, junte-se a nós no [Discord](https://discord.gg/QUJExr4mRn))

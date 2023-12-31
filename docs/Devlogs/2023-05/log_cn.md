@@ -6,7 +6,7 @@
 
 三月，程序员DeathByDarwin加入并与Leaf致力于科技界面。
 
-![Technology window](tech.png)
+![Technology window](./images/tech.png)
 
 ## 团队常见问题
 
@@ -18,9 +18,9 @@
 
 本月UI的工作比上个月更加分散。因此，我们没有可以展示为几乎完成的单个窗口。然而，您可以在以下的预算窗口（由forn完成）、军事窗口（由MasterChef完成）和贸易窗口（由leaf和forn完成）中逐渐看到各个部分的组合。机翻
 
-![Budget window](budget.png)
-![Military window](military.png)
-![Trade window](trade.png)
+![Budget window](./images/budget.png)
+![Military window](./images/military.png)
+![Trade window](./images/trade.png)
 
 ## 内部程序
 
@@ -36,7 +36,7 @@
 
 然而，在Project Alice中，一个国家内的所有消费者都能够平等地获得可用商品。这意味着，如果可用商品不足，每个消费者都只能得到他们所需的一部分。这也意味着所有工厂都会同样受到物资短缺的影响。例如，在下面的图片中，您可以看到所有工厂都因铁短缺而受到相等的困扰。机翻
 
-![Factory window](factory.png)
+![Factory window](./images/factory.png)
 
 另一个变化是国家储备的处理方式（现在我正在谈论游戏中所称的"储备"）。相对于维多利亚2中的处理方式，国家储备在"Alice计划"中有两个简化。首先，在维多利亚2中，政府的某些消费形式（例如，支付单位维护费用）需要通过储备进行，这意味着政府首先将商品转移至国家储备，然后再取出来进行消费。如果禁用储备自动化，这可能导致一些奇怪的情况发生（因为在关闭自动化时，你可能会干扰将商品放入储备的过程）。而在"Alice计划"中，不会发生这种情况；政府支出所需的任何商品都会直接购买和消费，而不需要经过储备作为中间步骤。这也意味着储备自动化不再具有实用价值，并且将不被包含在内（因为你的储备设置不会再干扰其他开支）。机翻
 
@@ -46,8 +46,10 @@
 
 Erik主要负责地图机制，最近忙于项目外工作。但和大家分享他最新作品。
 
-![Globe preview](globe_preview.png)
-
-下月再见！(若等不及就加入[discord](https://discord.gg/QUJExr4mRn)！)
+![Globe preview](./images/globe_preview.png)
 
 [^1]: 注意“据我所知”，我们无法获知V2源代码，有些信息由观察得出的。
+
+## 结束语
+
+下月再见！（或者等不及就加入[discord](https://discord.gg/QUJExr4mRn)）

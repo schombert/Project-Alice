@@ -20,32 +20,32 @@ Este mes le preguntamos a Erik, uno de los cuatros fundadores del projecto y un 
 
 Como indicamos en los meses pasado, el progreso en el globo a continuado. para hacer que el mapa de victoria 2 funcione en un globo emos añadido parches en los polos.No es una solución perfecta, pero funciona. estamos trbajando en una version completa del globo con la misma projección que en victoria 2 y esperamos sacar la version 1.0 con esto como una opción para partidas sin mods. (El mapa tradicional aun es una opción pero no eh sentido necesidad de usarlo.)
 
-![Globo](globe.png)
+![Globo](./images/globe.png)
 
 Este mes nos centramos en la interface de usuario, por ejemplo, los eventos.
 
-![Un evento](event.png)
+![Un evento](./images/event.png)
 
 En este evento se ven varias cosas interesantes. El texto azul se va a convertir en hypertextop que te va a llevar a la provincia, estado o nación nombrada. Puedes ver las lineas --aun en desarrollo-- que van a ayudar a organizar los eventos cuando tengas multiples de estos. El tool tipmuestra que los efectos de los archivos fueron procesados correctamente, y (con la exepción de unos errores) funcionan correctamente.
 
-![Construcción de fabricas](factories.png)
+![Construcción de fabricas](./images/factories.png)
 
 Construciones de todos los tipos, desde fabricas, unidades militares, hasta edificios provinciales como los fuertes an sido implementados. Arriba puedes ver la construción de una fabrica de telas.
 
-![ventana de construcción de fabricas](buildwindow.png)
+![ventana de construcción de fabricas](./images/buildwindow.png)
 
 Arriba pueden ver --la parcialmente incompleta-- ventana de construcción de fabricas. Inclui esto para mostrar que tan inutil es la descripción del papel que ah sobrevivido desde victoria 1. Aun me da riza.
 
-![Barra superior](tech.png)
+![Barra superior](./images/tech.png)
 
 Esta pequeña imagen muestra una tecnologia siendo investigada, y los graficos de linea (hecha por forn).
 
-![Liberal naciones](release.png)
-![ireland](ireland.png)
+![Liberal naciones](./images/release.png)
+![ireland](./images/ireland.png)
 
 ya puedes liberar naciones y jugar como ellas. Arriba puedes ver el cuadro de dialogo al liberar naciones (aun estamos trabajando en el color del texto) y a Irelanda despues de ser liberada.
 
-![Ventana de diplomacia](diplomacy.png)
+![Ventana de diplomacia](./images/diplomacy.png)
 
 Aquí podemos ver qué es posible ganar influenia y mejorar sus relaciones con alguien. La mayoría de las acciones de influencia y las acciones diplomáticas básicas se han implementado. Sin embargo, sin una IA real, nuestra funcional temporal tiende a aceptar todas las peticiones de invasión y rechazar todas las peticiones de alianzas.
 

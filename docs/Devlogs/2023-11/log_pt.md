@@ -1,68 +1,68 @@
-# Progress as of November 2023
+# Progresso até Novembro de 2023
 
-It's November.
+É novembro.
 
-## Public alpha
+## Alpha pública
 
-The [0.8.7 alpha](https://github.com/schombert/Project-Alice/releases/download/v0.8.7%CE%B1/0.8.7-ALPHA.zip) version of Project Alice is now available. Bug reports from the community remain very much appreciated and will help us reach 1.0 faster. I am optimistic that we will move on to beta releases at some point this month.
+A versão [0.8.7 alpha](https://github.com/schombert/Project-Alice/releases/download/v0.8.7%CE%B1/0.8.7-ALPHA.zip) do Project Alice já está disponível. Relatórios de bugs da comunidade continuam sendo muito apreciados e nos ajudarão a chegar à versão 1.0 mais rapidamente. Estou optimista de que avançaremos para versões beta em algum momento deste mês.
 
-## New Map
+## Novo Mapa
 
-This month we made some tweaks to allow full-globe maps. We can't automatically add new terrain to an existing map, but this allows us to make map mods that do cover the entire globe. The [first of them](https://github.com/schombert/Project-Alice/blob/main/openv2%20map%20mod/OpenV2Map.zip), for the vanilla game, can already be tested. As with most new map mods, there are still stray pixels and other little issues to work out. A number of the provinces in Africa will also need to be renamed / given new histories / rearranged into different states. This is because part of the map was drawn from an older rework that had made those adjustments to create better pre and post colonial borders in Africa. If you are interested in helping me make those fixes, please drop by the discord.
+Este mês fizemos algumas alterações para permitir mapas de globo completo. Não podemos adicionar automaticamente novos terrenos a um mapa existente, mas isso permite-nos criar mods de mapa que cubram todo o globo. O [primeiro deles](https://github.com/schombert/Project-Alice/blob/main/openv2%20map%20mod/OpenV2Map.zip), para o jogo padrão, já pode ser testado. Como na maioria dos novos mods de mapa, ainda há pixels soltos e outros pequenos problemas para resolver. Muitas das províncias na África também precisarão ser renomeadas / receber novas histórias / ser rearranjadas em estados diferentes. Isso ocorre porque parte do mapa foi desenhada a partir de uma reformulação mais antiga que fez esses ajustes para criar fronteiras pré e pós-coloniais melhores na África. Se você estiver interessado em me ajudar a fazer essas correções, por favor, entre no discord.
 
-![globe](globe.png)
+![globo](./images/globe.png)
 
-I plan on releasing a short guide to upgrading an existing map this month.
+Planeio lançar um guia breve para atualizar um mapa existente ainda este mês.
 
-## Other Graphical Improvements
+## Outras Melhorias Gráficas
 
-Leaf is still working on perfecting multiplayer (we still have one OOS bug left to track down and fix before it can be merged into a proper release). However, she has also been adding little upgrades here and there.
+Leaf ainda está trabalhando na perfeição do multijogador (ainda temos um bug OOS a ser investigado e corrigido antes que possa ser incorporado a um lançamento oficial). No entanto, ela também fez pequenas melhorias aqui e ali.
 
-#### Fog of War
+#### Névoa de Guerra (Fog of War)
 
-There is now an option in the graphics settings to turn on the classic fog of war effect, which will hide the content of provinces that you don't have vision on.
+Agora há uma opção nas configurações gráficas para ligar o efeito clássico de névoa de guerra, que ocultará o conteúdo das províncias que você não tem visão.
 
-![fog of war](fow.png)
+![névoa de guerra](./images/fow.png)
 
 #### Anti-Aliasing
 
-The graphics options now also allow you to set the level of anti-aliasing from 0 (what we had before) all the way up to 16 (which I do not recommend, because it may make your user interface extremely laggy -- I have settled on 4 for myself). Primarily, this option helps borders and rivers look better, especially when you are zoomed out.
+As opções gráficas agora também permitem que você ajuste o nível de anti-aliasing de 0 (o que tínhamos antes) até 16 (o que não recomendo, porque pode tornar a interface do usuário extremamente lenta - eu optei por 4). Esta opção ajuda as fronteiras e rios a parecerem melhores, especialmente quando você está afastado.
 
-![anti aliasing](aa.png)
-(apologies to our translators)
+![anti-aliasing](./images/aa.png)
+(pedimos desculpas aos nossos tradutores)
 
-#### Map Labels
+#### Rótulos de Mapa
 
-The largest of these upgrades (which turned out to be not so little, as it ended up being a full week of work for three developers) is the new map labels. These labels appear when you are sufficiently zoomed out, and can be set to "very wiggly" (cubic curves), "curvy" (quadratic curves), and "flat" (linear).
+A maior dessas melhorias (que acabou sendo maior do que pensávamos, já que acabou sendo uma semana inteira de trabalho para três desenvolvedores) são os novos rótulos de mapa. Esses rótulos aparecem quando você está suficientemente afastado e podem ser definidos como "muito ondulados" (curvas cúbicas), "curvos" (curvas quadráticas) e "planos" (lineares).
 
-![map text](text.png)
+![texto do mapa](./images/text.png)
 
-## QOL Improvements
+## Melhorias na Qualidade de Vida
 
-#### Technology Queue
+#### Fila de Tecnologia
 
-One of the most life-changing QOL improvements we have added, after the ability to automate event choices, is the ability to queue up research ahead of time (shift-click to add research to the queue and right click to remove it). When your current research finishes, you will automatically start work on the earliest tech in the queue that you have the ability to research. This means that you can add future techs to your queue and they will simply remain in it until they become possible (in other words, I queue the research boosting techs as soon as I start the game and never look back).
+Uma das melhorias na qualidade de vida que mais mudaram o jogo que adicionamos, após a capacidade de automatizar escolhas de eventos, é a capacidade de enfileirar pesquisas com antecedência (clique com a tecla Shift para adicionar pesquisa à fila e clique com o botão direito para removê-la). Quando a pesquisa atual termina, a próxima começará automaticamente. Isso significa que você pode adicionar tecnologias futuras à sua fila de pesquisa e elas simplesmente permanecerão nela até que se pesquisem (em outras palavras, eu faço "setup" da pesquisa das tecnologias assim que começo o jogo e nunca mais olho para elas).
 
-![tech queue](queue.png)
+![fila de tecnologia](./images/queue.png)
 
-#### Map Legends
+#### Legendas de Mapa
 
-This is still an incomplete feature, but we have started adding a map legend that will explain what the colors in various map modes mean. The existing map modes don't really need this to be understandable, for the most part, but it will eventually allow us to add more information to existing map modes without requiring returning players to read a new manual explaining them.
+Isso ainda é um recurso incompleto, mas começamos a adicionar uma legenda de mapa que explicará o significado das cores em vários modos de mapa. Os modos de mapa existentes realmente não precisam disso para serem compreensíveis, em sua maioria, mas eventualmente nos permitirá adicionar mais informações aos modos de mapa existentes sem exigir que os jogadores retornem para ler um novo manual explicando-os.
 
-![map label](label.png)
+![rótulo de mapa](./images/label.png)
 
-#### Trade Window
+#### Janela de Comércio
 
-The trade window is now color coded to show where you have shortages and surpluses (plus a few more bits of information have been added to the tool tips).
+A janela de comércio agora está codificada por cores para mostrar onde você tem escassez e excedentes (além de algumas informações adicionais adicionadas nàs tooltips).
 
-![trade window](trade.png)
+![janela de comércio](./images/trade.png)
 
-## Modding Extensions
+## Extensões de Modding
 
-As we inch closer to a 1.0 release, I have begun implementing extensions to the game on request by modders. I'm not doing big system rewrites or anything like that (yet), but adding new effects, for example, easily doable. My rule of thumb here is that I only add something if a modder plans on using it when it is available. I don't want to add things that *might* be used because it would take too much focus away from getting to 1.0. The biggest thing we have added so far is a version of what are known as "scripted triggers" in some other paradox games.
+À medida que nos aproximamos do lançamento da versão 1.0, comecei a implementar extensões no jogo a pedido dos modders. Não estou fazendo grandes reescritas de sistemas ou algo assim (ainda), mas adicionar novos efeitos, por exemplo, é facilmente possível. Minha regra geral aqui é que só adiciono algo se um modder planeja usá-lo quando estiver disponível. Não quero adicionar coisas que *poderiam* ser usadas, porque isso tiraria muita energia, e atrasaria a versão 1.0. A maior coisa que adicionamos até agora é uma versão do que são conhecidos como "triggers scriptados" em alguns outros jogos da Paradox.
 
-A list of what has already been added can be found [here](https://github.com/schombert/Project-Alice/blob/main/docs/extensions.md) which will be updated as we go.
+Uma lista do que já foi adicionado pode ser encontrada [aqui](https://github.com/schombert/Project-Alice/blob/main/docs/extensions.md), que será atualizada à medida que avançarmos.
 
-## The End
+## O Fim
 
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+Até o mês que vem! (ou, se você não puder esperar tanto, junte-se a nós no [discord](https://discord.gg/QUJExr4mRn))

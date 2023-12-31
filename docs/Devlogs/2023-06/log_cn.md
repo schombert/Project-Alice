@@ -20,32 +20,32 @@
 
 正如上个月所说的那样，我们对地球仪的工作已经有了进展。为了让标准的 Victoria 2 地图可以在地球仪上使用，我们在两极添加了一些空白区域。虽然这不是一个完美的解决方案，但它相当不错。我们还正在制作一张基于 Open V2 地图的适当投影的全球地图，并希望能够将其作为未修改游戏的另一个选项在 1.0 版本中发布。（传统的平面地图也可通过菜单选项更改，但我没有回到它的欲望。）
 
-![Globe](globe.png)
+![Globe](./images/globe.png)
 
 本月我们主要集中精力于实现用户操作和支持其的 UI 。其中一个明显的新增功能是事件系统。
 
-![An event](event.png)
+![An event](./images/event.png)
 
 这个事件展示了很多有趣的东西。蓝色文字最终将被转换为超链接，当单击时，将带您到指定省份、州或国家。您还可以看到箭头（仍在进一步开发中），它们将帮助您在多个事件同时发生时进行选择。 工具提示还显示，文件中指定的效果正在正确地处理，并且当您进行选择时，您的事件选择确实按预期工作（除非存在任何错误）。
 
-![factory construction](factories.png)
+![factory construction](./images/factories.png)
 
 各种类型的建筑都已经添加了，包括工厂、军事单位和省级建筑物，例如要塞等。您可以在上面看到正在进行中的布料厂建设。
 
-![build factory window](buildwindow.png)
+![build factory window](./images/buildwindow.png)
 
 上面是建造工厂的窗口，但它仅完成了一部分。我把它包含在内只是因为它展示了最初在维多利亚 1 中出现的无关纸张用途描述的存在。这总是让我发笑。
 
-![top bar](tech.png)
+![top bar](./images/tech.png)
 
 这个小片段展示了一项新技术正在研究中的画面，以及新实现的曲线图（由forn提供）。
 
-![release nation window](release.png)
-![ireland](ireland.png)
+![release nation window](./images/release.png)
+![ireland](./images/ireland.png)
 
 添加了释放国家（并可选择切换为该国以进行游戏）的功能。上面您可以看到释放国家对话框（显然还需要在文本颜色方面进行一些工作）以及释放爱尔兰的结果。
 
-![diplomacy window](diplomacy.png)
+![diplomacy window](./images/diplomacy.png)
 
 在这里，我们可以看到可以获得影响力并增加与某国的关系。大多数影响行动和简单的外交行动都已经实现了。然而，由于没有真正的 AI ，我们现在默认设置为接受所有军事通行并拒绝所有结盟请求。
 

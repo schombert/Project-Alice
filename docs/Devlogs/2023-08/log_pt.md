@@ -1,51 +1,51 @@
-# Progress as of August 2023
+# Progresso até agosto de 2023
 
-Welcome back to the August update. It is way too hot and I need a vacation.
+Bem-vindo de volta à actualização de agosto. Está muito calor e eu preciso de férias.
 
-## AI
+## IA
 
-Most of my time this month was spent getting a rough draft of the AI working. By "rough draft," I mean that the AI exists and sort of hobbles along. However, it probably wouldn't be a very challenging opponent at this point, and there are plenty of ways that you can lure it into making ill-advised attacks and strategically boneheaded army deployments. But it does work. The AI is able to run its economy, research technologies, and even win wars against other AI players, and this makes it possible to start really testing the game.
+A maior parte do meu tempo neste mês foi gasta trabalhando em um rascunho inicial da IA. Quando digo "rascunho inicial", quero dizer que a IA existe e funciona um bocado mal. Provavelmente não seria um oponente muito desafiador neste momento, e existem muitas maneiras de atrai-la para fazer ataques mal aconselhados e implantações estrategicamente idiotas de exércitos. Mas ela funciona. A IA é capaz de administrar sua economia, pesquisar tecnologias e até vencer guerras contra outros jogadores de IA, o que torna possível começar a testar realmente o jogo.
 
-I don't expect to make fundamental revisions to the AI prior to the 1.0 release. (But if someone really enthusiastic about AI work wants to revise things, I won't stop them.) Instead, I plan to focus on supplementing the AI's decision making with routines that are designed to compensate for its worst blunders. I don't expect to release 1.0 with good AI opponents; I am aiming for merely not-embarrassingly-bad. Obviously good AI opponents are important, and make the game much more fun. But making a good AI opponent for V2 means tailoring the AI to the "quirks" of V2, in particular how the combat system works. Post 1.0, I would really like to make some changes (in my mind, improvements) to how warfare works on a fundamental level, and so any work designed to increase the AI's competence with the existing combat system is probably going to be wasted effort in the long run. And that is how we have ended up with what we have now, which is me trying to get the best results with the minimal amount of effort.
+Não espero fazer revisões fundamentais na IA antes do lançamento da versão 1.0. (Mas se alguém realmente entusiasmado com o trabalho em IA quiser revisar as coisas, eu não os impedirei.) Em vez disso, planeio em concentrar-me em complementar a tomada de decisões da IA com rotinas projetadas para compensar as piores falhas. Não espero lançar o 1.0 com oponentes de IA bons; estou a apontar para apenas algo que não seja vergonhosamente mau. Obviamente, bons oponentes de IA são importantes e tornam o jogo muito mais divertido. Mas criar um bom oponente de IA para Victoria 2 significa adaptar a IA às "idiossincrasias" de Victoria 2, em particular, como o sistema de combate funciona. Após o 1.0, gostaria realmente de fazer algumas mudanças (em minha mente, melhorias) na forma como a guerra funciona em um nível fundamental, e assim qualquer trabalho destinado a aumentar a competência da IA com o sistema de combate existente provavelmente será um esforço desperdiçado a longo prazo. E é assim que acabamos com o que temos agora. Eu estou a tentar obter os melhores resultados com o mínimo de esforço.
 
-Another important consideration when it comes to the AI is how well it will handle mods. Research is probably the strong suit of the AI in this respect. The AI decides what to research by looking at the bonuses that the tech will give it (it does not take into account the unlocked inventions yet). This means that the AI won't be bothered by complete revisions of the tech tree. The weakest part of the AI vis-à-vis mods is how it handles army composition. The AI is built under the assumption that the right balance of infantry and artillery can get it through the game, as these unit types are kept competitive in the base game by the upgrades that technology unlocks. If a mod has changed unit balance enough that different types of units are required to stay competitive, the AI will not be able to understand this.
+Outra consideração importante quando se trata da IA é como ela lidará com modificações. A pesquisa é provavelmente o ponto forte da IA neste aspecto. A IA decide o que pesquisar, olhando para os bônus que a tecnologia lhe dará (ela não leva em consideração as invenções desbloqueadas ainda). Isso significa que a IA não será incomodada por revisões completas da árvore tecnológica. A parte mais fraca da IA em relação às modificações é como ela lida com a composição do exército. A IA é construída sob a suposição de que o equilíbrio certo entre infantaria e artilharia pode levá-la ao longo do jogo, já que esses tipos de unidades são mantidos competitivos no jogo base pelas atualizações que a tecnologia desbloqueia. Se uma modificação mudou o equilíbrio das unidades o suficiente para que diferentes tipos de unidades sejam necessários para se manter competitivo, a IA não será capaz de entender isso.
 
-It is obviously hard to illustrate progress on the AI with static images. Still, here is a picture of the AI winning a war:
+Obviamente, é difícil ilustrar o progresso na IA com imagens estáticas. Ainda assim, aqui está uma imagem da IA vencendo uma guerra:
 
-![Mexican victory](victory.png)
+![Vitória mexicana](./images/victory.png)
 
-A recent video showing the AI shuffling its units around can be found [here](https://www.youtube.com/watch?v=ua1n0MNf9mo).
+Um vídeo recente mostrando a IA movendo suas unidades pode ser encontrado [aqui](https://www.youtube.com/watch?v=ua1n0MNf9mo).
 
-## Movement arrows
+## Setas de Movimento
 
-Erik's contribution this month was adding arrows showing the path your units will take.
+A contribuição de Erik neste mês foi adicionar setas mostrando o caminho que suas unidades seguirão.
 
-![Arrows](arrow.png)
+![Setas](./images/arrow.png)
 
-They are still a bit of a work in progress because they neither scale to the zoom level properly nor show how much progress a unit has made toward the next province. However, they are infinitely better than having to just remember where you clicked and hoping that your units will get there eventually, which is what we had to work with before.
+Elas ainda estão um pouco em progresso, pois não se ajustam adequadamente ao nível de zoom nem mostram quanto progresso uma unidade fez em direção à próxima província. No entanto, são infinitamente melhores do que ter que lembrar onde você clicou e esperar que suas unidades cheguem lá eventualmente, que é o que tínhamos antes.
 
-## Minor UI improvements
+## Pequenas melhorias na UI
 
-Most of my time this month has gone into the AI, so there aren't many changes in the UI. But that isn't to say that nothing has been done. The blue hyperlinks in text work now. Clicking on one will move the map to the relevant province and open the province window for it (or, for nations, the diplomacy window).
+A maior parte do meu tempo neste mês foi dedicada à IA, portanto, não houve muitas mudanças na interface do usuário. Mas isso não quer dizer que nada foi feito. Os hiperlinks azuis no texto agora funcionam. Clicar em um deles moverá o mapa para a província relevante e abrirá a janela da província para ela (ou, para as nações, a janela de diplomacia).
 
-![Event](event.png)
+![Evento](./images/event.png)
 
-Leaf has also fixed the occupation icon for us so that you can finally see which rebels have taken control of a province.
+Leaf também corrigiu o ícone de ocupação para nós, para que você finalmente possa ver quais rebeldes tomaram o controle de uma província.
 
-![Rebel occupation](rebels.png)
+![Ocupação rebelde](./images/rebels.png)
 
-And Masterchef has been continuing work on adding polish to the military window.
+E o Masterchef tem continuado a trabalhar para adicionar polimento à janela militar.
 
-![Unit tooltip](tooltip.png)
+![Dica da unidade](./images/tooltip.png)
 
-## Updated demo
+## Demonstração atualizada
 
-This month's update also comes with an [updated demo](https://github.com/schombert/Project-Alice/releases/download/v0.0.2-demo/2023-8-7-DEMO.zip) where you can see for yourself the changes described above. Once again, *please* read the included text file for instructions on how to "install" the demo. Like last month's demo, we aren't yet at the point where public bug reports are particularly useful, but we may be getting there soon.
+A atualização deste mês também vem com uma [demonstração atualizada](https://github.com/schombert/Project-Alice/releases/download/v0.0.2-demo/2023-8-7-DEMO.zip) onde você pode ver por si mesmo as mudanças descritas acima. Mais uma vez, *por favor*, leia o arquivo de texto incluído para obter instruções sobre como "instalar" a demonstração. Como a demonstração do mês passado, ainda não estamos no ponto em que relatórios públicos de bugs não são particularmente úteis, mas espero chegar lá em breve.
 
-## Next month
+## Próximo mês
 
-I wasn't entirely kidding about needing a vacation. As most of the devs have been busy over the summer, I have ended up doing the bulk of the programming work, and that has left me a bit burned out. On the other hand, it means that if I really did go on vacation this month, almost nothing would get done. So, as a compromise, I am going to focus this month on simpler and less time-consuming improvements to the UI. I may also start work on the launcher, which is the last missing piece before we can roll out a public beta. Leaf will probably be working on multiplayer this month. She has already made a proof-of-concept demo that allows two games to connect and see each other's moves. However, that is only the tip of the iceberg when it comes to multiplayer, and I don't think the work will be finished when next month rolls around.
+Eu não estava a brincar quando disse que precisava de férias. Como a maioria dos desenvolvedores esteve ocupada durante o verão, acabei a desenvolver a maior parte do tempo, o que me deixou um pouco esgotado. Por outro lado, isso significa que se eu realmente for de férias este mês, quase nada será feito. Portanto, como um compromisso, vou me concentrar neste mês em melhorias na interface do usuário mais simples e menos demoradas. Talvez eu também comece a trabalhar no launcher, que é a última peça que falta antes de podermos lançar uma versão beta pública. A Leaf provavelmente estará trabalhando no modo multijogador neste mês. Ela já fez uma demonstração de prova de conceito que permite que dois jogos se conectem e vejam os movimentos um do outro. No entanto, isso é apenas a ponta do iceberg quando se trata de multijogador, e eu não acho que o trabalho estará concluído quando o próximo mês chegar.
 
-## The End
+## O Fim
 
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+Vejo você novamente no próximo mês! (ou, se você não pode esperar tanto, junte-se a nós no [Discord](https://discord.gg/QUJExr4mRn))

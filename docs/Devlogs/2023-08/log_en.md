@@ -12,7 +12,7 @@ Another important consideration when it comes to the AI is how well it will hand
 
 It is obviously hard to illustrate progress on the AI with static images. Still, here is a picture of the AI winning a war:
 
-![Mexican victory](victory.png)
+![Mexican victory](./images/victory.png)
 
 A recent video showing the AI shuffling its units around can be found [here](https://www.youtube.com/watch?v=ua1n0MNf9mo).
 
@@ -20,7 +20,7 @@ A recent video showing the AI shuffling its units around can be found [here](htt
 
 Erik's contribution this month was adding arrows showing the path your units will take.
 
-![Arrows](arrow.png)
+![Arrows](./images/arrow.png)
 
 They are still a bit of a work in progress because they neither scale to the zoom level properly nor show how much progress a unit has made toward the next province. However, they are infinitely better than having to just remember where you clicked and hoping that your units will get there eventually, which is what we had to work with before.
 
@@ -28,15 +28,15 @@ They are still a bit of a work in progress because they neither scale to the zoo
 
 Most of my time this month has gone into the AI, so there aren't many changes in the UI. But that isn't to say that nothing has been done. The blue hyperlinks in text work now. Clicking on one will move the map to the relevant province and open the province window for it (or, for nations, the diplomacy window).
 
-![Event](event.png)
+![Event](./images/event.png)
 
 Leaf has also fixed the occupation icon for us so that you can finally see which rebels have taken control of a province.
 
-![Rebel occupation](rebels.png)
+![Rebel occupation](./images/rebels.png)
 
 And Masterchef has been continuing work on adding polish to the military window.
 
-![Unit tooltip](tooltip.png)
+![Unit tooltip](./images/tooltip.png)
 
 ## Updated demo
 

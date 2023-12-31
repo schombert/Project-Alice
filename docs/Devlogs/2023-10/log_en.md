@@ -34,8 +34,8 @@ For mods that are still under development, I have been submitting (often hundred
 
 Another barrier to perfect mod compatibility is the graphical changes some mods make to the map. Alice uses OpenGL to render its graphics (to make running on linux easier), while Victoria 2 used DirecX, and thus we cannot load the modified shaders that some mods rely on. The most common result is the map looking either extremely dark or extremely light when zoomed out. This too is a fixable problem. Our shaders can also be modded, and so we can either add an OpenGL shader to these mods to get them to render properly in Alice, or (if the mod developers aren't interested in supporting Alice) we can add the modified shader to a compatibility patch.
 
-![too dark MHM](mhm.png)
-![too light ToL](tol.png)
+![too dark MHM](./images/mhm.png)
+![too light ToL](./images/tol.png)
 
 ## Multiplayer
 

@@ -1,50 +1,50 @@
-# Progress as of October 2023
+# Progresso até Outubro de 2023
 
-Welcome back to the October update. Only a few more months until I can be done writing these. That will probably make my translator happy too.
+Bem-vindo de volta à atualização de outubro. Só mais alguns meses até eu poder parar de escrever estas actualizações. Isso provavelmente vai deixar o meu tradutor feliz também.
 
-## Public alpha
+## Alpha pública
 
-The [0.8.1 alpha](https://github.com/schombert/Project-Alice/releases/download/v0.8.1%CE%B1/0.8.1-ALPHA.zip) version of Project Alice is now available. It is already a playable game as things stand, if you are willing to overlook some bugs here and there. I have already played a complete campaign as Austria (in HPM) without any major issues.
+A versão [0.8.1 alpha](https://github.com/schombert/Project-Alice/releases/download/v0.8.1%CE%B1/0.8.1-ALPHA.zip) do Project Alice já está disponível. É um jogo jogável tal como as coisas estão, se você estiver disposto a ignorar alguns bugs aqui e ali. Já joguei uma campanha completa como Áustria (em HPM) sem grandes problemas.
 
-Bug reports from the community are still very much appreciated and will help us reach 1.0 faster. Even reporting little things like missing tooltips and other glitches with the ui is useful.
+Relatórios de bugs da comunidade ainda são muito apreciados e nos ajudarão a chegar mais rápido à versão 1.0. Mesmo relatar pequenas coisas como dicas ausentes e outros problemas com a interface do usuário é útil.
 
-## Mod compatibility status
+## Status de compatibilidade com mods
 
-Here is the list of what works and to what extent. If you want us to investigate / work on mod compatibility for any mod not on this list, please let us know. See the next section for the details.
+Aqui está a lista do que funciona e em que medida. Se você deseja que investiguemos/trabalhemos na compatibilidade com qualquer mod que não esteja nesta lista, por favor, avise-nos. Veja a próxima seção para os detalhes.
 
-- HPM: requires a compatibility patch (but there are a lot of versions of HPM out there; if you are using a different version of HPM, you may need us to make a patch for your version).
-- HFM: requires a compatibility patch and will eventually need a custom shader
-- MHM (Modern History Mod): Working with the creator to find and fix bugs (basically done at this point). Will need a compatibility patch for a custom shader and may need some patches to access the various start dates for the time being
-- ToL (Throne of Loraine): Bug reports submitted (needs a shader)
-- AoE (Age of Enlightenment): Bug reports submitted (needs a shader)
-- DoDR (Divergences of Darkness Rework): Bug reports submitted. However, due to the rapid pace of development of this mod it seems unlikely that I will be able to keep up with either a compatibility patch or the bug reports (also, needs a shader)
-- DoD:HPM (Divergences of Darkness: HPM): Bug reports submitted
-- HtA (Heirs to Aquitania): made a compatibility patch before realizing that the developer was still active. Bugs should be fixed in the mod now.
-- ToK (Trail of Khans): Bug reports submitted
-- GFM (Greater Flavor Mod): on hold. One of their developers asked us to wait with the bug reports until their next major release was done.
-- TGC (The Grand Combination): currently incompatible (although, sent a handful of bug reports anyways). TGC makes some fundamental changes to poptypes and province buildings that Alice isn't currently designed to accommodate. We may eventually end up with a patch that takes the extra stuff out, or leaf may end up adding support, but neither has been done yet.
+- HPM: requer um patch de compatibilidade (mas existem muitas versões de HPM por aí; se você estiver usando uma versão diferente de HPM, talvez precise que façamos um patch para a sua versão).
+- HFM: requer um patch de compatibilidade e eventualmente precisará de um shader personalizado
+- MHM (Modern History Mod): Funcionando com o criador para encontrar e corrigir bugs (basicamente feito neste ponto). Precisará de um patch de compatibilidade para um shader personalizado e pode precisar de alguns patches para acessar as várias datas de início por enquanto
+- ToL (Throne of Loraine): Relatórios de bugs enviados (precisa de um shader)
+- AoE (Age of Enlightenment): Relatórios de bugs enviados (precisa de um shader)
+- DoDR (Divergences of Darkness Rework): Relatórios de bugs enviados. No entanto, devido ao ritmo rápido de desenvolvimento deste mod, parece improvável que eu seja capaz de acompanhar um patch de compatibilidade ou os relatórios de bugs (também precisa de um shader)
+- DoD:HPM (Divergences of Darkness: HPM): Relatórios de bugs enviados
+- HtA (Heirs to Aquitania): fiz um patch de compatibilidade antes de perceber que o desenvolvedor ainda estava ativo. Os bugs devem estar corrigidos no mod agora.
+- ToK (Trail of Khans): Relatórios de bugs enviados
+- GFM (Greater Flavor Mod): em espera. Um dos desenvolvedores pediu que esperássemos com os relatórios de bugs até que a próxima grande versão deles estivesse pronta.
+- TGC (The Grand Combination): atualmente incompatível (embora tenha enviado alguns relatórios de bugs de qualquer maneira). TGC faz algumas mudanças fundamentais nos poptypes e nos edifícios da província que Alice não está atualmente projetada para acomodar. Podemos eventualmente acabar com um patch que remova as coisas extras, ou a Leaf pode acabar adicionando suporte, mas nenhum dos dois foi feito ainda.
 
-## What mod compatibility means
+## O que significa compatibilidade com mods
 
-Recently, I have been loading different mods to see what works and what doesn't. This has proven to be a somewhat frustrating experience because Victoria 2 is extremely permissive in what it accepts. This doesn't mean that it is extremely permissive with what works, but in many cases mods can limp along with all sorts of bugs. This causes two issues for us. First, Alice was partly designed to make writing bug-free mods easier. Thus, it will complain about every problem it finds when you try to launch a mod, often resulting in a somewhat intimidating list of errors. As far as I am concerned, a mod that generates an error report isn't compatible with Alice (yet).
+Recentemente, tenho carregado diferentes mods para ver o que funciona e o que não funciona. Isso provou ser uma experiência um bocado frustrante porque o Victoria 2 é extremamente permissivo no que aceita. Isso não significa que ele seja extremamente permissivo no que funciona, mas em muitos casos, mods podem funcionar com todos os tipos de bugs. Isso causa dois problemas para nós. Primeiro, o Alice foi em parte projectado para tornar mais fácil escrever mods sem bugs. Portanto, ele reclamará de todos os problemas que encontrar quando você tentar lançar um mod, muitas vezes resultando em uma lista de erros intimidante. Na minha opinião, um mod que gera um relatório de erro não é compatível com o Alice (ainda).
 
-The second issue is how we handle those problems. The approach in Alice is generally to cut them out so that whatever remains can work bug-free. This means that if an event trigger refers to an undefined tag, for example, that part of the condition would be omitted, which in turn may lead to an event triggering much more often than expected. Victoria 2 ... does other things, ranging from crashing to failing to trigger at all. Thus, while you can still play a mod that generates an error report, it may not run the way it did in Victoria 2.
+A segunda questão é como lidamos com esses problemas. A abordagem no Alice geralmente é cortá-los para que o que resta possa funcionar sem bugs. Isso significa que se um evento "trigger" se refere a uma tag indefinida, por exemplo, parte da condição seria omitida, o que, por sua vez, pode levar a um evento seja invocado com muito mais frequência do que o esperado. O Victoria 2... faz outras coisas, desde travar até falhar em invocar. Portanto, embora você ainda possa jogar um mod que gera um relatório de erro, ele pode não funcionar da mesma forma que no Victoria 2.
 
-For mods that are still under development, I have been submitting (often hundreds of) bug reports. My hope is that by fixing these bugs, we can end up with mods that both work better for Victoria 2 and which can be loaded without issue by Alice. I have started writing compatibility patches (small mods for the mods that replace the files with bugs) for some mods that are no longer being developed.
+Para mods que ainda estão em desenvolvimento, tenho enviado (muitas vezes centenas de) relatórios de bugs. Minha esperança é que, ao corrigir esses bugs, possamos obter mods que funcionem melhor para o Victoria 2 e que possam ser carregados sem problemas pelo Alice. Comecei a escrever patches de compatibilidade (pequenos mods para os mods que substituem os arquivos com bugs) para alguns mods que não estão mais sendo desenvolvidos.
 
-Another barrier to perfect mod compatibility is the graphical changes some mods make to the map. Alice uses OpenGL to render its graphics (to make running on linux easier), while Victoria 2 used DirecX, and thus we cannot load the modified shaders that some mods rely on. The most common result is the map looking either extremely dark or extremely light when zoomed out. This too is a fixable problem. Our shaders can also be modded, and so we can either add an OpenGL shader to these mods to get them to render properly in Alice, or (if the mod developers aren't interested in supporting Alice) we can add the modified shader to a compatibility patch.
+Outra barreira para a compatibilidade perfeita com mods são as mudanças gráficas que alguns mods fazem no mapa. O Alice usa o OpenGL para renderizar seus gráficos (para facilitar a execução no Linux), enquanto o Victoria 2 usava o DirecX, e portanto não podemos carregar os shaders modificados nos quais alguns mods dependem. O resultado mais comum é que o mapa parece extremamente escuro ou extremamente claro quando visto de longe. Isso é um problema corrigível. Os nossos shaders podem ser modificados, e assim podemos adicionar um shader OpenGL a esses mods para que eles sejam renderizados corretamente no Alice, ou (se os desenvolvedores do mod não estiverem interessados em dar suporte ao Alice) podemos adicionar o shader modificado a um patch de compatibilidade.
 
-![too dark MHM](mhm.png)
-![too light ToL](tol.png)
+![muito escuro MHM](./images/mhm.png)
+![muito claro ToL](./images/tol.png)
 
-## Multiplayer
+## Multijogador
 
-I don't know if we will have multiplayer as part of the 1.0 release, but leaf has been working on it this month. Her report is as follows:
+Eu não sei se teremos multijogador como parte do lançamento 1.0, mas a Leaf tem trabalhado nisso neste mês. O relatório dela é o seguinte:
 
-Multiplayer has been developed through October, mostly ironing out inconveniences, for example, you can now kick and ban people in a lobby, even if already in-game (something not usually possible in vanilla, except with the assistance of mods). Chatting has also been improved, showing messages in real-time of who got banned, who joined, and who left, in a single window, which can be opened with TAB. We also improved networking queues for it, in other words, we ensured that commands sent to a client are actually received by the client in full form, not just randomly cut-off like it happened (which was a bug that got fixed).
+O multijogador foi desenvolvido ao longo de outubro, principalmente resolvendo inconveniências, por exemplo, agora você pode expulsar e banir pessoas em um lobby, mesmo que já esteja em jogo (algo que normalmente não é possível no jogo padrão, a menos com a ajuda de mods). A função de chat também foi aprimorada, mostrando mensagens em tempo real sobre quem foi banido, quem entrou e quem saiu, em uma única janela, que pode ser aberta com a tecla TAB. Também melhoramos as filas de rede para ele, ou seja, garantimos que os comandos enviados a um cliente sejam realmente recebidos pelo cliente em sua forma completa, e não apenas cortados aleatoriamente, como acontecia (o que era um bug que foi corrigido).
 
-We have also been testing multiplayer in the search of bugs and primarily asserting that gameplay is more or equally enjoyable as vanilla, you may also wish to join our "Multiplayer" team in our discord server. As for the multiplayer itself, it isn't considered "stable" enough to be pushed upstream, so it is released separately, it is usually more "bleeding-edge" than normal releases, incorporating new changes as soon as they are pushed upstream, due to more bugs being fixed = less OOS.
+Também temos testado o multijogador em busca de bugs e principalmente verificando se a jogabilidade é igual ou mais divertida do que no jogo padrão, você também pode se juntar à nossa equipe de "Multijogador" em nosso servidor do Discord. Quanto ao próprio multijogador, ele não é considerado "estável" o suficiente para ser lançado oficialmente, por isso é lançado separadamente, geralmente sendo mais "avançado" do que os lançamentos normais, incorporando novas mudanças assim que são adicionadas, devido a mais bugs estarem sendo corrigidos = menos fora de sincronia.
 
-## The End
+## O Fim
 
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+Até o mês que vem! (ou, se você não puder esperar tanto, junte-se a nós no [Discord](https://discord.gg/QUJExr4mRn))

@@ -6,7 +6,7 @@ Once again it is time to review what the slackers over at Project Alice have bee
 
 In March we added one new programmer to the team, DeathByDarwin, who has been working with leaf to make improvements to the technology window.
 
-![Technology window](tech.png)
+![Technology window](./images/tech.png)
 
 ## Team Q&A
 
@@ -18,9 +18,9 @@ This month we asked leaf, one of the founding members of Project Alice and the p
 
 This month the work on the UI has been more spread out than last month. Thus there is no single window we can showcase as being nearly complete. However, you can see the pieces gradually being put into place in the budget (by forn), military (by MasterChef), and trade windows (by leaf and forn), below.
 
-![Budget window](budget.png)
-![Military window](military.png)
-![Trade window](trade.png)
+![Budget window](./images/budget.png)
+![Military window](./images/military.png)
+![Trade window](./images/trade.png)
 
 ## Internals
 
@@ -36,7 +36,7 @@ That general framework remains unaltered in Project Alice. However, within a nat
 
 In Project Alice, however, all of the consumers within a nation have equal access to the available commodities. This means that, if there are not enough commodities available, every consumer will receive some fraction of what they wanted. This in turn means that all of your factories will be impacted equally by a shortage. For example, in the image below you can see that the factories are all equally suffering from an iron shortage.
 
-![Factory window](factory.png)
+![Factory window](./images/factory.png)
 
 Another change is the way national stockpiles are handled (and now I *am* talking about what are called "stockpiles" in the game). There are two ways in which national stockpiles are simplified relative to how they work in Victoria 2. First, in Victoria 2 some forms of consumption by the government (for example, paying unit upkeep) goes through the stockpiles, meaning that the government first moves commodities into its national stockpiles and then takes them out again to consume them. And this can cause some weird things to happen if you disable stockpile automation (since with automation off you can end up interfering with the process of putting the commodities into the stockpiles in the first place). In Project Alice that does not happen; any commodities that are required by government expenses are purchased and then consumed directly, without going through the stockpiles as an intermediate step. And that in turn means that stockpile automation no longer serves a useful purpose and will not be included (because your stockpile settings can no longer interfere with other spending).
 
@@ -46,8 +46,10 @@ Additionally, in Victoria 2 your national stockpiles can function in basically t
 
 Erik, who is largely responsible for the technical machinery underpinning the map, has been quite busy outside Project Alice lately. However, I can share a sneak peek of some of his latest work:
 
-![Globe preview](globe_preview.png)
-
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+![Globe preview](./images/globe_preview.png)
 
 [^1]: You should take this information with an implicit "as far as I can tell." We don't have access to the Victoria 2 source code, so some of this is speculation based on what we have observed.
+
+## The End
+
+See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))

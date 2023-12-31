@@ -18,15 +18,18 @@ As you may know from Schombert's [laconic videos](https://www.youtube.com/channe
 
 The borders you can see in the screenshots are still a work in progress. Currently, the borders are all quite thick, but in the future province-to-province borders are going to be thin, state-to-state borders will be thicker, and national borders will have a fancy dotted line. Which borders you see will also be intelligently adjusted based on how zoomed out you are, much like how they worked in Open V2.
 
-![Political map mode](political.png)
+![Political map mode](./images/political.png)
 
 One advantage of having a 2D map at the moment is that it is easy to compare it to the map in Victoria 2. Some of the developers have even been adding little quality-of-life improvements as they go. For example, you can see below how selecting a province in the cultural map mode will let you see how a culture is spread out all over the map.
 
-![Cultural map mode](cultural.png) ![Selected culture map mode](culturalB.png) ![Population map mode](population.png)
+![Cultural map mode](./images/cultural.png) 
+![Selected culture map mode](./images/culturalB.png) 
+![Population map mode](./images/population.png)
 
 Currently, the terrain map mode looks almost identical to how it did in Victoria 2. And, as an added bonus, we incorporated some bug-fixes that improve the original map, making the islands of Fehmarn and Tsushima appear for the first time. These islands are part of the original map (I encourage you to look for yourself), but have never shown up because of a bug.
 
-![Tsushima](island2.png) ![Fehmarn](island1.png)
+![Tsushima](./images/island2.png) 
+![Fehmarn](./images/island1.png)
 
 ## Combat
 
@@ -46,3 +49,6 @@ Our plan is still to release a 1.0 that differs minimally from the original game
 
 We hope you stick with us on the road to 1.0! 
 
+## The End
+
+See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))

@@ -6,9 +6,9 @@
 
 我知道大家不想看长文。所以先看几个图片。
 
-单位移动：![rally point](rally_point.png)
+单位移动：![rally point](./images/rally_point.png)
 
-框选正常运行：![box selection](box.png)
+框选正常运行：![box selection](./images/box.png)
 
 ## 公测版
 我们很快发布公测版。由于已有演示可用，对玩过的人们来说，没多大区别。但对我来说，是两回事。首先，虽然会有些问题，但你可以玩完整的游戏。其次，我将接受公众反馈错误的渠道。依此能在下月进入beta阶段（区别在此阶段没有大错，而aplha可能有）。
@@ -25,7 +25,7 @@
 
 ## 启动器
 
-![Launcher](launcher.png)
+![Launcher](./images/launcher.png)
 
 启动器不仅是选择模组和启动游戏的地方。Project Alice 使用“场景文件”快速加载游戏。场景文件是游戏数据的高效打包版本（也根据模组组合进行修改）。当第一次运行游戏或选择新的模组组合时，须先用启动器创建场景文件（时间由本机配置决定）。如果更新模组，需要重新创建场景文件才能看到模组中的更改（注意：使用新的场景文件时，旧存档将不可用）。场景文件位于`我的文档/Project Alice/scenarios`，而存档位于`我的文档/Project Alice/saves`。
 
@@ -33,12 +33,12 @@
 
 为了实现兼容更普遍的模组，上月我们重点解决了正确加载HPM的问题，过程中发现HPM的三个小错误。因此为了启动器不再打扰提示这些错误，我们发布了它的小补丁（在Discord的mod-compatibility-pathces频道获取）。
 
-![HPM globe](hpm_globe.png)
+![HPM globe](./images/hpm_globe.png)
 
 即使还要些微调，以使文本在新字体下更好适应，但HPM的大多更改可以愉快加载。
 
-![HPM ui](hpm_ref.png)
+![HPM ui](./images/hpm_ref.png)
 
-## The End
+## 终言
 
 下月再见！（若等不及就加入[discord](https://discord.gg/QUJExr4mRn)！）

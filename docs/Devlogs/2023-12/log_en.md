@@ -12,15 +12,15 @@ Since this is going to be a text-heavy update, let me start you out with some im
 
 Leaf added rebel armies back in, allowing zombie mods to work as intended (illustrated below).
 
-![zombies](reb.png)
+![zombies](./images/reb.png)
 
 Map legends for more map modes (most of these will appear in 0.9.4).
 
-![map legend](leg.png)
+![map legend](./images/leg.png)
 
 Late game GFM using leaf's new compatibility patch that has taken a strange turn.
 
-![gfm](gfm.png)
+![gfm](./images/gfm.png)
 
 ## The Road to 1.0
 

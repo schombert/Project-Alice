@@ -1,42 +1,42 @@
-# Progress as of July 2023
+# Progresso até julho de 2023
 
-Welcome to the slightly delayed update. I have been focused on getting the [public demo](https://github.com/schombert/Project-Alice/releases/download/v0.0.1-demo/2023-7-8-DEMO.zip) ready, to the exclusion of all else. But, better late than never.
+Bem-vindo à atualização ligeiramente atrasada. Eu tenho me concentrado em preparar a [demonstração pública](https://github.com/schombert/Project-Alice/releases/download/v0.0.1-demo/2023-7-8-DEMO.zip), excluindo todas as outras atividades. Mas, antes tarde do que nunca.
 
-## The Big News
+## As Grandes Novidades
 
-The big news this month is that the project is finally ready to be released on the public, albeit in a very rough state. The demo includes no AI whatsoever, so it is the perfect time to play as Texas or some other hard start. Or to go for a world conquest, for that matter. Currently the "AI" will agree to anything you ask of it, regardless of whether it makes sense or not.
+A grande novidade deste mês é que o projeto finalmente está pronto para ser lançado ao público, embora em um estado muito rudimentar. A demonstração não inclui nenhuma IA, portanto, é o momento perfeito para jogar como o Texas ou algum outro começo difícil. Ou, pelo menos, ir para uma conquista mundial. Atualmente, a "IA" concordará com qualquer coisa que você pedir, independentemente de fazer sentido ou não.
 
-## UI progress
+## Progresso da Interface do Usuário
 
-Since we don't have 3D models, we have had to introduce some new 2D icons to display military activity on the map. First, we have a compact view for when you are relatively zoomed out.
+Como não temos modelos 3D, tivemos que introduzir alguns novos ícones 2D para exibir a atividade militar no mapa. Primeiro, temos uma visualização compacta quando você está relativamente afastado.
 
-![compact](compact.png)
+![compacto](./images/compact.png)
 
-For ports, our solution is the following:
+Para os portos, nossa solução é a seguinte:
 
-![port](port.png)
+![porto](./images/port.png)
 
-When you zoom in, you can see more information about individual units:
+Quando você dá zoom, pode ver mais informações sobre as unidades individuais:
 
-![unit](unit.png)
+![unidade](./images/unit.png)
 
-We also have some basic ui to display an ongoing siege or battle.
+Também temos uma interface de usuário básica para exibir um cerco ou batalha em curso.
 
-![siege](siege.png)
-![battle](battle.png)
+![cerco](./images/siege.png)
+![batalha](./images/battle.png)
 
-The UI is not finished by any means. However, most of its essential functionality is in, and for now my focus will be moving away from the UI and back towards the internals of the game. You shouldn't expect to see major changes in the UI between now and next month. Mostly I will be making small touch-ups as I go.
+A interface do usuário não está de forma alguma concluída. No entanto, a maior parte de sua funcionalidade essencial está presente e, por enquanto, meu foco será afastar-se da interface do usuário e voltar para os internos do jogo. Você não deve esperar ver grandes mudanças na interface do usuário entre agora e o próximo mês. Na maior parte, farei pequenos ajustes à medida que avançar.
 
-Work on the globe also continues. This month Erik added the rivers (as well as the internal logic to detect river crossings). This completes the basic functionality for the map itself, in the sense that it displays all the information that you need to play the game. There is certainly room for aesthetic improvement, but since we don't have an art team, I wouldn't hold your breath.
+O trabalho no globo também continua. Este mês, Erik adicionou os rios (bem como a lógica interna para detectar travessias de rios). Isso completa a funcionalidade básica do mapa em si, no sentido de que exibe todas as informações necessárias para jogar o jogo. Certamente, há espaço para melhorias estéticas, mas como não temos uma equipe de arte, eu não confiaria muito em isso acontecer.
 
-![rivers](rivers.png)
+![rios](./images/rivers.png)
 
-## AI
+## IA
 
-Now that the player side of the game is in a minimally functional state, the time has come to work on the AI. My current plan for the AI is to tackle it in basically two passes. First I will attempt to get the AI in a roughly working state, meaning that it will have the ability to perform all of the actions that a player can, without worrying too much about how well it plays the game. Then, I will do a second pass to try to get it up to some minimally acceptable level. I do *not* intend to try to make the AI "role play." The AI will mostly pursue what I view as a generally applicable strategy of trying to jump start industrialization while focusing on maximizing research points. The AI will generally play very selfishly. It will probably only join your offensive wars if it thinks that it can get something out of them; it will generally not do favors for you just because you have an alliance or high relations.
+Agora que o lado do jogador do jogo está em um estado minimamente funcional, chegou a hora de trabalhar na IA. O meu plano actual para a IA é abordá-la basicamente em duas etapas. Primeiro, vou tentar colocar a IA em um estado de funcionamento aproximado, o que significa que ela terá a capacidade de executar todas as ações que um jogador pode, sem se preocupar muito com o quão bem ela joga o jogo. Em seguida, farei uma segunda passagem para tentar elevá-la a um nível minimamente aceitável. *Não* pretendo tentar fazer a IA "interpretar papéis". A IA geralmente seguirá o que vejo como uma estratégia geralmente aplicável de tentar impulsionar a industrialização enquanto se concentra em maximizar os pontos de pesquisa. A IA geralmente jogará de maneira muito egoísta. Provavelmente, só se unirá às suas guerras ofensivas se acreditar que pode obter algo delas; geralmente não fará favores a você apenas porque você tem uma aliança ou altas relações.
 
-Ideally, I would like to have the AI play as competently as possible within the rules of the game. In particular, if there is some tedious micro that would give the AI an advantage, such as cycling units, I believe that the AI should exploit it if it is possible for the player to do so as well. This isn't just because I want the AI to be a challenge. I also want to motivate long-term improvements to the rules themselves by making players subject to the same abuses that they can pull on the AI.
+Idealmente, eu gostaria que a IA jogasse o mais competentemente possível dentro das regras do jogo. Em particular, se houver algum microgerenciamento tedioso que daria à IA uma vantagem, como "ciclar unidades", acredito que a IA deve explorá-lo se for possível para o jogador fazer o mesmo. Isso não é apenas porque quero que a IA seja um desafio. Também quero motivar melhorias a longo prazo nas próprias regras, tornando os jogadores sujeitos aos mesmos abusos que podem ser aplicados à IA.
 
-## The End
+## O Fim
 
-See you again next month! (or, if you can't wait that long, join us on [discord](https://discord.gg/QUJExr4mRn))
+Até o próximo mês! (ou, se você não pode esperar tanto, junte-se a nós no [Discord](https://discord.gg/QUJExr4mRn))

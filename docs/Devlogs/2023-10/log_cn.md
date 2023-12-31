@@ -36,8 +36,8 @@
   - 因此我们无法加载一些MOD所依赖的修改后的着色器。通常结果是在缩小地图时要么很暗，要么很亮。
   - 当然这可以修复，我们着色器随之修改，为这些MOD加个OpenGL着色器，以使其Alice中正常渲染，或者（若其作者不想支持Alice）我们可以将修改后的着色器加到兼容性补丁。
 
-![too dark MHM](mhm.png)
-![too light ToL](tol.png)
+![too dark MHM](./images/mhm.png)
+![too light ToL](./images/tol.png)
 
 ## 多人模式
 

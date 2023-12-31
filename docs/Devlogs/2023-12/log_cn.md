@@ -12,15 +12,15 @@
 
 Leaf重做了叛军，使丧尸mod可用。
 
-![zombies](reb.png)
+![zombies](./images/reb.png)
 
 更多图例（这些将在0.9.4版出现。）
 
-![map legend](leg.png)
+![map legend](./images/leg.png)
 
 GFM后期用leaf的兼容性补丁，但有点奇怪。
 
-![gfm](gfm.png)
+![gfm](./images/gfm.png)
 
 ## 通往1.0的路
 

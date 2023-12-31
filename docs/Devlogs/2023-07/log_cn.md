@@ -10,11 +10,11 @@
 
 由于我们没有3D模型，不得不设计新的兵牌来显示地图上的军事活动。首先为你当总览全球地图时提供了紧凑视图。
 
-![compact](compact.png)
+![compact](./images/compact.png)
 
 港口解决方案：
 
-![port](port.png)
+![port](./images/port.png)
 
 了解港口图标<br>
 竖条：海军基地的等级；没有则不是海军基地。<br>
@@ -23,7 +23,7 @@
 
 当你放大视图时，会看到每个单位的更多信息：
 
-![unit](unit.png)
+![unit](./images/unit.png)
 
 了解单位算子<br>
 算子栈：有几个在此；此框颜色为所属关系（蓝色为我军，金色为选中等等）。<br>
@@ -36,13 +36,13 @@
 
 几个简单UI来展示围攻或战斗
 
-![siege](siege.png)
-![battle](battle.png)
+![siege](./images/siege.png)
+![battle](./images/battle.png)
 
 界面有很多要做，但大部分基本完成，目前重点转在游戏机制。下个月会看不到界面变化，有的是小修小补。<br>
 球形模式工作仍在继续。这月，Erik添加了河流及交叉判断内部逻辑，完成了地图的基本功能，即游玩时所有信息。美观有待提高，但没有美工，不用期待。
 
-![rivers](rivers.png)
+![rivers](./images/rivers.png)
 
 ## AI
 
@@ -50,6 +50,6 @@
 
 理想状态，AI在规矩内尽可能达到竞技水平。尤其微操利于AI，比如车轮战，我认为玩家也会利用，AI也该利用它。这不仅是我希望AI有挑战性，但也希望玩家受到同样的行为滥用影响，从而优化游戏规则，提高整体游戏体验。
 
-## 结束语
+## 终言
 
 下月再见！（或者等不及就加入[discord](https://discord.gg/QUJExr4mRn)）

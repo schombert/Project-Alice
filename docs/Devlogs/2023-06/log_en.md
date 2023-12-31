@@ -20,32 +20,32 @@ This month we asked Erik, one of the four founding members of Project Alice and 
 
 As hinted at last month, work on the globe has progressed. To make the standard Victoria 2 map work on the globe we have added some blank space to the poles. It isn't a perfect solution, but it does a pretty good job. We are also working on a full map of the globe with a proper projection based on the Open V2 map, and hopefully we will be able to release version 1.0 with that as an additional option for unmodded games. (The traditional flat map also remains available via a menu option, but I have felt no temptation to go back to it.)
 
-![Globe](globe.png)
+![Globe](./images/globe.png)
 
 But what we have been mostly focusing on this month is implementing user actions and the ui required to support them. One immediately noticeable addition are events.
 
-![An event](event.png)
+![An event](./images/event.png)
 
 In this event illustrates a number of interesting things. The blue text will eventually be turned into hyperlinks that, when clicked, will take you to the named province, state, or nation. You can also see the arrows--still a bit of a work in progress--that will help organize things for you when multiple events are occurring at once. The tool tip also shows that the effects specified in the files are being processed correctly, and your event choices do work as expected when you make them (barring any bugs).
 
-![factory construction](factories.png)
+![factory construction](./images/factories.png)
 
 Constructions of all sorts, including factories, military units, and provincial buildings like forts have also made their way in. Above you can see a cloth factory mid construction.
 
-![build factory window](buildwindow.png)
+![build factory window](./images/buildwindow.png)
 
 Above is the--only partially completed--window for building factories. I included this simply because it shows how the unnecessary description of what paper is used for, originally featured in Victoria 1, still survives. It always makes me laugh.
 
-![top bar](tech.png)
+![top bar](./images/tech.png)
 
 This small snippet shows a new tech in the middle of being researched, as well as the newly-implemented line graphs (courtesy of forn).
 
-![release nation window](release.png)
-![ireland](ireland.png)
+![release nation window](./images/release.png)
+![ireland](./images/ireland.png)
 
 Releasing nations (and optionally switching to play as them) has also been added. Above you can see both the release nation dialog box (with obviously some work still needing to be done with the text color) and the result of releasing Ireland.
 
-![diplomacy window](diplomacy.png)
+![diplomacy window](./images/diplomacy.png)
 
 Here we can see that it is possible to gain influence and increase your relations with someone. Most of the influence actions and simple diplomatic actions have been implemented. However, without a real AI, our placeholder functionality defaults to accepting all military access requests and rejecting all alliance requests.
 

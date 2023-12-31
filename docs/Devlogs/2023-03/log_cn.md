@@ -18,15 +18,18 @@ Schombert：
 
 这些截图中的边界处于进行中的阶段。目前，都很简陋，但将来省界更细，州界也是。而国界会有漂亮的虚线。你看到的边界也根据缩放程度进行调整，就像openV2一样。这样有更好的可视化效果，让地图更具层次感。
 
-![Political map mode](political.png)
+![Political map mode](./images/political.png)
 
 目前，地图有个优点是，将其与v2地图对比。一些程序员过程中添加些小改进，以提高用户体验。例如，在文化地图模式选择一个省份后，该文化在整个地图上的分布情况。
 
-![Cultural map mode](cultural.png) ![Selected culture map mode](culturalB.png) ![Population map mode](population.png)
+![Cultural map mode](./images/cultural.png) 
+![Selected culture map mode](./images/culturalB.png) 
+![Population map mode](./images/population.png)
 
 目前地形图模式几乎与v2地图相同。另外，修复了些错误，改进了地图，使Fehmarn and Tsushima岛首次出现。这些岛屿是原始地图的一部分。（看吧！），但有个bug没出来。
 
-![Tsushima](island2.png) ![Fehmarn](island1.png)
+![Tsushima](./images/island2.png) 
+![Fehmarn](./images/island1.png)
 
 ## 战斗
 
@@ -45,3 +48,7 @@ Schombert：
 我们计划仍是发布与v2差异最小的1.0版本。之后尝试更激进的改变，范围从重整叛乱系统到经济方面以使其更有趣，但目前不希望重现OpenV2错误。
 
 希望您能一路相伴，共同迈向1.0版本！
+
+## 结束语
+
+下月再见！（或者等不及就加入[discord](https://discord.gg/QUJExr4mRn)）

@@ -7,10 +7,10 @@ Welcome back to the [September](https://www.youtube.com/watch?v=nfLEc09tTjI) upd
 This is going to be a relatively wordy update, and I know everyone hates that. So before we get started, here are some pretty pictures:
 
 Units gathering to a rally point:
-![rally point](rally_point.png)
+![rally point](./images/rally_point.png)
 
 Box selection working:
-![box selection](box.png)
+![box selection](./images/box.png)
 
 ## Public alpha
 
@@ -34,7 +34,7 @@ Finally, to get a bug fixed a developer needs to know how to see it for themselv
 
 The most recent major addition to Project Alice is the new launcher.
 
-![Launcher](launcher.png)
+![Launcher](./images/launcher.png)
 
 The launcher isn't just a place to select mods and start the game. Project Alice uses what we call "scenario files" to speed up loading the game. A scenario file is essentially an efficiently packaged version of the game data (as modified by a given set of mods). When running the game for the first time, or selecting a new combination of mods, you will first have to create a scenario file using the launcher (this will take more or less time depending on the speed of your computer, your hard drive, and the complexity of the mods). If you update a mod, you will need to recreate the scenario file for any changes in the mod to show up (and your old saves will not be available when using the new scenario file, so be warned). Scenario files are placed in `Your Documents\Project Alice\scenarios` while save files are located in `Your Documents\Project Alice\saves`.
 
@@ -42,11 +42,11 @@ The launcher isn't just a place to select mods and start the game. Project Alice
 
 As a first step towards more general mod compatibility, we focused on getting HPM to load properly last month. In doing so, we discovered three minor bugs in the HPM files. Thus, to prevent the launcher from nagging you about them, we have also released a small HPM compatibility patch for them (available in the mod-compatibility-patches channel of the discord).
 
-![HPM globe](hpm_globe.png)
+![HPM globe](./images/hpm_globe.png)
 
 It still needs a few tweaks to make text fit properly in some places with the new fonts, but most of the changes that HPM made loaded painlessly.
 
-![HPM ui](hpm_ref.png)
+![HPM ui](./images/hpm_ref.png)
 
 ## The End
 

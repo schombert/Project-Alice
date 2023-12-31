@@ -6,20 +6,20 @@
 
 三月，四个人加入团队（Schombert被绑）。按加入顺序，首先是Bruno添加了外交模式。
 
-![Diplomatic map mode](Diplomatic_Map_Mode.png)
+![Diplomatic map mode](./images/Diplomatic_Map_Mode.png)
 
 Cap添加了基建、开化、募兵、补给、外交关系、国家排名和叛乱模式等（可能还有一些，但我忘了）。
 
-![Civilization level map mode](Civilization_Level_Map_Mode.png)
-![Rank map mode](Rank_Map_Mode.png)
+![Civilization level map mode](./images/Civilization_Level_Map_Mode.png)
+![Rank map mode](./images/Rank_Map_Mode.png)
 
 Nick改进了控制台，着手处理人口窗口问题。
 
-![Population window](Population_Window_Start.png)
+![Population window](./images/Population_Window_Start.png)
 
 Landau为决策卡填充了内容。
 
-![Decision tab](Populated_Decision_Tab_Landau.png)
+![Decision tab](./images/Populated_Decision_Tab_Landau.png)
 
 欢迎程序员、艺术家和有其他才华的人加入团队，为项目贡献。
 
@@ -33,21 +33,21 @@ Landau为决策卡填充了内容。
 
 这方面工作中。本月，取得了重大进展，现可显示国家分数、RGO就业情况、联盟等信息。改进了政治窗口，左侧大多信息有了，包括议题、开化和决策选项卡的内容。还有，人口窗口迈出第一步。
 
-![Province windows](Province_and_Focus_Windows.png)
-![Top bar](Top_Bar.png)
-![Politics window](Political_Reforms_Window.png)
+![Province windows](./images/Province_and_Focus_Windows.png)
+![Top bar](./images/Top_Bar.png)
+![Politics window](./images/Political_Reforms_Window.png)
 
 ## 地图
 
 目前，22个地图模式有了15个。另外，改进了省界。现在，国、州和省的边境从粗到细。当缩小地图时，小的边界消失，只剩下国界。
 
-![Zoom levels](Zoom_Levels.png)
+![Zoom levels](./images/Zoom_Levels.png)
 
 ## 经典字体
 
 上月MasterChef努力引入经典字体作为选项。好消息，这工作完成。当然，照顾了原教旨主义者，也有原来字体的选项。
 
-![Font comparison](Fonts_detail.png)
+![Font comparison](./images/Fonts_detail.png)
 
 就高分辨率显示器的用户而言，他们可能用新字体；可惜放大字体时，可能不好看。
 
@@ -57,4 +57,6 @@ Landau为决策卡填充了内容。
 
 [Rules document](https://github.com/schombert/Project-Alice/blob/main/docs/rules.md)
 
-下月再见！(或等不及就加入[discord](https://discord.gg/QUJExr4mRn)！)
+## 结束语
+
+下月再见！（或者等不及就加入[discord](https://discord.gg/QUJExr4mRn)）

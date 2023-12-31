@@ -10,26 +10,26 @@ The big news this month is that the project is finally ready to be released on t
 
 Since we don't have 3D models, we have had to introduce some new 2D icons to display military activity on the map. First, we have a compact view for when you are relatively zoomed out.
 
-![compact](compact.png)
+![compact](./images/compact.png)
 
 For ports, our solution is the following:
 
-![port](port.png)
+![port](./images/port.png)
 
 When you zoom in, you can see more information about individual units:
 
-![unit](unit.png)
+![unit](./images/unit.png)
 
 We also have some basic ui to display an ongoing siege or battle.
 
-![siege](siege.png)
-![battle](battle.png)
+![siege](./images/siege.png)
+![battle](./images/battle.png)
 
 The UI is not finished by any means. However, most of its essential functionality is in, and for now my focus will be moving away from the UI and back towards the internals of the game. You shouldn't expect to see major changes in the UI between now and next month. Mostly I will be making small touch-ups as I go.
 
 Work on the globe also continues. This month Erik added the rivers (as well as the internal logic to detect river crossings). This completes the basic functionality for the map itself, in the sense that it displays all the information that you need to play the game. There is certainly room for aesthetic improvement, but since we don't have an art team, I wouldn't hold your breath.
 
-![rivers](rivers.png)
+![rivers](./images/rivers.png)
 
 ## AI
 
