@@ -2072,7 +2072,8 @@ void remove_military_access(sys::state& state, dcon::nation_id accessing_nation,
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	dcon::war_id w = find_war_between(state, a, b);
 	while(w) {
-		cleanup_war(state, w, war_result::draw);
+		military::remove_from_war(state, w, b, false);
+		// cleanup_war(state, w, war_result::draw);
 		w = find_war_between(state, a, b);
 	}
 }
