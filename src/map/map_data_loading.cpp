@@ -124,6 +124,8 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		data = decompressed_data.get();
 	}
 
+	assert(size_x == int32_t(map_size.x));
+	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
 #else
 
 	// Data offset is where the pixel data starts
@@ -138,14 +140,11 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 
 
 	uint8_t const* data = start + data_offset;
+	assert(size_x == uint32_t(map_size.x));
+	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
 #endif
 
-	assert(size_x == int32_t(map_size.x));
-
-	
-
 	// Calculate how much extra we add at the poles
-	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
 	uint32_t top_free_space = (free_space * 3) / 5;
 
 	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
@@ -250,7 +249,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 			for(uint32_t ty = 0; ty < size_y; ++ty) {
 				uint32_t y = size_y - ty - 1;
 				for(uint32_t x = 0; x < size_x; ++x) {
-					
+
 
 					uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
 					auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
@@ -315,7 +314,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 							terrain_id_map[ty * size_x + x] = resolved_index;
 						}
-						
+
 					}
 				}
 			}
@@ -496,7 +495,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 						river_data[ty * size_x + x] = 2;
 					else
 						river_data[ty * size_x + x] = 255;
-					
+
 				}
 			}
 		}
@@ -504,7 +503,7 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 
 	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
-	
+
 	create_curved_river_vertices(context, river_data, terrain_id_map);
 	{
 		std::vector<bool> borders_visited;
