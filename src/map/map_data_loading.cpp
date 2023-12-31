@@ -4,6 +4,18 @@
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
 
+#ifdef _WIN64
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+
+#include "Windows.h"
+
+#endif
+
 namespace map
 {
 
@@ -21,6 +33,99 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
+#ifdef _WIN64
+
+	int32_t compression_type = 0;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+
+	BITMAPFILEHEADER const* fh = (BITMAPFILEHEADER const*)(start);
+	uint8_t const* data = start + fh->bfOffBits;
+	std::unique_ptr<uint8_t[]> decompressed_data;
+
+	BITMAPCOREHEADER const* core_h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+	if(core_h->bcSize == sizeof(BITMAPINFOHEADER)) {
+		BITMAPINFOHEADER const* h = (BITMAPINFOHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		size_x = h->biWidth;
+		size_y = h->biHeight;
+		if(h->biCompression == BI_RLE8) {
+			compression_type = 1;
+		}
+	} else if(core_h->bcSize == sizeof(BITMAPV5HEADER)) {
+		BITMAPV5HEADER const* h = (BITMAPV5HEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		if(h->bV5Compression == BI_RLE8) {
+			compression_type = 1;
+		}
+		size_x = h->bV5Width;
+		size_y = h->bV5Height;
+	} else if(core_h->bcSize == sizeof(BITMAPV4HEADER)) {
+		BITMAPV4HEADER const* h = (BITMAPV4HEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		if(h->bV4V4Compression == BI_RLE8) {
+			compression_type = 1;
+		}
+		size_x = h->bV4Width;
+		size_y = h->bV4Height;
+	} else if(core_h->bcSize == sizeof(BITMAPCOREHEADER)) {
+		BITMAPCOREHEADER const* h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		size_x = h->bcWidth;
+		size_y = h->bcHeight;
+	} else {
+		std::abort(); // unknown bitmap type
+	}
+
+	if(compression_type == 1) {
+		decompressed_data.reset(new uint8_t[std::abs(size_x) * std::abs(size_y)]);
+		memset(decompressed_data.get(), 0xFF, std::abs(size_x) * std::abs(size_y));
+		auto out_ptr = decompressed_data.get();
+		int32_t out_x = 0;;
+		int32_t out_y = 0;
+
+		for(auto ptr = data; ptr < start + content.file_size; ) {
+			if(ptr[0] == 0) {
+				if(ptr[1] == 0) {  // end of line
+					auto offset = out_ptr - decompressed_data.get();
+					auto line = (offset - 1) / std::abs(size_x);
+					out_ptr = decompressed_data.get() + (line + 1) * std::abs(size_x);
+					ptr += 2;
+				} else if(ptr[1] == 1) {  // end of bitmap
+					break;
+				} else if(ptr[1] == 2) {  // move cursor
+					auto right = ptr[2];
+					auto up = ptr[3];
+					auto offset = out_ptr - decompressed_data.get();
+					auto line = offset / std::abs(size_x);
+					auto x = out_ptr - (decompressed_data.get() + line * std::abs(size_x));
+					auto new_line = line + up;
+					out_ptr = decompressed_data.get() + new_line * std::abs(size_x) + x + right;
+					ptr += 4;
+				} else { // absolute mode
+					auto num_pixels = int32_t(ptr[1]);
+					auto amount_to_copy = std::min(ptrdiff_t(num_pixels),
+						std::min(
+							decompressed_data.get() + std::abs(size_x) * std::abs(size_y) - out_ptr,
+							start + content.file_size - (ptr + 2)
+					));
+					memcpy(out_ptr, ptr + 2, amount_to_copy);
+					ptr += 2 + int32_t(ptr[1]) + ((ptr[1] & 1) != 0);
+					out_ptr += num_pixels;
+				}
+			} else {
+				auto num_pixels = ptr[0];
+				auto color_index = ptr[1];
+
+				while(num_pixels > 0 && out_ptr < decompressed_data.get() + std::abs(size_x) * std::abs(size_y)) {
+					*out_ptr = color_index;
+					++out_ptr;
+					--num_pixels;
+				}
+				ptr += 2;
+			}
+		}
+		data = decompressed_data.get();
+	}
+
+#else
+
 	// Data offset is where the pixel data starts
 	uint8_t const* ptr = start + 10;
 	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
@@ -31,12 +136,16 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	ptr = start + 22;
 	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
-	assert(size_x == uint32_t(map_size.x));
 
 	uint8_t const* data = start + data_offset;
+#endif
+
+	assert(size_x == int32_t(map_size.x));
+
+	
 
 	// Calculate how much extra we add at the poles
-	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
 	uint32_t top_free_space = (free_space * 3) / 5;
 
 	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
