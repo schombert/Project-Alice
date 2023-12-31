@@ -2632,7 +2632,7 @@ void make_peace_offers(sys::state& state) {
 						send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(-overall_score), false);
 						continue;
 					}
-					if(w.get_primary_defender().get_is_player_controlled() == false) {
+					if(w.get_primary_attacker().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
 							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
