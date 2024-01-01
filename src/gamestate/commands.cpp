@@ -3425,7 +3425,7 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 		return false;
 
 	if(state.world.army_get_battle_from_army_battle_participation(a) ||
-			state.world.army_get_battle_from_army_battle_participation(a))
+			state.world.army_get_battle_from_army_battle_participation(b))
 		return false;
 
 	return true;

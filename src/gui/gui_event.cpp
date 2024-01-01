@@ -298,19 +298,19 @@ void event_auto_button::button_action(sys::state& state) noexcept {
 	auto index = retrieve<int32_t>(state, parent);
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		auto phe = std::get<event::pending_human_n_event>(content);
+		auto const& phe = std::get<event::pending_human_n_event>(content);
 		state.world.national_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		auto phe = std::get<event::pending_human_f_n_event>(content);
+		auto const& phe = std::get<event::pending_human_f_n_event>(content);
 		state.world.free_national_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		auto phe = std::get<event::pending_human_p_event>(content);
+		auto const& phe = std::get<event::pending_human_p_event>(content);
 		state.world.provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		auto phe = std::get<event::pending_human_f_p_event>(content);
+		auto const& phe = std::get<event::pending_human_f_p_event>(content);
 		state.world.free_provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	}
