@@ -299,9 +299,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 }
 
 void map_state::update(sys::state& state) {
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 	// Set the last_update_time if it hasn't been set yet
-	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
+	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
 
 	update_unit_arrows(state, map_data);
