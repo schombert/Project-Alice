@@ -509,7 +509,7 @@ public:
 			disarmed = false;
 			uint32_t count = 0;
 			uint8_t unit_def_count = 0;
-			for(auto ubd : state.military_definitions.unit_base_definitions) {
+			for(auto const& ubd : state.military_definitions.unit_base_definitions) {
 				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
 					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].primary_culture) {
 						if(state.world.nation_get_active_unit(state.local_player_nation, dcon::unit_type_id{ unit_def_count }) || state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].active) {
@@ -551,7 +551,7 @@ public:
 				utid = dcon::unit_type_id{ 0 };
 				count = 0;
 				unit_def_count = 0;
-				for(auto ubd : state.military_definitions.unit_base_definitions) {
+				for(auto const& ubd : state.military_definitions.unit_base_definitions) {
 					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
 						if(state.world.nation_get_active_unit(state.local_player_nation, dcon::unit_type_id{ unit_def_count }) || state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].active) {
 							utid = dcon::unit_type_id{ unit_def_count };
