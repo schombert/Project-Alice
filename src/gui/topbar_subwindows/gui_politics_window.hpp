@@ -465,7 +465,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
-			frame = state.world.modifier_get_icon(mod.mod_id) - 1;
+			frame = int8_t(state.world.modifier_get_icon(mod.mod_id)) + 1;
 		}
 	}
 

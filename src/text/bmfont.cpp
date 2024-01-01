@@ -143,7 +143,7 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 		auto c = uint8_t(string[i]);
 
 		if(uint8_t(string[i]) == 0x40) { // Handle @TAG
-			auto f = chars[0x4D];
+			auto const& f = chars[0x4D];
 			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
 			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;
 			char tag[3] = { 0, 0, 0 };

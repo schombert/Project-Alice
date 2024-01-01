@@ -530,7 +530,7 @@ void m_bad_debter(token_generator& gen, error_handler& err, scenario_building_co
 
 	auto new_modifier = context.state.world.create_modifier();
 
-	context.state.world.modifier_set_icon(new_modifier, uint8_t(12));
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(10));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
@@ -635,7 +635,7 @@ void m_generalised_debt_default(token_generator& gen, error_handler& err, scenar
 
 	auto new_modifier = context.state.world.create_modifier();
 
-	context.state.world.modifier_set_icon(new_modifier, uint8_t(12));
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(10));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
@@ -680,7 +680,7 @@ void m_in_bankrupcy(token_generator& gen, error_handler& err, scenario_building_
 
 	auto new_modifier = context.state.world.create_modifier();
 
-	context.state.world.modifier_set_icon(new_modifier, uint8_t(12));
+	context.state.world.modifier_set_icon(new_modifier, uint8_t(10));
 	context.state.world.modifier_set_name(new_modifier, name_id);
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
@@ -858,6 +858,10 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 		std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + [&]() {
 			if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
 				return std::string(name) + ".tga";
+			} else if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
+				return std::string(name) + ".tga";
+			} else if(peek_file(decisions, simple_fs::utf8_to_native(name) + NATIVE(".png"))) {
+				return std::string(name) + ".png";
 			} else {
 				return std::string("noimage.tga");
 			}

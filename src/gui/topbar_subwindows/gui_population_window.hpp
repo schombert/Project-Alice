@@ -817,7 +817,7 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier,
 				false);
 	}
-
+	text::add_line(state, contents, "alice_con_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_consciousness(ids) * 0.01f });
 }
 
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
@@ -836,7 +836,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float ref_mod = state.world.province_get_is_colonial(loc)
 											? 0.0f
 											: (state.world.pop_get_social_reform_desire(ids) + state.world.pop_get_political_reform_desire(ids)) *
-														state.defines.mil_require_reform;
+														(state.defines.mil_require_reform * 0.25f);
 
 	float sub_t = (lx_mod + ruling_sup) + (con_sup + ref_mod);
 
@@ -926,14 +926,16 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::core_pop_militancy_modifier, false);
 	}
 	if(!state.world.pop_get_is_primary_or_accepted_culture(ids)) {
-		text::add_line(state, contents, "pop_mil_12", text::variable_type::val, text::fp_two_places{sep_mod}, text::variable_type::x,
-				text::fp_two_places{state.defines.mil_non_accepted}, text::variable_type::y,
-				text::fp_percentage{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f});
+		text::add_line(state, contents, "pop_mil_12",
+			text::variable_type::val, text::fp_two_places{sep_mod},
+			text::variable_type::x, text::fp_two_places{state.defines.mil_non_accepted},
+			text::variable_type::y, text::fp_percentage{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f});
 		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::seperatism, false);
 	}
 	if(war_exhaustion > 0) {
 		text::add_line(state, contents, "pop_mil_13", text::variable_type::val, text::fp_three_places{war_exhaustion});
 	}
+	text::add_line(state, contents, "alice_mil_decay_description", text::variable_type::x, text::fp_three_places{ state.world.pop_get_militancy(ids) * 0.01f });
 }
 
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
