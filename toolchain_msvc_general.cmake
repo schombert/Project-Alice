@@ -18,15 +18,6 @@ string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Z7")
 if(General_FAST_MATH)
     add_compile_options(/fp:fast /fp:except-)
 endif()
-
-if(NOT General_AVX512 AND NOT General_AVX2)
-    set(ARCH_FLAG /arch:AVX)
-elseif(General_AVX512)
-    set(ARCH_FLAG /arch:AVX512)
-    add_definitions(EIGEN_ENABLE_AVX512 __AVX512F__ __FMA__ __AVX512DQ__ __AVX512ER__) # Eigen is unable to deduce those with visual studio
-elseif(General_AVX2)
-    set(ARCH_FLAG /arch:AVX2)
-else()
 endif()
 
 add_compile_options($<$<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>:/MP> /bigobj /EHsc /permissive-)
