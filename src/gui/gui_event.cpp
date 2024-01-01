@@ -273,19 +273,19 @@ void event_option_button::on_update(sys::state& state) noexcept {
 	text::substitution_map sub;
 	sys::event_option opt;
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		auto phe = std::get<event::pending_human_n_event>(content);
+		auto const& phe = std::get<event::pending_human_n_event>(content);
 		opt = state.world.national_event_get_options(std::get<event::pending_human_n_event>(content).e)[index];
 		populate_event_submap(state, sub, phe);
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		auto phe = std::get<event::pending_human_f_n_event>(content);
+		auto const& phe = std::get<event::pending_human_f_n_event>(content);
 		opt = state.world.free_national_event_get_options(std::get<event::pending_human_f_n_event>(content).e)[index];
 		populate_event_submap(state, sub, phe);
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		auto phe = std::get<event::pending_human_p_event>(content);
+		auto const& phe = std::get<event::pending_human_p_event>(content);
 		opt = state.world.provincial_event_get_options(std::get<event::pending_human_p_event>(content).e)[index];
 		populate_event_submap(state, sub, phe);
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		auto phe = std::get<event::pending_human_f_p_event>(content);
+		auto const& phe = std::get<event::pending_human_f_p_event>(content);
 		opt = state.world.free_provincial_event_get_options(std::get<event::pending_human_f_p_event>(content).e)[index];
 		populate_event_submap(state, sub, phe);
 	}

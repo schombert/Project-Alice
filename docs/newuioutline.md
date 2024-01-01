@@ -76,3 +76,7 @@ We will do localization via storing for each language and script combination a d
 - implements layout
 - implements accessibility & text services
 - implements ui element instantiation functions
+
+## Notes
+
+- focus logic: focus is internally stored as a tree. Focus can be free (will follow mouse), mouse sticky (will stay with the element until the mouse moves *away* from it), mouse locked (will not follow the mouse away until a click), and totally locked (as above, but see ...). Visual focus generally follows the mouse, except: when mouse sticky (will stay with the sticky element even while the mouse is moving to it) and when totally locked. Thus visual focus may be independent of real focus. Keyboard commands follow visual focus.
