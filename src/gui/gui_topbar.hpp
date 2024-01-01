@@ -493,7 +493,7 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::avg,
 				text::fp_two_places{total != 0.f ? state.world.nation_get_demographics(nation_id, demographics::militancy) / total : 0.f});
 		text::add_to_substitution_map(sub, text::variable_type::val,
-				text::fp_four_places{mil_change * 30.f});
+				text::fp_four_places{mil_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -533,7 +533,7 @@ public:
 		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
 				text::fp_two_places{total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f});
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change * 30.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);

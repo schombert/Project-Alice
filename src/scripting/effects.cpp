@@ -2491,8 +2491,7 @@ uint32_t ef_end_war_this_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_this_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
 	return 0;
 }
 uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
@@ -2500,8 +2499,7 @@ uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_from_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)));
 	return 0;
 }
 uint32_t ef_enable_ideology(EFFECT_PARAMTERS) {

@@ -1680,7 +1680,7 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		auto defender = state.world.war_get_primary_defender(w);
 		auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, source);
 		auto inf = state.world.gp_relationship_get_status(rel_w_defender) & nations::influence::level_mask;
-		if(inf != nations::influence::level_friendly)
+		if(inf != nations::influence::level_friendly && inf != nations::influence::level_in_sphere)
 			return false;
 
 		if(military::primary_warscore(state, w) < -state.defines.min_warscore_to_intervene)

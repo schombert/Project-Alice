@@ -666,6 +666,41 @@ int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::provi
 	}
 	return total;
 }
+
+int32_t regiments_possible_from_pop(sys::state& state, dcon::pop_id p) {
+	auto type = state.world.pop_get_poptype(p);
+	if(type == state.culture_definitions.soldiers) {
+		auto location = state.world.pop_get_province_from_pop_location(p);
+		if(state.world.province_get_is_colonial(location)) {
+			float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+			float minimum = state.defines.pop_min_size_for_regiment;
+
+			if(state.world.pop_get_size(p) >= minimum) {
+				return int32_t((state.world.pop_get_size(p) / divisor) + 1);
+			}
+			return 0;
+		} else if(!state.world.province_get_is_owner_core(location)) {
+			float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+			float minimum = state.defines.pop_min_size_for_regiment;
+
+			if(state.world.pop_get_size(p) >= minimum) {
+				return int32_t((state.world.pop_get_size(p) / divisor) + 1);
+			}
+			return 0;
+		} else {
+			float divisor = state.defines.pop_size_per_regiment;
+			float minimum = state.defines.pop_min_size_for_regiment;
+
+			if(state.world.pop_get_size(p) >= minimum) {
+				return int32_t((state.world.pop_get_size(p) / divisor) + 1);
+			}
+			return 0;
+		}
+	} else { // mobilized
+		return int32_t(state.world.pop_get_size(p) * mobilization_size(state, nations::owner_of_pop(state, p)) / state.defines.pop_size_per_regiment);
+	}
+}
+
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p) {
 	/*
 	- A soldier pop must be at least define:POP_MIN_SIZE_FOR_REGIMENT to support any regiments
@@ -2037,7 +2072,8 @@ void remove_military_access(sys::state& state, dcon::nation_id accessing_nation,
 void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	dcon::war_id w = find_war_between(state, a, b);
 	while(w) {
-		cleanup_war(state, w, war_result::draw);
+		military::remove_from_war(state, w, b, false);
+		// cleanup_war(state, w, war_result::draw);
 		w = find_war_between(state, a, b);
 	}
 }
@@ -6604,6 +6640,32 @@ void recover_org(sys::state& state) {
 			reg.get_ship().set_org(std::min(c_org + modified_regen, std::max(c_org, 0.25f + 0.75f * spending_level)));
 		}
 	}
+}
+
+float reinforce_amount(sys::state& state, dcon::army_id a) {
+	auto ar = fatten(state.world, a);
+	if(ar.get_battle_from_army_battle_participation() || ar.get_navy_from_army_transport() || ar.get_is_retreating())
+		return 0.0f;
+
+	auto in_nation = ar.get_controller_from_army_control();
+	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
+
+	auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
+
+	float location_modifier = 1.0f;
+	if(ar.get_location_from_army_location().get_nation_from_province_ownership() == in_nation) {
+		location_modifier = 2.0f;
+	} else if(ar.get_location_from_army_location().get_nation_from_province_control() == in_nation) {
+		location_modifier = 1.0f;
+	} else {
+		location_modifier = 0.1f;
+	}
+
+	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
+		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
+		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+
+	return combined;
 }
 
 void reinforce_regiments(sys::state& state) {
