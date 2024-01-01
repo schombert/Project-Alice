@@ -43,16 +43,19 @@ vec4 globe_coords(vec3 world_pos) {
 
 layout(index = 1) subroutine(calc_gl_position_class)
 vec4 flat_coords(vec3 world_pos) {
-	world_pos += vec3(-offset.x, offset.y, 0.f);
+	float vertical_factor = ((map_size.x + map_size.y) / 2.f);
+	world_pos /= vec3(map_size.x, map_size.y, vertical_factor);
+	world_pos -= vec3(offset.x, 0.f, offset.y);
 	world_pos.x = mod(world_pos.x, 1.0f);
 	return vec4(
-		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
-		(2. * world_pos.y - 1.f) * zoom,
-		(2. * world_pos.z - 1.f) * zoom, 1.0);
+		(2.f * +world_pos.x - 1.f) * zoom,
+		(2.f * -world_pos.z - 1.f) * zoom,
+		(2.f * +world_pos.y),
+		1.0f
+	);
 }
 
 void main() {
-	vec3 world_pos = vec3(vertex_position.x * 0.02f, -vertex_position.z * 0.02f, vertex_position.y * 0.02f);
-	gl_Position = vec4(world_pos, 1.f);//calc_gl_position(world_pos);
+	gl_Position = calc_gl_position(vertex_position);
 	tex_coord = texture_coord;
 }
