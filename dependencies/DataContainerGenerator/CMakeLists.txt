@@ -34,7 +34,7 @@ if(WIN32)
 				$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
 		target_compile_options(DCONGENERATOR PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /wd4388 /wd4389
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /WX /GF /wd4388 /wd4389
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /Od>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(DCONGENERATOR PRIVATE

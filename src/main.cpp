@@ -1,3 +1,9 @@
+#ifdef __AVX2__
+#error "We cannot do avx2!"
+#endif
+#undef _USE_STD_VECTOR_ALGORITHMS
+#define _USE_STD_VECTOR_ALGORITHMS 0
+
 #ifdef LOCAL_USER_SETTINGS
 #include "local_user_settings.hpp"
 #endif

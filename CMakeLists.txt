@@ -103,20 +103,20 @@ if(WIN32)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389 /DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /WX /GF /w34388 /w34389 /DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
 		else()
 			message(STATUS "Normal, not PGO, build")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7
 				  $<$<CONFIG:Debug>: /EHsc /RTC1 /Od>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
-				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)

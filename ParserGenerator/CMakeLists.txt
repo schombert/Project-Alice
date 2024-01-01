@@ -8,7 +8,7 @@ add_executable(ParserGenerator ${PROJECT_SRC})
 
 
 if(WIN32)
-	# removed /Zc:preprocessor for clang
+	# removed /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor for clang
 	set(CMAKE_CXX_FLAGS "")
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
@@ -24,9 +24,9 @@ if(WIN32)
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
 		target_compile_options(ParserGenerator PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /WX /GF /w34388 /w34389
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /Od /RTC1>
-			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /Zc:preprocessor /GS- /Gy /Gw /Zc:inline>)
+			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /D_USE_STD_VECTOR_ALGORITHMS=0 /Zc:preprocessor /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(ParserGenerator PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)

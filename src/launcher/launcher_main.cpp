@@ -1,3 +1,6 @@
+#undef _USE_STD_VECTOR_ALGORITHMS
+#define _USE_STD_VECTOR_ALGORITHMS 0
+
 #ifndef UNICODE
 #define UNICODE
 #endif
