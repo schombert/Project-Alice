@@ -826,7 +826,7 @@ public:
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			int32_t value = std::stoi(std::string(name.substr(12)));
 			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-				auto def = state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)];
+				auto const& def = state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)];
 				if(def.icon == value) {
 					ptr->unit_type = dcon::unit_type_id(i);
 					if(def.is_land) {
@@ -911,7 +911,7 @@ public:
 			dcon::unit_type_id utid = dcon::unit_type_id{ 0 };
 			uint32_t count = 0;
 			uint8_t unit_def_count = 0;
-			for(auto testing : state.military_definitions.unit_base_definitions) {
+			for(auto const& testing : state.military_definitions.unit_base_definitions) {
 				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
 					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].primary_culture) {
 						//continue;
