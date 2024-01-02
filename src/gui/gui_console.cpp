@@ -1258,7 +1258,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::next_song:
 	{
-		state.sound_ptr->play_new_track(state);
+		sound::play_new_track(state);
 		break;
 	}
 	case command_info::type::none:
