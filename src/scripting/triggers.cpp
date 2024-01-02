@@ -1410,14 +1410,7 @@ TRIGGER_FUNCTION(tf_primary_culture_pop) {
 			trigger::payload(tval[1]).cul_id);
 }
 TRIGGER_FUNCTION(tf_accepted_culture) {
-	auto is_accepted = ve::apply(
-			[&ws, c = trigger::payload(tval[1]).cul_id](dcon::nation_id n) {
-				if(n)
-					return ws.world.nation_get_accepted_cultures(n, c);
-				else
-					return false;
-			},
-			to_nation(primary_slot));
+	auto is_accepted = ws.world.nation_get_accepted_cultures(to_nation(primary_slot), trigger::payload(tval[1]).cul_id);
 	return compare_to_true(tval[0], is_accepted);
 }
 TRIGGER_FUNCTION(tf_culture_pop) {
