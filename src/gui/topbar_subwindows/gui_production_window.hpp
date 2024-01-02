@@ -1472,14 +1472,28 @@ public:
 class commodity_primary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::commodity_id>(state, parent);
+
 		float total = 0.0f;
-		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
-			for(auto fac : p.get_province().get_factory_location()) {
+
+		auto nation = dcon::fatten(state.world, state.local_player_nation);
+		total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+
+		for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
+			auto province = province_ownership.get_province();
+
+			if(province.get_rgo() == content) {
+				if(province.get_rgo())
+				total += province.get_rgo().get_rgo_workforce();
+			}
+
+			for(auto fac : province.get_factory_location()) {
 				if(fac.get_factory().get_building_type().get_output() == content) {
 					total += economy::factory_primary_employment(state, fac.get_factory());
 				}
 			}
+			
 		}
+
 		set_text(state, text::prettify(int64_t(total)));
 	}
 };
@@ -1489,6 +1503,7 @@ class commodity_secondary_worker_amount : public simple_text_element_base {
 		auto content = retrieve<dcon::commodity_id>(state, parent);
 		float total = 0.0f;
 		for(auto p : state.world.nation_get_province_ownership(state.local_player_nation)) {
+
 			for(auto fac : p.get_province().get_factory_location()) {
 				if(fac.get_factory().get_building_type().get_output() == content) {
 					total += economy::factory_secondary_employment(state, fac.get_factory());
