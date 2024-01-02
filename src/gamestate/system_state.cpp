@@ -3020,6 +3020,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
+	world.nation_resize_accepted_cultures(world.culture_size());
 
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history

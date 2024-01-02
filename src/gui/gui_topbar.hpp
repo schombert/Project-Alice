@@ -428,8 +428,10 @@ public:
 		text::substitution_map sub1;
 		float relevant_pop = state.world.nation_get_demographics(nation_id,
 				demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
-		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
-			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
+		for(auto ac : state.world.in_culture) {
+			if(state.world.nation_get_accepted_cultures(nation_id, ac)) {
+				relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
+			}
 		}
 		text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
 		auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occasionally inaccurate by a few 0.01, this
