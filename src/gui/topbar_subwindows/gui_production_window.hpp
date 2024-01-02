@@ -1521,7 +1521,6 @@ class commodity_secondary_worker_amount : public simple_text_element_base {
 			break;
 
 		case economy::commodity_production_type::derivative:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {
