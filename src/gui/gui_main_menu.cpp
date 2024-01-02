@@ -135,6 +135,14 @@ void railroad_checkbox::button_action(sys::state& state) noexcept {
 	send(state, parent, notify_setting_update{});
 }
 
+bool river_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.rivers_enabled;
+}
+void river_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.rivers_enabled = !state.user_settings.rivers_enabled;
+	send(state, parent, notify_setting_update{});
+}
+
 void map_label_left::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.map_label);
 	if(scale_index > 0) {
