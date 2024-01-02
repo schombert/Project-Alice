@@ -307,6 +307,7 @@ float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
 
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p);
+int32_t regiments_possible_from_pop(sys::state& state, dcon::pop_id p);
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p); // does not include mobilized regiments
 int32_t regiments_max_possible_from_province(sys::state& state, dcon::province_id p);
 int32_t main_culture_regiments_created_from_province(sys::state& state, dcon::province_id p);
@@ -414,6 +415,7 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
+float reinforce_amount(sys::state& state, dcon::army_id a);
 
 sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);

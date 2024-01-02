@@ -57,8 +57,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level")                              \
 	MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level") \
 	MOD_LIST_ELEMENT(48, min_build_bank, false, modifier_display_type::integer, "bank_level") \
-	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level")
-#define MOD_PROV_LIST_COUNT 50
+	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level") \
+	MOD_LIST_ELEMENT(50, conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate")
+#define MOD_PROV_LIST_COUNT 51
 
 #define MOD_NAT_LIST                                                                                                             \
 	MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion")                             \
@@ -187,8 +188,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, seperatism, false, modifier_display_type::percent, "separatism_tech")                                     \
 	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
-	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")
-#define MOD_NAT_LIST_COUNT 119
+	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
+	MOD_LIST_ELEMENT(119, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate")
+#define MOD_NAT_LIST_COUNT 120
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
@@ -299,9 +301,14 @@ static_assert(sizeof(unit_modifier) ==
 	+ sizeof(unit_modifier::padding));
 
 struct rebel_org_modifier {
-	float amount = 0.0f;
-	dcon::rebel_type_id type; // no type set = all rebels
+	float amount = 0.0f; //4
+	dcon::rebel_type_id type; //1 - no type set = all rebels
+	uint8_t padding[3] = { 0, 0, 0 };
 };
+static_assert(sizeof(rebel_org_modifier) ==
+	sizeof(rebel_org_modifier::amount)
+	+ sizeof(rebel_org_modifier::type)
+	+ sizeof(rebel_org_modifier::padding));
 
 struct dated_modifier {
 	sys::date expiration;

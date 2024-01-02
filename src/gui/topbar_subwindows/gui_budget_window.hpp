@@ -1132,16 +1132,32 @@ class enable_debt_toggle : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		frame = state.world.nation_get_is_debt_spending(state.local_player_nation) ? 1 : 0;
+		disabled = false;
+
+		auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+		if(last_br && state.current_date < last_br)
+			disabled = true;
+		if(economy::max_loan(state, state.local_player_nation) <= 0.0f)
+			disabled = true;
 	}
 	void button_action(sys::state& state) noexcept override {
 		command::enable_debt(state, state.local_player_nation, !state.world.nation_get_is_debt_spending(state.local_player_nation));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "alice_debt_spending");
+		auto last_br = state.world.nation_get_bankrupt_until(state.local_player_nation);
+		if(last_br && state.current_date < last_br) {
+			text::add_line(state, contents, "alice_currently_bankrupt", text::variable_type::x, last_br);
+		} else if(economy::max_loan(state, state.local_player_nation) <= 0.0f) {
+			text::add_line(state, contents, "alice_no_loans_possible");
+		} else {
+			text::add_line(state, contents, "alice_debt_spending");
+			text::add_line_break_to_layout(state, contents);
+			text::add_line(state, contents, "alice_loan_size", text::variable_type::x, text::fp_currency{ economy::max_loan(state, state.local_player_nation) });
+		}
 	}
 };
 

@@ -13,7 +13,7 @@ bool can_take_loans(sys::state& state, dcon::nation_id n) {
 	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
 	*/
 	auto last_br = state.world.nation_get_bankrupt_until(n);
-	if(last_br && last_br < state.current_date)
+	if(last_br && state.current_date < last_br)
 		return false;
 
 	return true;
@@ -36,7 +36,7 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
-	return total_tax_base * mod;
+	return std::max(0.0f, total_tax_base * mod);
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
@@ -1708,7 +1708,7 @@ void update_national_consumption(sys::state& state, dcon::nation_id n,
 	}
 }
 
-void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province_id p, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float base_demand, float invention_factor) {
+void update_pop_consumption(sys::state& state, dcon::nation_id n, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices, float base_demand, float invention_factor) {
 	uint32_t total_commodities = state.world.commodity_size();
 
 	static auto ln_demand_vector = state.world.pop_type_make_vectorizable_float_buffer();
@@ -1719,78 +1719,73 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, dcon::province
 	state.world.execute_serial_over_pop_type([&](auto ids) { lx_demand_vector.set(ids, ve::fp_vector{}); });
 
 	// needs_scaling_factor
-
 	auto nation_rules = state.world.nation_get_combined_issue_rules(n);
 	bool nation_allows_investment = state.world.nation_get_is_civilized(n) && (nation_rules & (issue_rule::pop_build_factory | issue_rule::pop_expand_factory)) != 0;
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		for(auto pl : state.world.province_get_pop_location(p.get_province())) {
+			auto t = pl.get_pop().get_poptype();
+			assert(t);
+			auto total_budget = pl.get_pop().get_savings();
+			auto total_pop = pl.get_pop().get_size();
 
-	for(auto pl : state.world.province_get_pop_location(p)) {
-		auto t = pl.get_pop().get_poptype();
-		assert(t);
-		auto total_budget = pl.get_pop().get_savings();
-		auto total_pop = pl.get_pop().get_size();
+			float ln_cost = state.world.nation_get_life_needs_costs(n, t) * total_pop / needs_scaling_factor;
+			float en_cost = state.world.nation_get_everyday_needs_costs(n, t) * total_pop / needs_scaling_factor;
+			float xn_cost = state.world.nation_get_luxury_needs_costs(n, t) * total_pop / needs_scaling_factor;
 
-		float ln_cost = state.world.nation_get_life_needs_costs(n, t) * total_pop / needs_scaling_factor;
-		float en_cost = state.world.nation_get_everyday_needs_costs(n, t) * total_pop / needs_scaling_factor;
-		float xn_cost = state.world.nation_get_luxury_needs_costs(n, t) * total_pop / needs_scaling_factor;
+			float life_needs_fraction = total_budget >= ln_cost ? 1.0f : total_budget / ln_cost;
+			total_budget -= ln_cost;
+			float everyday_needs_fraction = total_budget >= en_cost ? 1.0f : std::max(0.0f, total_budget / en_cost);
+			total_budget -= en_cost;
+			float luxury_needs_fraction = [&]() {
+				if(!nation_allows_investment || (t != state.culture_definitions.aristocrat && t != state.culture_definitions.capitalists))
+					return xn_cost > 0.0f ? std::max(total_budget / xn_cost, 0.0f) : 0.0f;
+				else if(t == state.culture_definitions.capitalists) {
+					state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.1f : 0.0f;
+					return xn_cost > 0.0f ? std::max(total_budget * 0.9f / xn_cost, 0.0f) : 0.0f;
+				} else {
+					state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.01f : 0.0f;
+					return xn_cost > 0.0f ? std::max(total_budget * 0.99f / xn_cost, 0.0f) : 0.0f;
+				}
+			}();
+			assert(std::isfinite(life_needs_fraction));
+			assert(std::isfinite(everyday_needs_fraction));
+			assert(std::isfinite(luxury_needs_fraction));
 
-		float life_needs_fraction = total_budget >= ln_cost ? 1.0f : total_budget / ln_cost;
-		total_budget -= ln_cost;
-		float everyday_needs_fraction = total_budget >= en_cost ? 1.0f : std::max(0.0f, total_budget / en_cost);
-		total_budget -= en_cost;
-		float luxury_needs_fraction = [&]() {
-			if(!nation_allows_investment || (t != state.culture_definitions.aristocrat && t != state.culture_definitions.capitalists))
-				return xn_cost > 0.0f ? std::max(total_budget / xn_cost, 0.0f) : 0.0f;
-			else if(t == state.culture_definitions.capitalists) {
-				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.1f : 0.0f;
-				return xn_cost > 0.0f ? std::max(total_budget * 0.9f / xn_cost, 0.0f) : 0.0f;
-			} else {
-				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.01f : 0.0f;
-				return xn_cost > 0.0f ? std::max(total_budget * 0.99f / xn_cost, 0.0f) : 0.0f;
-			}
-		}();
-		assert(std::isfinite(life_needs_fraction));
-		assert(std::isfinite(everyday_needs_fraction));
-		assert(std::isfinite(luxury_needs_fraction));
+			state.world.pop_set_life_needs_satisfaction(pl.get_pop(), life_needs_fraction);
+			state.world.pop_set_everyday_needs_satisfaction(pl.get_pop(), everyday_needs_fraction);
+			state.world.pop_set_luxury_needs_satisfaction(pl.get_pop(), std::min(1.0f, luxury_needs_fraction));
 
-		state.world.pop_set_life_needs_satisfaction(pl.get_pop(), life_needs_fraction);
-		state.world.pop_set_everyday_needs_satisfaction(pl.get_pop(), everyday_needs_fraction);
-		state.world.pop_set_luxury_needs_satisfaction(pl.get_pop(), std::min(1.0f, luxury_needs_fraction));
-
-		ln_demand_vector.get(t) += life_needs_fraction * total_pop / needs_scaling_factor;
-		en_demand_vector.get(t) += everyday_needs_fraction * total_pop / needs_scaling_factor;
-		lx_demand_vector.get(t) += luxury_needs_fraction * total_pop / needs_scaling_factor;
+			ln_demand_vector.get(t) += life_needs_fraction * total_pop / needs_scaling_factor;
+			en_demand_vector.get(t) += everyday_needs_fraction * total_pop / needs_scaling_factor;
+			lx_demand_vector.get(t) += luxury_needs_fraction * total_pop / needs_scaling_factor;
+		}
 	}
 
 	float ln_mul[] = {state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_life_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_life_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_life_needs) + 1.0f};
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_life_needs) + 1.0f};
 	float en_mul[] = {state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_everyday_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_everyday_needs) + 1.0f};
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_everyday_needs) + 1.0f};
 	float lx_mul[] = {
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
-			state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_luxury_needs) + 1.0f,
 	};
 
-	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
-
-			auto kf = state.world.commodity_get_key_factory(cid);
-			if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+	for(uint32_t i = 1; i < total_commodities; ++i) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		auto kf = state.world.commodity_get_key_factory(cid);
+		if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
+			for(const auto t : state.world.in_pop_type) {
 				auto strata = state.world.pop_type_get_strata(t);
-
 				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_life_needs(t, cid) * ln_demand_vector.get(t) * base_demand * ln_mul[strata] * (state.world.nation_get_life_needs_weights(n, cid) + 1.0f);
-
 				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_everyday_needs(t, cid) * en_demand_vector.get(t) * base_demand * invention_factor * en_mul[strata] * (state.world.nation_get_everyday_needs_weights(n, cid) + 1.0f) * en_extra_factor;
-
 				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_luxury_needs(t, cid) * lx_demand_vector.get(t) * base_demand * invention_factor * lx_mul[strata] * (state.world.nation_get_luxury_needs_weights(n, cid) + 1.0f) * lx_extra_factor;
-
 				assert(std::isfinite(state.world.nation_get_real_demand(n, cid)));
 			}
 		}
-	});
+	}
 }
 
 void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices,
@@ -2244,9 +2239,9 @@ void daily_update(sys::state& state) {
 			bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p.get_province()));
 			update_province_rgo_consumption(state, p.get_province(), n, mobilization_impact,
 					is_mine ? laborer_min_wage : farmer_min_wage, p.get_province().get_nation_from_province_control() != n);
-
-			update_pop_consumption(state, n, p.get_province(), effective_prices, base_demand, invention_factor);
 		}
+
+		update_pop_consumption(state, n, effective_prices, base_demand, invention_factor);
 
 		{
 			// update national spending
@@ -3840,6 +3835,11 @@ void resolve_constructions(sys::state& state) {
 			if(state.world.province_get_building_level(for_province, t) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), t)) {
 				state.world.province_get_building_level(for_province, t) += 1;
 
+				if(t == province_building_type::railroad) {
+					/* Notify the railroad mesh builder to update the railroads! */
+					state.railroad_built.store(true, std::memory_order::release);
+				}
+
 				if(state.world.province_building_construction_get_nation(c) == state.local_player_nation) {
 					switch(t) {
 					case province_building_type::naval_base:
@@ -4080,7 +4080,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
 	*/
 	auto existing_br = state.world.nation_get_bankrupt_until(n);
-	if(existing_br && existing_br <  state.current_date) {
+	if(existing_br && state.current_date < existing_br) {
 		for(auto gn : state.great_nations) {
 			if(gn.nation && gn.nation != n) {
 				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
@@ -4105,7 +4105,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 
 	debt = 0.0f;
 	state.world.nation_set_is_debt_spending(n, false);
-	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankruptcy_external_loan_years * 365));
+	state.world.nation_set_bankrupt_until(n, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));
 
 	notification::post(state, notification::message{
 		[n](sys::state& state, text::layout_base& contents) {

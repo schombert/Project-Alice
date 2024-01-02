@@ -980,7 +980,7 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 }
 
 std::string localize_month(sys::state const& state, uint16_t month) {
-	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may", "june", "july", "august",
+	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may_month_name", "june", "july", "august",
 			"september", "october", "november", "december"};
 	if(month == 0 || month > 12) {
 		return text::produce_simple_string(state, "january");

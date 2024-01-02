@@ -82,7 +82,7 @@ class nation_revanchism_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto revanchism = state.world.nation_get_revanchism(nation_id);
-		return std::to_string(int32_t(revanchism)) + '%';
+		return std::to_string(int32_t(revanchism * 100.0f)) + '%';
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -465,7 +465,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
-			frame = state.world.modifier_get_icon(mod.mod_id) - 1;
+			frame = int8_t(state.world.modifier_get_icon(mod.mod_id)) + 1;
 		}
 	}
 

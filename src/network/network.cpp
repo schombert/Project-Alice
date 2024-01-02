@@ -544,7 +544,13 @@ void send_and_receive_commands(sys::state& state) {
 			if(!command::is_console_command(c->type)) {
 				// Generate checksum on the spot
 				if(c->type == command::command_type::advance_tick) {
+#ifndef NDEBUG //Debug - daily oos check
 					c->data.advance_tick.checksum = state.get_save_checksum();
+#else //Release - monthly oos check
+					if(state.current_date.to_ymd(state.start_date).day == 1) {
+						c->data.advance_tick.checksum = state.get_save_checksum();
+					}
+#endif
 				}
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
@@ -593,7 +599,7 @@ void send_and_receive_commands(sys::state& state) {
 					}
 					if(!found_match) {
 #ifdef _WIN64
-						MessageBoxA(NULL, "Could not find a scenario with a matching checksum!", "Network error", MB_OK);
+						MessageBoxA(NULL, "Could not find a scenario with a matching checksum! This is most likely a false positive, so just ask the host for their scenario file and it should work. Or you haven't clicked on \"Make scenario\"!", "Network error", MB_OK);
 #endif
 						std::abort();
 					}

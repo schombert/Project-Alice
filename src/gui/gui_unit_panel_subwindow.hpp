@@ -54,6 +54,37 @@ public:
 			}
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto reg_id = retrieve<dcon::regiment_id>(state, parent);
+		auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
+
+		if(!base_pop) {
+			text::add_line(state, contents, "alice_reinforce_rate_none");
+		} else {
+			text::add_line(state, contents, "alice_x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
+			text::add_line_break_to_layout(state, contents);
+
+			auto reg_range = state.world.pop_get_regiment_source(base_pop);
+			text::add_line(state, contents, "pop_size_unitview",
+				text::variable_type::val, text::pretty_integer{ int64_t(state.world.pop_get_size(base_pop)) },
+				text::variable_type::allowed, military::regiments_possible_from_pop(state, base_pop),
+				text::variable_type::current, int64_t(reg_range.end() - reg_range.begin())
+			);
+
+			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
+			auto reinf = state.defines.pop_size_per_regiment * military::reinforce_amount(state, a);
+			if(reinf >= 2.0f) {
+				text::add_line(state, contents, "alice_reinforce_rate", text::variable_type::x, int64_t(reinf));
+			} else {
+				text::add_line(state, contents, "alice_reinforce_rate_none");
+			}
+		}
+	}
 };
 
 template<class T>
@@ -396,20 +427,21 @@ public:
 		orginialunit_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
 	}
 
+	void on_visible(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+	void on_hide(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<T>>()) {
 			unitToReorg = any_cast<element_selection_wrapper<T>>(payload).data;
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		else if(payload.holds_type<T>()) {
+		} else if(payload.holds_type<T>()) {
 			payload.emplace<T>(unitToReorg);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		// SELECTION GETS
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<T2>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<T2>>()) {
 			auto content = any_cast<element_selection_wrapper<T2>>(payload).data;
 			if(!selectedsubunits.empty()) {
 				if(auto result = std::find(selectedsubunits.begin(), selectedsubunits.end(), content); result != selectedsubunits.end()) {
@@ -425,11 +457,7 @@ public:
 		} else if(payload.holds_type<std::vector<T2>>()) {
 			payload.emplace<std::vector<T2>>(selectedsubunits);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		//	REORGANISATION WINDOW ACTIONS 
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
 				case reorg_win_action::close:
