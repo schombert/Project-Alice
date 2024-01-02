@@ -4094,4 +4094,16 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	});
 }
 
+commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c) {
+	auto commodity = dcon::fatten(state.world, c);
+	if(commodity.get_rgo_amount() > 0 && (commodity.get_artisan_output_amount() > 0 || commodity.get_key_factory()))
+		return commodity_production_type::both;
+	else if(commodity.get_key_factory())
+		return commodity_production_type::derivative;
+	else
+		return commodity_production_type::primary;
+
+
+}
+
 } // namespace economy
