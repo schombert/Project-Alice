@@ -2030,7 +2030,7 @@ void update_cb_fabrication(sys::state& state) {
 					auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
 					auto cb = pick_fabrication_type(state, n, t);
 					if(cb) {
-						n.set_constructing_cb_target(n.get_ai_rival());
+						n.set_constructing_cb_target(t);
 						n.set_constructing_cb_type(cb);
 					}
 				}
