@@ -76,4 +76,5 @@ void main() {
 	gl_Position.x /= aspect_ratio;
 	tex_coord = texture_coord;
 	o_dist = distance / (2.0f * width);
+	map_coord = vertex_position;
 }
