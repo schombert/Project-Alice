@@ -2575,8 +2575,11 @@ void add_gw_goals(sys::state& state) {
 
 void make_peace_offers(sys::state& state) {
 	auto send_offer_up_to = [&](dcon::nation_id from, dcon::nation_id to, dcon::war_id w, bool attacker, int32_t score_max, bool concession) {
-		if(state.world.nation_get_peace_offer_from_pending_peace_offer(from))
-			return; // offer already in flight
+		if(auto off = state.world.nation_get_peace_offer_from_pending_peace_offer(from); off) {
+			if(state.world.peace_offer_get_is_crisis_offer(off) == true || state.world.peace_offer_get_war_from_war_settlement(off))
+				return; // offer in flight
+			state.world.delete_peace_offer(off); // else -- offer has been already resolved and was just pending gc
+		}
 
 		command::execute_start_peace_offer(state, from, to, w, concession);
 		auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(from);
@@ -2799,7 +2802,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
 				return true;
 		} else {
-			if(overall_score <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
+			if((overall_score - willingness_factor) <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
 				return true;
 		}
 
