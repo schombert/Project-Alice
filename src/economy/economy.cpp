@@ -1773,29 +1773,17 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, ve::vectorizab
 		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_luxury_needs) + 1.0f,
 	};
 
-	static auto ln_real_demand_vector = state.world.commodity_make_vectorizable_float_buffer();
-	state.world.execute_serial_over_commodity([&](auto ids) { ln_real_demand_vector.set(ids, ve::fp_vector{}); });
-	static auto en_real_demand_vector = state.world.commodity_make_vectorizable_float_buffer();
-	state.world.execute_serial_over_commodity([&](auto ids) { en_real_demand_vector.set(ids, ve::fp_vector{}); });
-	static auto lx_real_demand_vector = state.world.commodity_make_vectorizable_float_buffer();
-	state.world.execute_serial_over_commodity([&](auto ids) { lx_real_demand_vector.set(ids, ve::fp_vector{}); });
-	for(uint32_t i = 1; i < total_commodities; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		for(const auto t : state.world.in_pop_type) {
-			auto strata = state.world.pop_type_get_strata(t);
-			ln_real_demand_vector.get(cid) += state.world.pop_type_get_life_needs(t, cid) * ln_demand_vector.get(t) * base_demand * ln_mul[strata] * (state.world.nation_get_life_needs_weights(n, cid) + 1.0f);
-			en_real_demand_vector.get(cid) += state.world.pop_type_get_everyday_needs(t, cid) * en_demand_vector.get(t) * base_demand * invention_factor * en_mul[strata] * (state.world.nation_get_everyday_needs_weights(n, cid) + 1.0f) * en_extra_factor;
-			lx_real_demand_vector.get(cid) += state.world.pop_type_get_luxury_needs(t, cid) * lx_demand_vector.get(t) * base_demand * invention_factor * lx_mul[strata] * (state.world.nation_get_luxury_needs_weights(n, cid) + 1.0f) * lx_extra_factor;
-		}
-	}
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		auto kf = state.world.commodity_get_key_factory(cid);
 		if(state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf))) {
-			state.world.nation_get_real_demand(n, cid) += ln_real_demand_vector.get(cid);
-			state.world.nation_get_real_demand(n, cid) += en_real_demand_vector.get(cid);
-			state.world.nation_get_real_demand(n, cid) += lx_real_demand_vector.get(cid);
-			assert(std::isfinite(state.world.nation_get_real_demand(n, cid)));
+			for(const auto t : state.world.in_pop_type) {
+				auto strata = state.world.pop_type_get_strata(t);
+				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_life_needs(t, cid) * ln_demand_vector.get(t) * base_demand * ln_mul[strata] * (state.world.nation_get_life_needs_weights(n, cid) + 1.0f);
+				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_everyday_needs(t, cid) * en_demand_vector.get(t) * base_demand * invention_factor * en_mul[strata] * (state.world.nation_get_everyday_needs_weights(n, cid) + 1.0f) * en_extra_factor;
+				state.world.nation_get_real_demand(n, cid) += state.world.pop_type_get_luxury_needs(t, cid) * lx_demand_vector.get(t) * base_demand * invention_factor * lx_mul[strata] * (state.world.nation_get_luxury_needs_weights(n, cid) + 1.0f) * lx_extra_factor;
+				assert(std::isfinite(state.world.nation_get_real_demand(n, cid)));
+			}
 		}
 	}
 }
