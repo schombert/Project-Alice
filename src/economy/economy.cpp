@@ -1803,58 +1803,35 @@ void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon
 
 	uint32_t total_commodities = state.world.commodity_size();
 
-	{
-		float mul[] = {state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_life_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_life_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_life_needs) + 1.0f};
+	float ln_mul[] = { state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_life_needs) + 1.0f };
+	float en_mul[] = { state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_everyday_needs) + 1.0f };
+	float lx_mul[] = { state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_luxury_needs) + 1.0f };
 
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id c{dcon::commodity_id::value_base_t(i)};
-			auto kf = state.world.commodity_get_key_factory(c);
-			if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
-				state.world.for_each_pop_type([&](auto ids) {
-					// auto ln = state.world.pop_type_get_life_needs(ids, c) * effective_prices.get(c) * base_demand * mul[state.world.pop_type_get_strata(ids)];
-					auto ln = state.world.pop_type_get_life_needs(ids, c) * effective_prices.get(c) * base_demand * mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_life_needs_weights(n, c) + 1.0f);
-					state.world.nation_set_life_needs_costs(n, ids, ln + state.world.nation_get_life_needs_costs(n, ids));
-					assert(std::isfinite(state.world.nation_get_life_needs_costs(n, ids)));
-				});
-			}
-		}
-	}
-	{
-		float mul[] = {state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_everyday_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_everyday_needs) + 1.0f};
-
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id c{dcon::commodity_id::value_base_t(i)};
-			auto kf = state.world.commodity_get_key_factory(c);
-			if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
-				state.world.for_each_pop_type([&](auto ids) {
-					// auto ln = state.world.pop_type_get_everyday_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)];
-					auto ln = state.world.pop_type_get_everyday_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_everyday_needs_weights(n, c) + 1.0f) * en_extra_factor;
-					state.world.nation_set_everyday_needs_costs(n, ids, ln + state.world.nation_get_everyday_needs_costs(n, ids));
-					assert(std::isfinite(state.world.nation_get_everyday_needs_costs(n, ids)));
-				});
-			}
-		}
-	}
-	{
-		float mul[] = {state.world.nation_get_modifier_values(n, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
-				state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rich_luxury_needs) + 1.0f};
-
-		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id c{dcon::commodity_id::value_base_t(i)};
-			auto kf = state.world.commodity_get_key_factory(c);
-			if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
-				state.world.for_each_pop_type([&](auto ids) {
-					// auto ln = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)];
-					auto ln = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_luxury_needs_weights(n, c) + 1.0f) * lx_extra_factor;
-					state.world.nation_set_luxury_needs_costs(n, ids, ln + state.world.nation_get_luxury_needs_costs(n, ids));
-					assert(std::isfinite(state.world.nation_get_luxury_needs_costs(n, ids)));
-				});
-			}
+	for(uint32_t i = 1; i < total_commodities; ++i) {
+		dcon::commodity_id c{dcon::commodity_id::value_base_t(i)};
+		auto kf = state.world.commodity_get_key_factory(c);
+		if(state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf))) {
+			state.world.for_each_pop_type([&](auto ids) {
+				auto ln = state.world.pop_type_get_life_needs(ids, c) * effective_prices.get(c) * base_demand * ln_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_life_needs_weights(n, c) + 1.0f);
+				state.world.nation_set_life_needs_costs(n, ids, ln + state.world.nation_get_life_needs_costs(n, ids));
+				assert(std::isfinite(state.world.nation_get_life_needs_costs(n, ids)));
+			});
+			state.world.for_each_pop_type([&](auto ids) {
+				auto en = state.world.pop_type_get_everyday_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * en_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_everyday_needs_weights(n, c) + 1.0f) * en_extra_factor;
+				state.world.nation_set_everyday_needs_costs(n, ids, en + state.world.nation_get_everyday_needs_costs(n, ids));
+				assert(std::isfinite(state.world.nation_get_everyday_needs_costs(n, ids)));
+			});
+			state.world.for_each_pop_type([&](auto ids) {
+				auto lx = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * lx_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_luxury_needs_weights(n, c) + 1.0f) * lx_extra_factor;
+				state.world.nation_set_luxury_needs_costs(n, ids, lx + state.world.nation_get_luxury_needs_costs(n, ids));
+				assert(std::isfinite(state.world.nation_get_luxury_needs_costs(n, ids)));
+			});
 		}
 	}
 }

@@ -3025,7 +3025,7 @@ object {
 
 	property{
 		name{ accepted_cultures }
-		type{vector_pool{10000}{culture_id}}
+		type{array{culture_id}{bitfield}}
 		tag{ save }
 	}
 	property{
