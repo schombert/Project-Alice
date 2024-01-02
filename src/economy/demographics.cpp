@@ -24,12 +24,9 @@ void regenerate_is_primary_or_accepted(sys::state& state) {
 			state.world.pop_set_is_primary_or_accepted_culture(p, true);
 			return;
 		}
-		auto accepted = state.world.nation_get_accepted_cultures(n);
-		for(auto c : accepted) {
-			if(c == state.world.pop_get_culture(p)) {
-				state.world.pop_set_is_primary_or_accepted_culture(p, true);
-				return;
-			}
+		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p)) == true) {
+			state.world.pop_set_is_primary_or_accepted_culture(p, true);
+			return;
 		}
 	});
 }
@@ -646,11 +643,11 @@ void regenerate_from_pop_data(sys::state& state) {
 		case 16:
 		{
 			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
-
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
+
 			state.world.for_each_culture([&](dcon::culture_id c) {
 				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
 					auto v = state.world.province_get_demographics(p, key);
@@ -2204,12 +2201,8 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 		if(state.world.nation_get_primary_culture(n) == cid) {
 			np.set_is_primary_or_accepted_culture(true);
 		} else {
-			auto accepted = state.world.nation_get_accepted_cultures(n);
-			for(auto c : accepted) {
-				if(c == cid) {
-					np.set_is_primary_or_accepted_culture(true);
-					break;
-				}
+			if(state.world.nation_get_accepted_cultures(n, cid) == true) {
+				np.set_is_primary_or_accepted_culture(true);
 			}
 		}
 	}
