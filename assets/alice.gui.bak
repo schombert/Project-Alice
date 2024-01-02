@@ -1357,7 +1357,7 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				position = { 0 0 }
-				name = "attacker_casualities"
+				name = "strength"
 				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }

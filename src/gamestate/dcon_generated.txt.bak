@@ -2176,7 +2176,7 @@ object {
 	}
 	
 	property{
-		name{ attacker_casualities }
+		name{ defender_casualities }
 		type{ float }
 		tag{ save }
 	}

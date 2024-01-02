@@ -11,7 +11,7 @@
 
 namespace ui {
 
-inline constexpr float big_counter_cutoff = 12.0f;
+inline constexpr float big_counter_cutoff = 40.0f;
 inline constexpr float prov_details_cutoff = 18.0f;
 
 struct toggle_unit_grid {
@@ -321,6 +321,8 @@ struct top_display_parameters {
 	int8_t common_unit_2 = -1;
 	std::array<outline_color, 5> colors;
 	bool is_army = false;
+	float attacker_casualities = 0.0f;
+	float defender_casualities = 0.0f;
 };
 
 class prov_map_siege_bar : public progress_bar {
@@ -422,6 +424,8 @@ public:
 			return make_element_by_type<prov_map_battle_bar>(state, id);
 		} else if(name == "overlay_right") {
 			return make_element_by_type<prov_map_br_overlay>(state, id);
+		} else if (name == "attacker_casualities") {
+			return make_element_by_type <tl_attacker_casualities>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -688,6 +692,22 @@ public:
 	}
 };
 
+class tl_attacker_casualities : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
+		auto layout = text::create_endless_layout(internal_layout,
+		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::gold, false });
+		auto box = text::open_layout_box(layout, 0);
+
+		text::add_to_layout_box(state, layout, box, text::pretty_integer{ int64_t(params->attacker_casualities) }, text::text_color::red);
+		text::close_layout_box(layout, box);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return message_result::unseen;
+	}
+};
+
 class tl_strength : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -768,6 +788,8 @@ public:
 			image_element_base::render(state, x, y);
 	}
 };
+
+
 
 class tl_controller_flag : public flag_button2 {
 public:
@@ -1083,6 +1105,8 @@ public:
 		display.top_right_org_value = 0.0f;
 		display.is_army = false;
 
+		display.attacker_casualities = 0.0f;
+		display.defender_casualities = 0.0f;
 
 		if(lbattle) {
 			display.is_army = true;
@@ -1095,6 +1119,9 @@ public:
 			bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
 
 			display.top_left_status = 6;
+
+			display.attacker_casualities = state.world.land_battle_get_attacker_casualties(lbattle);
+			display.defender_casualities = state.world.land_battle_get_defender_casualties(lbattle);
 
 			for(auto ar : state.world.land_battle_get_army_battle_participation(lbattle)) {
 				auto controller = ar.get_army().get_controller_from_army_control();
