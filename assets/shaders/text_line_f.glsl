@@ -7,6 +7,8 @@ layout (binding = 1) uniform sampler2D texture1;
 layout (binding = 2) uniform sampler2D texture2;
 layout (binding = 3) uniform sampler2D texture3;
 
+layout (location = 12) uniform float is_black;
+
 layout (location = 11) uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
@@ -14,7 +16,8 @@ vec4 gamma_correct(vec4 colour) {
 
 void main() {
 	float border_size = 0.05;
-	vec3 inner_color = vec3(1.0, 1.0, 1.0);
+	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
+	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
 	vec4 color_in = texture(texture0, tex_coord);
 	if(type == 0.f) {
 		color_in = texture(texture0, tex_coord);
@@ -27,17 +30,12 @@ void main() {
 	}
 	
 	if(color_in.r > 0.505) {
-		frag_color = vec4(inner_color, 1.0);
+		frag_color = vec4(inner_color, 1.0f);
 	} else if(color_in.r > 0.50) {
-		frag_color = vec4(mix(inner_color, vec3(1.0, 1.0, 1.0) - inner_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0);
+		frag_color = vec4(mix(inner_color, outer_color - inner_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
 	} else {
 		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
-		frag_color = vec4(vec3(1.0, 1.0, 1.0) - inner_color, t * t);
+		frag_color = vec4(outer_color - inner_color, t * t * t);
 	}
-	//} else {
-	//	float sm_val = smoothstep(0.5 - border_size * 1.5, 0.5 - border_size, color_in.r);
-	//	sm_val = min(sm_val, 0.5);
-	//	frag_color = vec4(vec3(0.0, 0.0, 0.0) - inner_color, sm_val);
-	//}
 	frag_color = gamma_correct(frag_color);
 }

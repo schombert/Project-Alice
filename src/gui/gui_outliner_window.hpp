@@ -364,8 +364,9 @@ public:
 			auto grid = std::get<dcon::gp_relationship_id>(content);
 			auto nid = state.world.gp_relationship_get_influence_target(grid);
 			auto status = state.world.gp_relationship_get_status(grid);
+			auto influence = state.world.gp_relationship_get_influence(grid);
 
-			auto full_str = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " (" + text::get_influence_level_name(state, status) + ")";
+			auto full_str = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")";
 
 			color = text::text_color::white;
 			set_text(state, full_str);
@@ -438,7 +439,7 @@ public:
 					}
 				}
 
-				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) + "% " + text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ")";
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) + " " + text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ")";
 				set_text(state, full_str);
 			} else {
 				auto full_str = text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ")";

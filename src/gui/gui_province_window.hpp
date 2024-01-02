@@ -29,12 +29,34 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::province_id prov_id = retrieve<dcon::province_id>(state, parent);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"),
-				text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "provinceview_liferating", text::variable_type::value, int64_t(state.world.province_get_life_rating(prov_id)));
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "col_liferate_techs");
+		for(auto i : state.world.in_invention) {
+			auto mod = i.get_modifier();
+			for(uint32_t j = 0; j < sys::national_modifier_definition::modifier_definition_size; j++) {
+				if(mod.get_national_values().offsets[j] == sys::national_mod_offsets::colonial_life_rating) {
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, i.get_name(), state.world.nation_get_active_inventions(state.local_player_nation, i) ? text::text_color::green : text::text_color::red);
+
+					dcon::technology_id containing_tech;
+					auto lim_trigger_k = i.get_limit();
+					trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
+						[&](uint16_t* tval) {
+							if((tval[0] & trigger::code_mask) == trigger::technology)
+								containing_tech = trigger::payload(tval[1]).tech_id;
+						});
+
+					if(containing_tech) {
+						text::add_to_layout_box(state, contents, box, std::string_view{ " (" });
+						text::add_to_layout_box(state, contents, box, state.world.technology_get_name(containing_tech), state.world.nation_get_active_technologies(state.local_player_nation, containing_tech) ? text::text_color::green : text::text_color::red);
+						text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
+					}
+					text::close_layout_box(contents, box);
+					break;
+				}
+			}
+		}
 	}
 };
 
@@ -493,6 +515,7 @@ public:
 
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
 
@@ -1865,13 +1888,6 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
-
-			header_window->impl_on_update(state);
-			foreign_details_window->impl_on_update(state);
-			local_details_window->impl_on_update(state);
-			local_buildings_window->impl_on_update(state);
-			colony_window->impl_on_update(state);
-
 			if(!is_visible())
 				set_visible(state, true);
 			else
@@ -1879,6 +1895,14 @@ public:
 		} else {
 			set_visible(state, false);
 		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		header_window->impl_on_update(state);
+		foreign_details_window->impl_on_update(state);
+		local_details_window->impl_on_update(state);
+		local_buildings_window->impl_on_update(state);
+		colony_window->impl_on_update(state);
 	}
 
 	friend class province_national_focus_button;

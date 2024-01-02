@@ -464,11 +464,13 @@ public:
 template<class T>
 class build_unit_button : public button_element_base {
 public:
+	bool is_navy = false;
+	bool disarmed = false;
+	bool no_possible_units = false;
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
 		state.ui_state.unit_window_navy->set_visible(state, false);
 
-		state.ui_state.build_unit_window->set_visible(state, true);
 		state.ui_state.root->move_child_to_front(state.ui_state.build_unit_window);
 
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
@@ -478,14 +480,17 @@ public:
 			Cyto::Any payload = dcon::navy_id(1);
 			state.ui_state.build_unit_window->impl_set(state, payload);
 		}
+		state.ui_state.build_unit_window->set_visible(state, true);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		if(disabled){
+		if(disarmed) {
 			text::localised_format_box(state, contents, box, std::string_view("cantbuild_forcedisarm"));
+		} else if(no_possible_units) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_no_possible_units"));
 		} else {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				text::localised_format_box(state, contents, box, std::string_view("military_build_army_tooltip"));
@@ -498,8 +503,73 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.world.nation_get_disarmed_until(state.local_player_nation) && state.current_date < state.world.nation_get_disarmed_until(state.local_player_nation)) {
 			disabled = true;
+			disarmed = true;
 		} else {
-			disabled = false;
+			dcon::unit_type_id utid = dcon::unit_type_id{ 0 };
+			disarmed = false;
+			uint32_t count = 0;
+			uint8_t unit_def_count = 0;
+			for(auto const& ubd : state.military_definitions.unit_base_definitions) {
+				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
+					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].primary_culture) {
+						if(state.world.nation_get_active_unit(state.local_player_nation, dcon::unit_type_id{ unit_def_count }) || state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].active) {
+							break;
+						}
+					}
+				}
+				unit_def_count++;
+			}
+			utid = dcon::unit_type_id{ unit_def_count };
+			if(is_navy == false) {
+				for(auto ucon : state.world.nation_get_province_land_construction(state.local_player_nation)) {
+					count++;
+					if(count) {
+						disabled = false;
+						no_possible_units = false;
+						return;
+					}
+				}
+				for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+					auto p = po.get_province();
+					state.world.for_each_culture([&](dcon::culture_id c) {
+						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+							count++;
+						}
+					});
+					if(count) {
+						disabled = false;
+						no_possible_units = false;
+						return;
+					}
+				}
+				disabled = true;
+				no_possible_units = true;
+			} else {
+				
+				disarmed = false;
+
+				utid = dcon::unit_type_id{ 0 };
+				count = 0;
+				unit_def_count = 0;
+				for(auto const& ubd : state.military_definitions.unit_base_definitions) {
+					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
+						if(state.world.nation_get_active_unit(state.local_player_nation, dcon::unit_type_id{ unit_def_count }) || state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].active) {
+							utid = dcon::unit_type_id{ unit_def_count };
+							for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+								auto p = po.get_province();
+								if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
+									disabled = false;
+									no_possible_units = false;
+									return;
+								}
+							}
+						}
+					}
+					unit_def_count++;
+				}
+				disabled = true;
+				no_possible_units = true;
+			}
 		}
 	}
 };
@@ -618,8 +688,10 @@ public:
 		} else if(name == "build_new") {
 			auto ptr = make_element_by_type<build_unit_button<T>>(state, id);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				ptr->is_navy = false;
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_army_label"));
 			} else {
+				ptr->is_navy = true;
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_navy_label"));
 			}
 			ptr->set_visible(state, true);

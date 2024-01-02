@@ -210,12 +210,16 @@ public:
 		base_data.data.text.border_size.y += 8;
 	}
 
-	void edit_box_enter(sys::state& state, std::string_view s) noexcept override {
+	void edit_box_enter(sys::state& state, std::string_view str) noexcept override {
+		auto s = parsers::remove_surrounding_whitespace(str);
+		if(s.empty())
+			return;
+
 		dcon::nation_id target{};
 		if(s.length() > 4 && s[0] == '@') {
 			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
 				auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-				if(curr == s.substr(1, 3))
+				if(curr == std::string(s).substr(1, 3))
 					target = state.world.national_identity_get_nation_from_identity_holder(id);
 			});
 		}
@@ -244,6 +248,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
+		map_mode::set_map_mode(state, map_mode::mode::political);
 		command::notify_stop_game(state, state.local_player_nation);
 	}
 };

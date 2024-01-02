@@ -329,6 +329,15 @@ void force_nation_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_
 	force_ruling_party_ideology(state, n, id);
 }
 
+uint32_t derive_color_from_ol_color(sys::state& state, uint32_t ol_color, dcon::nation_id n) {
+	auto base = sys::rgb_to_hsv(ol_color);
+	auto roff = rng::get_random_pair(state, uint32_t(n.index()), uint32_t(n.index()));
+	base.h = fmod(base.h + (float(roff.low & 0x1F) - 15.5f), 360.0f);
+	base.s = std::clamp(base.s + (float((roff.low >> 8) & 0xFF) / 255.0f) * 0.2f - 0.1f, 0.0f, 1.0f);
+	base.v = std::clamp(base.v + (float((roff.high >> 4) & 0xFF) / 255.0f) * 0.2f - 0.1f, 0.0f, 1.0f);
+	return sys::hsv_to_rgb(base);
+}
+
 void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
 	auto gov_id = state.world.nation_get_government_type(id);
@@ -341,6 +350,17 @@ void update_displayed_identity(sys::state& state, dcon::nation_id id) {
 		state.world.nation_set_color(id, state.world.national_identity_get_color(ident));
 	}
 	state.world.nation_set_adjective(id, state.world.national_identity_get_adjective(ident));
+
+	auto olr = state.world.nation_get_overlord_as_subject(id);
+	if(auto ol = state.world.overlord_get_ruler(olr); ol) {
+		auto ol_color = state.world.nation_get_color(ol);
+		state.world.nation_set_color(id, derive_color_from_ol_color(state, ol_color, id));
+	}
+
+	for(auto s : state.world.nation_get_overlord_as_ruler(id)) {
+		s.get_subject().set_color(derive_color_from_ol_color(state, state.world.nation_get_color(id), s.get_subject()));
+	}
+
 	state.province_ownership_changed.store(true, std::memory_order::release);
 }
 

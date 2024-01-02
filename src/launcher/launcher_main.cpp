@@ -444,6 +444,59 @@ void mouse_click() {
 		}
 		return;
 	case ui_obj_play_game:
+		if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
+			native_string temp_command_line = native_string(NATIVE("Alice512.exe ")) + selected_scenario_file;
+			
+			STARTUPINFO si;
+			ZeroMemory(&si, sizeof(si));
+			si.cb = sizeof(si);
+			PROCESS_INFORMATION pi;
+			ZeroMemory(&pi, sizeof(pi));
+			// Start the child process. 
+			if(CreateProcessW(
+				nullptr,   // Module name
+				const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+				nullptr, // Process handle not inheritable
+				nullptr, // Thread handle not inheritable
+				FALSE, // Set handle inheritance to FALSE
+				0, // No creation flags
+				nullptr, // Use parent's environment block
+				nullptr, // Use parent's starting directory 
+				&si, // Pointer to STARTUPINFO structure
+				&pi) != 0) {
+
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+
+				return; // exit -- don't try starting avx2
+			}
+		}
+		{ // normal case (avx2)
+			native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
+
+			STARTUPINFO si;
+			ZeroMemory(&si, sizeof(si));
+			si.cb = sizeof(si);
+			PROCESS_INFORMATION pi;
+			ZeroMemory(&pi, sizeof(pi));
+			// Start the child process. 
+			if(CreateProcessW(
+				nullptr,   // Module name
+				const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+				nullptr, // Process handle not inheritable
+				nullptr, // Thread handle not inheritable
+				FALSE, // Set handle inheritance to FALSE
+				0, // No creation flags
+				nullptr, // Use parent's environment block
+				nullptr, // Use parent's starting directory 
+				&si, // Pointer to STARTUPINFO structure
+				&pi) != 0) {
+
+				CloseHandle(pi.hProcess);
+				CloseHandle(pi.hThread);
+			}
+			return;
+		}
 	case ui_obj_host_game:
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
@@ -495,6 +548,12 @@ void mouse_click() {
 
 			// ready to launch
 		}
+		return;
+	case ui_obj_ip_addr:
+		return;
+	case ui_obj_password:
+		return;
+	case ui_obj_player_name:
 		return;
 	default:
 		break;

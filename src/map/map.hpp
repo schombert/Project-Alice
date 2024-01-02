@@ -34,7 +34,7 @@ struct image {
 	}
 	image(image const& other) = delete;
 
-	image(image&& other) {
+	image(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;
@@ -42,7 +42,7 @@ struct image {
 		other.data = nullptr;
 	}
 
-	image& operator=(image&& other) {
+	image& operator=(image&& other) noexcept {
 		data = other.data;
 		size_x = other.size_x;
 		size_y = other.size_y;
@@ -65,24 +65,31 @@ struct screen_vertex {
 	screen_vertex(float x, float y) : position_(x, y){};
 	glm::vec2 position_;
 };
-struct border_vertex {
-	border_vertex(){};
-	border_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, int32_t border_id)
-			: position_(position), normal_direction_(normal_direction), direction_(direction), border_id_(border_id){};
-	glm::vec2 position_;
-	glm::vec2 normal_direction_;
-	glm::vec2 direction_;
-	int32_t border_id_;
-};
-struct unit_arrow_vertex {
-	unit_arrow_vertex(){};
-	unit_arrow_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type)
+
+struct curved_line_vertex {
+	curved_line_vertex(){};
+	curved_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type)
 			: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{type} {};
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
-	float type_;
+	float type_ = 0.f;
+};
+
+struct textured_line_vertex {
+	glm::vec2 position_;
+	glm::vec2 normal_direction_;
+	float texture_coordinate_ = 0.f;
+	float distance_ = 0.f;
+};
+
+struct textured_line_vertex_b {
+	glm::vec2 position;
+	glm::vec2 previous_point;
+	glm::vec2 next_point;
+	float texture_coordinate = 0.f;
+	float distance = 0.f;
 };
 
 struct text_line_vertex {
@@ -93,8 +100,8 @@ struct text_line_vertex {
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
 	glm::vec2 texture_coord_;
-	float type_;
-	float thickness_;
+	float type_ = 0.f;
+	float thickness_ = 0.f;
 };
 
 struct text_line_generator_data {
@@ -107,10 +114,12 @@ struct text_line_generator_data {
 };
 
 struct border {
-	int start_index = -1;
-	int count = -1;
-	uint8_t type_flag;
+	int start_index = 0;
+	int count = 0;
+	dcon::province_adjacency_id adj;
+	uint16_t padding = 0;
 };
+
 enum class map_view;
 class display_data {
 public:
@@ -129,62 +138,88 @@ public:
 	void set_selected_province(sys::state& state, dcon::province_id province_id);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
-	void set_unit_arrows(std::vector<std::vector<glm::vec2>> const& arrows, std::vector<float> const& progresses);
+	void update_railroad_paths(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
-	uint32_t size_x;
-	uint32_t size_y;
-
 	std::vector<border> borders;
-	std::vector<border_vertex> border_vertices;
-	std::vector<border_vertex> river_vertices;
-	std::vector<unit_arrow_vertex> unit_arrow_vertices;
+	std::vector<textured_line_vertex_b> border_vertices;
+	std::vector<textured_line_vertex> river_vertices;
+	std::vector<GLint> river_starts;
+	std::vector<GLsizei> river_counts;
+	std::vector<textured_line_vertex> railroad_vertices;
+	std::vector<GLint> railroad_starts;
+	std::vector<GLsizei> railroad_counts;
+	std::vector<textured_line_vertex_b> coastal_vertices;
+	std::vector<GLint> coastal_starts;
+	std::vector<GLsizei> coastal_counts;
+	std::vector<curved_line_vertex> unit_arrow_vertices;
+	std::vector<GLint> unit_arrow_starts;
+	std::vector<GLsizei> unit_arrow_counts;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
 	std::vector<uint32_t> province_area;
+	std::vector<uint8_t> diagonal_borders;
 
 	// map pixel -> province id
 	std::vector<uint16_t> province_id_map;
+	std::vector<uint16_t> map_indices;
 
-	// Meshes
-	GLuint land_vao = 0;
-	GLuint land_vbo = 0;
-	GLuint border_vao = 0;
-	GLuint border_vbo = 0;
-	GLuint river_vao = 0;
-	GLuint river_vbo = 0;
-	GLuint unit_arrow_vao = 0;
-	GLuint unit_arrow_vbo = 0;
-	GLuint text_line_vao = 0;
-	GLuint text_line_vbo = 0;
-	GLuint drag_box_vao = 0;
-	GLuint drag_box_vbo = 0;
+	uint32_t size_x;
+	uint32_t size_y;
 	uint32_t land_vertex_count = 0;
 
+	// Meshes
+	static constexpr uint32_t vo_land = 0;
+	static constexpr uint32_t vo_border = 1;
+	static constexpr uint32_t vo_river = 2;
+	static constexpr uint32_t vo_unit_arrow = 3;
+	static constexpr uint32_t vo_text_line = 4;
+	static constexpr uint32_t vo_drag_box = 5;
+	static constexpr uint32_t vo_coastal = 6;
+	static constexpr uint32_t vo_railroad = 7;
+	static constexpr uint32_t vo_count = 8;
+	GLuint vao_array[vo_count] = { 0 };
+	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
-	GLuint provinces_texture_handle = 0;
-	GLuint terrain_texture_handle = 0;
-	GLuint terrainsheet_texture_handle = 0;
-	GLuint water_normal = 0;
-	GLuint colormap_water = 0;
-	GLuint colormap_terrain = 0;
-	GLuint colormap_political = 0;
-	GLuint overlay = 0;
-	GLuint province_color = 0;
-	GLuint province_highlight = 0;
-	GLuint stripes_texture = 0;
-	GLuint unit_arrow_texture = 0;
-	GLuint province_fow = 0;
-
+	static constexpr uint32_t texture_provinces = 0;
+	static constexpr uint32_t texture_terrain = 1;
+	static constexpr uint32_t texture_water_normal = 2;
+	static constexpr uint32_t texture_colormap_water = 3;
+	static constexpr uint32_t texture_colormap_terrain = 4;
+	static constexpr uint32_t texture_colormap_political = 5;
+	static constexpr uint32_t texture_overlay = 6;
+	static constexpr uint32_t texture_province_highlight = 7;
+	static constexpr uint32_t texture_stripes = 8;
+	static constexpr uint32_t texture_river_body = 9;
+	static constexpr uint32_t texture_national_border = 10;
+	static constexpr uint32_t texture_state_border = 11;
+	static constexpr uint32_t texture_prov_border = 12;
+	static constexpr uint32_t texture_imp_border = 13;
+	static constexpr uint32_t texture_unit_arrow = 14;
+	static constexpr uint32_t texture_province_fow = 15;
+	static constexpr uint32_t texture_coastal_border = 16;
+	static constexpr uint32_t texture_diag_border_identifier = 17;
+	static constexpr uint32_t texture_railroad = 18;
+	static constexpr uint32_t texture_count = 19;
+	GLuint textures[texture_count] = { 0 };
+	// Texture Array
+	static constexpr uint32_t texture_array_terrainsheet = 0;
+	static constexpr uint32_t texture_array_province_color = 1;
+	static constexpr uint32_t texture_array_count = 2;
+	GLuint texture_arrays[texture_array_count] = { 0 };
 	// Shaders
-	GLuint terrain_shader = 0;
-	GLuint line_border_shader = 0;
-	GLuint line_river_shader = 0;
-	GLuint line_unit_arrow_shader = 0;
-	GLuint text_line_shader = 0;
-	GLuint drag_box_shader = 0;
+	static constexpr uint32_t shader_terrain = 0;
+	static constexpr uint32_t shader_line_border = 1;
+	static constexpr uint32_t shader_textured_line = 2;
+	static constexpr uint32_t shader_line_unit_arrow = 3;
+	static constexpr uint32_t shader_text_line = 4;
+	static constexpr uint32_t shader_drag_box = 5;
+	static constexpr uint32_t shader_borders = 6;
+	static constexpr uint32_t shader_railroad_line = 7;
+	static constexpr uint32_t shader_count = 8;
+	GLuint shaders[shader_count] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
@@ -193,14 +228,24 @@ public:
 	void load_terrain_data(parsers::scenario_building_context& context);
 	void load_median_terrain_type(parsers::scenario_building_context& context);
 
+	uint16_t safe_get_province(glm::ivec2 pt);
+	void make_coastal_borders(sys::state& state, std::vector<bool>& visited);
+	void make_borders(sys::state& state, std::vector<bool>& visited);
+
 	void load_shaders(simple_fs::directory& root);
 	void create_meshes();
 	void gen_prov_color_texture(GLuint texture_handle, std::vector<uint32_t> const& prov_color, uint8_t layers = 1);
+
+	void create_curved_river_vertices(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, std::vector<uint8_t> const& terrain_data);
 };
 
-std::vector<border_vertex> create_river_vertices(display_data const& data, parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data);
-void make_navy_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
-void make_army_path(sys::state& state, std::vector<map::unit_arrow_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
+void load_river_crossings(parsers::scenario_building_context& context, std::vector<uint8_t> const& river_data, glm::ivec2 map_size);
+
+void make_navy_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::navy_id selected_navy, float size_x, float size_y);
+void make_army_path(sys::state& state, std::vector<map::curved_line_vertex>& buffer, dcon::army_id selected_army, float size_x, float size_y);
+glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
+void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
+void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
 
 image load_stb_image(simple_fs::file& file);
 } // namespace map

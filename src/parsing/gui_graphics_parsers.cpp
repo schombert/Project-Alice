@@ -404,7 +404,11 @@ void button::buttontext(association_type, std::string_view txt, error_handler& e
 	} else {
 		auto new_key = context.full_state.add_to_pool_lowercase(txt);
 		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.push_back(new_key);
+		context.full_state.text_components.emplace_back(new_key);
+		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
+			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
+		}
+
 		auto seq_size = context.full_state.text_sequences.size();
 		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
 		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
@@ -511,7 +515,11 @@ void textbox::text(association_type, std::string_view txt, error_handler& err, i
 	} else {
 		auto new_key = context.full_state.add_to_pool_lowercase(txt);
 		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.push_back(new_key);
+		context.full_state.text_components.emplace_back(new_key);
+		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
+			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
+		}
+
 		auto seq_size = context.full_state.text_sequences.size();
 		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
 		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));

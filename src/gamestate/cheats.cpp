@@ -27,10 +27,10 @@ void execute_c_switch_nation(sys::state& state, dcon::nation_id source, dcon::na
 	if(bool(source) && source != state.national_definitions.rebel_id) {
 		state.world.nation_set_is_player_controlled(source, false);
 	}
+	if(source == state.local_player_nation) {
+		state.local_player_nation = target;
+	}
 	if(bool(target) && target != state.national_definitions.rebel_id) {
-		if(source == state.local_player_nation) {
-			state.local_player_nation = target;
-		}
 		state.world.nation_set_is_player_controlled(target, true);
 		ai::remove_ai_data(state, target);
 	}
@@ -161,7 +161,7 @@ void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, source, 0, 0);
+	event::trigger_national_event(state, e, source, state.current_date.value, id ^ source.index());
 }
 void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
 	payload p;
@@ -185,7 +185,7 @@ void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, as, 0, 0);
+	event::trigger_national_event(state, e, as, state.current_date.value, id ^ as.index());
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;

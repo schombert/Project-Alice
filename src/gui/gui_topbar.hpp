@@ -200,7 +200,8 @@ public:
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
 		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change * 30.f});
-		auto avg_literacy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
+		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -488,11 +489,11 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto mil_change = demographics::get_estimated_mil_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
+				text::fp_two_places{total != 0.f ? state.world.nation_get_demographics(nation_id, demographics::militancy) / total : 0.f});
 		text::add_to_substitution_map(sub, text::variable_type::val,
-				text::fp_four_places{mil_change * 30.f});
+				text::fp_four_places{mil_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -529,10 +530,10 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto con_change = demographics::get_estimated_con_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change * 30.f});
+				text::fp_two_places{total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1613,8 +1614,10 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbar_bg") { //TODO: maybe create topbar_background class with mouse_test() function that makes the edges for showing tooltip a little nicer
-			return make_element_by_type<opaque_element_base>(state, id);
+		if(name == "topbar_bg") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
+		} else if(name == "topbar_paper") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 

@@ -281,18 +281,14 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::factory_type_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::factory_type_id>(payload);
-			auto fat = dcon::fatten(state.world, content);
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
 
-			auto layout = text::create_endless_layout(internal_layout,
-					text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
-			auto box = text::open_layout_box(layout, 0);
-			text::add_to_layout_box(state, layout, box, fat.get_description());
-			text::close_layout_box(layout, box);
-		}
+		auto layout = text::create_endless_layout(internal_layout,
+				text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
+		auto box = text::open_layout_box(layout, 0);
+		text::add_to_layout_box(state, layout, box, fat.get_description());
+		text::close_layout_box(layout, box);
 	}
 };
 

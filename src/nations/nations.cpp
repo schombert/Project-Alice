@@ -584,10 +584,10 @@ void update_great_powers(sys::state& state) {
 			});
 		}
 	}
-	
+
 	for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count) && state.great_nations.size() < size_t(state.defines.great_nations_count); ++i) {
 		auto n = state.nations_by_rank[i];
-		if(n && !state.world.nation_get_is_great_power(n)) {
+		if(n && !state.world.nation_get_is_great_power(n) && state.world.nation_get_owned_province_count(n) > 0) {
 			at_least_one_added = true;
 			state.world.nation_set_is_great_power(n, true);
 			state.great_nations.push_back(sys::great_nation(state.current_date, n));
@@ -942,6 +942,36 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
 }
 
+void update_revanchism(sys::state& state) {
+	/*
+	- revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most
+	population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number
+	of your cores to get your revanchism percentage
+	*/
+	for(auto n : state.world.in_nation) {
+		auto owned = n.get_province_ownership();
+		if(owned.begin() != owned.end()) {
+			auto pc = n.get_primary_culture();
+			int32_t total_num_cores = 0;
+			float rpts = 0.0f;
+			for(auto core : n.get_identity_from_identity_holder().get_core()) {
+				++total_num_cores;
+				if(core.get_province().get_nation_from_province_ownership() != n) {
+					if(core.get_province().get_dominant_culture() == pc)
+						rpts += 1.0f;
+					else
+						rpts += 0.25f;
+				}
+			}
+			if(total_num_cores > 0) {
+				n.set_revanchism(rpts / float(total_num_cores));
+			} else {
+				n.set_revanchism(0.0f);
+			}
+		}
+	}
+}
+
 void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
@@ -1033,33 +1063,7 @@ void update_monthly_points(sys::state& state) {
 		}
 	}
 
-	/*
-	- revanchism: you get one point per unowned core if your primary culture is the dominant culture (culture with the most
-	population) in the province, 0.25 points if it is not the dominant culture, and then that total is divided by the total number
-	of your cores to get your revanchism percentage
-	*/
-	for(auto n : state.world.in_nation) {
-		auto owned = n.get_province_ownership();
-		if(owned.begin() != owned.end()) {
-			auto pc = n.get_primary_culture();
-			int32_t total_num_cores = 0;
-			float rpts = 0.0f;
-			for(auto core : n.get_identity_from_identity_holder().get_core()) {
-				++total_num_cores;
-				if(core.get_province().get_nation_from_province_ownership() != n) {
-					if(core.get_province().get_dominant_culture() == pc)
-						rpts += 1.0f;
-					else
-						rpts += 0.25f;
-				}
-			}
-			if(total_num_cores > 0) {
-				n.set_revanchism(rpts / float(total_num_cores));
-			} else {
-				n.set_revanchism(0.0f);
-			}
-		}
-	}
+	update_revanchism(state);
 }
 
 float get_treasury(sys::state& state, dcon::nation_id n) {
@@ -1071,7 +1075,8 @@ float get_bank_funds(sys::state& state, dcon::nation_id n) {
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	return 0.0f;
+	auto v = state.world.nation_get_stockpiles(n, economy::money);
+	return v < 0.0f ? -v : 0.0f;
 }
 
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
@@ -1267,8 +1272,11 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 		state.world.delete_leader((*leaders.begin()).get_leader());
 	}
 
-	for(auto ss : state.world.nation_get_overlord_as_ruler(n)) {
-		ss.get_subject().set_is_substate(false);
+	auto ss_range = state.world.nation_get_overlord_as_ruler(n);
+	while(ss_range.begin() != ss_range.end()) {
+		auto subj = (*ss_range.begin()).get_subject();
+		subj.set_is_substate(false);
+		nations::release_vassal(state, (*ss_range.begin()));
 	}
 
 	auto ol = state.world.nation_get_overlord_as_subject(n);
@@ -1368,9 +1376,9 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 			state.world.nation_get_substates_count(ol)--;
 		}
 		state.world.nation_get_vassals_count(ol)--;
+		state.world.delete_overlord(rel);
 		politics::update_displayed_identity(state, vas);
 		// TODO: notify player
-		state.world.delete_overlord(rel);
 	}
 }
 

@@ -40,7 +40,7 @@ struct gfx_xy_pair {
 	void free_value(int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
 		if(context.on_second_pair_y) {
 			if(y != 0) {
-				err.accumulated_errors += "More than 2 elements for pair " + err.file_name + " line " + std::to_string(line) + "\n"; 
+				err.accumulated_errors += "More than 2 elements for pair " + err.file_name + " line " + std::to_string(line) + "\n";
 			}
 			y = v;
 		} else {
@@ -655,14 +655,16 @@ public:
 	MOD_PROV_FUNCTION(mine_rgo_eff)
 	MOD_PROV_FUNCTION(farm_rgo_size)
 	MOD_PROV_FUNCTION(mine_rgo_size)
+	MOD_PROV_FUNCTION(conversion_rate)
+	MOD_NAT_FUNCTION(global_conversion_rate)
 	template<typename T>
 	void m_rgo_size(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; 
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::farm_rgo_size;
-			constructed_definition_p.values[next_to_add_p] = v; 
+			constructed_definition_p.values[next_to_add_p] = v;
 			++next_to_add_p;
 		}
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
@@ -949,6 +951,12 @@ public:
 			} else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::supply_limit) {
 				if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
 					temp.offsets[temp_next] = sys::national_mod_offsets::supply_limit;
+					temp.values[temp_next] = constructed_definition_p.values[i];
+					++temp_next;
+				}
+			}  else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::conversion_rate) {
+				if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+					temp.offsets[temp_next] = sys::national_mod_offsets::global_conversion_rate;
 					temp.values[temp_next] = constructed_definition_p.values[i];
 					++temp_next;
 				}
@@ -2584,7 +2592,7 @@ struct war_history_file {
 void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
 
 struct mod_file_context {
-	
+
 };
 
 struct dependencies_list {

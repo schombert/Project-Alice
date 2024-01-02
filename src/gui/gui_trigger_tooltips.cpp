@@ -2435,7 +2435,7 @@ void tf_has_country_flag(TRIGGER_DISPLAY_PARAMS) {
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0],
 			text::produce_simple_string(ws, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]),
-			text::produce_simple_string(ws, "set"), ws, layout, box);
+			text::produce_simple_string(ws, "att_set"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_continent_province(TRIGGER_DISPLAY_PARAMS) {
@@ -3290,14 +3290,14 @@ void tf_plurality(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "plurality"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 1) / 100.0f}, ws, layout, box);
+			text::fp_percentage{trigger::read_float_from_payload(tval + 1) / 10000.0f}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_plurality_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "plurality_pop"),
-			text::fp_percentage{ trigger::read_float_from_payload(tval + 1) / 100.0f }, ws, layout, box);
+			text::fp_percentage{ trigger::read_float_from_payload(tval + 1) / 10000.0f }, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_corruption(TRIGGER_DISPLAY_PARAMS) {
