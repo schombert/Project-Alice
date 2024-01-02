@@ -2910,10 +2910,10 @@ TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 	return compare_values(tval[0], result, int32_t(tval[1]));
 }
 TRIGGER_FUNCTION(tf_plurality) {
-	return compare_values(tval[0], ws.world.nation_get_plurality(to_nation(primary_slot)), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_plurality(to_nation(primary_slot)), read_float_from_payload(tval + 1) / 100.0f);
 }
 TRIGGER_FUNCTION(tf_plurality_pop) {
-	return compare_values(tval[0], ws.world.nation_get_plurality(nations::owner_of_pop(ws, to_pop(primary_slot))), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_plurality(nations::owner_of_pop(ws, to_pop(primary_slot))), read_float_from_payload(tval + 1) / 100.0f);
 }
 TRIGGER_FUNCTION(tf_corruption) {
 	return compare_values(tval[0], nations::central_has_crime_fraction(ws, to_nation(primary_slot)),
