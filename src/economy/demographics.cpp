@@ -120,10 +120,9 @@ void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_k
 
 void regenerate_jingoism_support(sys::state& state, dcon::nation_id n) {
 	auto const sz = common_size(state);
+	dcon::demographics_key key = to_key(state, state.culture_definitions.jingoism);
+	auto pdemo_key = pop_demographics::to_key(state, state.culture_definitions.jingoism);
 	for(const auto pc : state.world.nation_get_province_control_as_nation(n)) {
-		dcon::demographics_key key = to_key(state, state.culture_definitions.jingoism);
-		dcon::issue_option_id pkey{ dcon::issue_option_id::value_base_t(state.world.pop_type_size() * 2 + state.world.culture_size() + state.world.ideology_size()) };
-		auto pdemo_key = pop_demographics::to_key(state, pkey);
 		sum_over_single_nation_demographics(state, key, n, [pdemo_key](sys::state const& state, dcon::pop_id p) {
 			return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
 		});
