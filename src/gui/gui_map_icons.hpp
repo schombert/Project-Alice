@@ -1171,7 +1171,6 @@ public:
 		display.attacker_casualties = 0.0f;
 		display.defender_casualties = 0.0f;
 		display.player_is_attacker = false;
-		display.recently_changed_casualties = state.world.land_battle_get_recently_changed_casualties(lbattle);
 
 
 		if(lbattle) {
@@ -1567,11 +1566,6 @@ public:
 				if(by_icon_count[max_index] > 0)
 					display.common_unit_2 = int8_t(max_index);
 			}
-		}
-
-		if(display.recently_changed_casualties) {
-			//set to false
-			state.world.land_battle_set_recently_changed_casualties(lbattle, 0);
 		}
 	}
 
