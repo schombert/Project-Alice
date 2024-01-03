@@ -4,7 +4,7 @@ Downloads gibt es [hier im Project Alice Repo](https://github.com/schombert/Proj
 
 Wählt einfach die Version aus die Ihr Euch herunterladen möchtet. Meistens wird das wohl die neueste Version ganz oben sein.
 
-Pro Version stehen mindestens 3 Dateien zur Verfügung, Zwei sind der Quellcode als ZIP und TAR, die sind höchstwahrscheinlich nicht nützlich für Euch - und wenn doch, dann solltet Ihr Euch docs/contributing.md anschauen. Also einfach die obere Datei herunterladen die kein Quellcode ist.
+Pro Version stehen mindestens 3 Dateien zur Verfügung. Zwei davon sind der Quellcode als ZIP und TAR. Diese beiden sind höchstwahrscheinlich nicht nützlich für Euch - und wenn doch, dann solltet Ihr Euch docs/contributing.md anschauen. Also einfach die obere Datei herunterladen, die kein Quellcode ist.
 
 ![image](https://github.com/schombert/Project-Alice/assets/39974089/a32e10a5-8caf-4c0c-8aab-b141736a41e3)
 
