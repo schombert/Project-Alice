@@ -325,6 +325,7 @@ static void disconnect_client(sys::state& state, client_data& client) {
 	socket_shutdown(client.socket_fd);
 	client.socket_fd = 0;
 	client.send_buffer.clear();
+	client.early_send_buffer.clear();
 	client.total_sent_bytes = 0;
 	client.save_stream_size = 0;
 	client.save_stream_offset = 0;
@@ -380,6 +381,26 @@ static void receive_from_clients(sys::state& state) {
 					if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
 						tmp = client.send_buffer;
 						client.send_buffer.clear();
+					}
+					/* Send the savefile to the newly connected client (if not a new game) */
+					if(!state.network_state.is_new_game) {
+						command::payload c;
+						memset(&c, 0, sizeof(command::payload));
+						c.type = command::command_type::notify_save_loaded;
+						c.source = state.local_player_nation;
+						c.data.notify_save_loaded.target = client.playing_as;
+						network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
+					}
+					/* Tell this client about every other client */
+					for(const auto n : state.world.in_nation) {
+						if(n.get_is_player_controlled()) {
+							command::payload c;
+							memset(&c, 0, sizeof(c));
+							c.type = command::command_type::notify_player_joins;
+							c.source = n;
+							c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+							socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+						}
 					}
 					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
 						command::payload c;
@@ -574,29 +595,7 @@ static void accept_new_clients(sys::state& state) {
 				hshake.assigned_nation = client.playing_as;
 				hshake.scenario_checksum = state.scenario_checksum;
 				hshake.save_checksum = state.get_save_checksum();
-				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
-			}
-			if(state.mode == sys::game_mode_type::pick_nation) {
-				/* Send the savefile to the newly connected client (if not a new game) */
-				if(!state.network_state.is_new_game) {
-					command::payload c;
-					memset(&c, 0, sizeof(command::payload));
-					c.type = command::command_type::notify_save_loaded;
-					c.source = state.local_player_nation;
-					c.data.notify_save_loaded.target = client.playing_as;
-					network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
-				}
-				/* Tell this client about every other client */
-				for(const auto n : state.world.in_nation) {
-					if(n.get_is_player_controlled()) {
-						command::payload c;
-						memset(&c, 0, sizeof(c));
-						c.type = command::command_type::notify_player_joins;
-						c.source = n;
-						c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-						socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-					}
-				}
+				socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 			}
 			return;
 		}
@@ -642,11 +641,19 @@ void send_and_receive_commands(sys::state& state) {
 
 		for(auto& client : state.network_state.clients) {
 			if(client.is_active()) {
-				size_t old_size = client.send_buffer.size();
-				if(socket_send(client.socket_fd, client.send_buffer) < 0) { // error
-					disconnect_client(state, client);
+				if(client.handshake) {
+					size_t old_size = client.early_send_buffer.size();
+					if(socket_send(client.socket_fd, client.early_send_buffer) < 0) { // error
+						disconnect_client(state, client);
+					}
+					client.total_sent_bytes += old_size - client.early_send_buffer.size();
+				} else {
+					size_t old_size = client.send_buffer.size();
+					if(socket_send(client.socket_fd, client.send_buffer) < 0) { // error
+						disconnect_client(state, client);
+					}
+					client.total_sent_bytes += old_size - client.send_buffer.size();
 				}
-				client.total_sent_bytes += old_size - client.send_buffer.size();
 			}
 		}
 	} else if(state.network_mode == sys::network_mode_type::client) {
@@ -790,6 +797,7 @@ void send_and_receive_commands(sys::state& state) {
 				std::abort();
 			}
 		}
+		assert(state.network_state.early_send_buffer.empty()); //do not use the early send buffer
 	}
 
 	if(command_executed) {

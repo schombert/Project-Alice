@@ -83,6 +83,7 @@ struct network_state {
 	command::payload recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
+	std::vector<char> early_send_buffer;
 	/* Data to send new clients who join the lobby, replaying the commands of the host as they occurred */
 	std::vector<char> new_client_send_buffer;
 
