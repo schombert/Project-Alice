@@ -367,6 +367,7 @@ struct user_settings_s {
 	float gamma = 1.f;
 	bool railroads_enabled = true;
 	bool rivers_enabled = true;
+	bool instant_research_enabled = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
