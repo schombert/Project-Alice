@@ -200,7 +200,7 @@ public:
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
 				/* Save the buffer before we fill the unsaved data */
-				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer, state.network_state.current_save_checksum);
 				state.local_player_nation = dcon::nation_id{ };
 				state.fill_unsaved_data();
 				for(const auto n : players)
@@ -214,7 +214,7 @@ public:
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
 			} else {
 				state.fill_unsaved_data();
 			}
