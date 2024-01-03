@@ -10,7 +10,7 @@ Mehr Informationen gibt es in docs/contributing.md! Dort wird erklärt wie man da
 
 Das Ziel von Project Alice (nach [Alice Roosevelt Longworth](https://en.wikipedia.org/wiki/Alice_Roosevelt_Longworth) bennant) ist es, eine neue Version von [open v2](https://github.com/schombert/Open-V2) zu schaffen -- mein früherer Versuch einen Victoria 2 Klon zu erstellen -- und dann eine vollständige und vollständig funktionierende Version des Spiels zu schaffen. Das bedeutet, dass es zumindest anfänglich nur wenige Unterschiede zu Victoria 2 geben wird, um das Projekt fokussiert und auf Schiene zu halten. Sobald die Version 1.0 Vollendet ist, wird sie uns als Sprungbrett für neue Experimente dienen. Stand Juli 2023 habe ich praktisch das Stadium von open v2 erreicht, ausgenommen weniger UI-Mängel.
 
-Ich hoffe Leute zu finden, die ein Kunst-Team bilden, um Ressourcen aus Victoria 2 zu ersetzen und diesem Projekt einen eigenen Kunststil und Wiedererkennungswert geben. Ich weiß, dass das eine schwere Aufgabe ist, aber zumindest wird keine 3D-Modellierung benötgt. Wir haben bereits Zugriff auf neue Flaggen die wir nutzen können, dank dem SOE Projekt.
+Ich hoffe Leute zu finden, die ein Kunst-Team bilden, um Ressourcen aus Victoria 2 zu ersetzen und diesem Projekt einen eigenen Kunststil und Wiedererkennungswert geben. Ich weiß, dass das eine schwere Aufgabe ist, aber zumindest wird keine 3D-Modellierung benötigt. Wir haben bereits Zugriff auf neue Flaggen die wir nutzen können, dank dem SOE Projekt.
 
 ### Vergleich mit anderen Projekten
 
