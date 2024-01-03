@@ -1191,7 +1191,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
 	case command_info::type::instant_research:
-		state.user_settings.instant_research_enabled = !state.user_settings.instant_research_enabled;
+		command::c_instant_research(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;

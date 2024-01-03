@@ -3899,8 +3899,7 @@ void state::single_game_tick() {
 			break;
 		case 1:
 			// Instant research cheat
-			if(this->user_settings.instant_research_enabled) {
-				auto n = this->local_player_nation;
+			for(auto n: this->cheat_data.instant_research_nations) {
 				auto tech = this->world.nation_get_current_research(n);
 				if(tech.is_valid()) {
 					float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);

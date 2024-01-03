@@ -367,7 +367,6 @@ struct user_settings_s {
 	float gamma = 1.f;
 	bool railroads_enabled = true;
 	bool rivers_enabled = true;
-	bool instant_research_enabled = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -377,6 +376,7 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
+	std::vector<dcon::nation_id> instant_research_nations;
 };
 
 struct crisis_member_def {
