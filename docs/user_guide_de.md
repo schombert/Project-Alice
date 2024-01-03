@@ -1,6 +1,6 @@
 # Download
 
-Downloads gibt es [hier im Project Alice Repo]https://github.com/schombert/Project-Alice/releases
+Downloads gibt es [hier im Project Alice Repo](https://github.com/schombert/Project-Alice/releases)
 
 Wählt einfach die Version aus die Ihr Euch herunterladen möchtet. Meistens wird das wohl die neueste Version ganz oben sein.
 
