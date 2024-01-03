@@ -306,13 +306,13 @@ void c_instant_research(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
-	auto element = std::find(
+	auto pos = std::find(
 		state.cheat_data.instant_research_nations.begin(),
 		state.cheat_data.instant_research_nations.end(),
 		source
-	);
-	if(element != state.cheat_data.instant_research_nations.end()) {
-		state.cheat_data.instant_research_nations.erase(element);
+);
+	if(pos != state.cheat_data.instant_research_nations.end()) {
+		state.cheat_data.instant_research_nations.erase(pos);
 	} else {
 		state.cheat_data.instant_research_nations.push_back(source);
 	}
