@@ -21,7 +21,7 @@ Platziert all diese Dateien in Euer Victoria 2 Verzeichnis. Das sollte dann so a
 Dann einfach `launch_alice` ausführen.
 
 - `Alice`: Das Spiel. Nicht direkt ausführen.
-- `launch_alice`: Der Launcher. Immer create scenario drücken wenn Ihr was an den Mods ändert.
+- `launch_alice`: Der Launcher. Immer (re)create scenario drücken wenn Ihr was an den Mods ändert.
 - `dbg_alice`: Hilft beim Debuggen. Ist optional und wird nicht zum Spielen des Spiels benötigt.
 - `readme OR ELSE.txt`: Das Readme. Ist optional und wird nicht zum Spielen des Spiels benötigt.
 - `assets`: Wird gebraucht um Alice korrekt auszuführen.
