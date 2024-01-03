@@ -676,8 +676,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	// Render standing objects
-	glCullFace(GL_FRONT);
-	glFrontFace(GL_CW);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glDepthFunc(GL_LESS);
 	load_shader(shaders[shader_map_standing_object]);
 	glUniform1f(4, time_counter);
 	glBindVertexArray(vao_array[vo_static_mesh]);
@@ -704,8 +705,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform2f(12, p1.x, p1.y);
 		glDrawArrays(GL_TRIANGLES, static_mesh_starts[6], static_mesh_counts[6]);
 	});
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW);
+	glDisable(GL_DEPTH_TEST);
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(shaders[shader_text_line]);
