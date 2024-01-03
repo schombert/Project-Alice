@@ -4177,6 +4177,10 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
+
+	/* Hotjoin */
+	if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states)
+		ai::remove_ai_data(state, source);
 }
 
 void notify_player_leaves(sys::state& state, dcon::nation_id source) {

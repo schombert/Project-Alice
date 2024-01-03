@@ -376,6 +376,9 @@ static void receive_from_clients(sys::state& state) {
 						disconnect_client(state, client);
 						return;
 					}
+					if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
+						client.send_buffer.clear();
+					}
 					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
 						command::payload c;
 						memset(&c, 0, sizeof(c));
@@ -419,6 +422,19 @@ static void receive_from_clients(sys::state& state) {
 								}
 							}
 						}
+						if(!state.network_state.is_new_game) {
+							/* Tell this client about every other client */
+							for(const auto n : state.world.in_nation) {
+								if(n.get_is_player_controlled()) {
+									command::payload c;
+									memset(&c, 0, sizeof(c));
+									c.type = command::command_type::notify_player_joins;
+									c.source = n;
+									c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+									socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+								}
+							}
+						}
 						/* Send the savefile to the newly connected client (if not a new game) */
 						if(!state.network_state.is_new_game) {
 							command::payload c;
@@ -427,17 +443,6 @@ static void receive_from_clients(sys::state& state) {
 							c.source = state.local_player_nation;
 							c.data.notify_save_loaded.target = client.playing_as;
 							network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
-						}
-						/* Tell this client about every other client */
-						for(const auto n : state.world.in_nation) {
-							if(n.get_is_player_controlled()) {
-								command::payload c;
-								memset(&c, 0, sizeof(c));
-								c.type = command::command_type::notify_player_joins;
-								c.source = n;
-								c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-								socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
-							}
 						}
 						command::payload c;
 						memset(&c, 0, sizeof(c));
