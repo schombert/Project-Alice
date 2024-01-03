@@ -123,6 +123,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		int num_params = 0;
 		auto parsed_cmd = CommandLineToArgvW(GetCommandLineW(), &num_params);
 
+		bool headless = false;
 		if(num_params < 2) {
 #ifdef NDEBUG
 			auto msg = std::string("Start Alice.exe using the launcher");
@@ -190,6 +191,8 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					game_state.network_state.as_v6 = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
 					game_state.network_state.as_v6 = false;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-headless")) {
+					headless = true;
 				}
 			}
 
@@ -211,14 +214,21 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		text::load_bmfonts(game_state);
 		ui::populate_definitions_map(game_state);
 
-		std::thread update_thread([&]() { game_state.game_loop(); });
+		if(headless) {
+			game_state.actual_game_speed = 6;
+			game_state.ui_pause.store(false, std::memory_order::release);
+			game_state.mode = sys::game_mode_type::in_game;
+			game_state.local_player_nation = dcon::nation_id{};
+			game_state.game_loop();
+		} else {
+			std::thread update_thread([&]() { game_state.game_loop(); });
+			// entire game runs during this line
+			window::create_window(game_state,
+					window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
+			game_state.quit_signaled.store(true, std::memory_order_release);
+			update_thread.join();
+		}
 
-		// entire game runs during this line
-		window::create_window(game_state,
-				window::creation_parameters{1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen});
-
-		game_state.quit_signaled.store(true, std::memory_order_release);
-		update_thread.join();
 		CoUninitialize();
 	}
 	return 0;
