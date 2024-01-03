@@ -395,6 +395,7 @@ static void receive_from_clients(sys::state& state) {
 					case command::command_type::notify_player_ban:
 					case command::command_type::notify_player_kick:
 					case command::command_type::notify_save_loaded:
+					case command::command_type::notify_reload:
 					case command::command_type::advance_tick:
 					case command::command_type::notify_start_game:
 					case command::command_type::notify_stop_game:
@@ -484,8 +485,7 @@ static void accept_new_clients(sys::state& state) {
 				disconnect_client(state, client);
 				break;
 			}
-			/* Do not allow players to join mid-session, they have to go back to the lobby */
-			if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
+			if(state.mode == sys::game_mode_type::end_screen) {
 				disconnect_client(state, client);
 				break;
 			}
@@ -500,6 +500,42 @@ static void accept_new_clients(sys::state& state) {
 				hshake.save_checksum = state.get_save_checksum();
 				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 			}
+			/* Players that join mid-game cause all clients to reload */
+			if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
+				if(!state.network_state.is_new_game) {
+					std::vector<dcon::nation_id> players;
+					for(const auto n : state.world.in_nation)
+						if(state.world.nation_get_is_player_controlled(n))
+							players.push_back(n);
+					dcon::nation_id old_local_player_nation = state.local_player_nation;
+					state.local_player_nation = dcon::nation_id{ };
+					/* Save the buffer before we fill the unsaved data */
+					state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+					/* Then reload as if we loaded the save data */
+					state.preload();
+					with_network_decompressed_section(state.network_state.current_save_buffer.get(), [&state](uint8_t const* ptr_in, uint32_t length) {
+						read_save_section(ptr_in, ptr_in + length, state);
+					});
+					assert(state.local_player_nation == dcon::nation_id{});
+					state.fill_unsaved_data();
+					for(const auto n : players)
+						state.world.nation_set_is_player_controlled(n, true);
+					state.local_player_nation = old_local_player_nation;
+					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+					/* Reload all the other clients except the newly connected one */
+					command::payload c;
+					memset(&c, 0, sizeof(command::payload));
+					c.type = command::command_type::notify_reload;
+					c.source = state.local_player_nation;
+					c.data.notify_reload.checksum = state.get_save_checksum();
+					for(auto& other_client : state.network_state.clients) {
+						if(other_client.playing_as != client.playing_as) {
+							socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
+						}
+					}
+				}
+			}
+			/* Send the savefile to the newly connected client (if not a new game) */
 			if(!state.network_state.is_new_game) {
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
