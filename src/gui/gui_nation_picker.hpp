@@ -199,9 +199,9 @@ public:
 			   with different outcomes :D */
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
-				state.local_player_nation = dcon::nation_id{ };
 				/* Save the buffer before we fill the unsaved data */
 				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+				state.local_player_nation = dcon::nation_id{ };
 				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);

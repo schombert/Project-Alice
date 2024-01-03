@@ -54,6 +54,7 @@ struct client_data {
 	command::payload recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
+	std::vector<char> early_send_buffer;
 
 	// accounting for save progress
 	size_t total_sent_bytes = 0;
