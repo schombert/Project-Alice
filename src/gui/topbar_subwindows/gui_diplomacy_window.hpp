@@ -917,14 +917,18 @@ public:
 
 class nation_accepted_cultures : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
-		auto ac = state.world.nation_get_accepted_cultures(retrieve<dcon::nation_id>(state, parent));
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		bool first = true;
 		std::string t;
-		if(ac.size() > 0) {
-			t += text::produce_simple_string(state, state.world.culture_get_name(ac[0]));
-		}
-		for(uint32_t i = 1; i < ac.size(); ++i) {
-			t += ", " ;
-			t += text::produce_simple_string(state, state.world.culture_get_name(ac[i]));
+		for(const auto ac : state.world.in_culture) {
+			if(state.world.nation_get_accepted_cultures(n, ac)) {
+				if(first) {
+					first = false;
+				} else {
+					t += ", ";
+				}
+				t += text::produce_simple_string(state, state.world.culture_get_name(ac));
+			}
 		}
 		set_text(state, text::produce_simple_string(state, t));
 	}
@@ -932,9 +936,10 @@ class nation_accepted_cultures : public simple_text_element_base {
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto ac = state.world.nation_get_accepted_cultures(retrieve<dcon::nation_id>(state, parent));
-		for(const auto c : ac) {
-			text::add_line(state, contents, "is_accepted_culture2", text::variable_type::name, state.world.culture_get_name(c));
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		for(const auto c : state.world.in_culture) {
+			if(state.world.nation_get_accepted_cultures(n, c))
+				text::add_line(state, contents, "is_accepted_culture2", text::variable_type::name, state.world.culture_get_name(c));
 		}
 	}
 };

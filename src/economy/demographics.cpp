@@ -24,12 +24,9 @@ void regenerate_is_primary_or_accepted(sys::state& state) {
 			state.world.pop_set_is_primary_or_accepted_culture(p, true);
 			return;
 		}
-		auto accepted = state.world.nation_get_accepted_cultures(n);
-		for(auto c : accepted) {
-			if(c == state.world.pop_get_culture(p)) {
-				state.world.pop_set_is_primary_or_accepted_culture(p, true);
-				return;
-			}
+		if(state.world.nation_get_accepted_cultures(n, state.world.pop_get_culture(p)) == true) {
+			state.world.pop_set_is_primary_or_accepted_culture(p, true);
+			return;
 		}
 	});
 }
@@ -96,6 +93,41 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 }
 
 inline constexpr uint32_t extra_demo_grouping = 8;
+
+template<typename F>
+void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_key key, dcon::nation_id n, F const& source) {
+	// clear province
+	for(auto pc : state.world.nation_get_province_control_as_nation(n)) {
+		auto location = pc.get_province();
+		state.world.province_set_demographics(location, key, 0.f);
+		for(auto pl : pc.get_province().get_pop_location_as_province()) {
+			state.world.province_get_demographics(location, key) += source(state, pl.get_pop());
+		}
+	}
+	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
+		auto location = sc.get_state();
+		state.world.state_instance_set_demographics(location, key, 0.f);
+		for(auto sm : sc.get_state().get_definition().get_abstract_state_membership()) {
+			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(sm.get_province(), key);
+		}
+		
+	}
+	state.world.nation_set_demographics(n, key, 0.f);
+	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
+		state.world.nation_get_demographics(n, key) += state.world.state_instance_get_demographics(sc.get_state(), key);
+	}
+}
+
+void regenerate_jingoism_support(sys::state& state, dcon::nation_id n) {
+	auto const sz = common_size(state);
+	dcon::demographics_key key = to_key(state, state.culture_definitions.jingoism);
+	auto pdemo_key = pop_demographics::to_key(state, state.culture_definitions.jingoism);
+	for(const auto pc : state.world.nation_get_province_control_as_nation(n)) {
+		sum_over_single_nation_demographics(state, key, n, [pdemo_key](sys::state const& state, dcon::pop_id p) {
+			return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
+		});
+	}
+}
 
 template<bool full>
 void regenerate_from_pop_data(sys::state& state) {
@@ -646,11 +678,11 @@ void regenerate_from_pop_data(sys::state& state) {
 		case 16:
 		{
 			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
-
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
+
 			state.world.for_each_culture([&](dcon::culture_id c) {
 				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
 					auto v = state.world.province_get_demographics(p, key);
@@ -2204,12 +2236,8 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 		if(state.world.nation_get_primary_culture(n) == cid) {
 			np.set_is_primary_or_accepted_culture(true);
 		} else {
-			auto accepted = state.world.nation_get_accepted_cultures(n);
-			for(auto c : accepted) {
-				if(c == cid) {
-					np.set_is_primary_or_accepted_culture(true);
-					break;
-				}
+			if(state.world.nation_get_accepted_cultures(n, cid) == true) {
+				np.set_is_primary_or_accepted_culture(true);
 			}
 		}
 	}

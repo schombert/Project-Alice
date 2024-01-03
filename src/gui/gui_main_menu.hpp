@@ -91,6 +91,11 @@ public:
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };
+class river_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
 
 class map_label_left : public button_element_base {
 public:
@@ -221,6 +226,8 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<fow_checkbox>(state, id);
 		} else if(name == "railroad_checkbox") {
 			return make_element_by_type<railroad_checkbox>(state, id);
+		} else if(name == "river_checkbox") {
+			return make_element_by_type<river_checkbox>(state, id);
 		} else if(name == "map_label_value") {
 			return make_element_by_type<map_label_display>(state, id);
 		} else if(name == "map_label_left") {

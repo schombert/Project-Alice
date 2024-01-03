@@ -161,7 +161,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// [ x1^0 x1^1 x1^2 x1^3 ]
 			// [ ...  ...  ...  ...  ]
 			// [ xn^0 xn^1 xn^2 xn^3 ]
-			
 			// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
 			// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
 			// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
@@ -210,19 +209,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		bool use_linear = false;
 		if(state.user_settings.map_label == sys::map_label_mode::quadratic || use_quadratic) {
 			// Now lets try quadratic
-
-			/*
-			std::vector<std::array<float, 3>> mx;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					auto e = p2.get_mid_point();
-					e -= basis;
-					e /= ratio;
-					mx.push_back(std::array<float, 3>{ 1.f, e.x, e.x* e.x });
-				}
-			}
-			*/
-
 			glm::mat3x3 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
@@ -265,17 +251,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
 			// Now lets try linear
-			/*
-			std::vector<std::array<float, 2>> mx;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					auto e = p2.get_mid_point();
-					e -= basis;
-					e /= ratio;
-					mx.push_back(std::array<float, 2>{ 1.f, e.x });
-				}
-			}
-			*/
 			glm::mat2x2 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
@@ -290,18 +265,23 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			for(glm::length_t i = 0; i < mo.length(); i++)
 				for(glm::length_t j = 0; j < mo.length(); j++)
 					mo[i] += m0[i][j] * m1[j];
+
 			// y = a + bx
 			// y = mo[0] + mo[1] * x
-			text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
+			auto poly_fn = [&](float x) {
+				return mo[0] + mo[1] * x;
+			};
+			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
+				text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
 		}
 	}
 	map_data.set_text_lines(state, text_data);
 }
 
 void map_state::update(sys::state& state) {
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 	// Set the last_update_time if it hasn't been set yet
-	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
+	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
 
 	update_unit_arrows(state, map_data);

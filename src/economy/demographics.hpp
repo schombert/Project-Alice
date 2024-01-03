@@ -50,6 +50,7 @@ dcon::demographics_key to_employment_key(sys::state const& state, dcon::pop_type
 
 uint32_t size(sys::state const& state);
 
+void regenerate_jingoism_support(sys::state& state, dcon::nation_id n);
 void regenerate_from_pop_data_full(sys::state& state);
 void regenerate_from_pop_data_daily(sys::state& state);
 

@@ -77,7 +77,7 @@ auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
 	auto is_accepted = ve::apply(
 			[&state](dcon::nation_id n, dcon::culture_id c) {
 				if(n)
-					return state.world.nation_get_accepted_cultures(n).contains(c);
+					return state.world.nation_get_accepted_cultures(n, c);
 				else
 					return false;
 			},
@@ -663,8 +663,9 @@ int32_t max_national_focuses(sys::state& state, dcon::nation_id n) {
 	*/
 	float relevant_pop =
 			state.world.nation_get_demographics(n, demographics::to_key(state, state.world.nation_get_primary_culture(n)));
-	for(auto ac : state.world.nation_get_accepted_cultures(n)) {
-		relevant_pop += state.world.nation_get_demographics(n, demographics::to_key(state, ac));
+	for(auto ac : state.world.in_culture) {
+		if(state.world.nation_get_accepted_cultures(n, ac))
+			relevant_pop += state.world.nation_get_demographics(n, demographics::to_key(state, ac));
 	}
 
 	return std::max(1, std::min(int32_t(relevant_pop / state.defines.national_focus_divider),
@@ -1237,7 +1238,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	if(auto cg = tag.get_culture_group_from_cultural_union_of(); cg) {
 		for(auto c : cg.get_culture_group_membership()) {
 			if(c.get_member().id != tag.get_primary_culture().id) {
-				state.world.nation_get_accepted_cultures(n).push_back(c.get_member());
+				state.world.nation_set_accepted_cultures(n, c.get_member(), true);
 			}
 		}
 	}
@@ -2577,8 +2578,6 @@ military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index) {
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
 	auto pc = state.world.nation_get_primary_culture(n);
-	auto accepted = state.world.nation_get_accepted_cultures(n);
-
 	for(auto pr : state.world.nation_get_province_ownership(n)) {
 		for(auto pop : pr.get_province().get_pop_location()) {
 			[&]() {
@@ -2586,11 +2585,9 @@ void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
 					pop.get_pop().set_is_primary_or_accepted_culture(true);
 					return;
 				}
-				for(auto c : accepted) {
-					if(c == pop.get_pop().get_culture()) {
-						pop.get_pop().set_is_primary_or_accepted_culture(true);
-						return;
-					}
+				if(state.world.nation_get_accepted_cultures(n, pop.get_pop().get_culture()) == true) {
+					pop.get_pop().set_is_primary_or_accepted_culture(true);
+					return;
 				}
 				pop.get_pop().set_is_primary_or_accepted_culture(false);
 			}();
