@@ -4409,6 +4409,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
