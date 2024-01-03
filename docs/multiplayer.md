@@ -1,60 +1,60 @@
-## Instrucciones para Multijugador
+## Multiplayer Instructions
 
-### Unirse a una partida
+### Joining a game
 
-Después de iniciar el lanzador, verás algo similar a lo siguiente:
+After you start the launcher, you will see something like the following:
 
-Al igual que en un juego para un solo jugador, primero deberás crear un escenario para la combinación de modificaciones con las que deseas jugar (los botones de Iniciar juego, Hospedar y Unirse estarán desactivados si no lo has hecho). Esta combinación de modificaciones *debe* coincidir con el juego al que intentas unirte (lo que incluye coincidir con la versión de esas modificaciones; recuerda que cambiar los archivos de modificación *no* es suficiente -- también debes reconstruir el escenario).
+As with a single player game, you will first need to create a scenario for the combination of mods you want to play with (the Start game, Host, and Join buttons will be disabled if you have not). This combination of mods *must* match the game that you are trying to join (which includes matching the version of those mods; remember that changing the mod files is *not* enough -- you also need to rebuild the scenario).
 
-Luego, cambia tu nombre de usuario (actualmente, las casillas de texto son un poco complicadas: debes colocar el mouse sobre ellas y luego escribir -- hay un cursor invisible que actúa como si siempre estuviera al final del texto) e ingresa la dirección IP del anfitrión al que deseas conectarte (si copias esa dirección IP de otro lugar, usa el atajo *ctrl+v* para pegarla en la casilla de dirección).
+Then, change your user name (currently, the text boxes are a bit wonky: you need to hover your mouse over them and then type -- there is an invisible cursor that acts as if it is always at the end of the text), and enter the ip address of the host you want to connect to (if you copy that ip address from elsewhere, ctrl+v will paste it into the address box).
 
-Unirte al juego te llevará a la pantalla de selección de nación, excepto que verás a otros jugadores y al anfitrión. Puedes seleccionar cualquier nación que desees jugar, siempre y cuando no esté controlada por otro jugador, ya que dos jugadores no pueden controlar la misma nación (todavía).
+Joining the game will put you into the nation-picking screen, except you'll see other players and the host. You can select any nation you want to play as long as it is not controlled by another player, since two players cannot control the same nation (yet).
 
-Como cliente, no podrás controlar la velocidad del juego ni cargar archivos guardados por tu cuenta; el anfitrión tiene poder absoluto sobre la sesión de juego. Los anfitriones pueden expulsar y prohibir a las personas en cualquier momento, y también pueden regresar al vestíbulo momentáneamente para permitir que los jugadores seleccionen otras naciones o cambien.
+As a client you will not be able to control the speed of the game, or to load savefiles on your own -- the host has absolute power over the game session. Hosts can kick and ban people at any time, and they may also return to lobby momentarily to allow players to select other nations/switch.
 
-El *Fog of War* o *Niebla de Guerra* siempre está activado en multijugador
+Fog of war is always on in multiplayer.
 
-- NOTA: Si escribes una dirección IPv6, tu anfitrión también deberá aceptar conexiones IPv6, o de lo contrario, fallará. Lo mismo ocurre con IPv4; generalmente, se recomienda IPv4 por razones de experiencia del usuario.
-- NOTA: Los dominios no son compatibles, resuélvalos manualmente e ingrese su correspondiente dirección IPv4 (esto es una característica para el futuro).
+NOTE: If you type an IPv6, your host will need to accept IPv6 connections too, or else it will fail. Same with IPv4, usually IPv4 is recommended for user-experience reasons.
+NOTE: Domains are not supported, please resolve them manually and type their corresponding IPv4 (This is a feature for the future).
 
-#### Alojando una partida
+#### Hosting a game
 
-Si estás utilizando IPv4, escribe un punto "." en el campo de IP. Si vas a utilizar IPv6, escribe un punto y coma ";" en el campo de IP. Los clientes que utilizan IPv4 no pueden conectarse a un host con IPv6.
+If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
 
-TPara aceptar conexiones de clientes (sin usar un servicio de túneles como Hamachi), deberás poder aceptar conexiones a través del puerto 1984. Por lo general, esto requiere realizar un reenvío de puertos en tu enrutador hacia tu máquina local. Puedes utilizar una [herramienta de verificación de puertos abiertos](https://www.yougetsignal.com/tools/open-ports/) para asegurarte de que has abierto los puertos correctamente, ten en cuenta que este tipo de herramientas pueden no ser 100% confiables, por lo que se prefiere la ayuda de otra persona para realizar las pruebas.
+To accept connections from clients (without using a tunneling service like Hamachi), you will need to be able to accept connections over port 1984. Usually this requires port forwarding it in your router to your local machine. You can use an [open port checker tool](https://www.yougetsignal.com/tools/open-ports/) to check you opened the ports correctly, be aware this kind of tools may not be 100% reliable, as such, another person helping to test is very much preferred.
 
-Al proporcionar a los jugadores tu dirección IP para que puedan conectarse contigo, debes darles la dirección que tu máquina tiene desde la perspectiva de Internet (es decir, no la dirección de tu subred local).
+When giving players your IP address so that they can connect to you, you need to provide them with the address that your machine appears to be at from the perspective of the internet (i.e. not your local subnet address).
 
-Como anfitrión, podrás expulsar y prohibir a personas tanto en el juego como en el vestíbulo. Asegúrate de haber preparado todo de antemano.
+As a host, you'll be able to kick and ban people in-game and in the lobby. Ensure you've prepared everything beforehand.
 
-Ten en cuenta que cargar archivos de guardado enviará el archivo a cada cliente que esté conectado y que se conectará. Por ejemplo, si tienes 8 jugadores, enviarás el archivo de guardado 8 veces, que suele ser de alrededor de 3 MB, así que ten en cuenta que puedes terminar enviando 3*8=24 MB de información CADA vez que cargues un archivo de guardado. Ya está comprimido utilizando el nivel máximo de compresión disponible, por lo que no tiene sentido comprimirlo aún más (según las leyes matemáticas de la compresión, tiene su propio artículo en Wikipedia del cual no me detendré a explicar).
+Take note, loading savefiles will send the savefile to every client you have connected and that will connect, so for example, if you have 8 players, you will send 8 times the savefile, which is usually about 3 MB, so be wary of the fact you may end up sending 3*8=24 MB of information EACH time you load a savefile. It is already compressed using the maximum compression level available, so there is no point in compressing it further (by the mathematical laws of compression, has it's own Wikipedia article which I will not dwell on).
 
-Para lidiar con los alborotadores:
-- Expulsar (Kick): Desconecta al jugador de la sesión, pueden volver a unirse si lo desean.
-- Prohibir (Ban): Desconecta y pone en lista negra al jugador de la sesión, no podrán volver a unirse a menos que se realice una nueva sesión. Basado en la IP (o MAC, si se utiliza IPv6) - nuevamente, cualquiera lo suficientemente dedicado puede eludir esto, pero funciona en la mayoría de los casos prácticos.
+For dealing with troublemakers:
+- Kick: Disconnects the player from the session, they may join back if they wish.
+- Ban: Disconnects and blacklists the player from the session, they will not join back unless a new session is done. Based on IP (or MAC, if using IPv6) - again, anyone dedicated enough is able to circumvent this, but it works for most practical cases.
 
-#### Solución de Problemas
+#### Troubleshooting
 
-Para Clientes:
-- Verifica que la IP que ingresaste sea correcta.
-- Asegúrate de que tu nombre de jugador no esté a) vacío, o b) incorrecto.
-- Verifica que no hayas sido prohibido del servidor.
-- Asegúrate de estar conectando utilizando IPv4 o IPv6, ya que los anfitriones no aceptarán un cliente con una IP diferente.
-- Si usas IPv6, verifica que tu enrutador incluso lo admita.
-- Si usas IPv4, no ingreses puntos y comas (es decir, `127.0.0.1:1283`), ya que se interpretará como una dirección IPv6.
-- Verifica que tu firewall no esté bloqueando a Alice.
-- Verifica tu conexión a Internet (quizás incluso haz un ping al anfitrión).
-- Si estás utilizando una aplicación de túneles VPN, asegúrate de estar conectado al par.
-- Asegúrate de que todos tengan la misma versión del juego.
-- Verifica que otra persona pueda unirse (es decir, que el anfitrión haya reenviado correctamente el puerto 1984).
-- Asegúrate de tener los mismos mods que el anfitrión.
-- Puedes intentar usar el mismo archivo de escenario si piensas que estás teniendo problemas causados por versiones ligeramente diferentes de mods.
+For clients:
+- Check the IP you typed was correct
+- Check your player name is not a) empty, or b) improper
+- Check that you haven't been banned from the server
+- Ensure you're connecting using IPv4 or IPv6 - accordingly, hosts will not accept a client with a different IPv
+- If using IPv6, check that your router even supports it
+- If using IPv4, do not input semicolons (i.e, `127.0.0.1:1283`), as this will be interpreted as a IPv6 address
+- Check that your firewall is not blocking Alice
+- Check your internet connection (maybe even ping the host)
+- If using a VPN tunneling app, check that you're connected to the peer
+- Ensure you all have the same game version
+- Check that someone else is able to join (i.e that the host has port forwarded properly, the port `1984`)
+- Ensure you have the same mods as the host
+- You can try using the same scenario file if you think that you are having issues caused by slightly different version of mods
 
-Para Anfitriones:
-- Verifica que estás utilizando la IP correcta que deseas (los clientes también deben ser informados sobre qué IP necesitan usar).
-- Asegúrate de que tu nombre de jugador no esté a) vacío, o b) incorrecto.
-- Si usas IPv6, verifica que tu enrutador incluso lo admita.
-- Si usas IPv4, no ingreses puntos y comas (es decir, `:1283`), ya que se interpretará como una dirección IPv6.
-- Verifica que tu firewall no esté bloqueando a Alice.
-- Verifica tu conexión a Internet.
-- Verifica que el puerto `1984` esté correctamente reenviado en tu máquina (puedes usar una herramienta de verificación de puertos abiertos para analizar esto).
+For hosts:
+- Check you're using the correct IPv you want (clients also have to be told which IPv they need to use)
+- Check your player name is not a) empty, or b) improper
+- If using IPv6, check that your router even supports it
+- If using IPv4, do not input semicolons (i.e, `:1283`), as this will be interpreted as a IPv6 address
+- Check that your firewall is not blocking Alice
+- Check your internet connection
+- Check that the port `1984`, is properly forwarded on your machine (you may use an open port checker to analyze this)
