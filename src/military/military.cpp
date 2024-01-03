@@ -4,7 +4,6 @@
 #include "effects.hpp"
 #include "events.hpp"
 #include "ai.hpp"
-#include <debugapi.h>
 
 namespace military {
 
