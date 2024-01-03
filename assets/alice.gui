@@ -1357,7 +1357,16 @@ guiTypes = {
 			}
 			instantTextBoxType = {
 				position = { 0 0 }
-				name = "attacker_casualities"
+				name = "attacker_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "defender_casualties"
 				font = "Arial14"
 				borderSize = { 0 0}
 				maxsize = { 53 17 }
@@ -1365,6 +1374,68 @@ guiTypes = {
 				format = centre
 			}
 			
+			windowType = {
+				name = "casualties_window"
+				position = {  -49 34 }
+				size = { 97 18 }
+				moveable = 0
+				Orientation = "UPPER_LEFT"
+				
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "attacker_casualties1"
+					font = "Arial16"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "attacker_casualties2"
+					font = "Arial14"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "attacker_casualties3"
+					font = "Arial12"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "defender_casualties1"
+					font = "Arial16"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "defender_casualties2"
+					font = "Arial14"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+				instantTextBoxType = {
+					position = { 0 0 }
+					name = "defender_casualties3"
+					font = "Arial12"
+					borderSize = { 0 0}
+					maxsize = { 53 17 }
+					orientation = "UPPER_LEFT"
+					format = centre
+				}
+			}
 		}
 	}
 

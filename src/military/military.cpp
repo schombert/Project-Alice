@@ -5146,12 +5146,13 @@ void update_land_battles(sys::state& state) {
 		damage from attrition as well.
 		*/
 
-		
+		state.world.land_battle_set_attacker_casualties(b, 0);
+		state.world.land_battle_set_defender_casualties(b, 0);
+
+		float attacker_casualties = 0;
+		float defender_casualties = 0;
 
 		for(int32_t i = 0; i < combat_width; ++i) {
-			float attacker_casualties = 0;
-			float defender_casualties = 0;
-				
 			if(att_back[i] && def_front[i]) {
 				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
 
@@ -5189,7 +5190,7 @@ void update_land_battles(sys::state& state) {
 					case unit_type::special:
 						state.world.land_battle_get_defender_support_lost(b) += str_damage;
 						break;
-					default:
+		
 						break;
 				}
 			}
@@ -5337,21 +5338,11 @@ void update_land_battles(sys::state& state) {
 					}
 				}
 			}
-
-			defender_casualties *= (float)state.defines.pop_size_per_regiment;
- 			attacker_casualties *= (float)state.defines.pop_size_per_regiment;
-
-			state.world.land_battle_get_attacker_casualties(b) += attacker_casualties;
-			state.world.land_battle_get_defender_casualties(b) += defender_casualties;
-
-			OutputDebugStringA("Casualities: ");
-			OutputDebugStringA(std::to_string(attacker_casualties).c_str());
-			OutputDebugStringA(" ");
-			OutputDebugStringA(std::to_string(defender_casualties).c_str());
-			OutputDebugStringA("\n");
 		}
 
-		
+		state.world.land_battle_set_attacker_casualties(b, attacker_casualties);
+		state.world.land_battle_set_defender_casualties(b, defender_casualties);
+
 
 		// clear dead / retreated regiments out
 
