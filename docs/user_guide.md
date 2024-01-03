@@ -25,7 +25,7 @@ Drag and drop all of those files into your Victoria 2 directory, it should then 
 Then simply click on the `launch_alice` executable.
 
 - `Alice`: The main game executable, do not open it directly.
-- 'launch_alice`: The game launcher, you need to create/recreate scenarios for each change you do to the mods.
+- `launch_alice`: The game launcher, you need to create/recreate scenarios for each change you do to the mods.
 - `dbg_alice`: A small debug utility to help track down errors, optional and it's fine if you don't have it.
 - `readme OR ELSE.txt`: Contains relevant information, again, optional and it's fine if you don't have it.
 - `assets`: Folder NEEDED for Alice to work properly.
