@@ -22,6 +22,39 @@
 #include "xac.hpp"
 #include "xac.cpp"
 
+namespace duplicates {
+glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
+	auto pt = state.world.province_get_port_to(p);
+	if(!pt)
+		return glm::vec2{};
+
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
+	assert(adj);
+	auto id = adj.index();
+	auto& map_data = state.map_state.map_data;
+	auto& border = map_data.borders[id];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
+	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
+
+	return vertex.position * map_size;
+}
+
+bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
+	return prov_id.index() >= state.province_definitions.first_sea_province.index();
+}
+
+glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
+	if(is_sea_province(state, prov_id))
+		return state.world.province_get_mid_point(prov_id);
+	else
+		return get_port_location(state, prov_id);
+}
+
+glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
+	return state.world.province_get_mid_point(prov_id);
+}
+}
+
 namespace map {
 
 image load_stb_image(simple_fs::file& file) {
@@ -642,14 +675,37 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
-	for(uint32_t i = 0; i < max_static_meshes; i++) {
-		load_shader(shaders[shader_map_standing_object]);
+	// Render standing objects
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CW);
+	load_shader(shaders[shader_map_standing_object]);
+	glUniform1f(4, time_counter);
+	glBindVertexArray(vao_array[vo_static_mesh]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+	for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
-		glBindVertexArray(vao_array[vo_static_mesh]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+		glUniform2f(12, 0.f, 0.f);
 		glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 	}
+	// Render armies
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
+	state.world.for_each_army([&](dcon::army_id a) {
+		auto p1 = state.world.province_get_mid_point(state.world.army_get_location_from_army_location(a));
+		glUniform2f(12, p1.x, p1.y);
+		glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
+	});
+	// Render navies
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[6]);
+	state.world.for_each_navy([&](dcon::navy_id n) {
+		auto p1 = duplicates::get_navy_location(state, state.world.navy_get_location_from_navy_location(n));
+		glUniform2f(12, p1.x, p1.y);
+		glDrawArrays(GL_TRIANGLES, static_mesh_starts[6], static_mesh_counts[6]);
+	});
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
 		load_shader(shaders[shader_text_line]);
@@ -986,39 +1042,6 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 
 		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance);
 	}
-}
-
-namespace duplicates {
-glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
-	auto pt = state.world.province_get_port_to(p);
-	if(!pt)
-		return glm::vec2{};
-
-	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
-	assert(adj);
-	auto id = adj.index();
-	auto& map_data = state.map_state.map_data;
-	auto& border = map_data.borders[id];
-	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
-	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
-
-	return vertex.position * map_size;
-}
-
-bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
-	return prov_id.index() >= state.province_definitions.first_sea_province.index();
-}
-
-glm::vec2 get_navy_location(sys::state& state, dcon::province_id prov_id) {
-	if(is_sea_province(state, prov_id))
-		return state.world.province_get_mid_point(prov_id);
-	else
-		return get_port_location(state, prov_id);
-}
-
-glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
-	return state.world.province_get_mid_point(prov_id);
-}
 }
 
 glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x) {
@@ -1424,10 +1447,16 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Panama_Canel"), //2
 		NATIVE("Kiel_Canal"), //3
 		NATIVE("Suez_Canal"), //4
+		NATIVE("generic_infantry"), //5
+		NATIVE("Generic_Frigate"), //6
+		NATIVE("Generic_Manowar"), //7
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
-	for(uint32_t k = 0; k < uint32_t(xac_model_names.size()); k++) {
+
+	state.map_state.map_data.static_mesh_counts.resize(display_data::max_static_meshes);
+	state.map_state.map_data.static_mesh_starts.resize(display_data::max_static_meshes);
+	for(uint32_t k = 0; k < display_data::max_static_meshes; k++) {
 		auto old_size = static_mesh_vertices.size();
 		auto f = simple_fs::open_file(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".xac"));
 		if(f) {
@@ -1435,38 +1464,40 @@ void load_static_meshes(sys::state& state) {
 			auto contents = simple_fs::view_contents(*f);
 			emfx::xac_context context{};
 			emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
-			//emfx::finish(context);
+			emfx::finish(context);
 			for(auto const& node : context.nodes) {
+				if(node.visual_mesh == -1) {
+					for(auto const& mesh : node.meshes) {
+						for(auto const& sub : mesh.submeshes) {
+							const auto& mat = context.materials[sub.material_id];
+							// This is how most models fallback to find their textures...
+							auto& texid = state.map_state.map_data.static_mesh_textures[k];
+							auto const& layer = get_diffuse_layer(mat);
+							if(layer.texture.empty()) {
+								texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
+								if(!texid)
+									texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_diffuse.dds"));
+							} else {
+								texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + ".dds"));
+							}
+						}
+					}
+					continue;
+				}
 				for(auto const& mesh : node.meshes) {
 					uint32_t vertex_offset = 0;
 					for(auto const& sub : mesh.submeshes) {
 						for(uint32_t i = 0; i < uint32_t(sub.indices.size()); i += 3) {
 							static_mesh_vertex smv;
-							auto index = sub.indices[i + 0] + vertex_offset;
-							{
-								auto vv = mesh.vertices[index];
-								auto vn = mesh.normals[index];
-								auto vt = mesh.texcoords[index];
-								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
-								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
-								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
-								static_mesh_vertices.push_back(smv);
-							}
-							index = sub.indices[i + 1] + vertex_offset;
-							{
-								auto vv = mesh.vertices[index];
-								auto vn = mesh.normals[index];
-								auto vt = mesh.texcoords[index];
-								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
-								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
-								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
-								static_mesh_vertices.push_back(smv);
-							}
-							index = sub.indices[i + 2] + vertex_offset;
-							{
-								auto vv = mesh.vertices[index];
-								auto vn = mesh.normals[index];
-								auto vt = mesh.texcoords[index];
+							for(uint32_t j = 0; j < 3; j++) {
+								auto index = sub.indices[i + j] + vertex_offset;
+								auto vv = mesh.vertices[index % mesh.vertices.size()];
+								auto vn = mesh.normals.empty()
+									? mesh.vertices[index % mesh.vertices.size()]
+									: mesh.normals[index % mesh.normals.size()];
+								auto vt = mesh.texcoords.empty()
+									? emfx::xac_vector2f{ vv.x, vv.y }
+									: mesh.texcoords[index % mesh.texcoords.size()];
 								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
 								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
 								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
@@ -1488,11 +1519,11 @@ void load_static_meshes(sys::state& state) {
 					}
 				}
 			}
-			state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
-			state.map_state.map_data.static_mesh_counts.push_back(GLsizei(static_mesh_vertices.size() - old_size));
+			state.map_state.map_data.static_mesh_starts[k] = GLint(old_size);
+			state.map_state.map_data.static_mesh_counts[k] = GLsizei(static_mesh_vertices.size() - old_size);
 		} else {
-			state.map_state.map_data.static_mesh_starts.push_back(GLint(old_size));
-			state.map_state.map_data.static_mesh_counts.push_back(GLsizei(0));
+			state.map_state.map_data.static_mesh_starts[k] = GLint(old_size);
+			state.map_state.map_data.static_mesh_counts[k] = GLsizei(0);
 		}
 	}
 
