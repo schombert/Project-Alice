@@ -87,7 +87,6 @@ struct network_state {
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
 	uint32_t current_save_length = 0;
-	uint32_t save_size = 0; //client
 	socket_t socket_fd = 0;
 	uint8_t password[16] = { 0 };
 	std::atomic<bool> save_slock = false;
