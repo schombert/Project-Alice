@@ -2638,7 +2638,7 @@ void country_history_file::culture(association_type, std::string_view value, err
 
 	if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
 			it != context.outer_context.map_of_culture_names.end()) {
-		context.outer_context.state.world.nation_get_accepted_cultures(context.holder_id).push_back(it->second);
+		context.outer_context.state.world.nation_set_accepted_cultures(context.holder_id, it->second, true);
 	} else {
 		err.accumulated_errors +=
 				"invalid culture " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2747,10 +2747,8 @@ void country_history_file::non_state_culture_literacy(association_type, float va
 			bool non_accepted = [&]() {
 				if(prov_pop.get_pop().get_culture() == fh.get_primary_culture())
 					return false;
-				for(auto c : fh.get_accepted_cultures()) {
-					if(prov_pop.get_pop().get_culture() == c)
-						return false;
-				}
+				if(fh.get_accepted_cultures(prov_pop.get_pop().get_culture()))
+					return false;
 				return true;
 			}();
 			if(non_accepted)

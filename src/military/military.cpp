@@ -2170,7 +2170,7 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		}
 
 		if(gp_attackers >= 2 && gp_defenders >= 2) {
-			auto old_name = state.world.war_get_name(w);
+			auto old_name = get_war_name(state, w);
 			state.world.war_set_is_great(w, true);
 			auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"}); // misspelling is intentional; DO NOT CORRECT
 			if(it != state.key_to_text_sequence.end()) {
@@ -2179,11 +2179,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 			notification::post(state, notification::message{
 				[old_name, w](sys::state& state, text::layout_base& contents) {
-					text::substitution_map sub;
-					populate_war_text_subsitutions(state, w, sub);
-					std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
-					std::string old_war_name = text::resolve_string_substitution(state, old_name, sub);
-					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_war_name}, text::variable_type::y, std::string_view{resolved_war_name});
+					std::string new_war_name = get_war_name(state, w);
+					text::add_line(state, contents, "msg_war_becomes_great_1", text::variable_type::x, std::string_view{old_name}, text::variable_type::y, std::string_view{new_war_name});
 				},
 				"msg_war_becomes_great_title",
 				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
@@ -2194,10 +2191,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 
 	notification::post(state, notification::message{
 		[w, n](sys::state& state, text::layout_base& contents) {
-			text::substitution_map sub;
-			populate_war_text_subsitutions(state, w, sub);
-			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
-			text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{resolved_war_name});
+			std::string war_name = get_war_name(state, w);
+			text::add_line(state, contents, "msg_war_join_1", text::variable_type::x, n, text::variable_type::val, std::string_view{war_name});
 		},
 		"msg_war_join_title",
 		n, get_role(state, w, state.local_player_nation) != war_role::none ? state.local_player_nation : dcon::nation_id{}, dcon::nation_id{ },
@@ -2282,9 +2277,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
-			text::substitution_map sub;
-			populate_war_text_subsitutions(state, w, sub);
-			std::string resolved_war_name = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+			std::string resolved_war_name = get_war_name(state, w);
 			text::add_line(state, contents, "msg_war_1", text::variable_type::x, primary_attacker, text::variable_type::y, primary_defender, text::variable_type::val, std::string_view{resolved_war_name});
 		},
 		"msg_war_title",
@@ -2293,6 +2286,43 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	});
 
 	return new_war;
+}
+
+dcon::text_key text_sequence_to_key(sys::state& state, dcon::text_sequence_id id) {
+	for(auto it = state.key_to_text_sequence.begin(); it != state.key_to_text_sequence.end(); ++it) {
+		if(it->second == id) {
+			return it->first;
+		}
+	}
+	return dcon::text_key{};
+}
+
+std::string get_war_name(sys::state& state, dcon::war_id war) {
+	text::substitution_map sub;
+	populate_war_text_subsitutions(state, war, sub);
+
+	auto fat = fatten(state.world, war);
+	auto attacker = state.world.nation_get_identity_from_identity_holder(fat.get_primary_attacker());
+	auto defender = state.world.nation_get_identity_from_identity_holder(fat.get_primary_defender());
+	auto attacker_tag = fatten(state.world, attacker).get_name();
+	auto defender_tag = fatten(state.world, defender).get_name();
+	auto war_name_sequence = fat.get_name();
+
+	auto attacker_tag_key = text_sequence_to_key(state, attacker_tag);
+	auto defender_tag_key = text_sequence_to_key(state, defender_tag);
+	auto war_name_key = text_sequence_to_key(state, war_name_sequence);
+
+	if(attacker_tag_key && defender_tag_key && war_name_key) {
+		std::string war_name = std::string(state.to_string_view(war_name_key));
+		std::string attacker_name = std::string(state.to_string_view(attacker_tag_key));
+		std::string defender_name = std::string(state.to_string_view(defender_tag_key));
+		std::string combined_name = war_name + std::string("_") + attacker_name + std::string("_") + defender_name;
+		std::string_view name = std::string_view(combined_name);
+		if(auto it = state.key_to_text_sequence.find(name); it != state.key_to_text_sequence.end())
+			return text::resolve_string_substitution(state, it->second, sub);
+	}
+
+	return text::resolve_string_substitution(state, war_name_sequence, sub);
 }
 
 bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon::nation_id n, bool as_attacker) {
@@ -2403,7 +2433,7 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 	if(auto on_add = state.world.cb_type_get_on_add(type); on_add) {
 		effect::execute(state, on_add, trigger::to_generic(added_by), trigger::to_generic(added_by), trigger::to_generic(target),
 				uint32_t(state.current_date.value), uint32_t((added_by.index() << 7) ^ target.index() ^ (type.index() << 3)));
-		demographics::regenerate_from_pop_data_full(state);
+		demographics::regenerate_jingoism_support(state, added_by);
 	}
 
 	if((state.world.cb_type_get_type_bits(type) & cb_flag::always) == 0) {
@@ -5181,6 +5211,12 @@ void update_land_battles(sys::state& state) {
 		damage from attrition as well.
 		*/
 
+		state.world.land_battle_set_attacker_casualties(b, 0);
+		state.world.land_battle_set_defender_casualties(b, 0);
+
+		float attacker_casualties = 0;
+		float defender_casualties = 0;
+
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(att_back[i] && def_front[i]) {
 				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
@@ -5203,6 +5239,8 @@ void update_land_battles(sys::state& state) {
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(def_front[i]) += str_damage;
 				cstr -= str_damage;
+				defender_casualties += str_damage;
+
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
 				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].type) {
@@ -5238,6 +5276,8 @@ void update_land_battles(sys::state& state) {
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
 				cstr -= str_damage;
+				attacker_casualties += str_damage;
+
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
 				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].type) {
@@ -5290,6 +5330,8 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					cstr -= str_damage;
+					defender_casualties += str_damage;
+
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front_target)].type) {
@@ -5340,6 +5382,8 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					cstr -= str_damage;
+					attacker_casualties += str_damage;
+
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front_target)].type) {
@@ -5360,6 +5404,10 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 		}
+
+		state.world.land_battle_set_attacker_casualties(b, attacker_casualties);
+		state.world.land_battle_set_defender_casualties(b, defender_casualties);
+
 
 		// clear dead / retreated regiments out
 
