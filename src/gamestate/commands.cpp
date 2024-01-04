@@ -5180,6 +5180,7 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_instant_research:
 		execute_c_instant_research(state, c.source);
+		break;
 	}
 }
 
