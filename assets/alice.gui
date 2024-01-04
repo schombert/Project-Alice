@@ -167,6 +167,22 @@ guiTypes = {
 				position = { 167 123 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Rivers (Y/N)
+			instantTextBoxType = {
+				name = "river_label"
+				position = { 78 148 }
+				text = "river_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "river_checkbox"
+				position = { 51 147 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Projection settings for the map: equirectangular, orthographic
 			instantTextBoxType = {
 				name = "projection_label"
@@ -1354,6 +1370,24 @@ guiTypes = {
 				name = "overlay_right"
 				spriteType = "GFX_alice_battle_caps"
 				position = { 79 0 }
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "attacker_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "defender_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
 			}
 		}
 	}

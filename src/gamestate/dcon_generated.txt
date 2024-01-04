@@ -2168,6 +2168,24 @@ object {
 		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
+	
+	property{
+		name{ defender_casualties }
+		type{ float }
+		tag{ save }
+	}
+	
+	property{
+		name{ attacker_casualties }
+		type{ float }
+		tag{ save }
+	}
+	
+	property{
+		name{ recently_changed_casualties }
+		type{ int32_t }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -3025,7 +3043,7 @@ object {
 
 	property{
 		name{ accepted_cultures }
-		type{vector_pool{10000}{culture_id}}
+		type{array{culture_id}{bitfield}}
 		tag{ save }
 	}
 	property{

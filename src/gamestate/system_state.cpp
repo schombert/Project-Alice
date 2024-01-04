@@ -2013,6 +2013,7 @@ void state::save_user_settings() const {
 	US_SAVE(gaussianblur_level);
 	US_SAVE(gamma);
 	US_SAVE(railroads_enabled);
+	US_SAVE(rivers_enabled);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2065,6 +2066,7 @@ void state::load_user_settings() {
 			US_LOAD(gaussianblur_level);
 			US_LOAD(gamma);
 			US_LOAD(railroads_enabled);
+			US_LOAD(rivers_enabled);
 #undef US_LOAD
 		} while(false);
 
@@ -3032,6 +3034,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// !!!! yes, I know
 	world.nation_resize_flag_variables(uint32_t(national_definitions.num_allocated_national_flags));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
+	world.nation_resize_accepted_cultures(world.culture_size());
 
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>> pending_decisions;
 	// load country history
@@ -3907,6 +3910,14 @@ void state::single_game_tick() {
 			ai::refresh_home_ports(*this);
 			break;
 		case 1:
+			// Instant research cheat
+			for(auto n: this->cheat_data.instant_research_nations) {
+				auto tech = this->world.nation_get_current_research(n);
+				if(tech.is_valid()) {
+					float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
+   					this->world.nation_set_research_points(n, points);
+				}
+			}
 			nations::update_research_points(*this);
 			break;
 		case 2:

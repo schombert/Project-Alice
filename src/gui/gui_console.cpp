@@ -49,7 +49,8 @@ struct command_info {
 		conquer_tag,
 		change_owner,
 		change_control,
-		change_control_and_owner
+		change_control_and_owner,
+		next_song,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -182,6 +183,9 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "chcow", command_info::type::change_control_and_owner, "Give province to country",
 				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
+				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 };
 
@@ -1187,7 +1191,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
 	case command_info::type::instant_research:
-		command::c_change_research_points(state, state.local_player_nation, float(640000000.f));
+		command::c_instant_research(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
@@ -1250,6 +1254,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nid = smart_get_national_identity_from_tag(state, parent, tag);
 		}
 		command::c_change_controller(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
+		break;
+	}
+	case command_info::type::next_song:
+	{
+		sound::play_new_track(state);
 		break;
 	}
 	case command_info::type::none:

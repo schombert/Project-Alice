@@ -669,7 +669,7 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
 		return false;
-	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && std::count(state.world.nation_get_accepted_cultures(source).begin(), state.world.nation_get_accepted_cultures(source).end(), soldier_culture) == 0) {
+	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && state.world.nation_get_accepted_cultures(source, soldier_culture) == false) {
 		return false;
 	}
 	auto disarm = state.world.nation_get_disarmed_until(source);
@@ -4773,6 +4773,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_force_ally:
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
+	case command_type::c_instant_research:
 		return true;
 	}
 	return false;
@@ -5176,6 +5177,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_complete_constructions:
 		execute_c_complete_constructions(state, c.source);
+		break;
+	case command_type::c_instant_research:
+		execute_c_instant_research(state, c.source);
 		break;
 	}
 }
