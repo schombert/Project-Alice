@@ -109,8 +109,8 @@ void finish(sys::state& state);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n);
-uint32_t write_network_save(sys::state& state, std::unique_ptr<uint8_t[]>& buffer, sys::checksum_key& k);
-void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key& k);
+void write_network_save(sys::state& state);
+void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_to_clients(sys::state& state, command::payload& c);
 
 }

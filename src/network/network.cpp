@@ -368,28 +368,28 @@ bool client_data::is_banned(sys::state& state) const {
 }
 
 static void send_post_handshake_commands(sys::state& state, network::client_data& client) {
-	//std::vector<char> tmp;
-	//tmp = client.send_buffer;
-	client.send_buffer.clear();
 	if(state.mode == sys::game_mode_type::pick_nation) {
-		{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
+		{ /* Tell this client about every other client */
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_joins;
-			c.source = client.playing_as;
-			c.data.player_name = client.hshake_buffer.nickname;
-			broadcast_to_clients(state, c);
-			command::execute_command(state, c);
-		}
-		/* Tell this client about every other client */
-		for(const auto n : state.world.in_nation) {
-			if(n.get_is_player_controlled()) {
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_player_joins;
-				c.source = n;
-				c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			for(const auto n : state.world.in_nation) {
+				if(n == client.playing_as) {
+					c.source = client.playing_as;
+					c.data.player_name = client.hshake_buffer.nickname;
+					broadcast_to_clients(state, c);
+					command::execute_command(state, c);
+#ifndef NDEBUG
+					state.console_log("host:send:cmd: (new(2)->self_join)");
+#endif
+				} else if(n.get_is_player_controlled()) {
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+#ifndef NDEBUG
+					state.console_log("host:send:cmd: (new(2)->others_join) " + std::to_string(n.id.index()));
+#endif
+				}
 			}
 		}
 		/* Send the savefile to the newly connected client (if not a new game) */
@@ -400,6 +400,9 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			c.source = state.local_player_nation;
 			c.data.notify_save_loaded.target = client.playing_as;
 			network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+#ifndef NDEBUG
+			state.console_log("host:send:cmd: (new(2)->save_loaded)");
+#endif
 		}
 	} else if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states) {
 		/* Reload clients */
@@ -409,13 +412,13 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				if(state.world.nation_get_is_player_controlled(n))
 					players.push_back(n);
 			dcon::nation_id old_local_player_nation = state.local_player_nation;
-			state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer, state.network_state.current_save_checksum);
+			state.local_player_nation = dcon::nation_id{ };
+			network::write_network_save(state);
 			/* Then reload as if we loaded the save data */
 			state.preload();
 			with_network_decompressed_section(state.network_state.current_save_buffer.get(), [&state](uint8_t const* ptr_in, uint32_t length) {
 				read_save_section(ptr_in, ptr_in + length, state);
 			});
-			state.local_player_nation = dcon::nation_id{ };
 			state.fill_unsaved_data();
 			for(const auto n : players)
 				state.world.nation_set_is_player_controlled(n, true);
@@ -430,6 +433,9 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				for(auto& other_client : state.network_state.clients) {
 					if(other_client.playing_as != client.playing_as) {
 						socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
+#ifndef NDEBUG
+						state.console_log("host:send:cmd: (new->save_loaded)");
+#endif
 					}
 				}
 			}
@@ -440,26 +446,32 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = client.playing_as;
 				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
+#ifndef NDEBUG
+				state.console_log("host:send:cmd: (new->save_loaded)");
+#endif
 			}
 		}
-		{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
+		{ /* Tell this client about every other client */
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_joins;
-			c.source = client.playing_as;
-			c.data.player_name = client.hshake_buffer.nickname;
-			broadcast_to_clients(state, c);
-			command::execute_command(state, c);
-		}
-		/* Tell this client about every other client */
-		for(const auto n : state.world.in_nation) {
-			if(n.get_is_player_controlled()) {
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_player_joins;
-				c.source = n;
-				c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
-				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			for(const auto n : state.world.in_nation) {
+				if(n == client.playing_as) {
+					c.source = client.playing_as;
+					c.data.player_name = client.hshake_buffer.nickname;
+					broadcast_to_clients(state, c);
+					command::execute_command(state, c);
+#ifndef NDEBUG
+					state.console_log("host:send:cmd: (new->self_join)");
+#endif
+				} else if(n.get_is_player_controlled()) {
+					c.source = n;
+					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];
+					socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+#ifndef NDEBUG
+					state.console_log("host:send:cmd: (new->others_join) " + std::to_string(n.id.index()));
+#endif
+				}
 			}
 		}
 		{
@@ -468,6 +480,9 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			c.type = command::command_type::notify_start_game;
 			c.source = state.local_player_nation;
 			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+#ifndef NDEBUG
+			state.console_log("host:send:cmd: (new->start_game)");
+#endif
 		}
 	}
 	//auto old_size = client.send_buffer.size();
@@ -502,6 +517,9 @@ static void receive_from_clients(sys::state& state) {
 					case command::command_type::notify_start_game:
 					case command::command_type::notify_stop_game:
 					case command::command_type::notify_pause_game:
+					case command::command_type::notify_player_joins:
+					case command::command_type::notify_player_leaves:
+					case command::command_type::save_game:
 						break; // has to be valid/sendable by client
 					default:
 						/* Has to be from the nation of the client proper - and early
@@ -512,6 +530,9 @@ static void receive_from_clients(sys::state& state) {
 						}
 						break;
 					}
+#ifndef NDEBUG
+					state.console_log("host:recv:client_cmd: " + std::to_string(uint32_t(client.recv_buffer.type)));
+#endif
 				});
 			}
 			if(r < 0) { // error
@@ -521,30 +542,31 @@ static void receive_from_clients(sys::state& state) {
 	}
 }
 
-uint32_t write_network_save(sys::state& state, std::unique_ptr<uint8_t[]>& buffer, sys::checksum_key& k) {
+void write_network_save(sys::state& state) {
 	/* A save lock will be set when we load a save, naturally loading a save implies
 	that we have done preload/fill_unsaved so we will skip doing that again, to save a
 	bit of sanity on our miserable CPU */
 	size_t length = sizeof_save_section(state);
 	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 	/* Clear the player nation */
-	dcon::nation_id old_player_nation = state.local_player_nation;
-	state.local_player_nation = dcon::nation_id{ };
+	assert(state.local_player_nation == dcon::nation_id{ });
 	write_save_section(save_buffer.get(), state); //writeoff data
-	blake2b(&k, sizeof(k), save_buffer.get(), length, nullptr, 0); //generate checksum
-	state.local_player_nation = old_player_nation;
+	state.network_state.current_save_checksum = state.get_save_checksum();
 	// this is an upper bound, since compacting the data may require less space
-	buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
-	auto buffer_position = write_network_compressed_section(buffer.get(), save_buffer.get(), uint32_t(length));
-	return uint32_t(buffer_position - buffer.get());
+	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
+	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
+	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
 }
 
-void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key& k) {
+void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k) {
 	c.data.notify_save_loaded.checksum = k;
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
 			bool send_full = (client.playing_as == c.data.notify_save_loaded.target) || (!c.data.notify_save_loaded.target);
 			if(send_full && !state.network_state.is_new_game) {
+#ifndef NDEBUG
+				state.console_log("host:send:save: " + std::to_string(uint32_t(length)));
+#endif
 				/* And then we have to first send the command payload itself */
 				socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 				/* And then the bulk payload! */
@@ -609,6 +631,9 @@ static void accept_new_clients(sys::state& state) {
 				hshake.save_checksum = state.get_save_checksum();
 				socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 			}
+#ifndef NDEBUG
+			state.console_log("host:send:cmd: handshake -> " + std::to_string(client.playing_as.index()));
+#endif
 			return;
 		}
 	}
@@ -646,6 +671,9 @@ void send_and_receive_commands(sys::state& state) {
 				broadcast_to_clients(state, *c);
 				command::execute_command(state, *c);
 				command_executed = true;
+#ifndef NDEBUG
+				state.console_log("host:receive:cmd: " + std::to_string(uint32_t(c->type)));
+#endif
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
@@ -660,6 +688,9 @@ void send_and_receive_commands(sys::state& state) {
 							disconnect_client(state, client);
 						}
 						client.total_sent_bytes += old_size - client.early_send_buffer.size();
+#ifndef NDEBUG
+						state.console_log("host:send:stats: " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+#endif
 					}
 				} else {
 					if(client.send_buffer.size() > 0) {
@@ -668,6 +699,9 @@ void send_and_receive_commands(sys::state& state) {
 							disconnect_client(state, client);
 						}
 						client.total_sent_bytes += old_size - client.send_buffer.size();
+#ifndef NDEBUG
+						state.console_log("host:send:stats: " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+#endif
 					}
 				}
 			}
@@ -676,9 +710,11 @@ void send_and_receive_commands(sys::state& state) {
 		if(state.network_state.handshake) {
 			/* Send our client's handshake */
 			int r = socket_recv(state.network_state.socket_fd, &state.network_state.s_hshake, sizeof(state.network_state.s_hshake), &state.network_state.recv_count, [&]() {
+#ifndef NDEBUG
+				state.console_log("client:recv:handshake: OK");
+#endif
 				if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
 					bool found_match = false;
-
 					// Find a scenario with a matching checksum
 					auto dir = simple_fs::get_or_create_scenario_directory();
 					for(const auto& uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
@@ -728,6 +764,9 @@ void send_and_receive_commands(sys::state& state) {
 			int r = 0;
 			if(state.network_state.save_size == 0) {
 				r = socket_recv(state.network_state.socket_fd, &state.network_state.save_size, sizeof(state.network_state.save_size), &state.network_state.recv_count, [&]() {
+#ifndef NDEBUG
+					state.console_log("client:recv:cmd: save_size=" + std::to_string(uint32_t(state.network_state.save_size)));
+#endif
 					if(state.network_state.save_size == 0) { //no save to send (new game)
 						state.network_state.save_data.clear();
 						state.network_state.save_stream = false;
@@ -743,6 +782,9 @@ void send_and_receive_commands(sys::state& state) {
 				});
 			} else {
 				r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
+#ifndef NDEBUG
+					state.console_log("client:recv:save: len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
+#endif
 					std::vector<dcon::nation_id> players;
 					for(const auto n : state.world.in_nation)
 						if(state.world.nation_get_is_player_controlled(n))
@@ -784,6 +826,9 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_size = 0;
 					state.network_state.save_stream = true;
 				}
+#ifndef NDEBUG
+				state.console_log("client:recv:cmd: " + std::to_string(uint32_t(state.network_state.recv_buffer.type)));
+#endif
 			});
 			if(r < 0) { // error
 #ifdef _WIN64
@@ -794,6 +839,9 @@ void send_and_receive_commands(sys::state& state) {
 			// send the outgoing commands to the server and flush the entire queue
 			auto* c = state.network_state.outgoing_commands.front();
 			while(c) {
+#ifndef NDEBUG
+				state.console_log("client:send:cmd: " + std::to_string(uint32_t(c->type)));
+#endif
 				if(c->type == command::command_type::save_game) {
 					command::execute_command(state, *c);
 					command_executed = true;

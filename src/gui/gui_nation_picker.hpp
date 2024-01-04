@@ -192,16 +192,14 @@ public:
 			}
 		}
 		if(loaded) {
-			/* Updating this flag lets the network state know that
-			   we NEED to send the savefile data, otherwise it is
-			   safe to assume the client has its own data - friendly
-			   reminder that, scenario loading and reloading ends up
-			   with different outcomes :D */
+			/* Updating this flag lets the network state know that we NEED to send the
+			savefile data, otherwise it is safe to assume the client has its own data
+			friendly reminder that, scenario loading and reloading ends up with different outcomes */
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
 				/* Save the buffer before we fill the unsaved data */
-				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer, state.network_state.current_save_checksum);
 				state.local_player_nation = dcon::nation_id{ };
+				network::write_network_save(state);
 				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
