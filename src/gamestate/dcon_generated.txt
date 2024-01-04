@@ -2172,19 +2172,11 @@ object {
 	property{
 		name{ defender_casualties }
 		type{ float }
-		tag{ save }
 	}
 	
 	property{
 		name{ attacker_casualties }
 		type{ float }
-		tag{ save }
-	}
-	
-	property{
-		name{ recently_changed_casualties }
-		type{ int32_t }
-		tag{ save }
 	}
 }
 
