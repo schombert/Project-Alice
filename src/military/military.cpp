@@ -5211,6 +5211,12 @@ void update_land_battles(sys::state& state) {
 		damage from attrition as well.
 		*/
 
+		state.world.land_battle_set_attacker_casualties(b, 0);
+		state.world.land_battle_set_defender_casualties(b, 0);
+
+		float attacker_casualties = 0;
+		float defender_casualties = 0;
+
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(att_back[i] && def_front[i]) {
 				assert(state.world.regiment_is_valid(att_back[i]) && state.world.regiment_is_valid(def_front[i]));
@@ -5233,6 +5239,8 @@ void update_land_battles(sys::state& state) {
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(def_front[i]) += str_damage;
 				cstr -= str_damage;
+				defender_casualties += str_damage;
+
 				auto& org = state.world.regiment_get_org(def_front[i]);
 				org = std::max(0.0f, org - org_damage);
 				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front[i])].type) {
@@ -5268,6 +5276,8 @@ void update_land_battles(sys::state& state) {
 				str_damage = std::min(str_damage, cstr);
 				state.world.regiment_get_pending_damage(att_front[i]) += str_damage;
 				cstr -= str_damage;
+				attacker_casualties += str_damage;
+
 				auto& org = state.world.regiment_get_org(att_front[i]);
 				org = std::max(0.0f, org - org_damage);
 				switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front[i])].type) {
@@ -5320,6 +5330,8 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					cstr -= str_damage;
+					defender_casualties += str_damage;
+
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(att_front_target)].type) {
@@ -5370,6 +5382,8 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					cstr -= str_damage;
+					attacker_casualties += str_damage;
+
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
 					switch(state.military_definitions.unit_base_definitions[state.world.regiment_get_type(def_front_target)].type) {
@@ -5390,6 +5404,10 @@ void update_land_battles(sys::state& state) {
 				}
 			}
 		}
+
+		state.world.land_battle_set_attacker_casualties(b, attacker_casualties);
+		state.world.land_battle_set_defender_casualties(b, defender_casualties);
+
 
 		// clear dead / retreated regiments out
 

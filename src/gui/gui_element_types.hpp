@@ -323,6 +323,8 @@ protected:
 
 public:
 	bool black_text = true;
+	int32_t data = 0;
+	int32_t casualties = 0;
 
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_reset_text(sys::state& state) noexcept override;
