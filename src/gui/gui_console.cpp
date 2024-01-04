@@ -1210,14 +1210,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(tag == "ALL" || tag == "all") {
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() != state.local_player_nation)
-					command::c_change_owner(state, po.get_nation(), po.get_province(), state.local_player_nation);
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() == n)
-					command::c_change_owner(state, po.get_nation(), po.get_province(), state.local_player_nation);
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
 		}
 		break;
