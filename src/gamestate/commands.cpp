@@ -4817,6 +4817,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_force_ally:
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
+	case command_type::c_instant_research:
 		return true;
 	}
 	return false;
@@ -5223,6 +5224,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_complete_constructions:
 		execute_c_complete_constructions(state, c.source);
+		break;
+	case command_type::c_instant_research:
+		execute_c_instant_research(state, c.source);
 		break;
 	}
 }

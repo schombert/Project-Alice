@@ -58,7 +58,7 @@ void signal_abort_handler(int) {
 	LeaveCriticalSection(&guard_abort_handler);
 }
 
-LONG WINAPI uef_wrapper( struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
+LONG WINAPI uef_wrapper(struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
 	signal_abort_handler(0);
 	return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -209,7 +209,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
 			} else {
-				auto msg = std::string("Scenario file ") +  simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
+				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
 				window::emit_error_message(msg, true);
 				return 0;
 			}
