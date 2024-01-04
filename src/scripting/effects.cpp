@@ -1619,7 +1619,7 @@ uint32_t ef_add_accepted_culture(EFFECT_PARAMTERS) {
 	if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) == trigger::payload(tval[1]).cul_id) {
 		return 0;
 	}
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).add_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, true);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -1628,7 +1628,7 @@ uint32_t ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
 	for(auto c : ws.world.culture_group_get_culture_group_membership(cg)) {
 		if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) != c.get_member().id) {
-			ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).add_unique(c.get_member().id);
+			ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.get_member().id, true);
 		}
 	}
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
@@ -1636,14 +1636,14 @@ uint32_t ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 }
 uint32_t ef_primary_culture(EFFECT_PARAMTERS) {
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_primary_culture_this_nation(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(this_slot));
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -1652,7 +1652,7 @@ uint32_t ef_primary_culture_this_state(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1662,7 +1662,7 @@ uint32_t ef_primary_culture_this_province(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1672,7 +1672,7 @@ uint32_t ef_primary_culture_this_pop(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1680,12 +1680,12 @@ uint32_t ef_primary_culture_this_pop(EFFECT_PARAMTERS) {
 uint32_t ef_primary_culture_from_nation(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(from_slot));
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_remove_accepted_culture(EFFECT_PARAMTERS) {
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -2491,8 +2491,7 @@ uint32_t ef_end_war_this_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_this_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
 	return 0;
 }
 uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
@@ -2500,8 +2499,7 @@ uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_from_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)));
 	return 0;
 }
 uint32_t ef_enable_ideology(EFFECT_PARAMTERS) {

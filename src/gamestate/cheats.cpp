@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "commands.hpp"
 #include "system_state.hpp"
 #include "nations.hpp"
@@ -161,7 +163,7 @@ void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, source, 0, 0);
+	event::trigger_national_event(state, e, source, state.current_date.value, id ^ source.index());
 }
 void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
 	payload p;
@@ -185,7 +187,7 @@ void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, as, 0, 0);
+	event::trigger_national_event(state, e, as, state.current_date.value, id ^ as.index());
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -295,6 +297,25 @@ void execute_c_change_owner(sys::state& state, dcon::nation_id source, dcon::pro
 void execute_c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
 	province::set_province_controller(state, pr, new_controller);
 	military::eject_ships(state, pr);
+}
+void c_instant_research(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_research;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
+	auto pos = std::find(
+		state.cheat_data.instant_research_nations.begin(),
+		state.cheat_data.instant_research_nations.end(),
+		source
+);
+	if(pos != state.cheat_data.instant_research_nations.end()) {
+		state.cheat_data.instant_research_nations.erase(pos);
+	} else {
+		state.cheat_data.instant_research_nations.push_back(source);
+	}
 }
 
 }

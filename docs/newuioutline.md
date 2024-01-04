@@ -20,6 +20,8 @@ Rendering will support generic stretching and texturing in various ways with ima
 
 We may also need to support clip masking in some way to simplify the rendering process. In my earlier project, I implemented ui elements that popped out of their container (such as expanding menus) by setting up clipping so that latter elements could not be drawn over them. I don't know how easy that will be to do in opengl, so some other solution may be needed there.
 
+We need to be able to render part of the ui to a texture in order to be able to render ui animations.
+
 ## UI behavior
 
 A ui that can't do things is pretty worthless. However, to make things easier we want to say what a button does in the ui creation tool, rather than having to connect it to behaviors in c++ (painful).
@@ -38,8 +40,45 @@ A property will be retrievable up the ui tree using a combination of compile-tim
 
 Similarly, there is a need sometimes to be able to call functions on other ui elements. This is done via the table mentioned above, which allows us to go from an id to an implementation of that function class. We will provide methods both for calling the function on the nearest parent that supports it, for calling it on all of the nearest children that support it, and self calls.
 
+### TODO
+
+- Some way of exposing specific, unique elements that exist somewhere in the hierarchy globally (the need to open / close specific windows, for example -- can this be handled with specific functions? -- no search would be too long potentially -- needs some sort of automatic registration method)
+
 ## Localization and Translation
 
 We will be using a system that is also generally based off work in the PrintUI project, but somewhat complicated because mods want to be able to combine additional text together. (Unlike with ui modding, which we can probably assume that only one mod will want to touch at a time.) Obviously, looking things up with text keys at runtime is totally impractical. At the same time, we need to load the text at runtime to enable locale switching, and we probably don't want to stash all text from all languages inside the scenario file. Thus, the scenario file will store the keys it saw on creation and slots for their text content. On launch, we will load the content of the localization files and point each key at its unparsed contents. Finally, we will parse the associated text as it is needed in the ui and cache the result. Since this text is only used in the ui, we can also safely reload the files (to switch language) in the ui thread.
 
 We will do localization via storing for each language and script combination a directory in the localization directory (with a z, which will keep it distinct from the v2 directory). For example, we might have localization\en-US. Inside that directory will be a fonts directory and a text directory. The text directory will include 1 or more .txt files containing the text that matches particular keys. The fonts directory will include a number of font files (in .otf and .ttf formats) and number index files. Each index file will describe one of the font slots that is referred to in the ui. The index file will form a hierarchy of fonts, starting from a base font where glyphs are drawn from first, and then naming fallback fonts to use (in order) to try when glyphs are not found. The index file will also store various font parameters (including size, but not including color) that define what a given font slot is supposed to look like (e.g. weight, whether it should be italic, etc).
+
+## Summary: Generated code
+
+- includes a map of type ids to sizes
+- includes a map of type ids to default constructor and destructor functions (from void*)
+- provides prototypes for all the behavior functions that need implementations
+- includes a map of behavior function ids to function pointers
+- map of special names that will point to globally findable ui elements when they are created (should be in the root somehow in case we want to support creating multiple instances of our ui collection)
+
+## Summary: Loading compiled ui
+
+- loads definitions of all ui element types (possibly remapping internal ids if we support loading from multiple files
+- stores any required function pointers
+- eventually ... instantiates root element
+
+## Summary: Loading localization file(s)
+
+- lookup key in keymap -> point key slot contents to unparsed text
+- will need backup handling for v2 localization files (needed for events, etc)
+
+## Summary: Library files
+
+- implements ui logic for event handling
+- implements rendering logic
+- implements layout
+- implements accessibility & text services
+- implements ui element instantiation functions
+
+## Notes
+
+- focus logic: focus is internally stored as a tree. Focus can be free (will follow mouse), mouse sticky (will stay with the element until the mouse moves *away* from it), mouse locked (will not follow the mouse away until a click), and totally locked (as above, but see ...). Visual focus generally follows the mouse, except: when mouse sticky (will stay with the sticky element even while the mouse is moving to it) and when totally locked. Thus visual focus may be independent of real focus. Keyboard commands follow visual focus.
+
+- "immediate click" buttons for mouse to replace tooltips in some cases

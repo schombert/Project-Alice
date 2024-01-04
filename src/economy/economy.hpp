@@ -5,6 +5,12 @@
 
 namespace economy {
 
+enum commodity_production_type {
+	primary,
+	derivative,
+	both
+};
+
 struct building_information {
 	economy::commodity_set cost;
 	int32_t naval_capacity = 1;
@@ -217,4 +223,5 @@ bool can_take_loans(sys::state& state, dcon::nation_id n);
 float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
+commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
 } // namespace economy

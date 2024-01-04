@@ -821,15 +821,12 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					p.get_pop().set_is_primary_or_accepted_culture(true);
 					return;
 				}
-				auto accepted = state.world.nation_get_accepted_cultures(new_owner);
-				for(auto c : accepted) {
-					if(c == p.get_pop().get_culture()) {
-						p.get_pop().set_is_primary_or_accepted_culture(true);
-						return;
-					}
+				if(state.world.nation_get_accepted_cultures(new_owner, p.get_pop().get_culture())) {
+					p.get_pop().set_is_primary_or_accepted_culture(true);
+					return;
 				}
 				p.get_pop().set_is_primary_or_accepted_culture(false);
-				}();
+			}();
 		}
 		state.world.nation_get_owned_province_count(new_owner) += uint16_t(1);
 	} else {

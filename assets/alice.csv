@@ -11,6 +11,7 @@ map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+river_label;Rivers;;;Rios;;;;;;;;;x
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
@@ -1385,4 +1386,7 @@ alice_no_loans_possible;We are currently unable to take loans
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
+alice_x_from_y;$x$ from $y$
+alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
+alice_reinforce_rate_none;This regiment cannot currently be reinforced.
 ;;;;;;;;;;;;;x

@@ -2030,7 +2030,7 @@ void update_cb_fabrication(sys::state& state) {
 					auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
 					auto cb = pick_fabrication_type(state, n, t);
 					if(cb) {
-						n.set_constructing_cb_target(n.get_ai_rival());
+						n.set_constructing_cb_target(t);
 						n.set_constructing_cb_type(cb);
 					}
 				}
@@ -2575,8 +2575,11 @@ void add_gw_goals(sys::state& state) {
 
 void make_peace_offers(sys::state& state) {
 	auto send_offer_up_to = [&](dcon::nation_id from, dcon::nation_id to, dcon::war_id w, bool attacker, int32_t score_max, bool concession) {
-		if(state.world.nation_get_peace_offer_from_pending_peace_offer(from))
-			return; // offer already in flight
+		if(auto off = state.world.nation_get_peace_offer_from_pending_peace_offer(from); off) {
+			if(state.world.peace_offer_get_is_crisis_offer(off) == true || state.world.peace_offer_get_war_from_war_settlement(off))
+				return; // offer in flight
+			state.world.delete_peace_offer(off); // else -- offer has been already resolved and was just pending gc
+		}
 
 		command::execute_start_peace_offer(state, from, to, w, concession);
 		auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(from);
@@ -2632,7 +2635,7 @@ void make_peace_offers(sys::state& state) {
 						send_offer_up_to(w.get_primary_defender(), w.get_primary_attacker(), w, false, int32_t(-overall_score), false);
 						continue;
 					}
-					if(w.get_primary_defender().get_is_player_controlled() == false) {
+					if(w.get_primary_attacker().get_is_player_controlled() == false) {
 						auto war_duration = state.current_date.value - state.world.war_get_start_date(w).value;
 						if(war_duration >= 365) {
 							float willingness_factor = float(war_duration - 365) * 10.0f / 365.0f;
@@ -2799,7 +2802,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			if(concession && ((overall_score * 2 - overall_po_value - willingness_factor) < 0))
 				return true;
 		} else {
-			if(overall_score <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
+			if((overall_score - willingness_factor) <= overall_po_value && (overall_score / 2 - overall_po_value - willingness_factor) < 0)
 				return true;
 		}
 

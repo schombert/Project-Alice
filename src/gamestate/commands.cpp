@@ -669,7 +669,7 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
 		return false;
-	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && std::count(state.world.nation_get_accepted_cultures(source).begin(), state.world.nation_get_accepted_cultures(source).end(), soldier_culture) == 0) {
+	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && state.world.nation_get_accepted_cultures(source, soldier_culture) == false) {
 		return false;
 	}
 	auto disarm = state.world.nation_get_disarmed_until(source);
@@ -1680,7 +1680,7 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 		auto defender = state.world.war_get_primary_defender(w);
 		auto rel_w_defender = state.world.get_gp_relationship_by_gp_influence_pair(defender, source);
 		auto inf = state.world.gp_relationship_get_status(rel_w_defender) & nations::influence::level_mask;
-		if(inf != nations::influence::level_friendly)
+		if(inf != nations::influence::level_friendly && inf != nations::influence::level_in_sphere)
 			return false;
 
 		if(military::primary_warscore(state, w) < -state.defines.min_warscore_to_intervene)
@@ -3425,7 +3425,7 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 		return false;
 
 	if(state.world.army_get_battle_from_army_battle_participation(a) ||
-			state.world.army_get_battle_from_army_battle_participation(a))
+			state.world.army_get_battle_from_army_battle_participation(b))
 		return false;
 
 	return true;
@@ -4773,6 +4773,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_force_ally:
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
+	case command_type::c_instant_research:
 		return true;
 	}
 	return false;
@@ -5176,6 +5177,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_complete_constructions:
 		execute_c_complete_constructions(state, c.source);
+		break;
+	case command_type::c_instant_research:
+		execute_c_instant_research(state, c.source);
 		break;
 	}
 }
