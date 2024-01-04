@@ -2168,6 +2168,24 @@ object {
 		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
+	
+	property{
+		name{ defender_casualties }
+		type{ float }
+		tag{ save }
+	}
+	
+	property{
+		name{ attacker_casualties }
+		type{ float }
+		tag{ save }
+	}
+	
+	property{
+		name{ recently_changed_casualties }
+		type{ int32_t }
+		tag{ save }
+	}
 }
 
 relationship{

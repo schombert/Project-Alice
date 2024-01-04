@@ -14,7 +14,7 @@
 #include "gui_crisis_window.hpp"
 
 namespace military {
-void populate_war_text_subsitutions(sys::state&, dcon::war_id, text::substitution_map&);
+std::string get_war_name(sys::state&, dcon::war_id);
 }
 
 namespace ui {
@@ -1646,9 +1646,7 @@ public:
 class war_name_text : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto w = retrieve<dcon::war_id>(state, parent);
-		text::substitution_map sub;
-		military::populate_war_text_subsitutions(state, w, sub);
-		auto s = text::resolve_string_substitution(state, state.world.war_get_name(w), sub);
+		auto s = military::get_war_name(state, w);
 		set_text(state, s);
 	}
 };

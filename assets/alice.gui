@@ -1371,6 +1371,24 @@ guiTypes = {
 				spriteType = "GFX_alice_battle_caps"
 				position = { 79 0 }
 			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "attacker_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "defender_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
 		}
 	}
 
