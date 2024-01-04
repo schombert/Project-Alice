@@ -3898,6 +3898,14 @@ void state::single_game_tick() {
 			ai::refresh_home_ports(*this);
 			break;
 		case 1:
+			// Instant research cheat
+			for(auto n: this->cheat_data.instant_research_nations) {
+				auto tech = this->world.nation_get_current_research(n);
+				if(tech.is_valid()) {
+					float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
+   					this->world.nation_set_research_points(n, points);
+				}
+			}
 			nations::update_research_points(*this);
 			break;
 		case 2:
