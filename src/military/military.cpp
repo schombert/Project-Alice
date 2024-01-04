@@ -5264,7 +5264,7 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(att_front_target) += str_damage;
 					cstr -= str_damage;
-					attacker_casualties += str_damage;
+					defender_casualties += str_damage;
 
 					auto& org = state.world.regiment_get_org(att_front_target);
 					org = std::max(0.0f, org - org_damage);
@@ -5316,7 +5316,7 @@ void update_land_battles(sys::state& state) {
 					str_damage = std::min(str_damage, cstr);
 					state.world.regiment_get_pending_damage(def_front_target) += str_damage;
 					cstr -= str_damage;
-					defender_casualties += str_damage;
+					attacker_casualties += str_damage;
 
 					auto& org = state.world.regiment_get_org(def_front_target);
 					org = std::max(0.0f, org - org_damage);
