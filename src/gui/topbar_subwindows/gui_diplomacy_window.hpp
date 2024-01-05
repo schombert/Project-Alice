@@ -577,15 +577,6 @@ public:
 	}
 };
 
-struct country_filter_setting {
-	country_list_filter general_category = country_list_filter::all;
-	dcon::modifier_id continent;
-};
-struct country_sort_setting {
-	country_list_sort sort = country_list_sort::country;
-	bool sort_ascend = true;
-};
-
 struct dip_make_nation_visible {
 	dcon::nation_id data;
 };
@@ -604,27 +595,24 @@ protected:
 			if(state.world.nation_get_owned_province_count(id) != 0) {
 				bool passes_filter = [&]() {
 					switch(current_filter.general_category) {
-						case country_list_filter::all:
-							return true;
-						case country_list_filter::allies:
-							return nations::are_allied(state, id, state.local_player_nation);
-						case country_list_filter::enemies:
-							return military::are_at_war(state, state.local_player_nation, id);
-						case country_list_filter::sphere:
-							return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
-						case country_list_filter::neighbors:
-							return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
-						default:
-							return true;
+					case country_list_filter::all:
+						return true;
+					case country_list_filter::allies:
+						return nations::are_allied(state, id, state.local_player_nation);
+					case country_list_filter::enemies:
+						return military::are_at_war(state, state.local_player_nation, id);
+					case country_list_filter::sphere:
+						return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
+					case country_list_filter::neighbors:
+						return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
+					default:
+						return true;
 					}
-					//return true;
 				}();
 				bool right_continent = !current_filter.continent || state.world.nation_get_capital(id).get_continent() == current_filter.continent;
-
 				if(passes_filter && right_continent)
 					row_contents.push_back(id);
 			}
-				
 		});
 		sort_countries(state, row_contents, current_sort.sort, current_sort.sort_ascend);
 		update(state);
@@ -2056,40 +2044,6 @@ public:
 	}
 };
 
-template<country_list_filter category>
-class category_filter_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept final {
-		send(state, parent, category);
-		if constexpr(category == country_list_filter::all) {
-			send(state, parent, dcon::modifier_id{});
-		}
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto filter_settings = retrieve<country_filter_setting>(state, parent);
-		disabled = filter_settings.general_category != category;
-		button_element_base::render(state, x, y);
-		disabled = false;
-	}
-};
-
-class continent_filter_button : public button_element_base {
-public:
-	dcon::modifier_id continent;
-
-	void button_action(sys::state& state) noexcept final {
-		send(state, parent, continent);
-	}
-
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto filter_settings = retrieve<country_filter_setting>(state, parent);
-		disabled = filter_settings.continent != continent;
-		button_element_base::render(state, x, y);
-		disabled = false;
-	}
-};
-
 class diplomacy_window : public generic_tabbed_window<diplomacy_window_tab> {
 private:
 	diplomacy_country_listbox* country_listbox = nullptr;
@@ -2264,20 +2218,15 @@ public:
 		} else if(name == "crisis_info") {
 			return make_element_by_type<crisis_tab_button>(state, id);
 		} else if(name == "filter_all") {
-			auto ptr = make_element_by_type<category_filter_button<country_list_filter::all>>(state, id);
-			return ptr;
+			return make_element_by_type<category_filter_button<country_list_filter::all>>(state, id);
 		} else if(name == "filter_enemies") {
-			auto ptr = make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
-			return ptr;
+			return make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
 		} else if(name == "filter_allies") {
-			auto ptr = make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
-			return ptr;
+			return make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
 		} else if(name == "filter_neighbours") {
-			auto ptr = make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
-			return ptr;
+			return make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
 		} else if(name == "filter_sphere") {
-			auto ptr = make_element_by_type<category_filter_button<country_list_filter::sphere>>(state, id);
-			return ptr;
+			return make_element_by_type<category_filter_button<country_list_filter::sphere>>(state, id);
 		} else if(name == "cb_info_win") {
 			auto ptr = make_element_by_type<diplomacy_casus_belli_window>(state, id);
 			// auto ptr = make_element_immediate(state, id);
