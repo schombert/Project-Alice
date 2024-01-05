@@ -8,6 +8,13 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 	auto owner = fat.get_nation_from_province_ownership();
 	auto box = text::open_layout_box(contents);
 
+	//if(true) {
+	if(state.cheat_data.show_province_id_tooltip) {
+		text::add_to_layout_box(state, contents, box, std::string_view{ "PROVID: " });
+		text::add_to_layout_box(state, contents, box, prov.index());
+		text::add_divider_to_layout_box(state, contents, box);
+	}
+
 	if(owner) {
 		text::add_to_layout_box(state, contents, box, fat.get_name());
 		text::add_to_layout_box(state, contents, box, std::string_view{ " (" });
