@@ -167,6 +167,20 @@ class gamma_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class vassal_color_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class vassal_color_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class vassal_color_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 class music_player_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -272,6 +286,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<gamma_left>(state, id);
 		} else if(name == "gamma_right") {
 			return make_element_by_type<gamma_right>(state, id);
+		} else if(name == "vassal_color_value") {
+			return make_element_by_type<vassal_color_display>(state, id);
+		} else if(name == "vassal_color_left") {
+			return make_element_by_type<vassal_color_left>(state, id);
+		} else if(name == "vassal_color_right") {
+			return make_element_by_type<vassal_color_right>(state, id);
 		} else {
 			return nullptr;
 		}
