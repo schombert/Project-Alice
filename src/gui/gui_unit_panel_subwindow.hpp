@@ -262,9 +262,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_left::parent) {
-			Cyto::Any payload = T{};
-			listbox_left::parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			auto content = retrieve<T>(state, parent);
 
 			Cyto::Any vpayload = std::vector<T2>{};
 			listbox_left::parent->impl_get(state, vpayload);
