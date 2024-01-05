@@ -1945,24 +1945,24 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		switch(category) {
 		case country_list_filter::all:
-			text::add_line(state, contents, "alice_filter_all", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_all");
 			break;
 		case country_list_filter::neighbors:
-			text::add_line(state, contents, "alice_filter_neighbors", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_neighbors");
 			break;
 		case country_list_filter::sphere:
-			text::add_line(state, contents, "alice_filter_sphere", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_sphere");
 			break;
 		case country_list_filter::enemies:
-			text::add_line(state, contents, "alice_filter_enemies", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_enemies");
 			break;
 		case country_list_filter::find_allies:
 		case country_list_filter::allies:
-			text::add_line(state, contents, "alice_filter_allies", text::variable_type::x, wg.target_nation);
-			text::add_line(state, contents, "alice_filter_allies_right", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_allies");
+			text::add_line(state, contents, "alice_filter_allies_right");
 			break;
 		case country_list_filter::best_guess:
-			text::add_line(state, contents, "alice_filter_best_guess", text::variable_type::x, wg.target_nation);
+			text::add_line(state, contents, "alice_filter_best_guess");
 			break;
 		default:
 			break;
