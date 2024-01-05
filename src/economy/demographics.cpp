@@ -94,6 +94,41 @@ void sum_over_demographics(sys::state& state, dcon::demographics_key key, F cons
 
 inline constexpr uint32_t extra_demo_grouping = 8;
 
+template<typename F>
+void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_key key, dcon::nation_id n, F const& source) {
+	// clear province
+	for(auto pc : state.world.nation_get_province_control_as_nation(n)) {
+		auto location = pc.get_province();
+		state.world.province_set_demographics(location, key, 0.f);
+		for(auto pl : pc.get_province().get_pop_location_as_province()) {
+			state.world.province_get_demographics(location, key) += source(state, pl.get_pop());
+		}
+	}
+	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
+		auto location = sc.get_state();
+		state.world.state_instance_set_demographics(location, key, 0.f);
+		for(auto sm : sc.get_state().get_definition().get_abstract_state_membership()) {
+			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(sm.get_province(), key);
+		}
+		
+	}
+	state.world.nation_set_demographics(n, key, 0.f);
+	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
+		state.world.nation_get_demographics(n, key) += state.world.state_instance_get_demographics(sc.get_state(), key);
+	}
+}
+
+void regenerate_jingoism_support(sys::state& state, dcon::nation_id n) {
+	auto const sz = common_size(state);
+	dcon::demographics_key key = to_key(state, state.culture_definitions.jingoism);
+	auto pdemo_key = pop_demographics::to_key(state, state.culture_definitions.jingoism);
+	for(const auto pc : state.world.nation_get_province_control_as_nation(n)) {
+		sum_over_single_nation_demographics(state, key, n, [pdemo_key](sys::state const& state, dcon::pop_id p) {
+			return state.world.pop_get_demographics(p, pdemo_key) * state.world.pop_get_size(p);
+		});
+	}
+}
+
 template<bool full>
 void regenerate_from_pop_data(sys::state& state) {
 	auto const sz = size(state);

@@ -488,12 +488,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glDisable(GL_PRIMITIVE_RESTART);
 	//glEnable(GL_CULL_FACE);
 	// Draw the rivers
-	load_shader(shaders[shader_textured_line]);
-	glUniform1f(4, 0.00008f);
-	glUniform1f(6, time_counter);
-	glBindVertexArray(vao_array[vo_river]);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
-	glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
+	if(state.user_settings.rivers_enabled) {
+		load_shader(shaders[shader_textured_line]);
+		glUniform1f(4, 0.00008f);
+		glUniform1f(6, time_counter);
+		glBindVertexArray(vao_array[vo_river]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_river]);
+		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
+	}
 
 	// Draw the railroads
 	if(zoom > 5 && !railroad_vertices.empty()) {

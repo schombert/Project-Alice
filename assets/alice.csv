@@ -11,6 +11,7 @@ map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+river_label;Rivers;;;Rios;;;;;;;;;x
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
@@ -1122,6 +1123,7 @@ uv_sort_e;Spd;;;Vel;;;;;;;;;x
 uv_sort_f;Rec;;;Rec;;;;;;;;;x
 uv_sort_g;Rel;;;Rel;;;;;;;;;x
 uv_sort_h;Exp;;;Exp;;;;;;;;;x
+alice_condition_diplo_points;Has atleast $x$ diplomatic points;;;;;;;;;;;;x
 alice_retreat;Retreat from battle;;;Retirarse de la batalla;;;;;;;;;x
 alice_retreat_1;It has been at least $x$ days since the battle started;;;;;;;;;;;;x
 alice_retreat_2;You are the lead attacker or defender;;;;;;;;;;;;x

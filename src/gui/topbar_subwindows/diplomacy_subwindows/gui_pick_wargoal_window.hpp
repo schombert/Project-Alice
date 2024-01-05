@@ -622,11 +622,13 @@ public:
 		dcon::national_identity_id ni = retrieve<dcon::national_identity_id>(state, parent);
 		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
 
-		auto box = text::open_layout_box(contents, 0);
 		if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
 			state.world.national_identity_get_nation_from_identity_holder(ni))) {
+			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
+			text::close_layout_box(contents, box);
 		} else {
+			auto box = text::open_layout_box(contents, 0);
 			if(military::are_allied_in_war(state, state.local_player_nation, n)) {
 				text::localised_format_box(state, contents, box, std::string_view("invalid_wartarget_shared_war"));
 			}
@@ -634,8 +636,9 @@ public:
 			if(state.world.diplomatic_relation_get_are_allied(rel)) {
 				text::localised_format_box(state, contents, box, std::string_view("no_war_allied"));
 			}
+			text::close_layout_box(contents, box);
+			text::add_line_with_condition(state, contents, "alice_condition_diplo_points", state.world.nation_get_is_player_controlled(state.local_player_nation) && state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -747,11 +750,9 @@ public:
 		auto id = retrieve<dcon::cb_type_id>(state, parent);
 
 		auto content = retrieve<dcon::nation_id>(state, parent);
-		auto staat = retrieve<dcon::state_definition_id>(state, parent);
-		auto nacion = retrieve<dcon::national_identity_id>(state, parent);
-
+		auto sdef = retrieve<dcon::state_definition_id>(state, parent);
+		auto nid = retrieve<dcon::national_identity_id>(state, parent);
 		auto fat_cb = dcon::fatten(state.world, id);
-
 		auto box = text::open_layout_box(contents);
 
 		if(id) {
@@ -759,14 +760,12 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::recipient,
 					dcon::fatten(state.world, content).get_name()); // Target Nation
 			text::add_to_substitution_map(sub, text::variable_type::third,
-					dcon::fatten(state.world, nacion).get_name()); // Third Party Country
-			text::add_to_substitution_map(sub, text::variable_type::actor, dcon::fatten(state.world, nacion).get_name());
-			text::add_to_substitution_map(sub, text::variable_type::state, dcon::fatten(state.world, staat).get_name());
-			text::add_to_substitution_map(sub, text::variable_type::region, dcon::fatten(state.world, staat).get_name());
-
+					dcon::fatten(state.world, nid).get_name()); // Third Party Country
+			text::add_to_substitution_map(sub, text::variable_type::actor, dcon::fatten(state.world, nid).get_name());
+			text::add_to_substitution_map(sub, text::variable_type::state, dcon::fatten(state.world, sdef).get_name());
+			text::add_to_substitution_map(sub, text::variable_type::region, dcon::fatten(state.world, sdef).get_name());
 			text::add_to_layout_box(state, contents, box, fat_cb.get_long_desc(), sub);
 		}
-
 		text::close_layout_box(contents, box);
 	}
 };

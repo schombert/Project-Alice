@@ -1191,7 +1191,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
 	case command_info::type::instant_research:
-		command::c_change_research_points(state, state.local_player_nation, float(640000000.f));
+		command::c_instant_research(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
@@ -1207,18 +1207,17 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::conquer_tag:
 	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
-		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 		if(tag == "ALL" || tag == "all") {
-			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() != state.local_player_nation)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
-		} else if(nid) {
+		} else {
+			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() == n)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
 		}
 		break;

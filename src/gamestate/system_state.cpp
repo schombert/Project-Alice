@@ -2013,6 +2013,7 @@ void state::save_user_settings() const {
 	US_SAVE(gaussianblur_level);
 	US_SAVE(gamma);
 	US_SAVE(railroads_enabled);
+	US_SAVE(rivers_enabled);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2065,6 +2066,7 @@ void state::load_user_settings() {
 			US_LOAD(gaussianblur_level);
 			US_LOAD(gamma);
 			US_LOAD(railroads_enabled);
+			US_LOAD(rivers_enabled);
 #undef US_LOAD
 		} while(false);
 
@@ -3896,6 +3898,14 @@ void state::single_game_tick() {
 			ai::refresh_home_ports(*this);
 			break;
 		case 1:
+			// Instant research cheat
+			for(auto n: this->cheat_data.instant_research_nations) {
+				auto tech = this->world.nation_get_current_research(n);
+				if(tech.is_valid()) {
+					float points = culture::effective_technology_cost(*this, this->current_date.to_ymd(this->start_date).year, n, tech);
+   					this->world.nation_set_research_points(n, points);
+				}
+			}
 			nations::update_research_points(*this);
 			break;
 		case 2:

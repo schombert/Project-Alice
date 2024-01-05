@@ -59,7 +59,7 @@ public:
 	bool is_dragging = false;
 
 	// Last update time, used for smooth map movement
-	std::chrono::time_point<std::chrono::system_clock> last_update_time{};
+	std::chrono::time_point<std::chrono::steady_clock> last_update_time{};
 
 	// Time in seconds, send to the map shader for animations
 	float time_counter = 0;

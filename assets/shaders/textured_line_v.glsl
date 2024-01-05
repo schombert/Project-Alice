@@ -69,4 +69,5 @@ void main() {
 	gl_Position = calc_gl_position(world_pos);
 	tex_coord = texture_coord;
 	o_dist = time + distance / (2.0f * width);
+	map_coord = vertex_position;
 }

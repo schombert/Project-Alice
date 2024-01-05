@@ -1900,4 +1900,47 @@ public:
 	}
 };
 
+struct country_filter_setting {
+	country_list_filter general_category = country_list_filter::all;
+	dcon::modifier_id continent;
+};
+struct country_sort_setting {
+	country_list_sort sort = country_list_sort::country;
+	bool sort_ascend = true;
+};
+
+template<country_list_filter category>
+class category_filter_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, category);
+		if constexpr(category == country_list_filter::all) {
+			send(state, parent, dcon::modifier_id{});
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.general_category != category;
+		button_element_base::render(state, x, y);
+		disabled = false;
+	}
+};
+
+class continent_filter_button : public button_element_base {
+public:
+	dcon::modifier_id continent;
+
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, continent);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.continent != continent;
+		button_element_base::render(state, x, y);
+		disabled = false;
+	}
+};
+
 } // namespace ui
