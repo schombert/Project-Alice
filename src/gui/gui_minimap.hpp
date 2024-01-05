@@ -476,13 +476,16 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
 			auto ptr = make_element_by_type<message_log_window>(state, id);
+			ptr->base_data.position.y += 1; //nudge
 			state.ui_state.msg_log_window = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
 		} else if(name == "minimap_bg") {
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "openbutton") {
-			return make_element_by_type<open_msg_log_button>(state, id);
+			auto ptr = make_element_by_type<open_msg_log_button>(state, id);
+			ptr->base_data.position.y += 1; //nudge
+			return ptr;
 		} else if(name == "chat_window") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menu_button") {
