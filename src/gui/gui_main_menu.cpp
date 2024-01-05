@@ -299,7 +299,7 @@ void gamma_display::on_update(sys::state& state) noexcept {
 
 void vassal_color_left::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
-	if(state.user_settings.vassal_color > 0) {
+	if(index > 0) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index - 1);
 		send(state, parent, notify_setting_update{});
 	}
@@ -309,7 +309,7 @@ void vassal_color_left::on_update(sys::state& state) noexcept {
 }
 void vassal_color_right::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
-	if(state.user_settings.vassal_color < sys::map_vassal_color_mode(2)) {
+	if(index < sys::map_vassal_color_mode(2)) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index + 1);
 		send(state, parent, notify_setting_update{});
 	}
