@@ -2224,13 +2224,7 @@ public:
 		} else if(name == "filter_enemies") {
 			return make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
 		} else if(name == "filter_allies") {
-			auto btn1 = make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
-			// Place at the side of the button
-			auto btn2 = make_element_by_type<category_filter_button<country_list_filter::find_allies>>(state, "alice_find_allies");
-			btn2->base_data.position.x = btn1->base_data.position.x + btn1->base_data.size.x - btn2->base_data.size.x;
-			btn2->base_data.position.y = btn1->base_data.position.y;
-			add_child_to_back(std::move(btn1));
-			return btn2;
+			return make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
 		} else if(name == "filter_neighbours") {
 			return make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
 		} else if(name == "filter_sphere") {

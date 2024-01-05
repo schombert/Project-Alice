@@ -3528,14 +3528,6 @@ guiTypes = {
 		quadTextureSprite = "GFX_checkbox_default"
 	}
 
-	iconType = {
-		name = "alice_find_allies"
-		position = { 0 0 }
-		size = { 24 24 }
-		spriteType = "GFX_decision_info"
-		Orientation = "UPPER_LEFT"
-	}
-
 	windowType = {
 		name = "alice_macro_builder"
 		position = { 0 200 }
