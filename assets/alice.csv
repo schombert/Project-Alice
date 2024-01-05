@@ -1123,6 +1123,7 @@ uv_sort_e;Spd;;;Vel;;;;;;;;;x
 uv_sort_f;Rec;;;Rec;;;;;;;;;x
 uv_sort_g;Rel;;;Rel;;;;;;;;;x
 uv_sort_h;Exp;;;Exp;;;;;;;;;x
+alice_condition_diplo_points;Has atleast $x$ diplomatic points;;;;;;;;;;;;x
 alice_retreat;Retreat from battle;;;Retirarse de la batalla;;;;;;;;;x
 alice_retreat_1;It has been at least $x$ days since the battle started;;;;;;;;;;;;x
 alice_retreat_2;You are the lead attacker or defender;;;;;;;;;;;;x
