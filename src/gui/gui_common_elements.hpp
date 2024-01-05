@@ -65,8 +65,9 @@ enum class country_list_filter : uint8_t {
 	sphere,
 	enemies,
 	allies,
+	find_allies,
 	deselect_all, // Used only by message filter window
-	best_guess,		// Used only by message filter window
+	best_guess, // Used only by message filter window
 	continent
 };
 class button_press_notification { };

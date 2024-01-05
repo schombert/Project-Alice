@@ -599,6 +599,8 @@ protected:
 						return true;
 					case country_list_filter::allies:
 						return nations::are_allied(state, id, state.local_player_nation);
+					case country_list_filter::find_allies:
+						return ai::ai_will_accept_alliance(state, id, state.local_player_nation);
 					case country_list_filter::enemies:
 						return military::are_at_war(state, state.local_player_nation, id);
 					case country_list_filter::sphere:
@@ -2222,7 +2224,12 @@ public:
 		} else if(name == "filter_enemies") {
 			return make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
 		} else if(name == "filter_allies") {
-			return make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
+			auto btn1 = make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
+			// Place at the right side of the button
+			auto btn2 = make_element_by_type<category_filter_button<country_list_filter::find_allies>>(state, "alice_find_allies");
+			btn2->base_data.position.x = btn1->base_data.position.x;
+			btn2->base_data.position.y = btn1->base_data.position.y - btn2->base_data.size.y;
+			return btn1;
 		} else if(name == "filter_neighbours") {
 			return make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
 		} else if(name == "filter_sphere") {
