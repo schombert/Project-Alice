@@ -1182,7 +1182,14 @@ public:
 
 			auto w = state.world.land_battle_get_war_from_land_battle_in_war(lbattle);
 			bool player_is_attacker = w ? military::is_attacker(state, w, state.local_player_nation) : false;
-			display.player_is_attacker = player_is_attacker;
+
+			bool land_battle_attacker_is_player = false;
+			if (player_is_attacker && state.world.land_battle_get_war_attacker_is_attacker(lbattle))
+				land_battle_attacker_is_player = true;
+			else if (!player_is_attacker && !state.world.land_battle_get_war_attacker_is_attacker(lbattle))
+				land_battle_attacker_is_player = true;
+
+			display.player_is_attacker = land_battle_attacker_is_player;
 
 			display.top_left_status = 6;
 

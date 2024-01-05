@@ -1087,10 +1087,13 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
 		text::close_layout_box(contents, box);
-
+		text::add_line_break_to_layout(state, contents);
+		invention_description(state, contents, content, 0);
 		text::add_line_break_to_layout(state, contents);
 
-		invention_description(state, contents, content, 0);
+		text::add_line(state, contents, "alice_invention_chance");
+		auto mod_k = state.world.invention_get_chance(content);
+		additive_value_modifier_description(state, contents, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 	}
 };
 
@@ -1098,8 +1101,6 @@ class invention_chance_percent_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(auto content = retrieve<dcon::invention_id>(state, parent); content) {
-			
-			
 			auto mod_k = state.world.invention_get_chance(content);
 			auto chances = trigger::evaluate_additive_modifier(state, mod_k, trigger::to_generic(state.local_player_nation),
 					trigger::to_generic(state.local_player_nation), 0);
@@ -1235,25 +1236,20 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::technology_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::technology_id>(payload);
-
-			row_contents.clear();
-			state.world.for_each_invention([&](dcon::invention_id id) {
-				auto lim_trigger_k = state.world.invention_get_limit(id);
-				bool activable_by_this_tech = false;
-				trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
-						[&](uint16_t* tval) {
-							if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
-								activable_by_this_tech = true;
-						});
-				if(activable_by_this_tech)
-					row_contents.push_back(id);
-			});
-			update(state);
-		}
+		auto content = retrieve<dcon::technology_id>(state, parent);
+		row_contents.clear();
+		state.world.for_each_invention([&](dcon::invention_id id) {
+			auto lim_trigger_k = state.world.invention_get_limit(id);
+			bool activable_by_this_tech = false;
+			trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
+					[&](uint16_t* tval) {
+						if((tval[0] & trigger::code_mask) == trigger::technology && trigger::payload(tval[1]).tech_id == content)
+							activable_by_this_tech = true;
+					});
+			if(activable_by_this_tech)
+				row_contents.push_back(id);
+		});
+		update(state);
 	}
 };
 

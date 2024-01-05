@@ -126,14 +126,31 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 		std::abort();
 #endif
 
+	struct timeval timeout;
+	timeout.tv_sec = 60;
+	timeout.tv_usec = 0;
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
 		MessageBoxA(NULL, ("Network setsockopt error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
+		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
+		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		std::abort();
+	}
 #else
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
 		std::abort();
 	}
 #endif
@@ -170,14 +187,31 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 		std::abort();
 #endif
 
+	struct timeval timeout;
+	timeout.tv_sec = 60;
+	timeout.tv_usec = 0;
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
 		MessageBoxA(NULL, ("Network setsockpt error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
+		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
+		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		std::abort();
+	}
 #else
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+		std::abort();
+	}
+	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
 		std::abort();
 	}
 #endif

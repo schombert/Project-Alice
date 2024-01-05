@@ -65,8 +65,9 @@ enum class country_list_filter : uint8_t {
 	sphere,
 	enemies,
 	allies,
+	find_allies, // Used only by diplo window
 	deselect_all, // Used only by message filter window
-	best_guess,		// Used only by message filter window
+	best_guess, // Used only by message filter window
 	continent
 };
 class button_press_notification { };
@@ -1897,6 +1898,91 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("pw_cant_upgrade_to_state"), sub2);
 
 		text::close_layout_box(contents, box);
+	}
+};
+
+struct country_filter_setting {
+	country_list_filter general_category = country_list_filter::all;
+	dcon::modifier_id continent;
+};
+struct country_sort_setting {
+	country_list_sort sort = country_list_sort::country;
+	bool sort_ascend = true;
+};
+
+template<country_list_filter category>
+class category_filter_button : public right_click_button_element_base {
+public:
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, category);
+		if constexpr(category == country_list_filter::all) {
+			send(state, parent, dcon::modifier_id{});
+		}
+	}
+
+	void button_right_action(sys::state& state) noexcept final {
+		if constexpr(category == country_list_filter::allies) {
+			send(state, parent, country_list_filter::find_allies);
+		} else {
+			send(state, parent, category);
+			if constexpr(category == country_list_filter::all) {
+				send(state, parent, dcon::modifier_id{});
+			}
+		}
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.general_category != category;
+		button_element_base::render(state, x, y);
+		disabled = false;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		switch(category) {
+		case country_list_filter::all:
+			text::add_line(state, contents, "alice_filter_all");
+			break;
+		case country_list_filter::neighbors:
+			text::add_line(state, contents, "alice_filter_neighbors");
+			break;
+		case country_list_filter::sphere:
+			text::add_line(state, contents, "alice_filter_sphere");
+			break;
+		case country_list_filter::enemies:
+			text::add_line(state, contents, "alice_filter_enemies");
+			break;
+		case country_list_filter::find_allies:
+		case country_list_filter::allies:
+			text::add_line(state, contents, "alice_filter_allies");
+			text::add_line(state, contents, "alice_filter_allies_right");
+			break;
+		case country_list_filter::best_guess:
+			text::add_line(state, contents, "alice_filter_best_guess");
+			break;
+		default:
+			break;
+		}
+	}
+};
+
+class continent_filter_button : public button_element_base {
+public:
+	dcon::modifier_id continent;
+
+	void button_action(sys::state& state) noexcept final {
+		send(state, parent, continent);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto filter_settings = retrieve<country_filter_setting>(state, parent);
+		disabled = filter_settings.continent != continent;
+		button_element_base::render(state, x, y);
+		disabled = false;
 	}
 };
 

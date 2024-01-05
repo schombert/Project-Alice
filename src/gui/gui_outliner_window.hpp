@@ -437,8 +437,11 @@ public:
 					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
 						color = text::text_color::red;
 					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
 				}
-
 				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) + " " + text::produce_simple_string(state, fat_nf.get_name()) + " (" + text::get_dynamic_state_name(state, siid) + ")";
 				set_text(state, full_str);
 			} else {
