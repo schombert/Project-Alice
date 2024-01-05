@@ -11,7 +11,14 @@ map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+zoom_mode_pan;Panning;;;Panoramico;;;;;;;;;x
+zoom_mode_invert;Inverted;;;Invertido;;;;;;;;;x
+zoom_mode_center;Centered;;;Centrado;;;;;;;;;x
 river_label;Rivers;;;Rios;;;;;;;;;x
+vassal_color_label;Vassal coloring
+vassal_color_inherit;Inherit
+vassal_color_same;Same
+vassal_color_none;None
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
@@ -1374,6 +1381,15 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+alice_filter_all;Show 即all劬 relevant nations.
+alice_filter_allies;Filter by nations we have an 即alliance劬 with.
+alice_filter_allies_right;即Right-click劬 to filter by nations which want to ally us.
+alice_filter_enemies;Filter by nations that are either 即enemies or at war with us劬.
+alice_filter_sphere;Filter by nations that are within our 即sphere of influence劬.
+alice_filter_neighbors;Filter by nations we share a 即border劬 with.
+alice_filter_best_guess;Filter using a 即best guess劬 by relevancy, this includes all 即allies劬, 即enemies劬, 即spherelings劬 and nations we share a 即border劬 with.
+alice_warn_war_ends_for_us;刪This will end the war for everyone on our side劬.
+alice_invention_chance;The chance of discovering this 即invention劬 are as follows:
 is_primary_culture;即$NAME$劬 is primary culture.
 is_primary_religion;即$NAME$劬 is primary religion.
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
