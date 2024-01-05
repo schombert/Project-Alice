@@ -17,18 +17,22 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 				//colour is interpolated from the owner and saved
 				break;
 			case sys::map_vassal_color_mode::same:
+			{
 				auto ovr = state.world.nation_get_overlord_as_subject(id);
 				if(ovr) {
 					auto ruler = state.world.overlord_get_ruler(ovr);
 					color = state.world.nation_get_color(id);
 				}
 				break;
+			}
 			case sys::map_vassal_color_mode::none:
+			{
 				auto ovr = state.world.nation_get_overlord_as_subject(id);
 				if(ovr) {
 					color = state.world.national_identity_get_color(state.world.nation_get_identity_from_identity_holder(id));
 				}
 				break;
+			}
 			}
 		} else // If no owner use default color
 			color = 255 << 16 | 255 << 8 | 255;

@@ -286,6 +286,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<gamma_left>(state, id);
 		} else if(name == "gamma_right") {
 			return make_element_by_type<gamma_right>(state, id);
+		} else if(name == "vassal_color_value") {
+			return make_element_by_type<vassal_color_display>(state, id);
+		} else if(name == "vassal_color_left") {
+			return make_element_by_type<vassal_color_left>(state, id);
+		} else if(name == "vassal_color_right") {
+			return make_element_by_type<vassal_color_right>(state, id);
 		} else {
 			return nullptr;
 		}
