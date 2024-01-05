@@ -365,7 +365,7 @@ guiTypes = {
 			}
 			# Vassal colouring
 			instantTextBoxType = {
-				position = { 58 280 }
+				position = { 58 300 }
 				name = "vassal_color_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -375,7 +375,7 @@ guiTypes = {
 				format = left
 			}
 			instantTextBoxType = {
-				position = { 216 280 }
+				position = { 216 300 }
 				name = "vassal_color_value"
 				font = "Arial14"
 				borderSize = { 0 0 }
@@ -385,12 +385,12 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "vassal_color_left"
-				position = { 186 276 }
+				position = { 186 296 }
 				quadTextureSprite = "option_prev"
 			}
 			guiButtonType = {
 				name = "vassal_color_right"
-				position = { 289 276 }
+				position = { 289 296 }
 				quadTextureSprite = "option_next"
 			}
 		}
