@@ -2229,7 +2229,8 @@ public:
 			auto btn2 = make_element_by_type<category_filter_button<country_list_filter::find_allies>>(state, "alice_find_allies");
 			btn2->base_data.position.x = btn1->base_data.position.x;
 			btn2->base_data.position.y = btn1->base_data.position.y - btn2->base_data.size.y;
-			return btn1;
+			add_child_to_back(std::move(btn1));
+			return btn2;
 		} else if(name == "filter_neighbours") {
 			return make_element_by_type<category_filter_button<country_list_filter::neighbors>>(state, id);
 		} else if(name == "filter_sphere") {
