@@ -1415,6 +1415,10 @@ alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
+alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:
+alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will apply the following effect:
+alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
+alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
