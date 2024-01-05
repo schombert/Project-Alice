@@ -255,6 +255,11 @@ protected:
 	}
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_left::base_data.size.y += ui_defs.gui[ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		listbox_left::on_create(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_left::parent) {
 			Cyto::Any payload = T{};
