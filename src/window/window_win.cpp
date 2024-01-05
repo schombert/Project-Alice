@@ -297,6 +297,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// this is the message that tells us there is a DirectShow event
 		sound::update_music_track(*state);
 		break;
+	case WM_GETMINMAXINFO:
+		LPMINMAXINFO info = static_cast<LPMINMAXINFO>(lParam);
+		info->ptMinTrackSize.x = 640;
+		info->ptMinTrackSize.y = 400;
+		info->ptMaxTrackSize.x = 2400;
+		info->ptMaxTrackSize.y = 1800;
 	}
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
