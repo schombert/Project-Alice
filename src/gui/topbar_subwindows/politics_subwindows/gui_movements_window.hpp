@@ -198,21 +198,16 @@ public:
 		auto type = state.world.rebel_faction_get_type(reb);
 		if(auto k = state.world.rebel_type_get_demands_enforced_trigger(type); k) {
 			text::add_line(state, contents, "alice_rf_demands_enforced_trigger");
-			ui::trigger_description(state, contents, k, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(n.index() ^ (reb.index() << 4)));
+			ui::trigger_description(state, contents, k, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), -1);
 		}
 		if(auto k = state.world.rebel_type_get_demands_enforced_effect(type); k) {
 			text::add_line(state, contents, "alice_rf_demands_enforced_effect");
 			ui::effect_description(state, contents, k, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(n.index() ^ (reb.index() << 4)));
 		}
-		if(auto k = state.world.rebel_type_get_siege_won_effect(type); k) {
-			text::add_line(state, contents, "alice_rf_demands_enforced_effect");
-			ui::effect_description(state, contents, k, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value), uint32_t(n.index() ^ (reb.index() << 4)));
-		}
-		
 		auto prov = state.world.nation_get_capital(n);
 		if(auto k = state.world.rebel_type_get_siege_won_trigger(type); k) {
 			text::add_line(state, contents, "alice_rf_siege_won_trigger", text::variable_type::x, prov);
-			ui::trigger_description(state, contents, k, trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(reb), uint32_t(state.current_date.value), uint32_t(reb.index() ^ (reb.index() << 4)));
+			ui::trigger_description(state, contents, k, trigger::to_generic(prov), trigger::to_generic(prov));
 		}
 		if(auto k = state.world.rebel_type_get_siege_won_effect(type); k) {
 			text::add_line(state, contents, "alice_rf_siege_won_effect", text::variable_type::x, prov);
