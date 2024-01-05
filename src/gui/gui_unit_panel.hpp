@@ -738,7 +738,7 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
 		on_create(state);
 	}
 
@@ -764,7 +764,7 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
 		on_create(state);
 	}
 
