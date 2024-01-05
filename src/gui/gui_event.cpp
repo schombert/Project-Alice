@@ -298,19 +298,19 @@ void event_auto_button::button_action(sys::state& state) noexcept {
 	auto index = retrieve<int32_t>(state, parent);
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		auto phe = std::get<event::pending_human_n_event>(content);
+		auto const& phe = std::get<event::pending_human_n_event>(content);
 		state.world.national_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		auto phe = std::get<event::pending_human_f_n_event>(content);
+		auto const& phe = std::get<event::pending_human_f_n_event>(content);
 		state.world.free_national_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		auto phe = std::get<event::pending_human_p_event>(content);
+		auto const& phe = std::get<event::pending_human_p_event>(content);
 		state.world.provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		auto phe = std::get<event::pending_human_f_p_event>(content);
+		auto const& phe = std::get<event::pending_human_f_p_event>(content);
 		state.world.free_provincial_event_set_auto_choice(phe.e, uint8_t(index + 1));
 		command::make_event_choice(state, phe, uint8_t(index));
 	}
@@ -322,19 +322,19 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 	auto index = retrieve<int32_t>(state, parent);
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		auto phe = std::get<event::pending_human_n_event>(content);
+		auto const& phe = std::get<event::pending_human_n_event>(content);
 		effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
 				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		auto phe = std::get<event::pending_human_f_n_event>(content);
+		auto const& phe = std::get<event::pending_human_f_n_event>(content);
 		effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		auto phe = std::get<event::pending_human_p_event>(content);
+		auto const& phe = std::get<event::pending_human_p_event>(content);
 		effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		auto phe = std::get<event::pending_human_f_p_event>(content);
+		auto const& phe = std::get<event::pending_human_f_p_event>(content);
 		effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 	}
