@@ -305,7 +305,7 @@ void vassal_color_left::button_action(sys::state& state) noexcept {
 	}
 }
 void vassal_color_left::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.vassal_color == sys::map_vassal_color_mode(0));
+	disabled = (uint8_t(state.user_settings.vassal_color) == 0);
 }
 void vassal_color_right::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
@@ -315,7 +315,7 @@ void vassal_color_right::button_action(sys::state& state) noexcept {
 	}
 }
 void vassal_color_right::on_update(sys::state& state) noexcept {
-	disabled = (state.user_settings.vassal_color >= sys::map_vassal_color_mode(2));
+	disabled = (uint8_t(state.user_settings.vassal_color) >= 2);
 }
 void vassal_color_display::on_update(sys::state& state) noexcept {
 	switch(state.user_settings.vassal_color) {
