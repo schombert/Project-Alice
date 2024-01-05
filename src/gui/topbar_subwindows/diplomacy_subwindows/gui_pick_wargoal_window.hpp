@@ -637,7 +637,7 @@ public:
 				text::localised_format_box(state, contents, box, std::string_view("no_war_allied"));
 			}
 			text::close_layout_box(contents, box);
-			text::add_line_with_condition(state, contents, "alice_condition_diplo_points", state.world.nation_get_is_player_controlled(state.local_player_nation) && state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost, text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
+			text::add_line_with_condition(state, contents, "alice_condition_diplo_points", !(state.world.nation_get_is_player_controlled(state.local_player_nation) && state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost), text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
 		}
 	}
 };
