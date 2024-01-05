@@ -1190,12 +1190,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
-		// substitute.
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, content) });
-		text::close_layout_box(contents, box);
-
+		text::add_line(state, contents, "avg_mil_on_map", text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, content) });
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
