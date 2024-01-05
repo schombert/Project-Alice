@@ -2225,10 +2225,10 @@ public:
 			return make_element_by_type<category_filter_button<country_list_filter::enemies>>(state, id);
 		} else if(name == "filter_allies") {
 			auto btn1 = make_element_by_type<category_filter_button<country_list_filter::allies>>(state, id);
-			// Place at the right side of the button
+			// Place at the side of the button
 			auto btn2 = make_element_by_type<category_filter_button<country_list_filter::find_allies>>(state, "alice_find_allies");
-			btn2->base_data.position.x = btn1->base_data.position.x;
-			btn2->base_data.position.y = btn1->base_data.position.y - btn2->base_data.size.y;
+			btn2->base_data.position.x = btn2->base_data.position.x - btn1->base_data.size.x;
+			btn2->base_data.position.y = btn1->base_data.position.y;
 			add_child_to_back(std::move(btn1));
 			return btn2;
 		} else if(name == "filter_neighbours") {
