@@ -739,7 +739,7 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
-		on_create(state);
+		listbox_element_base<subunit_details_entry_regiment, dcon::regiment_id>::on_create(state);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -765,7 +765,7 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("subunit_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
-		on_create(state);
+		listbox_element_base<subunit_details_entry_ship, dcon::ship_id>::on_create(state);
 	}
 
 	void on_update(sys::state& state) noexcept override {
