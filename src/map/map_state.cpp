@@ -319,9 +319,7 @@ void map_state::update(sys::state& state) {
 	}
 	pos_velocity /= 1.125;
 
-	glm::vec2 velocity;
-
-	velocity = pos_velocity * (seconds_since_last_update / zoom);
+	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
 	pos += velocity;
 
@@ -342,7 +340,17 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
-		pos += pos_before_zoom - pos_after_zoom;
+		switch(state.user_settings.zoom_mode) {
+		case sys::map_zoom_mode::panning:
+			pos += pos_before_zoom - pos_after_zoom;
+			break;
+		case sys::map_zoom_mode::inverted:
+			pos -= pos_before_zoom - pos_after_zoom;
+			break;
+		case sys::map_zoom_mode::centered:
+			//no pos change
+			break;
+		}
 	}
 
 	static float keyboard_zoom_change = 0.f;

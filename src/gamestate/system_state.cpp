@@ -2014,6 +2014,8 @@ void state::save_user_settings() const {
 	US_SAVE(gamma);
 	US_SAVE(railroads_enabled);
 	US_SAVE(rivers_enabled);
+	US_SAVE(zoom_mode);
+	US_SAVE(vassal_color);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2067,6 +2069,8 @@ void state::load_user_settings() {
 			US_LOAD(gamma);
 			US_LOAD(railroads_enabled);
 			US_LOAD(rivers_enabled);
+			US_LOAD(zoom_mode);
+			US_LOAD(vassal_color);
 #undef US_LOAD
 		} while(false);
 

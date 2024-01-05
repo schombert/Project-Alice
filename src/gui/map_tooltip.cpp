@@ -40,8 +40,24 @@ void terrain_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 
 void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {   // Done
 	country_name_box(state, contents, prov);
-	//auto box = text::open_layout_box(contents);
-	//text::close_layout_box(contents, box);
+	if(auto n = state.world.province_get_nation_from_province_control(prov); n && n != state.world.province_get_nation_from_province_ownership(prov)) {
+		auto fat_id = dcon::fatten(state.world, n);
+		auto box = text::open_layout_box(contents);
+		std::string formatted_tag = std::string("@") + nations::int_to_tag(fat_id.get_identity_from_identity_holder().get_identifying_int());
+		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, fat_id.get_name());
+		text::close_layout_box(contents, box);
+	} else if(auto rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov); rf) {
+		auto fat_id = dcon::fatten(state.world, rf);
+		auto box = text::open_layout_box(contents);
+		std::string formatted_tag = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id)));
+		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
+		text::add_space_to_layout_box(state, contents, box);
+		auto name = rebel::rebel_name(state, rf);
+		text::add_to_layout_box(state, contents, box, std::string_view{ name });
+		text::close_layout_box(contents, box);
+	}
 }
 
 void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {  // Done

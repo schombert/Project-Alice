@@ -21,7 +21,7 @@ class player_investement_text : public multiline_text_element_base {
 				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
 						text::alignment::left, black_text ? text::text_color::black : text::text_color::white, true});
-		text::add_line(state, container, "production_our_invest", text::variable_type::amount, text::pretty_integer{int64_t(player_investment)}, text::variable_type::percentage, text::fp_one_place{total_investment > 0 ? 100.0f * player_investment / total_investment : 0.0f});
+		text::add_line(state, container, "production_our_invest", text::variable_type::amount, text::pretty_integer{int64_t(player_investment)}, text::variable_type::percentage, text::fp_one_place{total_investment > 0.f ? 100.0f * player_investment / total_investment : 0.0f});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
