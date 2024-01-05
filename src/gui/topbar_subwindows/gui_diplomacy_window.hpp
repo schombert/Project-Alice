@@ -599,6 +599,8 @@ protected:
 						return true;
 					case country_list_filter::allies:
 						return nations::are_allied(state, id, state.local_player_nation);
+					case country_list_filter::find_allies:
+						return ai::ai_will_accept_alliance(state, id, state.local_player_nation);
 					case country_list_filter::enemies:
 						return military::are_at_war(state, state.local_player_nation, id);
 					case country_list_filter::sphere:
