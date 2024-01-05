@@ -1382,6 +1382,7 @@ alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§
 alice_filter_neighbors;Filter by nations we share a §Yborder§W with.
 alice_filter_best_guess;Filter using a §Ybest guess§W by relevancy, this includes all §Yallies§W, §Yenemies§W, §Yspherelings§W and nations we share a §Yborder§W with.
 alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§W.
+alice_invention_chance;The chance of discovering this §Yinvention§W are as follows:
 is_primary_culture;§Y$NAME$§W is primary culture.
 is_primary_religion;§Y$NAME$§W is primary religion.
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
