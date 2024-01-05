@@ -3163,7 +3163,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	} else {
 		/* Case for naval destinations, we check the land province adjacent henceforth */
-		if(battle && !province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a))) {
+		if(battle && !military::can_embark_onto_sea_tile(state, source, dest, a)) {
 			return;
 		}
 	}
