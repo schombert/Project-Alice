@@ -105,6 +105,45 @@ void autosave_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void map_zoom_mode_left::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	if(scale_index > 0) {
+		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index - 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_zoom_mode_left::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	disabled = (scale_index == 0);
+}
+void map_zoom_mode_right::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	if(scale_index < 2) {
+		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index + 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_zoom_mode_right::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	disabled = (scale_index >= 2);
+}
+void map_zoom_mode_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.zoom_mode) {
+	case sys::map_zoom_mode::panning:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_panning"));
+		break;
+	case sys::map_zoom_mode::inverted:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_inverted"));
+		break;
+	case sys::map_zoom_mode::centered:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_centered"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});
