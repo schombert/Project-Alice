@@ -333,30 +333,30 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-			auto content = retrieve<T>(state, parent);
+		auto content = retrieve<T>(state, parent);
 
-			float total_strength = 0.0f;
-			int32_t unit_count = 0;
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id nmid) {
-					auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
-					total_strength += regiment.get_strength();
-					++unit_count;
-				});
-			} else {
-				state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
-					auto ship = dcon::fatten(state.world, state.world.navy_membership_get_ship(nmid));
-					total_strength += ship.get_strength();
-					++unit_count;
-				});
-			}
-			total_strength /= static_cast<float>(unit_count);
-
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
-			text::add_to_layout_box(state, contents, box, text::fp_percentage{ total_strength }, text::text_color::yellow);
-			text::close_layout_box(contents, box);
+		float total_strength = 0.0f;
+		int32_t unit_count = 0;
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id nmid) {
+				auto regiment = dcon::fatten(state.world, state.world.army_membership_get_regiment(nmid));
+				total_strength += regiment.get_strength();
+				++unit_count;
+			});
+		} else {
+			state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
+				auto ship = dcon::fatten(state.world, state.world.navy_membership_get_ship(nmid));
+				total_strength += ship.get_strength();
+				++unit_count;
+			});
 		}
+		total_strength /= static_cast<float>(unit_count);
+
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
+		text::add_to_layout_box(state, contents, box, text::fp_percentage{ total_strength }, text::text_color::yellow);
+		text::close_layout_box(contents, box);
+	}
 };
 
 template<class T>
@@ -737,6 +737,11 @@ protected:
 	}
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		on_create(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {
@@ -758,6 +763,11 @@ protected:
 	}
 
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
+		on_create(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(parent) {

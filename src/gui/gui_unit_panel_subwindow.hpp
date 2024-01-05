@@ -255,11 +255,6 @@ protected:
 	}
 
 public:
-	void on_create(sys::state& state) noexcept override {
-		listbox_left::base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("reorg_entry")->second.definition].size.y; //nudge - allows for the extra element in the lb
-		listbox_left::on_create(state);
-	}
-
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_left::parent) {
 			auto content = retrieve<T>(state, listbox_left::parent);
@@ -302,9 +297,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_right::parent) {
-			Cyto::Any payload = T{};
-			listbox_right::parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			auto content = retrieve<T>(state, listbox_right::parent);
 
 			Cyto::Any vpayload = std::vector<T2>{};
 			listbox_right::parent->impl_get(state, vpayload);
