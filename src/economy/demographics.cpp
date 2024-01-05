@@ -110,7 +110,7 @@ void sum_over_single_nation_demographics(sys::state& state, dcon::demographics_k
 		for(auto sm : sc.get_state().get_definition().get_abstract_state_membership()) {
 			state.world.state_instance_get_demographics(location, key) += state.world.province_get_demographics(sm.get_province(), key);
 		}
-		
+
 	}
 	state.world.nation_set_demographics(n, key, 0.f);
 	for(auto sc : state.world.nation_get_state_ownership_as_nation(n)) {
@@ -140,7 +140,7 @@ void regenerate_from_pop_data(sys::state& state) {
 		auto index = base_index;
 		if constexpr(!full) {
 			if(index >= csz) {
-				index += extra_size * (state.current_date.value % extra_demo_grouping);
+				index += extra_group_size * (state.current_date.value % extra_demo_grouping);
 				if(index >= sz)
 					return;
 			}
