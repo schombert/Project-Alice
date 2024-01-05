@@ -63,7 +63,7 @@ uint32_t size(sys::state const& state) {
 				 uint32_t(2) * state.world.pop_type_size() + state.world.culture_size() + state.world.religion_size();
 }
 uint32_t common_size(sys::state const& state) {
-	return count_special_keys;
+	return count_special_keys + uint32_t(2) * state.world.pop_type_size();
 }
 
 template<typename F>
