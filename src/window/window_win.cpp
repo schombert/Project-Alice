@@ -298,7 +298,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		sound::update_music_track(*state);
 		break;
 	case WM_GETMINMAXINFO:
-		LPMINMAXINFO info = static_cast<LPMINMAXINFO>(lParam);
+		LPMINMAXINFO info = (LPMINMAXINFO)lParam;
 		info->ptMinTrackSize.x = 640;
 		info->ptMinTrackSize.y = 400;
 		info->ptMaxTrackSize.x = 2400;
