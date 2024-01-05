@@ -317,7 +317,7 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 	parser_state pstate{};
 	pstate.cmd = possible_commands[0];
 	for(auto const& cmd : possible_commands)
-		if(s.starts_with(cmd.name)) {
+		if(s.compare(0, cmd.name.size(), cmd.name) == 0) {
 			pstate.cmd = cmd;
 			break;
 		}
