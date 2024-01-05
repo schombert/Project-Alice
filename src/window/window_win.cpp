@@ -301,8 +301,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		LPMINMAXINFO info = (LPMINMAXINFO)lParam;
 		info->ptMinTrackSize.x = 640;
 		info->ptMinTrackSize.y = 400;
-		info->ptMaxTrackSize.x = 2400;
-		info->ptMaxTrackSize.y = 1800;
 	}
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
