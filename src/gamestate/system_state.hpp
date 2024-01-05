@@ -367,6 +367,7 @@ struct user_settings_s {
 	float gamma = 1.f;
 	bool railroads_enabled = true;
 	bool rivers_enabled = true;
+	map_zoom_mode zoom_mode = map_zoom_mode::panning;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

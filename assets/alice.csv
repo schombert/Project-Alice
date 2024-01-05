@@ -11,6 +11,9 @@ map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+zoom_mode_pan;Panning;;;Panoramico;;;;;;;;;x
+zoom_mode_invert;Inverted;;;Invertido;;;;;;;;;x
+zoom_mode_center;Centered;;;Centrado;;;;;;;;;x
 river_label;Rivers;;;Rios;;;;;;;;;x
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
