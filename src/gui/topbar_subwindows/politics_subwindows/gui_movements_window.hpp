@@ -212,7 +212,7 @@ public:
 		auto prov = state.world.nation_get_capital(n);
 		if(auto k = state.world.rebel_type_get_siege_won_trigger(type); k) {
 			text::add_line(state, contents, "alice_rf_siege_won_trigger", text::variable_type::x, prov);
-			ui::trigger_description(state, contents, k, trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(reb));
+			ui::trigger_description(state, contents, k, trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(reb), uint32_t(state.current_date.value), uint32_t(reb.index() ^ (reb.index() << 4)));
 		}
 		if(auto k = state.world.rebel_type_get_siege_won_effect(type); k) {
 			text::add_line(state, contents, "alice_rf_siege_won_effect", text::variable_type::x, prov);
