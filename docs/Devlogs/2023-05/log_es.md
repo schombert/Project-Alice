@@ -6,7 +6,7 @@ Una vez más es hora de revisar qué están haciendo los holgazanes en el Proyec
 
 En marzo, añadimos un nuevo programador al equipo, DeathByDarwin, quien ha estado trabajando con leaf para realizar mejoras en la ventana de tecnología.
 
-![Technology window](tech.png)
+![Technology window](./images/tech.png)
 
 ## Preguntas y Respuestas del Equipo
 
@@ -18,9 +18,9 @@ Este mes le preguntamos a leaf, uno de los miembros fundadores del Proyecto Alic
 
 Este mes, el trabajo en la interfaz de usuario ha estado más disperso que el mes pasado. Por lo tanto, no hay una ventana única que podamos mostrar como casi completa. Sin embargo, puedes ver cómo las piezas se van colocando gradualmente en el presupuesto (por forn), militar (por MasterChef) y ventanas de comercio (por leaf y forn), a continuación.
 
-![Budget window](budget.png)
-![Military window](military.png)
-![Trade window](trade.png)
+![Budget window](./images/budget.png)
+![Military window](./images/military.png)
+![Trade window](./images/trade.png)
 
 Internos
 
@@ -36,7 +36,7 @@ Ese marco general permanece sin cambios en el Proyecto Alice. Sin embargo, dentr
 
 Sin embargo, en el Proyecto Alice, todos los consumidores dentro de una nación tienen un acceso igual a los bienes disponibles. Esto significa que, si no hay suficientes bienes disponibles, cada consumidor recibirá una fracción de lo que querían. Esto a su vez significa que todas tus fábricas se verán afectadas igualmente por una escasez. Por ejemplo, en la imagen a continuación, puedes ver que todas las fábricas sufren igualmente por la escasez de hierro.
 
-![Factory window](factory.png)
+![Factory window](./images/factory.png)
 
 Otra cambio se refiere a la manera en que se gestionan las reservas nacionales (y ahora estoy hablando de lo que se llaman "reservas" en el juego). Hay dos formas en que las reservas nacionales se simplifican en comparación con cómo funcionan en Victoria 2. Primero, en Victoria 2, algunas formas de consumo por parte del gobierno (por ejemplo, el pago del mantenimiento de las unidades) pasa a través de las reservas, lo que significa que el gobierno primero traslada mercancías a sus reservas nacionales y luego las saca para consumirlas. Esto puede causar algunas cosas extrañas si desactivas la automatización de las reservas (ya que con la automatización desactivada puedes interferir con el proceso de poner las mercancías en las reservas en primer lugar). En el Proyecto Alice eso no sucede; cualquier mercancía requerida por los gastos gubernamentales se compra y luego se consume directamente, sin pasar por las reservas como un paso intermedio. Y eso a su vez significa que la automatización de las reservas ya no cumple un propósito útil y no se incluirá (porque la configuración de tus reservas ya no puede interferir con otros gastos).
 
@@ -46,7 +46,7 @@ Además, en Victoria 2, las reservas nacionales pueden funcionar básicamente en
 
 Erik, quien es en gran medida responsable de la maquinaria técnica que respalda el mapa, ha estado bastante ocupado fuera del Proyecto Alice últimamente. Sin embargo, puedo compartir un avance exclusivo de algunos de sus últimos trabajos:
 
-![Globe preview](globe_preview.png)
+![Globe preview](./images/globe_preview.png)
 
 ## El fin
 

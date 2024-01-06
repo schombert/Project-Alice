@@ -34,8 +34,8 @@ Para los mods que aún están en desarrollo, he estado enviando (a menudo ciento
 
 Otro obstáculo para la compatibilidad perfecta de mods son los cambios gráficos que algunos mods hacen en el mapa. Alice utiliza OpenGL para renderizar sus gráficos (para facilitar la ejecución en Linux), mientras que Victoria 2 usaba DirectX, por lo que no podemos cargar los shaders modificados en los que algunos mods confían. El resultado más común es que el mapa se vea extremadamente oscuro o extremadamente claro al alejarse. Esto también es un problema que se puede solucionar. Nuestros shaders también se pueden modificar, por lo que podemos agregar un shader de OpenGL a estos mods para que se representen correctamente en Alice, o (si los desarrolladores del mod no están interesados en admitir Alice) podemos agregar el shader modificado a un parche de compatibilidad.
 
-![too dark MHM](mhm.png)
-![too light ToL](tol.png)
+![too dark MHM](./images/mhm.png)
+![too light ToL](./images/tol.png)
 
 ## Multijugador
 

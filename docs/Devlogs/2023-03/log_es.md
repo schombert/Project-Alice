@@ -18,15 +18,18 @@ Como podras saber por los [videos lacónicos](https://www.youtube.com/channel/UC
 
 Las fronteras que puedes ver en las capturas de pantalla aún están en proceso de desarrollo. Actualmente, todas las fronteras son bastante gruesas, pero en el futuro, las fronteras de provincia a provincia serán delgadas, las fronteras de estado a estado serán más gruesas, y las fronteras nacionales tendrán una elegante línea de puntos. Además, las fronteras que ves se ajustarán de manera inteligente según el nivel de zoom, de manera similar a cómo funcionaban en Open V2.
 
-![Political map mode](political.png)
+![Political map mode](./images/political.png)
 
 Una ventaja de tener un mapa en 2D en este momento es que es fácil compararlo con el mapa en Victoria 2. Algunos de los desarrolladores incluso han estado agregando pequeñas mejoras de calidad de vida a medida que avanzan. Por ejemplo, puedes ver a continuación cómo seleccionar una provincia en el modo de mapa cultural te permitirá ver cómo se distribuye una cultura por todo el mapa.
 
-![Cultural map mode](cultural.png) ![Selected culture map mode](culturalB.png) ![Population map mode](population.png)
+![Cultural map mode](./images/cultural.png) 
+![Selected culture map mode](./images/culturalB.png) 
+![Population map mode](./images/population.png)
 
 Actualmente, el modo de mapa del terreno luce casi idéntico a cómo lo hacía en Victoria 2. Y, como bonificación adicional, incorporamos algunas correcciones de errores que mejoran el mapa original, haciendo que las islas de Fehmarn y Tsushima aparezcan por primera vez. Estas islas forman parte del mapa original (te animo a que lo verifiques por ti mismo), pero nunca se mostraron debido a un error.
 
-![Tsushima](island2.png) ![Fehmarn](island1.png)
+![Tsushima](./images/island2.png) 
+![Fehmarn](./images/island1.png)
 
 ## Combate
 
