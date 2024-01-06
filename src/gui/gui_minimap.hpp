@@ -551,6 +551,8 @@ public:
 						&& marked_c[c.id.index()] == false
 						&& command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
+							marked_p[p.index()] = true;
+							marked_c[c.id.index()] = true;
 							total_built++;
 						}
 						if(total_built >= t.amounts[i]) break;
@@ -562,6 +564,7 @@ public:
 					if(marked_p[p.index()] == false
 					&& command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
 						command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
+						marked_p[p.index()] = true;
 						total_built++;
 					}
 					if(total_built >= t.amounts[i]) break;
