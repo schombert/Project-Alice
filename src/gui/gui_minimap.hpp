@@ -548,12 +548,11 @@ public:
 						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
 							total_built++;
-							break;
 						}
+						if(total_built >= t.amounts[i]) break;
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
-				if(total_built >= t.amounts[i]) break;
 			} else {
 				for(const auto p : provinces) {
 					if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
@@ -562,7 +561,6 @@ public:
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
-				if(total_built >= t.amounts[i]) break;
 			}
 		}
 	}
@@ -598,8 +596,8 @@ public:
 					for(const auto c : state.world.in_culture) {
 						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 							total_built++;
-							break;
 						}
+						if(total_built >= t.amounts[i]) break;
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
@@ -610,7 +608,6 @@ public:
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
-				if(total_built >= t.amounts[i]) break;
 			}
 			if(total_built != t.amounts[i]) {
 				text::substitution_map sub{};
