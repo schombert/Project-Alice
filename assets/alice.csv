@@ -1366,8 +1366,12 @@ aml_civ_s3;100% Westernized
 aml_civ_s4;0% Westernized
 aml_civ_s5;Colony
 macro_builder;Macro-builder;;;Macro-constructor
-save_template;Save template;;;Guardar plantilla
-new_template;New template;;;Nueva plantila
+macro_total_desc;Total unit stats:
+macro_remove_template;Delete
+macro_switch_type_land;Switch to: Land
+macro_switch_type_naval;Switch to: Naval
+macro_save_template;Save template;;;Guardar plantilla
+macro_new_template;New template;;;Nueva plantila
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest

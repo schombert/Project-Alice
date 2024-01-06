@@ -3560,7 +3560,7 @@ guiTypes = {
 
 	windowType = {
 		name = "alice_macro_builder"
-		position = { 400 400 }
+		position = { 420 400 }
 		size = { 640 320 }
 		guiButtonType = {
 			name = "background"
@@ -3586,7 +3586,7 @@ guiTypes = {
 		listboxType = 	{
 			name = "template_listbox"
 			position = { 0 28 }
-			size = { 105 260 }
+			size = { 105 240 }
 			spacing = 0
 			borderSize = { 0 0 }
 		}
@@ -3602,7 +3602,7 @@ guiTypes = {
 			position = { 2 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "new_template"
+			buttonText = "macro_new_template"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -3610,7 +3610,7 @@ guiTypes = {
 			position = { 130 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "save_template"
+			buttonText = "macro_save_template"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -3618,7 +3618,7 @@ guiTypes = {
 			position = { 260 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "remove_template"
+			buttonText = "macro_remove_template"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -3626,8 +3626,25 @@ guiTypes = {
 			position = { 390 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "switch_type"
+			buttonText = "macro_switch_type_naval"
 			buttonFont = "vic_22_black"
+		}
+		editBoxType = {
+			name = "input"
+			position = { 320 28 }
+			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
+			font = "FPS_Font"
+			borderSize = { 0 0 }
+			maxsize = { 128 40 }
+			format = center
+		}
+		instantTextBoxType = {
+			name = "details"
+			position = { 320 72 }
+			font = "vic_22"
+			borderSize = { 0 0 }
+			maxsize = { 128 298 }
+			format = center
 		}
 	}
 	windowType = {
