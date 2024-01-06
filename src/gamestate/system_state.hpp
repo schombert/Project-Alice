@@ -13,6 +13,7 @@
 #include "simple_fs.hpp"
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
+#include "directx_wrapper.hpp"
 #include "fonts.hpp"
 #include "sound.hpp"
 #include "map_state.hpp"
@@ -595,6 +596,10 @@ struct alignas(64) state {
 
 	// graphics data
 	ogl::data open_gl;
+
+#ifdef DIRECTX_11
+	directx::data directx;
+#endif
 
 	// cheat data
 	cheat_data_s cheat_data;
