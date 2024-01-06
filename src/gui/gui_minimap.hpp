@@ -501,28 +501,49 @@ public:
 	}
 };
 class macro_builder_apply_button : public button_element_base {
+	std::vector<dcon::province_id> provinces;
+	std::vector<bool> marked;
+	void get_provinces(sys::state& state, dcon::province_id p) {
+		if(marked[p.index()])
+			return;
+		marked[p.index()] = true;
+		if(state.world.province_get_nation_from_province_control(p) == state.local_player_nation) {
+			provinces.push_back(p);
+			for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
+				auto p2 = state.world.province_adjacency_get_connected_provinces(state.world.province_adjacency_get_connected_provinces(0) == p ? 1 : 0);
+				get_provinces(state, p2);
+			}
+		}
+	}
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		marked.resize(state.world.province_size() + 1, false);
+	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = (state.map_state.selected_province == dcon::province_id{});
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto is_land = retrieve<bool>(state, parent);
 		auto const& t = state.ui_state.current_template;
+
+		provinces.clear();
+		marked.assign(marked.size(), false);
+		get_provinces(state, state.map_state.selected_province);
+		if(provinces.empty()) {
+			return;
+		}
+
 		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
 			if(t.amounts[i] == 0) //not needed to show this
 				continue;
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
 			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
 				continue;
-			auto mrmb = state.world.province_get_region_membership_as_province(state.map_state.selected_province);
-			if(mrmb.begin() == mrmb.end())
-				continue;
-			auto r = state.world.region_membership_get_region(*(mrmb.begin()));
 			if(is_land) {
 				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					bool built = false;
-					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
-						auto p = state.world.region_membership_get_province(rmb);
+					for(const auto p : provinces) {
 						for(const auto c : state.world.in_culture) {
 							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 								command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
@@ -535,8 +556,7 @@ public:
 				}
 			} else {
 				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
-						auto p = state.world.region_membership_get_province(rmb);
+					for(const auto p : provinces) {
 						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
 							command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
 							break;
@@ -556,6 +576,14 @@ public:
 			return;
 		}
 
+		provinces.clear();
+		marked.assign(marked.size(), false);
+		get_provinces(state, state.map_state.selected_province);
+		if(provinces.empty()) {
+			text::add_line(state, contents, "macro_warn_invalid_province");
+			return;
+		}
+
 		auto is_land = retrieve<bool>(state, parent);
 		auto const& t = state.ui_state.current_template;
 		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
@@ -564,22 +592,13 @@ public:
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
 			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
 				continue;
-			auto mrmb = state.world.province_get_region_membership_as_province(state.map_state.selected_province);
-			if(mrmb.begin() == mrmb.end()) {
-				text::add_line(state, contents, "macro_warn_invalid_province");
-				continue;
-			}
-			auto r = state.world.region_membership_get_region(*(mrmb.begin()));
-
 			uint8_t total_built = 0;
 			if(is_land) {
 				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					bool built = false;
-					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
-						auto p = state.world.region_membership_get_province(rmb);
+					for(const auto p : provinces) {
 						for(const auto c : state.world.in_culture) {
 							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
-								command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
 								built = true;
 								total_built++;
 								break;
@@ -590,10 +609,8 @@ public:
 				}
 			} else {
 				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
-						auto p = state.world.region_membership_get_province(rmb);
+					for(const auto p : provinces) {
 						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
-							command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
 							total_built++;
 							break;
 						}
