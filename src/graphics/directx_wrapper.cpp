@@ -35,7 +35,7 @@ void create_directx_context(sys::state& state) {
 	state.directx.context = context;
 
 	// Initializing DirectXTex
-	HRESULT result = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
+	result = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
 
 	if(FAILED(result)) {
 		std::abort();
