@@ -60,6 +60,7 @@
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "D3D11.lib")
 #pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 #include "simple_fs_win.cpp"
 #include "window_win.cpp"

@@ -33,6 +33,15 @@ void create_directx_context(sys::state& state) {
 	}
 	state.directx.device = device;
 	state.directx.context = context;
+
+	// Initializing DirectXTex
+	HRESULT result = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
+
+	if(FAILED(result)) {
+		std::abort();
+	}
+
+
 }
 
 void shutdown_directx(sys::state& state) {
@@ -65,7 +74,7 @@ HRESULT compile_shader_from_file(sys::state& state, _In_ LPCWSTR file_name, _In_
 
 	HRESULT result = D3DCompileFromFile(file_name, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, profile,
 									 flags, 0, &shader_blob, &error_blob);
-
+					
 	if(FAILED(result)) {
 		if(error_blob) {
 			MessageBox(state.win_ptr->hwnd, L"An error has occurred during shader compilation", L"Shader compilation error", MB_OK);
@@ -84,15 +93,94 @@ HRESULT compile_shader_from_file(sys::state& state, _In_ LPCWSTR file_name, _In_
 // TODO
 void create_program();
 
+// to load a single special icon
+HRESULT load_dds_from_file_content(IWICImagingFactory* iwici_factory, IWICStream* iwici_stream, simple_fs::file_contents content, IWICBitmapDecoder* decoder) {
+
+	auto image_stream = const_cast<BYTE*>(reinterpret_cast<BYTE const*>(content.data));
+
+	HRESULT result = iwici_stream->InitializeFromMemory(image_stream, content.file_size);
+
+	if(FAILED(result)) {
+		return result;
+	}
+
+	result = iwici_factory->CreateDecoderFromStream(iwici_stream, NULL, WICDecodeMetadataCacheOnLoad, &decoder);
+	return result;
+}
+
+// to load them all
 void load_special_icons(sys::state& state) {
+	HRESULT result;
+
+	IWICImagingFactory* iwici_factory;
+	IWICStream* iwici_stream = NULL;
+
+	result = CoCreateInstance(
+		CLSID_WICImagingFactory,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&iwici_factory)
+	);
+
+	if(FAILED(result)) {
+		// TODO
+	}
+
+	result = iwici_factory->CreateStream(&iwici_stream);
+
+	if(FAILED(result)) {
+		// TODO
+	}
+
 	auto root = get_root(state.common_fs);
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
 
 	auto interface_dir = simple_fs::open_directory(gfx_dir, NATIVE("interface"));
 	auto money_dds = simple_fs::open_file(interface_dir, NATIVE("icon_money_big.dds"));
 	if(money_dds) {
-		
+		auto content = simple_fs::view_contents(*money_dds);
+		result = load_dds_from_file_content(iwici_factory, iwici_stream, content, state.directx.money_icon_decoder);
+		if(FAILED(result)) {
+			// TODO
+		}
 	}
 
+	auto n_dds = simple_fs::open_file(interface_dir, NATIVE("politics_foreign_naval_units.dds"));
+	if(n_dds) {
+		auto content = simple_fs::view_contents(*n_dds);
+		result = load_dds_from_file_content(iwici_factory, iwici_stream, content, state.directx.navy_icon_decoder);
+		if(FAILED(result)) {
+			// TODO
+		}
+	}
+
+	auto a_dds = simple_fs::open_file(interface_dir, NATIVE("topbar_army.dds"));
+	if(a_dds) {
+		auto content = simple_fs::view_contents(*a_dds);
+		result = load_dds_from_file_content(iwici_factory, iwici_stream, content, state.directx.army_icon_decoder);
+		if(FAILED(result)) {
+			// TODO
+		}
+	}
+
+
+	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
+	auto cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not.dds"));
+	if(cross_dds) {
+		auto content = simple_fs::view_contents(*cross_dds);
+		result = load_dds_from_file_content(iwici_factory, iwici_stream, content, state.directx.cross_icon_decoder);
+		if(FAILED(result)) {
+			// TODO
+		}
+	}
+
+	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
+	if(checkmark_dds) {
+		auto content = simple_fs::view_contents(*checkmark_dds);
+		result = load_dds_from_file_content(iwici_factory, iwici_stream, content, state.directx.checkmark_icon_decoder);
+		if(FAILED(result)) {
+			// TODO
+		}
+	}
 }
 }
