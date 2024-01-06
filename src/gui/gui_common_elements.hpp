@@ -372,6 +372,16 @@ public:
 		else
 			set_text(state, "");
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto issue = state.world.movement_get_associated_issue_option(mid);
+		text::add_line(state, contents, "reform_movement_desc", text::variable_type::reform, state.world.issue_option_get_name(issue));
+	}
 };
 
 class standard_movement_multiline_text : public multiline_text_element_base {
@@ -407,6 +417,22 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("nationalist_liberation_movement"), sub);
 		}
 		text::close_layout_box(contents, box);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto independence_target = state.world.movement_get_associated_independence(mid);
+		if(!independence_target)
+			return;
+		if(state.world.national_identity_get_cultural_union_of(independence_target)) {
+			text::add_line(state, contents, "NATIONALIST_UNION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		} else {
+			text::add_line(state, contents, "NATIONALIST_LIBERATION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		}
 	}
 };
 
@@ -519,6 +545,47 @@ public:
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_industrial_score()));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.nation_get_owned_province_count(n) == 0)
+			return;
+
+		auto iweight = state.defines.investment_score_factor;
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			float total_level = 0;
+			float worker_total =
+				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
+				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+			float total_factory_capacity = 0;
+			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
+				for(auto f : state.world.province_get_factory_location(p)) {
+					total_factory_capacity +=
+						float(f.get_factory().get_level() * f.get_factory().get_building_type().get_base_workforce());
+					total_level += float(f.get_factory().get_level());
+				}
+			});
+			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
+			text::add_line(state, contents, "alice_indscore_1", text::variable_type::x, si.get_state());
+			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_two_places{ total_factory_capacity });
+			text::add_line(state, contents, "alice_indscore_3", text::variable_type::x, text::fp_two_places{ total_level });
+			text::add_line(state, contents, "alice_indscore_4", text::variable_type::x, text::fp_two_places{ worker_total });
+			text::add_line(state, contents, "alice_indscore_5", text::variable_type::x, text::fp_two_places{ per_state });
+		}
+		text::add_line(state, contents, "alice_indscore_6", text::variable_type::x, text::fp_two_places{ iweight });
+		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
+			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ ur.get_foreign_investment() });
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("alice_indscore_7"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
 };
 
 class nation_military_score_text : public standard_nation_text {
@@ -526,6 +593,31 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(int32_t(fat_id.get_military_score()));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto recruitable = state.world.nation_get_recruitable_regiments(n);
+		auto active_regs = state.world.nation_get_active_regiments(n);
+		auto is_disarmed = state.world.nation_get_disarmed_until(n) < state.current_date;
+		auto disarm_factor = is_disarmed ? state.defines.disarmament_army_hit : 1.f;
+		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
+		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
+		auto gen_range = state.world.nation_get_leader_loyalty(n);
+		auto num_leaders = float((gen_range.end() - gen_range.begin()));
+		auto num_capital_ships = state.world.nation_get_capital_ship_score(n);
+		text::add_line(state, contents, "alice_milscore_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
+		text::add_line(state, contents, "alice_milscore_2", text::variable_type::x, text::int_wholenum{ recruitable });
+		text::add_line(state, contents, "alice_milscore_3", text::variable_type::x, text::int_wholenum{ active_regs });
+		text::add_line(state, contents, "alice_milscore_4", text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
+		text::add_line(state, contents, "alice_milscore_5", text::variable_type::x, text::fp_two_places{ supply_mod });
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, true);
+		text::add_line(state, contents, "alice_milscore_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
+		text::add_line(state, contents, "alice_milscore_7", text::variable_type::x, text::fp_two_places{ num_leaders });
 	}
 };
 

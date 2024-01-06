@@ -1021,7 +1021,7 @@ Mientras una elección está en curso, se activarán eventos aleatorios de la ca
 
 Es la suma de los siguientes dos componentes:
 - Para cada estado: (fracción de trabajadores de fábricas en cada estado (tipos marcados con "puede trabajar en fábrica = sí") respecto a la fuerza laboral total x nivel de construcción de fábricas en el estado (limitado a 1)) x total de niveles de fábricas
-- Para cada país en el que la nación tiene inversiones: define: INVESTMENT_SCORE_FACTOR x la cantidad invertida x 0.01
+- Para cada país en el que la nación tiene inversiones: define: INVESTMENT_SCORE_FACTOR x la cantidad invertida x 0.05
 
 ### Puntuación Militar
 
