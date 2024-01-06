@@ -12,15 +12,15 @@ Dado que esta actualización va a tener mucho texto, permíteme comenzar mostrá
 
 Leaf reintegró los ejércitos rebeldes, permitiendo que los mods de zombis funcionen según lo previsto (ilustrado a continuación).
 
-![zombies](reb.png)
+![zombies](./images/reb.png)
 
 Leyendas de mapas para más modos de mapas (la mayoría de estas aparecerán en la versión 0.9.4).
 
-![map legend](leg.png)
+![map legend](./images/leg.png)
 
 Juego tardío de GFM utilizando el nuevo parche de compatibilidad de Leaf que ha tomado un giro extraño.
 
-![gfm](gfm.png)
+![gfm](./images/gfm.png)
 
 # El Camino hacia la Versión 1.0
 

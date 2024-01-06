@@ -6,20 +6,20 @@
 
 En marzo, agregamos (más bien, que Schombert secuestró) cuatro nuevos programadores al equipo. En el orden en que se agregaron, ellos son Bruno, quien ha añadido el modo de mapa diplomático:
 
-![Diplomatic map mode](Diplomatic_Map_Mode.png)
+![Diplomatic map mode](./images/Diplomatic_Map_Mode.png)
 
 Cap, quien ha añadido los modos de mapa de infraestructura, nivel de civilización, reclutamiento, suministro, relaciones, rango y riesgo de revuelta (y quizás algunos otros que estoy olvidando en este momento).
 
-![Civilization level map mode](Civilization_Level_Map_Mode.png)
-![Rank map mode](Rank_Map_Mode.png)
+![Civilization level map mode](./images/Civilization_Level_Map_Mode.png)
+![Rank map mode](./images/Rank_Map_Mode.png)
 
 Nick, quien ha realizado algunas mejoras en la consola y también ha comenzado con la ventana de población.
 
-![Population window](Population_Window_Start.png)
+![Population window](./images/Population_Window_Start.png)
 
 Y Landau, quien ha llenado de contenido la pestaña de decisiones.
 
-![Decision tab](Populated_Decision_Tab_Landau.png)
+![Decision tab](./images/Populated_Decision_Tab_Landau.png)
 
 Nuevos programadores, artistas o personas con otros talentos para contribuir son siempre bienvenidos a unirse al equipo.
 
@@ -33,21 +33,21 @@ Para este mes le preguntamos a Diana, la coordinadora del proyecto y segunda al 
 
 El lento proceso de implementar la interfaz de usuario aún está en marcha. Este mes logramos un progreso significativo en la ventana de la provincia, que ahora muestra información como puntajes nacionales, empleo en RGO y alianzas, entre otras cosas. La ventana de política también ha experimentado mejoras significativas. La mayor parte de la información en la columna izquierda ahora está completa, junto con el contenido de las pestañas de problemas, reformas (para naciones incivilizadas) y decisiones. También se ha dado el primer paso para hacer funcionar la ventana de población (mencionada anteriormente).
 
-![Province windows](Province_and_Focus_Windows.png)
-![Top bar](Top_Bar.png)
-![Politics window](Political_Reforms_Window.png)
+![Province windows](./images/Province_and_Focus_Windows.png)
+![Top bar](./images/Top_Bar.png)
+![Politics window](./images/Political_Reforms_Window.png)
 
 ## Progreso del mapa
 
 En este momento se han añadido 15 de los 22 modos de mapa. Además, las fronteras entre provincias han recibido una mejora estética. Ahora, las fronteras entre naciones son más gruesas que las entre estados, que a su vez son más gruesas que las entre provincias. Y al hacer zoom, las fronteras menos importantes desaparecerán, dejándote solo con las fronteras nacionales cuando el mapa esté completamente alejado.
 
-![Zoom levels](Zoom_Levels.png)
+![Zoom levels](./images/Zoom_Levels.png)
 
 ## Fuentes clásicas
 
 El mes pasado mencionamos que MasterChef estaba trabajando en reintegrar las fuentes clásicas como una opción. Este mes nos complace anunciar que el trabajo ha sido completado, y para los ultra puristas hemos añadido la opción de renderizar el texto utilizando los mapas de bits originales.
 
-![Font comparison](Fonts_detail.png)
+![Font comparison](./images/Fonts_detail.png)
 
 Las personas con monitores de alta resolución probablemente querrán quedarse con las nuevas fuentes; las fuentes de mapa de bits no se ven muy bien cuando se escalan.
 
