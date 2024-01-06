@@ -316,8 +316,13 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 	// Parse command
 	parser_state pstate{};
 	pstate.cmd = possible_commands[0];
+	size_t first_space = 0;
+	for(size_t i = 0; i < s.size(); ++i) {
+		if(isspace(s.at(i))) break;
+		first_space = i;
+	}
 	for(auto const& cmd : possible_commands)
-		if(s.compare(0, cmd.name.size(), cmd.name) == 0) {
+		if(s.compare(0, first_space + 1, cmd.name) == 0) {
 			pstate.cmd = cmd;
 			break;
 		}
