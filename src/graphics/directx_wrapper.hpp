@@ -3,9 +3,9 @@
 #include <wincodec.h>
 
 
-#ifndef DIRECTX_11
+#ifdef _WIN64
 #define DIRECTX_11
-#endif
+
 
 namespace directx {
 struct data {
@@ -23,3 +23,4 @@ struct data {
 void create_directx_context(sys::state& state);
 void shutdown_directx(sys::state& state);
 }
+#endif
