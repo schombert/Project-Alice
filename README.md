@@ -12,7 +12,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - Mods may or may not run with more or less problems (see the October update and the compatibility patches channel in the discord for more information about particular mods).
 
 ## Contributing
-- Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
+- Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md),[Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md) [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
 
 ## Updates
 
