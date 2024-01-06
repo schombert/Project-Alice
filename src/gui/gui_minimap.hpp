@@ -508,7 +508,7 @@ class macro_builder_apply_button : public button_element_base {
 		if(marked[p.index()])
 			return;
 		marked[p.index()] = true;
-		if(state.world.province_get_nation_from_province_control(p) == state.local_player_nation) {
+		if(state.world.province_get_nation_from_province_control(p) == state.local_player_nation && state.world.province_get_nation_from_province_ownership(p) == state.local_player_nation) {
 			provinces.push_back(p);
 			for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
 				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
@@ -543,30 +543,26 @@ public:
 				continue;
 			uint8_t total_built = 0;
 			if(is_land) {
-				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto p : provinces) {
-						for(const auto c : state.world.in_culture) {
-							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
-								command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
-								total_built++;
-								break;
-							}
-						}
-						if(total_built >= t.amounts[i]) break;
-					}
-					if(total_built >= t.amounts[i]) break;
-				}
-			} else {
-				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto p : provinces) {
-						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
-							command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
+				for(const auto p : provinces) {
+					for(const auto c : state.world.in_culture) {
+						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
+							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
 							total_built++;
+							break;
 						}
-						if(total_built >= t.amounts[i]) break;
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
+				if(total_built >= t.amounts[i]) break;
+			} else {
+				for(const auto p : provinces) {
+					if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
+						command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
+						total_built++;
+					}
+					if(total_built >= t.amounts[i]) break;
+				}
+				if(total_built >= t.amounts[i]) break;
 			}
 		}
 	}
@@ -598,28 +594,23 @@ public:
 				continue;
 			uint8_t total_built = 0;
 			if(is_land) {
-				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto p : provinces) {
-						for(const auto c : state.world.in_culture) {
-							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
-								total_built++;
-								break;
-							}
+				for(const auto p : provinces) {
+					for(const auto c : state.world.in_culture) {
+						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
+							total_built++;
+							break;
 						}
-						if(total_built >= t.amounts[i]) break;
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
 			} else {
-				for(uint8_t j = 0; j < t.amounts[i]; j++) {
-					for(const auto p : provinces) {
-						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
-							total_built++;
-						}
-						if(total_built >= t.amounts[i]) break;
+				for(const auto p : provinces) {
+					if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
+						total_built++;
 					}
 					if(total_built >= t.amounts[i]) break;
 				}
+				if(total_built >= t.amounts[i]) break;
 			}
 			if(total_built != t.amounts[i]) {
 				text::substitution_map sub{};
