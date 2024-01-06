@@ -50,6 +50,48 @@ struct color3f {
 	float b = 0.0f;
 };
 
+
+
+struct image {
+	uint8_t* data = nullptr;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	int32_t channels = 0;
+
+	image() { }
+
+	image(uint8_t* data, int32_t size_x, int32_t size_y, int32_t channels) {
+		this->data = data;
+		this->size_x = size_x;
+		this->size_y = size_y;
+		this->channels = channels;
+	}
+	image(image const& other) = delete;
+
+	image(image&& other) noexcept {
+		data = other.data;
+		size_x = other.size_x;
+		size_y = other.size_y;
+		channels = other.channels;
+		other.data = nullptr;
+	}
+
+	image& operator=(image&& other) noexcept {
+		data = other.data;
+		size_x = other.size_x;
+		size_y = other.size_y;
+		channels = other.channels;
+		other.data = nullptr;
+		return *this;
+	}
+	image& operator=(image const& other) = delete;
+
+	~image() {
+		if(data)
+			free(data);
+	}
+};
+
 #ifndef NDEBUG
 inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
 		GLsizei, // length
@@ -251,4 +293,9 @@ bool msaa_enabled(sys::state const& state);
 void initialize_msaa(sys::state& state, int32_t x, int32_t y);
 void deinitialize_msaa(sys::state& state);
 
+image load_stb_image(simple_fs::file& file);
+GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels);
+GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name);
+void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap);
+GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y);
 } // namespace ogl
