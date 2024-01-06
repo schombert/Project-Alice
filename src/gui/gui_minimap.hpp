@@ -269,9 +269,9 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		bool b = retrieve<bool>(state, parent);
+		bool is_land = retrieve<bool>(state, parent);
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == b) {
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land && state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].active) {
 				row_contents.push_back(dcon::unit_type_id(i));
 			}
 		}
@@ -358,6 +358,7 @@ public:
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
 		auto is_land = retrieve<bool>(state, parent);
+		auto const& t = state.ui_state.current_template;
 
 		float reconnaissance_or_fire_range = 0.f;
 		float siege_or_torpedo_attack = 0.f;
@@ -370,23 +371,23 @@ public:
 		float maneuver = 0.f;
 		int32_t supply_consumption_score = 0;
 		for(dcon::unit_type_id::value_base_t i = 0; i < sizeof(sys::macro_builder_template::max_types); i++) {
-			if(state.ui_state.current_template.amounts[i] == 0) //not needed to show this
+			if(t.amounts[i] == 0) //not needed to show this
 				continue;
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
 			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
 				continue;
-			reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range;
-			siege_or_torpedo_attack += state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack;
-			attack_or_gun_power += state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power;
-			defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull;
-			discipline_or_evasion += state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion;
-			supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption;
-			maximum_speed += state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed;
+			reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range * float(t.amounts[i]);
+			siege_or_torpedo_attack += state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack * float(t.amounts[i]);
+			attack_or_gun_power += state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power * float(t.amounts[i]);
+			defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull * float(t.amounts[i]);
+			discipline_or_evasion += state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion * float(t.amounts[i]);
+			supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * float(t.amounts[i]);
+			maximum_speed += state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]);
 			if(is_land) {
-				support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support;
-				maneuver += state.military_definitions.unit_base_definitions[utid].maneuver;
+				support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support * float(t.amounts[i]);
+				maneuver += state.military_definitions.unit_base_definitions[utid].maneuver * float(t.amounts[i]);
 			} else {
-				supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score;
+				supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score * int32_t(t.amounts[i]);
 			}
 		}
 
@@ -426,7 +427,7 @@ public:
 
 		// Describe for each
 		for(dcon::unit_type_id::value_base_t i = 0; i < sizeof(sys::macro_builder_template::max_types); i++) {
-			if(state.ui_state.current_template.amounts[i] == 0) //not needed to show this
+			if(t.amounts[i] == 0) //not needed to show this
 				continue;
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
 			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
@@ -434,33 +435,33 @@ public:
 			text::add_line(state, contents, state.military_definitions.unit_base_definitions[utid].name);
 			if(is_land) {
 				if(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range > 0) {
-					text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range, 2));
+					text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range * float(t.amounts[i]), 2));
 				}
 				if(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack > 0) {
-					text::add_line(state, contents, "alice_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack, 2));
+					text::add_line(state, contents, "alice_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack * float(t.amounts[i]), 2));
 				}
-				text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
-				text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
-				text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100, 0));
+				text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power * float(t.amounts[i]), 2));
+				text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull * float(t.amounts[i]), 2));
+				text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100 * float(t.amounts[i]), 0));
 				if(state.military_definitions.unit_base_definitions[utid].support > 0.f) {
-					text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100, 0));
+					text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100 * float(t.amounts[i]), 0));
 				}
-				text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
-				text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
-				text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
+				text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver * float(t.amounts[i]), 0));
+				text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]), 2));
+				text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100 * float(t.amounts[i]), 0));
 			} else {
-				text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
-				text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power, 2));
+				text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]), 2));
+				text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power * float(t.amounts[i]), 2));
 				if(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack > 0) {
-					text::add_line(state, contents, "alice_torpedo_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack, 2));
+					text::add_line(state, contents, "alice_torpedo_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack * float(t.amounts[i]), 2));
 				}
-				text::add_line(state, contents, "alice_hull", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
-				text::add_line(state, contents, "alice_fire_range", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range, 2));
+				text::add_line(state, contents, "alice_hull", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull* float(t.amounts[i]), 2));
+				text::add_line(state, contents, "alice_fire_range", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range* float(t.amounts[i]), 2));
 				if(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion > 0.f) {
-					text::add_line(state, contents, "alice_evasion", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100, 0));
+					text::add_line(state, contents, "alice_evasion", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100 * float(t.amounts[i]), 0));
 				}
-				text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
-				text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
+				text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100 * float(t.amounts[i]), 0));
+				text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score * int32_t(t.amounts[i]));
 			}
 			text::add_line_break_to_layout(state, contents);
 		}
