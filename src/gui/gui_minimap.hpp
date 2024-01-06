@@ -374,11 +374,11 @@ public:
 		float siege_or_torpedo_attack = 0.f;
 		float attack_or_gun_power = 0.f;
 		float defence_or_hull = 0.f;
-		float discipline_or_evasion = 0.f;
+		float discipline_or_evasion = std::numeric_limits<float>::max();
 		float support = 0.f;
 		float supply_consumption = 0.f;
 		float maximum_speed = std::numeric_limits<float>::max();
-		float maneuver = 0.f;
+		float maneuver = std::numeric_limits<float>::max();
 		int32_t supply_consumption_score = 0;
 		bool warn_overseas = false;
 		bool warn_culture = false;
@@ -421,6 +421,8 @@ public:
 
 		// Total
 		if(maximum_speed == std::numeric_limits<float>::max()) maximum_speed = 0.f;
+		if(discipline_or_evasion == std::numeric_limits<float>::max()) discipline_or_evasion = 0.f;
+		if(maneuver == std::numeric_limits<float>::max()) maneuver = 0.f;
 		text::add_line(state, contents, text::produce_simple_string(state, "macro_total_desc"));
 		if(is_land) {
 			if(reconnaissance_or_fire_range > 0.f) {
