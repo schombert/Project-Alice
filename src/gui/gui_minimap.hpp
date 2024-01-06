@@ -179,6 +179,15 @@ public:
 		set_current_nation(state, state.world.nation_get_identity_from_identity_holder(nid));
 	}
 };
+struct notify_template_select {};
+class macro_builder_template_select : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto index = retrieve<uint32_t>(state, parent);
+		std::memcpy(&state.ui_state.current_template, &state.ui_state.templates[index], sizeof(sys::macro_builder_template));
+		send(state, parent, notify_template_select{});
+	}
+};
 class macro_builder_template_entry : public listbox_row_element_base<uint32_t> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -186,6 +195,8 @@ public:
 			return make_element_by_type<macro_builder_template_name>(state, id);
 		} else if(name == "shield") {
 			return make_element_by_type<macro_builder_template_flag>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<macro_builder_template_select>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -491,6 +502,7 @@ public:
 };
 class macro_builder_window : public window_element_base {
 	bool is_land = true;
+	macro_builder_name_input* name_input = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -503,7 +515,9 @@ public:
 		} else if(name == "close") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "input") {
-			return make_element_by_type<macro_builder_name_input>(state, id);
+			auto ptr = make_element_by_type<macro_builder_name_input>(state, id);
+			name_input = ptr.get();
+			return ptr;
 		} else if(name == "template_listbox") {
 			return make_element_by_type<macro_builder_template_listbox>(state, id);
 		} else if(name == "unit_listbox") {
@@ -531,7 +545,13 @@ public:
 			is_land = Cyto::any_cast<element_selection_wrapper<bool>>(payload).data;
 			impl_on_update(state);
 			return message_result::consumed;
-		} else if(payload.holds_type<notify_setting_update>()) {
+		} else if(payload.holds_type< notify_template_select>()) {
+			auto const& name = state.ui_state.current_template.name;
+			auto sv = std::string_view(name, name + sizeof(name));
+			name_input->set_text(state, std::string(sv));
+			impl_on_update(state);
+			return message_result::consumed;
+		}  else if(payload.holds_type<notify_setting_update>()) {
 			impl_on_update(state);
 			return message_result::consumed;
 		}
