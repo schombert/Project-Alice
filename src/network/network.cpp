@@ -250,7 +250,7 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 	}
 #endif
 
-	
+
 	client_address.sin_family = AF_INET;
 	client_address.sin_port = htons(default_server_port);
 
@@ -503,7 +503,7 @@ static void accept_new_clients(sys::state& state) {
 	tv.tv_usec = 1000;
 	if(select(socket_t(int(state.network_state.socket_fd) + 1), &rfds, nullptr, nullptr, &tv) <= 0)
 		return;
-	
+
 	// Find available slot for client
 	for(auto& client : state.network_state.clients) {
 		if(!client.is_active()) {
@@ -752,7 +752,7 @@ void send_and_receive_commands(sys::state& state) {
 void finish(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
-	
+
 	socket_shutdown(state.network_state.socket_fd);
 #ifdef _WIN64
 	WSACleanup();

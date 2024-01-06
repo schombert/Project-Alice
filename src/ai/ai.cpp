@@ -1010,7 +1010,7 @@ void update_ai_econ_construction(sys::state& state) {
 								// TODO: try to delete a factory here
 							}
 					} // END for(auto si : ordered_states) {
-				} // END if((rules & issue_rule::build_factory) == 0) 
+				} // END if((rules & issue_rule::build_factory) == 0)
 			} // END if(!desired_types.empty()) {
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
@@ -2722,7 +2722,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
-		if(overall_score < 0.0f) { // we are losing	
+		if(overall_score < 0.0f) { // we are losing
 			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
 
@@ -2837,7 +2837,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(scoreagainst_me > 50 && scoreagainst_me > -overall_po_value * 2)
 			return true;
 
-		if(overall_score < 0.0f) { // we are losing	
+		if(overall_score < 0.0f) { // we are losing
 			if(personal_score_saved > 0 && scoreagainst_me + personal_score_saved - my_po_target >= -overall_po_value)
 				return true;
 
@@ -2890,7 +2890,7 @@ void make_war_decs(sys::state& state) {
 		float best_difference = 2.0f;
 
 		//Great powers should look for non-neighbor nations to use their existing wargoals on; helpful for forcing unification/repay debts wars to happen
-		
+
 		if(nations::is_great_power(state, n)) {
 			for(auto target : state.world.in_nation) {
 				if(target == n)
@@ -3586,7 +3586,7 @@ void pickup_idle_ships(sys::state& state) {
 							n.set_arrival_time(sys::date{});
 							send_fleet_home(state, n);
 						}
-						
+
 					} else if(auto path = province::make_path_to_nearest_coast(state, owner, transported_dest); path.empty()) {
 						send_fleet_home(state, n);
 					} else {
@@ -3703,7 +3703,7 @@ void pickup_idle_ships(sys::state& state) {
 					failed_transport = false;
 				}
 			}
-			
+
 			if(transporting.begin() == transporting.end()) {
 				// all unloaded -> set to unspecified to send home later in this routine
 				state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::unspecified));
@@ -4211,7 +4211,7 @@ float estimate_attack_force(sys::state& state, dcon::province_id target, dcon::n
 			if(!other_nation) {
 				strength_total += estimate_army_strength(state, ar.get_army());
 			}
-			
+
 		}
 		return state.defines.alice_ai_threat_overestimate * strength_total;
 	}

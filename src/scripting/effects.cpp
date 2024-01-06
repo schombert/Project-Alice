@@ -1702,7 +1702,6 @@ uint32_t ef_life_rating_state(EFFECT_PARAMTERS) {
 			p,
 			uint8_t(std::clamp(int32_t(ws.world.province_get_life_rating(p)) + trigger::payload(tval[1]).signed_value, 0, 255)));
 	});
-	
 	return 0;
 }
 uint32_t ef_religion(EFFECT_PARAMTERS) {
@@ -3791,7 +3790,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 				}
 			}
 		}
-		
+
 	}
 
 	return 0;
