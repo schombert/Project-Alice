@@ -403,7 +403,7 @@ public:
 			defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull * float(t.amounts[i]);
 			discipline_or_evasion += state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion * float(t.amounts[i]);
 			supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * float(t.amounts[i]);
-			maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]));
+			maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed);
 			if(is_land) {
 				support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support * float(t.amounts[i]);
 				maneuver += state.military_definitions.unit_base_definitions[utid].maneuver * float(t.amounts[i]);
@@ -549,8 +549,8 @@ public:
 							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 								command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
 								total_built++;
+								break;
 							}
-							if(total_built >= t.amounts[i]) break;
 						}
 						if(total_built >= t.amounts[i]) break;
 					}
@@ -603,8 +603,8 @@ public:
 						for(const auto c : state.world.in_culture) {
 							if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
 								total_built++;
+								break;
 							}
-							if(total_built >= t.amounts[i]) break;
 						}
 						if(total_built >= t.amounts[i]) break;
 					}
@@ -621,8 +621,7 @@ public:
 					if(total_built >= t.amounts[i]) break;
 				}
 			}
-
-			if(total_built < t.amounts[i]) {
+			if(total_built != t.amounts[i]) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::x, text::int_wholenum{ t.amounts[i] });
 				text::add_to_substitution_map(sub, text::variable_type::y, text::int_wholenum{ total_built });
