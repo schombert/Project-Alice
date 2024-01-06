@@ -217,8 +217,8 @@ public:
 			if(contents.file_size > 0) {
 				uint32_t num_templates = contents.file_size / sizeof(sys::macro_builder_template);
 				//Corruption protection
-				if(num_templates >= 256)
-					num_templates = 256;
+				if(num_templates >= 8192 * 4)
+					num_templates = 8192 * 4;
 				state.ui_state.templates.resize(num_templates);
 				std::memcpy(state.ui_state.templates.data(), contents.data, num_templates * sizeof(sys::macro_builder_template));
 			}
