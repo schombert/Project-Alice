@@ -3631,19 +3631,19 @@ guiTypes = {
 		}
 		editBoxType = {
 			name = "input"
-			position = { 320 28 }
+			position = { 330 28 }
 			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
 			font = "FPS_Font"
-			borderSize = { 0 0 }
-			maxsize = { 128 40 }
+			borderSize = { 10 10 }
+			maxsize = { 308 40 }
 			format = center
 		}
 		instantTextBoxType = {
 			name = "details"
-			position = { 320 72 }
+			position = { 330 72 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 128 298 }
+			maxsize = { 308 298 }
 			format = center
 		}
 	}

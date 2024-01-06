@@ -490,6 +490,8 @@ public:
 			return make_element_by_type<macro_builder_remove_template_button>(state, id);
 		} else if(name == "switch_type") {
 			return make_element_by_type<macro_builder_switch_type_button>(state, id);
+		} else if(name == "details") {
+			return make_element_by_type<macro_builder_details>(state, id);
 		} else {
 			return nullptr;
 		}
