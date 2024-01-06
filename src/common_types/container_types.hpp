@@ -296,4 +296,15 @@ struct player_name {
 };
 static_assert(sizeof(player_name) == sizeof(player_name::data));
 
+struct macro_builder_template {
+	sys::checksum_key scenario_checksum;
+	dcon::nation_id source;
+	char name[8] = { 0 };
+	uint8_t amounts[32] = { 0 };
+
+	bool operator!=(macro_builder_template& o) {
+		return std::memcmp(this, &o, sizeof(*this));
+	}
+};
+
 } // namespace sys

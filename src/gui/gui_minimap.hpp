@@ -162,31 +162,25 @@ public:
 	}
 };
 
-struct macro_builder_template {
-	char name[16];
-	dcon::nation_id source;
-
-	bool operator!=(macro_builder_template& o) {
-		return std::memcmp(this, &o, sizeof(*this));
-	}
-};
 class macro_builder_template_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<macro_builder_template>(state, parent);
-		auto sv = std::string_view(content.name, content.name + sizeof(content.name));
+		auto index = retrieve<uint32_t>(state, parent);
+		auto& name = state.ui_state.templates[index].name;
+		auto sv = std::string_view(name, name + sizeof(name));
 		set_text(state, std::string(sv));
 	}
 };
 class macro_builder_template_flag : public flag_button {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<macro_builder_template>(state, parent);
-		set_current_nation(state, state.world.nation_get_identity_from_identity_holder(content.source));
+		auto index = retrieve<uint32_t>(state, parent);
+		auto nid = state.ui_state.templates[index].source;
+		set_current_nation(state, state.world.nation_get_identity_from_identity_holder(nid));
 	}
 };
 
-class macro_builder_template_entry : public listbox_row_element_base<macro_builder_template> {
+class macro_builder_template_entry : public listbox_row_element_base<uint32_t> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
@@ -198,32 +192,36 @@ public:
 		}
 	}
 };
-class macro_builder_template_listbox : public listbox_element_base<macro_builder_template_entry, macro_builder_template> {
+class macro_builder_template_listbox : public listbox_element_base<macro_builder_template_entry, uint32_t> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "alice_macro_builder_template_entry";
 	}
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_element_base<macro_builder_template_entry, uint32_t>::on_create(state);
+		//
+		auto sdir = simple_fs::get_or_create_save_game_directory();
+		auto f = simple_fs::open_file(sdir, NATIVE("templates.bin"));
+		if(f) {
+			auto contents = simple_fs::view_contents(*f);
+			if(contents.file_size > 0) {
+				uint32_t num_templates = contents.file_size / sizeof(sys::macro_builder_template);
+				//Corruption protection
+				if(num_templates >= 256)
+					num_templates = 256;
+				state.ui_state.templates.resize(num_templates);
+				std::memcpy(state.ui_state.templates.data(), contents.data, num_templates * sizeof(sys::macro_builder_template));
+			}
+		}
+		//
+		update(state);
+	}
+
 	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
-		{
-			macro_builder_template t;
-			std::memcpy(&t.name, "Template 1     ", sizeof(t.name));
-			t.source = state.local_player_nation;
-			row_contents.push_back(t);
-		}
-		{
-			macro_builder_template t;
-			std::memcpy(&t.name, "New template   ", sizeof(t.name));
-			t.source = state.local_player_nation;
-			row_contents.push_back(t);
-		}
-		{
-			macro_builder_template t;
-			std::memcpy(&t.name, "sotrmtropper   ", sizeof(t.name));
-			t.source = state.local_player_nation;
-			row_contents.push_back(t);
-		}
+		row_contents.resize(state.ui_state.templates.size(), 0);
+		for(uint32_t i = 0; i < uint32_t(state.ui_state.templates.size()); i++)
+			row_contents[i] = i;
 		update(state);
 	}
 };
@@ -232,7 +230,24 @@ class macro_builder_unit_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::unit_type_id>(state, parent);
-		set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[content].name));
+		auto name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[content].name);
+		int32_t amount = state.ui_state.current_template.amounts[content.index()];
+		set_text(state, "(" + std::to_string(amount) + ") " + name);
+	}
+};
+class macro_builder_unit_button : public right_click_button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::unit_type_id>(state, parent);
+		if(state.ui_state.current_template.amounts[content.index()] < 255) {
+			state.ui_state.current_template.amounts[content.index()] += 1;
+		}
+	}
+	void button_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::unit_type_id>(state, parent);
+		if(state.ui_state.current_template.amounts[content.index()] > 0) {
+			state.ui_state.current_template.amounts[content.index()] -= 1;
+		}
 	}
 };
 class macro_builder_unit_entry : public listbox_row_element_base<dcon::unit_type_id> {
@@ -240,6 +255,8 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "name") {
 			return make_element_by_type<macro_builder_unit_name>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type<macro_builder_unit_button>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -253,13 +270,51 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
+		// Land first
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			row_contents.push_back(dcon::unit_type_id(i));
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == true) {
+				row_contents.push_back(dcon::unit_type_id(i));
+			}
+		}
+		// Then naval after
+		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == false) {
+				row_contents.push_back(dcon::unit_type_id(i));
+			}
 		}
 		update(state);
 	}
 };
+class macro_builder_new_template_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.current_template = sys::macro_builder_template{};
+	}
+};
+class macro_builder_save_template_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		sys::macro_builder_template& t = state.ui_state.current_template;
+		t.scenario_checksum = state.scenario_checksum;
 
+		// Replace templates with the same name and of the same scenario
+		bool overwrite = false;
+		for(auto& u : state.ui_state.templates) {
+			if(t.scenario_checksum.is_equal(u.scenario_checksum)
+			&& std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
+				std::memcpy(&u, &t, sizeof(sys::macro_builder_template));
+				overwrite = true;
+				break;
+			}
+		}
+		if(!overwrite) {
+			state.ui_state.templates.push_back(t);
+		}
+
+		auto sdir = simple_fs::get_or_create_save_game_directory();
+		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+	}
+};
 class macro_builder_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -271,6 +326,10 @@ public:
 			return make_element_by_type<macro_builder_template_listbox>(state, id);
 		} else if(name == "unit_listbox") {
 			return make_element_by_type<macro_builder_unit_listbox>(state, id);
+		} else if(name == "new_template") {
+			return make_element_by_type<macro_builder_new_template_button>(state, id);
+		} else if(name == "save_template") {
+			return make_element_by_type<macro_builder_save_template_button>(state, id);
 		} else {
 			return nullptr;
 		}
