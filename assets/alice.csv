@@ -1425,4 +1425,11 @@ alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+colonial_points_from_technology;From technologies:
+colonial_points_from_naval_bases;From naval bases:
+colonial_points_from_ships;From ships:
+used_colonial_maintenance;Maintaining existing colonies:
+att_truce_with;Truce with $text$ until $y$
+att_call_allies_effect;Call allies of this nation into its current wars
 ;;;;;;;;;;;;;x
