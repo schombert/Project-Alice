@@ -2348,8 +2348,7 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 		auto other_nation = drel.get_related_nations(0) != n ? drel.get_related_nations(0) : drel.get_related_nations(1);
 		if(drel.get_are_allied() && standard_war_joining_is_possible(state, wfor, other_nation, false)) {
 
-			diplomatic_message::message m;
-			std::memset(&m, 0, sizeof(m));
+			diplomatic_message::message m{};
 			m.from = n;
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;
@@ -2360,8 +2359,7 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 	if(state.world.nation_get_in_sphere_of(n)) {
 		if(joining_war_does_not_violate_constraints(state, state.world.nation_get_in_sphere_of(n), wfor, false)) {
 
-			diplomatic_message::message m;
-			std::memset(&m, 0, sizeof(m));
+			diplomatic_message::message m{};
 			m.from = n;
 			m.to = state.world.nation_get_in_sphere_of(n);
 			m.type = diplomatic_message::type_t::call_ally_request;
@@ -2380,8 +2378,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 		if(drel.get_are_allied() && !has_truce_with(state, other_nation, state.world.war_get_primary_defender(wfor)) &&
 				standard_war_joining_is_possible(state, wfor, other_nation, true)) {
 
-			diplomatic_message::message m;
-			std::memset(&m, 0, sizeof(m));
+			diplomatic_message::message m{};
 			m.from = n;
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;

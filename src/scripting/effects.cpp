@@ -3767,8 +3767,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 				if(wfor.get_war().get_primary_attacker() == trigger::to_nation(primary_slot)) {
 					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_defender()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, true)) {
 
-						diplomatic_message::message m;
-						std::memset(&m, 0, sizeof(m));
+						diplomatic_message::message m{};
 						m.from = trigger::to_nation(primary_slot);
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;
@@ -3779,8 +3778,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 				if(wfor.get_war().get_primary_defender() == trigger::to_nation(primary_slot)) {
 					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_attacker()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, false)) {
 
-						diplomatic_message::message m;
-						std::memset(&m, 0, sizeof(m));
+						diplomatic_message::message m{};
 						m.from = trigger::to_nation(primary_slot);
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;

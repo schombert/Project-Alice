@@ -30,7 +30,7 @@ struct message {
 		sys::crisis_join_offer crisis_offer; //10
 		dcon::state_definition_id state; //2
 
-		dtype() { memset(this, 0, sizeof(*this)); }
+		dtype() { }
 	} data;
 	type_t type = diplomatic_message::type_t::none; //1
 	uint8_t padding = 0; //1

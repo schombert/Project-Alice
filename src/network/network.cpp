@@ -345,8 +345,7 @@ void init(sys::state& state) {
 		state.local_player_nation = get_temp_nation(state);
 		assert(bool(state.local_player_nation));
 		/* Materialize it into a command we send to new clients who connect and have to replay everything... */
-		command::payload c;
-		memset(&c, 0, sizeof(c));
+		command::payload c{};
 		c.type = command::command_type::notify_player_joins;
 		c.source = state.local_player_nation;
 		c.data.player_name = state.network_state.nickname;
@@ -411,8 +410,7 @@ static void receive_from_clients(sys::state& state) {
 						return;
 					}
 					{ /* Tell everyone else (ourselves + this client) that this client, in fact, has joined */
-						command::payload c;
-						memset(&c, 0, sizeof(c));
+						command::payload c{};
 						c.type = command::command_type::notify_player_joins;
 						c.source = client.playing_as;
 						c.data.player_name = client.hshake_buffer.nickname;
@@ -535,8 +533,7 @@ static void accept_new_clients(sys::state& state) {
 				socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 			}
 			if(!state.network_state.is_new_game) {
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
+				command::payload c{};
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = client.playing_as;
@@ -544,8 +541,7 @@ static void accept_new_clients(sys::state& state) {
 			}
 			for(const auto n : state.world.in_nation) {
 				if(n.get_is_player_controlled()) {
-					command::payload c;
-					memset(&c, 0, sizeof(c));
+					command::payload c{};
 					c.type = command::command_type::notify_player_joins;
 					c.source = n;
 					c.data.player_name = state.network_state.map_of_player_names[n.id.index()];

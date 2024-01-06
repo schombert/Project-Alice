@@ -209,8 +209,7 @@ public:
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 				/* Now send the saved buffer before filling the unsaved data to the clients
 				henceforth. */
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
+				command::payload c{};
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};

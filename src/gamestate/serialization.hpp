@@ -81,7 +81,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in,
 
 	std::remove_cvref_t<decltype(vec.values())> new_vec;
 	new_vec.resize(length);
-	memcpy(new_vec.data(), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
+	memcpy(reinterpret_cast<void*>(new_vec.data()), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
 	vec.replace(std::move(new_vec));
 
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
@@ -103,7 +103,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in,
 
 	std::remove_cvref_t<decltype(vec.values())> new_vec;
 	new_vec.resize(length);
-	memcpy(new_vec.data(), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
+	memcpy(reinterpret_cast<void*>(new_vec.data()), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
 	vec.replace(std::move(new_vec));
 
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
@@ -122,7 +122,7 @@ uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense::map<u
 
 	std::remove_cvref_t<decltype(vec.values())> new_vec;
 	new_vec.resize(length);
-	memcpy(new_vec.data(), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
+	memcpy(reinterpret_cast<void*>(new_vec.data()), ptr_in + sizeof(uint32_t), sizeof(vec.values()[0]) * length);
 	vec.replace(std::move(new_vec));
 
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;

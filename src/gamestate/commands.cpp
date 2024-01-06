@@ -51,8 +51,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 }
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::set_rally_point;
 	p.source = source;
 	p.data.rally_point.location = location;
@@ -73,8 +72,7 @@ void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::pr
 }
 
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::save_game;
 	p.source = source;
 	p.data.save_game.and_quit = and_quit;
@@ -90,8 +88,7 @@ void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit)
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_nat_focus;
 	p.source = source;
 	p.data.nat_focus.focus = focus;
@@ -150,8 +147,7 @@ void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::start_research;
 	p.source = source;
 	p.data.start_research.tech = tech;
@@ -190,8 +186,7 @@ void execute_start_research(sys::state& state, dcon::nation_id source, dcon::tec
 }
 
 void make_leader(sys::state& state, dcon::nation_id source, bool general) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_leader;
 	p.source = source;
 	p.data.make_leader.is_general = general;
@@ -206,8 +201,7 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 
 
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::war_subsidies;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -251,8 +245,7 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 
 
 void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_war_subsidies;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -293,8 +286,7 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 
 
 void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::increase_relations;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -333,8 +325,7 @@ void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::decrease_relations;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -369,8 +360,7 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::begin_province_building_construction;
 	p.source = source;
 	p.data.start_province_building.location = prov;
@@ -421,8 +411,7 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 
 
 void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_factory_building_construction;
 	p.source = source;
 	p.data.start_factory_building.location = location;
@@ -457,8 +446,7 @@ void execute_cancel_factory_building_construction(sys::state& state, dcon::natio
 	}
 }
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type, bool is_upgrade) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::begin_factory_building_construction;
 	p.source = source;
 	p.data.start_factory_building.location = location;
@@ -590,8 +578,7 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 }
 
 void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::begin_naval_unit_construction;
 	p.source = source;
 	p.data.naval_unit_construction.location = location;
@@ -647,8 +634,7 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 }
 
 void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::begin_land_unit_construction;
 	p.source = source;
 	p.data.land_unit_construction.location = location;
@@ -695,8 +681,7 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 }
 
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_naval_unit_construction;
 	p.source = source;
 	p.data.naval_unit_construction.location = location;
@@ -719,8 +704,7 @@ void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id s
 }
 
 void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_land_unit_construction;
 	p.source = source;
 	p.data.land_unit_construction.location = location;
@@ -744,8 +728,7 @@ void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id so
 }
 
 void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::delete_factory;
 	p.source = source;
 	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
@@ -785,8 +768,7 @@ void execute_delete_factory(sys::state& state, dcon::nation_id source, dcon::pro
 }
 
 void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_factory_settings;
 	p.source = source;
 	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
@@ -847,8 +829,7 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 }
 
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_vassal;
 	p.source = source;
 	p.data.tag_target.ident = t;
@@ -874,8 +855,7 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 }
 
 void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::release_and_play_nation;
 	p.source = source;
 	p.data.tag_target.ident = t;
@@ -922,8 +902,7 @@ inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source
 }
 
 void change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_budget;
 	p.source = source;
 	p.data.budget_data = values;
@@ -967,8 +946,7 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 }
 
 void start_election(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::start_election;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -982,8 +960,7 @@ void execute_start_election(sys::state& state, dcon::nation_id source) {
 }
 
 void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_influence_priority;
 	p.source = source;
 	p.data.influence_priority.influence_target = influence_target;
@@ -1019,8 +996,7 @@ void execute_change_influence_priority(sys::state& state, dcon::nation_id source
 }
 
 void discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::discredit_advisors;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1094,8 +1070,7 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::expel_advisors;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1164,8 +1139,7 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 }
 
 void ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::ban_embassy;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1236,8 +1210,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 }
 
 void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::increase_opinion;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1293,8 +1266,7 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 }
 
 void decrease_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::decrease_opinion;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1373,8 +1345,7 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 }
 
 void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::add_to_sphere;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1432,8 +1403,7 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 }
 
 void remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, dcon::nation_id affected_gp) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::remove_from_sphere;
 	p.source = source;
 	p.data.influence_action.influence_target = influence_target;
@@ -1511,8 +1481,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::upgrade_colony_to_state;
 	p.source = source;
 	p.data.generic_location.prov = state.world.state_instance_get_capital(si);
@@ -1526,8 +1495,7 @@ void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, 
 }
 
 void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::invest_in_colony;
 	p.source = source;
 	p.data.generic_location.prov = pr;
@@ -1571,8 +1539,7 @@ void execute_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::p
 }
 
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::abandon_colony;
 	p.source = source;
 	p.data.generic_location.prov = pr;
@@ -1595,8 +1562,7 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 }
 
 void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::finish_colonization;
 	p.source = source;
 	p.data.generic_location.prov = pr;
@@ -1631,8 +1597,7 @@ void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon
 }
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::intervene_in_war;
 	p.source = source;
 	p.data.war_target.war = w;
@@ -1742,8 +1707,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 }
 
 void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::suppress_movement;
 	p.source = source;
 	p.data.movement.iopt = state.world.movement_get_associated_issue_option(m);
@@ -1772,8 +1736,7 @@ void execute_suppress_movement(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void civilize_nation(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::civilize_nation;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -1786,8 +1749,7 @@ void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
 }
 
 void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id pa) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::appoint_ruling_party;
 	p.source = source;
 	p.data.political_party.p = pa;
@@ -1826,8 +1788,7 @@ void execute_appoint_ruling_party(sys::state& state, dcon::nation_id source, dco
 }
 
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_reform_option;
 	p.source = source;
 	p.data.reform_selection.r = r;
@@ -1849,8 +1810,7 @@ void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::refor
 }
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_issue_option;
 	p.source = source;
 	p.data.issue_selection.r = i;
@@ -1873,8 +1833,7 @@ void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_
 }
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::become_interested_in_crisis;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -1915,8 +1874,7 @@ void execute_become_interested_in_crisis(sys::state& state, dcon::nation_id sour
 }
 
 void take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool join_attacker) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::take_sides_in_crisis;
 	p.source = source;
 	p.data.crisis_join.join_attackers = join_attacker;
@@ -1968,8 +1926,7 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 
 void change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount,
 		bool draw_on_stockpiles) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_stockpile_settings;
 	p.source = source;
 	p.data.stockpile_settings.amount = target_amount;
@@ -1985,8 +1942,7 @@ void execute_change_stockpile_settings(sys::state& state, dcon::nation_id source
 }
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::take_decision;
 	p.source = source;
 	p.data.decision.d = d;
@@ -2026,8 +1982,7 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 }
 
 void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_n_event_choice;
 	p.source = e.n;
 	p.data.pending_human_n_event.date = e.date;
@@ -2042,8 +1997,7 @@ void make_event_choice(sys::state& state, event::pending_human_n_event const& e,
 	add_to_command_queue(state, p);
 }
 void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_f_n_event_choice;
 	p.source = e.n;
 	p.data.pending_human_f_n_event.date = e.date;
@@ -2054,8 +2008,7 @@ void make_event_choice(sys::state& state, event::pending_human_f_n_event const& 
 	add_to_command_queue(state, p);
 }
 void make_event_choice(sys::state& state, event::pending_human_p_event const& e, uint8_t option_id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_p_event_choice;
 	p.source = state.world.province_get_nation_from_province_ownership(e.p);
 	p.data.pending_human_p_event.date = e.date;
@@ -2069,8 +2022,7 @@ void make_event_choice(sys::state& state, event::pending_human_p_event const& e,
 	add_to_command_queue(state, p);
 }
 void make_event_choice(sys::state& state, event::pending_human_f_p_event const& e, uint8_t option_id) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::make_f_p_event_choice;
 	p.source = state.world.province_get_nation_from_province_ownership(e.p);
 	p.data.pending_human_f_p_event.date = e.date;
@@ -2102,8 +2054,7 @@ void execute_make_event_choice(sys::state& state, dcon::nation_id source, pendin
 }
 
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::fabricate_cb;
 	p.source = source;
 	p.data.cb_fabrication.target = target;
@@ -2160,8 +2111,7 @@ bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 }
 
 void cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_cb_fabrication;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -2174,8 +2124,7 @@ void execute_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
 }
 
 void ask_for_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::ask_for_military_access;
 	p.source = asker;
 	p.data.diplo_action.target = target;
@@ -2205,7 +2154,6 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.askmilaccess_diplomatic_cost;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
 	m.type = diplomatic_message::type::access_request;
@@ -2214,8 +2162,7 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::give_military_access;
 	p.source = asker;
 	p.data.diplo_action.target = target;
@@ -2249,8 +2196,7 @@ void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon
 }
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::ask_for_alliance;
 	p.source = asker;
 	p.data.diplo_action.target = target;
@@ -2296,7 +2242,6 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.alliance_diplomatic_cost;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
 	m.type = diplomatic_message::type::alliance_request;
@@ -2305,8 +2250,7 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::state_transfer;
 	p.source = asker;
 	p.data.state_transfer.target = target;
@@ -2349,7 +2293,6 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 		return;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
 	m.type = diplomatic_message::type::state_transfer;
@@ -2358,8 +2301,7 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::call_to_arms;
 	p.source = asker;
 	p.data.call_to_arms.target = target;
@@ -2391,7 +2333,6 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 	state.world.nation_get_diplomatic_points(asker) -= state.defines.callally_diplomatic_cost;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
 	m.data.war = w;
@@ -2402,8 +2343,7 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type,
 		bool accept) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::respond_to_diplomatic_message;
 	p.source = source;
 	p.data.message.accept = accept;
@@ -2429,8 +2369,7 @@ void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id so
 }
 
 void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_military_access;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -2468,8 +2407,7 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 }
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_given_military_access;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -2507,8 +2445,7 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 }
 
 void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::cancel_alliance;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -2544,8 +2481,7 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies) {
 
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::declare_war;
 	p.source = source;
 	p.data.new_war.target = target;
@@ -2640,8 +2576,7 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::add_war_goal;
 	p.source = source;
 	p.data.new_war_goal.target = target;
@@ -2737,8 +2672,7 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::start_peace_offer;
 	p.source = source;
 	p.data.new_offer.target = target;
@@ -2794,8 +2728,7 @@ void execute_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::start_crisis_peace_offer;
 	p.source = source;
 	p.data.new_offer.is_concession = is_concession;
@@ -2855,8 +2788,7 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 }
 
 void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::add_peace_offer_term;
 	p.source = source;
 	p.data.offer_wargoal.wg = goal;
@@ -2928,8 +2860,7 @@ void execute_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon:
 void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::add_wargoal_to_crisis_offer;
 	p.source = source;
 	p.data.crisis_invitation.invited = wargoal_from;
@@ -2994,8 +2925,7 @@ void execute_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source
 }
 
 void send_peace_offer(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::send_peace_offer;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -3022,7 +2952,6 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 		military::implement_peace_offer(state, pending_offer);
 	} else {
 		diplomatic_message::message m;
-		memset(&m, 0, sizeof(diplomatic_message::message));
 		m.to = target;
 		m.from = source;
 		m.data.peace = pending_offer;
@@ -3033,8 +2962,7 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 }
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::send_crisis_peace_offer;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -3066,7 +2994,6 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	auto target = state.primary_crisis_attacker == source ? state.primary_crisis_defender : state.primary_crisis_attacker;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = source;
 	m.data.peace = pending_offer;
@@ -3076,8 +3003,7 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 }
 
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::move_army;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3242,8 +3168,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 }
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::move_navy;
 	p.source = source;
 	p.data.navy_movement.n = n;
@@ -3345,8 +3270,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 }
 
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::embark_army;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3401,8 +3325,7 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 }
 
 void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::merge_armies;
 	p.source = source;
 	p.data.merge_army.a = a;
@@ -3456,8 +3379,7 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 }
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::merge_navies;
 	p.source = source;
 	p.data.merge_navy.a = a;
@@ -3512,8 +3434,7 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 }
 
 void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::disband_undermanned;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3535,8 +3456,7 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 }
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::toggle_hunt_rebels;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3567,8 +3487,7 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 }
 
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::toggle_select_province;
 	p.source = source;
 	p.data.generic_location.prov = prov;
@@ -3586,8 +3505,7 @@ void execute_toggle_select_province(sys::state& state, dcon::nation_id source, d
 }
 
 void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::toggle_immigrator_province;
 	p.source = source;
 	p.data.generic_location.prov = prov;
@@ -3605,8 +3523,7 @@ void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id sourc
 }
 
 void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::release_subject;
 	p.source = source;
 	p.data.diplo_action.target = target;
@@ -3622,8 +3539,7 @@ void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::na
 }
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::even_split_army;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3676,8 +3592,7 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::even_split_navy;
 	p.source = source;
 	p.data.navy_movement.n = a;
@@ -3729,8 +3644,7 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::split_army;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3777,8 +3691,7 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 }
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::split_navy;
 	p.source = source;
 	p.data.navy_movement.n = a;
@@ -3824,8 +3737,7 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 }
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::delete_army;
 	p.source = source;
 	p.data.army_movement.a = a;
@@ -3844,8 +3756,7 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 }
 
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::delete_navy;
 	p.source = source;
 	p.data.navy_movement.n = a;
@@ -3866,8 +3777,7 @@ void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_i
 }
 
 void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_general;
 	p.source = source;
 	p.data.new_general.a = a;
@@ -3885,8 +3795,7 @@ void execute_change_general(sys::state& state, dcon::nation_id source, dcon::arm
 }
 
 void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::change_admiral;
 	p.source = source;
 	p.data.new_admiral.a = a;
@@ -3906,8 +3815,7 @@ void execute_change_admiral(sys::state& state, dcon::nation_id source, dcon::nav
 void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list) {
 
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::designate_split_regiments;
 	p.source = source;
 	std::copy_n(list.data(), num_packed_units, p.data.split_regiments.regs);
@@ -3925,8 +3833,7 @@ void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, 
 }
 
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::designate_split_ships;
 	p.source = source;
 	std::copy_n(list.data(), num_packed_units, p.data.split_ships.ships);
@@ -3944,8 +3851,7 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 }
 
 void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::naval_retreat;
 	p.source = source;
 	p.data.naval_battle.b = b;
@@ -3971,8 +3877,7 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 }
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::land_retreat;
 	p.source = source;
 	p.data.land_battle.b = b;
@@ -4001,8 +3906,7 @@ void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source,
 void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::invite_to_crisis;
 	p.source = source;
 	p.data.crisis_invitation.invited = invitation_to;
@@ -4074,7 +3978,6 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	state.world.nation_get_diplomatic_points(source) -= 1.0f;
 
 	diplomatic_message::message m;
-	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = data.invited;
 	m.from = source;
 	m.data.crisis_offer.target = data.target;
@@ -4089,8 +3992,7 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 }
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::toggle_mobilization;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -4105,8 +4007,7 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 }
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::enable_debt;
 	p.source = source;
 	p.data.make_leader.is_general = debt_is_enabled;
@@ -4131,8 +4032,7 @@ static void post_chat_message(sys::state& state, ui::chat_message& m) {
 }
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::chat_message;
 	p.source = source;
 	p.data.chat_message.target = target;
@@ -4153,8 +4053,7 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 }
 
 void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_joins;
 	p.source = source;
 	p.data.player_name = name;
@@ -4179,8 +4078,7 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 }
 
 void notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_leaves;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -4203,8 +4101,7 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_player_ban(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_ban;
 	p.source = source;
 	p.data.nation_pick.target = target;
@@ -4236,8 +4133,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_kick;
 	p.source = source;
 	p.data.nation_pick.target = target;
@@ -4269,8 +4165,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_picks_nation;
 	p.source = source;
 	p.data.nation_pick.target = target;
@@ -4299,8 +4194,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command_type::notify_player_oos;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -4319,8 +4213,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
 }
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command::command_type::advance_tick;
 	p.source = source;
 	// Postponed until it is sent!
@@ -4356,8 +4249,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 }
 
 void notify_save_loaded(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command::command_type::notify_save_loaded;
 	p.source = source;
 	p.data.notify_save_loaded.target = dcon::nation_id{};
@@ -4389,8 +4281,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command::command_type::notify_start_game;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -4401,8 +4292,7 @@ void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command::command_type::notify_stop_game;
 	p.source = source;
 	add_to_command_queue(state, p);
@@ -4413,8 +4303,7 @@ void execute_notify_pause_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_pause_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
+	payload p{};
 	p.type = command::command_type::notify_pause_game;
 	p.source = source;
 	add_to_command_queue(state, p);
