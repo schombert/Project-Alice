@@ -3629,6 +3629,14 @@ guiTypes = {
 			buttonText = ""
 			buttonFont = "vic_22_black"
 		}
+		guiButtonType = {
+			name = "apply"
+			position = { 520 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = ""
+			buttonFont = "vic_22_black"
+		}
 		editBoxType = {
 			name = "input"
 			position = { 330 28 }
