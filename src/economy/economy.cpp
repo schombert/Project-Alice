@@ -10,7 +10,7 @@ bool can_take_loans(sys::state& state, dcon::nation_id n) {
 		return false;
 
 	/*
-	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
+	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy.
 	*/
 	auto last_br = state.world.nation_get_bankrupt_until(n);
 	if(last_br && state.current_date < last_br)
@@ -21,7 +21,7 @@ bool can_take_loans(sys::state& state, dcon::nation_id n) {
 
 float interest_payment(sys::state& state, dcon::nation_id n) {
 	/*
-	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 
+	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30
 	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 	*/
 	auto debt = state.world.nation_get_stockpiles(n, money);
@@ -32,7 +32,7 @@ float interest_payment(sys::state& state, dcon::nation_id n) {
 }
 float max_loan(sys::state& state, dcon::nation_id n) {
 	/*
-	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. 
+	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base.
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
@@ -384,7 +384,7 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 
 				auto limit = artisan_scale_limit(state, n, cid);
 				auto profit = std::max(base_artisan_profit(state, n, cid), 0.0f) * limit;
-				
+
 				total_ex_weights += w;
 				temp_weights[cid.index()] = profit * profit;
 				total_weights += profit * profit;
@@ -1258,7 +1258,7 @@ void update_national_artisan_production(sys::state& state, dcon::nation_id n) {
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		
+
 		if(state.world.nation_get_artisan_distribution(n, cid) > 0.0f) {
 
 			auto production = state.world.nation_get_artisan_actual_production(n, cid);
@@ -1277,7 +1277,7 @@ void update_national_artisan_production(sys::state& state, dcon::nation_id n) {
 				auto amount = min_input * production;
 				state.world.nation_set_artisan_actual_production(n, cid, amount);
 				state.world.nation_get_domestic_market_pool(n, cid) += amount;
-			} 
+			}
 		}
 	}
 }
@@ -2637,25 +2637,23 @@ void daily_update(sys::state& state) {
 				{
 					// FARMER / LABORER
 					bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-					//auto const worker = is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers;
 
-					auto const min_wage = (is_mine ? laborer_min_wage : farmer_min_wage) / needs_scaling_factor;
-
-					float total_min_to_workers = 0.0f;
 					float num_workers = 0.0f;
 					for(auto wt : state.culture_definitions.rgo_workers) {
-						total_min_to_workers += min_wage* state.world.province_get_demographics(p, demographics::to_employment_key(state, wt));
 						num_workers += state.world.province_get_demographics(p, demographics::to_key(state, wt));
 					}
 					float total_rgo_profit = state.world.province_get_rgo_full_profit(p);
 
 					float total_worker_wage = 0.0f;
 
-					if(total_min_to_workers <= total_rgo_profit && num_rgo_owners > 0) {
-						total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
-						rgo_owner_profit += (total_rgo_profit - total_min_to_workers) * 0.8f;
-					} else {
+					if(num_rgo_owners > 0 && num_workers > 0) {
+						float owner_pay = std::min(0.5f * total_rgo_profit, 2.0f * total_rgo_profit * num_rgo_owners / num_workers);
+						total_worker_wage = total_rgo_profit - owner_pay;
+						rgo_owner_profit += owner_pay;
+					} else if(num_workers > 0) {
 						total_worker_wage = total_rgo_profit;
+					} else if(num_rgo_owners > 0) {
+						rgo_owner_profit += total_rgo_profit;
 					}
 
 					auto per_worker_profit = num_workers > 0 ? total_worker_wage / num_workers : 0.0f;
@@ -3424,7 +3422,7 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 		auto p = po.get_province();
 		if(state.world.province_get_nation_from_province_control(p) != n)
 			continue;
-		
+
 		auto rng = state.world.province_get_province_naval_construction(p);
 		if(rng.begin() != rng.end()) {
 			auto c = *(rng.begin());
@@ -3468,7 +3466,7 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 			auto& base_cost = c.get_type().get_construction_costs();
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
-			
+
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
 					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * factory_mod * admin_cost_factor)
@@ -3517,7 +3515,7 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
 			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
-			
+
 
 			float total = 0.0f;
 			float purchased = 0.0f;
@@ -3622,7 +3620,7 @@ int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon
 	for(auto p : state.world.state_instance_get_state_building_construction(sid))
 		if(p.get_is_upgrade() == false)
 			++num_factories;
-	
+
 	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
 	assert(num_factories <= int32_t(state.defines.factories_per_state));
 	return num_factories;
@@ -4054,7 +4052,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	auto& debt = state.world.nation_get_stockpiles(n, economy::money);
 
 	/*
-	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
+	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2.
 	*/
 	auto existing_br = state.world.nation_get_bankrupt_until(n);
 	if(existing_br && state.current_date < existing_br) {
