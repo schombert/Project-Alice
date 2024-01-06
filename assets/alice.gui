@@ -3626,7 +3626,7 @@ guiTypes = {
 			position = { 390 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "macro_switch_type_naval"
+			buttonText = ""
 			buttonFont = "vic_22_black"
 		}
 		editBoxType = {
@@ -3643,7 +3643,7 @@ guiTypes = {
 			position = { 330 72 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 308 298 }
+			maxsize = { 288 172 }
 			format = center
 		}
 	}

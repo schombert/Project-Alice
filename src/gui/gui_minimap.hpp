@@ -238,12 +238,15 @@ public:
 		if(state.ui_state.current_template.amounts[content.index()] < 255) {
 			state.ui_state.current_template.amounts[content.index()] += 1;
 		}
+		parent->parent->impl_on_update(state);
 	}
 	void button_right_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::unit_type_id>(state, parent);
 		if(state.ui_state.current_template.amounts[content.index()] > 0) {
 			state.ui_state.current_template.amounts[content.index()] -= 1;
 		}
+
+		if(parent && parent->parent && parent->parent->parent) parent->parent->parent->impl_on_update(state);
 	}
 };
 class macro_builder_unit_entry : public listbox_row_element_base<dcon::unit_type_id> {
@@ -279,6 +282,7 @@ class macro_builder_new_template_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.current_template = sys::macro_builder_template{};
+		if(parent) parent->impl_on_update(state);
 	}
 };
 class macro_builder_save_template_button : public button_element_base {
@@ -303,6 +307,7 @@ public:
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+		if(parent) parent->impl_on_update(state);
 	}
 };
 class macro_builder_remove_template_button : public button_element_base {
@@ -317,6 +322,7 @@ public:
 				break;
 			}
 		}
+		if(parent) parent->impl_on_update(state);
 	}
 };
 class macro_builder_switch_type_button : public button_element_base {
@@ -324,9 +330,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto is_land = retrieve<bool>(state, parent);
 		if(is_land) {
-			set_button_text(state, text::produce_simple_string(state, "switch_type_naval"));
+			set_button_text(state, text::produce_simple_string(state, "macro_switch_type_naval"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "switch_type_land"));
+			set_button_text(state, text::produce_simple_string(state, "macro_switch_type_land"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -416,6 +422,7 @@ public:
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(supply_consumption * 100, 0));
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, supply_consumption_score);
 		}
+		text::add_line_break_to_layout(state, contents);
 
 		// Describe for each
 		for(dcon::unit_type_id::value_base_t i = 0; i < sizeof(sys::macro_builder_template::max_types); i++) {
@@ -455,6 +462,7 @@ public:
 				text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * 100, 0));
 				text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[utid].supply_consumption_score);
 			}
+			text::add_line_break_to_layout(state, contents);
 		}
 		calibrate_scrollbar(state);
 	}
