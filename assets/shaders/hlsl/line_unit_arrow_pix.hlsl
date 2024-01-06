@@ -1,5 +1,6 @@
 struct Input {
 	float2 text_coord;
+	bool is_globe_map;
 };
 
 struct Output {
@@ -9,7 +10,7 @@ struct Output {
 uniform Texture2D unit_arrow_texture:register(t0);
 uniform SamplerState unit_arrow_sampler:register(s0);
 
-uniform float gamma:SV_Target1;
+uniform float gamma:SV_Target7;
 
 
 float4 gamma_correct(float4 color) {
