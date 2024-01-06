@@ -372,6 +372,16 @@ public:
 		else
 			set_text(state, "");
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto issue = state.world.movement_get_associated_issue_option(mid);
+		text::add_line(state, contents, "reform_movement_desc", text::variable_type::reform, state.world.issue_option_get_name(issue));
+	}
 };
 
 class standard_movement_multiline_text : public multiline_text_element_base {
@@ -407,6 +417,22 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("nationalist_liberation_movement"), sub);
 		}
 		text::close_layout_box(contents, box);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto independence_target = state.world.movement_get_associated_independence(mid);
+		if(!independence_target)
+			return;
+		if(state.world.national_identity_get_cultural_union_of(independence_target)) {
+			text::add_line(state, contents, "NATIONALIST_UNION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		} else {
+			text::add_line(state, contents, "NATIONALIST_LIBERATION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		}
 	}
 };
 
