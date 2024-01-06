@@ -379,6 +379,7 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
+	bool show_province_id_tooltip = false;
 	std::vector<dcon::nation_id> instant_research_nations;
 };
 

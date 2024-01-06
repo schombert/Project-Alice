@@ -129,25 +129,32 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-		float points = 0.f;
-		state.world.for_each_technology([&](dcon::technology_id t) {
-			if(state.world.nation_get_active_technologies(nation_id, t))
-				points += float(state.world.technology_get_colonial_points(t));
-		});
-
 		text::substitution_map sub;
 		std::string value;
 		value = text::prettify(nations::free_colonial_points(state, nation_id));
 		text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("explain_colonial_points"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_technology"), sub);
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::format_float(points, 0), text::text_color::green);
-
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_technology(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_naval_bases"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_naval_bases(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_ships"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_ships(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("used_colonial_maintenance"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::used_colonial_points(state, nation_id), 0), text::text_color::red);
 		text::close_layout_box(contents, box);
 	}
 };
