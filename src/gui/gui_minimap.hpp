@@ -519,7 +519,7 @@ public:
 				continue;
 			auto r = state.world.region_membership_get_region(*(mrmb.begin()));
 			if(is_land) {
-				for(uint8_t i = 0; i < t.amounts[i]; i++) {
+				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					bool built = false;
 					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
 						auto p = state.world.region_membership_get_province(rmb);
@@ -534,7 +534,7 @@ public:
 					}
 				}
 			} else {
-				for(uint8_t i = 0; i < t.amounts[i]; i++) {
+				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
 						auto p = state.world.region_membership_get_province(rmb);
 						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
@@ -573,7 +573,7 @@ public:
 
 			uint8_t total_built = 0;
 			if(is_land) {
-				for(uint8_t i = 0; i < t.amounts[i]; i++) {
+				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					bool built = false;
 					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
 						auto p = state.world.region_membership_get_province(rmb);
@@ -589,7 +589,7 @@ public:
 					}
 				}
 			} else {
-				for(uint8_t i = 0; i < t.amounts[i]; i++) {
+				for(uint8_t j = 0; j < t.amounts[i]; j++) {
 					for(const auto rmb : state.world.region_get_region_membership_as_region(r)) {
 						auto p = state.world.region_membership_get_province(rmb);
 						if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
