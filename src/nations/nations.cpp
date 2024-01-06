@@ -365,7 +365,7 @@ void update_industrial_scores(sys::state& state) {
 	Is the sum of the following two components:
 	- For each state: (fraction of factory workers in each state (types marked with can work factory = yes) to the total-workforce
 	x building level of factories in the state (capped at 1)) x total-factory-levels
-	- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.01
+	- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.05
 	*/
 
 	state.world.for_each_nation([&, iweight = state.defines.investment_score_factor](dcon::nation_id n) {
@@ -388,7 +388,7 @@ void update_industrial_scores(sys::state& state) {
 					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
 			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-				sum += ur.get_foreign_investment() * iweight * 0.05f;
+				sum += ur.get_foreign_investment() * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 			}
 		}
 		state.world.nation_set_industrial_score(n, uint16_t(sum));

@@ -3157,8 +3157,16 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		return;
 
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
-	if(battle && !province::has_naval_access_to_province(state, source, dest)) {
-		return;
+	if(dest.index() < state.province_definitions.first_sea_province.index()) {
+		/* Case for land destinations */
+		if(battle && !province::has_naval_access_to_province(state, source, dest)) {
+			return;
+		}
+	} else {
+		/* Case for naval destinations, we check the land province adjacent henceforth */
+		if(battle && !military::can_embark_onto_sea_tile(state, source, dest, a)) {
+			return;
+		}
 	}
 
 	auto existing_path = state.world.army_get_path(a);
