@@ -291,6 +291,7 @@ class macro_builder_new_template_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.current_template = sys::macro_builder_template{};
+		std::memset(state.ui_state.current_template.name, ' ', sizeof(sys::macro_builder_template::name));
 		send(state, parent, notify_setting_update{});
 	}
 };
@@ -354,10 +355,9 @@ class macro_builder_name_input : public edit_box_element_base {
 public:
 	void edit_box_update(sys::state& state, std::string_view str) noexcept override {
 		auto s = parsers::remove_surrounding_whitespace(str);
-		if(s.empty())
-			return;
 		std::memset(state.ui_state.current_template.name, ' ', sizeof(sys::macro_builder_template::name));
-		std::memcpy(state.ui_state.current_template.name, s.data(), std::min(s.length(), sizeof(sys::macro_builder_template::name)));
+		if(!s.empty())
+			std::memcpy(state.ui_state.current_template.name, s.data(), std::min(s.length(), sizeof(sys::macro_builder_template::name)));
 	}
 };
 class macro_builder_details : public scrollable_text {
