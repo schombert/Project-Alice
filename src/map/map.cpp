@@ -359,23 +359,23 @@ GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_fi
 
 void display_data::load_shaders(simple_fs::directory& root) {
 	// Map shaders
-	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
-	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
-	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
-	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
+	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_v.glsl"));
+	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_f.glsl"));
+	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/screen_v.glsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/white_color_f.glsl"));
 
 	// Line shaders
-	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
-	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
+	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
+	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
 
-	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/text_line_v.glsl"));
-	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
 
-	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
-	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
+	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
+	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_f.glsl"));
 
-	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
-	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
+	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
+	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_f.glsl"));
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
