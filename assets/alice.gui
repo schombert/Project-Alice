@@ -3670,7 +3670,7 @@ guiTypes = {
 			position = { 32 0 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 100 24 }
+			maxsize = { 70 24 }
 			format = center
 		}
 		guiButtonType = {
