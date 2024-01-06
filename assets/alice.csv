@@ -1372,6 +1372,9 @@ macro_switch_type_land;Switch to: Land
 macro_switch_type_naval;Switch to: Naval
 macro_save_template;Save template;;;Guardar plantilla
 macro_new_template;New template;;;Nueva plantila
+macro_warn_overseas;§RCan't build this unit overseas!§W
+macro_warn_culture;§RCan only build using primary culture POPs!§W
+macro_warn_unlocked;§RUsing units not unlocked yet!§W
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest

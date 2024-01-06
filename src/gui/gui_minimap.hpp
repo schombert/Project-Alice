@@ -179,7 +179,6 @@ public:
 		set_current_nation(state, state.world.nation_get_identity_from_identity_holder(nid));
 	}
 };
-
 class macro_builder_template_entry : public listbox_row_element_base<uint32_t> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -238,15 +237,14 @@ public:
 		if(state.ui_state.current_template.amounts[content.index()] < 255) {
 			state.ui_state.current_template.amounts[content.index()] += 1;
 		}
-		parent->parent->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
 	}
 	void button_right_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::unit_type_id>(state, parent);
 		if(state.ui_state.current_template.amounts[content.index()] > 0) {
 			state.ui_state.current_template.amounts[content.index()] -= 1;
 		}
-
-		if(parent && parent->parent && parent->parent->parent) parent->parent->parent->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
 	}
 };
 class macro_builder_unit_entry : public listbox_row_element_base<dcon::unit_type_id> {
@@ -271,7 +269,7 @@ public:
 		row_contents.clear();
 		bool is_land = retrieve<bool>(state, parent);
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land && state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].active) {
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land) {
 				row_contents.push_back(dcon::unit_type_id(i));
 			}
 		}
@@ -282,7 +280,7 @@ class macro_builder_new_template_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.current_template = sys::macro_builder_template{};
-		if(parent) parent->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
 	}
 };
 class macro_builder_save_template_button : public button_element_base {
@@ -304,10 +302,9 @@ public:
 		if(!overwrite) {
 			state.ui_state.templates.push_back(t);
 		}
-
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
-		if(parent) parent->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
 	}
 };
 class macro_builder_remove_template_button : public button_element_base {
@@ -322,7 +319,9 @@ public:
 				break;
 			}
 		}
-		if(parent) parent->impl_on_update(state);
+		auto sdir = simple_fs::get_or_create_save_game_directory();
+		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+		send(state, parent, notify_setting_update{});
 	}
 };
 class macro_builder_switch_type_button : public button_element_base {
@@ -336,18 +335,18 @@ public:
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto b = retrieve<bool>(state, parent);
-		send(state, parent, element_selection_wrapper<bool>{ !b });
+		auto is_land = retrieve<bool>(state, parent);
+		send(state, parent, element_selection_wrapper<bool>{ !is_land });
 	}
 };
 class macro_builder_name_input : public edit_box_element_base {
 public:
-	void edit_box_enter(sys::state& state, std::string_view str) noexcept override {
+	void edit_box_update(sys::state& state, std::string_view str) noexcept override {
 		auto s = parsers::remove_surrounding_whitespace(str);
 		if(s.empty())
 			return;
 		std::memset(state.ui_state.current_template.name, ' ', sizeof(sys::macro_builder_template::name));
-		std::memcpy(state.ui_state.current_template.name, s.data(), sizeof(sys::macro_builder_template::name));
+		std::memcpy(state.ui_state.current_template.name, s.data(), std::min(s.length(), sizeof(sys::macro_builder_template::name)));
 	}
 };
 class macro_builder_details : public scrollable_text {
@@ -367,22 +366,33 @@ public:
 		float discipline_or_evasion = 0.f;
 		float support = 0.f;
 		float supply_consumption = 0.f;
-		float maximum_speed = 0.f;
+		float maximum_speed = std::numeric_limits<float>::max();
 		float maneuver = 0.f;
 		int32_t supply_consumption_score = 0;
-		for(dcon::unit_type_id::value_base_t i = 0; i < sizeof(sys::macro_builder_template::max_types); i++) {
+		bool warn_overseas = false;
+		bool warn_culture = false;
+		bool warn_active = false;
+		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
 			if(t.amounts[i] == 0) //not needed to show this
 				continue;
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
 			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
 				continue;
+
+			if(!state.military_definitions.unit_base_definitions[utid].active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				warn_active = true;
+			if(state.military_definitions.unit_base_definitions[utid].primary_culture)
+				warn_culture = true;
+			if(state.military_definitions.unit_base_definitions[utid].can_build_overseas)
+				warn_overseas = true;
+
 			reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range * float(t.amounts[i]);
 			siege_or_torpedo_attack += state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack * float(t.amounts[i]);
 			attack_or_gun_power += state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power * float(t.amounts[i]);
 			defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull * float(t.amounts[i]);
 			discipline_or_evasion += state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion * float(t.amounts[i]);
 			supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption * float(t.amounts[i]);
-			maximum_speed += state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]);
+			maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]));
 			if(is_land) {
 				support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support * float(t.amounts[i]);
 				maneuver += state.military_definitions.unit_base_definitions[utid].maneuver * float(t.amounts[i]);
@@ -390,6 +400,13 @@ public:
 				supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score * int32_t(t.amounts[i]);
 			}
 		}
+
+		if(warn_overseas)
+			text::add_line(state, contents, "macro_warn_overseas");
+		if(warn_culture)
+			text::add_line(state, contents, "macro_warn_culture");
+		if(warn_active)
+			text::add_line(state, contents, "macro_warn_unlocked");
 
 		// Total
 		text::add_line(state, contents, text::produce_simple_string(state, "macro_total_desc"));
@@ -426,7 +443,7 @@ public:
 		text::add_line_break_to_layout(state, contents);
 
 		// Describe for each
-		for(dcon::unit_type_id::value_base_t i = 0; i < sizeof(sys::macro_builder_template::max_types); i++) {
+		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
 			if(t.amounts[i] == 0) //not needed to show this
 				continue;
 			dcon::unit_type_id utid = dcon::unit_type_id(i);
@@ -512,6 +529,9 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
 			is_land = Cyto::any_cast<element_selection_wrapper<bool>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type<notify_setting_update>()) {
 			impl_on_update(state);
 			return message_result::consumed;
 		}
