@@ -200,7 +200,6 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<macro_builder_template_entry, uint32_t>::on_create(state);
-		//
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		auto f = simple_fs::open_file(sdir, NATIVE("templates.bin"));
 		if(f) {
@@ -214,10 +213,7 @@ public:
 				std::memcpy(state.ui_state.templates.data(), contents.data, num_templates * sizeof(sys::macro_builder_template));
 			}
 		}
-		//
-		update(state);
 	}
-
 	void on_update(sys::state& state) noexcept override {
 		row_contents.resize(state.ui_state.templates.size(), 0);
 		for(uint32_t i = 0; i < uint32_t(state.ui_state.templates.size()); i++)
@@ -270,15 +266,9 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		// Land first
+		bool b = retrieve<bool>(state, parent);
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == true) {
-				row_contents.push_back(dcon::unit_type_id(i));
-			}
-		}
-		// Then naval after
-		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == false) {
+			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == b) {
 				row_contents.push_back(dcon::unit_type_id(i));
 			}
 		}
@@ -315,8 +305,43 @@ public:
 		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
 	}
 };
-class macro_builder_window : public window_element_base {
+class macro_builder_remove_template_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		sys::macro_builder_template& t = state.ui_state.current_template;
+		for(uint32_t i = 0; i < uint32_t(state.ui_state.templates.size()); i++) {
+			auto const& u = state.ui_state.templates[i];
+			if(t.scenario_checksum.is_equal(u.scenario_checksum)
+			&& std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
+				state.ui_state.templates.erase(state.ui_state.templates.begin() + i);
+				break;
+			}
+		}
+	}
+};
+class macro_builder_switch_type_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto b = retrieve<bool>(state, parent);
+		if(b) {
+			set_button_text(state, text::produce_simple_string(state, "switch_type_naval"));
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "switch_type_land"));
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto b = retrieve<bool>(state, parent);
+		send(state, parent, element_selection_wrapper<bool>{ !b });
+	}
+};
+class macro_builder_window : public window_element_base {
+	bool is_land = true;
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		impl_on_update(state);
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
@@ -330,9 +355,25 @@ public:
 			return make_element_by_type<macro_builder_new_template_button>(state, id);
 		} else if(name == "save_template") {
 			return make_element_by_type<macro_builder_save_template_button>(state, id);
+		} else if(name == "remove_template") {
+			return make_element_by_type<macro_builder_remove_template_button>(state, id);
+		} else if(name == "switch_type") {
+			return make_element_by_type<macro_builder_switch_type_button>(state, id);
 		} else {
 			return nullptr;
 		}
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<bool>()) {
+			payload.emplace<bool>(is_land);
+			return message_result::consumed;
+		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
+			is_land = Cyto::any_cast<element_selection_wrapper<bool>>(payload).data;
+			impl_on_update(state);
+			return message_result::consumed;
+		}
+		return window_element_base::impl_get(state, payload);
 	}
 };
 class minimap_macro_builder_button : public button_element_base {
