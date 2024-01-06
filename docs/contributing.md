@@ -61,8 +61,8 @@ From here compiling is straightforward
 2. `cmake -E make_directory build`
 3. `cmake -E chdir build cmake ..`
 4. `touch src/local_user_settings.hpp`
-5. `nano src/local_user_settings.hpp` or use the text editor of your choice
-6. add the following lines:
+5. `nano src/local_user_settings.hpp` o utiliza el editor de texto a tu elección.
+6. Agrega las siguientes líneas:
     ```cpp
         #ifndef GAME_DIR
         #define GAME_DIR "[insert file path here]"
