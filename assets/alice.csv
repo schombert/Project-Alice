@@ -1375,6 +1375,9 @@ macro_new_template;New template;;;Nueva plantila
 macro_warn_overseas;§RCan't build this unit overseas!§W
 macro_warn_culture;§RCan only build using primary culture POPs!§W
 macro_warn_unlocked;§RUsing units not unlocked yet!§W
+macro_select_province;Please select a province on the map
+macro_warn_insuff;§RCan't build $x$ $name$ (only $y$)§W
+macro_warn_invalid_province;§RProvince not part of a region§W
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest
