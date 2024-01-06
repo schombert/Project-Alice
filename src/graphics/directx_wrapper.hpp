@@ -1,11 +1,10 @@
 #pragma once
-#include <d3d11.h>
-#include <wincodec.h>
-
 
 #ifdef _WIN64
 #define DIRECTX_11
 
+#include <d3d11.h>
+#include <wincodec.h>
 
 namespace directx {
 struct data {
