@@ -690,6 +690,7 @@ public:
 			auto const& name = state.ui_state.current_template.name;
 			auto sv = std::string_view(name, name + sizeof(name));
 			auto s = std::string(sv);
+			name_input->edit_index_position(state, 0);
 			name_input->set_text(state, s);
 			impl_on_update(state);
 			return message_result::consumed;
