@@ -1703,8 +1703,7 @@ public:
 		set_visible(state, true);
 	}
 };
-
-void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
+inline void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
 	if(elm.base_data.get_element_type() != ui::element_type::button)
 		return;
 	if(elm.base_data.data.button.shortcut == sys::virtual_key::NONE)
