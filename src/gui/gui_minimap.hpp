@@ -210,8 +210,8 @@ protected:
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<macro_builder_template_entry, uint32_t>::on_create(state);
-		auto sdir = simple_fs::get_or_create_save_game_directory();
-		auto f = simple_fs::open_file(sdir, NATIVE("templates.bin"));
+		auto sdir = simple_fs::get_or_create_templates_directory();
+		auto f = simple_fs::open_file(sdir, state.loaded_scenario_file);
 		if(f) {
 			auto contents = simple_fs::view_contents(*f);
 			if(contents.file_size > 0) {
@@ -299,13 +299,11 @@ class macro_builder_save_template_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		sys::macro_builder_template& t = state.ui_state.current_template;
-		t.scenario_checksum = state.scenario_checksum;
 		t.source = state.local_player_nation;
 		// Replace templates with the same name and of the same scenario
 		bool overwrite = false;
 		for(auto& u : state.ui_state.templates) {
-			if(t.scenario_checksum.is_equal(u.scenario_checksum)
-			&& std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
+			if(std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
 				std::memcpy(&u, &t, sizeof(sys::macro_builder_template));
 				overwrite = true;
 				break;
@@ -314,8 +312,8 @@ public:
 		if(!overwrite) {
 			state.ui_state.templates.push_back(t);
 		}
-		auto sdir = simple_fs::get_or_create_save_game_directory();
-		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+		auto sdir = simple_fs::get_or_create_templates_directory();
+		simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
 		send(state, parent, notify_setting_update{});
 	}
 };
@@ -325,14 +323,13 @@ public:
 		sys::macro_builder_template& t = state.ui_state.current_template;
 		for(uint32_t i = 0; i < uint32_t(state.ui_state.templates.size()); i++) {
 			auto const& u = state.ui_state.templates[i];
-			if(t.scenario_checksum.is_equal(u.scenario_checksum)
-			&& std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
+			if(std::memcmp(u.name, t.name, sizeof(sys::macro_builder_template::name)) == 0) {
 				state.ui_state.templates.erase(state.ui_state.templates.begin() + i);
 				break;
 			}
 		}
-		auto sdir = simple_fs::get_or_create_save_game_directory();
-		simple_fs::write_file(sdir, NATIVE("templates.bin"), reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+		auto sdir = simple_fs::get_or_create_templates_directory();
+		simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
 		send(state, parent, notify_setting_update{});
 	}
 };
