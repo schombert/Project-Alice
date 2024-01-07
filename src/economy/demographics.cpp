@@ -365,7 +365,7 @@ void regenerate_from_pop_data(sys::state& state) {
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
 			state.world.for_each_culture([&](dcon::culture_id c) {
-				ve::execute_parallel<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, k = to_key(state, c)](auto p) {
+				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, k = to_key(state, c)](auto p) {
 					auto v = state.world.province_get_demographics(p, k);
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
@@ -548,7 +548,7 @@ void regenerate_from_pop_data(sys::state& state) {
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
 			state.world.for_each_issue_option([&](dcon::issue_option_id c) {
-				ve::execute_parallel<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, k = to_key(state, c)](auto p) {
+				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, k = to_key(state, c)](auto p) {
 					auto v = state.world.province_get_demographics(p, k);
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
@@ -613,7 +613,7 @@ void regenerate_from_pop_data(sys::state& state) {
 			}
 			state.world.execute_serial_over_pop([&](auto p) { max_buffer.set(p, ve::fp_vector()); });
 			state.world.for_each_issue_option([&](dcon::issue_option_id c) {
-				state.world.execute_serial_over_pop([&, k = pop_demographics::to_key(state, c)](auto p) {
+				ve::execute_parallel<dcon::pop_id>(state.world.pop_size(), [&, k = pop_demographics::to_key(state, c)](auto p) {
 					auto v = state.world.pop_get_demographics(p, k);
 					auto old_max = max_buffer.get(p);
 					auto mask = v > old_max;
