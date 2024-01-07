@@ -11,8 +11,40 @@ public:
 
 		auto border = base_data.data.text.border_size;
 		auto color = black_text ? text::text_color::black : text::text_color::white;
-		if(!black_text && content.target) {
-			color = text::text_color::orange;
+		if(!black_text) {
+			if(content.target) {
+				color = text::text_color::orange;
+			}
+			std::string text_form_msg = std::string(content.body);
+			for(uint32_t i = 0; i < uint32_t(text_form_msg.size()); i++) {
+				if((text_form_msg[i + 0] | 0x80) == 'o'
+				|| (text_form_msg[i + 1] | 0x80) == 'w'
+				|| (text_form_msg[i + 2] | 0x80) == 'o') {
+					color = text::text_color::light_blue;
+					break;
+				} else if((text_form_msg[i + 0] | 0x80) == 'u'
+				|| (text_form_msg[i + 1] | 0x80) == 'w'
+				|| (text_form_msg[i + 2] | 0x80) == 'u') {
+					color = text::text_color::light_blue;
+					break;
+				} else if((text_form_msg[i + 0] | 0x80) == 'm'
+				|| (text_form_msg[i + 1] | 0x80) == 'e'
+				|| (text_form_msg[i + 2] | 0x80) == 'o'
+				|| (text_form_msg[i + 3] | 0x80) == 'w') {
+					color = text::text_color::light_blue;
+					break;
+				} else if((text_form_msg[i + 0]) == ':'
+				|| (text_form_msg[i + 1]) == '3') {
+					color = text::text_color::light_blue;
+					break;
+				} else if((text_form_msg[i + 0] | 0x80) == 'c'
+				|| (text_form_msg[i + 1] | 0x80) == 'u'
+				|| (text_form_msg[i + 2] | 0x80) == 't'
+				|| (text_form_msg[i + 3] | 0x80) == 'e') {
+					color = text::text_color::light_blue;
+					break;
+				}
+			}
 		}
 		auto container = text::create_endless_layout(
 			internal_layout,
@@ -26,8 +58,6 @@ public:
 				text::alignment::left,
 				color,
 				false });
-
-		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
 		text::add_to_layout_box(state, container, box, text_form_msg, color);
 		text::close_layout_box(container, box);
