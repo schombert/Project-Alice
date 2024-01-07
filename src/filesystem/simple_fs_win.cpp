@@ -382,6 +382,21 @@ directory get_or_create_save_game_directory() {
 	return directory(nullptr, base_path);
 }
 
+directory get_or_create_templates_directory() {
+	wchar_t* local_path_out = nullptr;
+	std::wstring base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\templates");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
 directory get_or_create_oos_directory() {
 	wchar_t* local_path_out = nullptr;
 	std::wstring base_path;

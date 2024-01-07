@@ -234,6 +234,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto party = retrieve<dcon::political_party_id>(state, parent);
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, state.world.political_party_get_name(party));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view{ "(" });
+			text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(state.world.political_party_get_ideology(party)));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
+			text::close_layout_box(contents, box);
+		}
+
 		for(auto pi : state.culture_definitions.party_issues) {
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(party, pi).get_name(),

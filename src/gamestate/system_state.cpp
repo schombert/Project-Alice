@@ -493,6 +493,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -518,6 +519,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -538,6 +540,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							text::text_color::white, true },
 					 10);
 			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0)
@@ -638,6 +641,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -663,6 +667,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -683,6 +688,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							text::text_color::white, true },
 					 10);
 			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0)
@@ -802,6 +808,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -827,6 +834,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							 10);
 					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 							container);
+					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 					if(container.used_width > 0)
@@ -847,6 +855,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 							text::text_color::white, true },
 					 10);
 			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0)
@@ -1313,6 +1322,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 						 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
+				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -1336,6 +1346,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 						 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
+				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 				if(container.used_width > 0)
@@ -1355,6 +1366,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 						text::text_color::white, true },
 				 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
+		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 		if(container.used_width > 0)
