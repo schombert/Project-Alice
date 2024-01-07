@@ -2804,7 +2804,7 @@ void daily_update(sys::state& state) {
 
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(k)};
-		if(state.world.commodity_get_rgo_amount(cid))
+		if(state.world.commodity_get_money_rgo(cid))
 			return;
 
 		float total_r_demand = 0.0f;
