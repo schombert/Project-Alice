@@ -365,7 +365,12 @@ void regenerate_from_pop_data(sys::state& state) {
 		iso_old_count = iso_new_count;
 	}
 	state.world.execute_serial_over_pop([&](auto p) { iso_max_buffer.set(p, ve::fp_vector()); });
-	concurrency::parallel_for(uint32_t(0), uint32_t(20), [&](uint32_t index) {
+
+	constexpr uint32_t iso_offset = 15;
+	constexpr uint32_t iso_divisions = 6;
+	constexpr uint32_t total_divisions = iso_offset + iso_divisions;
+
+	concurrency::parallel_for(uint32_t(0), uint32_t(total_divisions), [&](uint32_t index) {
 		switch(index) {
 		case 0: {
 			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
@@ -682,8 +687,8 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 		default: //(16, 16 + 4)
-			if(index >= 16 && index <= 19) {
-				execute_staggered_blocks(index - 16, 4, state.world.pop_size(), [&](auto p) {
+			if(index >= iso_offset && index < iso_offset + iso_divisions) {
+				execute_staggered_blocks(index - iso_offset, iso_divisions, state.world.pop_size(), [&](auto p) {
 					state.world.for_each_issue_option([&](dcon::issue_option_id c) {
 						auto k = pop_demographics::to_key(state, c);
 						auto v = state.world.pop_get_demographics(p, k);
