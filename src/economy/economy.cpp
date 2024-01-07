@@ -1072,7 +1072,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 	assert(amount * state.world.commodity_get_current_price(c) >= 0);
 	state.world.province_set_rgo_full_profit(p, amount * state.world.commodity_get_current_price(c));
 
-	if(c == money) {
+	if(c.get_money_rgo()) {
 		assert(std::isfinite(amount * state.defines.gold_to_cash_rate) && amount * state.defines.gold_to_cash_rate >= 0.0f);
 		state.world.nation_get_stockpiles(n, money) += amount * state.defines.gold_to_cash_rate;
 	}
@@ -2804,6 +2804,9 @@ void daily_update(sys::state& state) {
 
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(k)};
+		if(state.world.commodity_get_rgo_amount(cid))
+			return;
+
 		float total_r_demand = 0.0f;
 		float total_consumption = 0.0f;
 		float total_production = 0.0f;
@@ -3220,7 +3223,7 @@ float estimate_gold_income(sys::state& state, dcon::nation_id n) {
 	auto amount = 0.f;
 	for(auto poid : state.world.nation_get_province_ownership_as_nation(n)) {
 		auto prov = poid.get_province();
-		if(prov.get_rgo().id == economy::money) {
+		if(prov.get_rgo().get_money_rgo()) {
 			amount += province::rgo_production_quantity(state, prov.id);
 		}
 	}
