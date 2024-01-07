@@ -701,7 +701,7 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		}
-		return window_element_base::impl_get(state, payload);
+		return message_result::consumed;// window_element_base::impl_get(state, payload);
 	}
 };
 class minimap_macro_builder_button : public button_element_base {
