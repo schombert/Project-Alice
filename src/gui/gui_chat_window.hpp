@@ -27,6 +27,11 @@ public:
 				|| (text_form_msg[i + 2] | 0x80) == 'u') {
 					color = text::text_color::light_blue;
 					break;
+				} else if((text_form_msg[i + 0] | 0x80) == 'p'
+				|| (text_form_msg[i + 1] | 0x80) == 'l'
+				|| (text_form_msg[i + 2] | 0x80) == 's') {
+					color = text::text_color::light_blue;
+					break;
 				} else if((text_form_msg[i + 0] | 0x80) == 'm'
 				|| (text_form_msg[i + 1] | 0x80) == 'e'
 				|| (text_form_msg[i + 2] | 0x80) == 'o'
