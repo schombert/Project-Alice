@@ -184,6 +184,8 @@ class macro_builder_template_select : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto index = retrieve<uint32_t>(state, parent);
+		if(index >= uint32_t(state.ui_state.templates.size()))
+			return;
 		std::memcpy(&state.ui_state.current_template, &state.ui_state.templates[index], sizeof(sys::macro_builder_template));
 		send(state, parent, notify_template_select{});
 	}
@@ -687,7 +689,8 @@ public:
 		} else if(payload.holds_type< notify_template_select>()) {
 			auto const& name = state.ui_state.current_template.name;
 			auto sv = std::string_view(name, name + sizeof(name));
-			name_input->set_text(state, std::string(sv));
+			auto s = std::string(sv);
+			name_input->set_text(state, s);
 			impl_on_update(state);
 			return message_result::consumed;
 		}  else if(payload.holds_type<notify_setting_update>()) {
