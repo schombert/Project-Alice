@@ -690,8 +690,8 @@ void load_shaders() {
 	simple_fs::add_root(fs, L".");
 	auto root = get_root(fs);
 
-	auto ui_fshader = open_file(root, NATIVE("assets/shaders/ui_f_shader.glsl"));
-	auto ui_vshader = open_file(root, NATIVE("assets/shaders/ui_v_shader.glsl"));
+	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
+	auto ui_vshader = open_file(root, NATIVE("assets/shaders/glsl/ui_v_shader.glsl"));
 	if(bool(ui_fshader) && bool(ui_vshader)) {
 		auto vertex_content = view_contents(*ui_vshader);
 		auto fragment_content = view_contents(*ui_fshader);

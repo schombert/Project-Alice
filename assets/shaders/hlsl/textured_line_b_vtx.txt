@@ -1,0 +1,90 @@
+#define M_PI 3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
+
+// Goes from 0 to 1
+struct Input {
+	float2 vertex_position:SV_Target0;
+	float2 prev_point:SV_Target1;
+	float2 next_point:SV_Target2;
+	float texture_coord:SV_Target3;
+	float distance:SV_Target4;
+	bool is_globe_map;
+};
+struct Output {
+	float texture_coord;
+	float distance;
+	float2 map_coord;
+	float4 pos;
+};
+
+
+float2 offset:SV_Target0;
+float aspect_ratio:SV_Target1;
+float zoom:SV_Target2;
+float2 map_size:SV_Target3;
+float width:SV_Target4;
+float3x3 rotation:SV_Target5;
+
+
+float4 globe_coords(float2 world_pos) {
+
+	float3 new_world_pos;
+	float section_x = 200;
+	float angle_x1 = 2 * PI * floor(world_pos.x * section_x) / section_x;
+	float angle_x2 = 2 * PI * floor(world_pos.x * section_x + 1) / section_x;
+	float angle_x = lerp(angle_x1, angle_x2, fmod(world_pos.x * section_x, 1));
+	new_world_pos.x = lerp(cos(angle_x1), cos(angle_x2), fmod(world_pos.x * section_x, 1));
+	new_world_pos.y = lerp(sin(angle_x1), sin(angle_x2), fmod(world_pos.x * section_x, 1));
+	float section_y = 200;
+	float angle_y1 = PI * floor(world_pos.y * section_y) / section_y;
+	float angle_y2 = PI * floor(world_pos.y * section_y + 1) / section_y;
+	new_world_pos.x *= lerp(sin(angle_y1), sin(angle_y2), fmod(world_pos.y * section_y, 1));
+	new_world_pos.y *= lerp(sin(angle_y1), sin(angle_y2), fmod(world_pos.y * section_y, 1));
+	new_world_pos.z = lerp(cos(angle_y1), cos(angle_y2), fmod(world_pos.y * section_y, 1));
+	new_world_pos =  new_world_pos * rotation;
+	new_world_pos /= PI; 		// Will make the zoom be the same for the globe and flat map
+	new_world_pos.y *= 0.02; 	// Sqeeze the z coords. Needs to be between -1 and 1
+	new_world_pos.xz *= -1; 	// Invert the globe
+	new_world_pos.xyz += 0.5; 	// Move the globe to the center
+
+	return float4(
+		(2. * new_world_pos.x - 1.f) / aspect_ratio  * zoom,
+		(2. * new_world_pos.z - 1.f) * zoom,
+		(2. * new_world_pos.y - 1.f), 1.0);
+}
+
+float4 flat_coords(float2 world_pos) {
+	world_pos += float2(-offset.x, offset.y);
+	world_pos.x = fmod(world_pos.x, 1.0f);
+	return float4(
+		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
+		(2. * world_pos.y - 1.f) * zoom,
+		0.0, 1.0);
+}
+
+float4 calc_gl_position(float2 world_pos, bool is_globe_map) {
+	return is_globe_map ? globe_coords(world_pos) : flat_coords(world_pos);
+}
+
+Output main(Input input) {
+	float4 central_pos = calc_gl_position(input.vertex_position, input.is_globe_map);
+	float2 bpt = central_pos.xy;
+	float2 apt = calc_gl_position(input.prev_point, input.is_globe_map).xy;
+	float2 cpt = calc_gl_position(input.next_point, input.is_globe_map).xy;
+	
+	float2 adir = normalize(bpt - apt);
+	float2 bdir = normalize(cpt - bpt);
+	
+	float2 anorm = float2(-adir.y, adir.x);
+	float2 bnorm = float2(-bdir.y, bdir.x);
+	float2 corner_normal = (anorm + bnorm) / (1.0f + max(-0.5f, dot(anorm, bnorm))) * zoom * width;
+	
+	Output output;
+	output.pos = central_pos + float4(corner_normal.x, corner_normal.y, 0.0f, 0.0f);
+	output.pos.x /= aspect_ratio;
+	output.texture_coord = input.texture_coord;
+	output.distance = input.distance / (2.0f * width);
+	output.map_coord = input.vertex_position;
+
+	return output;
+}

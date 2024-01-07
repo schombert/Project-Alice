@@ -1,0 +1,59 @@
+#define M_PI 3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
+
+struct Input {
+	float2 texture_coord;
+	float type;
+};
+
+struct Output {
+	float4 frag_color:SV_Target0;
+};
+
+Texture2D texture0:register(t0);
+SamplerState texture0_sampler:register(s0);
+
+Texture2D texture1:register(t1);
+SamplerState texture1_sampler:register(s1);
+
+Texture2D texture2:register(t2);
+SamplerState texture2_sampler:register(s2);
+
+Texture2D texture3:register(t3);
+SamplerState texture3_sampler:register(s3);
+
+float is_black:SV_Target6;
+float gamma:SV_Target7;
+
+float4 gamma_correct(float4 colour) {
+	return float4(pow(colour.rgb, float3(1.f / gamma)), colour.a);
+}
+
+Output main(Input input) {
+	float border_size = 0.05;
+	float3 inner_color = float3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
+	float3 outer_color = float3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
+	float4 color_in = texture0.Sample(texture0_sampler, input.texture_coord);
+	if(input.type == 0.f) {
+		color_in = texture0.Sample(texture0_sampler, input.texture_coord);
+	} else if(input.type == 1.f) {
+		color_in = texture1.Sample(texture1_sampler, input.texture_coord);
+	} else if(input.type == 2.f) {
+		color_in = texture2.Sample(texture2_sampler, input.texture_coord);
+	} else if(input.type == 3.f) {
+		color_in = texture3.Sample(texture3_sampler, input.texture_coord);
+	}
+	
+	Output output;
+	float4 frag_color;
+	if(color_in.r > 0.505) {
+		frag_color = float4(inner_color, 1.0f);
+	} else if(color_in.r > 0.50) {
+		frag_color = float4(lerp(inner_color, outer_color - inner_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
+	} else {
+		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
+		frag_color = float4(outer_color - inner_color, t * t * t);
+	}
+	output.frag_color = gamma_correct(frag_color);
+	return output;
+}
