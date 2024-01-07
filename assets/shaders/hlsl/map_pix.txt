@@ -46,7 +46,9 @@ SamplerState stripes_texture_sampler:register(s10);
 Texture2D province_fow:register(t11);
 SamplerState province_fow_sampler:register(s11);
 
-uniform usampler2D diag_border_identifier;
+//uniform usampler2D diag_border_identifier;
+Texture2D diag_border_identifier;
+SamplerState diag_border_identifier_sampler;
 
 // location 0 : offset
 // location 1 : zoom
@@ -202,7 +204,7 @@ float4 get_land_political_close(float2 tex_coord) {
 	float2 tex_coords = tex_coord;
 	float2 rounded_tex_coords = (floor(tex_coord * map_size) + float2(0.5, 0.5)) / map_size;
 	
-	uint test = texture(diag_border_identifier, rounded_tex_coords).x;
+	uint test = diag_border_identifier.Sample(diag_border_identifier_sampler, rounded_tex_coords).x;
 	float2 rel_coord = tex_coord * map_size - floor(tex_coord * map_size) - float2(0.5);
 	int shift = int(sign(rel_coord.x) + 2 * sign(rel_coord.y) + 3);
 	
