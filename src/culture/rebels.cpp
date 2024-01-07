@@ -789,8 +789,8 @@ void sort_hunting_targets(sys::state& state, dcon::army_id ar, std::vector<dcon:
 	auto our_str = ai::estimate_army_strength(state, ar);
 	auto loc = state.world.army_get_location_from_army_location(ar);
 	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-		auto aa = 0.02f * -(our_str - ai::estimate_rebel_strength(state, a));
-		auto ab = 0.02f * -(our_str - ai::estimate_rebel_strength(state, b));
+		auto aa = 0.001f * -(our_str - ai::estimate_rebel_strength(state, a));
+		auto ab = 0.001f * -(our_str - ai::estimate_rebel_strength(state, b));
 		auto da = province::sorting_distance(state, a, loc) + aa;
 		auto db = province::sorting_distance(state, b, loc) + ab;
 		if(da != db)
@@ -831,8 +831,8 @@ void rebel_hunting_check(sys::state& state) {
 				std::sort(rebel_hunters.begin(), rebel_hunters.end(), [&](dcon::army_id a, dcon::army_id b) {
 					auto pa = state.world.army_get_location_from_army_location(a);
 					auto pb = state.world.army_get_location_from_army_location(b);
-					auto as = 0.02f * std::max<float>(ai::estimate_army_strength(state, a), 1.f);
-					auto bs = 0.02f * std::max<float>(ai::estimate_army_strength(state, b), 1.f);
+					auto as = 0.001f * std::max<float>(ai::estimate_army_strength(state, a), 1.f);
+					auto bs = 0.001f * std::max<float>(ai::estimate_army_strength(state, b), 1.f);
 					auto da = province::sorting_distance(state, pa, closest_prov) + as;
 					auto db = province::sorting_distance(state, pb, closest_prov) + bs;
 					if(da != db)
