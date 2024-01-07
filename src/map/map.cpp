@@ -446,8 +446,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		// calc_gl_position()
 		if(map_view_mode == map_view::globe)
 			vertex_subroutines = 0; // globe_coords()
-		else
+		else if(map_view_mode == map_view::flat)
 			vertex_subroutines = 1; // flat_coords()
+		else
+			vertex_subroutines = 2; // perspective_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
 	};
 
@@ -520,9 +522,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		GLuint vertex_subroutines[1] = {};
 		if(map_view_mode == map_view::globe) {
 			vertex_subroutines[0] = 0; // globe_coords()
-		} else {
+		} else if(map_view_mode == map_view::flat)
 			vertex_subroutines[0] = 1; // flat_coords()
-		}
+		else
+			vertex_subroutines[0] = 2; // perspective_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
 	}
 

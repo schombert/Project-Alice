@@ -100,7 +100,14 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		auto mouse_pos = glm::vec2(x, y);
 		auto screen_size = glm::vec2(x_size, y_size);
 		glm::vec2 map_pos;
-		if(!map_state.screen_to_map(mouse_pos, screen_size, user_settings.map_is_globe ? map::map_view::globe : map::map_view::flat, map_pos)) {
+		auto current_view = map::map_view::globe;
+		if(user_settings.map_is_globe == sys::projection_mode::flat) {
+			current_view = map::map_view::flat;
+		} else if (user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
+			current_view = map::map_view::globe_perspect;
+		}
+
+		if(!map_state.screen_to_map(mouse_pos, screen_size, current_view, map_pos)) {
 			return;
 		}
 		map_pos *= glm::vec2(float(map_state.map_data.size_x), float(map_state.map_data.size_y));
