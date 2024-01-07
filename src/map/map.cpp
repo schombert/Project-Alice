@@ -21,77 +21,6 @@
 
 namespace map {
 
-image load_stb_image(simple_fs::file& file) {
-	int32_t file_channels = 4;
-	int32_t size_x = 0;
-	int32_t size_y = 0;
-	auto content = simple_fs::view_contents(file);
-	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y, &file_channels, 4);
-	return image(data, size_x, size_y, 4);
-}
-
-GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
-	GLuint texture_handle;
-	glGenTextures(1, &texture_handle);
-	const GLuint internalformats[] = { GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 };
-	const GLuint formats[] = { GL_RED, GL_RG, GL_RGB, GL_RGBA };
-	if(texture_handle) {
-		glBindTexture(GL_TEXTURE_2D, texture_handle);
-		glTexStorage2D(GL_TEXTURE_2D, 1, internalformats[channels - 1], size_x, size_y);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, formats[channels - 1], GL_UNSIGNED_BYTE, data);
-		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-
-	return texture_handle;
-}
-GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name) {
-	auto file = open_file(dir, file_name);
-	auto image = load_stb_image(*file);
-	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
-}
-
-void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
-	glBindTexture(texture_type, texture_handle);
-	if(filter == GL_LINEAR_MIPMAP_NEAREST || filter == GL_LINEAR_MIPMAP_LINEAR) {
-		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
-		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glGenerateMipmap(texture_type);
-	} else {
-		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
-		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
-	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
-	glBindTexture(texture_type, 0);
-}
-
-GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
-	auto image = load_stb_image(file);
-
-	GLuint texture_handle = 0;
-	glGenTextures(1, &texture_handle);
-	if(texture_handle) {
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
-
-		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
-		size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
-		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
-		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
-
-		for(int32_t x = 0; x < tiles_x; x++)
-			for(int32_t y = 0; y < tiles_y; y++)
-				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA, GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
-
-		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
-	}
-	return texture_handle;
-}
-
-
 void display_data::update_borders(sys::state& state) {
 
 }
@@ -359,23 +288,23 @@ GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_fi
 
 void display_data::load_shaders(simple_fs::directory& root) {
 	// Map shaders
-	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/map_v.glsl"));
-	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/map_f.glsl"));
-	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/screen_v.glsl"));
-	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/white_color_f.glsl"));
+	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_v.glsl"));
+	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_f.glsl"));
+	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/screen_v.glsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/white_color_f.glsl"));
 
 	// Line shaders
-	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_v.glsl"));
-	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/line_unit_arrow_f.glsl"));
+	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
+	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
 
-	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/text_line_v.glsl"));
-	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/text_line_f.glsl"));
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
 
-	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_v.glsl"));
-	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_f.glsl"));
+	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
+	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_f.glsl"));
 
-	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_v.glsl"));
-	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/textured_line_b_f.glsl"));
+	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
+	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_f.glsl"));
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
@@ -683,7 +612,7 @@ GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x,
 		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG8, size_x, size_y);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RG, GL_UNSIGNED_BYTE, &province_index[0]);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		set_gltex_parameters(texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+		ogl::set_gltex_parameters(texture_handle, GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 	}
 	return texture_handle;
 }
@@ -1399,14 +1328,14 @@ void display_data::load_map(sys::state& state) {
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, GL_RED_INTEGER, GL_UNSIGNED_BYTE, diagonal_borders.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	ogl::set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
-	textures[texture_terrain] = make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
-	set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	textures[texture_terrain] = ogl::make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
+	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-	texture_arrays[texture_array_terrainsheet] = load_texture_array_from_file(*texturesheet, 8, 8);
+	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	textures[texture_colormap_water] = load_dds_texture(map_terrain_dir, NATIVE("colormap_water.dds"));
@@ -1416,47 +1345,47 @@ void display_data::load_map(sys::state& state) {
 	textures[texture_stripes] = load_dds_texture(map_terrain_dir, NATIVE("stripes.dds"));
 	
 	textures[texture_river_body] = load_dds_texture(assets_dir, NATIVE("river.dds"));
-	set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_river_body], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_national_border] = load_dds_texture(assets_dir, NATIVE("nat_border.dds"));
-	set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_national_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_state_border] = load_dds_texture(assets_dir, NATIVE("state_border.dds"));
-	set_gltex_parameters(textures[texture_state_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_state_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_prov_border] = load_dds_texture(assets_dir, NATIVE("prov_border.dds"));
-	set_gltex_parameters(textures[texture_prov_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_prov_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_imp_border] = load_dds_texture(assets_dir, NATIVE("imp_border.dds"));
-	set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_imp_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_coastal_border] = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
-	set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_railroad] = load_dds_texture(gfx_anims_dir, NATIVE("railroad.dds"));
-	set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+	ogl::set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
-	textures[texture_unit_arrow] = make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
-	set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes
 	glGenTextures(1, &texture_arrays[texture_array_province_color]);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_province_color]);
 	glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, 256, 256, 2);
-	set_gltex_parameters(texture_arrays[texture_array_province_color], GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	ogl::set_gltex_parameters(texture_arrays[texture_array_province_color], GL_TEXTURE_2D_ARRAY, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	// Get the province_highlight handle
 	glGenTextures(1, &textures[texture_province_highlight]);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(textures[texture_province_highlight], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	ogl::set_gltex_parameters(textures[texture_province_highlight], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	// Get the province_fow handle
 	glGenTextures(1, &textures[texture_province_fow]);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 256, 256);
-	set_gltex_parameters(textures[texture_province_fow], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	ogl::set_gltex_parameters(textures[texture_province_fow], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

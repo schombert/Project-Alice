@@ -241,8 +241,8 @@ void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	auto root = get_root(state.common_fs);
-	auto msaa_fshader = open_file(root, NATIVE("assets/shaders/msaa_f_shader.glsl"));
-	auto msaa_vshader = open_file(root, NATIVE("assets/shaders/msaa_v_shader.glsl"));
+	auto msaa_fshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_f_shader.glsl"));
+	auto msaa_vshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_v_shader.glsl"));
 	if(bool(msaa_fshader) && bool(msaa_vshader)) {
 		auto vertex_content = view_contents(*msaa_vshader);
 		auto fragment_content = view_contents(*msaa_fshader);
@@ -339,8 +339,8 @@ static GLfloat global_square_left_flipped_data[] = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f
 
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
-	auto ui_fshader = open_file(root, NATIVE("assets/shaders/ui_f_shader.glsl"));
-	auto ui_vshader = open_file(root, NATIVE("assets/shaders/ui_v_shader.glsl"));
+	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
+	auto ui_vshader = open_file(root, NATIVE("assets/shaders/glsl/ui_v_shader.glsl"));
 	if(bool(ui_fshader) && bool(ui_vshader)) {
 		auto vertex_content = view_contents(*ui_vshader);
 		auto fragment_content = view_contents(*ui_fshader);
@@ -944,6 +944,76 @@ void lines::bind_buffer() {
 
 bool msaa_enabled(sys::state const& state) {
 	return state.open_gl.msaa_enabled;
+}
+
+image load_stb_image(simple_fs::file& file) {
+	int32_t file_channels = 4;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	auto content = simple_fs::view_contents(file);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y, &file_channels, 4);
+	return image(data, size_x, size_y, 4);
+}
+
+GLuint make_gl_texture(uint8_t* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
+	GLuint texture_handle;
+	glGenTextures(1, &texture_handle);
+	const GLuint internalformats[] = { GL_R8, GL_RG8, GL_RGB8, GL_RGBA8 };
+	const GLuint formats[] = { GL_RED, GL_RG, GL_RGB, GL_RGBA };
+	if(texture_handle) {
+		glBindTexture(GL_TEXTURE_2D, texture_handle);
+		glTexStorage2D(GL_TEXTURE_2D, 1, internalformats[channels - 1], size_x, size_y);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size_x, size_y, formats[channels - 1], GL_UNSIGNED_BYTE, data);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	return texture_handle;
+}
+GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_name) {
+	auto file = open_file(dir, file_name);
+	auto image = load_stb_image(*file);
+	return make_gl_texture(image.data, image.size_x, image.size_y, image.channels);
+}
+
+void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap) {
+	glBindTexture(texture_type, texture_handle);
+	if(filter == GL_LINEAR_MIPMAP_NEAREST || filter == GL_LINEAR_MIPMAP_LINEAR) {
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glGenerateMipmap(texture_type);
+	} else {
+		glTexParameteri(texture_type, GL_TEXTURE_MAG_FILTER, filter);
+		glTexParameteri(texture_type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_S, wrap);
+	glTexParameteri(texture_type, GL_TEXTURE_WRAP_T, wrap);
+	glBindTexture(texture_type, 0);
+}
+
+GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
+	auto image = load_stb_image(file);
+
+	GLuint texture_handle = 0;
+	glGenTextures(1, &texture_handle);
+	if(texture_handle) {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_handle);
+
+		size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
+		size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
+		glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles_x * tiles_y), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, image.size_x);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, image.size_y);
+
+		for(int32_t x = 0; x < tiles_x; x++)
+			for(int32_t y = 0; y < tiles_y; y++)
+				glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(x * tiles_x + y), GLsizei(p_dx), GLsizei(p_dy), 1, GL_RGBA, GL_UNSIGNED_BYTE, ((uint32_t const*)image.data) + (x * p_dy * image.size_x + y * p_dx));
+
+		set_gltex_parameters(texture_handle, GL_TEXTURE_2D_ARRAY, GL_LINEAR_MIPMAP_NEAREST, GL_REPEAT);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+		glPixelStorei(GL_UNPACK_IMAGE_HEIGHT, 0);
+	}
+	return texture_handle;
 }
 
 } // namespace ogl
