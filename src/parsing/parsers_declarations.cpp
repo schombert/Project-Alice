@@ -60,25 +60,31 @@ void culture_group::union_tag(association_type, uint32_t v, error_handler& err, 
 
 void good::money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
 	if(v) {
-		context.outer_context.state.world.commodity_set_color(economy::money,
-				context.outer_context.state.world.commodity_get_color(context.id));
-		context.outer_context.state.world.commodity_set_cost(economy::money,
-				context.outer_context.state.world.commodity_get_cost(context.id));
-		context.outer_context.state.world.commodity_set_commodity_group(economy::money,
-				context.outer_context.state.world.commodity_get_commodity_group(context.id));
-		context.outer_context.state.world.commodity_set_name(economy::money,
-				context.outer_context.state.world.commodity_get_name(context.id));
-		context.outer_context.state.world.commodity_set_is_available_from_start(economy::money,
-				context.outer_context.state.world.commodity_get_is_available_from_start(context.id));
+		if(context.outer_context.money_set) {
+			context.outer_context.state.world.commodity_set_money_rgo(context.id, true);
+		} else {
+			context.outer_context.state.world.commodity_set_color(economy::money,
+					context.outer_context.state.world.commodity_get_color(context.id));
+			context.outer_context.state.world.commodity_set_cost(economy::money,
+					context.outer_context.state.world.commodity_get_cost(context.id));
+			context.outer_context.state.world.commodity_set_commodity_group(economy::money,
+					context.outer_context.state.world.commodity_get_commodity_group(context.id));
+			context.outer_context.state.world.commodity_set_name(economy::money,
+					context.outer_context.state.world.commodity_get_name(context.id));
+			context.outer_context.state.world.commodity_set_is_available_from_start(economy::money,
+					context.outer_context.state.world.commodity_get_is_available_from_start(context.id));
+			context.outer_context.state.world.commodity_set_money_rgo(economy::money, true);
 
-		for(auto& pr : context.outer_context.map_of_commodity_names) {
-			if(pr.second == context.id) {
-				pr.second = economy::money;
-				break;
+			for(auto& pr : context.outer_context.map_of_commodity_names) {
+				if(pr.second == context.id) {
+					pr.second = economy::money;
+					break;
+				}
 			}
+			context.id = economy::money;
+			context.outer_context.state.world.pop_back_commodity();
+			context.outer_context.money_set = true;
 		}
-		context.id = economy::money;
-		context.outer_context.state.world.pop_back_commodity();
 	}
 }
 
