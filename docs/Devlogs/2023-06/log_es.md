@@ -10,11 +10,11 @@ este me a sido inusualmente productivo, posiblemente por que mucho de los miembr
 
 ## P&R del equipo
 
-Este mes le preguntamos a Erik, uno de los cuatros fundadores del projecto y un gran contruibidor de [SDI](https://github.com/symphony-of-empires/symphony-of-empires): "Como hasido trbajar en Alicia comparado con SDI"
+Este mes le preguntamos a Erik, uno de los cuatros fundadores del projecto y un gran contruibidor de [SOE](https://github.com/symphony-of-empires/symphony-of-empires): "Como hasido trbajar en el Protecto Alice comparado con SOE"
 
-> Trabajar en Alicia a sido más facil, gracias a la experiencia de SDI y los objetivos más claros. Haver trbajado en un mapa antes fue de gran ayuda. El progreso en Alicia hasido rapido gracias al exelenta trabajo hecho por los contribuidores. otro factor es que en Alice se intenta prevenir el Síndrome del lavadero.
+> Trabajar en el Proyecto Alice a sido más facil, gracias a la experiencia de SOE y los objetivos más claros. Haver trbajado en un mapa antes fue de gran ayuda. El progreso en el Proyecto Alice hasido rapido gracias al exelenta trabajo hecho por los contribuidores. Otro factor es que en el Proyecto Alice se intenta prevenir el Síndrome del lavadero.
 > 
-> Debido a la demanda por una version de codigo abierto de victoria 2 (solo miren la cantidad de forks de Open V2) el interes en Alicia a incrementado. Tengo altas espectativas para la capacidad de modificaciones que va tener Alice cuando slaga la version 1.0. Lo que podemos modificar en victoria 2 es muy limitado, y quiero ver como podemos mejorarlo.
+> Debido a la demanda por una version de codigo abierto de victoria 2 (solo miren la cantidad de forks de Open V2) el interes en el Proyecto Alice a incrementado. Tengo altas espectativas para la capacidad de modificaciones que va tener el Proyecto Alice cuando slaga la version 1.0. Lo que podemos modificar en victoria 2 es muy limitado, y quiero ver como podemos mejorarlo.
 
 ## progreso en la interface de usuario
 
@@ -26,7 +26,7 @@ Este mes nos centramos en la interface de usuario, por ejemplo, los eventos.
 
 ![Un evento](./images/event.png)
 
-En este evento se ven varias cosas interesantes. El texto azul se va a convertir en hypertextop que te va a llevar a la provincia, estado o nación nombrada. Puedes ver las lineas --aun en desarrollo-- que van a ayudar a organizar los eventos cuando tengas multiples de estos. El tool tipmuestra que los efectos de los archivos fueron procesados correctamente, y (con la exepción de unos errores) funcionan correctamente.
+En este evento se ven varias cosas interesantes. El texto azul se va a convertir en hypertextop que te va a llevar a la provincia, estado o nación nombrada. Puedes ver las lineas --aun en desarrollo-- que van a ayudar a organizar los eventos cuando tengas multiples de estos. El tool tipmuestra que los efectos de los archivos fueron procesados correctamente, y (con la exepción de unos errores) funcionan correctamente. 
 
 ![Construcción de fabricas](./images/factories.png)
 

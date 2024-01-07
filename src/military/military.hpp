@@ -140,12 +140,14 @@ struct global_military_state {
 	dcon::cb_type_id standard_civil_war;
 	dcon::cb_type_id standard_great_war;
 
+	dcon::cb_type_id standard_status_quo;
+
 	dcon::cb_type_id liberate;
 	dcon::cb_type_id uninstall_communist_gov;
 
 	dcon::cb_type_id crisis_colony;
 	dcon::cb_type_id crisis_liberate;
-
+	
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
 	dcon::unit_type_id artillery;

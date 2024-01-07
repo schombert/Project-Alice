@@ -730,6 +730,20 @@ intervene_14;None of your sphere members are on the opposing side
 intervene_15;None of your allies are on the opposing side
 intervene_16;None of your armies are located in provinces owned by the opposing side
 intervene_17;Primary defender has a friendly opinion of you
+alice_milscore_1;Capital ship score: $x$
+alice_milscore_2;Recruitable regiments: $x$
+alice_milscore_3;Active regiments: $x$
+alice_milscore_4;Is disarmed? (penalty factor of $x$)
+alice_milscore_5;Supply consumption modifier: $x$
+alice_milscore_6;Average land unit score: $x$
+alice_milscore_7;Total number of leaders: $x$
+alice_indscore_1;$x$ contribution:
+alice_indscore_2;Total factory capacity: $x$
+alice_indscore_3;Total factory level: $x$
+alice_indscore_4;Total worker pool: $x$
+alice_indscore_5;Total: $x$
+alice_indscore_6;The following foreign investments also add up (weight factor $x$):
+alice_indscore_7;A $y$ foreign investment given to $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
@@ -1351,6 +1365,20 @@ aml_civ_s2;Uncolonized
 aml_civ_s3;100% Westernized
 aml_civ_s4;0% Westernized
 aml_civ_s5;Colony
+macro_builder;Macro-builder;;;Macro-constructor
+macro_total_desc;Total unit stats:
+macro_remove_template;Delete
+macro_switch_type_land;Switch to: Land
+macro_switch_type_naval;Switch to: Naval
+macro_save_template;Save template;;;Guardar plantilla
+macro_new_template;New template;;;Nueva plantila
+macro_warn_overseas;§RCan't build this unit overseas!§W
+macro_warn_culture;§RCan only build using primary culture POPs!§W
+macro_warn_unlocked;§RUsing units not unlocked yet!§W
+macro_select_province;Please select a province on the map
+macro_warn_insuff;§RCan't build $x$ $name$ (only $y$)§W
+macro_warn_invalid_province;§RProvince not part of a region§W
+macro_apply_template;Apply
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest
@@ -1381,6 +1409,7 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+alice_shortcut_tooltip;Shortcut: §Y$x$§W
 alice_filter_all;Show §Yall§W relevant nations.
 alice_filter_allies;Filter by nations we have an §Yalliance§W with.
 alice_filter_allies_right;§YRight-click§W to filter by nations which want to ally us.
@@ -1400,10 +1429,21 @@ alice_debt_spending;Enable/disable debt spending
 alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
 alice_currently_bankrupt;We are bankrupt (until $x$)
 alice_no_loans_possible;We are currently unable to take loans
+alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:
+alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will apply the following effect:
+alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
+alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+colonial_points_from_technology;From technologies:
+colonial_points_from_naval_bases;From naval bases:
+colonial_points_from_ships;From ships:
+used_colonial_maintenance;Maintaining existing colonies:
+att_truce_with;Truce with $text$ until $y$
+att_call_allies_effect;Call allies of this nation into its current wars
 ;;;;;;;;;;;;;x
