@@ -242,7 +242,7 @@ public:
 		int32_t amount = state.ui_state.current_template.amounts[content.index()];
 		set_text(state, "(" + std::to_string(amount) + ") " + name);
 	}
-};e
+};
 class macro_builder_unit_button : public right_click_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
