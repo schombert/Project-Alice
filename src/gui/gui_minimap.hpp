@@ -272,6 +272,9 @@ public:
 		}
 	}
 };
+struct macro_builder_state {
+	bool is_land;
+};
 class macro_builder_unit_listbox : public listbox_element_base<macro_builder_unit_entry, dcon::unit_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -280,7 +283,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		bool is_land = retrieve<bool>(state, parent);
+		bool is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land) {
 				row_contents.push_back(dcon::unit_type_id(i));
@@ -335,10 +338,11 @@ public:
 		send(state, parent, notify_setting_update{});
 	}
 };
+struct notify_macro_toggle_is_land {};
 class macro_builder_switch_type_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		if(is_land) {
 			set_button_text(state, text::produce_simple_string(state, "macro_switch_type_naval"));
 		} else {
@@ -346,8 +350,7 @@ public:
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
-		send(state, parent, element_selection_wrapper<bool>{ !is_land });
+		send(state, parent, notify_macro_toggle_is_land{});
 	}
 };
 class macro_builder_name_input : public edit_box_element_base {
@@ -366,7 +369,7 @@ public:
 				text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
 
 		float reconnaissance_or_fire_range = 0.f;
@@ -526,7 +529,7 @@ public:
 		disabled = (state.map_state.selected_province == dcon::province_id{});
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
 
 		provinces.clear();
@@ -591,7 +594,7 @@ public:
 			return;
 		}
 
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
 
 		std::vector<bool> marked_p(state.world.province_size() + 1, false);
@@ -679,11 +682,11 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<bool>()) {
-			payload.emplace<bool>(is_land);
+		if(payload.holds_type<macro_builder_state>()) {
+			payload.emplace<macro_builder_state>(macro_builder_state{ is_land });
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			is_land = Cyto::any_cast<element_selection_wrapper<bool>>(payload).data;
+		} else if(payload.holds_type< notify_macro_toggle_is_land>()) {
+			is_land = !is_land;
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type< notify_template_select>()) {
@@ -698,7 +701,7 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		}
-		return window_element_base::impl_get(state, payload);
+		return message_result::consumed;// window_element_base::impl_get(state, payload);
 	}
 };
 class minimap_macro_builder_button : public button_element_base {
