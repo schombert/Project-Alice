@@ -1026,7 +1026,7 @@ While an election is ongoing, random events from the `on_election_tick` category
 
 Is the sum of the following two components:
 - For each state: (fraction of factory workers in each state (types marked with can work factory = yes) to the total-workforce x building level of factories in the state (capped at 1)) x total-factory-levels
-- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.01
+- For each country that the nation is invested in: define:INVESTMENT_SCORE_FACTOR x the amount invested x 0.05
 
 ### Military score
 

@@ -4251,6 +4251,85 @@ uint32_t ef_this_remove_casus_belli_from_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
+uint32_t ef_add_truce_tag(EFFECT_DISPLAY_PARAMS) {
+	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	if(!target)
+		return 0;
+	text::add_line(ws, layout, "att_truce_with", text::variable_type::text, target, text::variable_type::y, ws.current_date + int32_t(tval[2] * 30.5), indentation);
+	return 0;
+}
+uint32_t ef_add_truce_this_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(this_slot)), "this_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_truce_this_state(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_state(this_slot)), "this_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_truce_this_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(this_slot)), "this_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_truce_this_pop(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_pop(this_slot)), "this_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_truce_from_nation(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_nation(from_slot)), "from_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_truce_from_province(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		add_to_map(ws, m, convert_this(ws, trigger::to_prov(from_slot)), "from_nation", [](auto x) { return x; });
+		text::add_to_substitution_map(m, text::variable_type::y, ws.current_date + int32_t(tval[1] * 30.5));
+		text::localised_format_box(ws, layout, box, "att_truce_with", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_call_allies(EFFECT_DISPLAY_PARAMS) {
+	text::add_line(ws, layout, "att_call_allies_effect");
+	return 0;
+}
+
+
 uint32_t ef_war_tag(EFFECT_DISPLAY_PARAMS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
@@ -6776,6 +6855,14 @@ ef_university, // constexpr inline uint16_t university_state = 0x0198;
 ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
 ef_annex_to_null, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
 ef_annex_to_null, //constexpr inline uint16_t annex_to_null_province = 0x019B;
+ef_add_truce_tag, //constexpr inline uint16_t add_truce_tag = 0x019C
+ef_add_truce_this_nation, //constexpr inline uint16_t add_truce_this_nation = 0x019D;
+ef_add_truce_this_state, //constexpr inline uint16_t add_truce_this_state = 0x019E;
+ef_add_truce_this_province, //constexpr inline uint16_t add_truce_this_province = 0x019F;
+ef_add_truce_this_pop, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
+ef_add_truce_from_nation, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
+ef_add_truce_from_province, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
+ef_call_allies, //constexpr inline uint16_t call_allies = 0x01A3;
 
 //
 // SCOPES

@@ -286,6 +286,10 @@ float get_bank_funds(sys::state& state, dcon::nation_id n);
 float get_debt(sys::state& state, dcon::nation_id n);
 float tariff_efficiency(sys::state& state, dcon::nation_id n);
 float tax_efficiency(sys::state& state, dcon::nation_id n);
+float colonial_points_from_naval_bases(sys::state& state, dcon::nation_id n);
+float colonial_points_from_ships(sys::state& state, dcon::nation_id n);
+float colonial_points_from_technology(sys::state& state, dcon::nation_id n);
+float used_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
 

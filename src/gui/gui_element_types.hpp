@@ -1704,4 +1704,6 @@ public:
 	}
 };
 
+void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept;
+
 } // namespace ui
