@@ -1365,6 +1365,20 @@ aml_civ_s2;Uncolonized
 aml_civ_s3;100% Westernized
 aml_civ_s4;0% Westernized
 aml_civ_s5;Colony
+macro_builder;Macro-builder;;;Macro-constructor
+macro_total_desc;Total unit stats:
+macro_remove_template;Delete
+macro_switch_type_land;Switch to: Land
+macro_switch_type_naval;Switch to: Naval
+macro_save_template;Save template;;;Guardar plantilla
+macro_new_template;New template;;;Nueva plantila
+macro_warn_overseas;§RCan't build this unit overseas!§W
+macro_warn_culture;§RCan only build using primary culture POPs!§W
+macro_warn_unlocked;§RUsing units not unlocked yet!§W
+macro_select_province;Please select a province on the map
+macro_warn_insuff;§RCan't build $x$ $name$ (only $y$)§W
+macro_warn_invalid_province;§RProvince not part of a region§W
+macro_apply_template;Apply
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest
