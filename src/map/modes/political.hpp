@@ -1,4 +1,5 @@
 #pragma once
+#include "prng.hpp"
 
 #include "prng.hpp"
 
