@@ -357,7 +357,15 @@ void regenerate_from_pop_data(sys::state& state) {
 	//
 	// calculate values derived from demographics
 	//
-	concurrency::parallel_for(uint32_t(0), uint32_t(17), [&](uint32_t index) {
+	static ve::vectorizable_buffer<float, dcon::pop_id> iso_max_buffer(uint32_t(1));
+	static uint32_t iso_old_count = 1;
+	auto iso_new_count = state.world.pop_size();
+	if(iso_new_count > iso_old_count) {
+		iso_max_buffer = state.world.pop_make_vectorizable_float_buffer();
+		iso_old_count = iso_new_count;
+	}
+	state.world.execute_serial_over_pop([&](auto p) { iso_max_buffer.set(p, ve::fp_vector()); });
+	concurrency::parallel_for(uint32_t(0), uint32_t(20), [&](uint32_t index) {
 		switch(index) {
 		case 0: {
 			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
@@ -603,28 +611,55 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 		case 12: {
-			static ve::vectorizable_buffer<float, dcon::pop_id> max_buffer(uint32_t(1));
-			static uint32_t old_count = 1;
+			// clear nation
+			state.world.execute_serial_over_nation(
+					[&](auto ni) { state.world.nation_set_non_colonial_population(ni, ve::fp_vector()); });
+			// sum in nation
+			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
+				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
+					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+					state.world.nation_get_non_colonial_population(location) +=
+							state.world.state_instance_get_demographics(s, demographics::total);
+				}
+			});
+			break;
+		}
+		case 13: {
+			// clear nation
+			state.world.execute_serial_over_nation(
+					[&](auto ni) { state.world.nation_set_non_colonial_bureaucrats(ni, ve::fp_vector()); });
+			// sum in nation
+			state.world.for_each_state_instance(
+					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
+						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
+							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
+							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
+						}
+					});
+			break;
+		}
+		case 14:
+		{
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
+					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
+			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
+					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
 
-			auto new_count = state.world.pop_size();
-			if(new_count > old_count) {
-				max_buffer = state.world.pop_make_vectorizable_float_buffer();
-				old_count = new_count;
-			}
-			state.world.execute_serial_over_pop([&](auto p) { max_buffer.set(p, ve::fp_vector()); });
-			state.world.for_each_issue_option([&](dcon::issue_option_id c) {
-				ve::execute_parallel<dcon::pop_id>(state.world.pop_size(), [&, k = pop_demographics::to_key(state, c)](auto p) {
-					auto v = state.world.pop_get_demographics(p, k);
+			state.world.for_each_culture([&](dcon::culture_id c) {
+				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
+					auto v = state.world.province_get_demographics(p, key);
 					auto old_max = max_buffer.get(p);
-					auto mask = v > old_max;
-					state.world.pop_set_dominant_issue_option(p,
-						ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.pop_get_dominant_issue_option(p)));
+					auto mask = v > old_max &&  nations::nation_accepts_culture(state, state.world.province_get_nation_from_province_ownership(p), c);
+					state.world.province_set_dominant_accepted_culture(p,
+							ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state.world.province_get_dominant_accepted_culture(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
 			});
 			break;
 		}
-		case 13: {
+		case 15:
+		{
 			static ve::vectorizable_buffer<float, dcon::pop_id> max_buffer(uint32_t(1));
 			static uint32_t old_count = 1;
 
@@ -646,55 +681,20 @@ void regenerate_from_pop_data(sys::state& state) {
 			});
 			break;
 		}
-		case 14: {
-			// clear nation
-			state.world.execute_serial_over_nation(
-					[&](auto ni) { state.world.nation_set_non_colonial_population(ni, ve::fp_vector()); });
-			// sum in nation
-			state.world.for_each_state_instance([&](dcon::state_instance_id s) {
-				if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
-					auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-					state.world.nation_get_non_colonial_population(location) +=
-							state.world.state_instance_get_demographics(s, demographics::total);
-				}
-			});
-			break;
-		}
-		case 15: {
-			// clear nation
-			state.world.execute_serial_over_nation(
-					[&](auto ni) { state.world.nation_set_non_colonial_bureaucrats(ni, ve::fp_vector()); });
-			// sum in nation
-			state.world.for_each_state_instance(
-					[&, k = demographics::to_key(state, state.culture_definitions.bureaucrat)](dcon::state_instance_id s) {
-						if(!state.world.province_get_is_colonial(state.world.state_instance_get_capital(s))) {
-							auto location = state.world.state_instance_get_nation_from_state_ownership(s);
-							state.world.nation_get_non_colonial_bureaucrats(location) += state.world.state_instance_get_demographics(s, k);
-						}
+		default: //(16, 16 + 4)
+			if(index >= 16 && index <= 19) {
+				execute_staggered_blocks(index - 16, 4, state.world.pop_size(), [&](auto p) {
+					state.world.for_each_issue_option([&](dcon::issue_option_id c) {
+						auto k = pop_demographics::to_key(state, c);
+						auto v = state.world.pop_get_demographics(p, k);
+						auto old_max = iso_max_buffer.get(p);
+						auto mask = v > old_max;
+						state.world.pop_set_dominant_issue_option(p,
+							ve::select(mask, ve::tagged_vector<dcon::issue_option_id>(c), state.world.pop_get_dominant_issue_option(p)));
+						iso_max_buffer.set(p, ve::select(mask, v, old_max));
 					});
-			break;
-		}
-		case 16:
-		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
-			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
-					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
-			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
-					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
-
-			state.world.for_each_culture([&](dcon::culture_id c) {
-				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
-					auto v = state.world.province_get_demographics(p, key);
-					auto old_max = max_buffer.get(p);
-					auto mask = v > old_max &&  nations::nation_accepts_culture(state, state.world.province_get_nation_from_province_ownership(p), c);
-					state.world.province_set_dominant_accepted_culture(p,
-							ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state.world.province_get_dominant_accepted_culture(p)));
-					max_buffer.set(p, ve::select(mask, v, old_max));
 				});
-			});
-			break;
-		}
-		default:
+			}
 			break;
 		}
 	});
