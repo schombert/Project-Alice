@@ -1,0 +1,35 @@
+struct Input {
+	float texture_coord;
+	float o_dist;
+	float2 map_coord;
+};
+
+struct Output {
+	float4 frag_color:SV_Target0;
+};
+
+Texture2D provinces_texture:register(t0);
+SamplerState provinces_texture_sampler:register(s0);
+
+Texture2D province_fow:register(t1);
+SamplerState province_fow_sampler:register(s1);
+
+Texture2D line_texture:register(t2);
+SamplerState line_texture_sampler:register(s2);
+
+
+float gamma:SV_Target7;
+
+float4 gamma_correct(float4 colour) {
+	return float4(pow(colour.rgb, float3(1.f / gamma)), colour.a);
+}
+
+Output main(Input input) {
+	float4 out_color = line_texture.Sample(line_texture_sampler, float2(input.o_dist, input.texture_coord));
+	float2 prov_id = provinces_texture.Sample(provinces_texture_sampler, input.map_coord).xy;
+	out_color.rgb *= province_fow.Sample(province_fow_sampler, prov_id).rgb;
+
+	Output output;
+	output.frag_color= gamma_correct(out_color);
+	return output;
+}

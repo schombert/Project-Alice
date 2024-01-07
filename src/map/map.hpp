@@ -6,6 +6,7 @@
 #include "glew.h"
 
 #include "map_modes.hpp"
+#include "opengl_wrapper.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -18,45 +19,6 @@ struct scenario_building_context;
 
 namespace map {
 
-struct image {
-	uint8_t* data = nullptr;
-	int32_t size_x = 0;
-	int32_t size_y = 0;
-	int32_t channels = 0;
-
-	image() { }
-
-	image(uint8_t* data, int32_t size_x, int32_t size_y, int32_t channels) {
-		this->data = data;
-		this->size_x = size_x;
-		this->size_y = size_y;
-		this->channels = channels;
-	}
-	image(image const& other) = delete;
-
-	image(image&& other) noexcept {
-		data = other.data;
-		size_x = other.size_x;
-		size_y = other.size_y;
-		channels = other.channels;
-		other.data = nullptr;
-	}
-
-	image& operator=(image&& other) noexcept {
-		data = other.data;
-		size_x = other.size_x;
-		size_y = other.size_y;
-		channels = other.channels;
-		other.data = nullptr;
-		return *this;
-	}
-	image& operator=(image const& other) = delete;
-
-	~image() {
-		if(data)
-			free(data);
-	}
-};
 struct map_vertex {
 	map_vertex(float x, float y) : position_(x, y){};
 	glm::vec2 position_;
@@ -230,7 +192,7 @@ public:
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();
-	void load_province_data(parsers::scenario_building_context& context, image& image);
+	void load_province_data(parsers::scenario_building_context& context, ogl::image& image);
 	void load_provinces_mid_point(parsers::scenario_building_context& context);
 	void load_terrain_data(parsers::scenario_building_context& context);
 	void load_median_terrain_type(parsers::scenario_building_context& context);
@@ -254,5 +216,4 @@ glm::vec2 put_in_local(glm::vec2 new_point, glm::vec2 base_point, float size_x);
 void add_bezier_to_buffer(std::vector<map::curved_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments);
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance);
 
-image load_stb_image(simple_fs::file& file);
 } // namespace map

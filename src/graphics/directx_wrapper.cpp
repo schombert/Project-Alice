@@ -60,9 +60,9 @@ HRESULT compile_shader_from_file(sys::state& state, _In_ LPCWSTR file_name, _In_
 
 	// TODO: define required macros
 	const D3D_SHADER_MACRO defines[] =
-	{
+	{ {
 		NULL, NULL
-	};
+	} };
 
 	UINT flags = D3DCOMPILE_ENABLE_STRICTNESS;
 #if defined( DEBUG ) || defined( _DEBUG )
