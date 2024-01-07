@@ -438,8 +438,17 @@ constexpr inline uint16_t kill_leader = 0x0199;
 constexpr inline uint16_t annex_to_null_nation = 0x019A;
 constexpr inline uint16_t annex_to_null_province = 0x019B;
 
+constexpr inline uint16_t add_truce_tag = 0x019C;
+constexpr inline uint16_t add_truce_this_nation = 0x019D;
+constexpr inline uint16_t add_truce_this_state = 0x019E;
+constexpr inline uint16_t add_truce_this_province = 0x019F;
+constexpr inline uint16_t add_truce_this_pop = 0x01A0;
+constexpr inline uint16_t add_truce_from_nation = 0x01A1;
+constexpr inline uint16_t add_truce_from_province = 0x01A2;
+constexpr inline uint16_t call_allies = 0x01A3;
+
 // invalid
-constexpr inline uint16_t first_scope_code = 0x019C;
+constexpr inline uint16_t first_scope_code = 0x01A4;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -922,6 +931,14 @@ inline constexpr int8_t data_sizes[] = {
 		2, //constexpr inline uint16_t kill_leader = 0x0199;
 		0, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
 		0, //constexpr inline uint16_t annex_to_null_province = 0x019B;
+		2, //constexpr inline uint16_t add_truce_tag = 0x019C;
+		1, //constexpr inline uint16_t add_truce_this_nation = 0x019D;
+		1, //constexpr inline uint16_t add_truce_this_state = 0x019E;
+		1, //constexpr inline uint16_t add_truce_this_province = 0x019F;
+		1, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
+		1, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
+		1, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
+		0, //constexpr inline uint16_t call_allies = 0x01A3;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {

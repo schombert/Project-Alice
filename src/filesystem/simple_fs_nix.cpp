@@ -472,6 +472,13 @@ directory get_or_create_save_game_directory() {
 	return directory(nullptr, path);
 }
 
+directory get_or_create_templates_directory() {
+	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/templates/";
+	make_directories(path);
+
+	return directory(nullptr, path);
+}
+
 directory get_or_create_oos_directory() {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/oos/";
 	make_directories(path);

@@ -41,7 +41,7 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 		if(other.get_overlord_as_subject().get_ruler() != n && military::can_use_cb_against(state, other, target) && !military::has_truce_with(state, other, target))
 			value += estimate_strength(state, other);
 	}
-	return value;
+	return value * state.defines.alice_ai_offensive_strength_overestimate;
 }
 
 void update_ai_general_status(sys::state& state) {

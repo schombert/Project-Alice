@@ -3710,6 +3710,93 @@ uint32_t ef_this_remove_casus_belli_from_province(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
+
+uint32_t ef_add_truce_tag(EFFECT_PARAMTERS) {
+	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[2] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_nation(EFFECT_PARAMTERS) {
+	auto target = trigger::to_nation(this_slot);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_state(EFFECT_PARAMTERS) {
+	auto target = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_province(EFFECT_PARAMTERS) {
+	auto target = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_pop(EFFECT_PARAMTERS) {
+	auto target = nations::owner_of_pop(ws, trigger::to_pop(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_from_nation(EFFECT_PARAMTERS) {
+	auto target = trigger::to_nation(from_slot);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_from_province(EFFECT_PARAMTERS) {
+	auto target = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_call_allies(EFFECT_PARAMTERS) {
+	for(auto drel : ws.world.nation_get_diplomatic_relation(trigger::to_nation(primary_slot))) {
+		auto other_nation = drel.get_related_nations(0) != trigger::to_nation(primary_slot) ? drel.get_related_nations(0) : drel.get_related_nations(1);
+		if(drel.get_are_allied()) {
+			for(auto wfor : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+				if(wfor.get_war().get_primary_attacker() == trigger::to_nation(primary_slot)) {
+					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_defender()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, true)) {
+
+						diplomatic_message::message m;
+						std::memset(&m, 0, sizeof(m));
+						m.from = trigger::to_nation(primary_slot);
+						m.to = other_nation;
+						m.type = diplomatic_message::type_t::call_ally_request;
+						m.data.war = wfor.get_war();
+						diplomatic_message::post(ws, m);
+					}
+				}
+				if(wfor.get_war().get_primary_defender() == trigger::to_nation(primary_slot)) {
+					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_attacker()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, false)) {
+
+						diplomatic_message::message m;
+						std::memset(&m, 0, sizeof(m));
+						m.from = trigger::to_nation(primary_slot);
+						m.to = other_nation;
+						m.type = diplomatic_message::type_t::call_ally_request;
+						m.data.war = wfor.get_war();
+						diplomatic_message::post(ws, m);
+					}
+				}
+			}
+		}
+		
+	}
+
+	return 0;
+}
+
 uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
@@ -5240,6 +5327,14 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
 		ef_annex_to_null_nation, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
 		ef_annex_to_null_province, //constexpr inline uint16_t annex_to_null_province = 0x019B;
+		ef_add_truce_tag, //constexpr inline uint16_t add_truce_tag = 0x019C;
+		ef_add_truce_this_nation, //constexpr inline uint16_t add_truce_this_nation = 0x019D;
+		ef_add_truce_this_state, //constexpr inline uint16_t add_truce_this_state = 0x019E;
+		ef_add_truce_this_province, //constexpr inline uint16_t add_truce_this_province = 0x019F;
+		ef_add_truce_this_pop, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
+		ef_add_truce_from_nation, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
+		ef_add_truce_from_province, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
+		ef_call_allies, //constexpr inline uint16_t call_allies = 0x01A3;
 
 		//
 		// SCOPES

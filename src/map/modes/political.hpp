@@ -1,4 +1,7 @@
 #pragma once
+#include "prng.hpp"
+
+#include "prng.hpp"
 
 uint32_t derive_color_from_ol_color(sys::state& state, uint32_t ol_color, dcon::nation_id n) {
 	auto base = sys::rgb_to_hsv(ol_color);

@@ -174,6 +174,7 @@ struct diplo_action_data {
 struct naval_unit_construction_data {
 	dcon::province_id location;
 	dcon::unit_type_id type;
+	dcon::province_id template_province;
 };
 
 struct rally_point_data {
@@ -186,6 +187,7 @@ struct land_unit_construction_data {
 	dcon::province_id location;
 	dcon::culture_id pop_culture;
 	dcon::unit_type_id type;
+	dcon::province_id template_province;
 };
 
 struct factory_data {
@@ -540,11 +542,11 @@ bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id 
 void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
 bool can_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::state_instance_id location, dcon::factory_type_id type);
 
-void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
-bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
+void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type, dcon::province_id template_province = dcon::province_id{});
+bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type, dcon::province_id template_province = dcon::province_id{});
 
-void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
-bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type);
+void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province = dcon::province_id{});
+bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province = dcon::province_id{});
 
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);
 bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type);

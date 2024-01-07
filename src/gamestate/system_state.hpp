@@ -13,6 +13,7 @@
 #include "simple_fs.hpp"
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
+#include "directx_wrapper.hpp"
 #include "fonts.hpp"
 #include "sound.hpp"
 #include "map_state.hpp"
@@ -378,6 +379,7 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
+	bool show_province_id_tooltip = false;
 	std::vector<dcon::nation_id> instant_research_nations;
 };
 
@@ -594,6 +596,10 @@ struct alignas(64) state {
 
 	// graphics data
 	ogl::data open_gl;
+
+#ifdef DIRECTX_11
+	directx::data directx;
+#endif
 
 	// cheat data
 	cheat_data_s cheat_data;

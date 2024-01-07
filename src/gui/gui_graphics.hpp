@@ -440,8 +440,11 @@ struct state {
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
 
-	int32_t held_game_speed = 1; // used to keep track of speed while paused
+	element_base* macro_builder_window = nullptr;
 
+	int32_t held_game_speed = 1; // used to keep track of speed while paused
+	sys::macro_builder_template current_template; // used as the currently edited template
+	std::vector<sys::macro_builder_template> templates;
 	uint16_t tooltip_font = 0;
 	bool ctrl_held_down = false;
 
