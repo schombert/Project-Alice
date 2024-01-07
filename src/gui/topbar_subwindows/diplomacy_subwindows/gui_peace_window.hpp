@@ -265,8 +265,15 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto sent_to = retrieve<dcon::nation_id>(state, parent);
-		if(state.world.nation_get_is_player_controlled(sent_to)) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		auto war = military::find_war_between(state, target, state.local_player_nation);
+		auto const we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
+		if(we_lead) {
+			text::add_line(state, contents, "alice_warn_war_ends_for_us");
+		}
+
+		if(state.world.nation_get_is_player_controlled(target)) {
 			// no tooltip -- no expected acceptance from players
 			return;
 		}

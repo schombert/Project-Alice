@@ -50,6 +50,7 @@ struct command_info {
 		change_owner,
 		change_control,
 		change_control_and_owner,
+		province_id_tooltip,
 		next_song,
 	} mode = type::none;
 	std::string_view desc;
@@ -184,6 +185,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "chcow", command_info::type::change_control_and_owner, "Give province to country",
 				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "provid", command_info::type::province_id_tooltip, "show province id in mouse tooltip",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
@@ -312,8 +316,13 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 	// Parse command
 	parser_state pstate{};
 	pstate.cmd = possible_commands[0];
+	size_t first_space = 0;
+	for(size_t i = 0; i < s.size(); ++i) {
+		if(isspace(s.at(i))) break;
+		first_space = i;
+	}
 	for(auto const& cmd : possible_commands)
-		if(s.starts_with(cmd.name)) {
+		if(s.compare(0, first_space + 1, cmd.name) == 0) {
 			pstate.cmd = cmd;
 			break;
 		}
@@ -1191,7 +1200,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
 	case command_info::type::instant_research:
-		command::c_change_research_points(state, state.local_player_nation, float(640000000.f));
+		command::c_instant_research(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
@@ -1207,18 +1216,17 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::conquer_tag:
 	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
-		auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 		if(tag == "ALL" || tag == "all") {
-			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() != state.local_player_nation)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
-		} else if(nid) {
+		} else {
+			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
 			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
 			for(const auto po : state.world.in_province_ownership) {
 				if(po.get_nation() == n)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), po.get_nation());
+					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
 		}
 		break;
@@ -1254,6 +1262,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nid = smart_get_national_identity_from_tag(state, parent, tag);
 		}
 		command::c_change_controller(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
+		break;
+	}
+	case command_info::type::province_id_tooltip:
+	{
+		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
 		break;
 	}
 	case command_info::type::next_song:

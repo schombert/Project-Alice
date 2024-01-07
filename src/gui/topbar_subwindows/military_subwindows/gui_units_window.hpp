@@ -474,10 +474,10 @@ public:
 		state.ui_state.root->move_child_to_front(state.ui_state.build_unit_window);
 
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			Cyto::Any payload = dcon::army_id(1);
+			Cyto::Any payload = dcon::army_id{};
 			state.ui_state.build_unit_window->impl_set(state, payload);
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-			Cyto::Any payload = dcon::navy_id(1);
+			Cyto::Any payload = dcon::navy_id{};
 			state.ui_state.build_unit_window->impl_set(state, payload);
 		}
 		state.ui_state.build_unit_window->set_visible(state, true);

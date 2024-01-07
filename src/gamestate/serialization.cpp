@@ -198,6 +198,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_status_quo);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.liberate);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.crisis_colony);
@@ -377,6 +378,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_status_quo);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.liberate);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.crisis_colony);
@@ -550,6 +552,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.base_naval_unit);
 		sz += sizeof(state.military_definitions.standard_civil_war);
 		sz += sizeof(state.military_definitions.standard_great_war);
+		sz += sizeof(state.military_definitions.standard_status_quo);
 		sz += sizeof(state.military_definitions.liberate);
 		sz += sizeof(state.military_definitions.uninstall_communist_gov);
 		sz += sizeof(state.military_definitions.crisis_colony);

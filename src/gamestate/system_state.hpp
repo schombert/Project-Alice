@@ -13,6 +13,7 @@
 #include "simple_fs.hpp"
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
+#include "directx_wrapper.hpp"
 #include "fonts.hpp"
 #include "sound.hpp"
 #include "map_state.hpp"
@@ -367,6 +368,8 @@ struct user_settings_s {
 	float gamma = 1.f;
 	bool railroads_enabled = true;
 	bool rivers_enabled = true;
+	map_zoom_mode zoom_mode = map_zoom_mode::panning;
+	map_vassal_color_mode vassal_color = map_vassal_color_mode::inherit;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -376,6 +379,8 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
+	bool show_province_id_tooltip = false;
+	std::vector<dcon::nation_id> instant_research_nations;
 };
 
 struct crisis_member_def {
@@ -591,6 +596,10 @@ struct alignas(64) state {
 
 	// graphics data
 	ogl::data open_gl;
+
+#ifdef DIRECTX_11
+	directx::data directx;
+#endif
 
 	// cheat data
 	cheat_data_s cheat_data;

@@ -1733,15 +1733,7 @@ void execute_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::w
 			}
 		}
 		if(!status_quo_added) {
-			dcon::cb_type_id status_quo;
-			for(auto c : state.world.in_cb_type) {
-				if((c.get_type_bits() & military::cb_flag::po_status_quo) != 0) {
-					status_quo = c;
-					break;
-				}
-			}
-			assert(status_quo);
-			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), status_quo, dcon::state_definition_id{},
+			military::add_wargoal(state, w, source, state.world.war_get_primary_attacker(w), state.military_definitions.standard_status_quo, dcon::state_definition_id{},
 					dcon::national_identity_id{}, dcon::nation_id{});
 		}
 	}
@@ -3156,8 +3148,16 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		return;
 
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
-	if(battle && !province::has_naval_access_to_province(state, source, dest)) {
-		return;
+	if(dest.index() < state.province_definitions.first_sea_province.index()) {
+		/* Case for land destinations */
+		if(battle && !province::has_naval_access_to_province(state, source, dest)) {
+			return;
+		}
+	} else {
+		/* Case for naval destinations, we check the land province adjacent henceforth */
+		if(battle && !military::can_embark_onto_sea_tile(state, source, dest, a)) {
+			return;
+		}
 	}
 
 	auto existing_path = state.world.army_get_path(a);
@@ -4773,6 +4773,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_force_ally:
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
+	case command_type::c_instant_research:
 		return true;
 	}
 	return false;
@@ -5176,6 +5177,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_complete_constructions:
 		execute_c_complete_constructions(state, c.source);
+		break;
+	case command_type::c_instant_research:
+		execute_c_instant_research(state, c.source);
 		break;
 	}
 }
