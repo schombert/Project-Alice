@@ -918,6 +918,8 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 }
 
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
+	if(!n)
+		return false;
 	for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 		dcon::decision_id did{dcon::decision_id::value_base_t(i)};
 		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
@@ -930,7 +932,6 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
-
 	return false;
 }
 
