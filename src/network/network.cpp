@@ -127,7 +127,7 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 #endif
 
 	struct timeval timeout;
-	timeout.tv_sec = 60;
+	timeout.tv_sec = 60 * 10;
 	timeout.tv_usec = 0;
 	int opt = 1;
 #ifdef _WIN64
@@ -188,7 +188,7 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 #endif
 
 	struct timeval timeout;
-	timeout.tv_sec = 60;
+	timeout.tv_sec = 60 * 10;
 	timeout.tv_usec = 0;
 	int opt = 1;
 #ifdef _WIN64
