@@ -183,4 +183,73 @@ void load_special_icons(sys::state& state) {
 		}
 	}
 }
+
+image load_stb_image(simple_fs::file& file) {
+	int32_t file_channels = 4;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+	auto content = simple_fs::view_contents(file);
+	auto data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &size_x, &size_y, &file_channels, 4);
+	return image(data, size_x, size_y, 4);
 }
+
+ID3D11Texture2D* make_texture(sys::state& state, BYTE* data, uint32_t size_x, uint32_t size_y, uint32_t channels) {
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = size_x;
+	desc.Height = size_y;
+	desc.MipLevels = desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA texture_data;
+	texture_data.pSysMem = data;
+
+
+	ID3D11Texture2D* texture = NULL;
+	HRESULT result = state.directx.device->CreateTexture2D(&desc, &texture_data, &texture);
+
+	if(FAILED(result)) {
+		// TODO
+	}
+
+	return texture;
+}
+
+ID3D11Texture2D* make_texture(sys::state& state, simple_fs::directory const& dir, native_string_view file_name) {
+	auto file = open_file(dir, file_name);
+	auto image = load_stb_image(*file);
+	return make_texture(state, image.data, image.size_x, image.size_y, image.channels);
+}
+
+
+ID3D11Texture2D* load_texture_array_from_file(sys::state& state, simple_fs::file& file, int32_t tiles_x, int32_t tiles_y) {
+	auto image = load_stb_image(file);
+	size_t p_dx = image.size_x / tiles_x; // Pixels of each tile in x
+	size_t p_dy = image.size_y / tiles_y; // Pixels of each tile in y
+
+	
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = tiles_x;
+	desc.Height = tiles_y;
+	desc.MipLevels =  1;
+	desc.ArraySize = tiles_x * tiles_y; // total number of textures
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA texture_data;
+	texture_data.pSysMem = image.data; 
+
+	ID3D11Texture2D* texture = NULL;
+	state.directx.device->CreateTexture2D(&desc, &texture_data, &texture);
+
+	return texture;
+}
+} // namespace directx
