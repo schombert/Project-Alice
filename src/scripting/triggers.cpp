@@ -1642,7 +1642,7 @@ TRIGGER_FUNCTION(tf_have_core_in_nation_tag) {
 	auto h = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	return compare_to_true(tval[0], ve::apply([&](dcon::national_identity_id n) {
 			for(auto p : ws.world.nation_get_province_ownership(h)) {
-				if(ws.world.get_core_by_prov_tag_key(p.get_province(), n))
+				if(ws.world.province_get_is_core(p.get_province(), n))
 					return true;
 			}
 			return false;
@@ -1651,7 +1651,7 @@ TRIGGER_FUNCTION(tf_have_core_in_nation_tag) {
 TRIGGER_FUNCTION(tf_have_core_in_nation_this) {
 	return compare_to_true(tval[0], ve::apply([&](dcon::national_identity_id n, dcon::nation_id h) {
 		for(auto p : ws.world.nation_get_province_ownership(h)) {
-			if(ws.world.get_core_by_prov_tag_key(p.get_province(), n))
+			if(ws.world.province_get_is_core(p.get_province(), n))
 				return true;
 		}
 		return false;
@@ -1660,7 +1660,7 @@ TRIGGER_FUNCTION(tf_have_core_in_nation_this) {
 TRIGGER_FUNCTION(tf_have_core_in_nation_from) {
 	return compare_to_true(tval[0], ve::apply([&](dcon::national_identity_id n, dcon::nation_id h) {
 		for(auto p : ws.world.nation_get_province_ownership(h)) {
-			if(ws.world.get_core_by_prov_tag_key(p.get_province(), n))
+			if(ws.world.province_get_is_core(p.get_province(), n))
 				return true;
 		}
 		return false;
@@ -1856,11 +1856,7 @@ TRIGGER_FUNCTION(tf_is_core_integer) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(primary_slot));
 	auto result = ve::apply(
 			[&ws, pid](dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			tag);
 	return compare_to_true(tval[0], result);
@@ -1869,11 +1865,7 @@ TRIGGER_FUNCTION(tf_is_core_this_nation) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(this_slot));
 	auto result = ve::apply(
 			[&ws](dcon::province_id pid, dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			to_prov(primary_slot), tag);
 	return compare_to_true(tval[0], result);
@@ -1883,11 +1875,7 @@ TRIGGER_FUNCTION(tf_is_core_this_state) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(owner);
 	auto result = ve::apply(
 			[&ws](dcon::province_id pid, dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			to_prov(primary_slot), tag);
 	return compare_to_true(tval[0], result);
@@ -1911,11 +1899,7 @@ TRIGGER_FUNCTION(tf_is_core_this_pop) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(owner);
 	auto result = ve::apply(
 			[&ws](dcon::province_id pid, dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			to_prov(primary_slot), tag);
 	return compare_to_true(tval[0], result);
@@ -1951,7 +1935,7 @@ TRIGGER_FUNCTION(tf_is_core_state_from_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id sid, dcon::national_identity_id t) {
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
-					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+					if(!(ws.world.province_get_is_core(p.get_province(), t)))
 						return false;
 				}
 				return true;
@@ -1964,7 +1948,7 @@ TRIGGER_FUNCTION(tf_is_core_state_this_nation) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id sid, dcon::national_identity_id t) {
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
-					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+					if(!(ws.world.province_get_is_core(p.get_province(), t)))
 						return false;
 				}
 				return true;
@@ -1977,7 +1961,7 @@ TRIGGER_FUNCTION(tf_is_core_state_this_province) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id sid, dcon::national_identity_id t) {
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
-					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+					if(!(ws.world.province_get_is_core(p.get_province(), t)))
 						return false;
 				}
 				return true;
@@ -1990,7 +1974,7 @@ TRIGGER_FUNCTION(tf_is_core_state_this_pop) {
 	auto result = ve::apply(
 			[&ws](dcon::state_instance_id sid, dcon::national_identity_id t) {
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
-					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+					if(!(ws.world.province_get_is_core(p.get_province(), t)))
 						return false;
 				}
 				return true;
@@ -2004,7 +1988,7 @@ TRIGGER_FUNCTION(tf_is_core_boolean) {
 TRIGGER_FUNCTION(tf_is_core_tag) {
 	auto result = ve::apply(
 			[&ws, t = trigger::payload(tval[1]).tag_id](dcon::province_id pid) {
-				return bool(ws.world.get_core_by_prov_tag_key(pid, t));
+				return bool(ws.world.province_get_is_core(pid, t));
 			},
 			to_prov(primary_slot));
 	return compare_to_true(tval[0], result);
@@ -2012,7 +1996,7 @@ TRIGGER_FUNCTION(tf_is_core_tag) {
 TRIGGER_FUNCTION(tf_is_core_pop_tag) {
 	auto result = ve::apply(
 			[&ws, t = trigger::payload(tval[1]).tag_id](dcon::province_id pid) {
-				return bool(ws.world.get_core_by_prov_tag_key(pid, t));
+				return bool(ws.world.province_get_is_core(pid, t));
 			},
 			ws.world.pop_get_province_from_pop_location(to_pop(primary_slot)));
 	return compare_to_true(tval[0], result);
@@ -2021,7 +2005,7 @@ TRIGGER_FUNCTION(tf_is_core_state_tag) {
 	auto result = ve::apply(
 			[&ws, t = trigger::payload(tval[1]).tag_id](dcon::state_instance_id sid) {
 				for(auto p : ws.world.state_definition_get_abstract_state_membership(ws.world.state_instance_get_definition(sid))) {
-					if(!(ws.world.get_core_by_prov_tag_key(p.get_province(), t)))
+					if(!(ws.world.province_get_is_core(p.get_province(), t)))
 						return false;
 				}
 				return true;

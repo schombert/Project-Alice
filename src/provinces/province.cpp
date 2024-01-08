@@ -873,8 +873,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	military::eject_ships(state, id);
 	military::update_blackflag_status(state, id);
 
-	state.world.province_set_is_owner_core(id,
-			bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
+	state.world.province_set_is_owner_core(id, bool(state.world.province_get_is_core(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
 
 	if(old_si) {
 		dcon::province_id a_province;
@@ -1528,6 +1527,7 @@ bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s) 
 void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
 	if(tag && prov) {
 		state.world.try_create_core(prov, tag);
+		state.world.province_set_is_core(prov, tag, true);
 		if(state.world.province_get_nation_from_province_ownership(prov) ==
 				state.world.national_identity_get_nation_from_identity_holder(tag)) {
 			state.world.province_set_is_owner_core(prov, true);
@@ -1538,7 +1538,9 @@ void add_core(sys::state& state, dcon::province_id prov, dcon::national_identity
 void remove_core(sys::state& state, dcon::province_id prov, dcon::national_identity_id tag) {
 	auto core_rel = state.world.get_core_by_prov_tag_key(prov, tag);
 	if(core_rel) {
+		assert(state.world.province_get_is_core(prov, tag)); //in sync
 		state.world.delete_core(core_rel);
+		state.world.province_set_is_core(prov, tag, false);
 		if(state.world.province_get_nation_from_province_ownership(prov) ==
 				state.world.national_identity_get_nation_from_identity_holder(tag)) {
 			state.world.province_set_is_owner_core(prov, false);

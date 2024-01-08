@@ -1351,6 +1351,11 @@ object {
 	}
 
 	property{
+		name{ is_core }
+		type{array{national_identity_id}{bitfield}}
+	}
+
+	property{
 		name{ is_colonial }
 		type{ bitfield }
 		tag{ save }

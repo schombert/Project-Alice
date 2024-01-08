@@ -1691,10 +1691,9 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 	if(fp_focus_nation.get_rank() > uint16_t(state.defines.colonial_rank)) {
 		auto d = si.get_definition();
 		for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == owner) {
-				if(state.world.get_core_by_prov_tag_key(p.get_province(), fp_ident))
-					return true;
-			}
+			if(p.get_province().get_nation_from_province_ownership() == owner
+				&& state.world.province_get_is_core(p.get_province(), fp_ident))
+				return true;
 		}
 	}
 
@@ -2610,6 +2609,7 @@ void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
 	if(!liberated)
 		return;
@@ -2648,8 +2648,8 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 		nations::create_nation_based_on_template(state, holder, from);
 	}
 	for(auto c : state.world.national_identity_get_core(liberated)) {
-		if(c.get_province().get_nation_from_province_ownership() == from &&
-				!(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
+		if(c.get_province().get_nation_from_province_ownership() == from
+		&& !(state.world.get_core_by_prov_tag_key(c.get_province(), source_tag))) {
 			province::change_province_owner(state, c.get_province(), holder);
 		}
 	}
@@ -2661,7 +2661,9 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag) {
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
 		if(auto core = state.world.get_core_by_prov_tag_key(prov.get_province(), tag); core) {
+			assert(state.world.province_get_is_core(prov.get_province(), tag));
 			state.world.delete_core(core);
+			state.world.province_set_is_core(prov.get_province(), tag, false);
 		}
 	}
 }

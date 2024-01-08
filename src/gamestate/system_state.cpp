@@ -3485,6 +3485,13 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	world.nation_resize_max_building_level(economy::max_building_types);
 
 	world.province_resize_modifier_values(provincial_mod_offsets::count);
+	world.province_resize_is_core(world.national_identity_size());
+	for(auto p : world.in_province) {
+		for(auto ni : world.in_national_identity) {
+			p.set_is_core(ni, false);
+		}
+	}
+	world.for_each_core([&](dcon::core_id id) { world.province_set_is_core(world.core_get_province(id), world.core_get_identity(id), true); });
 
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));

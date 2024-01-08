@@ -630,7 +630,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, n);
 						state.world.unilateral_relationship_get_military_access(uni_rel)) {
 		modifier = 2.0f;
-	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
+	} else if(state.world.nation_get_identity_from_identity_holder(n) && bool(state.world.province_get_is_core(p, state.world.nation_get_identity_from_identity_holder(n)))) {
 		modifier = 2.0f;
 	} else if(state.world.province_get_siege_progress(p) > 0.0f) {
 		modifier = 2.0f;
@@ -2924,8 +2924,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				if(prov.get_province().get_nation_from_province_ownership() == target) {
 					province::conquer_province(state, prov.get_province(), holder);
 					if((bits & cb_flag::po_remove_cores) != 0) {
-						auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
-						if(find_core) {
+						state.world.province_set_is_core(prov.get_province(), target_tag, false);
+						if(auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag); find_core) {
 							state.world.delete_core(find_core);
 						}
 					}
@@ -2945,8 +2945,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 					if(prov.get_province().get_nation_from_province_ownership() == target) {
 						province::conquer_province(state, prov.get_province(), holder);
 						if((bits & cb_flag::po_remove_cores) != 0) {
-							auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
-							if(find_core) {
+							state.world.province_set_is_core(prov.get_province(), target_tag, false);
+							if(auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag); find_core) {
 								state.world.delete_core(find_core);
 							}
 						}
@@ -2965,8 +2965,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				if(prov.get_province().get_nation_from_province_ownership() == target) {
 					province::conquer_province(state, prov.get_province(), from);
 					if((bits & cb_flag::po_remove_cores) != 0) {
-						auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
-						if(find_core) {
+						state.world.province_set_is_core(prov.get_province(), target_tag, false);
+						if(auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag); find_core) {
 							state.world.delete_core(find_core);
 						}
 					}
@@ -2986,8 +2986,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 					if(prov.get_province().get_nation_from_province_ownership() == target) {
 						province::conquer_province(state, prov.get_province(), from);
 						if((bits & cb_flag::po_remove_cores) != 0) {
-							auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag);
-							if(find_core) {
+							state.world.province_set_is_core(prov.get_province(), target_tag, false);
+							if(auto find_core = state.world.get_core_by_prov_tag_key(prov.get_province(), target_tag); find_core) {
 								state.world.delete_core(find_core);
 							}
 						}
@@ -3018,8 +3018,8 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			auto prov = (*target_owns.begin()).get_province();
 			province::conquer_province(state, prov, from);
 			if((bits & cb_flag::po_remove_cores) != 0) {
-				auto find_core = state.world.get_core_by_prov_tag_key(prov, target_tag);
-				if(find_core) {
+				state.world.province_set_is_core(prov, target_tag, false);
+				if(auto find_core = state.world.get_core_by_prov_tag_key(prov, target_tag); find_core) {
 					state.world.delete_core(find_core);
 				}
 			}
@@ -6395,8 +6395,9 @@ void update_siege_progress(sys::state& state) {
 					auto army_stats = army_controller ? army_controller : ar.get_army().get_army_rebel_control().get_controller().get_ruler_from_rebellion_within();
 
 					owner_involved = owner_involved || owner == army_controller;
-					core_owner_involved =
-							core_owner_involved || bool(state.world.get_core_by_prov_tag_key(prov,  state.world.nation_get_identity_from_identity_holder(army_controller)));
+					core_owner_involved = core_owner_involved
+						|| (state.world.nation_get_identity_from_identity_holder(army_controller)
+							&& bool(state.world.province_get_is_core(prov, state.world.nation_get_identity_from_identity_holder(army_controller))));
 
 					for(auto r : ar.get_army().get_army_membership()) {
 						auto reg_str = r.get_regiment().get_strength();
