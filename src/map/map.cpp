@@ -286,6 +286,29 @@ GLuint create_program(simple_fs::file& vshader_file, simple_fs::file& fshader_fi
 	return ogl::create_program(vshader_string, fshader_string);
 }
 
+#ifdef DIRECTX_11
+void display_data::load_shaders(simple_fs::directory& root) {
+	// Map shaders
+	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/map_v.hlsl"));
+	auto map_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/map_f.hlsl"));
+	auto screen_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/screen_v.hlsl"));
+	auto white_color_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/white_color_f.hlsl"));
+
+	// Line shaders
+	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/line_unit_arrow_v.hlsl"));
+	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/line_unit_arrow_f.hlsl"));
+
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/text_line_v.hlsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/text_line_f.hlsl"));
+
+	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/textured_line_v.hlsl"));
+	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/textured_line_f.hlsl"));
+
+	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/textured_line_b_v.hlsl"));
+	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/hlsl/textured_line_b_f.hlsl"));
+}
+
+#else
 void display_data::load_shaders(simple_fs::directory& root) {
 	// Map shaders
 	auto map_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_v.glsl"));
@@ -314,6 +337,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_text_line] = create_program(*text_line_vshader, *text_line_fshader);
 	shaders[shader_drag_box] = create_program(*screen_vshader, *white_color_fshader);
 }
+#endif
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
 	glEnable(GL_CULL_FACE);

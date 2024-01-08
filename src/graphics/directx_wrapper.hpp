@@ -1,8 +1,8 @@
 #pragma once
 
-#ifdef _WIN64
-#define DIRECTX_11
-
+//#ifdef _WIN64
+//#define DIRECTX_11
+//#endif
 #include <d3d11.h>
 #include <wincodec.h>
 
@@ -68,4 +68,4 @@ void load_special_icons(sys::state& state);
 image load_stb_image(simple_fs::file& file);
 ID3D11Texture2D* make_texture(sys::state& state, BYTE* data, uint32_t size_x, uint32_t size_y, uint32_t channels);
 }
-#endif
+
