@@ -1908,11 +1908,7 @@ TRIGGER_FUNCTION(tf_is_core_from_nation) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(to_nation(from_slot));
 	auto result = ve::apply(
 			[&ws](dcon::province_id pid, dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			to_prov(primary_slot), tag);
 	return compare_to_true(tval[0], result);
@@ -1921,11 +1917,7 @@ TRIGGER_FUNCTION(tf_is_core_reb) {
 	auto rtags = ws.world.rebel_faction_get_defection_target(to_rebel(from_slot));
 	auto result = ve::apply(
 			[&ws](dcon::province_id pid, dcon::national_identity_id t) {
-				for(auto c : ws.world.province_get_core(pid)) {
-					if(c.get_identity() == t)
-						return true;
-				}
-				return false;
+				return ws.world.province_get_is_core(pid, t);
 			},
 			to_prov(primary_slot), rtags);
 	return compare_to_true(tval[0], result);

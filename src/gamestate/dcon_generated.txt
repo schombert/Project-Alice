@@ -1351,11 +1351,6 @@ object {
 	}
 
 	property{
-		name{ is_core }
-		type{array{national_identity_id}{bitfield}}
-	}
-
-	property{
 		name{ is_colonial }
 		type{ bitfield }
 		tag{ save }
@@ -1501,6 +1496,11 @@ object {
 	property{
 		name{ former_rebel_controller }
 		type{ dcon::rebel_faction_id }
+	}
+
+	property{
+		name{ is_core }
+		type{array{national_identity_id}{bitfield}}
 	}
 }
 
