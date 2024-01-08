@@ -16,7 +16,7 @@ Da es sich um ein Open-Source-Projekt handelt, müssen Sie kein offizielles Mitg
 
 ### Das Projekt bauen
 
-Das verwendete Buildsystem ist CMake und sollte "einfach funktionieren". Mit wenigen ärgerlichen Ausnahmen.
+Das verwendete Buildsystem ist CMake und sollte mit wenigen ärgerlichen Ausnahmen "einfach funktionieren".
 
 #### Windows
 
