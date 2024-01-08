@@ -8,24 +8,24 @@ Ich suche jemanden, der im Grunde genommen alle vorhandenen Victoria 2 UI-Elemen
 
 #### Tester:
 
-Ich suche Leute, die ein C++-Projekt erstellen und ausführen können, aber nicht möchten (oder sich nicht wohl dabei fühlen), Code beizutragen. Tester sollen das Projekt erstellen und regelmäßig darauf zugreifen, um Fehler zu finden, insbesondere solche, die für Software-/Hardware-Kombinationen auftreten, auf denen ich nicht entwickle. Sprechen Sie mit unserem Projektkoordinator, wenn Sie daran interessiert sind, Tester zu werden.
+Ich suche Leute, die ein C++-Projekt bauen und ausführen können, aber nicht Programmcode beitragen möchten (oder sich dabei nicht wohl fühlen). Tester sollen das Projekt bauen und regelmäßig ausprobieren, um Fehler zu finden. Insbesondere solche, die bei Software-/Hardware-Kombinationen auftreten, auf denen ich nicht entwickle. Sprechen Sie mit unserem Projektkoordinator, wenn Sie daran interessiert sind, Tester zu werden.
 
 #### Freie Mitarbeiter
 
-Da es sich um ein Open-Source-Projekt handelt, müssen Sie kein offizielles Mitglied des Teams sein, um beizutragen. Jeder kann einen Pull Request über GitHub erstellen und auf diese Weise auf eine *ad-hoc*-Art und Weise beitragen.
+Da es sich um ein Open-Source-Projekt handelt, müssen Sie kein offizielles Mitglied des Teams sein, um beizutragen. Jeder kann einen Pull Request über GitHub erstellen und somit auf einer *ad-hoc*-Art und Weise beitragen.
 
-### Projekt erstellen
+### Das Projekt bauen
 
-Das Build verwendet CMake und sollte "einfach funktionieren", mit einigen ärgerlichen Ausnahmen.
+Das verwendete Buildsystem ist CMake und sollte mit wenigen ärgerlichen Ausnahmen "einfach funktionieren".
 
 #### Windows
 
 1. Sie benötigen eine vollständige Kopie von Git (https://git-scm.com/downloads), da die mit Visual Studio ausgelieferte Version für CMake aus irgendeinem Grund nicht ausreicht.
 2. Stellen Sie sicher, dass Sie eine relativ aktuelle Version des Windows SDK installiert haben (Sie können Ihre lokale Version des Windows SDK über den Visual Studio Installer aktualisieren).
-3. Öffnen Sie das Projekt in Visual Studio und lassen Sie es konfigurieren (CMake sollte im Ausgabefenster ausgeführt und Abhängigkeiten herunterladen; dies kann einige Zeit dauern).
+3. Öffnen Sie das Projekt in Visual Studio und lassen Sie es konfigurieren (CMake sollte im Ausgabefenster ausgeführt werden und Abhängigkeiten herunterladen; dies kann einige Zeit dauern).
 4. Schauen Sie sich den Abschnitt "Final Touches" am Ende dieser Seite an.
 
-Wenn Sie Probleme mit der Audiowiedergabe haben, möchten Sie möglicherweise Windows Media Player und das Windows Media Feature Pack installieren (https://support.microsoft.com/de-de/windows/get-windows-media-player-81718e0d-cfce-25b1-aee3-94596b658287), um MP3-Dateien ordnungsgemäß abspielen zu können (der Musik-Jukebox). 
+Wenn Sie Probleme mit der Audiowiedergabe haben, möchten Sie möglicherweise Windows Media Player und das Windows Media Feature Pack installieren (https://support.microsoft.com/de-de/windows/get-windows-media-player-81718e0d-cfce-25b1-aee3-94596b658287), um MP3-Dateien ordnungsgemäß abspielen zu können (die Musik-Jukebox). 
 
 #### Linux (Debian-basierte Distribution)
 
@@ -48,7 +48,7 @@ https://stackoverflow.com/questions/67712376/after-updating-gcc-clang-cant-find-
 
 #### Linux (Generisch)
 
-Dies gilt für nicht auf Debian basierende Distributionen, benötigte Dienstprogramme:
+Dies gilt für nicht auf Debian basierende Distributionen. Benötigte Programme:
 Grundlegende Kompilierungswerkzeuge (C-Compiler & C++-Compiler)
 CMake
 Git
@@ -70,15 +70,15 @@ Von hier aus ist das Kompilieren unkompliziert.
         #endif
 
     ```
-  Du solltest GAME_DIR auf den Ordner setzen, der deine Vic2-Dateien enthält. Wenn du das Spiel auf Steam heruntergeladen hast, kannst du mit einem Rechtsklick auf Vic2 zu den lokalen Dateien browsen, und das wird dir den richtigen Pfad geben. Auf Linux ist es wichtig zu beachten, dass du keine \ vor Leerzeichen setzen musst. Wenn dein Linux-Dateipfad also /home/user/Victoria\ 2/ ist, schreibst du /home/user/Victoria 2/ in GAME_DIR (natürlich in Anführungszeichen).
-    Kopieren Sie den Dateipfad und ersetzen Sie [hier Dateipfad einfügen] damit, dann speichern Sie. Zusätzlich sollte `OOS_DAILY_CHECK` definiert werden, wenn Sie tägliche OOS-Überprüfungen anstelle der üblichen "monatlichen" möchten.
+  Du solltest GAME_DIR auf den Ordner setzen, der deine Vic2-Dateien enthält. Wenn du das Spiel auf Steam heruntergeladen hast, kannst du mit einem Rechtsklick auf Vic2 > Lokale Dateien durchsuchen, und das wird dir den richtigen Pfad geben. Auf Linux ist es wichtig zu beachten, dass du keine \ vor Leerzeichen setzen musst. Wenn dein Linux-Dateipfad also /home/user/Victoria\ 2/ ist, schreibst du /home/user/Victoria 2/ bei GAME_DIR (natürlich in Anführungszeichen).
+    Kopieren Sie den Dateipfad und ersetzen Sie damit [insert file path here], dann speichern Sie. Zusätzlich sollte `OOS_DAILY_CHECK` definiert werden, wenn Sie tägliche OOS-Überprüfungen anstelle der üblichen "monatlichen" möchten.
 
 7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
 8. `cmake --build . -j$(nproc)`
 
 #### Letzte Handgriffe
 
-Da das Projekt in seinem aktuellen Zustand die vorhandenen Spieldateien verwenden muss (als Quelle für Grafiken, um anzufangen), muss jeder dem Compiler mitteilen, wo seine Kopie des Spiels installiert ist. Dies geschieht, indem eine Datei mit dem Namen `local_user_settings.hpp` im Verzeichnis `src` erstellt wird.
+Da das Projekt in seinem aktuellen Zustand die vorhandenen Spieldateien verwenden muss (als Quelle für Grafiken usw.), muss jeder dem Compiler mitteilen, wo seine Kopie des Spiels installiert ist. Dies geschieht, indem eine Datei mit dem Namen `local_user_settings.hpp` im Verzeichnis `src` erstellt wird.
 Diese Datei sollte die folgenden vier Zeilen enthalten (die letzte ist eine leere Zeile):
 ```cpp
 #ifndef GAME_DIR
@@ -91,6 +91,6 @@ Hier ist die Übersetzung ins Deutsche:
 Ersetzen Sie dabei diesen Pfad durch Ihren eigenen Installationsort.
 Beachten Sie, dass auf Windows für jeden Pfadtrenner `\\` anstelle von nur `\` geschrieben werden muss. (Linux hat dieses Problem nicht, und Sie können einfach `/` schreiben.)
 Zweite Anmerkung: Auf Windows hat BrickPi eine Änderung vorgenommen, sodass Sie, wenn Sie Victoria 2 installiert haben, möglicherweise das Erstellen von `local_user_settings.hpp` vollständig umgehen können. Sie möchten das vielleicht zuerst versuchen.
-Schließlich bauen Sie einfach das Alice-Startziel, und Sie sollten das Spiel auf Ihrem Bildschirm sehen.
+Schließlich bauen Sie einfach das Alice launch target, und Sie sollten das Spiel auf Ihrem Bildschirm sehen.
 
 Denken Sie daran, dass `OOS_DAILY_CHECK` dazu führt, dass OOS-Überprüfungen täglich durchgeführt werden.
