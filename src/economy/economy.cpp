@@ -1820,16 +1820,12 @@ void populate_needs_costs(sys::state& state, ve::vectorizable_buffer<float, dcon
 			state.world.for_each_pop_type([&](auto ids) {
 				auto ln = state.world.pop_type_get_life_needs(ids, c) * effective_prices.get(c) * base_demand * ln_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_life_needs_weights(n, c) + 1.0f);
 				state.world.nation_set_life_needs_costs(n, ids, ln + state.world.nation_get_life_needs_costs(n, ids));
-				assert(std::isfinite(state.world.nation_get_life_needs_costs(n, ids)));
-			});
-			state.world.for_each_pop_type([&](auto ids) {
 				auto en = state.world.pop_type_get_everyday_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * en_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_everyday_needs_weights(n, c) + 1.0f) * en_extra_factor;
 				state.world.nation_set_everyday_needs_costs(n, ids, en + state.world.nation_get_everyday_needs_costs(n, ids));
-				assert(std::isfinite(state.world.nation_get_everyday_needs_costs(n, ids)));
-			});
-			state.world.for_each_pop_type([&](auto ids) {
 				auto lx = state.world.pop_type_get_luxury_needs(ids, c) * effective_prices.get(c) * base_demand * invention_factor * lx_mul[state.world.pop_type_get_strata(ids)] * (state.world.nation_get_luxury_needs_weights(n, c) + 1.0f) * lx_extra_factor;
 				state.world.nation_set_luxury_needs_costs(n, ids, lx + state.world.nation_get_luxury_needs_costs(n, ids));
+				assert(std::isfinite(state.world.nation_get_life_needs_costs(n, ids)));
+				assert(std::isfinite(state.world.nation_get_everyday_needs_costs(n, ids)));
 				assert(std::isfinite(state.world.nation_get_luxury_needs_costs(n, ids)));
 			});
 		}
