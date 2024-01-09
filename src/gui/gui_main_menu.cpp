@@ -301,6 +301,7 @@ void vassal_color_left::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
 	if(index > 0) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index - 1);
+		map_mode::update_map_mode(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -311,6 +312,7 @@ void vassal_color_right::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
 	if(index < 2) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index + 1);
+		map_mode::update_map_mode(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
