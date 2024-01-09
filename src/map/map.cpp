@@ -633,7 +633,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	// Render navies
 	glActiveTexture(GL_TEXTURE14);
 	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[6]);
-	for(uint32_t i = state.province_definitions.first_sea_province.index(); i < state.world.province_size(); i++) {
+	for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
 		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
 		auto units = state.world.province_get_navy_location_as_location(p);
 		if(units.begin() != units.end()) {
