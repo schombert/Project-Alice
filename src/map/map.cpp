@@ -343,8 +343,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
 	auto tlineb_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_f.glsl"));
 
-	auto model3d_vshader = try_load_shader(root, NATIVE("assets/shaders/model3d_v.glsl"));
-	auto model3d_fshader = try_load_shader(root, NATIVE("assets/shaders/model3d_f.glsl"));
+	auto model3d_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/model3d_v.glsl"));
+	auto model3d_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/model3d_f.glsl"));
 
 	shaders[shader_terrain] = create_program(*map_vshader, *map_fshader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
