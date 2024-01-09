@@ -249,7 +249,7 @@ void antialiasing_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.antialias_level >= 16);
 }
 void antialiasing_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
+	set_text(state, std::to_string(int32_t(state.user_settings.antialias_level)));
 }
 
 void gaussianblur_left::button_action(sys::state& state) noexcept {
@@ -272,7 +272,7 @@ void gaussianblur_right::on_update(sys::state& state) noexcept {
 }
 void gaussianblur_display::on_update(sys::state& state) noexcept {
 	/* More user friendly displaying of gaussian blur */
-	set_text(state, "x" + text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
+	set_text(state, text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
 }
 
 void gamma_left::button_action(sys::state& state) noexcept {
@@ -294,7 +294,7 @@ void gamma_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.gamma >= 2.5f);
 }
 void gamma_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + text::format_float(state.user_settings.gamma));
+	set_text(state, text::format_float(state.user_settings.gamma));
 }
 
 void vassal_color_left::button_action(sys::state& state) noexcept {
