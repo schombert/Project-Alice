@@ -540,7 +540,6 @@ public:
 		}
 
 		std::vector<bool> marked_p(state.world.province_size() + 1, false);
-		std::vector<bool> marked_c(state.world.culture_size() + 1, false);
 		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
 			if(t.amounts[i] == 0) //not needed to show this
 				continue;
@@ -550,6 +549,7 @@ public:
 			uint8_t total_built = 0;
 			if(is_land) {
 				for(const auto p : provinces) {
+					std::vector<bool> marked_c(state.world.culture_size() + 1, false);
 					for(const auto c : state.world.in_culture) {
 						if(marked_p[p.index()] == false
 						&& marked_c[c.id.index()] == false
