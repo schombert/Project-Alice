@@ -22,7 +22,16 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		nation_color[n.value] = state.world.nation_get_color(n);
 		auto olr = state.world.nation_get_overlord_as_subject(n);
-		if(auto ol = state.world.overlord_get_ruler(olr); ol) {
+		auto ol = state.world.overlord_get_ruler(olr);
+		auto ol_temp = ol;
+
+		while(ol) {
+			olr = state.world.nation_get_overlord_as_subject(ol);
+			ol_temp = ol;
+			ol = state.world.overlord_get_ruler(olr);
+		} ol = ol_temp;
+
+		if(ol) {
 			auto ol_color = state.world.nation_get_color(ol);
 			switch(state.user_settings.vassal_color) {
 			case sys::map_vassal_color_mode::inherit:
