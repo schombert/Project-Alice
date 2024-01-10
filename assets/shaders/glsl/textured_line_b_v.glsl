@@ -55,7 +55,8 @@ vec4 flat_coords(vec2 world_pos) {
 	return vec4(
 		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0, 1.0);
+		abs(world_pos.x - 0.5) * 2.1f,
+		1.0);
 }
 
 layout(index = 2) subroutine(calc_gl_position_class)
@@ -97,14 +98,28 @@ void main() {
 	vec2 apt = calc_gl_position(prev_point).xy;
 	vec2 cpt = calc_gl_position(next_point).xy;
 
+	// we want to thicken the line in "perceived" coordinates, so
+	// transform to perceived coordinates + depth
+	bpt.x *= aspect_ratio;
+	apt.x *= aspect_ratio;
+	cpt.x *= aspect_ratio;
+
+	// calculate normals in perceived coordinates + depth
 	vec2 adir = normalize(bpt - apt);
 	vec2 bdir = normalize(cpt - bpt);
 
 	vec2 anorm = vec2(-adir.y, adir.x);
 	vec2 bnorm = vec2(-bdir.y, bdir.x);
-	vec2 corner_normal = (anorm + bnorm) / (1.0f + max(-0.5f, dot(anorm, bnorm))) * zoom * width;
+	vec2 corner_normal = normalize(anorm + bnorm);
 
-	gl_Position = central_pos + vec4(corner_normal.x, corner_normal.y, 0.0f, 0.0f);
+	vec2 corner_shift = corner_normal * zoom * width / (1.0f + max(-0.5f, dot(anorm, bnorm)));
+
+	// transform result back to screen + depth coordinates
+	corner_shift.x /= aspect_ratio;
+
+	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.0f, 0.0f);
+
+	// pass data to frag shader
 	tex_coord = texture_coord;
 	o_dist = distance / (2.0f * width);
 	map_coord = vertex_position;

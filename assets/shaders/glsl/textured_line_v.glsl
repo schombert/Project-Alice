@@ -54,7 +54,8 @@ vec4 flat_coords(vec2 world_pos) {
 	return vec4(
 		(2. * world_pos.x - 1.f) * zoom / aspect_ratio * map_size.x / map_size.y,
 		(2. * world_pos.y - 1.f) * zoom,
-		0.0, 1.0);
+		abs(world_pos.x - 0.5) * 2.1f,
+		1.0);
 }
 
 layout(index = 2) subroutine(calc_gl_position_class)
