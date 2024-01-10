@@ -131,6 +131,24 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				} if(p2.get_mid_point().y >= key_provs[4].y) {
 					key_provs[4] = p2.get_mid_point();
 				}
+			
+				for(auto adj : p2.get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
+					auto prov = adj.get_connected_provinces(indx);
+
+					// check if it's a sea province and expand the box
+					if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
+						if(prov.get_mid_point().x <= key_provs[1].x) {
+							key_provs[1] = prov.get_mid_point();
+						} if(prov.get_mid_point().y <= key_provs[2].y) {
+							key_provs[2] = prov.get_mid_point();
+						} if(prov.get_mid_point().x >= key_provs[3].x) {
+							key_provs[3] = prov.get_mid_point();
+						} if(prov.get_mid_point().y >= key_provs[4].y) {
+							key_provs[4] = prov.get_mid_point();
+						}
+					}
+				}
 			}
 		}
 		
@@ -138,19 +156,50 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
 		glm::vec2 ratio{ key_provs[3].x - key_provs[1].x, key_provs[4].y - key_provs[2].y };
 
+		//regularisation parameters
+		float lambda = 10.f;
+
+		float l_0 = 1.f;
+		float l_1 = 1.f;
+		float l_2 = 1 / 4.f;
+		float l_3 = 1 / 8.f;
+
 		// Populate common dataset points
-		std::vector<float> my;
+		std::vector<float> out_y;
+		std::vector<float> out_x;
 		std::vector<float> w;
-		std::vector<std::array<float, 4>> mx;
+		std::vector<std::array<float, 4>> in_x;
+		std::vector<std::array<float, 4>> in_y;
+
 
 		for(auto p2 : state.world.in_province) {
 			if(p2.get_connected_region_id() == rid) {
 				auto e = p2.get_mid_point();
 				e -= basis;
 				e /= ratio;
-				my.push_back(e.y);
-				w.push_back(float(map_data.province_area[province::to_map_id(p2)]));
-				mx.push_back(std::array<float, 4>{ 1.f, e.x, e.x* e.x, e.x* e.x* e.x });
+				out_y.push_back(e.y);
+				out_x.push_back(e.x);
+				w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
+				in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1 * e.x, l_1 * e.x * e.x, l_3 * e.x * e.x * e.x});
+				in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1 * e.y, l_1 * e.y * e.y, l_3 * e.y * e.y * e.y});
+
+				for(auto adj : p2.get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
+					auto prov = adj.get_connected_provinces(indx);
+
+					// check if it's a sea province and add it to the list with lower weight
+					if(prov.id.index() < state.province_definitions.first_sea_province.index())
+						continue;
+
+					auto e2 = prov.get_mid_point();
+					e2 -= basis;
+					e2 /= ratio;
+					out_y.push_back(e2.y);
+					out_x.push_back(e2.x);
+					w.push_back(0.01f * float(map_data.province_area[province::to_map_id(prov)]));
+					in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.x, l_1* e2.x* e2.x, l_3* e2.x* e2.x* e2.x});
+					in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.y, l_1* e2.y* e2.y, l_3* e2.y* e2.y* e2.y});
+				}
 			}
 		}
 
@@ -159,6 +208,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// Adjective + " " + Continent
 			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
 		}
+
+		
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
@@ -179,13 +230,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			glm::mat4x4 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
-					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
-			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
-			glm::vec4 m1(0.f); // m1 = T(X)*Y
+					for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+						m0[i][j] += in_x[r][j] * w[r] * in_x[r][i] / in_x.size();
+			for(glm::length_t i = 0; i < m0.length(); i++)
+				m0[i][i] += lambda;
+			m0 = glm::inverse(m0); // m0 = (T(X)*X/n + I*lambda)^-1
+			glm::vec4 m1(0.f); // m1 = T(X)*Y / n
 			for(glm::length_t i = 0; i < m1.length(); i++)
-				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-					m1[i] += mx[r][i] * w[r] * my[r];
+				for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+					m1[i] += in_x[r][i] * w[r] * out_y[r] / in_x.size();
 			glm::vec4 mo(0.f); // mo = m1 * m0
 			for(glm::length_t i = 0; i < mo.length(); i++)
 				for(glm::length_t j = 0; j < mo.length(); j++)
@@ -193,11 +246,28 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// y = a + bx + cx^2 + dx^3
 			// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 			auto poly_fn = [&](float x) {
-				return mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x;
+				return mo[0] * l_0 + mo[1] * x * l_1 + mo[2] * x * x * l_2 + mo[3] * x * x * x * l_3;
 			};
 			auto dx_fn = [&](float x) {
-				return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
+				return mo[1] * l_1 + 2.f * mo[2] * x * l_2 + 3.f * mo[3] * x * x * l_3;
 			};
+			auto error_grad = [&](float x, float y) {
+				float error_linear = poly_fn(x) - y;				
+				return glm::vec4(error_linear * error_linear * error_linear * error_linear * error_linear * mo);
+			};
+
+			auto regularisation_grad = [&]() {
+				return glm::vec4(0, 0, mo[2] / 2.f, mo[3] / 3.f);
+			};
+
+			for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++) {
+				mo -= error_grad(out_x[r], out_y[r]) * (1.f / in_x.size());
+				mo -= regularisation_grad() * 0.01f;
+			}
+
+
+			float step = (1.f / float(name.length() * 4.f));
+			
 			float xstep = (1.f / float(name.length() * 4.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
@@ -207,11 +277,12 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 				// Steep change in curve => use cuadratic
 				float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-				if(dx >= 0.45f) {
+				if(dx / xstep >= 0.45f) {
 					use_quadratic = true;
 					break;
 				}
-			}
+			}			
+
 			if(!use_quadratic)
 				text_data.emplace_back(name, mo, basis, ratio);
 		}
@@ -222,13 +293,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			glm::mat3x3 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
-					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
+					for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+						m0[i][j] += in_x[r][j] * w[r] * in_x[r][i] / in_x.size();
+			for(glm::length_t i = 0; i < m0.length(); i++)
+				m0[i][i] += lambda;
 			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
 			glm::vec3 m1(0.f); // m1 = T(X)*Y
 			for(glm::length_t i = 0; i < m1.length(); i++)
-				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-					m1[i] += mx[r][i] * w[r] * my[r];
+				for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+					m1[i] += in_x[r][i] * w[r] * out_y[r] / in_x.size();
 			glm::vec3 mo(0.f); // mo = m1 * m0
 			for(glm::length_t i = 0; i < mo.length(); i++)
 				for(glm::length_t j = 0; j < mo.length(); j++)
@@ -236,10 +309,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// y = a + bx + cx^2
 			// y = mo[0] + mo[1] * x + mo[2] * x * x
 			auto poly_fn = [&](float x) {
-				return mo[0] + mo[1] * x + mo[2] * x * x;
+				return mo[0] * l_0 + mo[1] * x * l_1 + mo[2] * x * x * l_2;
 			};
 			auto dx_fn = [&](float x) {
-				return 1.f + 2.f * mo[2] * x;
+				return mo[1] * l_1 + 2.f * mo[2] * x * l_2;
 			};
 			float xstep = (1.f / float(name.length() * 4.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
@@ -250,7 +323,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 				// Steep change in curve => use cuadratic
 				float dx = glm::abs(dx_fn(x) - dx_fn(x - xstep));
-				if(dx >= 0.45f) {
+				if(dx / xstep >= 0.45f) {
 					use_linear = true;
 					break;
 				}
@@ -264,13 +337,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			glm::mat2x2 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
-					for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-						m0[i][j] += mx[r][j] * w[r] * mx[r][i];
+					for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+						m0[i][j] += in_x[r][j] * w[r] * in_x[r][i];
 			m0 = glm::inverse(m0); // m0 = (T(X)*X)^-1
 			glm::vec2 m1(0.f); // m1 = T(X)*Y
 			for(glm::length_t i = 0; i < m1.length(); i++)
-				for(glm::length_t r = 0; r < glm::length_t(mx.size()); r++)
-					m1[i] += mx[r][i] * w[r] * my[r];
+				for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++)
+					m1[i] += in_x[r][i] * w[r] * out_y[r];
 			glm::vec2 mo(0.f); // mo = m1 * m0
 			for(glm::length_t i = 0; i < mo.length(); i++)
 				for(glm::length_t j = 0; j < mo.length(); j++)
@@ -279,7 +352,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// y = a + bx
 			// y = mo[0] + mo[1] * x
 			auto poly_fn = [&](float x) {
-				return mo[0] + mo[1] * x;
+				return mo[0] * l_0 + mo[1] * x * l_1;
 			};
 			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
 				text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
