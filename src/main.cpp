@@ -66,7 +66,6 @@
 #include "window_win.cpp"
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
-#include "directx_wrapper.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"
