@@ -375,8 +375,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		// calc_gl_position()
 		if(map_view_mode == map_view::globe)
 			vertex_subroutines = 0; // globe_coords()
-		else
+		else if(map_view_mode == map_view::flat)
 			vertex_subroutines = 1; // flat_coords()
+		else
+			vertex_subroutines = 2; // perspective_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &vertex_subroutines);
 	};
 
@@ -391,12 +393,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		GLuint fragment_subroutines[2];
 		if(active_map_mode == map_mode::mode::terrain)
 			fragment_subroutines[0] = 0; // get_land_terrain()
-		else if(zoom > 5)
+		else if(zoom > map::zoom_close)
 			fragment_subroutines[0] = 1; // get_land_political_close()
 		else
 			fragment_subroutines[0] = 2; // get_land_political_far()
 		// get_water()
-		if(active_map_mode == map_mode::mode::terrain || zoom > 5)
+		if(active_map_mode == map_mode::mode::terrain || zoom > map::zoom_close)
 			fragment_subroutines[1] = 3; // get_water_terrain()
 		else
 			fragment_subroutines[1] = 4; // get_water_political()
@@ -419,7 +421,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	// Draw the railroads
-	if(zoom > 5 && !railroad_vertices.empty()) {
+	if(zoom > map::zoom_close && !railroad_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
 		load_shader(shaders[shader_railroad_line]);
@@ -449,9 +451,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		GLuint vertex_subroutines[1] = {};
 		if(map_view_mode == map_view::globe) {
 			vertex_subroutines[0] = 0; // globe_coords()
-		} else {
+		} else if(map_view_mode == map_view::flat)
 			vertex_subroutines[0] = 1; // flat_coords()
-		}
+		else
+			vertex_subroutines[0] = 2; // perspective_coords()
 		glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, vertex_subroutines);
 	}
 
@@ -461,8 +464,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	//glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	
 	// impassible borders
-	if(zoom > 5) {
-		if(zoom > 8) { // Render province borders
+	if(zoom > map::zoom_close) {
+		if(zoom > map::zoom_very_close) { // Render province borders
 			glUniform1f(4, 0.0001f); // width
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
@@ -505,7 +508,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 	} else {
-		if(zoom > 8) { // Render province borders
+		if(zoom > map::zoom_very_close) { // Render province borders
 			glUniform1f(4, 0.0001f); // width
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_prov_border]);
@@ -515,7 +518,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
-		if(zoom > 5) { // Render state borders
+		if(zoom > map::zoom_close) { // Render state borders
 			glUniform1f(4, 0.0002f); // width
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
@@ -563,7 +566,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
-	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < 5 && !text_line_vertices.empty()) {
+	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < map::zoom_close && !text_line_vertices.empty()) {
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.font_collection.map_font_is_black ? 1.f : 0.f);
 		auto const& f = state.font_collection.fonts[2];

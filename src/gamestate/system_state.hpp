@@ -39,6 +39,7 @@
 namespace sys {
 
 enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
+enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -47,7 +48,7 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = true;
+	projection_mode map_is_globe = projection_mode::globe_ortho;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
 	bool use_classic_fonts = false;
