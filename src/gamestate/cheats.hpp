@@ -27,5 +27,5 @@ void c_complete_constructions(sys::state& state, dcon::nation_id source);
 void c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id new_owner);
 void c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id new_controller);
 void c_instant_research(sys::state& state, dcon::nation_id source);
-void c_add_population(sys::state& state, dcon::nation_id source, int32_t population);
+void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount);
 } // namespace command

@@ -803,7 +803,7 @@ uint32_t get_total_pop_in_owned_provinces(sys::state& state, dcon::nation_id n) 
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto pop = dcon::fatten(state.world, p);
 		if(n == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {
-			total_population += pop.get_demographics_size();
+			total_population += uint32_t(pop.get_size());
 		}
 	});
 	return total_population;
