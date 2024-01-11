@@ -576,6 +576,7 @@ public:
 			for(const auto& build : build_queue) {
 				command::start_land_unit_construction(state, state.local_player_nation, build.p, build.c, build.u, template_province);
 			}
+			state.game_state_updated.store(true, std::memory_order::release);
 		} else {
 			provinces.clear();
 			for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
@@ -622,6 +623,7 @@ public:
 					});
 				}
 			}
+			state.game_state_updated.store(true, std::memory_order::release);
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
