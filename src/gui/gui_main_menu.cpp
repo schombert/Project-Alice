@@ -249,7 +249,7 @@ void antialiasing_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.antialias_level >= 16);
 }
 void antialiasing_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
+	set_text(state, std::to_string(int32_t(state.user_settings.antialias_level)));
 }
 
 void gaussianblur_left::button_action(sys::state& state) noexcept {
@@ -272,7 +272,7 @@ void gaussianblur_right::on_update(sys::state& state) noexcept {
 }
 void gaussianblur_display::on_update(sys::state& state) noexcept {
 	/* More user friendly displaying of gaussian blur */
-	set_text(state, "x" + text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
+	set_text(state, text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
 }
 
 void gamma_left::button_action(sys::state& state) noexcept {
@@ -294,13 +294,14 @@ void gamma_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.gamma >= 2.5f);
 }
 void gamma_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + text::format_float(state.user_settings.gamma));
+	set_text(state, text::format_float(state.user_settings.gamma));
 }
 
 void vassal_color_left::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
 	if(index > 0) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index - 1);
+		map_mode::update_map_mode(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -311,6 +312,7 @@ void vassal_color_right::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.vassal_color);
 	if(index < 2) {
 		state.user_settings.vassal_color = sys::map_vassal_color_mode(index + 1);
+		map_mode::update_map_mode(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
@@ -363,17 +365,35 @@ bool window_mode_checkbox::is_active(sys::state& state) noexcept {
 }
 
 void projection_mode_left::button_action(sys::state& state) noexcept {
-	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
+	state.user_settings.map_is_globe = static_cast<sys::projection_mode> (static_cast<uint8_t>(state.user_settings.map_is_globe) + 1);
+	if(state.user_settings.map_is_globe >= sys::projection_mode::num_of_modes) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(0);
+	}
 	send(state, parent, notify_setting_update{});
 }
 void projection_mode_left::on_update(sys::state& state) noexcept { }
 void projection_mode_right::button_action(sys::state& state) noexcept {
-	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
+	//validation
+	if(state.user_settings.map_is_globe >= sys::projection_mode::num_of_modes) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(0);
+	}
+
+	if(static_cast<uint8_t>(state.user_settings.map_is_globe) == 0) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(static_cast<uint8_t>(sys::projection_mode::num_of_modes) - 1);
+	} else {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode> (static_cast<uint8_t>(state.user_settings.map_is_globe) - 1);
+	}
 	send(state, parent, notify_setting_update{});
 }
 void projection_mode_right::on_update(sys::state& state) noexcept { }
 void projection_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
+	auto it = std::string_view("map_projection_globe");
+	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
+		it = std::string_view("map_projection_flat");
+	} else if (state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
+		it = std::string_view("map_projection_globe_perspective");
+	}
+
 	set_text(state, text::produce_simple_string(state, it));
 }
 

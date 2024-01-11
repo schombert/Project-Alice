@@ -18,24 +18,25 @@ void main() {
 	float border_size = 0.05;
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
 	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
-	vec4 color_in = texture(texture0, tex_coord);
-	if(type == 0.f) {
+	vec4 color_in = vec4(0, 0, 0, 0);
+
+	if(type < 0.1f) {
 		color_in = texture(texture0, tex_coord);
-	} else if(type == 1.f) {
+	} else if(type < 1.1f) {
 		color_in = texture(texture1, tex_coord);
-	} else if(type == 2.f) {
+	} else if(type < 2.1f) {
 		color_in = texture(texture2, tex_coord);
-	} else if(type == 3.f) {
+	} else if(type < 3.1f) {
 		color_in = texture(texture3, tex_coord);
 	}
-	
+
 	if(color_in.r > 0.505) {
 		frag_color = vec4(inner_color, 1.0f);
 	} else if(color_in.r > 0.50) {
-		frag_color = vec4(mix(inner_color, outer_color - inner_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
+		frag_color = vec4(mix(inner_color, outer_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
 	} else {
 		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
-		frag_color = vec4(outer_color - inner_color, t * t * t);
+		frag_color = vec4(outer_color, t * t * t);
 	}
 	frag_color = gamma_correct(frag_color);
 }

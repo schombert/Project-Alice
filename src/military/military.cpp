@@ -418,6 +418,9 @@ template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids) {
 	return state.world.province_get_is_blockaded(ids);
 }
+bool province_is_blockaded(sys::state const& state, dcon::province_id ids) {
+	return state.world.province_get_is_blockaded(ids);
+}
 
 bool compute_blockade_status(sys::state& state, dcon::province_id p) {
 	auto controller = state.world.province_get_nation_from_province_control(p);
