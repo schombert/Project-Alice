@@ -310,12 +310,22 @@ void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
 		state.cheat_data.instant_research_nations.begin(),
 		state.cheat_data.instant_research_nations.end(),
 		source
-);
+	);
 	if(pos != state.cheat_data.instant_research_nations.end()) {
 		state.cheat_data.instant_research_nations.erase(pos);
 	} else {
 		state.cheat_data.instant_research_nations.push_back(source);
 	}
+}
+
+void c_add_population(sys::state& state, dcon::nation_id source, int32_t population) {
+	uint32_t total_population = nations::get_total_pop_in_owned_provinces(state, source);
+	state.world.for_each_pop([&](dcon::pop_id p) {
+		auto pop = dcon::fatten(state.world, p);
+		if(source == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {
+			pop.set_size(pop.get_size() * (1 + population / total_population));
+		}
+	});
 }
 
 }
