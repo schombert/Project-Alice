@@ -18,6 +18,7 @@
 #include "parsers_declarations.hpp"
 #include "math_fns.hpp"
 #include "prng.hpp"
+#include "military.hpp"
 
 #include "xac.hpp"
 #include "xac.cpp"
@@ -618,28 +619,99 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform2f(12, 0.f, 0.f);
 		glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 	}
-	// Render armies
+	// Train stations
 	glActiveTexture(GL_TEXTURE14);
 	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		if(state.world.province_get_building_level(p, economy::province_building_type::railroad) > 0) {
+			auto p1 = state.world.province_get_mid_point(p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
+		}
+	}
+	// Naval base (empty)
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[6]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		auto units = state.world.province_get_navy_location_as_location(p);
+		if(state.world.province_get_building_level(p, economy::province_building_type::naval_base) > 0
+		&& units.begin() == units.end()) {
+			auto p1 = duplicates::get_navy_location(state, p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[6], static_mesh_counts[6]);
+		}
+	}
+	// Naval base (full)
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[7]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		auto units = state.world.province_get_navy_location_as_location(p);
+		if(state.world.province_get_building_level(p, economy::province_building_type::naval_base) > 0
+		&& units.begin() != units.end()) {
+			auto p1 = duplicates::get_navy_location(state, p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[7], static_mesh_counts[7]);
+		}
+	}
+	// Fort
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[8]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		if(state.world.province_get_building_level(p, economy::province_building_type::fort) > 0) {
+			auto p1 = state.world.province_get_mid_point(p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[8], static_mesh_counts[8]);
+		}
+	}
+	// Factory
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		auto factories = state.world.province_get_factory_location_as_province(p);
+		if(factories.begin() != factories.end()) {
+			auto p1 = state.world.province_get_mid_point(p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[9], static_mesh_counts[9]);
+		}
+	}
+	// Blockaded
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[10]);
+	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+		if(military::province_is_blockaded(state, p)) {
+			auto p1 = duplicates::get_navy_location(state, p);
+			glUniform2f(12, p1.x, p1.y);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[10], static_mesh_counts[10]);
+		}
+	}
+	// Render armies
+	glActiveTexture(GL_TEXTURE14);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[11]);
 	for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
 		auto units = state.world.province_get_army_location_as_location(p);
 		if(units.begin() != units.end()) {
 			auto p1 = state.world.province_get_mid_point(p);
 			glUniform2f(12, p1.x, p1.y);
-			glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[11], static_mesh_counts[11]);
 		}
 	}
 	// Render navies
 	glActiveTexture(GL_TEXTURE14);
-	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[6]);
+	glBindTexture(GL_TEXTURE_2D, static_mesh_textures[12]);
 	for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
 		dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
 		auto units = state.world.province_get_navy_location_as_location(p);
 		if(units.begin() != units.end()) {
 			auto p1 = duplicates::get_navy_location(state, p);
 			glUniform2f(12, p1.x, p1.y);
-			glDrawArrays(GL_TRIANGLES, static_mesh_starts[6], static_mesh_counts[6]);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[12], static_mesh_counts[12]);
 		}
 	}
 	glDisable(GL_DEPTH_TEST);
@@ -1384,9 +1456,14 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Panama_Canel"), //2
 		NATIVE("Kiel_Canal"), //3
 		NATIVE("Suez_Canal"), //4
-		NATIVE("generic_infantry"), //5
-		NATIVE("Generic_Frigate"), //6
-		NATIVE("Generic_Manowar"), //7
+		NATIVE("trainstation"), //5 -- railroad present
+		NATIVE("Navalbase_Late_Empty"), //6 -- naval base with no ships
+		NATIVE("Navalbase_Late_Full"), //7 -- naval base with a docked ship
+		NATIVE("Fort_Late"), //8 -- fort
+		NATIVE("factory"), //9 -- factory
+		NATIVE("Blockade"), //10 -- blockade
+		NATIVE("generic_infantry"), //11 -- infantry
+		NATIVE("Generic_Frigate"), //12 -- frigate
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
@@ -1403,24 +1480,6 @@ void load_static_meshes(sys::state& state) {
 			emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
 			emfx::finish(context);
 			for(auto const& node : context.nodes) {
-				if(node.visual_mesh == -1) {
-					for(auto const& mesh : node.meshes) {
-						for(auto const& sub : mesh.submeshes) {
-							const auto& mat = context.materials[sub.material_id];
-							// This is how most models fallback to find their textures...
-							auto& texid = state.map_state.map_data.static_mesh_textures[k];
-							auto const& layer = get_diffuse_layer(mat);
-							if(layer.texture.empty()) {
-								texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
-								if(!texid)
-									texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_diffuse.dds"));
-							} else {
-								texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + ".dds"));
-							}
-						}
-					}
-					continue;
-				}
 				for(auto const& mesh : node.meshes) {
 					uint32_t vertex_offset = 0;
 					for(auto const& sub : mesh.submeshes) {
