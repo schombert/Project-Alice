@@ -1283,7 +1283,8 @@ amsg_cb_fab_finished;The nation finished fabricating a CB;;;;;;;;;;;;x
 amsg_cb_fab_cancelled;CB fabrication by the nation is canceled;;;;;;;;;;;;x
 amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;;x
 a_alert_reb;One or more of our sphere members has active rebels:;;;;;;;;;;;;x
-event_auto;Automatically choose this option for the remainder of the session;;;;;;;;;;;;x
+event_auto;Automatically choose this option for the remainder of the session.;;;;;;;;;;;;x
+event_taken_auto;This option will automatically be taken on §Y$date$§W.
 alice_load_unload_1;A navy docked here has sufficient capacity;;;;;;;;;;;;x
 alice_load_unload_2;The army is being transported;;;;;;;;;;;;x
 alice_load_unload_3;The transporting fleet is docked;;;;;;;;;;;;x
