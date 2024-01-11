@@ -604,7 +604,7 @@ public:
 						auto const port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
 						if(port_level >= state.military_definitions.unit_base_definitions[utid].min_port_level
 						&& command::can_start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province)) {
-							command::start_naval_unit_construction(state.local_player_nation, prov, utid, template_province);
+							command::start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province);
 							rem_to_build[i]--;
 							if(rem_to_build[i] == 0)
 								break;
