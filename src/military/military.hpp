@@ -296,6 +296,7 @@ war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n);
 
 template<typename T>
 auto province_is_blockaded(sys::state const& state, T ids);
+bool province_is_blockaded(sys::state const& state, dcon::province_id ids);
 template<typename T>
 auto province_is_under_siege(sys::state const& state, T ids);
 bool province_is_under_siege(sys::state const& state, dcon::province_id ids);

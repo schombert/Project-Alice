@@ -33,10 +33,10 @@ void main() {
 	if(color_in.r > 0.505) {
 		frag_color = vec4(inner_color, 1.0f);
 	} else if(color_in.r > 0.50) {
-		frag_color = vec4(mix(inner_color, outer_color - inner_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
+		frag_color = vec4(mix(inner_color, outer_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
 	} else {
 		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
-		frag_color = vec4(outer_color - inner_color, t * t * t);
+		frag_color = vec4(outer_color, t * t * t);
 	}
 	frag_color = gamma_correct(frag_color);
 }
