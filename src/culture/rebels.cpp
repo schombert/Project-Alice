@@ -1247,19 +1247,25 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	text::substitution_map sub;
 
 	auto culture = state.world.rebel_faction_get_primary_culture(reb);
+	auto religion = state.world.rebel_faction_get_religion(reb);
 	auto defection_target = state.world.rebel_faction_get_defection_target(reb);
 	auto in_nation = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
 	auto rebel_adj = state.world.nation_get_adjective(in_nation);
 	auto adjective = defection_target.get_adjective();
 
 	text::add_to_substitution_map(sub, text::variable_type::country, rebel_adj);
-	
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, rebel_adj);
+
 	if(culture) {
 		text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 	} else {
 		text::add_to_substitution_map(sub, text::variable_type::culture, state.world.nation_get_primary_culture(in_nation).get_name());
 	}
-	
+
+	if(religion) {
+		text::add_to_substitution_map(sub, text::variable_type::religion, religion.get_name());
+	}
+
 	if(defection_target) {
 		text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
 		text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);
