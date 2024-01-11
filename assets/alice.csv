@@ -1282,6 +1282,9 @@ amsg_war_join_on;A nation joins a war against this nation;;;;;;;;;;;;x
 amsg_cb_fab_finished;The nation finished fabricating a CB;;;;;;;;;;;;x
 amsg_cb_fab_cancelled;CB fabrication by the nation is canceled;;;;;;;;;;;;x
 amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;;x
+amsg_army_built;The nation built an army;;;;;;;;;;;;x
+amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
+amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
 a_alert_reb;One or more of our sphere members has active rebels:;;;;;;;;;;;;x
 event_auto;Automatically choose this option for the remainder of the session.;;;;;;;;;;;;x
 event_taken_auto;This option will automatically be taken on §Y$date$§W.
