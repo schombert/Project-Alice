@@ -3565,7 +3565,7 @@ guiTypes = {
 		position = { 38 588 }
 		font = "vic_18_black"
 		borderSize = { 0 0 }
-		maxsize = { 136 18 }
+		maxsize = { 146 18 }
 		orientation = "UPPER_LEFT"
 		format = left
 	}
