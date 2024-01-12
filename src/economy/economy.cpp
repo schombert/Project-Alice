@@ -3375,6 +3375,11 @@ float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 		estimate_reparations_spending(state, n);
 }
 
+float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
+	// schombert: here
+	return 0.f;
+}
+
 float estimate_land_spending(sys::state& state, dcon::nation_id n) {
 	float total = 0.0f;
 	uint32_t total_commodities = state.world.commodity_size();

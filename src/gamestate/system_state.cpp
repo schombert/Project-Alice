@@ -1700,7 +1700,7 @@ void state::on_create() {
 		}
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "alice_menubar");
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{

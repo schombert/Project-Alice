@@ -1471,5 +1471,6 @@ colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
 att_truce_with;Truce with $text$ until $y$
+domestic_investment_label;Domestic investment
 att_call_allies_effect;Call allies of this nation into its current wars
 ;;;;;;;;;;;;;x
