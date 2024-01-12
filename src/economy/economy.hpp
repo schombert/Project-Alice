@@ -162,6 +162,7 @@ float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, cultur
 float estimate_loan_payments(sys::state& state, dcon::nation_id n);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);

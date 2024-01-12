@@ -3552,11 +3552,82 @@ guiTypes = {
 			format = left
 		}
 	}
-	
+
 	checkboxType = {
 		name = "alice_debt_checkbox"
-		position = { x= 165 y = 490 }
+		position = { 165 490 }
 		quadTextureSprite = "GFX_checkbox_default"
+	}
+
+	instantTextBoxType = {
+		name = "alice_domestic_investment_label"
+		text = "domestic_investment_label"
+		position = { 38 588 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 146 18 }
+		orientation = "UPPER_LEFT"
+		format = left
+	}
+	instantTextBoxType = {
+		name = "alice_domestic_investment_value"
+		text = "0.0"
+		position = { 418 588 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 60 18 }
+		orientation = "UPPER_LEFT"
+		format = right
+	}
+	scrollbarType = {
+		name = "alice_domestic_investment_slider"	
+		slider = "slider"
+		track = "track"
+		leftbutton = "up"
+		rightbutton = "down"
+		size = { 220 20 }
+		position = { 198 588 }
+		priority = 100			
+		minValue = 0
+		maxValue = 100
+		stepSize = 1
+		startValue = 0
+		horizontal = 1
+		useRangeLimit = yes
+		rangeLimitMin = 0
+		rangeLimitMax = 100
+		rangeLimitMinIcon = "min"
+		rangeLimitMaxIcon = "max"
+		guiButtonType = {
+			name = "slider"	
+			quadTextureSprite = "GFX_slider_circle"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "track"
+			quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "up"
+			quadTextureSprite = "GFX_slider_left"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "down"
+			quadTextureSprite = "GFX_slider_right"
+			position = { 0 220 }
+		}
+		iconType = {
+			name = "min"
+			spriteType = "GFX_scroll_limit"
+			position = { 0 0 }
+		}
+		iconType = {
+			name = "max"
+			spriteType = "GFX_scroll_limit2"
+			position = { 0 0 }
+		}
 	}
 
 	windowType = {
