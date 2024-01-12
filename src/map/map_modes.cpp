@@ -178,7 +178,7 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 		int32_t current_lvl = state.world.province_get_building_level(prov_id, economy::province_building_type::fort);
 		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
 		uint32_t color;
-		if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
+		if(province::can_build_fort(state, prov_id, state.local_player_nation)) {
 			color = ogl::color_gradient(
 				float(current_lvl) / float(max_lvl), sys::pack_color(14, 240, 44), // green
 				sys::pack_color(41, 5, 245) // blue
@@ -190,7 +190,7 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 		}
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = color;
-		if(province::has_railroads_being_built(state, prov_id)) {
+		if(province::has_fort_being_built(state, prov_id)) {
 			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
 		} else {
 			prov_color[i + texture_size] = color;
@@ -204,32 +204,41 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 	int32_t max_lvl = int32_t(state.defines.factories_per_state * 256.f);
-	state.world.for_each_province([&](dcon::province_id prov_id) {
-		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
-		int32_t current_lvl = 0;
-		for(const auto fl : state.world.province_get_factory_location(prov_id))
-			current_lvl += fl.get_factory().get_level();
-		int32_t max_local_lvl = int32_t(state.defines.factories_per_state * 256.f);
-		//
-		uint32_t color;
-		if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
-			color = ogl::color_gradient(
-				float(current_lvl) / float(max_lvl), sys::pack_color(14, 240, 44), // green
-				sys::pack_color(41, 5, 245) // blue
-			);
-		} else if(current_lvl == max_local_lvl) {
-			color = sys::pack_color(232, 228, 111); // yellow
-		} else {
-			color = sys::pack_color(222, 7, 46); // red
+
+	auto sel_prov = state.map_state.get_selected_province();
+	if(sel_prov) {
+		dcon::factory_id primary_id{};
+		const auto fl = state.world.province_get_factory_location_as_province(sel_prov);
+		if(fl.begin() != fl.end()) {
+			state.world.for_each_province([&](dcon::province_id prov_id) {
+				for(const auto fl : state.world.province_get_factory_location_as_province(prov_id)) {
+					if(state.world.factory_get_building_type(primary_id) == fl.get_factory().get_building_type()) {
+						auto const i = province::to_map_id(prov_id);
+						uint32_t color = fl.get_factory().get_building_type().get_output().get_color();
+						prov_color[i] = color;
+						prov_color[i + texture_size] = color;
+						break;
+					}
+				}
+			});
 		}
-		auto i = province::to_map_id(prov_id);
-		prov_color[i] = color;
-		if(province::has_railroads_being_built(state, prov_id)) {
-			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
-		} else {
-			prov_color[i + texture_size] = color;
-		}
-	});
+	} else {
+		state.world.for_each_province([&](dcon::province_id prov_id) {
+			dcon::factory_id primary_id{};
+			dcon::factory_id secondary_id{};
+			for(const auto fl : state.world.province_get_factory_location_as_province(prov_id)) {
+				if(!bool(primary_id)) {
+					primary_id = fl.get_factory();
+				} else {
+					secondary_id = fl.get_factory();
+					break;
+				}
+			}
+			auto const i = province::to_map_id(prov_id);
+			prov_color[i] = state.world.commodity_get_color(state.world.factory_type_get_output(state.world.factory_get_building_type(primary_id)));
+			prov_color[i + texture_size] = state.world.commodity_get_color(state.world.factory_type_get_output(state.world.factory_get_building_type(secondary_id)));
+		});
+	}
 	return prov_color;
 }
 
