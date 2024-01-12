@@ -802,6 +802,7 @@ public:
 
 		auto target = retrieve<dcon::nation_id>(state, parent);
 
+		bool has_allies = false;
 		for(auto dr : state.world.nation_get_diplomatic_relation(state.local_player_nation)) {
 			if(dr.get_are_allied()) {
 				auto other = dr.get_related_nations(0) == state.local_player_nation ? dr.get_related_nations(1) : dr.get_related_nations(0);
@@ -827,7 +828,11 @@ public:
 						}
 					}
 				}
+				has_allies = true;
 			}
+		}
+		if(!has_allies) {
+			text::add_line(state, contents, "att_call_no_allies");
 		}
 	}
 };
