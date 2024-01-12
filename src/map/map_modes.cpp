@@ -203,42 +203,48 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
-	int32_t max_lvl = int32_t(state.defines.factories_per_state * 256.f);
 
-	auto sel_prov = state.map_state.get_selected_province();
-	if(sel_prov) {
-		dcon::factory_id primary_id{};
-		const auto fl = state.world.province_get_factory_location_as_province(sel_prov);
-		if(fl.begin() != fl.end()) {
-			state.world.for_each_province([&](dcon::province_id prov_id) {
-				for(const auto fl : state.world.province_get_factory_location_as_province(prov_id)) {
-					if(state.world.factory_get_building_type(primary_id) == fl.get_factory().get_building_type()) {
-						auto const i = province::to_map_id(prov_id);
-						uint32_t color = fl.get_factory().get_building_type().get_output().get_color();
-						prov_color[i] = color;
-						prov_color[i + texture_size] = color;
-						break;
-					}
-				}
-			});
-		}
-	} else {
-		state.world.for_each_province([&](dcon::province_id prov_id) {
-			dcon::factory_id primary_id{};
-			dcon::factory_id secondary_id{};
-			for(const auto fl : state.world.province_get_factory_location_as_province(prov_id)) {
-				if(!bool(primary_id)) {
-					primary_id = fl.get_factory();
-				} else {
-					secondary_id = fl.get_factory();
-					break;
-				}
+	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
+	// get state with most factories
+	int32_t max_total = 0;
+	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+		auto sdef = state.world.state_instance_get_definition(sid);
+		int32_t total = 0;
+		if(sel_nation) {
+			total = economy::state_factory_count(state, sid, sel_nation);
+		} else {
+			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+				auto const factories = abm.get_province().get_factory_location();
+				total += int32_t(factories.end() - factories.begin());
 			}
-			auto const i = province::to_map_id(prov_id);
-			prov_color[i] = state.world.commodity_get_color(state.world.factory_type_get_output(state.world.factory_get_building_type(primary_id)));
-			prov_color[i + texture_size] = state.world.commodity_get_color(state.world.factory_type_get_output(state.world.factory_get_building_type(secondary_id)));
-		});
-	}
+		}
+		if(total > max_total)
+			max_total = total;
+	});
+	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+		auto sdef = state.world.state_instance_get_definition(sid);
+		int32_t total = 0;
+		if(sel_nation) {
+			total = economy::state_factory_count(state, sid, sel_nation);
+		} else {
+			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+				auto const factories = abm.get_province().get_factory_location();
+				total += int32_t(factories.end() - factories.begin());
+			}
+		}
+		for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+			if(sel_nation && abm.get_province().get_province_ownership().get_nation() != sel_nation)
+				continue;
+			float value = float(total) / float(max_total);
+			uint32_t color = ogl::color_gradient(value,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
+			);
+			auto i = province::to_map_id(abm.get_province());
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
+		}
+	});
 	return prov_color;
 }
 
