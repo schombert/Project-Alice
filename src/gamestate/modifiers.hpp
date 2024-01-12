@@ -189,8 +189,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(116, seperatism, false, modifier_display_type::percent, "separatism_tech")                                     \
 	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
 	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
-	MOD_LIST_ELEMENT(119, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate")
-#define MOD_NAT_LIST_COUNT 120
+	MOD_LIST_ELEMENT(119, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
+	MOD_LIST_ELEMENT(120, min_domestic_investment, false, modifier_display_type::percent, "modifier_min_domestic_investment") \
+	MOD_LIST_ELEMENT(121, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment")
+#define MOD_NAT_LIST_COUNT 122
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \

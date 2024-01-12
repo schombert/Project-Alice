@@ -3312,6 +3312,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ domestic_investment_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ land_spending }
 		type{ int8_t }
 		tag{ save }
