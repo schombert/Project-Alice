@@ -199,6 +199,40 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 	return prov_color;
 }
 
+std::vector<uint32_t> factory_map_from(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+	std::vector<uint32_t> prov_color(texture_size * 2);
+	int32_t max_lvl = int32_t(state.defines.factories_per_state * 256.f);
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		int32_t current_lvl = 0;
+		for(const auto fl : state.world.province_get_factory_location(prov_id))
+			current_lvl += fl.get_factory().get_level();
+		int32_t max_local_lvl = int32_t(state.defines.factories_per_state * 256.f);
+		//
+		uint32_t color;
+		if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
+			color = ogl::color_gradient(
+				float(current_lvl) / float(max_lvl), sys::pack_color(14, 240, 44), // green
+				sys::pack_color(41, 5, 245) // blue
+			);
+		} else if(current_lvl == max_local_lvl) {
+			color = sys::pack_color(232, 228, 111); // yellow
+		} else {
+			color = sys::pack_color(222, 7, 46); // red
+		}
+		auto i = province::to_map_id(prov_id);
+		prov_color[i] = color;
+		if(province::has_railroads_being_built(state, prov_id)) {
+			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
+		} else {
+			prov_color[i + texture_size] = color;
+		}
+	});
+	return prov_color;
+}
+
 std::vector<uint32_t> con_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size();
 	uint32_t texture_size = province_size + 256 - province_size % 256;
@@ -426,7 +460,7 @@ void set_map_mode(sys::state& state, mode mode) {
 		if(state.ui_state.map_dip_legend)
 			state.ui_state.map_dip_legend->set_visible(state, false);
 	}
-	if(mode == mode::infrastructure || mode == mode::fort) {
+	if(mode == mode::infrastructure || mode == mode::fort || mode == mode::factories) {
 		if(state.ui_state.map_rr_legend)
 			state.ui_state.map_rr_legend->set_visible(state, true);
 	} else {
@@ -553,7 +587,7 @@ void set_map_mode(sys::state& state, mode mode) {
 		prov_color = employment_map_from(state);
 		break;
 	case mode::factories:
-		prov_color = religion_map_from(state);
+		prov_color = factory_map_from(state);
 		break;
 	case mode::growth:
 		prov_color = growth_map_from(state);

@@ -28,12 +28,12 @@ class map_legend_gradient_image : public image_element_base {
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
 		case map_mode::mode::literacy:
-		case map_mode::mode::conciousness:
 		case map_mode::mode::growth:
 		case map_mode::mode::income:
 		case map_mode::mode::employment:
-		case map_mode::mode::militancy:
 			return 1;
+		case map_mode::mode::conciousness:
+		case map_mode::mode::militancy:
 		case map_mode::mode::population:
 		case map_mode::mode::crisis:
 		case map_mode::mode::revolt:
