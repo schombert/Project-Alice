@@ -248,6 +248,7 @@ struct budget_settings_data {
 	int8_t middle_tax;
 	int8_t rich_tax;
 	int8_t tariffs;
+	int8_t domestic_investment;
 };
 
 struct war_target_data {
