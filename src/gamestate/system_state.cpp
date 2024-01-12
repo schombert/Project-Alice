@@ -750,11 +750,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glUniform1f(11, user_settings.gamma);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glViewport(0, 0, x_size, y_size);
+			glViewport(0, 0, float(x_size) / user_settings.ui_scale, float(y_size) / user_settings.ui_scale);
 			glDepthRange(-1.0f, 1.0f);
 			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 			if(gfx_def.primary_texture_handle) {
-				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size) / user_settings.ui_scale, float(y_size) / user_settings.ui_scale,
 						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 						ui::rotation::upright, gfx_def.is_vertically_flipped());
 			}
