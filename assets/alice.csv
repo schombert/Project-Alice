@@ -12,9 +12,9 @@ map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 map_projection_globe_perspective;Vertical
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
-zoom_mode_pan;Panning;;;Panoramico;;;;;;;;;x
-zoom_mode_invert;Inverted;;;Invertido;;;;;;;;;x
-zoom_mode_center;Centered;;;Centrado;;;;;;;;;x
+zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
+zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
+zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
 river_label;Rivers;;;Rios;;;;;;;;;x
 vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
