@@ -319,7 +319,7 @@ void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
 }
 
 void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
-	uint32_t total_population = nations::get_total_pop_in_owned_provinces(state, source);
+	float total_population = state.world.nation_get_demographics(source, demographics::total);
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto pop = dcon::fatten(state.world, p);
 		if(source == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {

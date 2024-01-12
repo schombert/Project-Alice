@@ -798,17 +798,6 @@ int32_t max_colonial_points(sys::state& state, dcon::nation_id n) {
 	}
 }
 
-uint32_t get_total_pop_in_owned_provinces(sys::state& state, dcon::nation_id n) {
-	uint32_t total_population = 0;
-	state.world.for_each_pop([&](dcon::pop_id p) {
-		auto pop = dcon::fatten(state.world, p);
-		if(n == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {
-			total_population += uint32_t(pop.get_size());
-		}
-	});
-	return total_population;
-}
-
 bool can_expand_colony(sys::state& state, dcon::nation_id n) {
 	for(auto cols : state.world.nation_get_colonization_as_colonizer(n)) {
 		auto state_colonization = state.world.state_definition_get_colonization(cols.get_state());
