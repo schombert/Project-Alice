@@ -9,6 +9,7 @@ window_mode_label;Fullscreen;;;Pantalla completa;;;;;;;;;x
 map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
 map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
+map_projection_globe_perspective;Ortho-perspective
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 zoom_mode_pan;Panning;;;Panoramico;;;;;;;;;x
