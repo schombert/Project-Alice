@@ -33,79 +33,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		switch(target) {
-		case map_mode::mode::state_select:
-			break; // doesn't appear as a button
-		case map_mode::mode::admin:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
-			break;
-		case map_mode::mode::civilization_level:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_19"));
-			break;
-		case map_mode::mode::colonial:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_7"));
-			break;
-		case map_mode::mode::crisis:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_21"));
-			break;
-		case map_mode::mode::diplomatic:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_4"));
-			break;
-		case map_mode::mode::infrastructure:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_6"));
-			break;
-		case map_mode::mode::migration:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_18"));
-			break;
-		case map_mode::mode::naval:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_22"));
-			break;
-		case map_mode::mode::nationality:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_13"));
-			break;
-		case map_mode::mode::national_focus:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_10"));
-			break;
-		case map_mode::mode::party_loyalty:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_16"));
-			break;
-		case map_mode::mode::political:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_2"));
-			break;
-		case map_mode::mode::population:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_12"));
-			break;
-		case map_mode::mode::rank:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_17"));
-			break;
-		case map_mode::mode::recruitment:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_9"));
-			break;
-		case map_mode::mode::region:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_5"));
-			break;
-		case map_mode::mode::relation:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_20"));
-			break;
-		case map_mode::mode::revolt:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_3"));
-			break;
-		case map_mode::mode::rgo_output:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_11"));
-			break;
-		case map_mode::mode::sphere:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_14"));
-			break;
-		case map_mode::mode::supply:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_15"));
-			break;
-		case map_mode::mode::terrain:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
-			break;
-		case map_mode::mode::religion:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_24"));
-			break;
-		}
+		auto s = "mapmode_" + std::to_string(uint32_t(target));
+		text::localised_format_box(state, contents, box, std::string_view(s));
 		text::close_layout_box(contents, box);
 	}
 };

@@ -47,15 +47,16 @@ std::vector<uint32_t> ideology_map_from(sys::state& state) {
 			if((full_color & 0xFF) + (full_color >> 8 & 0xFF) + (full_color >> 16 & 0xFF) > 140 * 3) {
 				empty_color = 0x222222;
 			}
+			auto const pkey = pop_demographics::to_key(state, fat_id.id);
 			state.world.for_each_province([&](dcon::province_id prov_id) {
 				auto i = province::to_map_id(prov_id);
-				auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
-				float diaspora_pop = 0.f;
+				float total = 0.f;
+				float value = 0.f;
 				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					auto const dkey = pop_demographics::to_key(state, fat_id.id);
-					diaspora_pop += state.world.pop_get_demographics(pl.get_pop(), dkey);
+					value += state.world.pop_get_demographics(pl.get_pop(), pkey);
+					total += 1.f;
 				}
-				auto ratio = diaspora_pop / total_pop;
+				auto ratio = value / total;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
 				prov_color[i] = color;
 				prov_color[i + texture_size] = color;
@@ -113,15 +114,16 @@ std::vector<uint32_t> issue_map_from(sys::state& state) {
 			if((full_color & 0xFF) + (full_color >> 8 & 0xFF) + (full_color >> 16 & 0xFF) > 140 * 3) {
 				empty_color = 0x222222;
 			}
+			auto const pkey = pop_demographics::to_key(state, fat_id.id);
 			state.world.for_each_province([&](dcon::province_id prov_id) {
 				auto i = province::to_map_id(prov_id);
-				auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
-				float diaspora_pop = 0.f;
+				float total = 0.f;
+				float value = 0.f;
 				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					auto const dkey = pop_demographics::to_key(state, fat_id.id);
-					diaspora_pop += state.world.pop_get_demographics(pl.get_pop(), dkey);
+					value += state.world.pop_get_demographics(pl.get_pop(), pkey);
+					total += 1.f;
 				}
-				auto ratio = diaspora_pop / total_pop;
+				auto ratio = value / total;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
 				prov_color[i] = color;
 				prov_color[i + texture_size] = color;
