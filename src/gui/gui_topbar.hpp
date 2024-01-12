@@ -338,6 +338,10 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		/*
+		// SCHOMBERT: A good portion of this is wrong because it is showing maximum values for some of these expense categories
+		// rather than my scaling them to what the actual spending settings are
+		
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		text::substitution_map sub{};
@@ -354,7 +358,7 @@ public:
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
-		total_expense += economy::estimate_loan_payments(state, nation_id);
+		total_expense += economy::interest_payment(state, nation_id);
 		total_expense += economy::estimate_subsidy_spending(state, nation_id);
 
 		text::add_to_substitution_map(sub, text::variable_type::yesterday,
@@ -398,7 +402,7 @@ public:
 						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military) }); // $VAL
 		text::add_line(state, contents, std::string_view("budget_interest"), text::variable_type::val,
 				text::fp_one_place{
-						-economy::estimate_loan_payments(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
+						-economy::interest_payment(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
 		text::add_line(state, contents, std::string_view("budget_imports"), text::variable_type::val,
 				text::fp_one_place{ -economy::nation_total_imports(state,
 						nation_id) }); // $VAL - presumably nation_total_imports is for national stockpile (?)
@@ -407,6 +411,8 @@ public:
 
 		text::add_line(state, contents, std::string_view("topbar_projected_income"), text::variable_type::val,
 				text::fp_two_places{ economy::estimate_daily_income(state, nation_id) });
+
+		*/
 	}
 
 };

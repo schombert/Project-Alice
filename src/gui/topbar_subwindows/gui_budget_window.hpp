@@ -86,7 +86,7 @@ public:
 class nation_loan_spending_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_loan_payments(state, state.local_player_nation)));
+		set_text(state, text::format_money(economy::interest_payment(state, state.local_player_nation)));
 	}
 };
 
@@ -403,17 +403,19 @@ public:
 		case budget_slider_target::domestic_investment:
 		{
 			auto min_domestic_investment = int32_t(
-				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_social_spending));
+				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_domestic_investment));
 			auto max_domestic_investment = int32_t(
-				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_social_spending));
+				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_domestic_investment));
+			if(max_domestic_investment <= 0)
+				max_domestic_investment = 100;
 			max_domestic_investment = std::max(min_domestic_investment, max_domestic_investment);
 
 			mutable_scrollbar_settings new_settings;
 			new_settings.lower_value = 0;
 			new_settings.upper_value = 100;
 			new_settings.using_limits = true;
-			new_settings.lower_limit = std::clamp(min_domestic_investment, -100, 100);
-			new_settings.upper_limit = std::clamp(max_domestic_investment, -100, 100);
+			new_settings.lower_limit = std::clamp(min_domestic_investment, 0, 100);
+			new_settings.upper_limit = std::clamp(max_domestic_investment, 0, 100);
 			change_settings(state, new_settings);
 		} break;
 		default:
@@ -701,7 +703,7 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation) * state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
@@ -733,11 +735,10 @@ public:
 				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation) * state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		// balance
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] -= economy::interest_payment(state, state.local_player_nation);
@@ -1184,15 +1185,13 @@ public:
 
 class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment> {
 	int32_t get_true_value(sys::state& state) noexcept override {
-		//schombert: here
-		//return int32_t(state.world.nation_get_domestic_investment(state.local_player_nation));
-		return 0;
+		return int32_t(state.world.nation_get_domestic_investment_spending(state.local_player_nation));
 	}
 };
 class domestic_investment_estimated_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_domestic_investment(state, state.local_player_nation)));
+		set_text(state, text::format_money(state.world.nation_get_domestic_investment_spending(state.local_player_nation) * economy::estimate_domestic_investment(state, state.local_player_nation) / 100.0f));
 	}
 };
 

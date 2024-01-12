@@ -1475,4 +1475,6 @@ att_call_no_allies;You don't have any allies!
 att_truce_with;Truce with $text$ until $y$
 domestic_investment_label;Domestic investment:
 att_call_allies_effect;Call allies of this nation into its current wars
+modifier_min_domestic_investment;Minimum domestic investment rate
+modifier_max_domestic_investment;Maximum domestic investment rate
 ;;;;;;;;;;;;;x
