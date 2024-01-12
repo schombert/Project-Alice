@@ -58,9 +58,7 @@ void ui_scale_right::on_update(sys::state& state) noexcept {
 	disabled = (scale_index >= uint32_t(sys::ui_scales_count - 1));
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
-	std::string temp(16, '\0');
-	std::snprintf(temp.data(), temp.size(), "%.2fx", state.user_settings.ui_scale);
-	set_text(state, temp);
+	set_text(state, text::format_float(state, state.user_settings.ui_scale));
 }
 
 void autosave_left::button_action(sys::state& state) noexcept {
