@@ -178,7 +178,7 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 		int32_t current_lvl = state.world.province_get_building_level(prov_id, economy::province_building_type::fort);
 		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
 		uint32_t color;
-		if(province::can_build_railroads(state, prov_id, state.local_player_nation)) {
+		if(province::can_build_fort(state, prov_id, state.local_player_nation)) {
 			color = ogl::color_gradient(
 				float(current_lvl) / float(max_lvl), sys::pack_color(14, 240, 44), // green
 				sys::pack_color(41, 5, 245) // blue
@@ -190,9 +190,58 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 		}
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = color;
-		if(province::has_railroads_being_built(state, prov_id)) {
+		if(province::has_fort_being_built(state, prov_id)) {
 			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
 		} else {
+			prov_color[i + texture_size] = color;
+		}
+	});
+	return prov_color;
+}
+
+std::vector<uint32_t> factory_map_from(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+	std::vector<uint32_t> prov_color(texture_size * 2);
+
+	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
+	// get state with most factories
+	int32_t max_total = 0;
+	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+		auto sdef = state.world.state_instance_get_definition(sid);
+		int32_t total = 0;
+		if(sel_nation) {
+			total = economy::state_factory_count(state, sid, sel_nation);
+		} else {
+			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+				auto const factories = abm.get_province().get_factory_location();
+				total += int32_t(factories.end() - factories.begin());
+			}
+		}
+		if(total > max_total)
+			max_total = total;
+	});
+	state.world.for_each_state_instance([&](dcon::state_instance_id sid) {
+		auto sdef = state.world.state_instance_get_definition(sid);
+		int32_t total = 0;
+		if(sel_nation) {
+			total = economy::state_factory_count(state, sid, sel_nation);
+		} else {
+			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+				auto const factories = abm.get_province().get_factory_location();
+				total += int32_t(factories.end() - factories.begin());
+			}
+		}
+		for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
+			if(sel_nation && abm.get_province().get_province_ownership().get_nation() != sel_nation)
+				continue;
+			float value = float(total) / float(max_total);
+			uint32_t color = ogl::color_gradient(value,
+				sys::pack_color(46, 247, 15), // red
+				sys::pack_color(247, 15, 15) // green
+			);
+			auto i = province::to_map_id(abm.get_province());
+			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		}
 	});
@@ -553,7 +602,7 @@ void set_map_mode(sys::state& state, mode mode) {
 		prov_color = employment_map_from(state);
 		break;
 	case mode::factories:
-		prov_color = religion_map_from(state);
+		prov_color = factory_map_from(state);
 		break;
 	case mode::growth:
 		prov_color = growth_map_from(state);
