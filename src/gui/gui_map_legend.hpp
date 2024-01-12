@@ -49,7 +49,7 @@ public:
 };
 class map_legend_gradient_max : public simple_text_element_base {
 	std::string get_gradient_max_from_mode(map_mode::mode v) {
-		return "lag_max_mapmode_" + std::to_string(uint32_t(v));
+		return "lg_max_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -57,8 +57,8 @@ public:
 	}
 };
 class map_legend_gradient_min : public simple_text_element_base {
-	std::string_view get_gradient_min_from_mode(map_mode::mode v) {
-		return "lag_min_mapmode_" + std::to_string(uint32_t(v));
+	std::string get_gradient_min_from_mode(map_mode::mode v) {
+		return "lg_min_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
