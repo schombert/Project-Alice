@@ -1007,8 +1007,6 @@ public:
 			auto ptr = make_element_by_type<open_msg_log_button>(state, id);
 			ptr->base_data.position.y += 1; //nudge
 			return ptr;
-		} else if(name == "chat_window") {
-			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_goto") {
@@ -1024,25 +1022,17 @@ public:
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_bg") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
-		} else if(name == "menubar_mail_bg") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_settings") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_combat") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_diplo") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_unit") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_province") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_event") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_other") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_plans_toggle") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_plans_open") {
+		} else if(name == "chat_window"
+			|| name == "menubar_mail_bg"
+			|| name == "menubar_msg_settings"
+			|| name == "menubar_msg_combat"
+			|| name == "menubar_msg_diplo"
+			|| name == "menubar_msg_unit"
+			|| name == "menubar_msg_province"
+			|| name == "menubar_msg_event"
+			|| name == "menubar_msg_other"
+			|| name == "menubar_plans_toggle"
+			|| name == "menubar_plans_open") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);
