@@ -148,11 +148,11 @@ struct start_research_data {
 };
 
 struct make_leader_data {
-	bool is_general;
+	bool is_general = false;
 };
 
 struct save_game_data {
-	bool and_quit;
+	bool and_quit = false;
 };
 
 struct province_building_data {
@@ -163,7 +163,7 @@ struct province_building_data {
 struct factory_building_data {
 	dcon::state_instance_id location;
 	dcon::factory_type_id type;
-	bool is_upgrade;
+	bool is_upgrade = false;
 };
 
 struct diplo_action_data {
@@ -192,8 +192,8 @@ struct land_unit_construction_data {
 struct factory_data {
 	dcon::province_id location;
 	dcon::factory_type_id type;
-	uint8_t priority;
-	bool subsidize;
+	uint8_t priority = 0;
+	bool subsidize = false;
 };
 
 struct tag_target_data {
@@ -207,7 +207,7 @@ struct influence_action_data {
 
 struct influence_priority_data {
 	dcon::nation_id influence_target;
-	uint8_t priority;
+	uint8_t priority = 0;
 };
 
 struct generic_location_data {
@@ -237,32 +237,32 @@ struct issue_selection_data {
 };
 
 struct budget_settings_data {
-	int8_t education_spending;
-	int8_t military_spending;
-	int8_t administrative_spending;
-	int8_t social_spending;
-	int8_t land_spending;
-	int8_t naval_spending;
-	int8_t construction_spending;
-	int8_t poor_tax;
-	int8_t middle_tax;
-	int8_t rich_tax;
-	int8_t tariffs;
+	int8_t education_spending = 0;
+	int8_t military_spending = 0;
+	int8_t administrative_spending = 0;
+	int8_t social_spending = 0;
+	int8_t land_spending = 0;
+	int8_t naval_spending = 0;
+	int8_t construction_spending = 0;
+	int8_t poor_tax = 0;
+	int8_t middle_tax = 0;
+	int8_t rich_tax = 0;
+	int8_t tariffs = 0;
 };
 
 struct war_target_data {
 	dcon::war_id war;
-	bool for_attacker;
+	bool for_attacker = false;
 };
 
 struct crisis_join_data {
-	bool join_attackers;
+	bool join_attackers = false;
 };
 
 struct stockpile_settings_data {
-	float amount;
+	float amount = 0.f;
 	dcon::commodity_id c;
-	bool draw_on_stockpiles;
+	bool draw_on_stockpiles = false;
 };
 
 struct decision_data {
@@ -272,7 +272,7 @@ struct decision_data {
 struct message_data {
 	dcon::nation_id from;
 	diplomatic_message::type type;
-	bool accept;
+	bool accept = false;
 };
 
 struct state_transfer_data {
@@ -288,11 +288,11 @@ struct call_to_arms_data {
 struct pending_human_n_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
-	int32_t primary_slot;
-	int32_t from_slot;
+	int32_t primary_slot = -1;
+	int32_t from_slot = -1;
 	dcon::national_event_id e;
 	sys::date date;
-	uint8_t opt_choice;
+	uint8_t opt_choice = 0;
 	event::slot_type pt;
 	event::slot_type ft;
 };
@@ -301,16 +301,16 @@ struct pending_human_f_n_event_data {
 	uint32_t r_hi = 0;
 	dcon::free_national_event_id e;
 	sys::date date;
-	uint8_t opt_choice;
+	uint8_t opt_choice = 0;
 };
 struct pending_human_p_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
-	int32_t from_slot;
+	int32_t from_slot = -1;
 	dcon::provincial_event_id e;
 	dcon::province_id p;
 	sys::date date;
-	uint8_t opt_choice;
+	uint8_t opt_choice = 0;
 	event::slot_type ft;
 };
 struct pending_human_f_p_event_data {
@@ -319,7 +319,7 @@ struct pending_human_f_p_event_data {
 	dcon::free_provincial_event_id e;
 	dcon::province_id p;
 	sys::date date;
-	uint8_t opt_choice;
+	uint8_t opt_choice = 0;
 };
 
 struct cb_fabrication_data {
@@ -333,7 +333,7 @@ struct new_war_data {
 	dcon::national_identity_id cb_tag;
 	dcon::nation_id cb_secondary_nation;
 	dcon::cb_type_id primary_cb;
-	bool call_attacker_allies;
+	bool call_attacker_allies = false;
 };
 
 struct new_war_goal_data {
@@ -357,7 +357,7 @@ struct crisis_invitation_data {
 struct new_offer_data {
 	dcon::nation_id target;
 	dcon::war_id war;
-	bool is_concession;
+	bool is_concession = false;
 };
 struct offer_wargoal_data {
 	dcon::wargoal_id wg;
@@ -366,13 +366,13 @@ struct offer_wargoal_data {
 struct army_movement_data {
 	dcon::army_id a;
 	dcon::province_id dest;
-	bool reset;
+	bool reset = false;
 };
 
 struct navy_movement_data {
 	dcon::navy_id n;
 	dcon::province_id dest;
-	bool reset;
+	bool reset = false;
 };
 
 struct merge_army_data {
@@ -413,13 +413,13 @@ struct split_ships_data {
 };
 
 struct cheat_data {
-	float value;
+	float value = 0.f;
 };
 struct cheat_data_int {
-	int32_t value;
+	int32_t value = 0;
 };
 struct cheat_event_data {
-	int32_t value;
+	int32_t value = 0;
 	dcon::nation_id as;
 };
 
@@ -434,7 +434,7 @@ struct nation_pick_data {
 
 struct advance_tick_data {
 	sys::checksum_key checksum;
-	int32_t speed;
+	int32_t speed = 0;
 };
 
 struct notify_save_loaded_data {
