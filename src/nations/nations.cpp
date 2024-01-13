@@ -74,11 +74,15 @@ dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 // returns whether a culture is on the accepted list OR is the primary culture
 template<typename T, typename U>
 auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
-	return ve::apply(
-		[&state](dcon::nation_id n, dcon::culture_id c) {
-			return state.world.nation_get_accepted_cultures(n, c)
-				|| (state.world.nation_get_primary_culture(n) == c);
-		}, ids, cul_ids);
+	auto is_accepted = ve::apply(
+			[&state](dcon::nation_id n, dcon::culture_id c) {
+				if(n)
+					return state.world.nation_get_accepted_cultures(n, c);
+				else
+					return false;
+			},
+			ids, cul_ids);
+	return (state.world.nation_get_primary_culture(ids) == cul_ids) || is_accepted;
 }
 
 template<typename T>
