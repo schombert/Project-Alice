@@ -45,6 +45,7 @@ add_executable(AliceIncremental WIN32 "src/main.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/parsing/parsers.cpp"
+	"src/alice.rc"
 	${ASSET_FILES})
 else()
 add_executable(Alice WIN32 "src/main.cpp"
@@ -61,6 +62,8 @@ add_executable(AliceIncremental WIN32 "src/main.cpp"
 	"src/parsing/parsers.cpp"
 	${ASSET_FILES})
 endif()
+
+target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
 
 if(NOT WIN32)
 	add_compile_definitions(PREFER_ONE_TBB)
@@ -206,38 +209,8 @@ target_precompile_headers(Alice
 	PRIVATE <signal.h>
 	PRIVATE <ctype.h>
 )
-target_precompile_headers(AliceIncremental
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-)
 # Standard C++ library headers
 target_precompile_headers(Alice
-	PRIVATE <vector>
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-)
-target_precompile_headers(AliceIncremental
 	PRIVATE <vector>
 	PRIVATE <array>
 	PRIVATE <optional>
@@ -266,14 +239,6 @@ target_precompile_headers(Alice
 	PRIVATE <cstdarg>
 	PRIVATE <cmath>
 )
-target_precompile_headers(AliceIncremental
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-)
 # Alice provided headers
 target_precompile_headers(Alice
 	PRIVATE [["simple_fs.hpp"]]
@@ -286,26 +251,20 @@ target_precompile_headers(Alice
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
 )
-target_precompile_headers(AliceIncremental
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
+
+if(TARGET AliceIncremental)
+	target_precompile_headers(Alice
 	PRIVATE [["system_state.hpp"]]
-)
+	)
+endif()
 
 if(WIN32)
 else()
 	target_precompile_headers(Alice
 		PRIVATE [["miniaudio.h"]])
-	target_precompile_headers(AliceIncremental
-		PRIVATE [["miniaudio.h"]])
 endif()
+
+target_precompile_headers(AliceIncremental REUSE_FROM Alice)
 
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)

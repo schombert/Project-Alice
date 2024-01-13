@@ -3,6 +3,9 @@
 #endif
 #include "common_types.cpp"
 #include "system_state.cpp"
+#ifndef INCREMENTAL
+#include "parsers.cpp"
+#endif
 #include "float_from_chars.cpp"
 #include "text.cpp"
 #include "fonts.cpp"
