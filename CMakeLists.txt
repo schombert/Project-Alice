@@ -45,6 +45,17 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/parsing/parsers.cpp"
+	"src/parsing/defines.cpp"
+	"src/parsing/gui_graphics_parsers.cpp"
+	"src/parsing/nations_parsing.cpp"
+	"src/parsing/cultures_parsing.cpp"
+	"src/parsing/econ_parsing.cpp"
+	"src/parsing/military_parsing.cpp"
+	"src/parsing/provinces_parsing.cpp"
+	"src/parsing/trigger_parsing.cpp"
+	"src/parsing/effect_parsing.cpp"
+	"src/parsing/parsers_declarations.cpp"
 	${ASSET_FILES})
 endif()
 
@@ -232,6 +243,7 @@ target_precompile_headers(Alice
 	PRIVATE [["cyto_any.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
+	PRIVATE [["system_state.hpp"]]
 )
 
 if(WIN32)

@@ -1,5 +1,11 @@
 #include "catch.hpp"
+#include "effect_parsing.hpp"
 #include "parsers_declarations.hpp"
+#include "trigger_parsing.hpp"
+
+namespace parsers {
+	extern template void recurse_over_effects(uint16_t*, std::function<void(uint16_t*)> const&);
+}
 
 TEST_CASE("trigger scope recursion", "[trigger_tests]") {
 	{

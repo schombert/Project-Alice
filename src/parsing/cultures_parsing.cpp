@@ -1,6 +1,8 @@
+#include "cultures_parsing.hpp"
 #include "parsers_declarations.hpp"
 #include "culture.hpp"
 #include "trigger_parsing.hpp"
+#include "system_state.hpp"
 
 namespace parsers {
 

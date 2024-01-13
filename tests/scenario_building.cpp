@@ -1344,11 +1344,11 @@ TEST_CASE("Scenario building", "[req-game-files]") {
 			effect::execute(*state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state->current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
-	demographics::regenerate_from_pop_data(*state);
+	demographics::regenerate_from_pop_data<true>(*state);
 	economy::initialize(*state);
 
 	culture::create_initial_ideology_and_issues_distribution(*state);
-	demographics::regenerate_from_pop_data(*state);
+	demographics::regenerate_from_pop_data<true>(*state);
 
 	// serialize and reload
 

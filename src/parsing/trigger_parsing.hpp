@@ -5127,7 +5127,7 @@ struct trigger_body {
 				is_fixed_token_ci(value.data(), value.data() + value.length(), "no")) {
 
 				context.compiled_trigger.push_back(uint16_t(trigger::in_default_bool | trigger::no_payload | association_to_bool_code(a, parse_bool(value, line, err))));
-				
+
 			} else if(is_this(value)) {
 				if(context.this_slot == trigger::slot_contents::nation)
 					context.compiled_trigger.push_back(uint16_t(trigger::in_default_this_nation | trigger::no_payload | association_to_bool_code(a)));
@@ -5736,7 +5736,7 @@ struct trigger_body {
 			} else  {
 				err.accumulated_errors += "named technology trigger used in an invalid context (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
-			} 
+			}
 		} else if(auto itb = context.outer_context.map_of_inventions.find(str_label);
 							itb != context.outer_context.map_of_inventions.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
@@ -5902,6 +5902,10 @@ void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_c
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_country(token_generator& gen, error_handler& err, trigger_building_context& context);
 
+void invert_trigger(uint16_t* source);
+bool scope_is_empty(uint16_t const* source);
+bool scope_has_single_member(uint16_t const* source);
+int32_t simplify_trigger(uint16_t* source);
 dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger_building_context& context);
 
 struct value_modifier_definition {

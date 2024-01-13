@@ -1167,6 +1167,7 @@ struct national_values_file {
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_very_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);

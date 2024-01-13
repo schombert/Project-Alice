@@ -1,6 +1,7 @@
 #include "trigger_parsing.hpp"
 #include "parsers_declarations.hpp"
 #include "script_constants.hpp"
+#include "system_state.hpp"
 #include <algorithm>
 
 namespace parsers {
@@ -781,7 +782,7 @@ dcon::trigger_key make_trigger(token_generator& gen, error_handler& err, trigger
 
 	auto const new_size = simplify_trigger(context.compiled_trigger.data());
 	context.compiled_trigger.resize(static_cast<size_t>(new_size));
-	
+
 	return context.outer_context.state.commit_trigger_data(context.compiled_trigger);
 }
 
