@@ -58,7 +58,7 @@ void ui_scale_right::on_update(sys::state& state) noexcept {
 	disabled = (scale_index >= uint32_t(sys::ui_scales_count - 1));
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
-	set_text(state, text::format_float(state, state.user_settings.ui_scale));
+	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
 }
 
 void autosave_left::button_action(sys::state& state) noexcept {
