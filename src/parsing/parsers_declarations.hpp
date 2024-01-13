@@ -398,6 +398,7 @@ struct scenario_building_context {
 	int32_t number_of_commodities_seen = 0;
 	int32_t number_of_national_values_seen = 0;
 	bool new_maps = false;
+	bool money_set = false;
 };
 
 struct national_identity_file {
@@ -592,6 +593,8 @@ public:
 	MOD_NAT_FUNCTION(max_military_spending)
 	MOD_NAT_FUNCTION(min_social_spending)
 	MOD_NAT_FUNCTION(max_social_spending)
+	MOD_NAT_FUNCTION(min_domestic_investment)
+	MOD_NAT_FUNCTION(max_domestic_investment)
 	MOD_NAT_FUNCTION(factory_owner_cost)
 	MOD_NAT_FUNCTION(min_tariff)
 	MOD_NAT_FUNCTION(max_tariff)

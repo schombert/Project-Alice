@@ -52,6 +52,7 @@ struct command_info {
 		change_control_and_owner,
 		province_id_tooltip,
 		next_song,
+		add_population,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -174,7 +175,7 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "conquer", command_info::type::conquer_tag, "Annexes an entire nation (use 'all' for the entire world)",
-				{command_info::argument_info{"tag", command_info::argument_info::type::text, false}, command_info::argument_info{},
+				{command_info::argument_info{"tag", command_info::argument_info::type::tag, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "chow", command_info::type::change_owner, "Change province owner to country",
 				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
@@ -191,6 +192,10 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "addpop", command_info::type::add_population, "Add a certain ammount of population to your nation",
+				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
+						command_info::argument_info{}, command_info::argument_info{}} },
+						
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -1216,17 +1221,18 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::conquer_tag:
 	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
-		if(tag == "ALL" || tag == "all") {
+		if(tag == "ALL") {
 			for(const auto po : state.world.in_province_ownership) {
-				if(po.get_nation() != state.local_player_nation)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
+				command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
 			}
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
-			auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
-			for(const auto po : state.world.in_province_ownership) {
-				if(po.get_nation() == n)
-					command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
+			if(nid) {
+				auto n = state.world.national_identity_get_nation_from_identity_holder(nid);
+				for(const auto po : state.world.in_province_ownership) {
+					if(po.get_nation() == n)
+						command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
+				}
 			}
 		}
 		break;
@@ -1272,6 +1278,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::next_song:
 	{
 		sound::play_new_track(state);
+		break;
+	}
+	case command_info::type::add_population:
+	{
+		auto ammount = std::get<std::int32_t>(pstate.arg_slots[0]);
+		command::c_add_population(state, state.local_player_nation, ammount);
 		break;
 	}
 	case command_info::type::none:

@@ -249,6 +249,7 @@ struct budget_settings_data {
 	int8_t middle_tax;
 	int8_t rich_tax;
 	int8_t tariffs;
+	int8_t domestic_investment;
 };
 
 struct war_target_data {
@@ -577,7 +578,7 @@ bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nat
 
 inline budget_settings_data make_empty_budget_settings() {
 	return budget_settings_data{ int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127),
-			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
+			int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127), int8_t(-127) };
 }
 // when sending new budget settings, leaving any value as int8_t(-127) will cause it to be ignored, leaving the setting the same
 // You can use the function above to easily make an instance of the settings struct that will change no values

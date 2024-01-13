@@ -968,6 +968,9 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	if(values.tariffs != int8_t(-127)) {
 		state.world.nation_set_tariffs(source, std::clamp(values.tariffs, int8_t(-100), int8_t(100)));
 	}
+	if(values.domestic_investment != int8_t(-127)) {
+		state.world.nation_set_domestic_investment_spending(source, std::clamp(values.domestic_investment, int8_t(0), int8_t(100)));
+	}
 	economy::bound_budget_settings(state, source);
 }
 

@@ -3,6 +3,7 @@
 #include "province.hpp"
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
+#include "opengl_wrapper.hpp"
 
 #ifdef _WIN64
 
@@ -239,9 +240,9 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		auto terrain_file = open_file(map_dir, NATIVE("alice_terrain.png"));
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
-		image terrain_data;
+		ogl::image terrain_data;
 		if(terrain_file)
-			terrain_data = load_stb_image(*terrain_file);
+			terrain_data = ogl::load_stb_image(*terrain_file);
 
 		auto terrain_resolution = internal_make_index_map();
 
@@ -395,7 +396,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 	}
 }
 
-void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
+void display_data::load_province_data(parsers::scenario_building_context& context, ogl::image& image) {
 	uint32_t imsz = uint32_t(size_x * size_y);
 	if(!context.new_maps) {
 		auto free_space = std::max(uint32_t(0), size_y - image.size_y); // schombert: find out how much water we need to add
@@ -445,16 +446,16 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 
 	// Load the province map
 	auto provinces_png = simple_fs::open_file(map_dir, NATIVE("alice_provinces.png"));
-	map::image provinces_image;
+	ogl::image provinces_image;
 	if(provinces_png) {
-		provinces_image = load_stb_image(*provinces_png);
+		provinces_image = ogl::load_stb_image(*provinces_png);
 		size_x = uint32_t(provinces_image.size_x);
 		size_y = uint32_t(provinces_image.size_y);
 		context.new_maps = true;
 	} else {
 		auto provinces_bmp = simple_fs::open_file(map_dir, NATIVE("provinces.bmp"));
 		if(provinces_bmp) {
-			provinces_image = load_stb_image(*provinces_bmp);
+			provinces_image = ogl::load_stb_image(*provinces_bmp);
 			size_x = uint32_t(provinces_image.size_x);
 			size_y = uint32_t(provinces_image.size_y * 1.3); // schombert: force the correct map size
 		} else {
@@ -474,9 +475,9 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
 		river_data.resize(size_x * size_y, uint8_t(255));
 
-		image river_image_data;
+		ogl::image river_image_data;
 		if(river_file)
-			river_image_data = load_stb_image(*river_file);
+			river_image_data = ogl::load_stb_image(*river_file);
 
 		auto terrain_resolution = internal_make_index_map();
 

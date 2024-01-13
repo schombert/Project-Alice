@@ -399,7 +399,7 @@ public:
 			auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
 			float progress = economy::province_building_construction(state, state.world.province_building_construction_get_province(pbcid), economy::province_building_type(btid)).progress;
 
-			auto full_str = std::string(name) + " (" + text::format_percentage(progress, 0) + ")";
+			auto full_str = text::produce_simple_string(state, name) + " (" + text::format_percentage(progress, 0) + ")";
 
 			color = text::text_color::white;
 			set_text(state, full_str);

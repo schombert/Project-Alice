@@ -14,7 +14,7 @@ struct scenario_building_context;
 
 namespace map {
 
-enum class map_view { globe, flat };
+enum class map_view { globe, globe_perspect, flat };
 class map_state {
 public:
 	map_state(){};
@@ -23,6 +23,8 @@ public:
 	void load_map_data(parsers::scenario_building_context& context);
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
+
+	map_view current_view(sys::state& state);
 
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);

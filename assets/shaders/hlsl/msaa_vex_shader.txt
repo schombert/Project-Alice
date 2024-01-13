@@ -1,0 +1,16 @@
+struct Input {
+	float2 pos;
+	float2 tex_coord;
+};
+
+struct Output {
+	float2 pos;
+	float2 tex_coord;
+};
+
+Output main(Input input) {
+	Output output;
+	output.tex_coord = input.tex_coord;
+	output.pos = float4(input.pos.x, input.pos.y, 0.0, 1.0);
+	return output;
+}

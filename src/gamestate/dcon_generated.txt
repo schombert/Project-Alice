@@ -317,6 +317,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ money_rgo }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ is_mine }
 		type{ bitfield }
 		tag{ scenario }
@@ -3303,6 +3308,11 @@ object {
 	}
 	property {
 		name{ social_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ domestic_investment_spending }
 		type{ int8_t }
 		tag{ save }
 	}

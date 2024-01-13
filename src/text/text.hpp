@@ -289,6 +289,7 @@ enum class variable_type : uint16_t {
 	region,
 	rel,
 	relation,
+	religion,
 	req,
 	reqlevel,
 	required,

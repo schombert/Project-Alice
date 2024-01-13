@@ -1,0 +1,184 @@
+#define M_PI 3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
+		
+struct Input {
+	float2 texture_coord;
+	uint color_function_idx;
+	uint font_function_idx;
+};		
+
+struct Output {
+	float4 frag_color;
+};
+
+Texture2D texture:register(t0);
+SamplerState texture_sampler:register(s0);
+
+Texture2D secondary_texture:register(t1);
+SamplerState secondary_texture_sampler:register(s1);
+
+float4 d_rect:SV_Target0;
+float border_size:SV_Target1;
+float3 inner_color:SV_Target2;
+float4 subrect:SV_Target3;
+
+float gamma:SV_Target7;
+float4 gamma_correct(float4 colour) {
+	return float4(pow(colour.rgb, float3(1.f / gamma)), colour.a);
+}
+		
+float4 border_filter(float2 tc) {
+	float4 color_in = texture.Sample(texture_sampler, tc);
+	if(color_in.r > 0.5) {
+		return float4(inner_color, 1.0);
+	} else if(color_in.r > 0.5 - border_size) {
+		float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5, color_in.r);
+		return float4(lerp(float3(1.0, 1.0, 1.0) - inner_color, inner_color, sm_val), 1.0);
+	} else {
+		float sm_val = smoothstep(0.5 - border_size * 1.5, 0.5 - border_size, color_in.r);
+		return float4(float3(1.0, 1.0, 1.0) - inner_color, sm_val);
+	}
+}
+
+float4 color_filter(float2 tc) {
+	float4 color_in = texture.Sample(texture_sampler, tc);
+	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);
+	return float4(inner_color, sm_val);
+}
+
+float4 no_filter(float2 tc) {
+	return texture.Sample(texture_sampler, tc);
+}
+
+float4 subsprite(float2 tc) {
+	return texture.Sample(texture_sampler, float2(tc.x * inner_color.y + inner_color.x, tc.y));
+}
+
+float4 subsprite_b(float2 tc) {
+	return float4(inner_color, texture.Sample(texture_sampler, float2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
+}
+		
+float4 use_mask(float2 tc) {
+	return float4(texture.Sample(texture_sampler, tc).rgb, secondary_texture.Sample(secondary_texture_sampler, tc).a);
+}
+		
+float4 progress_bar(float2 tc) {
+	return lerp( texture.Sample(texture_sampler, tc), secondary_texture.Sample(secondary_texture_sampler, tc), step(border_size, tc.x));
+}
+		
+float4 frame_stretch(float2 tc) {
+	const float realx = tc.x * d_rect.z;
+	const float realy = tc.y * d_rect.w;
+	float2 tsize;
+	texture.GetDimensions(0, tsize.x, tsize.y, 0);
+	float xout = 0.0;
+	float yout = 0.0;
+	if(realx <= border_size)
+		xout = realx / tsize.x;
+	else if(realx >= (d_rect.z - border_size))
+		xout = (1.0 - border_size / tsize.x) + (border_size - (d_rect.z - realx))  / tsize.x;
+	else
+		xout = border_size / tsize.x + (1.0 - 2.0 * border_size / tsize.x) * (realx - border_size) / (d_rect.z * 2.0 * border_size);
+	if(realy <= border_size)
+		yout = realy / tsize.y;
+	else if(realy >= (d_rect.w - border_size))
+		yout = (1.0 - border_size / tsize.y) + (border_size - (d_rect.w - realy))  / tsize.y;
+	else
+		yout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);
+	return texture.Sample(texture_sampler, float2(xout, yout));
+}
+
+float4 piechart(float2 tc) {
+	if(((tc.x - 0.5) * (tc.x - 0.5) + (tc.y - 0.5) * (tc.y - 0.5)) > 0.25)
+		return float4(0.0, 0.0, 0.0, 0.0);
+	else
+		return texture.Sample(texture_sampler, float2((atan2((tc.y - 0.5), (tc.x - 0.5) ) + M_PI) / (2.0 * M_PI), 0.5));
+}
+		
+float4 barchart(float2 tc) {
+	float4 color_in = texture.Sample(texture_sampler, float2(tc.x, 0.5));
+	return float4(color_in.rgb, step(1.0 - color_in.a, tc.y));
+}
+		
+float4 linegraph(float2 tc) {
+	return lerp(float4(1.0, 0.0, 0.0, 1.0), float4(0.0, 1.0, 0.0, 1.0), tc.y);
+}
+
+float4 font_function(float2 tc, uint font_function_idx) {
+	switch(font_function_idx) {
+		case 0:
+			return border_filter(tc);
+		case 1:
+			return color_filter(tc);
+		case 2:
+			return no_filter(tc);
+		case 3:
+			return subsprite(tc);
+		case 4:
+			return subsprite_b(tc);
+		case 5:
+			return use_mask(tc);
+		case 6:
+			return progress_bar(tc);
+		case 7:
+			return frame_stretch(tc);
+		case 8:
+			return piechart(tc);
+		case 9:
+			return barchart(tc);
+		default:
+			// Maybe there is a way to throw errors
+			return linegraph(tc);
+		
+	}
+}
+
+
+float4 disabled_color(float4 color_in) {
+	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;
+	return float4(amount, amount, amount, color_in.a);
+}
+
+float4 interactable_color(float4 color_in) {
+	return float4(color_in.r + 0.1, color_in.g + 0.1, color_in.b + 0.1, color_in.a);
+}
+
+float4 interactable_disabled_color(float4 color_in) {
+	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;
+	return float4(amount + 0.1, amount + 0.1, amount + 0.1, color_in.a);
+}
+		
+float4 tint_color(float4 color_in) {
+	return float4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);
+}
+
+float4 enabled_color(float4 color_in) {
+	return color_in;
+}
+
+float4 alt_tint_color(float4 color_in) {
+	return float4(color_in.r * subrect.r, color_in.g * subrect.g, color_in.b * subrect.b, color_in.a);
+}
+
+float4 coloring_function(float4 color_in, uint color_function_idx) {
+	switch(color_function_idx) {
+		case 0:
+			return disabled_color(color_in);
+		case 1:
+			return interactable_color(color_in);
+		case 2:
+			return interactable_disabled_color(color_in);
+		case 3:
+			return tint_color(color_in);
+		case 4:
+			return enabled_color(color_in);
+		default:
+			return alt_tint_color(color_in);
+	}
+}
+		
+Output main(Input input) {
+	Output output;
+	output.frag_color = gamma_correct(coloring_function(font_function(input.texture_coord, input.font_function_idx), input.color_function_idx));
+	return output;
+}
