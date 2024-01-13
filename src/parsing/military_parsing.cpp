@@ -1,6 +1,5 @@
 #include "parsers_declarations.hpp"
 #include "military.hpp"
-#include "system_state.hpp"
 
 namespace parsers {
 

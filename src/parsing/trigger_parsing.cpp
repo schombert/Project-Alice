@@ -1,7 +1,6 @@
 #include "trigger_parsing.hpp"
 #include "parsers_declarations.hpp"
 #include "script_constants.hpp"
-#include "system_state.hpp"
 #include <algorithm>
 
 namespace parsers {

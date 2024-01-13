@@ -2634,4 +2634,5 @@ void make_leader_images(scenario_building_context& outer_context);
 
 #include "trigger_parsing.hpp"
 #include "effect_parsing.hpp"
+#include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"

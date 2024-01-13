@@ -3697,31 +3697,6 @@ void ef_scope_variable(std::string_view label, token_generator& gen, error_handl
 void ef_scope_any_substate(token_generator& gen, error_handler& err, effect_building_context& context);
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 
-template<typename T>
-void recurse_over_effects(uint16_t* source, T const& f) {
-	f(source);
-
-	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
-		if((source[0] & effect::code_mask) == effect::random_list_scope) {
-			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
-
-			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
-			while(sub_units_start < source + source_size) {
-				recurse_over_effects(sub_units_start, f);
-				sub_units_start += 2 + effect::get_generic_effect_payload_size(sub_units_start); // each member preceded by uint16_t
-			}
-		} else {
-			auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
-
-			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
-			while(sub_units_start < source + source_size) {
-				recurse_over_effects(sub_units_start, f);
-				sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
-			}
-		}
-	}
-}
-
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context);
 int32_t simplify_effect(uint16_t* source);
 

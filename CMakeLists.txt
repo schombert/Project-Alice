@@ -39,23 +39,26 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map.cpp"
 	"src/alice.rc"
 	${ASSET_FILES})
+add_executable(AliceIncremental WIN32 "src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map.cpp"
+	"src/parsing/parsers.cpp"
+	${ASSET_FILES})
 else()
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	${ASSET_FILES})
+add_executable(AliceIncremental WIN32 "src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map.cpp"
 	"src/parsing/parsers.cpp"
-	"src/parsing/defines.cpp"
-	"src/parsing/gui_graphics_parsers.cpp"
-	"src/parsing/nations_parsing.cpp"
-	"src/parsing/cultures_parsing.cpp"
-	"src/parsing/econ_parsing.cpp"
-	"src/parsing/military_parsing.cpp"
-	"src/parsing/provinces_parsing.cpp"
-	"src/parsing/trigger_parsing.cpp"
-	"src/parsing/effect_parsing.cpp"
-	"src/parsing/parsers_declarations.cpp"
 	${ASSET_FILES})
 endif()
 
@@ -190,9 +193,20 @@ target_include_directories(AliceCommon INTERFACE
 	"ankerl")
 
 target_link_libraries(Alice PRIVATE AliceCommon)
+target_link_libraries(AliceIncremental PRIVATE AliceCommon)
 
 # System headers
 target_precompile_headers(Alice
+	PRIVATE <stddef.h>
+	PRIVATE <stdint.h>
+	PRIVATE <assert.h>
+	PRIVATE <stdarg.h>
+	PRIVATE <stdlib.h>
+	PRIVATE <math.h>
+	PRIVATE <signal.h>
+	PRIVATE <ctype.h>
+)
+target_precompile_headers(AliceIncremental
 	PRIVATE <stddef.h>
 	PRIVATE <stdint.h>
 	PRIVATE <assert.h>
@@ -223,8 +237,36 @@ target_precompile_headers(Alice
 	PRIVATE <limits>
 	PRIVATE <iterator>
 )
+target_precompile_headers(AliceIncremental
+	PRIVATE <vector>
+	PRIVATE <array>
+	PRIVATE <optional>
+	PRIVATE <memory>
+	PRIVATE <variant>
+	PRIVATE <string>
+	PRIVATE <string_view>
+	PRIVATE <charconv>
+	PRIVATE <algorithm>
+	PRIVATE <iterator>
+	PRIVATE <functional>
+	PRIVATE <atomic>
+	PRIVATE <chrono>
+	PRIVATE <tuple>
+	PRIVATE <type_traits>
+	PRIVATE <new>
+	PRIVATE <limits>
+	PRIVATE <iterator>
+)
 # Aliases for C library
 target_precompile_headers(Alice
+	PRIVATE <cstdlib>
+	PRIVATE <cstddef>
+	PRIVATE <cstdint>
+	PRIVATE <cassert>
+	PRIVATE <cstdarg>
+	PRIVATE <cmath>
+)
+target_precompile_headers(AliceIncremental
 	PRIVATE <cstdlib>
 	PRIVATE <cstddef>
 	PRIVATE <cstdint>
@@ -243,12 +285,25 @@ target_precompile_headers(Alice
 	PRIVATE [["cyto_any.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
+)
+target_precompile_headers(AliceIncremental
+	PRIVATE [["simple_fs.hpp"]]
+	PRIVATE [["constants.hpp"]]
+	PRIVATE [["unordered_dense.h"]]
+	PRIVATE [["dcon_generated.hpp"]]
+	PRIVATE [["container_types.hpp"]]
+	PRIVATE [["parsers_declarations.hpp"]]
+	PRIVATE [["cyto_any.hpp"]]
+	PRIVATE [["date_interface.hpp"]]
+	PRIVATE [["stb_image.h"]]
 	PRIVATE [["system_state.hpp"]]
 )
 
 if(WIN32)
 else()
 	target_precompile_headers(Alice
+		PRIVATE [["miniaudio.h"]])
+	target_precompile_headers(AliceIncremental
 		PRIVATE [["miniaudio.h"]])
 endif()
 
@@ -265,6 +320,7 @@ add_custom_command(
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
 
 # The command to build the generated parsers file
 add_custom_command(
@@ -291,6 +347,7 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
+add_dependencies(AliceIncremental GENERATE_PARSERS)
 
 if (BUILD_TESTING)
     enable_testing()
