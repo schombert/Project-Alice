@@ -887,12 +887,9 @@ void rebel_hunting_check(sys::state& state) {
 					}
 					state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 					state.world.army_set_dig_in(a, 0);
-					state.world.army_set_ai_province(a, dcon::province_id{});
 				} else {
 					state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
 				}
-			} else {
-				state.world.army_set_ai_province(a, dcon::province_id{});
 			}
 		}
 	}
