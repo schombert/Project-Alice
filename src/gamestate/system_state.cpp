@@ -173,6 +173,9 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
+		if(state::user_settings.left_mouse_click_hold_and_release) {
+			ui_state.left_mouse_hold_target = ui_state.under_mouse;
+		}
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
@@ -218,8 +221,25 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(mode != sys::game_mode_type::in_game)
+	if(mode != sys::game_mode_type::in_game) {
+		if(state::user_settings.left_mouse_click_hold_and_release) {
+			if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+			}
+		}
 		return;
+	}
+	if(state::user_settings.left_mouse_click_hold_and_release) {
+		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+		}
+
+		ui_state.left_mouse_hold_target = nullptr;
+	}
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {

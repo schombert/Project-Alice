@@ -156,6 +156,9 @@ mouse_probe element_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t
 message_result element_base::impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return on_lbutton_down(state, x, y, mods);
 }
+message_result element_base::impl_on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept {
+	return on_lbutton_up(state, x, y, mods, under_mouse);
+}
 message_result element_base::impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return on_rbutton_down(state, x, y, mods);
 }
@@ -191,6 +194,9 @@ message_result element_base::test_mouse(sys::state& state, int32_t x, int32_t y,
 	return message_result::unseen;
 }
 message_result element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return message_result::unseen;
+}
+message_result element_base::on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept {
 	return message_result::unseen;
 }
 message_result element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {

@@ -183,6 +183,21 @@ guiTypes = {
 				position = { 51 147 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			instantTextBoxType = {
+				name = "mouse_left_click_mode_label"
+				position = { 164 147 }
+				text = "mouse_left_click_mode_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_left_click_mode_checkbox"
+				position = { 137 147 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Projection settings for the map: equirectangular, orthographic
 			instantTextBoxType = {
 				name = "projection_label"

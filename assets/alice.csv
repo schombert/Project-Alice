@@ -1477,4 +1477,5 @@ domestic_investment_label;Domestic investment:
 att_call_allies_effect;Call allies of this nation into its current wars
 modifier_min_domestic_investment;Minimum domestic investment rate
 modifier_max_domestic_investment;Maximum domestic investment rate
+mouse_left_click_mode_label;Mouse click hold release
 ;;;;;;;;;;;;;x
