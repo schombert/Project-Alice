@@ -366,6 +366,7 @@ struct chat_message {
 
 struct state {
 	element_base* under_mouse = nullptr;
+	element_base* left_mouse_hold_target = nullptr;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
 	element_base* edit_target = nullptr;
