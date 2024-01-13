@@ -3030,8 +3030,12 @@ struct trigger_body {
 	}
 	void has_global_flag(association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::has_global_flag | association_to_bool_code(a)));
-		context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
+		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "project_alice")) {
+			context.compiled_trigger.push_back(uint16_t(trigger::always | trigger::no_payload | association_to_bool_code(a, true)));
+		} else {
+			context.compiled_trigger.push_back(uint16_t(trigger::has_global_flag | association_to_bool_code(a)));
+			context.compiled_trigger.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
+		}
 	}
 
 	void continent(association_type a, std::string_view value, error_handler& err, int32_t line,
