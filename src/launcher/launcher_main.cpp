@@ -1,3 +1,6 @@
+#undef _USE_STD_VECTOR_ALGORITHMS
+#define _USE_STD_VECTOR_ALGORITHMS 0
+
 #ifndef UNICODE
 #define UNICODE
 #endif
@@ -445,7 +448,7 @@ void mouse_click() {
 		return;
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
+			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE) && false) {
 				native_string temp_command_line = native_string(NATIVE("Alice512.exe ")) + selected_scenario_file;
 
 				STARTUPINFO si;
