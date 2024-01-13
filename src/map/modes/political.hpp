@@ -48,21 +48,53 @@ std::vector<uint32_t> political_map_from(sys::state& state) {
 
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
-		auto id = fat_id.get_nation_from_province_ownership();
-		uint32_t color = 0;
-		if(bool(id)) {
-			color = nation_color[id.id.value];
-		} else { // If no owner use default color
-			color = 255 << 16 | 255 << 8 | 255;
-		}
 		auto i = province::to_map_id(prov_id);
+		if(prov_id.index() >= state.province_definitions.first_sea_province.index()) {
+			prov_color[i] = 0;
+			prov_color[i + texture_size] = 0;
 
-		auto occupier = fat_id.get_nation_from_province_control();
-		uint32_t color_b = occupier ? nation_color[occupier.id.value] :
-			(id ? sys::pack_color(127, 127, 127) : sys::pack_color(255, 255, 255));
+			dcon::nation_id first_n{};
+			dcon::nation_id second_n{};
+			for(const auto adj : fat_id.get_province_adjacency_as_connected_provinces()) {
+				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == prov_id ? 1 : 0);
+				if(p2.get_is_coast()) {
+					auto n = p2.get_province_control_as_province().get_nation();
+					if(!n || second_n == n || first_n == n)
+						continue;
+					if(!bool(second_n) || n.get_rank() > state.world.nation_get_rank(second_n)) {
+						if(!bool(first_n) || n.get_rank() > state.world.nation_get_rank(first_n)) {
+							second_n = first_n;
+							first_n = n;
+						} else {
+							second_n = n;
+						}
+					}
+				}
+			}
 
-		prov_color[i] = color;
-		prov_color[i + texture_size] = color_b;
+			if(first_n) {
+				prov_color[i] = nation_color[first_n.value];
+				prov_color[i] |= 0xff000000;
+				if(second_n) {
+					prov_color[i + texture_size] = nation_color[second_n.value];
+					prov_color[i + texture_size] |= 0xff000000;
+				}
+			}
+		} else {
+			auto id = fat_id.get_nation_from_province_ownership();
+			uint32_t color = 0;
+			if(bool(id)) {
+				color = nation_color[id.id.value];
+			} else { // If no owner use default color
+				color = 255 << 16 | 255 << 8 | 255;
+			}
+			auto occupier = fat_id.get_nation_from_province_control();
+			uint32_t color_b = occupier ? nation_color[occupier.id.value] :
+				(id ? sys::pack_color(127, 127, 127) : sys::pack_color(255, 255, 255));
+
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color_b;
+		}
 	});
 
 	return prov_color;

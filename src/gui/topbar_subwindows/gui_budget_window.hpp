@@ -86,7 +86,7 @@ public:
 class nation_loan_spending_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_loan_payments(state, state.local_player_nation)));
+		set_text(state, text::format_money(economy::interest_payment(state, state.local_player_nation)));
 	}
 };
 
@@ -275,13 +275,14 @@ enum class budget_slider_target : uint8_t {
 	social,
 	military,
 	tariffs,
+	domestic_investment,
 	raw,
 	target_count
 };
 
 struct budget_slider_signal {
-	budget_slider_target target;
-	float amount;
+	budget_slider_target target = budget_slider_target::poor_tax;
+	float amount = 0.f;
 };
 
 template<budget_slider_target SliderTarget>
@@ -399,6 +400,24 @@ public:
 			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
 			change_settings(state, new_settings);
 		} break;
+		case budget_slider_target::domestic_investment:
+		{
+			auto min_domestic_investment = int32_t(
+				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::min_domestic_investment));
+			auto max_domestic_investment = int32_t(
+				100.0f * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::max_domestic_investment));
+			if(max_domestic_investment <= 0)
+				max_domestic_investment = 100;
+			max_domestic_investment = std::max(min_domestic_investment, max_domestic_investment);
+
+			mutable_scrollbar_settings new_settings;
+			new_settings.lower_value = 0;
+			new_settings.upper_value = 100;
+			new_settings.using_limits = true;
+			new_settings.lower_limit = std::clamp(min_domestic_investment, 0, 100);
+			new_settings.upper_limit = std::clamp(max_domestic_investment, 0, 100);
+			change_settings(state, new_settings);
+		} break;
 		default:
 			break;
 		}
@@ -468,6 +487,9 @@ private:
 			break;
 		case budget_slider_target::tariffs:
 			budget_settings.tariffs = new_val;
+			break;
+		case budget_slider_target::domestic_investment:
+			budget_settings.domestic_investment = new_val;
 			break;
 		default:
 			break;
@@ -681,7 +703,7 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_loan_payments(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation) * state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
@@ -713,10 +735,10 @@ public:
 				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_loan_payments(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation) * state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		// balance
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] -= economy::interest_payment(state, state.local_player_nation);
@@ -1161,6 +1183,18 @@ public:
 	}
 };
 
+class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment> {
+	int32_t get_true_value(sys::state& state) noexcept override {
+		return int32_t(state.world.nation_get_domestic_investment_spending(state.local_player_nation));
+	}
+};
+class domestic_investment_estimated_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::format_money(state.world.nation_get_domestic_investment_spending(state.local_player_nation) * economy::estimate_domestic_investment(state, state.local_player_nation) / 100.0f));
+	}
+};
+
 class budget_window : public window_element_base {
 private:
 	budget_take_loan_window* budget_take_loan_win = nullptr;
@@ -1185,9 +1219,20 @@ public:
 		add_child_to_front(std::move(win101));
 
 		{
-			auto debtbutton = make_element_by_type<enable_debt_toggle>(state,
-					state.ui_state.defs_by_name.find("alice_debt_checkbox")->second.definition);
-			add_child_to_front(std::move(debtbutton));
+			auto elm = make_element_by_type<enable_debt_toggle>(state, state.ui_state.defs_by_name.find("alice_debt_checkbox")->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+		{
+			auto elm = make_element_by_type<domestic_investment_slider>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_slider")->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+		{
+			auto elm = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_label")->second.definition);
+			add_child_to_front(std::move(elm));
+		}
+		{
+			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_value")->second.definition);
+			add_child_to_front(std::move(elm));
 		}
 
 		set_visible(state, false);

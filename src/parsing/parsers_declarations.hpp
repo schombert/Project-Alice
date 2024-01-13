@@ -593,6 +593,8 @@ public:
 	MOD_NAT_FUNCTION(max_military_spending)
 	MOD_NAT_FUNCTION(min_social_spending)
 	MOD_NAT_FUNCTION(max_social_spending)
+	MOD_NAT_FUNCTION(min_domestic_investment)
+	MOD_NAT_FUNCTION(max_domestic_investment)
 	MOD_NAT_FUNCTION(factory_owner_cost)
 	MOD_NAT_FUNCTION(min_tariff)
 	MOD_NAT_FUNCTION(max_tariff)

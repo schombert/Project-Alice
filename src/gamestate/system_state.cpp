@@ -754,7 +754,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glDepthRange(-1.0f, 1.0f);
 			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 			if(gfx_def.primary_texture_handle) {
-				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size) / user_settings.ui_scale, float(y_size) / user_settings.ui_scale,
 						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 						ui::rotation::upright, gfx_def.is_vertically_flipped());
 			}
@@ -1700,7 +1700,7 @@ void state::on_create() {
 		}
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "alice_menubar");
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{

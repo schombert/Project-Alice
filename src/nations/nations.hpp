@@ -292,6 +292,7 @@ float colonial_points_from_technology(sys::state& state, dcon::nation_id n);
 float used_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
+uint32_t get_total_pop_in_owned_provinces(sys::state& state, dcon::nation_id n);
 
 bool has_political_reform_available(sys::state& state, dcon::nation_id n);
 bool has_social_reform_available(sys::state& state, dcon::nation_id n);
