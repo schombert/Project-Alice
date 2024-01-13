@@ -879,7 +879,7 @@ void rebel_hunting_check(sys::state& state) {
 			&& a.get_location_from_army_location() != a.get_ai_province()
 			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
 		{
-			if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), state.world.army_get_ai_province(a), faction_owner, a); path.size() > 0) {
+			if(auto path = province::make_land_path(state, a.get_location_from_army_location(), a.get_ai_province(), a.get_army_control().get_controller(), a); path.size() > 0) {
 				auto existing_path = state.world.army_get_path(a);
 				auto new_size = uint32_t(path.size());
 				existing_path.resize(new_size);
