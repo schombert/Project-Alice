@@ -435,8 +435,8 @@ void update_military_scores(sys::state& state) {
 }
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_prestige(n) +
-				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
+	return std::max(0.0f, state.world.nation_get_prestige(n) +
+				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige));
 }
 
 void update_rankings(sys::state& state) {
