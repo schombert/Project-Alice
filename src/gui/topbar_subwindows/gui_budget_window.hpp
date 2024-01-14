@@ -571,7 +571,7 @@ class budget_army_stockpile_slider : public budget_slider<budget_slider_target::
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-				text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -606,7 +606,7 @@ class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-				text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -653,7 +653,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 							text::substitution_map m;
 							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 							auto box = text::open_layout_box(contents, 0);
 							text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -693,7 +693,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 							text::substitution_map m;
 							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 							auto box = text::open_layout_box(contents, 0);
 							text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -729,7 +729,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 							text::substitution_map m;
 							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 							auto box = text::open_layout_box(contents, 0);
 							text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -765,7 +765,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 							text::substitution_map m;
 							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 							auto box = text::open_layout_box(contents, 0);
 							text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
@@ -795,7 +795,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-				text::add_to_substitution_map(m, text::variable_type::need, text::fp_one_place{ amount });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
