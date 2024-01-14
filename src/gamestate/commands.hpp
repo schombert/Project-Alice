@@ -838,6 +838,7 @@ void notify_pause_game(sys::state& state, dcon::nation_id source);
 
 void execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
+bool can_perform_command(sys::state& state, payload& c);
 
 } // namespace command
 

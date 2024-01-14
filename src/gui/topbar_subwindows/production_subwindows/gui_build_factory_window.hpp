@@ -134,7 +134,7 @@ public:
 		text::add_line(state, contents, "alice_factory_inputs");
 		auto const& cset = state.world.factory_type_get_inputs(content);
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
-			if(cset.commodity_type[i] && cset.commodity_amounts[i]) {
+			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {
 				auto amount = cset.commodity_amounts[i];
 				auto cid = cset.commodity_type[i];
 				auto cost = state.world.commodity_get_current_price(cid);
