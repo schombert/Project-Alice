@@ -660,7 +660,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 					}
 				}
 				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.province_get_name(p));
+				text::add_to_substitution_map(m, text::variable_type::name, province);
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_land_construction", m);
@@ -700,7 +700,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 					}
 				}
 				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.province_get_name(p));
+				text::add_to_substitution_map(m, text::variable_type::name, p);
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_naval_construction", m);
@@ -736,7 +736,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 					}
 				}
 				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.province_get_name(p));
+				text::add_to_substitution_map(m, text::variable_type::name, c.get_province());
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_building_construction", m);
@@ -772,7 +772,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 					}
 				}
 				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.province_get_name(p));
+				text::add_to_substitution_map(m, text::variable_type::name, c.get_state());
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_spending_factory_construction", m);
