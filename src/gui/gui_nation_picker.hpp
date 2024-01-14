@@ -375,6 +375,9 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.size.x -= 20; //nudge
+		base_data.size.y += base_data.position.y;
+		base_data.position.y = 0;
 		listbox_element_base<save_game_item, save_item>::on_create(state);
 		update_save_list(state);
 	}

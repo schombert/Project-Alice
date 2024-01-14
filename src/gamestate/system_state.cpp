@@ -173,6 +173,9 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
+		if(state::user_settings.left_mouse_click_hold_and_release) {
+			ui_state.left_mouse_hold_target = ui_state.under_mouse;
+		}
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
@@ -218,8 +221,25 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(mode != sys::game_mode_type::in_game)
+	if(mode != sys::game_mode_type::in_game) {
+		if(state::user_settings.left_mouse_click_hold_and_release) {
+			if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+			}
+		}
 		return;
+	}
+	if(state::user_settings.left_mouse_click_hold_and_release) {
+		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
+			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+		}
+
+		ui_state.left_mouse_hold_target = nullptr;
+	}
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
@@ -2041,6 +2061,7 @@ void state::save_user_settings() const {
 	US_SAVE(rivers_enabled);
 	US_SAVE(zoom_mode);
 	US_SAVE(vassal_color);
+	US_SAVE(left_mouse_click_hold_and_release);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2096,6 +2117,7 @@ void state::load_user_settings() {
 			US_LOAD(rivers_enabled);
 			US_LOAD(zoom_mode);
 			US_LOAD(vassal_color);
+			US_LOAD(left_mouse_click_hold_and_release);
 #undef US_LOAD
 		} while(false);
 

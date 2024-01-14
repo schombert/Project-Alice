@@ -1850,6 +1850,17 @@ message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, in
 	return message_result::consumed;
 }
 
+tooltip_behavior scrollbar_track::has_tooltip(sys::state& state) noexcept {
+	if(parent)
+		return parent->has_tooltip(state);
+	return opaque_element_base::has_tooltip(state);
+}
+void scrollbar_track::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(parent)
+		return parent->update_tooltip(state, x, y, contents);
+	return opaque_element_base::update_tooltip(state, x, y, contents);
+}
+
 message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return message_result::consumed;

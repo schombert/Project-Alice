@@ -415,6 +415,14 @@ bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.use_classic_fonts;
 }
 
+void left_mouse_click_mode_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.left_mouse_click_hold_and_release = !state.user_settings.left_mouse_click_hold_and_release;
+	send(state, parent, notify_setting_update{});
+}
+bool left_mouse_click_mode_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.left_mouse_click_hold_and_release;
+}
+
 void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 	auto float_v = float(v) / 128.0f;
 
