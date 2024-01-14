@@ -318,9 +318,7 @@ std::vector<uint32_t> growth_map_from(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			float population = 0.f;
-			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
-				population += demographics::get_monthly_pop_increase(state, pl.get_pop());
+			float population = float(demographics::get_monthly_pop_increase(state, prov_id));
 			auto cid = fat_id.get_continent().id.index();
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
@@ -336,7 +334,7 @@ std::vector<uint32_t> growth_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
+			float gradient_index = 1.f - (continent_max_pop[cid] == 0.f ? 0.f : prov_population[i] / continent_max_pop[cid]);
 			auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
