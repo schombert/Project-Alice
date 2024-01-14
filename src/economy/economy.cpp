@@ -3916,7 +3916,7 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 			max_spend = 100;
 		max_spend = std::max(min_spend, max_spend);
 
-		auto& v = state.world.nation_get_social_spending(n);
+		auto& v = state.world.nation_get_domestic_investment_spending(n);
 		v = int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100));
 	}
 }
