@@ -318,7 +318,10 @@ std::vector<uint32_t> growth_map_from(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			float population = demographics::get_monthly_pop_increase(state, prov_id);
+			float population = 0.f;
+			for(auto pl : fat_id.get_pop_location()) {
+				population += demographics::get_monthly_pop_increase(state, pl.get_pop());
+			}
 			auto cid = fat_id.get_continent().id.index();
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
 			auto i = province::to_map_id(prov_id);
