@@ -4289,8 +4289,9 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	// Invalid OR rebel nation
-	if(!bool(target) || target == state.national_definitions.rebel_id)
+	if(source == target) //redundant
+		return false;
+	if(!bool(target) || target == state.national_definitions.rebel_id) //Invalid OR rebel nation
 		return false;
 	// TODO: Support Co-op (one day)
 	return state.world.nation_get_is_player_controlled(target) == false;
