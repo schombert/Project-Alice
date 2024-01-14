@@ -70,7 +70,15 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 		if(r > 0) {
 			*m += static_cast<size_t>(r);
 		} else if(r < 0) { // error
-			return -1;
+#ifdef _WIN32
+			int err = WSAGetLastError();
+			if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+				return 0;
+			}
+			return err;
+#else
+			return r;
+#endif
 		} else if(r == 0) {
 			break;
 		}
@@ -90,7 +98,15 @@ static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 		if(r > 0) {
 			buffer.erase(buffer.begin(), buffer.begin() + static_cast<size_t>(r));
 		} else if(r < 0) {
-			return -1;
+#ifdef _WIN32
+			int err = WSAGetLastError();
+			if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+				return 0;
+			}
+			return err;
+#else
+			return r;
+#endif
 		} else if(r == 0) {
 			break;
 		}
@@ -572,9 +588,9 @@ static void receive_from_clients(sys::state& state) {
 #endif
 			});
 		}
-		if(r < 0) { // error
-#ifndef NDEBUG
-			state.console_log("host:disconnect: err=" + std::to_string(uint32_t(r)));
+		if(r != 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+			state.console_log("host:disconnect: in-receive err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
 #endif
 			disconnect_client(state, client);
 		}
@@ -726,25 +742,35 @@ void send_and_receive_commands(sys::state& state) {
 			if(client.handshake) {
 				if(client.early_send_buffer.size() > 0) {
 					size_t old_size = client.early_send_buffer.size();
-					if(socket_send(client.socket_fd, client.early_send_buffer) < 0) { // error
+					int r = socket_send(client.socket_fd, client.early_send_buffer);
+					if(r != 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+						state.console_log("host:disconnect: in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
+#endif
 						disconnect_client(state, client);
 						continue;
 					}
 					client.total_sent_bytes += old_size - client.early_send_buffer.size();
 #ifndef NDEBUG
-					state.console_log("host:send:stats: " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+					if(old_size != client.early_send_buffer.size())
+						state.console_log("host:send:stats: [EARLY] " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 #endif
 				}
 			} else {
 				if(client.send_buffer.size() > 0) {
 					size_t old_size = client.send_buffer.size();
-					if(socket_send(client.socket_fd, client.send_buffer) < 0) { // error
+					int r = socket_send(client.socket_fd, client.send_buffer);
+					if(r != 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+						state.console_log("host:disconnect: in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
+#endif
 						disconnect_client(state, client);
 						continue;
 					}
 					client.total_sent_bytes += old_size - client.send_buffer.size();
 #ifndef NDEBUG
-					state.console_log("host:send:stats: " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+					if(old_size != client.send_buffer.size())
+						state.console_log("host:send:stats: [SEND] " + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 #endif
 				}
 			}
@@ -797,7 +823,7 @@ void send_and_receive_commands(sys::state& state) {
 				socket_add_to_send_queue(state.network_state.send_buffer, &hshake, sizeof(hshake));
 				state.network_state.handshake = false;
 			});
-			if(r < 0) { // error
+			if(r != 0) { // error
 #ifdef _WIN64
 				MessageBoxA(NULL, ("Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
@@ -832,7 +858,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 			});
-			if(r < 0) { // error
+			if(r != 0) { // error
 #ifdef _WIN64
 				MessageBoxA(NULL, ("Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
@@ -860,7 +886,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.console_log("client:recv:cmd: " + std::to_string(uint32_t(state.network_state.recv_buffer.type)));
 #endif
 			});
-			if(r < 0) { // error
+			if(r != 0) { // error
 #ifdef _WIN64
 				MessageBoxA(NULL, ("Network client command receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
@@ -884,7 +910,7 @@ void send_and_receive_commands(sys::state& state) {
 		}
 		/* Do not send commands while we're on save stream mode! */
 		if(!state.network_state.save_stream) {
-			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) < 0) { // error
+			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
 #ifdef _WIN64
 				MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
 #endif
