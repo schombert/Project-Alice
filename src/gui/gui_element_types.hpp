@@ -199,6 +199,7 @@ public:
 
 class button_element_base : public opaque_element_base {
 protected:
+
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
@@ -275,13 +276,34 @@ class shift_button_element_base : public button_element_base {
 public:
 	virtual void button_shift_action(sys::state& state) noexcept { }
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(!disabled) {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(!disabled) {
+				//ToDo: Make button change appearance while pressed
+				//disabled = true;
+			}
+		} else if(!disabled) {
 			sound::play_interface_sound(state, sound::get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
 				button_shift_action(state);
 			else
 				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(under_mouse) {
+				sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+				if(mods == sys::key_modifiers::modifiers_shift)
+					button_shift_action(state);
+				else
+					button_action(state);
+			} else {
+				//ToDo: Make button revert appearance when released
+				//disabled = false;
+			}
 		}
 		return message_result::consumed;
 	}
