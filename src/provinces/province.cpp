@@ -1429,7 +1429,7 @@ void update_colonization(sys::state& state) {
 		auto colonizers = state.world.state_definition_get_colonization(d);
 		auto num_colonizers = colonizers.end() - colonizers.begin();
 
-		if(num_colonizers > 1) { // check for states that have become un-colonizable
+		if(num_colonizers > 0) { // check for states that have become un-colonizable
 			int32_t unowned_provs = 0;
 			for(auto p : d.get_abstract_state_membership()) {
 				if(!(p.get_province().get_nation_from_province_ownership())) {
