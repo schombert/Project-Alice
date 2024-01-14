@@ -495,6 +495,12 @@ private:
 			break;
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		return scrollbar::test_mouse(state, x, y, type);
+	}
 };
 
 class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax> {
@@ -1497,6 +1503,19 @@ public:
 class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_domestic_investment_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_domestic_investment_spending(n) });
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::close_layout_box(contents, box);
+
+		text::add_line(state, contents, "alice_domestic_investment_pops", text::variable_type::x, text::pretty_integer{ int32_t(state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.capitalists))) });
+		text::add_line(state, contents, "alice_domestic_investment_needs", text::variable_type::x, text::fp_currency{ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.capitalists) });
 	}
 };
 class domestic_investment_estimated_text : public simple_text_element_base {

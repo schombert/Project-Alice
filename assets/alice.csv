@@ -1466,6 +1466,8 @@ alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
+alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
 alice_budget_setting_percent;Set at $perc$.
 alice_spending_land_construction;Land construction in $name$: $cost$
 alice_spending_naval_construction;Naval construction in $name$: $cost$
