@@ -234,7 +234,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(state::user_settings.left_mouse_click_hold_and_release) {
 		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
 			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
-		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
 			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
 		}
 
