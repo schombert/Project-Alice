@@ -785,7 +785,7 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 				text::close_layout_box(contents, box);
 			}
 		}
-
+		text::add_line(state, contents, "alice_spending_total");
 		uint32_t total_commodities = state.world.commodity_size();
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
