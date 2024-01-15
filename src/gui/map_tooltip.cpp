@@ -26,6 +26,12 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		text::add_to_layout_box(state, contents, box, fat.get_name());
 	}
 	text::close_layout_box(contents, box);
+
+	if(state.selected_armies.size() > 0) {
+		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
+		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
+		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
+	}
 }
 
 // 19 out of 22 (2 cant be finished so 21 of 22) finished
