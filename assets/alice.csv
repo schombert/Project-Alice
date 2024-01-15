@@ -1473,6 +1473,7 @@ alice_spending_land_construction;Land construction in $name$: $cost$
 alice_spending_naval_construction;Naval construction in $name$: $cost$
 alice_spending_building_construction;Building construction in $name$: $cost$
 alice_spending_factory_construction;Factory construction in $name$: $cost$
+alice_spending_unit;Total spent on this unit in $name$: $cost$
 alice_spending_total;§YTotal spent:§W
 alice_spending_commodity;§R$cost$§W - Needs $need$ of $name$ ($val$)
 alice_spending_commodity_2;§R$cost$§W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
@@ -1494,4 +1495,5 @@ att_call_allies_effect;Call allies of this nation into its current wars
 modifier_min_domestic_investment;Minimum domestic investment rate
 modifier_max_domestic_investment;Maximum domestic investment rate
 mouse_left_click_mode_label;Mouse click hold release
+alice_supply_limit_desc;Supply limit: $x$
 ;;;;;;;;;;;;;x

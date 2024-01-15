@@ -763,16 +763,6 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
 							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
 							float cost = state.world.commodity_get_current_price(cid);
-							text::substitution_map m;
-							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-							text::add_to_substitution_map(m, text::variable_type::x, text::fp_four_places{ current_purchased.commodity_amounts[i] });
-							text::add_to_substitution_map(m, text::variable_type::y, text::fp_four_places{ base_cost.commodity_amounts[i] * admin_cost_factor });
-							auto box = text::open_layout_box(contents, 0);
-							text::localised_format_box(state, contents, box, "alice_spending_commodity_2", m);
-							text::close_layout_box(contents, box);
 							total_cost += cost * amount;
 							total[base_cost.commodity_type[i].index()] += cost * amount;
 						}
@@ -805,16 +795,6 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
 							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
 							float cost = state.world.commodity_get_current_price(cid);
-							text::substitution_map m;
-							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-							text::add_to_substitution_map(m, text::variable_type::x, text::fp_four_places{ current_purchased.commodity_amounts[i] });
-							text::add_to_substitution_map(m, text::variable_type::y, text::fp_four_places{ base_cost.commodity_amounts[i] * admin_cost_factor });
-							auto box = text::open_layout_box(contents, 0);
-							text::localised_format_box(state, contents, box, "alice_spending_commodity_2", m);
-							text::close_layout_box(contents, box);
 							total_cost += cost * amount;
 							total[base_cost.commodity_type[i].index()] += cost * amount;
 						}
@@ -843,16 +823,6 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
 							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
 							float cost = state.world.commodity_get_current_price(cid);
-							text::substitution_map m;
-							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-							text::add_to_substitution_map(m, text::variable_type::x, text::fp_four_places{ current_purchased.commodity_amounts[i] });
-							text::add_to_substitution_map(m, text::variable_type::y, text::fp_four_places{ base_cost.commodity_amounts[i] * admin_cost_factor });
-							auto box = text::open_layout_box(contents, 0);
-							text::localised_format_box(state, contents, box, "alice_spending_commodity_2", m);
-							text::close_layout_box(contents, box);
 							total_cost += cost * amount;
 							total[base_cost.commodity_type[i].index()] += cost * amount;
 						}
@@ -881,16 +851,6 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
 							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] * factory_mod / construction_time;
 							float cost = state.world.commodity_get_current_price(cid);
-							text::substitution_map m;
-							text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-							text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-							text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-							text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-							text::add_to_substitution_map(m, text::variable_type::x, text::fp_four_places{ current_purchased.commodity_amounts[i] });
-							text::add_to_substitution_map(m, text::variable_type::y, text::fp_four_places{ base_cost.commodity_amounts[i] * admin_cost_factor });
-							auto box = text::open_layout_box(contents, 0);
-							text::localised_format_box(state, contents, box, "alice_spending_commodity_2", m);
-							text::close_layout_box(contents, box);
 							total_cost += cost * amount;
 							total[base_cost.commodity_type[i].index()] += cost * amount;
 						}
