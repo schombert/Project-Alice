@@ -73,9 +73,9 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
 		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-			float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
 			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
 				c_costs[supply_cost.commodity_type[i].index()] += cost;
 				c_amounts[supply_cost.commodity_type[i].index()] += amount;
 			} else {
@@ -85,18 +85,20 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 	float total_cost = 0.f;
 	for(const auto cid : state.world.in_commodity) {
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::name, cid.get_name());
-		text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ c_costs[cid.id.index()] });
-		text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ c_amounts[cid.id.index()] });
-		text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ c_costs[cid.id.index()] * c_amounts[cid.id.index()] });
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
-		text::close_layout_box(contents, box);
-		total_cost += c_costs[cid.id.index()] * c_amounts[cid.id.index()];
+		if(c_amounts[cid.id.index()] > 0.f) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::name, cid.get_name());
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ c_costs[cid.id.index()] });
+			text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ c_amounts[cid.id.index()] });
+			text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ c_costs[cid.id.index()] * c_amounts[cid.id.index()] });
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+			text::close_layout_box(contents, box);
+			total_cost += c_costs[cid.id.index()] * c_amounts[cid.id.index()];
+		}
 	}
 	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::name, army.get_location_from_army_location());
+	text::add_to_substitution_map(m, text::variable_type::name, navy.get_location_from_navy_location());
 	text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 	auto box = text::open_layout_box(contents, 0);
 	text::localised_format_box(state, contents, box, "alice_spending_unit", m);
@@ -137,9 +139,9 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
 		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-			float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
 			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
 				c_costs[supply_cost.commodity_type[i].index()] += cost;
 				c_amounts[supply_cost.commodity_type[i].index()] += amount;
 			} else {
