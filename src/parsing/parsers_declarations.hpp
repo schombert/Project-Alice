@@ -1167,6 +1167,7 @@ struct national_values_file {
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_very_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
@@ -2633,4 +2634,5 @@ void make_leader_images(scenario_building_context& outer_context);
 
 #include "trigger_parsing.hpp"
 #include "effect_parsing.hpp"
+#include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"
