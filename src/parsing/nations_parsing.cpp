@@ -53,7 +53,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 
 	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
 	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
-	context.outer_context.state.world.modifier_set_province_values(modifier_id, constructed_definition_p);
+	context.outer_context.state.world.modifier_set_national_values(modifier_id, force_national_mod());
 
 	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
 
