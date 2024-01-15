@@ -2582,8 +2582,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
 		return false;
 
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(real_target, source);
-	if(state.world.diplomatic_relation_get_are_allied(rel))
+	if(nations::are_allied(state, real_target, source))
 		return false;
 
 	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
@@ -2755,14 +2754,16 @@ void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_i
 	add_to_command_queue(state, p);
 }
 bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+	assert(source);
+	assert(target);
 	{
 		auto ol = state.world.nation_get_overlord_as_subject(source);
-		if(state.world.overlord_get_ruler(ol))
+		if(state.world.overlord_get_ruler(ol) && !(state.world.war_get_primary_attacker(war) == source || state.world.war_get_primary_defender(war) == source))
 			return false;
 	}
 	{
 		auto ol = state.world.nation_get_overlord_as_subject(target);
-		if(state.world.overlord_get_ruler(ol))
+		if(state.world.overlord_get_ruler(ol) && !(state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == target))
 			return false;
 	}
 
