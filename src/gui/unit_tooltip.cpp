@@ -149,7 +149,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 	float total_cost = 0.f;
 	for(const auto cid : state.world.in_commodity) {
-		if(c_costs[cid.id.index()] * c_amounts[cid.id.index()] > 0) {
+		if(c_amounts[cid.id.index()] > 0.f) {
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::name, cid.get_name());
 			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ c_costs[cid.id.index()] });
