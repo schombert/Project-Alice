@@ -8,7 +8,7 @@
 #include "military.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
-#include "province.hpp"
+#include "province_templates.hpp"
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -716,7 +716,7 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
-		
+
 		auto gov_name_seq = state.world.government_type_get_name(gov_type_id);
 		return text::produce_simple_string(state, gov_name_seq);
 	}
@@ -926,7 +926,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		
+
 		auto base = state.defines.suppression_points_gain_base;
 		auto nmod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::suppression_points_modifier) + 1.0f;
 		auto bmod = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.bureaucrat)) /
@@ -1468,7 +1468,7 @@ public:
 		}
 		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		float labor_pool = worker_pool + slave_pool;
-		
+
 		text::add_line(state, contents, "provinceview_employment", text::variable_type::value, int64_t(std::min(rgo_max, labor_pool)));
 		text::add_line_break_to_layout(state, contents);
 		{

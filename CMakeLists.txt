@@ -43,6 +43,16 @@ list(APPEND ALICE_SOURCES_LIST
 	"src/text/fonts.cpp"
 	"src/graphics/texture.cpp"
 	"src/common_types/date_interface.cpp"
+	"src/ai/ai.cpp"
+	"src/culture/culture.cpp"
+	"src/economy/economy.cpp"
+	"src/gamestate/modifiers.cpp"
+	"src/gamestate/serialization.cpp"
+	"src/military/military.cpp"
+	"src/nations/nations.cpp"
+	"src/provinces/province.cpp"
+	"src/scripting/effects.cpp"
+	"src/scripting/triggers.cpp"
 )
 
 if(WIN32)

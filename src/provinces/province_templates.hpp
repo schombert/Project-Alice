@@ -1,18 +1,7 @@
 #pragma once
-
 #include "system_state.hpp"
 
 namespace province {
-template<typename F>
-void for_each_land_province(sys::state& state, F const& func);
-template<typename F>
-void for_each_sea_province(sys::state& state, F const& func);
-template<typename F>
-void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func);
-template<typename F>
-void ve_for_each_land_province(sys::state& state, F const& func);
-template<typename T>
-auto is_overseas(sys::state const& state, T ids);
 
 template<typename T>
 auto is_overseas(sys::state const& state, T ids) {
@@ -56,4 +45,4 @@ void for_each_province_in_state_instance(sys::state& state, dcon::state_instance
 		}
 	}
 }
-}
+} // namespace province

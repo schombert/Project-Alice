@@ -7,8 +7,20 @@
 #include <vector>
 #include "rebels.hpp"
 #include "math_fns.hpp"
+#include "prng.hpp"
+#include "triggers.hpp"
 
 namespace province {
+
+template auto is_overseas<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
+template void for_each_province_in_state_instance<std::function<void(dcon::province_id)>>(sys::state&, dcon::state_instance_id, std::function<void(dcon::province_id)> const&);
+
+bool is_overseas(sys::state const& state, dcon::province_id ids) {
+	auto owners = state.world.province_get_nation_from_province_ownership(ids);
+	auto owner_cap = state.world.nation_get_capital(owners);
+	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
+				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
+}
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
