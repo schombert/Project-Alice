@@ -98,7 +98,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		}
 	}
 	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::name, navy.get_location_from_navy_location());
+	text::add_to_substitution_map(m, text::variable_type::name, army.get_location_from_army_location());
 	text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
 	auto box = text::open_layout_box(contents, 0);
 	text::localised_format_box(state, contents, box, "alice_spending_unit", m);
