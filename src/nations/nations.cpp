@@ -1087,12 +1087,32 @@ float get_treasury(sys::state& state, dcon::nation_id n) {
 }
 
 float get_bank_funds(sys::state& state, dcon::nation_id n) {
-	return 0.0f;
+	float funds = 0.0f;
+	for(auto prov_loc : state.world.nation_get_province_ownership_as_nation(n)) {
+		for(auto pop : state.world.province_get_pop_location_as_province(prov_loc.get_province())) {
+			funds += pop.get_pop().get_savings();
+		}
+	}
+	return funds;
 }
 
 float get_debt(sys::state& state, dcon::nation_id n) {
-	auto v = state.world.nation_get_stockpiles(n, economy::money);
-	return v < 0.0f ? -v : 0.0f;
+	float debt = 0.0f;
+	for(auto loan : state.world.nation_get_loan_as_debtor(n)) {
+		debt += loan.get_principal();
+	}
+	return debt > 0.0f ? debt : 0.0f;
+}
+
+/*
+Equal to the current national bank funds minus the amount already loaned out.
+*/
+float get_available_for_loan(sys::state& state, dcon::nation_id n) {
+	float available = get_bank_funds(state, n);
+	for(auto loan : state.world.nation_get_loan_as_creditor(n)) {
+		available -= loan.get_principal();
+	}
+	return std::max(available, 0.0f);
 }
 
 float tariff_efficiency(sys::state& state, dcon::nation_id n) {
