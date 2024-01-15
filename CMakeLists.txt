@@ -31,6 +31,20 @@ endforeach()
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
+list(APPEND ALICE_SOURCES_LIST
+	"src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map.cpp"
+	"src/parsing/parsers.cpp"
+	"src/parsing/float_from_chars.cpp"
+	"src/text/text.cpp"
+	"src/text/fonts.cpp"
+	"src/graphics/texture.cpp"
+	"src/common_types/date_interface.cpp"
+)
+
 if(WIN32)
 add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_state.cpp"
@@ -39,12 +53,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map.cpp"
 	"src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/parsing/parsers.cpp"
+add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
 else()
@@ -54,12 +63,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/parsing/parsers.cpp"
+add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
 	${ASSET_FILES})
 endif()
 

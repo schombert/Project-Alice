@@ -5,13 +5,19 @@
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "parsers.cpp"
-#endif
-#include "float_from_chars.cpp"
 #include "text.cpp"
+#include "float_from_chars.cpp"
 #include "fonts.cpp"
 #include "texture.cpp"
 #include "date_interface.cpp"
 #include "serialization.cpp"
+#else
+#include "text.hpp"
+#include "fonts.hpp"
+#include "texture.hpp"
+#include "date_interface.hpp"
+#include "serialization.hpp"
+#endif
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
