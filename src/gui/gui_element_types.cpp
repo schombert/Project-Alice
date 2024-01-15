@@ -1841,6 +1841,27 @@ void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
 }
 
+message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
 message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	scrollbar_settings parent_state = retrieve<scrollbar_settings>(state, parent);
 	int32_t pos_in_track = parent_state.vertical ? y : x;

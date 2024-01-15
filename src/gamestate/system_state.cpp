@@ -173,9 +173,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
-		if(state::user_settings.left_mouse_click_hold_and_release) {
-			ui_state.left_mouse_hold_target = ui_state.under_mouse;
-		}
+		ui_state.left_mouse_hold_target = ui_state.under_mouse;
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
@@ -233,13 +231,25 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	}
 	if(state::user_settings.left_mouse_click_hold_and_release) {
 		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+			ui_state.left_mouse_hold_target = nullptr;
 			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
 		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
 			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
 		}
+	}
+	if(ui_state.left_mouse_hold_target != nullptr) {
+
+		ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
 
 		ui_state.left_mouse_hold_target = nullptr;
+
+		if(ui_state.scrollbar_continuous_movement) {
+			Cyto::Any payload = ui::scrollbar_settings{};
+			temp_hold_target->impl_set(*this, payload);
+			ui_state.scrollbar_continuous_movement = false;
+		}
 	}
+	ui_state.scrollbar_timer = 0;
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
@@ -495,6 +505,31 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
+	}
+
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+	if(ui_state.last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
+		ui_state.last_render_time = now;
+	}
+	if(ui_state.fps_timer > 20) {
+		auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
+		auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
+		ui_state.last_fps = frames_per_second;
+		ui_state.fps_timer = 0;
+		ui_state.last_render_time = now;
+	}
+	ui_state.fps_timer += 1;
+
+	if(ui_state.scrollbar_timer > 500 * (ui_state.last_fps / 60)) {
+		ui_state.scrollbar_continuous_movement = true;
+		if(ui_state.left_mouse_hold_target != nullptr) {
+			Cyto::Any payload = ui::scrollbar_settings{};
+			ui_state.left_mouse_hold_target->impl_set(*this, payload);
+		}
+	}
+
+	if(ui_state.left_mouse_hold_target != nullptr) {
+		ui_state.scrollbar_timer += 1;
 	}
 
 	if(mode == sys::game_mode_type::end_screen) { // END SCREEN RENDERING

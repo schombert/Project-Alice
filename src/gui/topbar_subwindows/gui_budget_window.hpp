@@ -288,12 +288,125 @@ struct budget_slider_signal {
 template<budget_slider_target SliderTarget>
 class budget_slider : public scrollbar {
 public:
+	
+	void on_create(sys::state& state) noexcept final {
+		if(base_data.get_element_type() == element_type::scrollbar) {
+			auto step = base_data.data.scrollbar.get_step_size();
+			settings.scaling_factor = 1;
+			switch(step) {
+			case step_size::twenty_five:
+				break;
+			case step_size::two:
+				break;
+			case step_size::one:
+				break;
+			case step_size::one_tenth:
+				settings.scaling_factor = 10;
+				break;
+			case step_size::one_hundredth:
+				settings.scaling_factor = 100;
+				break;
+			case step_size::one_thousandth:
+				settings.scaling_factor = 1000;
+				break;
+			}
+			settings.lower_value = 0;
+			settings.upper_value = base_data.data.scrollbar.max_value * settings.scaling_factor;
+			settings.lower_limit = 0;
+			settings.upper_limit = settings.upper_value;
+
+			settings.vertical = !base_data.data.scrollbar.is_horizontal();
+			stored_value = settings.lower_value;
+
+			auto first_child = base_data.data.scrollbar.first_child;
+			auto num_children = base_data.data.scrollbar.num_children;
+
+			if(num_children >= 6) {
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(5 + first_child.index()));
+				auto ch_res = make_element_by_type<image_element_base>(state, child_tag);
+				right_limit = ch_res.get();
+				right_limit->set_visible(state, false);
+				add_child_to_back(std::move(ch_res));
+			}
+			if(num_children >= 5) {
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(4 + first_child.index()));
+				auto ch_res = make_element_by_type<image_element_base>(state, child_tag);
+				left_limit = ch_res.get();
+				left_limit->set_visible(state, false);
+				add_child_to_back(std::move(ch_res));
+			}
+
+			if(num_children >= 4) {
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(2 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_slider>(state, child_tag);
+					slider = ch_res.get();
+					add_child_to_back(std::move(ch_res));
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(0 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_left>(state, child_tag);
+					left = ch_res.get();
+					left->hold_continous = true;
+					add_child_to_back(std::move(ch_res));
+
+					settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
+					if(step_size::twenty_five == step)
+						left->step_size = 25;
+					else if(step_size::two == step)
+						left->step_size = 2;
+					else
+						left->step_size = 1;
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(1 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_right>(state, child_tag);
+					//ui::element_base* test = ch_res.get();
+					right = ch_res.get();
+					right->hold_continous = true;
+					add_child_to_back(std::move(ch_res));
+
+					if(step_size::twenty_five == step)
+						right->step_size = 25;
+					else if(step_size::two == step)
+						right->step_size = 2;
+					else
+						right->step_size = 1;
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(3 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_track>(state, child_tag);
+					track = ch_res.get();
+					add_child_to_back(std::move(ch_res));
+
+					settings.track_size = settings.vertical ? track->base_data.size.y : track->base_data.size.x;
+				}
+				left->base_data.position.x = 0;
+				left->base_data.position.y = 0;
+				if(settings.vertical) {
+					track->base_data.position.y = int16_t(settings.buttons_size);
+					slider->base_data.position.y = int16_t(settings.buttons_size);
+					right->base_data.position.y = int16_t(settings.track_size + settings.buttons_size);
+					// track->base_data.position.x = 0;
+					slider->base_data.position.x = 0;
+					right->base_data.position.x = 0;
+				} else {
+					track->base_data.position.x = int16_t(settings.buttons_size);
+					slider->base_data.position.x = int16_t(settings.buttons_size);
+					right->base_data.position.x = int16_t(settings.track_size + settings.buttons_size);
+					// track->base_data.position.y = 0;
+					slider->base_data.position.y = 0;
+					right->base_data.position.y = 0;
+				}
+			}
+		}
+	}
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		if(state.ui_state.drag_target == nullptr) {
+		if(state.ui_state.drag_target == nullptr && state.ui_state.left_mouse_hold_target != left && state.ui_state.left_mouse_hold_target != right) {
 			commit_changes(state);
 		}
 	}

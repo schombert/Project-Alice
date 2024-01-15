@@ -367,6 +367,11 @@ struct chat_message {
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* left_mouse_hold_target = nullptr;
+	uint16_t scrollbar_timer = 0;
+	uint16_t fps_timer = 0;
+	std::chrono::time_point<std::chrono::steady_clock> last_render_time{};
+	bool scrollbar_continuous_movement = false;
+	float last_fps;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
 	element_base* edit_target = nullptr;

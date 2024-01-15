@@ -751,15 +751,19 @@ protected:
 class scrollbar_left : public shift_button_element_base {
 public:
 	int32_t step_size = 1;
+	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
 class scrollbar_right : public shift_button_element_base {
 public:
 	int32_t step_size = 1;
+	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
 class scrollbar_track : public opaque_element_base {
@@ -805,9 +809,6 @@ struct value_change {
 };
 
 class scrollbar : public container_base {
-	image_element_base* left_limit = nullptr;
-	image_element_base* right_limit = nullptr;
-	int32_t stored_value = 0;
 
 protected:
 	scrollbar_left* left = nullptr;
@@ -815,6 +816,10 @@ protected:
 	scrollbar_slider* slider = nullptr;
 
 public:
+	image_element_base* left_limit = nullptr;
+	image_element_base* right_limit = nullptr;
+	int32_t stored_value = 0;
+
 	scrollbar_settings settings;
 
 	scrollbar_track* track = nullptr;
