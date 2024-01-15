@@ -397,6 +397,7 @@ struct state {
 	element_base* r_main_menu = nullptr; // Settings window for non-in-game modes
 	element_base* fps_counter = nullptr;
 	element_base* console_window = nullptr; // console window
+	element_base* console_window_r = nullptr;
 	element_base* topbar_window = nullptr;
 	element_base* topbar_subwindow = nullptr; // current tab window
 	element_base* province_window = nullptr;

@@ -1727,6 +1727,12 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(window));
 	}
 	{
+		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
+		ui_state.console_window_r = window.get();
+		window->set_visible(*this, false);
+		ui_state.nation_picker->add_child_to_front(std::move(window));
+	}
+	{
 		auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
 		ui_state.outliner_window = new_elm.get();
 		new_elm->impl_on_update(*this);
@@ -4404,15 +4410,24 @@ void state::game_loop() {
 	}
 }
 
-void state::console_log(ui::element_base* base, std::string message, bool open_console) {
-	if(ui_state.console_window != nullptr) {
-
-		Cyto::Any payload = std::string(to_string_view(base->base_data.name)) + ": " + std::string(message);
-		ui_state.console_window->impl_get(*this, payload);
-
-		if(open_console && !(ui_state.console_window->is_visible())) {
-			ui_state.root->move_child_to_front(ui_state.console_window);
-			ui_state.console_window->set_visible(*this, true);
+void state::console_log(std::string_view message) {
+	if(mode == game_mode_type::pick_nation) {
+		if(ui_state.console_window_r != nullptr) {
+			Cyto::Any payload = std::string(message);
+			ui_state.console_window_r->impl_get(*this, payload);
+			if(true && !(ui_state.console_window_r->is_visible())) {
+				ui_state.nation_picker->move_child_to_front(ui_state.console_window_r);
+				ui_state.console_window_r->set_visible(*this, true);
+			}
+		}
+	} else {
+		if(ui_state.console_window != nullptr) {
+			Cyto::Any payload = std::string(message);
+			ui_state.console_window->impl_get(*this, payload);
+			if(true && !(ui_state.console_window->is_visible())) {
+				ui_state.root->move_child_to_front(ui_state.console_window);
+				ui_state.console_window->set_visible(*this, true);
+			}
 		}
 	}
 }

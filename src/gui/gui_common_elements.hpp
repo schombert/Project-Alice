@@ -1753,10 +1753,9 @@ public:
 
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, sid);
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
-			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
-				modifier_description(state, contents, mid, 15);
-			}
+			text::add_line_break_to_layout_box(state, contents, box);
 			auto color = text::text_color::white;
 			if(fat_nf.get_promotion_type()) {
 				//Is the NF not optimal? Recolor it
@@ -1773,6 +1772,9 @@ public:
 				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
 			}
 			text::close_layout_box(contents, box);
+			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+				modifier_description(state, contents, mid, 15);
+			}
 		}
 	}
 

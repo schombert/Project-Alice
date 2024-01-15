@@ -1275,7 +1275,7 @@ void run_gc(sys::state& state) {
 	}
 }
 
-void cleanup_nation(sys::state& state, dcon::nation_id n) {
+ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
 	auto control = state.world.nation_get_province_control(n);

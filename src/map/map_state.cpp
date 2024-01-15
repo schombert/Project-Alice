@@ -726,7 +726,6 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos *= screen_size;
 			return true;
 		}
-		break;
 	case sys::projection_mode::globe_perpect:
 		{
 			float aspect_ratio = screen_size.x / screen_size.y;
@@ -804,7 +803,6 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 			screen_pos *= screen_size;
 			return true;
 		}
-		break;
 	case sys::projection_mode::flat:
 		{
 			map_pos -= pos;
@@ -831,13 +829,10 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 				return false;
 			return true;
 		}
-		break;
 	case sys::projection_mode::num_of_modes:
 		return false;
-		break;
 	default:
 		return false;
-		break;
 	}
 }
 
