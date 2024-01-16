@@ -875,11 +875,26 @@ void con_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::pr
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		float average_con = (state.world.province_get_demographics(prov, demographics::consciousness) / state.world.province_get_demographics(prov, demographics::total));
-		text::add_line(state, contents, "mtt_con_average", text::variable_type::val, text::fp_two_places{ average_con });
+		text::add_line(state, contents, "mtt_con_average", text::variable_type::val, text::fp_one_place{ average_con });
 		ui::active_modifiers_description(state, contents, prov, 0, sys::provincial_mod_offsets::pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::core_pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::global_pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier, true);
+	}
+}
+
+void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto box = text::open_layout_box(contents);
+
+		float employment_rate = (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
+
+		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_total_employment"), text::variable_type::value, text::format_percentage(employment_rate, 1));
+
+		text::close_layout_box(contents, box);
 	}
 }
 
@@ -968,6 +983,9 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::conciousness:
 		con_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::employment:
+		employment_map_tt_box(state, contents, prov);
 		break;
 	default:
 		break;
