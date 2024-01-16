@@ -367,6 +367,11 @@ struct chat_message {
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* left_mouse_hold_target = nullptr;
+	uint16_t scrollbar_timer = 0;
+	uint16_t fps_timer = 0;
+	std::chrono::time_point<std::chrono::steady_clock> last_render_time{};
+	bool scrollbar_continuous_movement = false;
+	float last_fps;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
 	element_base* edit_target = nullptr;
@@ -392,6 +397,7 @@ struct state {
 	element_base* r_main_menu = nullptr; // Settings window for non-in-game modes
 	element_base* fps_counter = nullptr;
 	element_base* console_window = nullptr; // console window
+	element_base* console_window_r = nullptr;
 	element_base* topbar_window = nullptr;
 	element_base* topbar_subwindow = nullptr; // current tab window
 	element_base* province_window = nullptr;

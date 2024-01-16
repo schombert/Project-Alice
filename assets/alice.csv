@@ -1466,6 +1466,24 @@ alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
+alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
+alice_budget_setting_percent;Set at $perc$.
+alice_spending_land_construction;Land construction in $name$: §R$cost$§W
+alice_spending_naval_construction;Naval construction in $name$: §R$cost$§W
+alice_spending_building_construction;Building construction in $name$: §R$cost$§W
+alice_spending_factory_construction;Factory construction in $name$: §R$cost$§W
+alice_spending_unit;Total spent on this unit in $name$: §R$cost$§W
+alice_spending_unit_1;Total spent on this unit: §R$cost$§W
+alice_spending_total;§YTotal spent:§W
+alice_spending_commodity;§R$cost$§W - Needs $need$ of $name$ ($val$)
+alice_spending_commodity_2;§R$cost$§W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
+alice_recommended_build;§GThis factory is recommended to be built§W
+alice_factory_bonus;We will receive a §Y$x$§W bonus if:
+alice_factory_inputs;Inputs required:
+alice_factory_input_item;§R$cost$§W - Needs $need$ of $name$ ($val$)
+alice_factory_base_workforce;Base workforce §Y$x$§W
+alice_factory_total_bonus;This sums to about §Y$x$§W
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
@@ -1478,4 +1496,5 @@ att_call_allies_effect;Call allies of this nation into its current wars
 modifier_min_domestic_investment;Minimum domestic investment rate
 modifier_max_domestic_investment;Maximum domestic investment rate
 mouse_left_click_mode_label;Mouse click hold release
+alice_supply_limit_desc;Supply limit: $x$
 ;;;;;;;;;;;;;x

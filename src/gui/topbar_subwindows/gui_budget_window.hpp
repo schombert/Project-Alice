@@ -288,12 +288,125 @@ struct budget_slider_signal {
 template<budget_slider_target SliderTarget>
 class budget_slider : public scrollbar {
 public:
+	
+	void on_create(sys::state& state) noexcept final {
+		if(base_data.get_element_type() == element_type::scrollbar) {
+			auto step = base_data.data.scrollbar.get_step_size();
+			settings.scaling_factor = 1;
+			switch(step) {
+			case step_size::twenty_five:
+				break;
+			case step_size::two:
+				break;
+			case step_size::one:
+				break;
+			case step_size::one_tenth:
+				settings.scaling_factor = 10;
+				break;
+			case step_size::one_hundredth:
+				settings.scaling_factor = 100;
+				break;
+			case step_size::one_thousandth:
+				settings.scaling_factor = 1000;
+				break;
+			}
+			settings.lower_value = 0;
+			settings.upper_value = base_data.data.scrollbar.max_value * settings.scaling_factor;
+			settings.lower_limit = 0;
+			settings.upper_limit = settings.upper_value;
+
+			settings.vertical = !base_data.data.scrollbar.is_horizontal();
+			stored_value = settings.lower_value;
+
+			auto first_child = base_data.data.scrollbar.first_child;
+			auto num_children = base_data.data.scrollbar.num_children;
+
+			if(num_children >= 6) {
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(5 + first_child.index()));
+				auto ch_res = make_element_by_type<image_element_base>(state, child_tag);
+				right_limit = ch_res.get();
+				right_limit->set_visible(state, false);
+				add_child_to_back(std::move(ch_res));
+			}
+			if(num_children >= 5) {
+				auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(4 + first_child.index()));
+				auto ch_res = make_element_by_type<image_element_base>(state, child_tag);
+				left_limit = ch_res.get();
+				left_limit->set_visible(state, false);
+				add_child_to_back(std::move(ch_res));
+			}
+
+			if(num_children >= 4) {
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(2 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_slider>(state, child_tag);
+					slider = ch_res.get();
+					add_child_to_back(std::move(ch_res));
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(0 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_left>(state, child_tag);
+					left = ch_res.get();
+					left->hold_continous = true;
+					add_child_to_back(std::move(ch_res));
+
+					settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
+					if(step_size::twenty_five == step)
+						left->step_size = 25;
+					else if(step_size::two == step)
+						left->step_size = 2;
+					else
+						left->step_size = 1;
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(1 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_right>(state, child_tag);
+					//ui::element_base* test = ch_res.get();
+					right = ch_res.get();
+					right->hold_continous = true;
+					add_child_to_back(std::move(ch_res));
+
+					if(step_size::twenty_five == step)
+						right->step_size = 25;
+					else if(step_size::two == step)
+						right->step_size = 2;
+					else
+						right->step_size = 1;
+				}
+				{
+					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(3 + first_child.index()));
+					auto ch_res = make_element_by_type<scrollbar_track>(state, child_tag);
+					track = ch_res.get();
+					add_child_to_back(std::move(ch_res));
+
+					settings.track_size = settings.vertical ? track->base_data.size.y : track->base_data.size.x;
+				}
+				left->base_data.position.x = 0;
+				left->base_data.position.y = 0;
+				if(settings.vertical) {
+					track->base_data.position.y = int16_t(settings.buttons_size);
+					slider->base_data.position.y = int16_t(settings.buttons_size);
+					right->base_data.position.y = int16_t(settings.track_size + settings.buttons_size);
+					// track->base_data.position.x = 0;
+					slider->base_data.position.x = 0;
+					right->base_data.position.x = 0;
+				} else {
+					track->base_data.position.x = int16_t(settings.buttons_size);
+					slider->base_data.position.x = int16_t(settings.buttons_size);
+					right->base_data.position.x = int16_t(settings.track_size + settings.buttons_size);
+					// track->base_data.position.y = 0;
+					slider->base_data.position.y = 0;
+					right->base_data.position.y = 0;
+				}
+			}
+		}
+	}
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		if(parent) {
 			float amount = float(v) / 100.0f;
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		if(state.ui_state.drag_target == nullptr) {
+		if(state.ui_state.drag_target == nullptr && state.ui_state.left_mouse_hold_target != left && state.ui_state.left_mouse_hold_target != right) {
 			commit_changes(state);
 		}
 	}
@@ -495,11 +608,26 @@ private:
 			break;
 		}
 	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		return scrollbar::test_mouse(state, x, y, type);
+	}
 };
 
 class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_tax> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_poor_tax(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_poor_tax(n) });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -507,11 +635,29 @@ class budget_middle_tax_slider : public budget_slider<budget_slider_target::midd
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_middle_tax(state.local_player_nation));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_middle_tax(n) });
+		text::close_layout_box(contents, box);
+	}
 };
 
 class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_tax> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_rich_tax(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_rich_tax(n) });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -519,11 +665,67 @@ class budget_army_stockpile_slider : public budget_slider<budget_slider_target::
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_land_spending(state.local_player_nation));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_land_spending(n) });
+			text::close_layout_box(contents, box);
+		}
+		uint32_t total_commodities = state.world.commodity_size();
+		for(uint32_t i = 1; i < total_commodities; ++i) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+			auto cost = state.world.commodity_get_current_price(cid);
+			auto amount = state.world.nation_get_army_demand(n, cid);
+			if(amount > 0.f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
 };
 
 class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::navy_stock> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_naval_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_naval_spending(n) });
+			text::close_layout_box(contents, box);
+		}
+
+		uint32_t total_commodities = state.world.commodity_size();
+		for(uint32_t i = 1; i < total_commodities; ++i) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+			auto cost = state.world.commodity_get_current_price(cid);
+			auto amount = state.world.nation_get_navy_demand(n, cid);
+			if(amount > 0.f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+			}
+		}
 	}
 };
 
@@ -531,11 +733,171 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_construction_spending(state.local_player_nation));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_construction_spending(n) });
+			text::close_layout_box(contents, box);
+		}
+
+		std::vector<float> total;
+		total.resize(size_t(state.world.commodity_size()), 0.0f);
+
+		float admin_eff = state.world.nation_get_administrative_efficiency(n);
+		float admin_cost_factor = 2.0f - admin_eff;
+		for(auto lc : state.world.nation_get_province_land_construction(n)) {
+			auto province = state.world.pop_get_province_from_pop_location(state.world.province_land_construction_get_pop(lc));
+			if(state.world.province_get_nation_from_province_control(province) == n) {
+				auto& base_cost = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(lc)].build_cost;
+				auto& current_purchased = state.world.province_land_construction_get_purchased_goods(lc);
+				float construction_time = float(state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(lc)].build_time);
+				//
+				float total_cost = 0.f;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(auto cid = base_cost.commodity_type[i]; cid) {
+						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
+							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
+							float cost = state.world.commodity_get_current_price(cid);
+							total_cost += cost * amount;
+							total[base_cost.commodity_type[i].index()] += cost * amount;
+						}
+					} else {
+						break;
+					}
+				}
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, province);
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_land_construction", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+		for(auto po : state.world.nation_get_province_ownership(n)) {
+			auto p = po.get_province();
+			if(state.world.province_get_nation_from_province_control(p) != n)
+				continue;
+			auto rng = state.world.province_get_province_naval_construction(p);
+			if(rng.begin() != rng.end()) {
+				auto c = *(rng.begin());
+				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
+				auto& current_purchased = c.get_purchased_goods();
+				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+				//
+				float total_cost = 0.f;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(auto cid = base_cost.commodity_type[i]; cid) {
+						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
+							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
+							float cost = state.world.commodity_get_current_price(cid);
+							total_cost += cost * amount;
+							total[base_cost.commodity_type[i].index()] += cost * amount;
+						}
+					} else {
+						break;
+					}
+				}
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, p);
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_naval_construction", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+		for(auto c : state.world.nation_get_province_building_construction(n)) {
+			if(n == c.get_province().get_nation_from_province_control() && !c.get_is_pop_project()) {
+				auto t = economy::province_building_type(c.get_type());
+				auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
+				auto& current_purchased = c.get_purchased_goods();
+				float construction_time = float(state.economy_definitions.building_definitions[int32_t(t)].time);
+				//
+				float total_cost = 0.f;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(auto cid = base_cost.commodity_type[i]; cid) {
+						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
+							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] / construction_time;
+							float cost = state.world.commodity_get_current_price(cid);
+							total_cost += cost * amount;
+							total[base_cost.commodity_type[i].index()] += cost * amount;
+						}
+					} else {
+						break;
+					}
+				}
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, c.get_province());
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_building_construction", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+		float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
+		for(auto c : state.world.nation_get_state_building_construction(n)) {
+			if(!c.get_is_pop_project()) {
+				auto& base_cost = c.get_type().get_construction_costs();
+				auto& current_purchased = c.get_purchased_goods();
+				float construction_time = float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
+				//
+				float total_cost = 0.f;
+				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+					if(auto cid = base_cost.commodity_type[i]; cid) {
+						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
+							float amount = state.world.nation_get_demand_satisfaction(n, cid) * base_cost.commodity_amounts[i] * factory_mod / construction_time;
+							float cost = state.world.commodity_get_current_price(cid);
+							total_cost += cost * amount;
+							total[base_cost.commodity_type[i].index()] += cost * amount;
+						}
+					} else {
+						break;
+					}
+				}
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, c.get_state());
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_factory_construction", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+		text::add_line(state, contents, "alice_spending_total");
+		uint32_t total_commodities = state.world.commodity_size();
+		for(uint32_t i = 1; i < total_commodities; ++i) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+			auto cost = state.world.commodity_get_current_price(cid);
+			auto amount = total[i];
+			if(amount > 0.f) {
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
 };
 
 class budget_education_slider : public budget_slider<budget_slider_target::education> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_education_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_education_spending(n) });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -543,11 +905,29 @@ class budget_administration_slider : public budget_slider<budget_slider_target::
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_administrative_spending(state.local_player_nation));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_administrative_spending(n) });
+		text::close_layout_box(contents, box);
+	}
 };
 
 class budget_social_spending_slider : public budget_slider<budget_slider_target::social> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_social_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_social_spending(n) });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -555,11 +935,29 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_military_spending(state.local_player_nation));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_military_spending(n) });
+		text::close_layout_box(contents, box);
+	}
 };
 
 class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_tariffs(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs(n) });
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1186,6 +1584,19 @@ public:
 class domestic_investment_slider : public budget_slider<budget_slider_target::domestic_investment> {
 	int32_t get_true_value(sys::state& state) noexcept override {
 		return int32_t(state.world.nation_get_domestic_investment_spending(state.local_player_nation));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_domestic_investment_spending(n) });
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::close_layout_box(contents, box);
+
+		text::add_line(state, contents, "alice_domestic_investment_pops", text::variable_type::x, text::pretty_integer{ int32_t(state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.capitalists))) });
+		text::add_line(state, contents, "alice_domestic_investment_needs", text::variable_type::x, text::fp_currency{ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.capitalists) });
 	}
 };
 class domestic_investment_estimated_text : public simple_text_element_base {

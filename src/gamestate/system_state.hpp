@@ -672,7 +672,7 @@ struct alignas(64) state {
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void preload(); // clears data that will be later reconstructed from saved values
 
-	void console_log(ui::element_base* base, std::string message, bool open_console = true);
+	void console_log(std::string_view message);
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
 
