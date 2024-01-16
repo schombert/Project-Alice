@@ -114,7 +114,8 @@ constexpr inline dcon::commodity_id money(0);
 // to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
 // if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
-constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+//constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
@@ -224,4 +225,18 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
+
+inline constexpr float production_scale_delta = 0.0001f;
+inline constexpr uint32_t price_history_lenght = 256;
+
+
+// handcrafted, environment friendly tanks from recycled materials
+// no industrial wastefulness...
+inline constexpr float inputs_base_factor_artisans = 0.1f;
+inline constexpr float output_base_factor_artisans = 0.15f;
+// factories
+inline constexpr float inputs_base_factor = 0.95f;
+
+inline constexpr float rgo_boost = 1.85f;
+
 } // namespace economy

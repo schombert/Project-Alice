@@ -822,6 +822,8 @@ void update_ai_ruling_party(sys::state& state) {
 void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
+
+	/*
 	// first pass: try to fill shortages
 	for(auto type : state.world.in_factory_type) {
 		if(n.get_active_building(type) || type.get_is_available_from_start()) {
@@ -842,20 +844,36 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 			}
 		} // END if building unlocked
 	}
+	*/
+
 	if(desired_types.empty()) { // second pass: try to make money
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
+				bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.02f;
+
+				float input_total = 0.f;
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(inputs.commodity_type[i]) {
-						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+						input_total += inputs.commodity_amounts[i] * state.world.commodity_get_current_price(inputs.commodity_type[i]);
+						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
 							lacking_input = true;
 					} else {
 						break;
 					}
 				}
-				if(!lacking_input)
+
+				float output_total = type.get_output_amount() * state.world.commodity_get_current_price(type.get_output());
+
+				float input_multiplier = std::max(0.1f, (economy::inputs_base_factor +
+					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)));
+
+				float output_multiplier = state.world.nation_get_factory_goods_output(n, type.get_output()) +
+					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_output) + 1.0f;
+
+
+				if(!lacking_input && (lacking_output || (input_total * input_multiplier * 0.9 <= output_total * output_multiplier)))
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}

@@ -1027,11 +1027,17 @@ void regenerate_land_unit_average(sys::state& state) {
 	*/
 	auto const max = state.military_definitions.unit_base_definitions.size();
 	state.world.for_each_nation([&](dcon::nation_id n) {
-		float total = 0;
-		float count = 0;
-
 		auto lo_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier);
 		auto ld_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier);
+
+		auto irregular = state.military_definitions.irregular;
+		auto& irreg_stats = state.world.nation_get_unit_stats(n, irregular);
+
+		// handle irregular infantry as it seems to be unhandled by code below...
+		float total = ((irreg_stats.defence_or_hull + ld_mod) + (irreg_stats.attack_or_gun_power + lo_mod)) *
+			state.military_definitions.unit_base_definitions[irregular].discipline_or_evasion;
+		float count = 1;
+		
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};

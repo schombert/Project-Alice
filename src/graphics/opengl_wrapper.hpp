@@ -40,6 +40,7 @@ inline constexpr GLuint interactable = 13;
 inline constexpr GLuint interactable_disabled = 14;
 inline constexpr GLuint subsprite_b = 15;
 inline constexpr GLuint alternate_tint = 16;
+inline constexpr GLuint linegraph_color = 17;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -268,6 +269,7 @@ void render_textured_rect(sys::state const& state, color_modification enabled, f
 		GLuint texture_handle, ui::rotation r, bool flipped);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l);
+void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, lines& l);
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		data_texture& t, ui::rotation r, bool flipped);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
