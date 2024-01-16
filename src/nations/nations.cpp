@@ -1332,6 +1332,7 @@ void run_gc(sys::state& state) {
 
 	state.national_definitions.gc_pending = true;
 	state.diplomatic_cached_values_out_of_date = true; // refresh stored counts of allies, vassals, etc
+	politics::update_displayed_identity(state, n);
 
 	if(n == state.local_player_nation) {
 		// Player was defeated, show end screen
