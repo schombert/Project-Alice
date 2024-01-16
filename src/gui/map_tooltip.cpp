@@ -925,7 +925,6 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		auto region = fat.get_state_membership();
 
 		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_factory_count"), text::variable_type::state, text::get_province_state_name(state, prov));
-		text::add_to_layout_box(state, contents, box, economy::state_factory_count(state, region, fat.get_nation_from_province_ownership()), text::text_color::yellow);
 
 		std::vector<dcon::factory_fat_id> factories;
 		for(auto m : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
@@ -938,6 +937,7 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		}
 		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return a.get_level() > b.get_level(); });
 
+		text::add_to_layout_box(state, contents, box, text::pretty_integer(factories.size()), text::text_color::yellow);
 		for(size_t i = 0; i < factories.size(); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_space_to_layout_box(state, contents, box);
