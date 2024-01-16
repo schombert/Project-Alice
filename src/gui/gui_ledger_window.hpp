@@ -2,6 +2,7 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
 

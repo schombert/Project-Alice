@@ -6,6 +6,9 @@
 
 namespace trigger {
 
+float read_float_from_payload(uint16_t const* data);
+int32_t read_int32_t_from_payload(uint16_t const* data);
+
 inline int32_t to_generic(dcon::province_id v) {
 	return v.index();
 }
@@ -82,35 +85,35 @@ inline ve::partial_contiguous_tags<int32_t> to_generic(ve::partial_contiguous_ta
 	return ve::partial_contiguous_tags<int32_t>(v.value, v.subcount);
 }
 
-dcon::province_id to_prov(int32_t v) {
+inline dcon::province_id to_prov(int32_t v) {
 	return dcon::province_id(dcon::province_id::value_base_t(v));
 }
-ve::tagged_vector<dcon::province_id> to_prov(ve::tagged_vector<int32_t> v) {
+inline ve::tagged_vector<dcon::province_id> to_prov(ve::tagged_vector<int32_t> v) {
 	return ve::tagged_vector<dcon::province_id>(v, std::true_type{});
 }
-ve::contiguous_tags<dcon::province_id> to_prov(ve::contiguous_tags<int32_t> v) {
+inline ve::contiguous_tags<dcon::province_id> to_prov(ve::contiguous_tags<int32_t> v) {
 	return ve::contiguous_tags<dcon::province_id>(v.value);
 }
-ve::unaligned_contiguous_tags<dcon::province_id> to_prov(ve::unaligned_contiguous_tags<int32_t> v) {
+inline ve::unaligned_contiguous_tags<dcon::province_id> to_prov(ve::unaligned_contiguous_tags<int32_t> v) {
 	return ve::unaligned_contiguous_tags<dcon::province_id>(v.value);
 }
-ve::partial_contiguous_tags<dcon::province_id> to_prov(ve::partial_contiguous_tags<int32_t> v) {
+inline ve::partial_contiguous_tags<dcon::province_id> to_prov(ve::partial_contiguous_tags<int32_t> v) {
 	return ve::partial_contiguous_tags<dcon::province_id>(v.value, v.subcount);
 }
 
-dcon::nation_id to_nation(int32_t v) {
+inline dcon::nation_id to_nation(int32_t v) {
 	return dcon::nation_id(dcon::nation_id::value_base_t(v));
 }
-ve::tagged_vector<dcon::nation_id> to_nation(ve::tagged_vector<int32_t> v) {
+inline ve::tagged_vector<dcon::nation_id> to_nation(ve::tagged_vector<int32_t> v) {
 	return ve::tagged_vector<dcon::nation_id>(v, std::true_type{});
 }
-ve::contiguous_tags<dcon::nation_id> to_nation(ve::contiguous_tags<int32_t> v) {
+inline ve::contiguous_tags<dcon::nation_id> to_nation(ve::contiguous_tags<int32_t> v) {
 	return ve::contiguous_tags<dcon::nation_id>(v.value);
 }
-ve::unaligned_contiguous_tags<dcon::nation_id> to_nation(ve::unaligned_contiguous_tags<int32_t> v) {
+inline ve::unaligned_contiguous_tags<dcon::nation_id> to_nation(ve::unaligned_contiguous_tags<int32_t> v) {
 	return ve::unaligned_contiguous_tags<dcon::nation_id>(v.value);
 }
-ve::partial_contiguous_tags<dcon::nation_id> to_nation(ve::partial_contiguous_tags<int32_t> v) {
+inline ve::partial_contiguous_tags<dcon::nation_id> to_nation(ve::partial_contiguous_tags<int32_t> v) {
 	return ve::partial_contiguous_tags<dcon::nation_id>(v.value, v.subcount);
 }
 
