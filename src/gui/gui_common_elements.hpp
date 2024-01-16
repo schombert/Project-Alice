@@ -570,17 +570,19 @@ public:
 				}
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
-			text::add_line(state, contents, "alice_indscore_1", text::variable_type::x, si.get_state());
-			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_two_places{ total_factory_capacity });
-			text::add_line(state, contents, "alice_indscore_3", text::variable_type::x, text::fp_two_places{ total_level });
-			text::add_line(state, contents, "alice_indscore_4", text::variable_type::x, text::fp_two_places{ worker_total });
-			text::add_line(state, contents, "alice_indscore_5", text::variable_type::x, text::fp_two_places{ per_state });
+			if(per_state > 0.f) {
+				text::add_line(state, contents, "alice_indscore_1", text::variable_type::x, si.get_state());
+				text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_two_places{ total_factory_capacity });
+				text::add_line(state, contents, "alice_indscore_3", text::variable_type::x, text::int_wholenum{ int32_t(total_level) });
+				text::add_line(state, contents, "alice_indscore_4", text::variable_type::x, text::fp_two_places{ worker_total });
+				text::add_line(state, contents, "alice_indscore_5", text::variable_type::x, text::fp_two_places{ per_state });
+			}
 		}
 		text::add_line(state, contents, "alice_indscore_6", text::variable_type::x, text::fp_two_places{ iweight });
 		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
 			text::substitution_map sub{};
 			text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
-			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ ur.get_foreign_investment() });
+			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_indscore_7"), sub);
 			text::close_layout_box(contents, box);
