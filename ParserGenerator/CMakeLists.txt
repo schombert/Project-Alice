@@ -17,7 +17,7 @@ if(WIN32)
 		target_compile_options(ParserGenerator PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /D_USE_STD_VECTOR_ALGORITHMS=0 /GF /w34388 /w34389
 										-Wno-missing-prototypes -Wno-unsafe-buffer-usage
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /Od /RTC1>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(ParserGenerator PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
@@ -25,8 +25,8 @@ if(WIN32)
 	else()
 		target_compile_options(ParserGenerator PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /D_USE_STD_VECTOR_ALGORITHMS=0 /GF /w34388 /w34389
-			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
-			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /Zc:preprocessor /GS- /Gy /Gw /Zc:inline>)
+			$<$<CONFIG:Debug>:			/RTC1 /EHsc /Od /RTC1>
+			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /Zc:preprocessor /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(ParserGenerator PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)

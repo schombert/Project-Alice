@@ -27,7 +27,7 @@ if(WIN32)
 		target_compile_options(DCONGENERATOR PRIVATE
 											/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /D_USE_STD_VECTOR_ALGORITHMS=0 /GF /wd4388 /wd4389 -Wno-unused-parameter -Wno-sign-compare -Wno-newline-eof -Wno-missing-prototypes -Wno-unsafe-buffer-usage -Wno-shadow-uncaptured-local -Wno-unreachable-code-break
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MDd /Od>
-				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
+				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(DCONGENERATOR PRIVATE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
@@ -35,7 +35,7 @@ if(WIN32)
 		target_compile_options(DCONGENERATOR PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /D_USE_STD_VECTOR_ALGORITHMS=0 /GF /wd4388 /wd4389
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MDd /Od>
-			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
+			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(DCONGENERATOR PRIVATE
 			$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
