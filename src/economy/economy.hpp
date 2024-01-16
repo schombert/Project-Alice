@@ -160,9 +160,9 @@ float estimate_tariff_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
-float estimate_loan_payments(sys::state& state, dcon::nation_id n);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
@@ -192,17 +192,11 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);

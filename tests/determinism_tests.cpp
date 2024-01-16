@@ -43,7 +43,7 @@ TEST_CASE("fp_fmadd", "[determinism]") {
 	UNOPTIMIZABLE_FLOAT(f2, 2.f);
 	UNOPTIMIZABLE_FLOAT(f3, 3.f);
 	UNOPTIMIZABLE_FLOAT(f4, 4.f);
-	
+
 	float fmadd_1 = f1 * f2 + f3 * f4; //equation
 	float fmadd_2 = f3 * f4 + f1 * f2; //reverse products
 	float fmadd_3 = f1 * (f2 + (f3 * f4) / f1); //factorization by f1
@@ -62,7 +62,7 @@ TEST_CASE("fp_fprec", "[determinism]") {
 	UNOPTIMIZABLE_FLOAT(f1, 2.f);
 	UNOPTIMIZABLE_FLOAT(f2, 4.f);
 	UNOPTIMIZABLE_FLOAT(f3, 3.f);
-	
+
 	float fprec_1 = f1 * f2 / f3; //equation
 	float fprec_2 = (f1 * f2) / f3; //same
 	float fprec_3 = f1 * (f2 / f3); //same
@@ -309,8 +309,8 @@ void checked_single_tick(sys::state& ws1, sys::state& ws2) {
 	compare_game_states(ws1, ws2);
 
 	// basic repopulation of demographics derived values
-	demographics::regenerate_from_pop_data(ws1);
-	demographics::regenerate_from_pop_data(ws2);
+	demographics::regenerate_from_pop_data<true>(ws1);
+	demographics::regenerate_from_pop_data<true>(ws2);
 	compare_game_states(ws1, ws2);
 
 	// values updates pass 1 (mostly trivial things, can be done in parallel)

@@ -13,11 +13,29 @@ template<class T>
 class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
-			progress = fat.get_org();
+		auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+		progress = fat.get_org();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_org"));
+			auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+			auto color = fat.get_org() >= 0.9f ? text::text_color::green
+				: fat.get_org() < 0.5f ? text::text_color::red
+				: text::text_color::yellow;
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ fat.get_org() }, color);
+			text::close_layout_box(contents, box);
+		}
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::land_organisation, true);
+		} else {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::naval_organisation, true);
 		}
 	}
 };
@@ -26,12 +44,51 @@ template<class T>
 class subunit_strength_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
-			progress = fat.get_strength();
+		auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+		progress = fat.get_strength();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
+			auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+			auto color = fat.get_strength() >= 0.9f ? text::text_color::green
+				: fat.get_strength() < 0.5f ? text::text_color::red
+				: text::text_color::yellow;
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ fat.get_strength() }, color);
+			text::close_layout_box(contents, box);
 		}
+		auto fat_id = dcon::fatten(state.world, retrieve<T>(state, parent));
+		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		auto& supply_cost = state.military_definitions.unit_base_definitions[fat_id.get_type()].supply_cost;
+		float total_cost = 0.f;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(state.local_player_nation, fat_id.get_type()).supply_consumption * o_sc_mod;
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(supply_cost.commodity_type[i]));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+				total_cost += cost * amount;
+			} else {
+				break;
+			}
+		}
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_spending_unit_1", m);
+		text::close_layout_box(contents, box);
 	}
 };
 

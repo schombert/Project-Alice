@@ -3,21 +3,13 @@
 #endif
 #include "common_types.cpp"
 #include "system_state.cpp"
+#ifndef INCREMENTAL
 #include "parsers.cpp"
-#include "defines.cpp"
-#include "float_from_chars.cpp"
-#include "gui_graphics_parsers.cpp"
 #include "text.cpp"
+#include "float_from_chars.cpp"
 #include "fonts.cpp"
 #include "texture.cpp"
-#include "nations_parsing.cpp"
-#include "cultures_parsing.cpp"
-#include "econ_parsing.cpp"
-#include "military_parsing.cpp"
 #include "date_interface.cpp"
-#include "provinces_parsing.cpp"
-#include "trigger_parsing.cpp"
-#include "effect_parsing.cpp"
 #include "serialization.cpp"
 #include "nations.cpp"
 #include "culture.cpp"
@@ -27,10 +19,18 @@
 #include "triggers.cpp"
 #include "effects.cpp"
 #include "economy.cpp"
+
+#include "ai.cpp"
+#else
+#include "text.hpp"
+#include "fonts.hpp"
+#include "texture.hpp"
+#include "date_interface.hpp"
+#include "serialization.hpp"
+#endif
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
-#include "parsers_declarations.cpp"
 #include "politics.cpp"
 #include "events.cpp"
 #include "gui_graphics.cpp"
@@ -52,7 +52,6 @@
 #include "notifications.cpp"
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
-#include "ai.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
@@ -66,7 +65,6 @@
 #include "window_win.cpp"
 #include "sound_win.cpp"
 #include "opengl_wrapper_win.cpp"
-#include "directx_wrapper.cpp"
 
 #ifndef ALICE_NO_ENTRY_POINT
 #include "entry_point_win.cpp"

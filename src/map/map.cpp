@@ -550,7 +550,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	if(!unit_arrow_vertices.empty()) {
+	if(zoom > map::zoom_close && !unit_arrow_vertices.empty()) { //only render if close enough
 		load_shader(shaders[shader_line_unit_arrow]);
 		glUniform1f(4, 0.005f); // width
 		glBindVertexArray(vao_array[vo_unit_arrow]);

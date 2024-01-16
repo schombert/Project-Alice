@@ -153,7 +153,7 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "bg_military") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<opaque_element_base>(state, id);
 
 		} else if(name == "headline_military") {
 			return make_element_by_type<simple_text_element_base>(state, id);

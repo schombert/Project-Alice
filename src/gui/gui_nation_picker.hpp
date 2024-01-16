@@ -192,16 +192,14 @@ public:
 			}
 		}
 		if(loaded) {
-			/* Updating this flag lets the network state know that
-			   we NEED to send the savefile data, otherwise it is
-			   safe to assume the client has its own data - friendly
-			   reminder that, scenario loading and reloading ends up
-			   with different outcomes :D */
+			/* Updating this flag lets the network state know that we NEED to send the
+			savefile data, otherwise it is safe to assume the client has its own data
+			friendly reminder that, scenario loading and reloading ends up with different outcomes */
 			state.network_state.is_new_game = false;
 			if(state.network_mode == sys::network_mode_type::host) {
-				state.local_player_nation = dcon::nation_id{ };
 				/* Save the buffer before we fill the unsaved data */
-				state.network_state.current_save_length = network::write_network_save(state, state.network_state.current_save_buffer);
+				state.local_player_nation = dcon::nation_id{ };
+				network::write_network_save(state);
 				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
@@ -214,7 +212,7 @@ public:
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
 				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length);
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
 			} else {
 				state.fill_unsaved_data();
 			}
@@ -377,6 +375,9 @@ protected:
 
 public:
 	void on_create(sys::state& state) noexcept override {
+		base_data.size.x -= 20; //nudge
+		base_data.size.y += base_data.position.y;
+		base_data.position.y = 0;
 		listbox_element_base<save_game_item, save_item>::on_create(state);
 		update_save_list(state);
 	}

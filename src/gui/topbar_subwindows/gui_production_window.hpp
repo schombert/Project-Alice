@@ -9,6 +9,8 @@
 #include "gui_build_factory_window.hpp"
 #include "gui_project_investment_window.hpp"
 #include "gui_foreign_investment_window.hpp"
+#include "economy_templates.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
 
@@ -128,7 +130,7 @@ public:
 
 		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid,
 			fat.get_building_type().id, true);
-		
+
 	}
 
 	void button_shift_action(sys::state& state) noexcept override {
@@ -145,7 +147,7 @@ public:
 				}
 			}
 		}
-		
+
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -194,7 +196,7 @@ public:
 		if(!is_not_upgrading) {
 			return;
 		}
-		
+
 		text::add_line(state, contents, "production_expand_factory_tooltip");
 
 		text::add_line_break_to_layout(state, contents);
@@ -214,7 +216,7 @@ public:
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", gp_condition);
 
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
-	
+
 			auto rules = state.world.nation_get_combined_issue_rules(n);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
 					(rules & issue_rule::allow_foreign_investment) != 0);
@@ -226,7 +228,7 @@ public:
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
 
-		
+
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
@@ -271,7 +273,7 @@ public:
 
 class factory_subsidise_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {	
+	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto rules = state.world.nation_get_combined_issue_rules(n);
@@ -537,7 +539,7 @@ class normal_factory_background : public opaque_element_base {
 
 		text::add_line(state, contents, "factory_stats_5");
 
-			
+
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(inputs.commodity_type[i]) {
 				auto box = text::open_layout_box(contents);
@@ -1274,7 +1276,7 @@ void populate_production_states_list(sys::state& state, std::vector<dcon::state_
 				auto content = any_cast<commodity_filter_query_data>(payload);
 				count += content.filter ? 1 : 0;
 			}
-			
+
 
 			if(count > 0)
 				row_contents.push_back(fat_id.get_state());
@@ -1500,7 +1502,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 				}
 			}
 			break;
-			
+
 		}
 
 
@@ -1544,7 +1546,7 @@ class commodity_secondary_worker_amount : public simple_text_element_base {
 			break;
 		}
 
-		
+
 		set_text(state, text::prettify(int64_t(total)));
 	}
 };

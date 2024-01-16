@@ -3,7 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "gui_common_elements.hpp"
-#include "province.hpp"
+#include "province_templates.hpp"
 #include "color.hpp"
 #include "triggers.hpp"
 #include "gui_province_window.hpp"
@@ -1519,11 +1519,37 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, focus.get_name());
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fat_si = dcon::fatten(state.world, sid);
+		text::add_to_layout_box(state, contents, box, sid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto content = state.world.state_instance_get_owner_focus(sid);
+		if(bool(content)) {
+			auto fat_nf = dcon::fatten(state.world, content);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::add_line_break_to_layout_box(state, contents, box);
+			auto color = text::text_color::white;
+			if(fat_nf.get_promotion_type()) {
+				//Is the NF not optimal? Recolor it
+				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
+					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
+						color = text::text_color::red;
+					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
+				}
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
+				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
+			}
+		}
 		text::close_layout_box(contents, box);
+		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+			modifier_description(state, contents, mid, 15);
+		}
 	}
 };
 

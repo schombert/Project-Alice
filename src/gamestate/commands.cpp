@@ -18,6 +18,7 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_player_ban:
 	case command_type::notify_player_kick:
 	case command_type::notify_save_loaded:
+	case command_type::notify_reload:
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::notify_player_oos:
@@ -966,6 +967,9 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	}
 	if(values.tariffs != int8_t(-127)) {
 		state.world.nation_set_tariffs(source, std::clamp(values.tariffs, int8_t(-100), int8_t(100)));
+	}
+	if(values.domestic_investment != int8_t(-127)) {
+		state.world.nation_set_domestic_investment_spending(source, std::clamp(values.domestic_investment, int8_t(0), int8_t(100)));
 	}
 	economy::bound_budget_settings(state, source);
 }
@@ -2578,8 +2582,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
 		return false;
 
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(real_target, source);
-	if(state.world.diplomatic_relation_get_are_allied(rel))
+	if(nations::are_allied(state, real_target, source))
 		return false;
 
 	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
@@ -2751,14 +2754,16 @@ void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_i
 	add_to_command_queue(state, p);
 }
 bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+	assert(source);
+	assert(target);
 	{
 		auto ol = state.world.nation_get_overlord_as_subject(source);
-		if(state.world.overlord_get_ruler(ol))
+		if(state.world.overlord_get_ruler(ol) && !(state.world.war_get_primary_attacker(war) == source || state.world.war_get_primary_defender(war) == source))
 			return false;
 	}
 	{
 		auto ol = state.world.nation_get_overlord_as_subject(target);
-		if(state.world.overlord_get_ruler(ol))
+		if(state.world.overlord_get_ruler(ol) && !(state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == target))
 			return false;
 	}
 
@@ -4180,6 +4185,10 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
 	post_chat_message(state, m);
+
+	/* Hotjoin */
+	if(state.mode == sys::game_mode_type::in_game || state.mode == sys::game_mode_type::select_states)
+		ai::remove_ai_data(state, source);
 }
 
 void notify_player_leaves(sys::state& state, dcon::nation_id source) {
@@ -4281,8 +4290,9 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	// Invalid OR rebel nation
-	if(!bool(target) || target == state.national_definitions.rebel_id)
+	if(source == target) //redundant
+		return false;
+	if(!bool(target) || target == state.national_definitions.rebel_id) //Invalid OR rebel nation
 		return false;
 	// TODO: Support Co-op (one day)
 	return state.world.nation_get_is_player_controlled(target) == false;
@@ -4375,6 +4385,43 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
+}
+
+void notify_reload(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command::command_type::notify_reload;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
+	state.session_host_checksum = k;
+	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
+	   Additionally we will clear the new client sending queue, since the state is no longer
+	   "replayable" without heavy bandwidth costs */
+	state.network_state.is_new_game = false;
+	state.network_state.out_of_sync = false;
+	state.network_state.reported_oos = false;
+
+	std::vector<dcon::nation_id> players;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			players.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	/* Save the buffer before we fill the unsaved data */
+	size_t length = sizeof_save_section(state);
+	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	sys::write_save_section(save_buffer.get(), state);
+	/* Then reload as if we loaded the save data */
+	state.preload();
+	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+	state.local_player_nation = dcon::nation_id{ };
+	state.fill_unsaved_data();
+	for(const auto n : players)
+		state.world.nation_set_is_player_controlled(n, true);
+	state.local_player_nation = old_local_player_nation;
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 }
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -4746,6 +4793,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //return can_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
 	case command_type::notify_save_loaded:
 		return true; //return can_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+	case command_type::notify_reload:
+		return true;
 	case command_type::notify_start_game:
 		return true; //return can_notify_start_game(state, c.source);
 	case command_type::notify_stop_game:
@@ -5113,6 +5162,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::notify_save_loaded:
 		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
+		break;
+	case command_type::notify_reload:
+		execute_notify_reload(state, c.source, c.data.notify_reload.checksum);
 		break;
 	case command_type::notify_start_game:
 		execute_notify_start_game(state, c.source);

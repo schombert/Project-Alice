@@ -334,7 +334,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<T>(state, parent);
-
 		float total_strength = 0.0f;
 		int32_t unit_count = 0;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
@@ -390,7 +389,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<T>(state, parent);
-
 		float total_org = 0.0f;
 		int32_t unit_count = 0;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
@@ -412,6 +410,12 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("curr_comb_org"));
 		text::add_to_layout_box(state, contents, box, text::fp_percentage{ total_org }, text::text_color::yellow);
 		text::close_layout_box(contents, box);
+
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::land_organisation, true);
+		} else {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::naval_organisation, true);
+		}
 	}
 };
 
@@ -1349,6 +1353,20 @@ class u_row_org_bar : public vertical_progress_bar {
 		}
 		progress = total > 0.0f ? current / total : 0.0f;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, text::format_percentage(progress));
+		auto foru = retrieve<unit_var>(state, parent);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::land_organisation, true);
+		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::naval_organisation, true);
+		}
+	}
 };
 
 class u_row_str_bar : public vertical_progress_bar {
@@ -1370,6 +1388,10 @@ class u_row_str_bar : public vertical_progress_bar {
 			}
 		}
 		progress = total > 0.0f ? current / total : 0.0f;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, text::format_percentage(progress));
 	}
 };
 

@@ -870,6 +870,29 @@ void rebel_hunting_check(sys::state& state) {
 			}
 		}
 	}
+
+	for(const auto a : state.world.in_army) {
+		if(a.get_is_rebel_hunter()
+			&& !a.get_battle_from_army_battle_participation()
+			&& !a.get_navy_from_army_transport()
+			&& !a.get_arrival_time()
+			&& a.get_location_from_army_location() != a.get_ai_province()
+			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
+		{
+			if(auto path = province::make_land_path(state, a.get_location_from_army_location(), a.get_ai_province(), a.get_army_control().get_controller(), a); path.size() > 0) {
+				auto existing_path = state.world.army_get_path(a);
+				auto new_size = uint32_t(path.size());
+				existing_path.resize(new_size);
+				for(uint32_t j = 0; j < new_size; j++) {
+					existing_path.at(j) = path[j];
+				}
+				state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+				state.world.army_set_dig_in(a, 0);
+			} else {
+				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
+			}
+		}
+	}
 }
 
 inline constexpr float rebel_size_reduction = 0.20f;
@@ -1247,19 +1270,25 @@ std::string rebel_name(sys::state& state, dcon::rebel_faction_id reb) {
 	text::substitution_map sub;
 
 	auto culture = state.world.rebel_faction_get_primary_culture(reb);
+	auto religion = state.world.rebel_faction_get_religion(reb);
 	auto defection_target = state.world.rebel_faction_get_defection_target(reb);
 	auto in_nation = state.world.rebel_faction_get_ruler_from_rebellion_within(reb);
 	auto rebel_adj = state.world.nation_get_adjective(in_nation);
 	auto adjective = defection_target.get_adjective();
 
 	text::add_to_substitution_map(sub, text::variable_type::country, rebel_adj);
-	
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, rebel_adj);
+
 	if(culture) {
 		text::add_to_substitution_map(sub, text::variable_type::culture, culture.get_name());
 	} else {
 		text::add_to_substitution_map(sub, text::variable_type::culture, state.world.nation_get_primary_culture(in_nation).get_name());
 	}
-	
+
+	if(religion) {
+		text::add_to_substitution_map(sub, text::variable_type::religion, religion.get_name());
+	}
+
 	if(defection_target) {
 		text::add_to_substitution_map(sub, text::variable_type::indep, adjective);
 		text::add_to_substitution_map(sub, text::variable_type::union_adj, adjective);

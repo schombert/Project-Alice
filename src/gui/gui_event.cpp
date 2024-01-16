@@ -323,18 +323,30 @@ void event_option_button::update_tooltip(sys::state& state, int32_t x, int32_t y
 
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto const& phe = std::get<event::pending_human_n_event>(content);
+		if(index == 0) {
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+		}
 		effect_description(state, contents, state.world.national_event_get_options(phe.e)[index].effect, phe.primary_slot,
 				trigger::to_generic(phe.n), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto const& phe = std::get<event::pending_human_f_n_event>(content);
+		if(index == 0) {
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+		}
 		effect_description(state, contents, state.world.free_national_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.n), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto const& phe = std::get<event::pending_human_p_event>(content);
+		if(index == 0) {
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+		}
 		effect_description(state, contents, state.world.provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto const& phe = std::get<event::pending_human_f_p_event>(content);
+		if(index == 0) {
+			text::add_line(state, contents, "event_taken_auto", text::variable_type::date, phe.date + 30);
+		}
 		effect_description(state, contents, state.world.free_provincial_event_get_options(phe.e)[index].effect,
 				trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 	}

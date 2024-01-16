@@ -13,7 +13,6 @@
 #include "simple_fs.hpp"
 #include "text.hpp"
 #include "opengl_wrapper.hpp"
-#include "directx_wrapper.hpp"
 #include "fonts.hpp"
 #include "sound.hpp"
 #include "map_state.hpp"
@@ -52,6 +51,7 @@ struct user_settings_s {
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
 	bool use_classic_fonts = false;
+	bool left_mouse_click_hold_and_release = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
@@ -672,7 +672,7 @@ struct alignas(64) state {
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void preload(); // clears data that will be later reconstructed from saved values
 
-	void console_log(ui::element_base* base, std::string message, bool open_console = true);
+	void console_log(std::string_view message);
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
 

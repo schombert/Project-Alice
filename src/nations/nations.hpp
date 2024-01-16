@@ -42,7 +42,7 @@ struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
 	std::vector<dcon::nation_id> nations_by_rank;
-	
+
 	tagged_vector<dcon::text_sequence_id, dcon::national_flag_id> flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
@@ -228,23 +228,7 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 
 dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
-// returns whether a culture is on the accepted list OR is the primary culture
-template<typename T, typename U>
-auto nation_accepts_culture(sys::state const& state, T ids, U c);
-
-template<typename T>
-auto primary_culture_group(sys::state const& state, T ids);
 dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids);
-template<typename T>
-auto owner_of_pop(sys::state const& state, T pop_ids);
-template<typename T>
-auto central_reb_controlled_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_blockaded_fraction(sys::state const& state, T ids);
-template<typename T>
-auto central_has_crime_fraction(sys::state const& state, T ids);
-template<typename T>
-auto occupied_provinces_fraction(sys::state const& state, T ids);
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
@@ -292,6 +276,7 @@ float colonial_points_from_technology(sys::state& state, dcon::nation_id n);
 float used_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t free_colonial_points(sys::state& state, dcon::nation_id n);
 int32_t max_colonial_points(sys::state& state, dcon::nation_id n);
+uint32_t get_total_pop_in_owned_provinces(sys::state& state, dcon::nation_id n);
 
 bool has_political_reform_available(sys::state& state, dcon::nation_id n);
 bool has_social_reform_available(sys::state& state, dcon::nation_id n);

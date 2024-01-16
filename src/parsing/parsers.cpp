@@ -392,3 +392,14 @@ std::string_view remove_surrounding_whitespace(std::string_view txt) {
 	return std::string_view(start, end - start);
 }
 } // namespace parsers
+
+#include "defines.cpp"
+#include "gui_graphics_parsers.cpp"
+#include "nations_parsing.cpp"
+#include "cultures_parsing.cpp"
+#include "econ_parsing.cpp"
+#include "military_parsing.cpp"
+#include "provinces_parsing.cpp"
+#include "trigger_parsing.cpp"
+#include "effect_parsing.cpp"
+#include "parsers_declarations.cpp"

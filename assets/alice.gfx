@@ -197,4 +197,60 @@ spriteTypes = {
 		texturefile = "assets\\alice_ds.png"
 		noOfFrames = 1
 	}
+
+	spriteType = {
+		name = "GFX_mapmode_religion"
+		texturefile = "assets\\mapmode_religion.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_fort"
+		texturefile = "assets\\mapmode_fort.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_ideology"
+		texturefile = "assets\\mapmode_ideology.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_income"
+		texturefile = "assets\\mapmode_income.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_con"
+		texturefile = "assets\\mapmode_con.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_militancy"
+		texturefile = "assets\\mapmode_militancy.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_literacy"
+		texturefile = "assets\\mapmode_literacy.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_employment"
+		texturefile = "assets\\mapmode_employment.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_factories"
+		texturefile = "assets\\mapmode_factory.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_issues"
+		texturefile = "assets\\mapmode_issues.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_growth"
+		texturefile = "assets\\mapmode_growth.png"
+		noOfFrames = 2
+	}
 }
