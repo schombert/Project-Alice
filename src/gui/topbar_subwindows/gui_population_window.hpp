@@ -3,7 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "gui_common_elements.hpp"
-#include "province.hpp"
+#include "province_templates.hpp"
 #include "color.hpp"
 #include "triggers.hpp"
 #include "gui_province_window.hpp"

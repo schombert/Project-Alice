@@ -1,7 +1,12 @@
 #include "modifiers.hpp"
 #include "system_state.hpp"
-#include "province.hpp"
+#include "demographics.hpp"
 #include "military.hpp"
+#include "military_templates.hpp"
+#include "province.hpp"
+#include "province_templates.hpp"
+#include "triggers.hpp"
+#include "ve_scalar_extensions.hpp"
 
 namespace sys {
 

@@ -7,6 +7,7 @@
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
 
+#include "blake2.h"
 #include "zstd.h"
 
 namespace sys {
@@ -818,7 +819,7 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 
 	state.scenario_counter = count;
 	state.scenario_time_stamp = header.timestamp;
-	
+
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =

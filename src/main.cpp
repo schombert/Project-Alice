@@ -11,13 +11,6 @@
 #include "texture.cpp"
 #include "date_interface.cpp"
 #include "serialization.cpp"
-#else
-#include "text.hpp"
-#include "fonts.hpp"
-#include "texture.hpp"
-#include "date_interface.hpp"
-#include "serialization.hpp"
-#endif
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
@@ -26,6 +19,15 @@
 #include "triggers.cpp"
 #include "effects.cpp"
 #include "economy.cpp"
+
+#include "ai.cpp"
+#else
+#include "text.hpp"
+#include "fonts.hpp"
+#include "texture.hpp"
+#include "date_interface.hpp"
+#include "serialization.hpp"
+#endif
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
@@ -50,7 +52,6 @@
 #include "notifications.cpp"
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
-#include "ai.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here
