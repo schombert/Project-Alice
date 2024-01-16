@@ -5,9 +5,8 @@
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "parsers.cpp"
-#endif
-#include "float_from_chars.cpp"
 #include "text.cpp"
+#include "float_from_chars.cpp"
 #include "fonts.cpp"
 #include "texture.cpp"
 #include "date_interface.cpp"
@@ -20,6 +19,15 @@
 #include "triggers.cpp"
 #include "effects.cpp"
 #include "economy.cpp"
+
+#include "ai.cpp"
+#else
+#include "text.hpp"
+#include "fonts.hpp"
+#include "texture.hpp"
+#include "date_interface.hpp"
+#include "serialization.hpp"
+#endif
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
@@ -44,7 +52,6 @@
 #include "notifications.cpp"
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
-#include "ai.cpp"
 
 #ifdef _WIN64
 // WINDOWS implementations go here

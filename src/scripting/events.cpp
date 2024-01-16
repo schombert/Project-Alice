@@ -1,5 +1,6 @@
 #include "events.hpp"
 #include "system_state.hpp"
+#include "triggers.hpp"
 
 namespace event {
 

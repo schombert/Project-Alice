@@ -1,5 +1,10 @@
 #include "triggers.hpp"
 #include "system_state.hpp"
+#include "demographics.hpp"
+#include "military_templates.hpp"
+#include "nations_templates.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "ve_scalar_extensions.hpp"
 
 namespace trigger {
