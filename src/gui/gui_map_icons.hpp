@@ -1097,28 +1097,27 @@ public:
 		}
 
 
-		bool player_involved_battle = false;
+		bool has_battle = false;
 		dcon::land_battle_id lbattle;
 		dcon::naval_battle_id nbattle;
 		for(auto b : state.world.province_get_land_battle_location(prov)) {
 			auto w = b.get_battle().get_war_from_land_battle_in_war();
+			has_battle = true;
+			display.player_involved_battle = false;
+			lbattle = b.get_battle();
 			if(!w) { //rebels
-				player_involved_battle = true;
-				lbattle = b.get_battle();
 				display.player_involved_battle = true;
 				break;
 			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { //in a war
-				player_involved_battle = true;
 				display.player_involved_battle = true;
-				lbattle = b.get_battle();
 				break;
 			}
 		}
-		if(!player_involved_battle) {
+		if(has_battle) {
 			for(auto b : state.world.province_get_naval_battle_location(prov)) {
 				auto w = b.get_battle().get_war_from_naval_battle_in_war();
 				if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
-					player_involved_battle = true;
+					has_battle = true;
 					nbattle = b.get_battle();
 					break;
 				}
@@ -1135,7 +1134,7 @@ public:
 			display.colors[display.colors_used] = outline_color::blue;
 			++display.colors_used;
 		}
-		if(!player_involved_battle) {
+		if(!display.player_involved_battle) {
 			if(found_enemy) {
 				display.colors[display.colors_used] = outline_color::red;
 				++display.colors_used;
