@@ -801,20 +801,20 @@ void issues_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 
 		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_dominant_issues"), text::variable_type::prov, prov);
 
-		std::vector<dcon::issue_option_id> issues;
+		std::vector<dcon::issue_option_fat_id> issues;
 		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
 			if(fat.get_demographics(demographics::to_key(state, id)) > 0) {
-				issues.push_back(id);
+				issues.push_back(dcon::fatten(state.world, id));
 			}
 		});
 		std::sort(issues.begin(), issues.end(), [&](auto a, auto b) {return fat.get_demographics(demographics::to_key(state, a)) > fat.get_demographics(demographics::to_key(state, b)); });
 		for(size_t i = 0; i < std::min(static_cast<size_t>(5), issues.size()); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, state.world.issue_option_get_name(issues[i]), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, issues[i].get_name(), text::text_color::yellow);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, text::format_percentage(fat.get_demographics(demographics::to_key(state, issues[i])) / fat.get_demographics(demographics::total)), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::format_percentage(fat.get_demographics(demographics::to_key(state, issues[i].id)) / fat.get_demographics(demographics::total)), text::text_color::white);
 			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
 		}
 
@@ -892,7 +892,61 @@ void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 
 		float employment_rate = (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_total_employment"), text::variable_type::value, text::format_percentage(employment_rate, 1));
+		text::localised_format_box(state, contents, box, std::string_view("mtt_total_employment"));
+		text::add_to_layout_box(state, contents, box, text::format_percentage(employment_rate, 1), text::text_color::yellow);
+
+		text::close_layout_box(contents, box);
+	}
+}
+
+void literacy_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto box = text::open_layout_box(contents);
+
+		float literacy_rate = (fat.get_demographics(demographics::literacy) / fat.get_demographics(demographics::total));
+
+		text::localised_format_box(state, contents, box, std::string_view("mtt_literacy_rate"));
+		text::add_to_layout_box(state, contents, box, text::format_percentage(literacy_rate, 1), text::text_color::yellow);
+
+		text::close_layout_box(contents, box);
+	}
+}
+
+void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto box = text::open_layout_box(contents);
+
+		auto region = fat.get_state_membership();
+
+		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_factory_count"), text::variable_type::state, text::get_province_state_name(state, prov));
+		text::add_to_layout_box(state, contents, box, economy::state_factory_count(state, region, fat.get_nation_from_province_ownership()), text::text_color::yellow);
+
+		std::vector<dcon::factory_fat_id> factories;
+		for(auto m : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
+			auto p = m.get_province();
+			if(p.get_nation_from_province_ownership() == fat.get_nation_from_province_ownership()) {
+				for(auto f : p.get_factory_location()) {
+					factories.push_back(f.get_factory());
+				}
+			}
+		}
+		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return a.get_level() > b.get_level(); });
+
+		for(size_t i = 0; i < factories.size(); i++) {
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, factories[i].get_building_type().get_name(), text::text_color::yellow);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::pretty_integer(factories[i].get_level()),text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
+		}
 
 		text::close_layout_box(contents, box);
 	}
@@ -986,6 +1040,12 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::employment:
 		employment_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::literacy:
+		literacy_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::factories:
+		factory_map_tt_box(state, contents, prov);
 		break;
 	default:
 		break;
