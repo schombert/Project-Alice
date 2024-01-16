@@ -372,41 +372,26 @@ public:
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		for(auto b : state.world.province_get_land_battle_location(prov)) {
 			auto w = b.get_battle().get_war_from_land_battle_in_war();
-			if(!w) {
-				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.army_combat_window->is_visible()) {
-					state.ui_state.army_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.army_combat_window->set_visible(state, true);
-				}
-				return message_result::consumed;
-			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
-				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.army_combat_window->is_visible()) {
-					state.ui_state.army_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.army_combat_window->set_visible(state, true);
-				}
-				return message_result::consumed;
+			land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+			win->battle = b.get_battle();
+			if(state.ui_state.army_combat_window->is_visible()) {
+				state.ui_state.army_combat_window->impl_on_update(state);
+			} else {
+				state.ui_state.army_combat_window->set_visible(state, true);
 			}
+			return message_result::consumed;
 		}
 		for(auto b : state.world.province_get_naval_battle_location(prov)) {
 			auto w = b.get_battle().get_war_from_naval_battle_in_war();
-
-			 if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
-				naval_combat_window* win = static_cast<naval_combat_window*>(state.ui_state.naval_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.naval_combat_window->is_visible()) {
-					state.ui_state.naval_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.naval_combat_window->set_visible(state, true);
-				}
-				return message_result::consumed;
+			naval_combat_window* win = static_cast<naval_combat_window*>(state.ui_state.naval_combat_window);
+			win->battle = b.get_battle();
+			if(state.ui_state.naval_combat_window->is_visible()) {
+				state.ui_state.naval_combat_window->impl_on_update(state);
+			} else {
+				state.ui_state.naval_combat_window->set_visible(state, true);
 			}
+			return message_result::consumed;
 		}
-		
 		return message_result::consumed;
 	}
 };
