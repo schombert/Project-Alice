@@ -613,7 +613,7 @@ public:
 		text::add_line(state, contents, "alice_milscore_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
 		text::add_line(state, contents, "alice_milscore_2", text::variable_type::x, text::int_wholenum{ recruitable });
 		text::add_line(state, contents, "alice_milscore_3", text::variable_type::x, text::int_wholenum{ active_regs });
-		text::add_line(state, contents, "alice_milscore_4", text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
+		text::add_line_with_condition(state, contents, "alice_milscore_4", is_disarmed, text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
 		text::add_line(state, contents, "alice_milscore_5", text::variable_type::x, text::fp_two_places{ supply_mod });
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, true);
 		text::add_line(state, contents, "alice_milscore_6", text::variable_type::x, text::fp_two_places{ avg_land_score });

@@ -1,0 +1,42 @@
+#define M_PI 3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
+
+struct Input {
+	float texture_coord;
+	float o_dist;
+	float2 map_coord;
+};
+
+struct Output {
+	float4 frag_color:SV_Target0;
+};
+
+Texture2D provinces_texture:register(t0);
+SamplerState provinces_texture_sampler:register(s0);
+
+Texture2D colormap_water:register(t1);
+SamplerState colormap_water_sampler:register(s1);
+
+Texture2D province_fow:register(t2);
+SamplerState province_fow_sampler:register(s2);
+
+Texture2D line_texture:register(t3);
+SamplerState line_texture_sampler:register(s3);
+
+float gamma:SV_Target7;
+
+float4 gamma_correct(float4 colour) {
+	return float4(pow(colour.rgb, float3(1.f / gamma)), colour.a);
+}
+
+Output main(Input input) {
+	float4 out_color = colormap_water.Sample(colormap_water_sampler, input.map_coord) * 
+			line_texture.Sample( line_texture_sampler, float2(input.texture_coord, input.o_dist));
+
+	float2 prov_id = provinces_texture.Sample(provinces_texture_sampler, input.map_coord).xy;
+	out_color.rgb *= province_fow.Sample(province_fow_sampler, prov_id).rgb;
+
+	Output output;
+	output.frag_color = gamma_correct(out_color);
+	return output;
+}
