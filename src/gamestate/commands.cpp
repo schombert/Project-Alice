@@ -2533,8 +2533,8 @@ bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation
 	if(!state.world.diplomatic_relation_get_are_allied(rel))
 		return false;
 
-	if(military::are_allied_in_war(state, source, target))
-		return false;
+	//if(military::are_allied_in_war(state, source, target))
+	//	return false;
 
 	auto ol = state.world.nation_get_overlord_as_subject(source);
 	if(state.world.overlord_get_ruler(ol) == target)
