@@ -343,7 +343,7 @@ public:
 
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "cancel_ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel));
-			text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
+			//text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
 
 			auto ol = state.world.nation_get_overlord_as_subject(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "cancel_ally_explain_5", state.world.overlord_get_ruler(ol) != content);
