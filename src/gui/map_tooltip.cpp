@@ -1,5 +1,6 @@
 #include "map_tooltip.hpp"
-
+#include "demographics.hpp"
+#include "rebels.hpp"
 
 namespace ui {
 

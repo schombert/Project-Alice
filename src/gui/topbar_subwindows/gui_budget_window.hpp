@@ -1,5 +1,6 @@
 #pragma once
 
+#include "color.hpp"
 #include "commands.hpp"
 #include "culture.hpp"
 #include "dcon_generated.hpp"
@@ -8,9 +9,6 @@
 #include "nations.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
-#include <cstdint>
-#include <string_view>
-#include <vector>
 
 namespace dcon {
 class pop_satisfaction_wrapper_id {
@@ -43,13 +41,13 @@ public:
 		return text_sequence_id{0};
 	}
 };
-pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
+inline pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
 	return pop_satisfaction_wrapper_fat{id.value};
 }
 } // namespace dcon
 namespace ogl {
 template<>
-uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
+inline uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_id id) {
 	switch(id.value) {
 	case 0: // red
 		return sys::pack_color(1.0f, 0.1f, 0.1f);
@@ -225,7 +223,7 @@ protected:
 
 		for(uint8_t i = 0; i < 5; i++)
 			distribution.emplace_back(dcon::pop_satisfaction_wrapper_id(i), sat_pool[i]);
-		
+
 		update_chart(state);
 	}
 
@@ -288,7 +286,7 @@ struct budget_slider_signal {
 template<budget_slider_target SliderTarget>
 class budget_slider : public scrollbar {
 public:
-	
+
 	void on_create(sys::state& state) noexcept final {
 		if(base_data.get_element_type() == element_type::scrollbar) {
 			auto step = base_data.data.scrollbar.get_step_size();
@@ -1000,7 +998,7 @@ public:
 			set_text(state, text::format_money(total));
 		}
 
-		
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1247,7 +1245,7 @@ public:
 			}
 		}
 
-	
+
 			if(total > 0.0f) {
 				auto type_strata = state.world.pop_type_get_strata(type);
 				float total_pop = 0.0f;
@@ -1333,7 +1331,7 @@ public:
 					text::close_layout_box(contents, box);
 				}
 			}
-		
+
 	}
 };
 

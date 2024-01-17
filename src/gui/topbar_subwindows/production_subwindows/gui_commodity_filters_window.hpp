@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 
 namespace ui {
@@ -78,14 +79,14 @@ public:
 
 		int16_t index = 0;
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
-			
+
 				bool can_be_produced = false;
 				state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
 					can_be_produced = can_be_produced || state.world.factory_type_get_output(ftid) == cid;
 				});
 				if(!can_be_produced)
 					return;
-			
+
 
 			auto ptr = make_element_by_type<commodity_filter_item>(state, "goods_filter_template");
 			static_cast<commodity_filter_item*>(ptr.get())->content = cid;

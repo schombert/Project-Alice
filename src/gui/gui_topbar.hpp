@@ -288,7 +288,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
@@ -300,7 +300,7 @@ public:
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
 
 		text::add_line_break_to_layout(state, contents);
-			
+
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, true);
 	}
 
@@ -341,7 +341,7 @@ public:
 		/*
 		// SCHOMBERT: A good portion of this is wrong because it is showing maximum values for some of these expense categories
 		// rather than my scaling them to what the actual spending settings are
-		
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		text::substitution_map sub{};
