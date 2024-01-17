@@ -952,6 +952,37 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 	}
 }
 
+void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		if(fat.get_building_level(economy::province_building_type::fort) > 0) {
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("mtt_fort_level"));
+			text::add_to_layout_box(state, contents, box, text::pretty_integer(fat.get_building_level(economy::province_building_type::fort)), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		if(province::has_fort_being_built(state, fat.id)) {
+			auto box3 = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box3, std::string_view("mtt_fort_being_built"));
+			text::close_layout_box(contents, box3);
+		}
+		if(province::can_build_fort(state, fat.id, state.local_player_nation)) {
+			auto box3 = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box3, std::string_view("mtt_can_build_fort"));
+			text::close_layout_box(contents, box3);
+		}
+	}
+}
+
+void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	//TODO
+}
+
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	switch(state.map_state.active_map_mode) {
 	case map_mode::mode::terrain:
@@ -1046,6 +1077,12 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::factories:
 		factory_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::fort:
+		fort_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::growth:
+		growth_map_tt_box(state, contents, prov);
 		break;
 	default:
 		break;

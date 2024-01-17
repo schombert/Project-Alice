@@ -593,6 +593,9 @@ mtt_con_average;Average consciousness: §Y$val$§W;;;;;;;;;;;;x
 mtt_total_employment;Employment: ;;;;;;;;;;;;x
 mtt_literacy_rate;Literacy: ;;;;;;;;;;;;x
 mtt_factory_count;Factories in §Y$state$§W: ;;;;;;;;;;;;x
+mtt_fort_level;Fort level ;;;;;;;;;;;;x
+mtt_fort_being_built;A fort level is under construction here.;;;;;;;;;;;;x
+mtt_can_build_fort;A new fort level can be built here.;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
