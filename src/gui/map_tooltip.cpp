@@ -977,7 +977,17 @@ void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 }
 
 void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
-	//TODO
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto box = text::open_layout_box(contents);
+
+		text::localised_format_box(state, contents, box, std::string_view("mtt_population_change"));
+		text::add_to_layout_box(state, contents, box, text::format_float(float(demographics::get_monthly_pop_increase(state, fat.id)), 0), text::text_color::yellow);
+
+		text::close_layout_box(contents, box);
+	}
 }
 
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
