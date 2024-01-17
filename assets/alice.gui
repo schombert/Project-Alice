@@ -4185,6 +4185,13 @@ guiTypes = {
 		}
 	}
 
+	checkboxType = {
+		name = "alice_buy_from_stockpile"
+		position = { 715 388 }
+		quadTextureSprite = "GFX_trade_stockpile_checkbox"
+		Orientation = "UPPER_LEFT"
+	}
+
 	iconType = {
 		name = "minimap_pic"
 		spriteType = "GFX_minimap"

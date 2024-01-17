@@ -106,7 +106,7 @@ struct bmfont_file {
 		context.char_id = uint8_t(value);
 	}
 	void lineheight(association_type, int32_t value, error_handler& err, int32_t line, bmfont_file_context& context) {
-		context.font.line_height = value;	
+		context.font.line_height = value;
 	}
 	void finish(bmfont_file_context& context) {
 		assert(context.font.line_height >= 0);
@@ -169,7 +169,7 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 		if(i != 0) {
 			total += get_kerning_pair(string[i - 1], c);
 		}
-		
+
 	}
 	return total;
 }

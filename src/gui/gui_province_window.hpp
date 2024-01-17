@@ -11,6 +11,7 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_production_window.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
 
@@ -871,7 +872,7 @@ public:
 		if(content) {
 			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
 		}
-			
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1489,7 +1490,7 @@ public:
 			text::add_line_with_condition(state, contents, "col_start_1", state.world.state_definition_get_colonization_stage(sdef) <= uint8_t(1));
 			text::add_line_with_condition(state, contents, "col_start_2", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
 			text::add_line_with_condition(state, contents, "col_start_3", state.crisis_colony != sdef);
-		
+
 			bool war_participant = false;
 			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
 				if(par.get_nation() == state.local_player_nation)
@@ -1515,7 +1516,7 @@ public:
 			auto num_colonizers = colonizers.end() - colonizers.begin();
 
 			text::add_line_with_condition(state, contents, "col_start_7", num_colonizers < 4);
-		
+
 			bool adjacent = [&]() {
 				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 					if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1559,7 +1560,7 @@ public:
 
 			auto free_points = nations::free_colonial_points(state, state.local_player_nation);
 			auto required_points = int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
-			
+
 			text::add_line_with_condition(state, contents, "col_start_9", free_points > required_points, text::variable_type::x, required_points);
 		} else {
 			text::add_line(state, contents, "col_invest_title");
@@ -1644,7 +1645,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::colonization_id>(state, parent);
-		
+
 		row_contents.clear();
 
 		if(!content) {
@@ -1723,7 +1724,7 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		
+
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		auto fat_def = dcon::fatten(state.world, state.world.province_get_state_from_abstract_state_membership(prov));
 

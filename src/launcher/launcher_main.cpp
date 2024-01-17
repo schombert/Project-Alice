@@ -456,7 +456,7 @@ void mouse_click() {
 				si.cb = sizeof(si);
 				PROCESS_INFORMATION pi;
 				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process. 
+				// Start the child process.
 				if(CreateProcessW(
 					nullptr,   // Module name
 					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -465,7 +465,7 @@ void mouse_click() {
 					FALSE, // Set handle inheritance to FALSE
 					0, // No creation flags
 					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory 
+					nullptr, // Use parent's starting directory
 					&si, // Pointer to STARTUPINFO structure
 					&pi) != 0) {
 
@@ -483,7 +483,7 @@ void mouse_click() {
 				si.cb = sizeof(si);
 				PROCESS_INFORMATION pi;
 				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process. 
+				// Start the child process.
 				if(CreateProcessW(
 					nullptr,   // Module name
 					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -492,7 +492,7 @@ void mouse_click() {
 					FALSE, // Set handle inheritance to FALSE
 					0, // No creation flags
 					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory 
+					nullptr, // Use parent's starting directory
 					&si, // Pointer to STARTUPINFO structure
 					&pi) != 0) {
 
@@ -533,7 +533,7 @@ void mouse_click() {
 			si.cb = sizeof(si);
 			PROCESS_INFORMATION pi;
 			ZeroMemory(&pi, sizeof(pi));
-			// Start the child process. 
+			// Start the child process.
 			if(CreateProcessW(
 				nullptr,   // Module name
 				const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -542,7 +542,7 @@ void mouse_click() {
 				FALSE, // Set handle inheritance to FALSE
 				0, // No creation flags
 				nullptr, // Use parent's environment block
-				nullptr, // Use parent's starting directory 
+				nullptr, // Use parent's starting directory
 				&si, // Pointer to STARTUPINFO structure
 				&pi) != 0) {
 
@@ -1469,7 +1469,7 @@ void signal_abort_handler(int) {
 		si.cb = sizeof(si);
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
-		// Start the child process. 
+		// Start the child process.
 		if(CreateProcessW(
 			L"dbg_alice.exe",   // Module name
 			NULL, // Command line
@@ -1478,7 +1478,7 @@ void signal_abort_handler(int) {
 			FALSE, // Set handle inheritance to FALSE
 			0, // No creation flags
 			NULL, // Use parent's environment block
-			NULL, // Use parent's starting directory 
+			NULL, // Use parent's starting directory
 			&si, // Pointer to STARTUPINFO structure
 			&pi) == 0) {
 
@@ -1489,7 +1489,7 @@ void signal_abort_handler(int) {
 		}
 		// Wait until child process exits.
 		WaitForSingleObject(pi.hProcess, INFINITE);
-		// Close process and thread handles. 
+		// Close process and thread handles.
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
@@ -1646,17 +1646,8 @@ int WINAPI wWinMain(
 #include "text.cpp"
 #include "system_state.cpp"
 #include "parsers.cpp"
-#include "defines.cpp"
 #include "float_from_chars.cpp"
-#include "gui_graphics_parsers.cpp"
-#include "nations_parsing.cpp"
-#include "cultures_parsing.cpp"
-#include "econ_parsing.cpp"
-#include "military_parsing.cpp"
 #include "date_interface.cpp"
-#include "provinces_parsing.cpp"
-#include "trigger_parsing.cpp"
-#include "effect_parsing.cpp"
 #include "serialization.cpp"
 #include "nations.cpp"
 #include "culture.cpp"
@@ -1669,7 +1660,6 @@ int WINAPI wWinMain(
 #include "demographics.cpp"
 #include "bmfont.cpp"
 #include "rebels.cpp"
-#include "parsers_declarations.cpp"
 #include "politics.cpp"
 #include "events.cpp"
 #include "gui_graphics.cpp"

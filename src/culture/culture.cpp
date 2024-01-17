@@ -1,9 +1,11 @@
-#include "dcon_generated.hpp"
 #include "culture.hpp"
+#include "dcon_generated.hpp"
+#include "demographics.hpp"
+#include "gui_element_base.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
-#include "prng.hpp"
-#include "gui_element_base.hpp"
 
 namespace culture {
 
@@ -28,7 +30,7 @@ void clear_existing_tech_effects(sys::state& state) {
 		state.world.execute_serial_over_nation([&](auto nation_indices) {
 			state.world.nation_set_max_building_level(nation_indices, t, 0);
 		});
-		
+
 	}
 	state.world.for_each_factory_type([&](dcon::factory_type_id id) {
 		state.world.execute_serial_over_nation([&](auto nation_indices) {
@@ -692,7 +694,7 @@ flag_type get_current_flag_type(sys::state const& state, dcon::nation_id target_
 	auto gov_type = state.world.nation_get_government_type(target_nation);
 	if(!gov_type)
 		return flag_type::default_flag;
-	
+
 	auto id = state.world.national_identity_get_government_flag_type(state.world.nation_get_identity_from_identity_holder(target_nation), gov_type);
 	if(id != 0)
 		return flag_type(id - 1);
