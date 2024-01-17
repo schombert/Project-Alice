@@ -937,14 +937,14 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		}
 		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return a.get_level() > b.get_level(); });
 
-		text::add_to_layout_box(state, contents, box, text::pretty_integer(int64_t(factories.size())), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::format_wholenum(factories.size()), text::text_color::yellow);
 		for(size_t i = 0; i < factories.size(); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, factories[i].get_building_type().get_name(), text::text_color::yellow);
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, text::pretty_integer(int64_t(factories[i].get_level())),text::text_color::white);
+			text::add_to_layout_box(state, contents, box, factories[i].get_level(),text::text_color::white);
 			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
 		}
 
@@ -961,7 +961,7 @@ void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 		if(fat.get_building_level(economy::province_building_type::fort) > 0) {
 			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("mtt_fort_level"));
-			text::add_to_layout_box(state, contents, box, text::pretty_integer(int64_t(fat.get_building_level(economy::province_building_type::fort))), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, fat.get_building_level(economy::province_building_type::fort), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 		if(province::has_fort_being_built(state, fat.id)) {
