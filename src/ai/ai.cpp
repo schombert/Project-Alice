@@ -84,7 +84,7 @@ void update_ai_general_status(sys::state& state) {
 		state.world.nation_set_ai_is_threatened(n, threatened);
 
 		if(!n.get_ai_rival()) {
-			float min_relation = 200.0f;
+			float min_str = 0.0f;
 			dcon::nation_id potential;
 			for(auto adj : n.get_nation_adjacency()) {
 				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
@@ -92,11 +92,8 @@ void update_ai_general_status(sys::state& state) {
 				if(!ol && other.get_in_sphere_of() != n && (!threatened || !nations::are_allied(state, n, other))) {
 					auto other_str = estimate_strength(state, other);
 					if(self_str * 0.5f < other_str && other_str <= self_str * 1.5f) {
-						auto rel = state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, other));
-						if(rel < min_relation) {
-							min_relation = rel;
-							potential = other;
-						}
+						min_str = other_str;
+						potential = other;
 					}
 				}
 			}
@@ -1976,8 +1973,6 @@ dcon::cb_type_id pick_fabrication_type(sys::state& state, dcon::nation_id from, 
 		auto sl = state.world.nation_get_in_sphere_of(target);
 		if(sl == from)
 			continue;
-		if(nations::are_allied(state, sl, from))
-			continue;
 		possibilities.push_back(c);
 	}
 
@@ -2002,21 +1997,28 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 	if(military::are_at_war(state, target, from))
 		return false;
 	auto sl = state.world.nation_get_in_sphere_of(target);
-	if(sl) {
-		// Fabricating on OUR sphere leader
-		if(sl == from)
+	if(sl == from)
+		return false;
+	// Its easy to defeat a nation at war
+	if(state.world.nation_get_is_at_war(target)) {
+		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f)
 			return false;
-		// Fabricating on spherelings of our allies
-		if(nations::are_allied(state, sl, from))
+		return true;
+	} else {
+		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
 			return false;
 	}
-	if(nations::are_allied(state, target, from))
+	if(state.world.nation_get_owned_province_count(target) <= 2)
 		return false;
-
-	if(estimate_strength(state, target) * 0.5f > estimate_strength(state, from))
-		return false;
-	if(state.world.nation_get_owned_province_count(target) <= 3)
-		return false;
+	// Attacking people from other continents only if we have naval superiority
+	if(state.world.province_get_continent(state.world.nation_get_capital(from)) != state.world.province_get_continent(state.world.nation_get_capital(target))) {
+		// We must achieve naval superiority to even invade them
+		if(state.world.nation_get_capital_ship_score(from) < std::max(1.f, 1.5f * state.world.nation_get_capital_ship_score(target)))
+			return false;
+		// And we should perhaps not be at war...
+		if(!state.world.nation_get_is_at_war(target))
+			return false;
+	}
 	return true;
 }
 
