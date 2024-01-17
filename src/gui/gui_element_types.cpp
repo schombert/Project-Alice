@@ -2179,19 +2179,26 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Multimedia button", //MBUTTON = 0x04,
 		"XButton1", //XBUTTON_1 = 0x05,
 		"XButton2", //XBUTTON_2 = 0x06,
+		"", //0x07
 		"Backspace", //BACK = 0x08,
 		"TAB", //TAB = 0x09,
+		"", // 0x0A
+		"", // 0x0B
 		"Clear", //CLEAR = 0x0C,
 		"Return", //RETURN = 0x0D,
+		"", // 0x0E
+		"", // 0x0F
 		"Shift", //SHIFT = 0x10,
 		"Control", //CONTROL = 0x11,
 		"Menu", //MENU = 0x12,
 		"Pause", //PAUSE = 0x13,
 		"Capital", //CAPITAL = 0x14,
 		"Kana", //KANA = 0x15,
+		"", // 0x16
 		"Junja", //JUNJA = 0x17,
 		"Final", //FINAL = 0x18,
 		"Kanji", //KANJI = 0x19,
+		"", // 0x1A
 		"Escape", //ESCAPE = 0x1B,
 		"Convert", //CONVERT = 0x1C,
 		"Nonconvert", //NONCONVERT = 0x1D,
@@ -2223,6 +2230,13 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"7", //NUM_7 = 0x37,
 		"8", //NUM_8 = 0x38,
 		"9", //NUM_9 = 0x39,
+		"", // 0x3A
+		"", // 0x3B
+		"", // 0x3C
+		"", // 0x3D
+		"", // 0x3E
+		"", // 0x3F
+		"", // 0x40
 		"A", //A = 0x41,
 		"B", //B = 0x42,
 		"C", //C = 0x43,
@@ -2252,6 +2266,7 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Left Windows", //LWIN = 0x5B,
 		"Right Windows", //RWIN = 0x5C,
 		"Apps", //APPS = 0x5D,
+		"", // 0x5E
 		"Sleep", //SLEEP = 0x5F,
 		"Numpad 0", //NUMPAD0 = 0x60,
 		"Numpad 1", //NUMPAD1 = 0x61,
@@ -2304,12 +2319,45 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Numlock", //NUMLOCK = 0x90,
 		"Scroll lock", //SCROLL = 0x91,
 		"=", //OEM_NEC_EQUAL = 0x92,
+		"", // 0x93
+		"", // 0x94
+		"", // 0x95
+		"", // 0x96
+		"", // 0x97
+		"", // 0x98
+		"", // 0x99
+		"", // 0x9A
+		"", // 0x9B
+		"", // 0x9C
+		"", // 0x9D
+		"", // 0x9E
+		"", // 0x9F
 		"Left Shift", //LSHIFT = 0xA0,
 		"Right Shift", //RSHIFT = 0xA1,
 		"Left Control", //LCONTROL = 0xA2,
 		"Right Control", //RCONTROL = 0xA3,
 		"Left Menu", //LMENU = 0xA4,
 		"Right Menu", //RMENU = 0xA5,
+		"", // 0xA6
+		"", // 0xA7
+		"", // 0xA8
+		"", // 0xA9
+		"", // 0xAA
+		"", // 0xAB
+		"", // 0xAC
+		"", // 0xAD
+		"", // 0xAE
+		"", // 0xAF
+		"", // 0xB0
+		"", // 0xB1
+		"", // 0xB2
+		"", // 0xB3
+		"", // 0xB4
+		"", // 0xB5
+		"", // 0xB6
+		"", // 0xB7
+		"", // 0xB8
+		"", // 0xB9
 		";", //SEMICOLON = 0xBA,
 		"+", //PLUS = 0xBB,
 		",", //COMMA = 0xBC,
@@ -2317,6 +2365,21 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		".", //PERIOD = 0xBE,
 		"\\", //FORWARD_SLASH = 0xBF,
 		"~", //TILDA = 0xC0,
+		"", // 0xC1
+		"", // 0xC2
+		"", // 0xC3
+		"", // 0xC4
+		"", // 0xC5
+		"", // 0xC6
+		"", // 0xC7
+		"", // 0xC8
+		"", // 0xC9
+		"", // 0xCA
+		"", // 0xCB
+		"", // 0xCC
+		"", // 0xCD
+		"", // 0xCE
+		"", // 0xCF
 		"[", //OPEN_BRACKET = 0xDB,
 		"/", //BACK_SLASH = 0xDC,
 		"]", //CLOSED_BRACKET = 0xDD,
