@@ -2048,15 +2048,28 @@ void update_cb_fabrication(sys::state& state) {
 				}
 			} else {
 				static std::vector<dcon::nation_id> possible_targets;
+				static std::vector<dcon::nation_id> possible_unciv_targets;
 				possible_targets.clear();
+				possible_unciv_targets.clear();
 				for(auto i : state.world.in_nation) {
-					if(valid_construction_target(state, n, i) && !military::has_truce_with(state, n, i))
+					if(valid_construction_target(state, n, i)
+					&& !military::has_truce_with(state, n, i)) {
 						possible_targets.push_back(i.id);
+						if(!i.get_is_civilized())
+							possible_unciv_targets.push_back(i.id);
+					}
+				}
+				// prioritize uncivilized
+				if(n.get_is_civilized() && !possible_unciv_targets.empty()) {
+					auto t = possible_unciv_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_unciv_targets.size()))];
+					if(auto cb = pick_fabrication_type(state, n, t); cb) {
+						n.set_constructing_cb_target(t);
+						n.set_constructing_cb_type(cb);
+					}
 				}
 				if(!possible_targets.empty()) {
 					auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
-					auto cb = pick_fabrication_type(state, n, t);
-					if(cb) {
+					if(auto cb = pick_fabrication_type(state, n, t); cb) {
 						n.set_constructing_cb_target(t);
 						n.set_constructing_cb_type(cb);
 					}
