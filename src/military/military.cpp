@@ -6288,16 +6288,16 @@ constexpr inline float siege_speed_mul = 1.0f / 50.0f;
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
 	auto controller = a.get_controller_from_army_control();
-	static std::vector<dcon::province_id> rebel_provs;
+	static std::vector<rebel::impl::prov_str> rebel_provs;
 	rebel_provs.clear();
 	rebel::get_hunting_targets(state, controller, rebel_provs);
-	rebel::sort_hunting_targets(state, ar, rebel_provs);
+	rebel::sort_hunting_targets(state, rebel::impl::arm_str{ ar, ai::estimate_army_offensive_strength(state, ar) }, rebel_provs);
 
-	for(auto next_prov : rebel_provs) {
-		if(prov == next_prov)
+	for(auto& next_prov : rebel_provs) {
+		if(prov == next_prov.p)
 			continue;
 
-		auto path = province::make_land_path(state, prov, next_prov, controller, a);
+		auto path = province::make_land_path(state, prov, next_prov.p, controller, a);
 		if(path.size() > 0) {
 			auto existing_path = state.world.army_get_path(a);
 
