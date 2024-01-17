@@ -48,12 +48,31 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
 	}
 
+	float total_cost = 0.f;
+	for(const auto memb : army.get_army_membership()) {
+		auto type = state.world.regiment_get_type(memb.get_regiment());
+		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
+				total_cost += cost * amount;
+			} else {
+				break;
+			}
+		}
+	}
+
 	text::substitution_map sub;
 	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x03";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 	text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
+	text::add_to_substitution_map(sub, text::variable_type::cost, text::fp_currency{ total_cost });
+	text::add_to_substitution_map(sub, text::variable_type::attunit, text::fp_one_place{ ai::estimate_army_offensive_strength(state, a) });
+	text::add_to_substitution_map(sub, text::variable_type::defunit, text::fp_one_place{ ai::estimate_army_defensive_strength(state, a) });
 	if(army.get_arrival_time()) {
 		text::add_to_substitution_map(sub, text::variable_type::prov, *(army.get_path().end() - 1));
 		text::add_to_substitution_map(sub, text::variable_type::date, army.get_arrival_time());
@@ -65,44 +84,6 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		text::localised_format_box(state, contents, box, "unit_standing_text", sub);
 		text::close_layout_box(contents, box);
 	}
-
-	std::vector<float> c_costs(state.world.commodity_size() + 1, 0.f);
-	std::vector<float> c_amounts(state.world.commodity_size() + 1, 0.f);
-	for(const auto memb : army.get_army_membership()) {
-		auto type = state.world.regiment_get_type(memb.get_regiment());
-		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
-		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(supply_cost.commodity_type[i]) {
-				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
-				c_costs[supply_cost.commodity_type[i].index()] += cost;
-				c_amounts[supply_cost.commodity_type[i].index()] += amount;
-			} else {
-				break;
-			}
-		}
-	}
-	float total_cost = 0.f;
-	for(const auto cid : state.world.in_commodity) {
-		if(c_amounts[cid.id.index()] > 0.f) {
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::name, cid.get_name());
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ c_costs[cid.id.index()] });
-			text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ c_amounts[cid.id.index()] });
-			text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ c_costs[cid.id.index()] * c_amounts[cid.id.index()] });
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
-			text::close_layout_box(contents, box);
-			total_cost += c_costs[cid.id.index()] * c_amounts[cid.id.index()];
-		}
-	}
-	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::name, army.get_location_from_army_location());
-	text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
-	auto box = text::open_layout_box(contents, 0);
-	text::localised_format_box(state, contents, box, "alice_spending_unit", m);
-	text::close_layout_box(contents, box);
 }
 
 void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dcon::navy_id n) {
@@ -114,12 +95,31 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
 	}
 
+	float total_cost = 0.f;
+	for(const auto memb : navy.get_navy_membership()) {
+		auto type = state.world.ship_get_type(memb.get_ship());
+		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
+				total_cost += cost * amount;
+			} else {
+				break;
+			}
+		}
+	}
+
 	text::substitution_map sub;
 	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x04";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 	text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
+	text::add_to_substitution_map(sub, text::variable_type::cost, text::fp_currency{ total_cost });
+	text::add_to_substitution_map(sub, text::variable_type::attunit, text::fp_one_place{ 1.f });
+	text::add_to_substitution_map(sub, text::variable_type::defunit, text::fp_one_place{ 1.f });
 	if(navy.get_arrival_time()) {
 		text::add_to_substitution_map(sub, text::variable_type::prov, *(navy.get_path().end() - 1));
 		text::add_to_substitution_map(sub, text::variable_type::date, navy.get_arrival_time());
@@ -131,44 +131,6 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 		text::localised_format_box(state, contents, box, "unit_standing_text", sub);
 		text::close_layout_box(contents, box);
 	}
-
-	std::vector<float> c_costs(state.world.commodity_size() + 1, 0.f);
-	std::vector<float> c_amounts(state.world.commodity_size() + 1, 0.f);
-	for(const auto memb : navy.get_navy_membership()) {
-		auto type = state.world.ship_get_type(memb.get_ship());
-		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::supply_consumption) + 1.0f);
-		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(supply_cost.commodity_type[i]) {
-				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
-				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(controller, type).supply_consumption * o_sc_mod;
-				c_costs[supply_cost.commodity_type[i].index()] += cost;
-				c_amounts[supply_cost.commodity_type[i].index()] += amount;
-			} else {
-				break;
-			}
-		}
-	}
-	float total_cost = 0.f;
-	for(const auto cid : state.world.in_commodity) {
-		if(c_amounts[cid.id.index()] > 0.f) {
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::name, cid.get_name());
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ c_costs[cid.id.index()] });
-			text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ c_amounts[cid.id.index()] });
-			text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ c_costs[cid.id.index()] * c_amounts[cid.id.index()] });
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
-			text::close_layout_box(contents, box);
-			total_cost += c_costs[cid.id.index()] * c_amounts[cid.id.index()];
-		}
-	}
-	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::name, navy.get_location_from_navy_location());
-	text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
-	auto box = text::open_layout_box(contents, 0);
-	text::localised_format_box(state, contents, box, "alice_spending_unit", m);
-	text::close_layout_box(contents, box);
 }
 
 void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {

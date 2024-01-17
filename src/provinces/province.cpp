@@ -1714,8 +1714,9 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
 					if(has_access_to_province(state, nation_as, other_prov)) {
+						float danger_factor = has_safe_access_to_province(state, nation_as, other_prov) ? 1.f : 4.f;
 						path_heap.push_back(
-								province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+								province_and_distance{nearest.distance_covered + distance * danger_factor, direct_distance(state, other_prov, end) * danger_factor, other_prov});
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
