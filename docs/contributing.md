@@ -93,3 +93,7 @@ Second note: on Windows, BrickPi has made a change such that, if you have Victor
 Finally, just build the Alice launch target, and you should see the game pop up on your screen.
 
 Remember, `OOS_DAILY_CHECK` will make OOS checks occur daily.
+
+### Incremental Build
+
+The `Alice` build target combines nearly all of the game's source files into one large translation unit which means that changing a single line of source code almost always requires recompiling the entire game. Contributors and those who are interesting in making changes to the source code may instead want to consider using the `AliceIncremental` build target which breaks the game into smaller translation units that can be compiled in parallel and reduces the amount of code that needs to be recompiled for each change that is made. Note that any changes made to the source code will need to compile under both configurations.
