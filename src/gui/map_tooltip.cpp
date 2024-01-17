@@ -333,7 +333,6 @@ void nationality_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 			}
 		}
 		std::sort(cultures.begin(), cultures.end(), [&](auto a, auto b) {return fat.get_demographics(demographics::to_key(state, a.id)) > fat.get_demographics(demographics::to_key(state, b.id)); });
-		//for(size_t i = cultures.size(); i > 0; i--) {
 		for(size_t i = 0; i < cultures.size(); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_space_to_layout_box(state, contents, box);
@@ -874,7 +873,7 @@ void con_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::pr
 	country_name_box(state, contents, prov);
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
-		float average_con = (state.world.province_get_demographics(prov, demographics::consciousness) / state.world.province_get_demographics(prov, demographics::total));
+		float average_con = (fat.get_demographics(demographics::total) == 0.f ? 0.f : fat.get_demographics(demographics::consciousness) / fat.get_demographics(demographics::total));
 		text::add_line(state, contents, "mtt_con_average", text::variable_type::val, text::fp_one_place{ average_con });
 		ui::active_modifiers_description(state, contents, prov, 0, sys::provincial_mod_offsets::pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::core_pop_consciousness_modifier, true);
@@ -890,7 +889,7 @@ void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		float employment_rate = (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
+		float employment_rate = fat.get_demographics(demographics::employable) == 0.f ? 0.f : (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
 
 		text::localised_format_box(state, contents, box, std::string_view("mtt_total_employment"));
 		text::add_to_layout_box(state, contents, box, text::format_percentage(employment_rate, 1), text::text_color::yellow);
@@ -906,7 +905,7 @@ void literacy_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		float literacy_rate = (fat.get_demographics(demographics::literacy) / fat.get_demographics(demographics::total));
+		float literacy_rate = fat.get_demographics(demographics::total) == 0.f ? 0.f : (fat.get_demographics(demographics::literacy) / fat.get_demographics(demographics::total));
 
 		text::localised_format_box(state, contents, box, std::string_view("mtt_literacy_rate"));
 		text::add_to_layout_box(state, contents, box, text::format_percentage(literacy_rate, 1), text::text_color::yellow);
@@ -919,7 +918,7 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 
-	if(prov.value < state.province_definitions.first_sea_province.value) {
+	if(prov.value < state.province_definitions.first_sea_province.value && fat.get_nation_from_province_ownership()) {
 		auto box = text::open_layout_box(contents);
 
 		auto region = fat.get_state_membership();
@@ -937,7 +936,7 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		}
 		std::sort(factories.begin(), factories.end(), [&](auto a, auto b) {return a.get_level() > b.get_level(); });
 
-		text::add_to_layout_box(state, contents, box, text::format_wholenum(factories.size()), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::prettify(int64_t(factories.size())), text::text_color::yellow);
 		for(size_t i = 0; i < factories.size(); i++) {
 			text::add_line_break_to_layout_box(state, contents, box);
 			text::add_space_to_layout_box(state, contents, box);
@@ -978,8 +977,6 @@ void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 }
 
 void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
-	auto fat = dcon::fatten(state.world, prov);
-	country_name_box(state, contents, prov);
 	//TODO
 }
 
