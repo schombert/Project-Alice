@@ -4221,8 +4221,7 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 	float str_cav = 0.f;
 	for(const auto reg : regs) {
 		float str = reg.get_regiment().get_strength() * reg.get_regiment().get_org();
-		auto utid = reg.get_regiment().get_type();
-		if(utid) {
+		if(auto utid = reg.get_regiment().get_type(); utid) {
 			switch(state.military_definitions.unit_base_definitions[utid].type) {
 			case military::unit_type::infantry:
 				str_inf += str;
@@ -4234,14 +4233,16 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 			case military::unit_type::special:
 				str_art += str;
 				break;
+			default:
+				break;
 			}
 		}
 		total_str += str;
 	}
 	if(total_str == 0.f)
 		return 0.f;
-	//provide continous function for each military unit composition
-	//such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
+	// provide continous function for each military unit composition
+	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
 	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * str_cav / total_str)));
 	return total_str * scale;
 }
@@ -4272,7 +4273,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	scale += terrain_bonus;
 	float defender_fort = 1.0f + 0.1f * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), economy::province_building_type::fort);
 	scale += defender_fort;
-	//
+	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
 	return strength * scale;
 }
@@ -4297,6 +4298,7 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 			+ state.world.leader_trait_get_attack(pers) + 1.0f;
 		scale *= atk * morale * org;
 	}
+	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
 	return strength * scale;
 }
@@ -4429,6 +4431,15 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 			return a.location.index() < b.location.index();
 	});
 
+	// precalculate province values
+	std::vector<float> enemy_defense(state.world.province_size() + 1, 0.f);
+	for(uint32_t i = 0; i < potential_targets.size(); i++) {
+		auto& e = enemy_defense[potential_targets[i].location.index()];
+		if(e == 0.f) { //not 0 -> redundant calculation
+			e = estimate_enemy_defensive_force(state, potential_targets[i].location, n);
+		}
+	}
+
 	// organize attack stacks
 	bool is_at_war = state.world.nation_get_is_at_war(n);
 	int32_t max_attacks_to_make = is_at_war ? (ready_count + 3) / 4 : ready_count; // not at war -- allow all stacks to attack rebels
@@ -4438,7 +4449,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 		if(!potential_targets[i].location)
 			continue; // target has been removed as too close by some earlier iteration
 
-		auto target_attack_force = estimate_enemy_defensive_force(state, potential_targets[i].location, n);
+		auto target_attack_force = enemy_defense[potential_targets[i].location.index()];
 		std::sort(ready_armies.begin(), ready_armies.end(), [&](dcon::province_id a, dcon::province_id b) {
 			auto adist = province::sorting_distance(state, a, potential_targets[i].location);
 			auto bdist = province::sorting_distance(state, b, potential_targets[i].location);
