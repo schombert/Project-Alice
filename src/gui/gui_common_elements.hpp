@@ -605,9 +605,9 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto recruitable = state.world.nation_get_recruitable_regiments(n);
 		auto active_regs = state.world.nation_get_active_regiments(n);
-		auto is_disarmed = state.world.nation_get_disarmed_until(n) < state.current_date;
+		auto is_disarmed = state.world.nation_get_disarmed_until(n) > state.current_date;
 		auto disarm_factor = is_disarmed ? state.defines.disarmament_army_hit : 1.f;
-		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
+		auto supply_mod = std::max(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f, 0.1f);
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto gen_range = state.world.nation_get_leader_loyalty(n);
 		auto num_leaders = float((gen_range.end() - gen_range.begin()));

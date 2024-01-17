@@ -372,13 +372,12 @@ void update_military_scores(sys::state& state) {
 	And then we add one point either per leader or per regiment, whichever is greater.
 	*/
 	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
-		float sum = 0;
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed =
 				ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
-		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
+		auto supply_mod = ve::max(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f, 0.1f);
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply(
 				[&](dcon::nation_id i) {

@@ -1714,8 +1714,11 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
 					if(has_access_to_province(state, nation_as, other_prov)) {
+						/* This will work fine for most instances, except, possibly, for allied nations or enemy ones */
+						auto armies = state.world.province_get_army_location(other_prov);
+						float danger_factor = (armies.begin() == armies.end() || (*armies.begin()).get_army().get_controller_from_army_control() == nation_as) ? 1.f : 4.f;
 						path_heap.push_back(
-								province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+								province_and_distance{nearest.distance_covered + distance * danger_factor, direct_distance(state, other_prov, end) * danger_factor, other_prov});
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
