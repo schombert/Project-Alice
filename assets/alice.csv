@@ -586,6 +586,17 @@ mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
 mtt_culture_majorities;The cultures in 即$PROV$劬 are:;;;;;;;;;;;;x
 mtt_religion_majorities;The religions in 即$PROV$劬 are:;;;;;;;;;;;;x
+mtt_dominant_issues;The issues in 即$PROV$劬 are:;;;;;;;;;;;;x
+mtt_total_income;Total daily income: ;;;;;;;;;;;;x
+mtt_dominant_ideology;The ideologies in 即$PROV$劬 are:;;;;;;;;;;;;x
+mtt_con_average;Average consciousness: 即$val$劬;;;;;;;;;;;;x
+mtt_total_employment;Employment: ;;;;;;;;;;;;x
+mtt_literacy_rate;Literacy: ;;;;;;;;;;;;x
+mtt_factory_count;Factories in 即$state$劬: ;;;;;;;;;;;;x
+mtt_fort_level;Fort level ;;;;;;;;;;;;x
+mtt_fort_being_built;A fort level is under construction here.;;;;;;;;;;;;x
+mtt_can_build_fort;A new fort level can be built here.;;;;;;;;;;;;x
+mtt_population_change;Monthly population change: ;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
