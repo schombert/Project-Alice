@@ -832,6 +832,21 @@ ally_explain_5;You are not a subject nation
 ally_explain_6;You are not currently at war with the target
 ally_explain_7;The AI will accept
 ally_explain_8;The target is not a subject nation
+ai_alliance_minimum_relation;You have the minimum relation to ask for an alliance
+ai_alliance_base_reluctance;Base Reluctance: $x$
+ai_alliance_has_our_cores;Has Our Cores: $x$
+ai_alliance_number_of_gp_allies;Too Many GP Allies: $x$
+ai_alliance_number_of_alliances;Alliances: $x$
+ai_alliance_relationship;Relationship: $x$
+ai_alliance_opinion;Opinion: $x$
+ai_alliance_same_sphere;Same Sphere: $x$
+ai_alliance_infamy;Infamy: $x$
+ai_alliance_current_wars;Wars: $x$
+ai_alliance_political_considerations;Political Considerations: $x$
+ai_alliance_civilization_difference;Civilization: $x$
+ai_alliance_ai_military_difference;Military Strength: $x$
+ai_alliance_ai_distance;Distance: $x$
+ai_alliance_total_score;Total: $x$
 call_ally_explain_1;You have an alliance with this nation
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You are at war
@@ -880,6 +895,7 @@ fab_explain_3;You are not currently fabricating a casus belli
 fab_explain_4;You are an independent nation or the target is your overlord
 fab_explain_5;The target is not in your sphere of influence
 fab_explain_6;You are not currently at war with the target
+fab_explain_7;Your relation is low enough to fabricate a casus belli
 peace_description;Make a peace offer to end hostilities between you and this nation
 peace_explain_1;Is not a subject nation
 peace_explain_2;The target is not a subject nation

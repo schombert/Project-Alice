@@ -8,8 +8,10 @@ namespace ai {
 void update_ai_general_status(sys::state& state);
 void form_alliances(sys::state& state);
 void prune_alliances(sys::state& state);
+bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from);
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent);
+bool ai_will_cancel_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from);
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from);
 void explain_ai_access_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent);
 void update_ai_research(sys::state& state);
@@ -67,6 +69,7 @@ bool will_accept_peace_offer_value(sys::state& state,
 
 bool will_accept_crisis_peace_offer(sys::state& state, dcon::nation_id to, bool is_concession, bool missing_wg);
 
+float estimate_strength(sys::state& state, dcon::nation_id n);
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a);
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a);
 float estimate_rebel_strength(sys::state& state, dcon::province_id p);

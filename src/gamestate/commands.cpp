@@ -1299,6 +1299,7 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 	state.world.gp_relationship_get_influence(rel) -= state.defines.increaseopinion_influence_cost;
 	auto& l = state.world.gp_relationship_get_status(rel);
 	l = nations::influence::increase_level(l);
+	nations::adjust_relationship(state, source, influence_target, state.defines.increaseopinion_relation_on_accept);
 
 	notification::post(state, notification::message{
 		[source, influence_target](sys::state& state, text::layout_base& contents) {
@@ -1436,6 +1437,7 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 	state.world.gp_relationship_get_influence(rel) -= state.defines.addtosphere_influence_cost;
 	auto& l = state.world.gp_relationship_get_status(rel);
 	l = nations::influence::increase_level(l);
+	nations::adjust_relationship(state, source, influence_target, state.defines.addtosphere_relation_on_accept);
 
 	state.world.nation_set_in_sphere_of(influence_target, source);
 
@@ -2153,6 +2155,10 @@ bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id
 	if(military::are_at_war(state, target, source))
 		return false;
 
+	auto rel = nations::get_diplomatic_relation(state, source, target);
+	if(rel.value >= state.defines.make_cb_relation_limit)
+		return false; // relationship is too high to fabricate CB
+
 	/*
 	must be able to fabricate cb
 	*/
@@ -2171,6 +2177,7 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 	state.world.nation_set_constructing_cb_target(source, target);
 	state.world.nation_set_constructing_cb_type(source, type);
 	state.world.nation_get_diplomatic_points(source) -= state.defines.make_cb_diplomatic_cost;
+	nations::adjust_relationship(state, source, target, state.defines.make_cb_relation_on_accept);
 }
 
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
@@ -2288,6 +2295,9 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, asker);
 	if(state.world.diplomatic_relation_get_are_allied(rel))
+		return false;
+
+	if(state.world.diplomatic_relation_get_value(rel) < state.defines.relation_limit_no_alliance_offer)
 		return false;
 
 	if(state.world.nation_get_is_great_power(asker) && state.world.nation_get_is_great_power(target) &&

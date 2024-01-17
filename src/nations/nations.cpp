@@ -211,8 +211,38 @@ bool identity_has_holder(sys::state const& state, dcon::national_identity_id ide
 }
 
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
+	auto rel = get_diplomatic_relation(state, a, b);
 	return state.world.diplomatic_relation_get_are_allied(rel);
+}
+
+void get_allies(sys::state& state, dcon::nation_id n, std::vector<dcon::nation_id>& allies) {
+	for(auto dr : state.world.nation_get_diplomatic_relation_as_related_nations(n)) {
+		if(dr.get_are_allied()) {
+			auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
+			allies.push_back(other);
+		}
+	}
+}
+
+// also returns true if one is the sphere leader of the other
+bool in_same_sphere(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	auto a_sphere = fatten(state.world, a).get_in_sphere_of();
+	auto b_sphere = fatten(state.world, b).get_in_sphere_of();
+	if(a_sphere && a_sphere == b)
+		return true;
+	if(b_sphere && b_sphere == a)
+		return true;
+	if(a_sphere && b_sphere && a_sphere == b_sphere)
+		return true;
+	return false;
+}
+
+bool are_neighbors(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	for(auto g : fatten(state.world, a).get_nation_adjacency()) {
+		if(g.get_connected_nations(0) == b || g.get_connected_nations(1) == b)
+			return true;
+	}
+	return false;
 }
 
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
@@ -906,13 +936,27 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 	return parties;
 }
 
-void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+dcon::diplomatic_relation_id get_diplomatic_relation(sys::state& state, dcon::nation_id a, dcon::nation_id b, bool force_create) {
 	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-	if(!rel) {
+	if(!rel && force_create) {
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
+	return rel;
+}
+
+void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+	auto rel = get_diplomatic_relation(state, a, b, true);
 	auto& val = state.world.diplomatic_relation_get_value(rel);
 	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
+}
+
+void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
+	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)
+		return;
+
+	auto rel = get_diplomatic_relation(state, a, b, true);
+	auto& val = state.world.diplomatic_relation_get_value(rel);
+	val = std::clamp(val + delta, -200.0f, 200.0f);
 }
 
 void update_revanchism(sys::state& state) {
@@ -1089,18 +1133,6 @@ bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
 			return !par.merely_interested;
 	}
 	return false;
-}
-
-void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
-	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)
-		return;
-
-	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-	if(!rel) {
-		rel = state.world.force_create_diplomatic_relation(a, b);
-	}
-	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, 200.0f);
 }
 
 void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon::nation_id base) {
@@ -1414,7 +1446,7 @@ void break_alliance(sys::state& state, dcon::diplomatic_relation_id rel) {
 }
 
 void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
-	if(auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b); r) {
+	if(auto r = get_diplomatic_relation(state, a, b); r) {
 		if(state.world.diplomatic_relation_get_are_allied(r)) {
 			break_alliance(state, r);
 			if(a != state.local_player_nation) {
@@ -1433,10 +1465,7 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	if(a == b)
 		return;
-	auto r = state.world.get_diplomatic_relation_by_diplomatic_pair(a, b);
-	if(!r) {
-		r = state.world.force_create_diplomatic_relation(a, b);
-	}
+	auto r = get_diplomatic_relation(state, a, b, true);
 	if(!state.world.diplomatic_relation_get_are_allied(r)) {
 		state.world.nation_get_allies_count(a)++;
 		state.world.nation_get_allies_count(b)++;
@@ -1583,7 +1612,7 @@ void update_influence(sys::state& state) {
 					float puppet_factor = rel.get_influence_target().get_overlord_as_subject().get_ruler() == n
 																		? state.defines.puppet_bonus_influence_percent
 																		: 0.0f;
-					float relationship_factor = state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, rel.get_influence_target())) / state.defines.relation_influence_modifier;
+					float relationship_factor = state.world.diplomatic_relation_get_value(get_diplomatic_relation(state, n, rel.get_influence_target())) / state.defines.relation_influence_modifier;
 
 					float investment_factor = total_fi > 0.0f ? state.defines.investment_influence_defense * gp_invest / total_fi : 0.0f;
 					float pop_factor =
