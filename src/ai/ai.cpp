@@ -91,7 +91,7 @@ void update_ai_general_status(sys::state& state) {
 				auto ol = other.get_overlord_as_subject().get_ruler();
 				if(!ol && other.get_in_sphere_of() != n && (!threatened || !nations::are_allied(state, n, other))) {
 					auto other_str = estimate_strength(state, other);
-					if(self_str * 0.5f < other_str && other_str <= self_str * 1.5f) {
+					if(self_str * 0.5f < other_str && other_str <= self_str * 1.5f && min_str > self_str) {
 						min_str = other_str;
 						potential = other;
 					}
