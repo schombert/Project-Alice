@@ -1206,7 +1206,9 @@ void update_cbs(sys::state& state) {
 			(national-cb-construction-speed-modifiers + technology-cb-construction-speed-modifier + 1).
 			*/
 
-			n.get_constructing_cb_progress() += state.defines.cb_generation_base_speed * n.get_constructing_cb_type().get_construction_speed() * (n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+			auto eff_speed = state.defines.cb_generation_base_speed * n.get_constructing_cb_type().get_construction_speed() * (n.get_modifier_values(sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+
+			n.get_constructing_cb_progress() += std::max(eff_speed, 0.0f);
 
 			/*
 			Each day, a fabricating CB has a define:CB_DETECTION_CHANCE_BASE out of 1000 chance to be detected. If discovered, the
@@ -1214,7 +1216,7 @@ void update_cbs(sys::state& state) {
 			relations between the two nations are changed by define:ON_CB_DETECTED_RELATION_CHANGE. If discovered, any states with
 			a flashpoint in the target nation will have their tension increase by define:TENSION_ON_CB_DISCOVERED
 			*/
-			if(!n.get_constructing_cb_is_discovered()) {
+			if(!n.get_constructing_cb_is_discovered() && eff_speed > 0.0f) {
 				auto val = rng::get_random(state, uint32_t((n.id.index() << 3) + 5)) % 1000;
 				if(val <= uint32_t(state.defines.cb_detection_chance_base)) {
 					execute_cb_discovery(state, n);
