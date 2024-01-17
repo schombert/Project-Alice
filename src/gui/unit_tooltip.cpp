@@ -1,5 +1,6 @@
 #include "system_state.hpp"
 #include "unit_tooltip.hpp"
+#include "ai.hpp"
 
 namespace ui {
 

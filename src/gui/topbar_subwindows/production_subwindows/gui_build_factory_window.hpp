@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_production_enum.hpp"
 #include "ai.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -386,7 +387,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(c)	
+		if(c)
 			text::add_line(state, contents, state.world.commodity_get_name(c));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

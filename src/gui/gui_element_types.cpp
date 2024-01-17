@@ -2,11 +2,8 @@
 #include <cmath>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 #include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
@@ -524,7 +521,7 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 		}
 	}
 
-	
+
 	lines.set_y(scaled_datapoints.data());
 }
 
@@ -552,7 +549,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		font_handle = base_data.data.text.font_handle;
 
 	extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle);
-	
+
 	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
 		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
 
@@ -561,7 +558,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
-		
+
 		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
@@ -1053,7 +1050,7 @@ void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 	if(this->parent) {
 		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
-		
+
 		for_each_demo(state, [&](DemoT demo_id) {
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
@@ -1238,7 +1235,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 			if(i < row_contents.size()) {
 				auto prior_content = retrieve<RowConT>(state, row_window);
 				auto new_content = row_contents[i++];
-				
+
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
 					if(!row_window->is_visible()) {
@@ -1718,7 +1715,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
 	if(!bool(ident))
 		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
-	
+
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	culture::flag_type flag_type = culture::flag_type{};

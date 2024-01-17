@@ -1,6 +1,16 @@
 #include "commands.hpp"
+#include "demographics.hpp"
+#include "economy_templates.hpp"
+#include "effects.hpp"
+#include "gui_event.hpp"
+#include "serialization.hpp"
 #include "system_state.hpp"
 #include "nations.hpp"
+#include "nations_templates.hpp"
+#include "politics.hpp"
+#include "province_templates.hpp"
+#include "rebels.hpp"
+#include "triggers.hpp"
 
 #include "cheats.cpp"
 
