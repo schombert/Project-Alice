@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #endif // ...
+#include <string_view>
 #include "system_state.hpp"
 #include "commands.hpp"
 #include "SPSCQueue.h"
@@ -592,7 +593,7 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 			state.console_log("host:disconnect: in-receive err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
 #endif
-			disconnect_client(state, client);
+			network::disconnect_client(state, client);
 		}
 	}
 }

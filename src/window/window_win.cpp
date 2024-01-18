@@ -2,6 +2,7 @@
 #include "map.hpp"
 #include "opengl_wrapper.hpp"
 #include "resource.h"
+#include "system_state.hpp"
 
 #ifndef UNICODE
 #define UNICODE

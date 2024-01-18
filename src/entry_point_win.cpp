@@ -1,4 +1,5 @@
 #include "system_state.hpp"
+#include "serialization.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -15,8 +16,6 @@
 #pragma comment(lib, "Shell32.lib")
 
 static sys::state game_state; // too big for the stack
-
-
 static CRITICAL_SECTION guard_abort_handler;
 
 void signal_abort_handler(int) {
