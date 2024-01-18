@@ -2053,6 +2053,8 @@ void update_cb_fabrication(sys::state& state) {
 					if(valid_construction_target(state, n, i)
 					&& !military::has_truce_with(state, n, i)) {
 						possible_targets.push_back(i.id);
+						if(!i.get_is_civilized())
+							possible_targets.push_back(i.id); //twice the chance!
 					}
 				}
 				if(!possible_targets.empty()) {
