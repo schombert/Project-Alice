@@ -2343,7 +2343,7 @@ void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, 
 							? state.world.nation_get_religion(nations::owner_of_pop(state, p))
 							: state.world.province_get_dominant_religion(l);
 						assert(state.world.pop_get_poptype(p));
-						auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p));
+						auto target_pop = impl::find_or_make_pop(state, l, cul, state.world.pop_get_religion(p), state.world.pop_get_poptype(p));
 						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
 						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
 					}
