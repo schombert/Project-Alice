@@ -2048,23 +2048,11 @@ void update_cb_fabrication(sys::state& state) {
 				}
 			} else {
 				static std::vector<dcon::nation_id> possible_targets;
-				static std::vector<dcon::nation_id> possible_unciv_targets;
 				possible_targets.clear();
-				possible_unciv_targets.clear();
 				for(auto i : state.world.in_nation) {
 					if(valid_construction_target(state, n, i)
 					&& !military::has_truce_with(state, n, i)) {
 						possible_targets.push_back(i.id);
-						if(!i.get_is_civilized())
-							possible_unciv_targets.push_back(i.id);
-					}
-				}
-				// prioritize uncivilized
-				if(n.get_is_civilized() && !possible_unciv_targets.empty()) {
-					auto t = possible_unciv_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_unciv_targets.size()))];
-					if(auto cb = pick_fabrication_type(state, n, t); cb) {
-						n.set_constructing_cb_target(t);
-						n.set_constructing_cb_type(cb);
 					}
 				}
 				if(!possible_targets.empty()) {
@@ -4456,14 +4444,11 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 	int32_t max_attacks_to_make = is_at_war ? (ready_count + 1) / 3 : ready_count; // not at war -- allow all stacks to attack rebels
 	auto const psize = potential_targets.size();
 
-	for(uint32_t i = 0; i < psize; ++i) {
-		potential_targets[i].strength_estimate = estimate_enemy_defensive_force(state, potential_targets[i].location, n) + 0.00001f;
-	}
-
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)
 			continue; // target has been removed as too close by some earlier iteration
-		assert(potential_targets[i].strength_estimate > 0.0f);
+		if(potential_targets[i].strength_estimate == 0.0f)
+			potential_targets[i].strength_estimate = estimate_enemy_defensive_force(state, potential_targets[i].location, n) + 0.00001f;
 
 		auto target_attack_force = potential_targets[i].strength_estimate;
 		std::sort(ready_armies.begin(), ready_armies.end(), [&](a_str const& a, a_str const& b) {
