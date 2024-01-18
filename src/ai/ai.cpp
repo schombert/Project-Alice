@@ -4342,7 +4342,6 @@ float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target
 				strength_total += estimate_army_defensive_strength(state, ar.get_army());
 			}
 		}
-		strength_total *= 0.5f; //rebels impact less
 	}
 	return state.defines.alice_ai_offensive_strength_overestimate * strength_total;
 }
