@@ -411,7 +411,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 3000 }
+	size{ 8000 }
 	tag{ scenario }
 
 	property{
