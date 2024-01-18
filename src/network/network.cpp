@@ -47,11 +47,11 @@ static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 #ifdef _WIN64
 	u_long has_pending = 0;
 	auto r = ioctlsocket(socket_fd, FIONREAD, &has_pending);
-	if(has_pending)
-		return static_cast<int>(recv(socket_fd, reinterpret_cast<char *>(data), static_cast<int>(n), 0));
-	return 0;
+	if(!has_pending)
+		return 0;
+	return static_cast<int>(recv(socket_fd, reinterpret_cast<char *>(data), static_cast<int>(n), 0));
 #else
-	return recv(socket_fd, data, n, MSG_DONTWAIT);
+	return recv(socket_fd, data, n, 0);
 #endif
 }
 
@@ -185,10 +185,6 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 #endif
 		std::abort();
 	}
-#ifdef _WIN64
-	u_long mode = 1; // 1 to enable non-blocking socket
-	ioctlsocket(socket_fd, FIONBIO, &mode);
-#endif
 	return socket_fd;
 }
 
@@ -322,10 +318,13 @@ static socket_t socket_init_client(struct sockaddr_in6& client_address, const ch
 
 static dcon::nation_id get_temp_nation(sys::state& state) {
 	// give the client a "joining" nation, basically a temporal nation choosen
-	// "randomly" that is tied to the client iself
-	for(auto n : state.world.in_nation)
+	// from the least important (so that new hotjoining clients mess with irrelevant
+	// nations nobody wants to play)
+	for(uint32_t i = uint32_t(state.nations_by_rank.size() - 1); i-- > 0; ) {
+		auto n = state.nations_by_rank[i];
 		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
 			return n;
+	}
 	return dcon::nation_id{ };
 }
 
