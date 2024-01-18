@@ -2050,13 +2050,16 @@ void update_cb_fabrication(sys::state& state) {
 				static std::vector<dcon::nation_id> possible_targets;
 				possible_targets.clear();
 				for(auto i : state.world.in_nation) {
-					if(valid_construction_target(state, n, i) && !military::has_truce_with(state, n, i))
+					if(valid_construction_target(state, n, i)
+					&& !military::has_truce_with(state, n, i)) {
 						possible_targets.push_back(i.id);
+						if(!i.get_is_civilized())
+							possible_targets.push_back(i.id); //twice the chance!
+					}
 				}
 				if(!possible_targets.empty()) {
 					auto t = possible_targets[rng::reduce(uint32_t(rng::get_random(state, uint32_t(n.id.index())) >> 2), uint32_t(possible_targets.size()))];
-					auto cb = pick_fabrication_type(state, n, t);
-					if(cb) {
+					if(auto cb = pick_fabrication_type(state, n, t); cb) {
 						n.set_constructing_cb_target(t);
 						n.set_constructing_cb_type(cb);
 					}
@@ -4246,7 +4249,7 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 	// provide continous function for each military unit composition
 	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
 	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * str_cav / total_str)));
-	return total_str * scale;
+	return std::max(0.f, total_str * scale);
 }
 
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
@@ -4277,7 +4280,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	scale += defender_fort;
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
-	return strength * scale;
+	return std::max(0.f, strength * scale);
 }
 
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
@@ -4302,35 +4305,35 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 	}
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
-	return strength * scale;
+	return std::max(0.f, strength * scale);
 }
 
 float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
+	float strength_total = 0.f;
 	if(state.world.nation_get_is_at_war(by)) {
-		float strength_total = 0.f;
 		for(auto ar : state.world.in_army) {
-			if(ar.get_is_retreating() || ar.get_battle_from_army_battle_participation())
+			if(ar.get_is_retreating()
+			|| ar.get_battle_from_army_battle_participation()
+			|| ar.get_controller_from_army_control() == by)
 				continue;
 			auto loc = ar.get_location_from_army_location();
 			auto sdist = province::sorting_distance(state, loc, target);
 			if(sdist < state.defines.alice_ai_threat_radius) {
 				auto other_nation = ar.get_controller_from_army_control();
-				if((by != other_nation) && (!other_nation || military::are_at_war(state, other_nation, by))) {
+				if(!other_nation || military::are_at_war(state, other_nation, by)) {
 					strength_total += estimate_army_defensive_strength(state, ar);
 				}
 			}
 		}
-		return state.defines.alice_ai_threat_overestimate * strength_total;
 	} else { // not at war -- rebel fighting
-		float strength_total = 0.f;
 		for(auto ar : state.world.province_get_army_location(target)) {
 			auto other_nation = ar.get_army().get_controller_from_army_control();
 			if(!other_nation) {
 				strength_total += estimate_army_defensive_strength(state, ar.get_army());
 			}
 		}
-		return state.defines.alice_ai_threat_overestimate * strength_total;
 	}
+	return state.defines.alice_ai_offensive_strength_overestimate * strength_total;
 }
 
 void assign_targets(sys::state& state, dcon::nation_id n) {
@@ -4440,14 +4443,14 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 
 	// organize attack stacks
 	bool is_at_war = state.world.nation_get_is_at_war(n);
-	int32_t max_attacks_to_make = is_at_war ? (ready_count + 3) / 4 : ready_count; // not at war -- allow all stacks to attack rebels
+	int32_t max_attacks_to_make = is_at_war ? (ready_count + 1) / 3 : ready_count; // not at war -- allow all stacks to attack rebels
 	auto const psize = potential_targets.size();
 
 	for(uint32_t i = 0; i < psize && max_attacks_to_make > 0; ++i) {
 		if(!potential_targets[i].location)
 			continue; // target has been removed as too close by some earlier iteration
 		if(potential_targets[i].strength_estimate == 0.0f)
-			potential_targets[i].strength_estimate = (estimate_enemy_defensive_force(state, potential_targets[i].location, n) + 0.00001f);
+			potential_targets[i].strength_estimate = estimate_enemy_defensive_force(state, potential_targets[i].location, n) + 0.00001f;
 
 		auto target_attack_force = potential_targets[i].strength_estimate;
 		std::sort(ready_armies.begin(), ready_armies.end(), [&](a_str const& a, a_str const& b) {

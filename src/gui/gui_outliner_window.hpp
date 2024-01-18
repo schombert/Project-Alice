@@ -340,7 +340,7 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "unit_standing_text", sub);
+			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, army.get_location_from_army_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
