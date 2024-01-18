@@ -1,6 +1,7 @@
 #pragma once
 #include "dcon_generated.hpp"
 #include "container_types.hpp"
+#include "system_state.hpp"
 
 namespace pop_demographics {
 

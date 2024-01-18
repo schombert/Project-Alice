@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #endif // ...
+#include <string_view>
 #include "system_state.hpp"
 #include "commands.hpp"
 #include "SPSCQueue.h"
@@ -323,7 +324,7 @@ static socket_t socket_init_client(struct sockaddr_in6& client_address, const ch
 static dcon::nation_id get_temp_nation(sys::state& state) {
 	// give the client a "joining" nation, basically a temporal nation choosen
 	// "randomly" that is tied to the client iself
-	for(auto n : state.world.in_nation)
+	for(auto n : state.nations_by_rank)
 		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
 			return n;
 	return dcon::nation_id{ };
@@ -592,7 +593,7 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 			state.console_log("host:disconnect: in-receive err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
 #endif
-			disconnect_client(state, client);
+			network::disconnect_client(state, client);
 		}
 	}
 }

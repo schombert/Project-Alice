@@ -1,7 +1,66 @@
+#define ALICE_NO_ENTRY_POINT 1
+
+#ifdef LOCAL_USER_SETTINGS
+#include "local_user_settings.hpp"
+#endif
+#include "common_types.cpp"
+#include "system_state.cpp"
+#ifndef INCREMENTAL
+#include "parsers.cpp"
+#include "text.cpp"
+#include "float_from_chars.cpp"
+#include "fonts.cpp"
+#include "texture.cpp"
+#include "date_interface.cpp"
+#include "serialization.cpp"
+#include "nations.cpp"
+#include "culture.cpp"
+#include "military.cpp"
+#include "modifiers.cpp"
+#include "province.cpp"
+#include "triggers.cpp"
+#include "effects.cpp"
+#include "economy.cpp"
+#include "demographics.cpp"
+#include "bmfont.cpp"
+#include "rebels.cpp"
+#include "politics.cpp"
+#include "events.cpp"
+#include "gui_graphics.cpp"
+#include "gui_common_elements.cpp"
+#include "gui_trigger_tooltips.cpp"
+#include "gui_effect_tooltips.cpp"
+#include "gui_modifier_tooltips.cpp"
+#include "gui_leader_tooltip.cpp"
+#include "gui_leader_select.cpp"
+#include "gui_production_window.cpp"
+#include "gui_province_window.cpp"
+#include "gui_population_window.cpp"
+#include "gui_budget_window.cpp"
+#include "gui_technology_window.cpp"
+#include "commands.cpp"
+#include "network.cpp"
+#include "diplomatic_messages.cpp"
+#include "notifications.cpp"
+#include "map_tooltip.cpp"
+#include "unit_tooltip.cpp"
+#include "ai.cpp"
+#include "map_modes.cpp"
+#include "platform_specific.cpp"
+#include "opengl_wrapper.cpp"
+#include "prng.cpp"
+#include "blake2.cpp"
+#include "zstd.cpp"
+#endif
+#include "gui_element_types.cpp"
+#include "gui_main_menu.cpp"
+#include "gui_console.cpp"
+#include "gui_event.cpp"
+#include "gui_message_settings_window.cpp"
+
 #ifndef UNICODE
 #define UNICODE
 #endif
-
 #include <Windowsx.h>
 #include <shellapi.h>
 #include "Objbase.h"
@@ -12,21 +71,16 @@
 #include "wglew.h"
 #include <cassert>
 #include "resource.h"
-
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
-
-#include "local_user_settings.hpp"
 #include "fonts.hpp"
 #include "texture.hpp"
 #include "text.hpp"
-#include "simple_fs_win.cpp"
-#include "prng.cpp"
-extern "C" {
-#include "blake2.c"
-};
+#include "prng.hpp"
+#include "system_state.hpp"
 #include "serialization.hpp"
-#include "network.cpp"
+#include "network.hpp"
+#include "simple_fs.hpp"
 
 namespace launcher {
 
@@ -841,7 +895,12 @@ void bind_vertices_by_rotation(ui::rotation r, bool flipped) {
 	}
 }
 
-void render_textured_rect(color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, int32_t iwidth, int32_t iheight, GLuint texture_handle, ui::rotation r, bool flipped) {
+	float x = float(ix);
+	float y = float(iy);
+	float width = float(iwidth);
+	float height = float(iheight);
+
 	glBindVertexArray(global_square_vao);
 
 	bind_vertices_by_rotation(r, flipped);
@@ -951,9 +1010,9 @@ void render() {
 	glViewport(0, 0, int32_t(base_width * scaling_factor), int32_t(base_height * scaling_factor));
 	glDepthRange(-1.0f, 1.0f);
 
-	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
+	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0, 0, int32_t(base_width), int32_t(base_height), bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -1147,10 +1206,10 @@ void render() {
 		if(i % 2 == 1) {
 			launcher::ogl::render_textured_rect(
 				launcher::ogl::color_modification::none,
-				60.0f,
-				75.0f + float(ui_row_height * i),
-				440.0f,
-				float(ui_row_height),
+				60,
+				75 + ui_row_height * i,
+				440,
+				ui_row_height,
 				launcher::line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 		}
 
@@ -1413,7 +1472,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			if(GetKeyState(VK_CONTROL) & 0x8000) {
 
 			} else {
-				char turned_into = process_utf16_to_win1250(wParam);
+				char turned_into = process_utf16_to_win1250(wchar_t(wParam));
 				if(turned_into) {
 					if(obj_under_mouse == ui_obj_ip_addr) {
 						if(turned_into == '\b') {
@@ -1636,78 +1695,3 @@ int WINAPI wWinMain(
 
 	return 0;
 }
-
-#include "common_types.cpp"
-#include "fonts.cpp"
-#include "texture.cpp"
-#include "text.cpp"
-#include "system_state.cpp"
-#include "parsers.cpp"
-#include "float_from_chars.cpp"
-#include "date_interface.cpp"
-#include "serialization.cpp"
-#include "nations.cpp"
-#include "culture.cpp"
-#include "military.cpp"
-#include "modifiers.cpp"
-#include "province.cpp"
-#include "triggers.cpp"
-#include "effects.cpp"
-#include "economy.cpp"
-#include "demographics.cpp"
-#include "bmfont.cpp"
-#include "rebels.cpp"
-#include "politics.cpp"
-#include "events.cpp"
-#include "gui_graphics.cpp"
-#include "gui_element_types.cpp"
-#include "gui_common_elements.cpp"
-#include "gui_main_menu.cpp"
-#include "gui_console.cpp"
-#include "gui_province_window.cpp"
-#include "gui_budget_window.cpp"
-#include "gui_technology_window.cpp"
-#include "gui_event.cpp"
-#include "gui_message_settings_window.cpp"
-#include "gui_trigger_tooltips.cpp"
-#include "gui_effect_tooltips.cpp"
-#include "gui_modifier_tooltips.cpp"
-#include "commands.cpp"
-#include "diplomatic_messages.cpp"
-#include "notifications.cpp"
-#include "map_tooltip.cpp"
-#include "unit_tooltip.cpp"
-#include "ai.cpp"
-
-#include "window_win.cpp"
-#include "sound_win.cpp"
-#include "opengl_wrapper_win.cpp"
-#include "opengl_wrapper.cpp"
-
-// zstd
-extern "C" {
-#define XXH_NAMESPACE ZSTD_
-#define ZSTD_DISABLE_ASM
-
-#include "zstd/xxhash.c"
-#include "zstd/zstd_decompress_block.c"
-#include "zstd/zstd_ddict.c"
-#include "zstd/huf_compress.c"
-#include "zstd/fse_compress.c"
-#include "zstd/huf_decompress.c"
-#include "zstd/fse_decompress.c"
-#include "zstd/zstd_common.c"
-#include "zstd/entropy_common.c"
-#include "zstd/hist.c"
-#include "zstd/zstd_compress_superblock.c"
-#include "zstd/zstd_ldm.c"
-#include "zstd/zstd_opt.c"
-#include "zstd/zstd_lazy.c"
-#include "zstd/zstd_double_fast.c"
-#include "zstd/zstd_fast.c"
-#include "zstd/zstd_compress_literals.c"
-#include "zstd/zstd_compress_sequences.c"
-#include "zstd/error_private.c"
-#include "zstd/zstd_decompress.c"
-#include "zstd/zstd_compress.c"
-};
