@@ -89,7 +89,7 @@ std::vector<uint32_t> ideology_map_from(sys::state& state) {
 			if(bool(secondary_id)) {
 				secondary_color = dcon::fatten(state.world, secondary_id).get_color();
 			}
-			if(secondary_percent >= .35) {
+			if(secondary_percent >= primary_percent * 0.75f) {
 				prov_color[id] = primary_color;
 				prov_color[id + texture_size] = secondary_color;
 			} else {
@@ -156,7 +156,7 @@ std::vector<uint32_t> issue_map_from(sys::state& state) {
 			if(bool(secondary_id)) {
 				secondary_color = ogl::get_ui_color(state, secondary_id);
 			}
-			if(secondary_percent >= 0.35f) {
+			if(secondary_percent >= primary_percent * 0.75f) {
 				prov_color[id] = primary_color;
 				prov_color[id + texture_size] = secondary_color;
 			} else {
@@ -274,8 +274,11 @@ std::vector<uint32_t> militancy_map_from(sys::state& state) {
 	std::unordered_map<uint16_t, float> rebels_in_province = {};
 	std::unordered_map<int32_t, float> continent_max_rebels = {};
 	state.world.for_each_rebel_faction([&](dcon::rebel_faction_id id) {
-		for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(id)) {
-			rebels_in_province[province::to_map_id(members.get_pop().get_province_from_pop_location().id)] += members.get_pop().get_size();
+		auto rebellion = dcon::fatten(state.world, id);
+		if((sel_nation && sel_nation == rebellion.get_ruler_from_rebellion_within().id) || !sel_nation) {
+			for(auto members : state.world.rebel_faction_get_pop_rebellion_membership(id)) {
+				rebels_in_province[province::to_map_id(members.get_pop().get_province_from_pop_location().id)] += members.get_pop().get_size();
+			}
 		}
 	});
 	for(auto& [p, value] : rebels_in_province) {
@@ -284,20 +287,23 @@ std::vector<uint32_t> militancy_map_from(sys::state& state) {
 		continent_max_rebels[cid] = std::max(continent_max_rebels[cid], value);
 	}
 	state.world.for_each_province([&](dcon::province_id prov_id) {
-		auto fat_id = dcon::fatten(state.world, prov_id);
-		auto i = province::to_map_id(prov_id);
-		auto cid = fat_id.get_continent().id.index();
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		if((sel_nation && nation == sel_nation) || !sel_nation) {
+			auto fat_id = dcon::fatten(state.world, prov_id);
+			auto i = province::to_map_id(prov_id);
+			auto cid = fat_id.get_continent().id.index();
 
-		uint32_t color = 0xDDDDDD;
-		if(rebels_in_province[i]) {
-			float gradient_index = (continent_max_rebels[cid] == 0.f ? 0.f : (rebels_in_province[i] / continent_max_rebels[cid]));
-			color = ogl::color_gradient(gradient_index,
-					sys::pack_color(247, 15, 15), // red
-					sys::pack_color(46, 247, 15) // green
-			);
+			uint32_t color = 0xDDDDDD; // white
+			if(rebels_in_province[i]) {
+				float gradient_index = (continent_max_rebels[cid] == 0.f ? 0.f : (rebels_in_province[i] / continent_max_rebels[cid]));
+				color = ogl::color_gradient(gradient_index,
+						sys::pack_color(247, 15, 15), // red
+						sys::pack_color(46, 247, 15) // green
+				);
+			}
+			prov_color[i] = color;
+			prov_color[i + texture_size] = color;
 		}
-		prov_color[i] = color;
-		prov_color[i + texture_size] = color;
 	});
 	return prov_color;
 }

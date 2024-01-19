@@ -1027,17 +1027,21 @@ void militancy_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 
 		auto box = text::open_layout_box(contents);
 
-		text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_amount"));
-		text::add_to_layout_box(state, contents, box, text::prettify(int64_t(total_rebels)), text::text_color::yellow);
+		if(total_rebels <= 0.f) {
+			text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_none"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_amount"));
+			text::add_to_layout_box(state, contents, box, text::prettify(int64_t(total_rebels)), text::text_color::yellow);
 
-		for(size_t i = 0; i < rebel_factions.size(); i++) {
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_factions[i].first), text::text_color::yellow);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, text::prettify(int64_t(rebel_factions[i].second)), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
+			for(size_t i = 0; i < rebel_factions.size(); i++) {
+				text::add_line_break_to_layout_box(state, contents, box);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_factions[i].first), text::text_color::yellow);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
+				text::add_to_layout_box(state, contents, box, text::prettify(int64_t(rebel_factions[i].second)), text::text_color::white);
+				text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
+			}
 		}
 
 		text::close_layout_box(contents, box);
