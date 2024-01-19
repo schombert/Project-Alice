@@ -1001,6 +1001,49 @@ void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	}
 }
 
+void militancy_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto total_rebels = 0.f;
+		std::vector<std::pair<dcon::rebel_faction_id, float>> rebel_factions;
+		for(auto pop : fat.get_pop_location()) {
+			if(pop.get_pop().get_pop_rebellion_membership().get_rebel_faction()) {
+				auto fid = pop.get_pop().get_pop_rebellion_membership().get_rebel_faction().id;
+				auto rebel_pop = pop.get_pop().get_size();
+				auto f = std::find_if(rebel_factions.begin(), rebel_factions.end(), [fid](const auto& pair) {
+					return pair.first == fid;
+				});
+				if(f != rebel_factions.end()) {
+					f->second += rebel_pop;
+				} else {
+					rebel_factions.push_back(std::make_pair(fid, rebel_pop));
+				}
+				total_rebels += pop.get_pop().get_size();
+			}
+		}
+		std::sort(rebel_factions.begin(), rebel_factions.end(), [&](auto a, auto b) {return a.second > b.second; });
+
+		auto box = text::open_layout_box(contents);
+
+		text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_amount"));
+		text::add_to_layout_box(state, contents, box, text::prettify(int64_t(total_rebels)), text::text_color::yellow);
+
+		for(size_t i = 0; i < rebel_factions.size(); i++) {
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_factions[i].first), text::text_color::yellow);
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, text::prettify(int64_t(rebel_factions[i].second)), text::text_color::white);
+			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::white);
+		}
+
+		text::close_layout_box(contents, box);
+	}
+}
+
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	switch(state.map_state.active_map_mode) {
 	case map_mode::mode::terrain:
@@ -1102,6 +1145,8 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 	case map_mode::mode::growth:
 		growth_map_tt_box(state, contents, prov);
 		break;
+	case map_mode::mode::militancy:
+		militancy_map_tt_box(state, contents, prov);
 	default:
 		break;
 	};
