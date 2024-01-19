@@ -55,8 +55,8 @@ vec4 flat_coords(vec3 world_pos) {
 // A rotation so units can face were they are going
 vec3 rotate_target(vec3 v) {
 	vec3 k = vec3(0.f, 1.f, 0.f);
-	float cos_theta = cos(target_facing);
-	float sin_theta = sin(target_facing);
+	float cos_theta = cos(target_facing - M_PI / 2.f);
+	float sin_theta = sin(target_facing - M_PI / 2.f);
 	return (v * cos_theta) + (cross(k, v) * sin_theta) + (k * dot(k, v)) * (1.f - cos_theta);
 }
 // Skew so the player can see half of the model
