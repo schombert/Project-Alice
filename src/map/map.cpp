@@ -763,10 +763,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		};
-
-		render_regiment(17, military::unit_type::infantry, dist_step); //shadow
-		render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
-		render_regiment(17, military::unit_type::support, -dist_step); //shadow
+		//render_regiment(17, military::unit_type::infantry, dist_step); //shadow
+		//render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
+		//render_regiment(17, military::unit_type::support, -dist_step); //shadow
 		render_regiment(11, military::unit_type::infantry, dist_step); //infantry
 		render_regiment(15, military::unit_type::cavalry, 0.f); //horse
 		render_regiment(18, military::unit_type::support, -dist_step); //artillery
