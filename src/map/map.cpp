@@ -742,7 +742,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						break;
 					}
 				}
-				glUniform2f(12, p1.x, p1.y - dist_step);
+				glUniform2f(12, p1.x, p1.y + dist_step);
 				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 				glUniform1f(13, -theta);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[11], static_mesh_counts[11]);
@@ -764,7 +764,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						break;
 					}
 				}
-				glUniform2f(12, p1.x, p1.y - dist_step);
+				glUniform2f(12, p1.x, p1.y + dist_step);
 				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 				glUniform1f(13, -theta);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[12], static_mesh_counts[12]);
