@@ -727,49 +727,85 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		// Render armies
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[11]);
-		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
-			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			auto units = state.world.province_get_army_location_as_location(p);
-			if(state.map_state.visible_provinces[province::to_map_id(p)]
-			&& units.begin() != units.end()) {
-				auto p1 = state.world.province_get_mid_point(p);
-				auto p2 = p1;
-				for(const auto unit : units) {
-					if(auto path = unit.get_army().get_path(); path.size() > 0) {
-						p2 = state.world.province_get_mid_point(path[0]);
-						break;
+		auto render_regiment = [&](uint32_t index, military::unit_type type, float space) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
+			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+				auto units = state.world.province_get_army_location_as_location(p);
+				if(state.map_state.visible_provinces[province::to_map_id(p)]
+				&& units.begin() != units.end()) {
+					auto p1 = state.world.province_get_mid_point(p);
+					auto p2 = p1;
+					bool has_ship = false;
+					for(const auto unit : units) {
+						for(const auto sm : unit.get_army().get_army_membership()) {
+							auto& t = state.military_definitions.unit_base_definitions[sm.get_regiment().get_type()];
+							if(t.type == type) {
+								has_ship = true;
+								break;
+							}
+						}
+						if(auto path = unit.get_army().get_path(); path.size() > 0) {
+							p2 = state.world.province_get_mid_point(path[0]);
+							break;
+						}
+					}
+					if(has_ship) {
+						glUniform2f(12, p1.x, p1.y + space + dist_step);
+						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
+						glUniform1f(13, -theta);
+						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
-				glUniform2f(12, p1.x, p1.y + dist_step);
-				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-				glUniform1f(13, -theta);
-				glDrawArrays(GL_TRIANGLES, static_mesh_starts[11], static_mesh_counts[11]);
 			}
-		}
+		};
+		render_regiment(11, military::unit_type::infantry, -dist_step); //infantry
+		render_regiment(17, military::unit_type::infantry, -dist_step); //shadow
+		render_regiment(15, military::unit_type::cavalry, 0.f); //horse
+		render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
+		render_regiment(18, military::unit_type::support, dist_step); //artillery
+		render_regiment(17, military::unit_type::support, dist_step); //shadow
 		// Render navies
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[12]);
-		for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
-			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			auto units = state.world.province_get_navy_location_as_location(p);
-			if(state.map_state.visible_provinces[province::to_map_id(p)]
-			&& units.begin() != units.end()) {
-				auto p1 = duplicates::get_navy_location(state, p);
-				auto p2 = p1;
-				for(const auto unit : units) {
-					if(auto path = unit.get_navy().get_path(); path.size() > 0) {
-						p2 = duplicates::get_navy_location(state, path[0]);
-						break;
+		auto render_ship = [&](uint32_t index, military::unit_type type, float space) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
+			for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
+				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+				auto units = state.world.province_get_navy_location_as_location(p);
+				if(state.map_state.visible_provinces[province::to_map_id(p)]
+				&& units.begin() != units.end()) {
+					auto p1 = duplicates::get_navy_location(state, p);
+					auto p2 = p1;
+					bool has_ship = false;
+					for(const auto unit : units) {
+						for(const auto sm : unit.get_navy().get_navy_membership()) {
+							auto& t = state.military_definitions.unit_base_definitions[sm.get_ship().get_type()];
+							if(t.type == type) {
+								has_ship = true;
+								break;
+							}
+						}
+						if(auto path = unit.get_navy().get_path(); path.size() > 0) {
+							p2 = duplicates::get_navy_location(state, path[0]);
+							break;
+						}
+					}
+					if(has_ship) {
+						glUniform2f(12, p1.x, p1.y + space + dist_step);
+						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
+						glUniform1f(13, -theta);
+						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
-				glUniform2f(12, p1.x, p1.y + dist_step);
-				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-				glUniform1f(13, -theta);
-				glDrawArrays(GL_TRIANGLES, static_mesh_starts[12], static_mesh_counts[12]);
 			}
-		}
+		};
+		render_ship(12, military::unit_type::light_ship, -dist_step); //frigate
+		render_ship(16, military::unit_type::light_ship, -dist_step); //wake
+		render_ship(13, military::unit_type::big_ship, 0.f); //manowar
+		render_ship(16, military::unit_type::big_ship, 0.f); //wake
+		render_ship(14, military::unit_type::transport, dist_step); //transport
+		render_ship(16, military::unit_type::transport, dist_step); //wake
 		glDisable(GL_DEPTH_TEST);
 	}
 
@@ -1506,6 +1542,32 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Blockade"), //10 -- blockade
 		NATIVE("generic_infantry"), //11 -- infantry
 		NATIVE("Generic_Frigate"), //12 -- frigate
+		NATIVE("Generic_Manowar"), //13 -- manowar
+		NATIVE("Generic_Transport_Ship"), //14 -- transport ship
+		NATIVE("Horse"), // 15 -- horse
+		NATIVE("wake"), // 16 -- ship wake
+		NATIVE("Shadow_addon"), // 17 -- shadow blob
+		NATIVE("BritishArt_Interwar"), // 18 -- artillery
+	};
+	static const std::array<float, display_data::max_static_meshes> scaling_factor = {
+		1.f, //1
+		1.f, //2
+		1.f, //3
+		1.f, //4
+		1.f, //5
+		1.f, //6
+		1.f, //7
+		1.f, //8
+		1.f, //9
+		0.75f, //10
+		1.5f, //11
+		1.4f, //12
+		2.4f, //13
+		0.8f, //14
+		1.f, //15
+		1.f, //16
+		1.f, //17
+		1.f, //18
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
@@ -1541,7 +1603,7 @@ void load_static_meshes(sys::state& state) {
 								auto vt = mesh.texcoords.empty()
 									? emfx::xac_vector2f{ vv.x, vv.y }
 								: mesh.texcoords[index % mesh.texcoords.size()];
-								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
+								smv.position_ = glm::vec3(vv.x * scaling_factor[k], vv.y * scaling_factor[k], vv.z * scaling_factor[k]);
 								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
 								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
 								triangle_vertices[j] = smv;
