@@ -597,6 +597,8 @@ mtt_fort_level;Fort level ;;;;;;;;;;;;x
 mtt_fort_being_built;A fort level is under construction here.;;;;;;;;;;;;x
 mtt_can_build_fort;A new fort level can be built here.;;;;;;;;;;;;x
 mtt_population_change;Monthly population change: ;;;;;;;;;;;;x
+mtt_rebels_amount;Rebels active in province: ;;;;;;;;;;;;x
+mtt_rebels_none;There are no rebels in this province.;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
