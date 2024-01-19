@@ -1634,6 +1634,18 @@ void load_static_meshes(sys::state& state) {
 			emfx::xac_context context{};
 			emfx::parse_xac(context, contents.data, contents.data + contents.file_size, err);
 			emfx::finish(context);
+
+			auto& texid = state.map_state.map_data.static_mesh_textures[k];
+			if(!texid) {
+				texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
+				if(!texid) {
+					texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"));
+					if(!texid) {
+						texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"));
+					}
+				}
+			}
+
 			for(auto const& node : context.nodes) {
 				int32_t mesh_index = 0;
 				for(auto const& mesh : node.meshes) {
@@ -1674,7 +1686,6 @@ void load_static_meshes(sys::state& state) {
 						}
 						vertex_offset += sub.num_vertices;
 						// This is how most models fallback to find their textures...
-						auto& texid = state.map_state.map_data.static_mesh_textures[k];
 						if(!texid) {
 							auto const& mat = context.materials[sub.material_id];
 							auto const& layer = get_diffuse_layer(mat);
