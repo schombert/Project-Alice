@@ -249,8 +249,8 @@ void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_
 
 	float sep_mod = (state.world.pop_get_is_primary_or_accepted_culture(ids) ? 0.0f :
 			state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_consciousness_modifier));
-
-	auto total = (lx_mod + (cl_mod + lit_mod)) + (local_mod + sep_mod);
+	auto old_con = state.world.pop_get_consciousness(ids) * 0.01f;
+	auto total = (lx_mod + (cl_mod + lit_mod - old_con)) + (local_mod + sep_mod);
 
 	{
 		auto box = text::open_layout_box(contents);
@@ -374,7 +374,8 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
 	float war_exhaustion =
 		state.world.nation_get_war_exhaustion(owner) * 0.005f;
-	float total = (sub_t + local_mod) + ((sep_mod - ln_mod) + (en_mod_b - en_mod_a) + war_exhaustion);
+	auto old_mil = state.world.pop_get_militancy(ids) * 0.01f;
+	float total = (sub_t + local_mod) + ((sep_mod - ln_mod - old_mil) + (en_mod_b - en_mod_a) + war_exhaustion);
 
 	{
 		auto box = text::open_layout_box(contents);
