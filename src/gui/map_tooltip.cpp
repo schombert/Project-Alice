@@ -77,7 +77,7 @@ void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 	}
 }
 
-void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {  // Done
+void militancy_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {  // Done
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 
@@ -1001,7 +1001,7 @@ void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	}
 }
 
-void militancy_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 
