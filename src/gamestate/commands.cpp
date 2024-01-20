@@ -3143,18 +3143,18 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	if(dest.index() < state.province_definitions.first_sea_province.index()) {
 		if(state.network_mode != sys::network_mode_type::single_player
 		&& state.world.army_get_battle_from_army_battle_participation(a)) {
-			// Reglas de MP especiales:
-			// Poder retirarse:
-			// extern - TU propio territorio
-			// extern - Territorio aliado(esto en estado de guerra)
-			// extern - Territorio que tengas acceso militar(esto se regula en MP)
-			// handled 1.0 - Territorio enemigo que no tenga tropas al momento de retirarte(se regula en mp)
-			// handled 1.1 - Territorio aliado / tuyo que se esté ocupando en una guerra
-			// extern - A los barcos(incluyendo cuando hay una batalla naval en curso)
-			// No poder retirarse :
-			// handled 1.2 - Cuando todas las provincias adyacentes a una batalla este rodeada de enemigos
-			// handled 1.3 - No mas de 1 provincia, para evitar el multiprovince
-			// handled 1.4 - Donde hayan tropas enemigas(territorio tuyo / aliado o enemigo, da igual)
+			// MP special ruleset (basically applies to most MP games)
+			// Being able to withdraw:
+			// extern - YOUR own territory
+			// extern - Allied territory (this is in a state of war)
+			// extern - Territory that you have military access to (this is regulated in MP)
+			// handled 1.0 - Enemy territory that does not have troops at the time of withdrawal (regulated in mp)
+			// handled 1.1 - Allied/your territory that is being occupied in a war
+			// extern - To ships (including when a naval battle is in progress)
+			// Not being able to withdraw:
+			// handled 1.2 - When all provinces adjacent to a battle are surrounded by enemies
+			// handled 1.3 - No more than 1 province, to avoid multiprovince
+			// handled 1.4 - Where there are enemy troops (your territory / ally or enemy, it doesn't matter)
 			bool b_10 = false; // Also handles 1-1, occupied territory of allies or yours
 			// 1.0/1.1 - Enemy territory
 			if(military::are_at_war(state, state.world.province_get_nation_from_province_control(dest), source)) {
