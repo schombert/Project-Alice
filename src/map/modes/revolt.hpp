@@ -29,7 +29,7 @@ std::vector<uint32_t> revolt_map_from(sys::state& state) {
 			auto cid = fat_id.get_continent().id.index();
 
 			uint32_t color = 0xDDDDDD; // white
-			if(rebels_in_province[i]) {
+			if(rebels_in_province[i] >= 0.0f) {
 				float gradient_index = (continent_max_rebels[cid] == 0.f ? 0.f : (rebels_in_province[i] / continent_max_rebels[cid]));
 				color = ogl::color_gradient(gradient_index,
 						sys::pack_color(247, 15, 15), // red

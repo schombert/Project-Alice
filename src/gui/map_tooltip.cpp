@@ -1151,6 +1151,7 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::militancy:
 		militancy_map_tt_box(state, contents, prov);
+		break;
 	default:
 		break;
 	};
