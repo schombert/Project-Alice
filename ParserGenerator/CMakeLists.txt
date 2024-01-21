@@ -15,7 +15,7 @@ if(WIN32)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 
 		target_compile_options(ParserGenerator PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /d2archSSE42 /GF /w34388 /w34389
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389
 										-Wno-missing-prototypes -Wno-unsafe-buffer-usage
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
@@ -24,7 +24,7 @@ if(WIN32)
 			$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 	else()
 		target_compile_options(ParserGenerator PRIVATE
-										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389
+										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /Zc:preprocessor /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(ParserGenerator PRIVATE
