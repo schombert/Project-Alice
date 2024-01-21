@@ -134,6 +134,7 @@ if(WIN32)
 	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
+	# To build Non-AVX version : change all "/arch:AVX2" to "/d2archSSE42"
 	set(CMAKE_CXX_FLAGS "")
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
@@ -174,7 +175,7 @@ if(WIN32)
 			message(STATUS "Normal, not PGO, build")
 			target_compile_options(AliceCommon INTERFACE
 				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
-				  $<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
+				  $<$<CONFIG:Debug>: /EHsc /MTd /O1>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
 				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
