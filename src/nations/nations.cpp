@@ -284,7 +284,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 		}
 	});
 
-	return (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
+	return std::max(0.0f, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f));
 }
 
 void update_research_points(sys::state& state) {
@@ -310,7 +310,7 @@ void update_research_points(sys::state& state) {
 			}
 		});
 		auto amount = ve::select(total_pop > 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
-				(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
+				ve::max((sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
 		daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
