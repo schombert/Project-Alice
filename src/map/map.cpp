@@ -623,8 +623,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
 	}
 
-	if(1) {
-		constexpr float dist_step = 2.3333f;
+	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
+		constexpr float dist_step = 1.77777f;
 		// Render standing objects
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -646,11 +646,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
 		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			if(state.world.province_get_building_level(p, economy::province_building_type::railroad) > 0) {
+			auto const level = state.world.province_get_building_level(p, economy::province_building_type::railroad);
+			if(level > 0) {
 				auto center = state.world.province_get_mid_point(p);
 				auto pos = center + glm::vec2(-dist_step, dist_step); //top right (from center)
 				glUniform2f(12, pos.x, pos.y);
-				glUniform1f(13, float(rng::reduce(p.index(), 360) - 180) / 45.f);
+				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() * level, 1000)) / 1000.f));
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
 			}
 		}
@@ -671,6 +672,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
 				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
 				auto units = state.world.province_get_navy_location_as_location(p);
+				auto const level = state.world.province_get_building_level(p, economy::province_building_type::naval_base);
 				if(level >= tier.min && level <= tier.max && units.begin() == units.end()) {
 					auto p1 = duplicates::get_navy_location(state, p);
 					auto p2 = state.world.province_get_mid_point(p);
@@ -706,9 +708,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 		// Fort
 		static const model_tier fort_tiers[] = {
-			{ 29, 1, 2 }, //early
+			{ 8, 1, 2 }, //early
 			{ 28, 3, 4 }, //mid
-			{ 8, 5, 6 } //late
+			{ 29, 5, 6 } //late
 		};
 		for(const auto& tier : fort_tiers) {
 			glActiveTexture(GL_TEXTURE14);
@@ -720,7 +722,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					auto center = state.world.province_get_mid_point(p);
 					auto pos = center + glm::vec2(dist_step, -dist_step); //bottom left (from center)
 					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, float(rng::reduce(p.index() + 128, 360) - 180) / 45.f);
+					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -735,7 +737,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				auto center = state.world.province_get_mid_point(p);
 				auto pos = center + glm::vec2(-dist_step, -dist_step); //top left (from center)
 				glUniform2f(12, pos.x, pos.y);
-				glUniform1f(13, float(rng::reduce(p.index() + 256, 360) - 180) / 45.f);
+				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[9], static_mesh_counts[9]);
 			}
 		}
@@ -775,7 +777,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						}
 						if(has_unit) {
 							if(auto path = unit.get_army().get_path(); path.size() > 0) {
-								p2 = state.world.province_get_mid_point(path[0]);
+								p2 = state.world.province_get_mid_point(path[path.size() - 1]);
 								break;
 							}
 						}
@@ -817,7 +819,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						}
 						if(has_unit) {
 							if(auto path = unit.get_navy().get_path(); path.size() > 0) {
-								p2 = duplicates::get_navy_location(state, path[0]);
+								p2 = duplicates::get_navy_location(state, path[path.size() - 1]);
 								break;
 							}
 						}
@@ -854,10 +856,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					pos.x -= 2.5f;
 					pos.y -= 2.5f;
 					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, float(rng::reduce(p.index() + j * i, 360) - 180) / 45.f);
+					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j + i, 1000)) / 1000.f));
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					glUniform2f(12, pos.x, pos.y);
-					glUniform1f(13, float(rng::reduce(p.index() + j * i + 192, 360) - 180) / 45.f);
+					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j * i, 1000)) / 1000.f));
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 				}
 			}
@@ -1648,6 +1650,21 @@ void load_static_meshes(sys::state& state) {
 		0.66f, //25
 		0.66f, //26
 		0.66f, //27
+		1.0f, //28
+		1.0f, //29
+		1.0f, //30
+		1.0f, //31
+		1.0f, //32
+		1.0f, //33
+		1.0f, //34
+		1.0f, //35
+		1.0f, //36
+		1.0f, //37
+		1.0f, //38
+		1.0f, //39
+		1.0f, //40
+		1.0f, //41
+		1.0f, //42
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
@@ -1703,9 +1720,9 @@ void load_static_meshes(sys::state& state) {
 							// Clip standing planes (some models have flat planes
 							// beneath them)
 							if(is_visual
-							&& triangle_vertices[0].position_.y <= -0.1f
-							&& triangle_vertices[1].position_.y <= -0.1f
-							&& triangle_vertices[2].position_.y <= -0.1f) {
+							&& triangle_vertices[0].position_.y <= -0.09f
+							&& triangle_vertices[1].position_.y <= -0.09f
+							&& triangle_vertices[2].position_.y <= -0.09f) {
 								for(const auto& smv : triangle_vertices) {
 									static_mesh_vertex tmp = smv;
 									tmp.position_ *= scaling_factor[k];

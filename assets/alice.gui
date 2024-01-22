@@ -408,6 +408,23 @@ guiTypes = {
 				position = { 289 296 }
 				quadTextureSprite = "option_next"
 			}
+
+			# 3D Models (Y/N)
+			instantTextBoxType = {
+				name = "render_models_label"
+				position = { 78 326 }
+				text = "render_models_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "render_models_checkbox"
+				position = { 51 326 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {
