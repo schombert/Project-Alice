@@ -701,7 +701,7 @@ public:
 		auto need = text::produce_simple_string(state, "life_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction() * 100});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -726,7 +726,7 @@ public:
 		auto need = text::produce_simple_string(state, "everyday_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction() * 100});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -751,7 +751,7 @@ public:
 		auto need = text::produce_simple_string(state, "luxury_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction() * 100});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -2399,21 +2399,21 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_religion().id.index() < b_fat_id.get_religion().id.index();
+				return text::get_name_as_string(state, a_fat_id.get_religion()) < text::get_name_as_string(state, b_fat_id.get_religion());
 			};
 			break;
 		case pop_list_sort::nationality:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_culture().id.index() < b_fat_id.get_culture().id.index();
+				return text::get_name_as_string(state, a_fat_id.get_culture()) < text::get_name_as_string(state, b_fat_id.get_culture());
 			};
 			break;
 		case pop_list_sort::location:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_pop_location_as_pop().id.index() < b_fat_id.get_pop_location_as_pop().id.index();
+				return text::get_name_as_string(state, a_fat_id.get_province_from_pop_location()) < text::get_name_as_string(state, b_fat_id.get_province_from_pop_location());
 			};
 			break;
 		case pop_list_sort::cash:
@@ -2427,7 +2427,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_employment() < b_fat_id.get_employment();
+				return a_fat_id.get_employment()/a_fat_id.get_size() < b_fat_id.get_employment()/b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::ideology:
