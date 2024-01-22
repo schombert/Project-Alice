@@ -177,6 +177,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
 uint8_t* write_scenario_section_for_checksum(uint8_t* ptr_in, sys::state& state);
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
 size_t sizeof_scenario_section(sys::state& state);
+size_t sizeof_scenario_section_for_checksum(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
