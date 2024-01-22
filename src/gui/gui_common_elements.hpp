@@ -590,11 +590,18 @@ public:
 	}
 };
 
-class nation_military_score_text : public standard_nation_text {
+class nation_military_score_text : public multiline_text_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-		return std::to_string(int32_t(fat_id.get_military_score()));
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		bool is_mob = state.world.nation_get_is_mobilized(content);
+		// Create colour
+		auto contents = text::create_endless_layout(internal_layout,
+			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+			base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, true });
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, std::to_string(int32_t(state.world.nation_get_military_score(content))), is_mob ? text::text_color::dark_red : text::text_color::black);
+		text::close_layout_box(contents, box);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
