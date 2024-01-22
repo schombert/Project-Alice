@@ -1764,6 +1764,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
 	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
+	if(!texturesheet)
+		texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
+
 	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));

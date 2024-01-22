@@ -284,7 +284,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 		}
 	});
 
-	return (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
+	return std::max(0.0f, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f));
 }
 
 void update_research_points(sys::state& state) {
@@ -310,7 +310,7 @@ void update_research_points(sys::state& state) {
 			}
 		});
 		auto amount = ve::select(total_pop > 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
-				(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
+				ve::max((sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
 		daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
@@ -949,10 +949,16 @@ void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
 	*/
-	state.world.execute_serial_over_nation([&](auto ids) {
-		auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
-		state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
-	});
+
+	// Removed monthly prestige update: this is because technologies have a prestige effect that is supposed to act as a multiplier to earned prestige
+	// while the other prestige modifiers are supposed to add monthly prestige
+	// they need to be separated out from each other (even though they have the same name)
+	// until we do that, removing ticking prestige is the easier fix
+	
+	//state.world.execute_serial_over_nation([&](auto ids) {
+	//	auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
+	//	state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
+	//});
 	/*
 	- Infamy: a nation with a badboy modifier gains that amount of infamy per month
 	*/

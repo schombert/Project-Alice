@@ -58,11 +58,9 @@ X11 (support *should* exist for wayland but there is not guarantee.)
 
 From here compiling is straightforward
 1. `cd Project-Alice`
-2. `cmake -E make_directory build`
-3. `cmake -E chdir build cmake ..`
-4. `touch src/local_user_settings.hpp`
-5. `nano src/local_user_settings.hpp` or use the text editor of your choice
-6. add the following lines:
+2. `cmake -B build . -DCMAKE_BUILD_TYPE=Debug`
+3. `nano src/local_user_settings.hpp` or use the text editor of your choice
+4. add the following lines:
     ```cpp
         #ifndef GAME_DIR
         #define GAME_DIR "[insert file path here]"
@@ -72,9 +70,8 @@ From here compiling is straightforward
     ```
   you should set GAME_DIR to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path on linux its noteworthy that you dont need to put \ before spaces, so if your Linux file path is /home/user/Victoria\ 2/, then you write /home/user/Victoria 2/ in the GAME_DIR (surronded by quotes of course)
     copy the file path and replace [insert file path here] with it, then save. Additionaly, `OOS_DAILY_CHECK` should be defined if you want daily OOS checks instead of the usual "monthly" ones.
-
-7. `cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..`
-8. `cmake --build . -j$(nproc)`
+    
+5. `cmake --build build -j$(nproc)`
 
 
 #### Final touches

@@ -72,8 +72,8 @@ struct user_settings_s {
 		message_response::standard_popup,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::log,//factory_complete = 20,
 		message_response::log,//rr_complete = 21,
 		message_response::log,//fort_complete = 22,
@@ -175,8 +175,8 @@ struct user_settings_s {
 		message_response::log,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::ignore,//factory_complete = 20,
 		message_response::ignore,//rr_complete = 21,
 		message_response::ignore,//fort_complete = 22,
@@ -278,8 +278,8 @@ struct user_settings_s {
 		message_response::ignore,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::ignore,//factory_complete = 20,
 		message_response::ignore,//rr_complete = 21,
 		message_response::ignore,//fort_complete = 22,
@@ -489,7 +489,7 @@ struct alignas(64) state {
 	float crisis_temperature = 0;
 	dcon::nation_id primary_crisis_attacker;
 	dcon::nation_id primary_crisis_defender;
-	crisis_mode current_crisis_mode;
+	crisis_mode current_crisis_mode = crisis_mode::inactive;
 	uint32_t crisis_last_checked_gp = 0;
 	dcon::war_id crisis_war;
 	sys::date last_crisis_end_date{0}; // initial grace period
@@ -548,7 +548,7 @@ struct alignas(64) state {
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
 	std::optional<state_selection_data> state_selection;
-	map_mode::mode stored_map_mode;
+	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
@@ -632,7 +632,6 @@ struct alignas(64) state {
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
 	sys::checksum_key get_save_checksum();
-	sys::checksum_key get_scenario_checksum();
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();
 

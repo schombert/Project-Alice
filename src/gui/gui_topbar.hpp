@@ -82,9 +82,11 @@ public:
 		default:
 			break;
 		};
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
 		text::close_layout_box(contents, box);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
 	}
 };
 
@@ -206,7 +208,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change * 30.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change});
 		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
@@ -1588,10 +1590,10 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, true);
 		text::add_line_break_to_layout(state, contents);
 
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, true);
 		text::add_line_break_to_layout(state, contents);
 
 		if(!bool(tech_id)) {
