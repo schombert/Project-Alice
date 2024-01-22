@@ -314,11 +314,9 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 
 	return section_end;
 }
-
-template<bool B>
-uint8_t* write_scenario_section_helper(uint8_t* ptr_in, sys::state& state) {
+uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
-	if constexpr(B == false) { // map
+	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
@@ -494,19 +492,11 @@ uint8_t* write_scenario_section_helper(uint8_t* ptr_in, sys::state& state) {
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
-	return write_scenario_section_helper<false>(ptr_in, state);
-}
-uint8_t* write_scenario_section_for_checksum(uint8_t* ptr_in, sys::state& state) {
-	return write_scenario_section_helper<true>(ptr_in, state);
-}
-
-template<bool B>
-size_t sizeof_scenario_section_helper(sys::state& state) {
+size_t sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
+
 	// hand-written contribution
-	if constexpr(B == false) { // map
+	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
 		sz += serialize_size(state.map_state.map_data.river_vertices);
@@ -674,13 +664,8 @@ size_t sizeof_scenario_section_helper(sys::state& state) {
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
 	// dcon::load_record loaded;
 	sz += state.world.serialize_size(loaded);
+
 	return sz;
-}
-size_t sizeof_scenario_section(sys::state& state) {
-	return sizeof_scenario_section_helper<false>(state);
-}
-size_t sizeof_scenario_section_for_checksum(sys::state& state) {
-	return sizeof_scenario_section_helper<true>(state);
 }
 
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {

@@ -4313,17 +4313,6 @@ sys::checksum_key state::get_save_checksum() {
 	return key;
 }
 
-sys::checksum_key state::get_scenario_checksum() {
-	auto scenario_space = sizeof_scenario_section_for_checksum(*this);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_space]);
-	auto last_written = write_scenario_section_for_checksum(buffer.get(), *this);
-	int32_t last_written_count = int32_t(last_written - buffer.get());
-	assert(size_t(last_written_count) == scenario_space);
-	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), last_written_count, nullptr, 0);
-	return key;
-}
-
 void state::debug_save_oos_dump() {
 	auto sdir = simple_fs::get_or_create_oos_directory();
 	{
