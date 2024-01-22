@@ -174,10 +174,8 @@ uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint3
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
-uint8_t* write_scenario_section_for_checksum(uint8_t* ptr_in, sys::state& state);
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
 size_t sizeof_scenario_section(sys::state& state);
-size_t sizeof_scenario_section_for_checksum(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
