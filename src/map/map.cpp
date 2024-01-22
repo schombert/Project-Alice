@@ -634,6 +634,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+		/*
 		for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
@@ -641,6 +642,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform1f(13, 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 		}
+		*/
 		// Train stations
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
@@ -728,25 +730,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		auto render_canal = [&](uint32_t index, uint32_t canal_id) {
-			if(canal_id >= uint32_t(state.province_definitions.canals.size()))
+			if(canal_id >= uint32_t(state.province_definitions.canals.size())
+			&& canal_id >= uint32_t(state.province_definitions.canal_provinces.size()))
 				return;
 			auto const adj = state.province_definitions.canals[canal_id];
 			if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0)
 				return;
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
-			auto const p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
-			auto const p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
-			glm::vec2 pos;
-			if(p0.index() < state.province_definitions.first_sea_province.index()) {
-				pos = state.world.province_get_mid_point(p0);
-			} else if(p1.index() < state.province_definitions.first_sea_province.index()) {
-				pos = state.world.province_get_mid_point(p1);
-			} else {
-				auto const pos_0 = state.world.province_get_mid_point(p0);
-				auto const pos_1 = state.world.province_get_mid_point(p1);
-				pos = (pos_0 + pos_1) / glm::vec2(2, 2);
-			}
+			glm::vec2 pos = state.world.province_get_mid_point(state.province_definitions.canal_provinces[canal_id]);
 			glUniform2f(12, pos.x, pos.y);
 			glUniform1f(13, 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
