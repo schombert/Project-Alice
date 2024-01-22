@@ -82,9 +82,11 @@ public:
 		default:
 			break;
 		};
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
 		text::close_layout_box(contents, box);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
 	}
 };
 

@@ -949,10 +949,16 @@ void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
 	*/
-	state.world.execute_serial_over_nation([&](auto ids) {
-		auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
-		state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
-	});
+
+	// Removed monthly prestige update: this is because technologies have a prestige effect that is supposed to act as a multiplier to earned prestige
+	// while the other prestige modifiers are supposed to add monthly prestige
+	// they need to be separated out from each other (even though they have the same name)
+	// until we do that, removing ticking prestige is the easier fix
+	
+	//state.world.execute_serial_over_nation([&](auto ids) {
+	//	auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
+	//	state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
+	//});
 	/*
 	- Infamy: a nation with a badboy modifier gains that amount of infamy per month
 	*/
