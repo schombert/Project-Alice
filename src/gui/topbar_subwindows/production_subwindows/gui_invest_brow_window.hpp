@@ -183,6 +183,10 @@ public:
 			auto ptr = make_element_by_type<production_sort_my_nation_flag>(state, id);
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
+		} else if(name == "sort_by_country") {
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::country>>(state, id);
+			ptr->base_data.position.y -= 1; // Nudge
+			return ptr;
 		} else if(name == "sort_by_boss") {
 			auto ptr = make_element_by_type<country_sort_button<country_list_sort::boss>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
