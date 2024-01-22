@@ -658,10 +658,10 @@ uint8_t* write_scenario_section_for_checksum(uint8_t* ptr_in, sys::state& state)
 	ptr_in = serialize(ptr_in, state.text_sequences);
 	ptr_in = serialize(ptr_in, state.key_to_text_sequence);
 	{ // ui definitions
-		//EXCLUDED -- ptr_in = serialize(ptr_in, state.ui_defs.gfx);
-		//EXCLUDED -- ptr_in = serialize(ptr_in, state.ui_defs.textures);
-		//EXCLUDED -- ptr_in = serialize(ptr_in, state.ui_defs.gui);
-		//EXCLUDED -- ptr_in = serialize(ptr_in, state.font_collection.font_names);
+		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
+		ptr_in = serialize(ptr_in, state.ui_defs.textures);
+		ptr_in = serialize(ptr_in, state.ui_defs.gui);
+		ptr_in = serialize(ptr_in, state.font_collection.font_names);
 	}
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
