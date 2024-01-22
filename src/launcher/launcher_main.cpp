@@ -502,17 +502,20 @@ void mouse_click() {
 			std::vector<native_string> valid_cmdlines;
 			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
 				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX512.exe ")) + selected_scenario_file);
-			} else if(IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE)) {
-				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX2.exe ")) + selected_scenario_file);
-			} else if(IsProcessorFeaturePresent(PF_AVX_INSTRUCTIONS_AVAILABLE)) {
-				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX.exe ")) + selected_scenario_file);
-			} else if(IsProcessorFeaturePresent(PF_SSE4_2_INSTRUCTIONS_AVAILABLE)) {
-				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE42.exe ")) + selected_scenario_file);
-			} else if(IsProcessorFeaturePresent(PF_SSE3_INSTRUCTIONS_AVAILABLE)) {
-				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE3.exe ")) + selected_scenario_file);
-			} else { //default fallback
-				valid_cmdlines.push_back(native_string(NATIVE("Alice.exe ")) + selected_scenario_file);
 			}
+			if(IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX2.exe ")) + selected_scenario_file);
+			}
+			if(IsProcessorFeaturePresent(PF_AVX_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX.exe ")) + selected_scenario_file);
+			}
+			if(IsProcessorFeaturePresent(PF_SSE4_2_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE42.exe ")) + selected_scenario_file);
+			}
+			if(IsProcessorFeaturePresent(PF_SSE3_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE3.exe ")) + selected_scenario_file);
+			}
+			valid_cmdlines.push_back(native_string(NATIVE("Alice.exe ")) + selected_scenario_file);  //default fallback
 			bool valid_launch = false;
 			for(const auto& cmdline : valid_cmdlines) {
 				STARTUPINFO si;
