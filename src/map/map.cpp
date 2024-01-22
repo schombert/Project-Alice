@@ -654,49 +654,75 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
 			}
 		}
+		struct model_tier {
+			uint32_t index;
+			uint8_t min;
+			uint8_t max;
+		};
 		// Naval base (empty)
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[6]);
-		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
-			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			auto units = state.world.province_get_navy_location_as_location(p);
-			if(state.world.province_get_building_level(p, economy::province_building_type::naval_base) > 0
-			&& units.begin() == units.end()) {
-				auto p1 = duplicates::get_navy_location(state, p);
-				auto p2 = state.world.province_get_mid_point(p);
-				glUniform2f(12, p1.x, p1.y);
-				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-				glUniform1f(13, -theta);
-				glDrawArrays(GL_TRIANGLES, static_mesh_starts[6], static_mesh_counts[6]);
+		static const model_tier nbe_tiers[] = {
+			{ 30, 1, 2 }, //early
+			{ 32, 3, 4 }, //mid
+			{ 6, 5, 6 } //late
+		};
+		for(const auto& tier : nbe_tiers) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
+			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+				auto units = state.world.province_get_navy_location_as_location(p);
+				if(level >= tier.min && level <= tier.max && units.begin() == units.end()) {
+					auto p1 = duplicates::get_navy_location(state, p);
+					auto p2 = state.world.province_get_mid_point(p);
+					glUniform2f(12, p1.x, p1.y);
+					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
+					glUniform1f(13, -theta);
+					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
+				}
 			}
 		}
 		// Naval base (full)
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[7]);
-		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
-			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			auto units = state.world.province_get_navy_location_as_location(p);
-			if(state.world.province_get_building_level(p, economy::province_building_type::naval_base) > 0
-			&& units.begin() != units.end()) {
-				auto p1 = duplicates::get_navy_location(state, p);
-				auto p2 = state.world.province_get_mid_point(p);
-				glUniform2f(12, p1.x, p1.y);
-				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
-				glUniform1f(13, -theta);
-				glDrawArrays(GL_TRIANGLES, static_mesh_starts[7], static_mesh_counts[7]);
+		static const model_tier nbf_tiers[] = {
+			{ 31, 1, 2 }, //early
+			{ 33, 3, 4 }, //mid
+			{ 7, 5, 6 } //late
+		};
+		for(const auto& tier : nbf_tiers) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
+			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+				auto units = state.world.province_get_navy_location_as_location(p);
+				auto const level = state.world.province_get_building_level(p, economy::province_building_type::naval_base);
+				if(level >= tier.min && level <= tier.max && units.begin() != units.end()) {
+					auto p1 = duplicates::get_navy_location(state, p);
+					auto p2 = state.world.province_get_mid_point(p);
+					glUniform2f(12, p1.x, p1.y);
+					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
+					glUniform1f(13, -theta);
+					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
+				}
 			}
 		}
 		// Fort
-		glActiveTexture(GL_TEXTURE14);
-		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[8]);
-		for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
-			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
-			if(state.world.province_get_building_level(p, economy::province_building_type::fort) > 0) {
-				auto center = state.world.province_get_mid_point(p);
-				auto pos = center + glm::vec2(dist_step, -dist_step); //bottom left (from center)
-				glUniform2f(12, pos.x, pos.y);
-				glUniform1f(13, float(rng::reduce(p.index() + 128, 360) - 180) / 45.f);
-				glDrawArrays(GL_TRIANGLES, static_mesh_starts[8], static_mesh_counts[8]);
+		static const model_tier fort_tiers[] = {
+			{ 29, 1, 2 }, //early
+			{ 28, 3, 4 }, //mid
+			{ 8, 5, 6 } //late
+		};
+		for(const auto& tier : fort_tiers) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[tier.index]);
+			for(uint32_t i = 0; i < uint32_t(state.province_definitions.first_sea_province.index()); i++) {
+				dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+				auto const level = state.world.province_get_building_level(p, economy::province_building_type::fort);
+				if(level >= tier.min && level <= tier.max) {
+					auto center = state.world.province_get_mid_point(p);
+					auto pos = center + glm::vec2(dist_step, -dist_step); //bottom left (from center)
+					glUniform2f(12, pos.x, pos.y);
+					glUniform1f(13, float(rng::reduce(p.index() + 128, 360) - 180) / 45.f);
+					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
+				}
 			}
 		}
 		// Factory
@@ -763,9 +789,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		};
-		//render_regiment(17, military::unit_type::infantry, dist_step); //shadow
-		//render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
-		//render_regiment(17, military::unit_type::support, -dist_step); //shadow
+		render_regiment(17, military::unit_type::infantry, dist_step); //shadow
+		render_regiment(17, military::unit_type::cavalry, 0.f); //shadow
+		render_regiment(17, military::unit_type::support, -dist_step); //shadow
 		render_regiment(11, military::unit_type::infantry, dist_step); //infantry
 		render_regiment(15, military::unit_type::cavalry, 0.f); //horse
 		render_regiment(18, military::unit_type::support, -dist_step); //artillery
@@ -805,14 +831,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		};
-
-		//render_ship(16, military::unit_type::transport, dist_step); //wake
-		//render_ship(16, military::unit_type::big_ship, 0.f); //wake
-		//render_ship(16, military::unit_type::light_ship, -dist_step); //wake
+		render_ship(16, military::unit_type::transport, dist_step); //wake
+		render_ship(16, military::unit_type::big_ship, 0.f); //wake
+		render_ship(16, military::unit_type::light_ship, -dist_step); //wake
 		render_ship(14, military::unit_type::transport, dist_step); //transport
 		render_ship(13, military::unit_type::big_ship, 0.f); //manowar
 		render_ship(12, military::unit_type::light_ship, -dist_step); //frigate
-
 		for(uint32_t i = 0; i < 3 * 3; i++) {
 			auto index = 19 + i;
 			glActiveTexture(GL_TEXTURE14);
@@ -838,7 +862,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
-
 		glDisable(GL_DEPTH_TEST);
 	}
 
@@ -1579,17 +1602,23 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Generic_Transport_Ship"), //14 -- transport ship
 		NATIVE("Horse"), // 15 -- horse
 		NATIVE("wake"), // 16 -- ship wake
-		NATIVE("Shadow_addon"), // 17 -- shadow blob
+		NATIVE("Infantry_shadowblob"), // 17 -- shadow blob
 		NATIVE("BritishArt_Interwar"), // 18 -- artillery
-		NATIVE("Generic_house_1_1"), // 19 -- housing
-		NATIVE("Generic_house_1_2"), // 20
-		NATIVE("Generic_house_1_3"), // 21
-		NATIVE("Generic_house_2_1"), // 22
-		NATIVE("Generic_house_2_2"), // 23
-		NATIVE("Generic_house_2_3"), // 24
-		NATIVE("Generic_house_3_1"), // 25
-		NATIVE("Generic_house_3_2"), // 26
-		NATIVE("Generic_house_3_3"), // 27
+		NATIVE("buildings_01_1"), // 19 -- housing
+		NATIVE("buildings_01_2"), // 20
+		NATIVE("buildings_01_3"), // 21
+		NATIVE("buildings_02_1"), // 22
+		NATIVE("buildings_02_2"), // 23
+		NATIVE("buildings_02_3"), // 24
+		NATIVE("buildings_03_1"), // 25
+		NATIVE("buildings_03_2"), // 26
+		NATIVE("buildings_03_3"), // 27
+		NATIVE("Fort_Mid2"), //28 -- fort
+		NATIVE("Fort_Late"), //29 -- fort
+		NATIVE("Navalbase_Early_Empty"), //30 -- naval base with no ships
+		NATIVE("Navalbase_Early_Full"), //31 -- naval base with a docked ship
+		NATIVE("Navalbase_Mid_Empty"), //32 -- naval base with no ships
+		NATIVE("Navalbase_Mid_Full"), //33 -- naval base with a docked ship
 	};
 	static const std::array<float, display_data::max_static_meshes> scaling_factor = {
 		1.f, //1

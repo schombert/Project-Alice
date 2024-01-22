@@ -187,7 +187,7 @@ public:
 	static constexpr uint32_t shader_count = 9;
 	GLuint shaders[shader_count] = { 0 };
 	// Textures for static meshes
-	static constexpr uint32_t max_static_meshes = 32;
+	static constexpr uint32_t max_static_meshes = 42;
 	GLuint static_mesh_textures[max_static_meshes] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
