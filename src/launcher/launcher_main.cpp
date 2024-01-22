@@ -499,18 +499,31 @@ void mouse_click() {
 		return;
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+			std::vector<native_string> valid_cmdlines;
 			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
-				native_string temp_command_line = native_string(NATIVE("Alice512.exe ")) + selected_scenario_file;
-
+				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX512.exe ")) + selected_scenario_file);
+			} else if(IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX2.exe ")) + selected_scenario_file);
+			} else if(IsProcessorFeaturePresent(PF_AVX_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceAVX.exe ")) + selected_scenario_file);
+			} else if(IsProcessorFeaturePresent(PF_SSE4_2_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE42.exe ")) + selected_scenario_file);
+			} else if(IsProcessorFeaturePresent(PF_SSE3_INSTRUCTIONS_AVAILABLE)) {
+				valid_cmdlines.push_back(native_string(NATIVE("AliceSSE3.exe ")) + selected_scenario_file);
+			} else { //default fallback
+				valid_cmdlines.push_back(native_string(NATIVE("Alice.exe ")) + selected_scenario_file);
+			}
+			bool valid_launch = false;
+			for(const auto& cmdline : valid_cmdlines) {
 				STARTUPINFO si;
 				ZeroMemory(&si, sizeof(si));
 				si.cb = sizeof(si);
 				PROCESS_INFORMATION pi;
 				ZeroMemory(&pi, sizeof(pi));
 				// Start the child process.
-				if(CreateProcessW(
+				BOOL r = CreateProcessW(
 					nullptr,   // Module name
-					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+					const_cast<wchar_t*>(cmdline.c_str()), // Command line
 					nullptr, // Process handle not inheritable
 					nullptr, // Thread handle not inheritable
 					FALSE, // Set handle inheritance to FALSE
@@ -518,72 +531,27 @@ void mouse_click() {
 					nullptr, // Use parent's environment block
 					nullptr, // Use parent's starting directory
 					&si, // Pointer to STARTUPINFO structure
-					&pi) != 0) {
-
+					&pi);
+				if(r != 0) {
 					CloseHandle(pi.hProcess);
 					CloseHandle(pi.hThread);
-
-					return; // exit -- don't try starting avx2
+					continue; // exit -- don't try starting
+				} else {
+					valid_launch = true;
+					break; // successful launch
 				}
 			}
-			if(!IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE)) {
-				native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
-
-				STARTUPINFO si;
-				ZeroMemory(&si, sizeof(si));
-				si.cb = sizeof(si);
-				PROCESS_INFORMATION pi;
-				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process.
-				if(CreateProcessW(
-					nullptr,   // Module name
-					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
-					nullptr, // Process handle not inheritable
-					nullptr, // Thread handle not inheritable
-					FALSE, // Set handle inheritance to FALSE
-					0, // No creation flags
-					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory
-					&si, // Pointer to STARTUPINFO structure
-					&pi) != 0) {
-
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
-
-					return; // exit -- don't try starting avx2
-				}
-			}
-			{ // normal case (avx2)
-				native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
-
-				STARTUPINFO si;
-				ZeroMemory(&si, sizeof(si));
-				si.cb = sizeof(si);
-				PROCESS_INFORMATION pi;
-				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process.
-				if(CreateProcessW(
-					nullptr,   // Module name
-					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
-					nullptr, // Process handle not inheritable
-					nullptr, // Thread handle not inheritable
-					FALSE, // Set handle inheritance to FALSE
-					0, // No creation flags
-					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory
-					&si, // Pointer to STARTUPINFO structure
-					&pi) != 0) {
-
-					CloseHandle(pi.hProcess);
-					CloseHandle(pi.hThread);
-				}
+			if(!valid_launch) {
+				MessageBoxW(m_hwnd, L"Unable to locate either: AliceAVX512, AliceAVX2, AliceAVX, AliceSSE42, AliceSSE3 or Alice executables.", L"Error trying to launch", MB_OK);
 				return;
 			}
 		}
+		return;
 	case ui_obj_host_game:
 	case ui_obj_join_game:
+		/* The lowest denominator of the apllication is ran */
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-			native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
+			native_string temp_command_line = native_string(NATIVE("AliceSSE3.exe ")) + selected_scenario_file;
 			if(obj_under_mouse == ui_obj_host_game) {
 				temp_command_line += NATIVE(" -host");
 				temp_command_line += NATIVE(" -name ");
@@ -594,18 +562,15 @@ void mouse_click() {
 				temp_command_line += simple_fs::utf8_to_native(ip_addr);
 				temp_command_line += NATIVE(" -name ");
 				temp_command_line += simple_fs::utf8_to_native(player_name);
-
 				// IPv6 address
 				if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != nullptr) {
 					temp_command_line += NATIVE(" -v6");
 				}
 			}
-
 			if(!password.empty()) {
 				temp_command_line += NATIVE(" -password ");
 				temp_command_line += simple_fs::utf8_to_native(password);
 			}
-
 			STARTUPINFO si;
 			ZeroMemory(&si, sizeof(si));
 			si.cb = sizeof(si);
@@ -623,12 +588,9 @@ void mouse_click() {
 				nullptr, // Use parent's starting directory
 				&si, // Pointer to STARTUPINFO structure
 				&pi) != 0) {
-
 				CloseHandle(pi.hProcess);
 				CloseHandle(pi.hThread);
 			}
-
-
 			// ready to launch
 		}
 		return;
