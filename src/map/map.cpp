@@ -637,7 +637,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
-			glUniform2f(12, 0.f, 0.f);
+			glUniform2f(12, 0.f, float(i * 8));
 			glUniform1f(13, 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 		}
@@ -728,9 +728,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		}
 		auto render_canal = [&](uint32_t index, uint32_t canal_id) {
+			if(canal_id >= uint32_t(state.province_definitions.canals.size()))
+				return;
+			auto const adj = state.province_definitions.canals[canal_id];
+			if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0)
+				return;
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
-			auto const adj = state.province_definitions.canals[canal_id];
 			auto const p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
 			auto const p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
 			glm::vec2 pos;
@@ -739,15 +743,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			} else if(p1.index() < state.province_definitions.first_sea_province.index()) {
 				pos = state.world.province_get_mid_point(p1);
 			} else {
-				pos = state.world.province_get_mid_point(p0);
+				auto const pos_0 = state.world.province_get_mid_point(p0);
+				auto const pos_1 = state.world.province_get_mid_point(p1);
+				pos = (pos_0 + pos_1) / glm::vec2(2, 2);
 			}
 			glUniform2f(12, pos.x, pos.y);
 			glUniform1f(13, 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 		};
-		render_canal(3, 1); //Kiel
-		render_canal(4, 2), //Suez
-		render_canal(2, 3); //Panama
+		render_canal(3, 0); //Kiel
+		render_canal(4, 1), //Suez
+		render_canal(2, 2); //Panama
 		// Factory
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
@@ -1741,9 +1747,10 @@ void load_static_meshes(sys::state& state) {
 							// Clip standing planes (some models have flat planes
 							// beneath them)
 							if(is_visual
-							&& triangle_vertices[0].position_.y <= -0.09f
-							&& triangle_vertices[1].position_.y <= -0.09f
-							&& triangle_vertices[2].position_.y <= -0.09f) {
+							//&& triangle_vertices[0].position_.y <= -0.15f
+							//&& triangle_vertices[1].position_.y <= -0.15f
+							//&& triangle_vertices[2].position_.y <= -0.15f
+							) {
 								for(const auto& smv : triangle_vertices) {
 									static_mesh_vertex tmp = smv;
 									tmp.position_ *= scaling_factor[k];
