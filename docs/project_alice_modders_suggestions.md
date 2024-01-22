@@ -1,6 +1,45 @@
-﻿# Project Alice Community modding Suggestions
+## Identified issues
 
-**General Prompt give to each modder for refferance**
+Some issues are solved by Project Alice already, some aren't, feel free to add your bitter experiences below for consideration post-1.0:
+
+- No first-hand support for dynamic localisation (without using change_region_name)
+- Trade window only supports N number of goods before it overflows
+- Undocumented (Alice lists all of them by the way) and inconsistent modifiers (some that can only be used on technologies and inventions)
+- Have to add 1 technology for each folder so the UI doesn't break
+- Selecting which wars to call an ally into
+
+Issues currently on-flight to be solved:
+- No unicode support: Coming with UI rework
+- Production goods tab only supports N number of goods: See above
+
+## Mod support
+
+This list may or may not be out of date, it's wise to check the mods yourself for verifying (and updating this list as needed). And here they be, in no particular order:
+
+| Mod | Works w/o patch | Works with patch | Notes |
+|---|---|---|---|
+| [GFM - Greater Flavour Mod](https://github.com/Historical-Expansion-Mod/Greater-Flavor-Mod/releases/tag/v2.1) | Yes | Yes |  |
+| [TGC - The Great Combination](https://github.com/rderekp/The-Grand-Combo/releases/tag/v0.96.4) | Yes | Yes | |
+| [Divergences of Darkness](https://www.moddb.com/mods/divergences-of-darkness/downloads/divergences-of-darkness-hungary-patch) | Yes | Yes | |
+| [HPM - Historical Project Mod](https://www.moddb.com/mods/historical-project-mod/downloads/hpm-0463) | Yes | Yes |  |
+| [CoE RoI - Concert of Europe: Roar of Industry](https://www.moddb.com/mods/the-concert-of-europe-roi/downloads/coeroi-2-0-1) | Yes | Yes |  |
+| [BAI - Blood And Iron](https://github.com/antonius117/BAI/releases/tag/Patch_06_11) | Somewhat | Yes | Loads, crashes when running |
+| [UPM - Universal Project Mod](https://www.moddb.com/mods/universal-project-mod/downloads/universal-project-mod-1-0-first-release) | Yes | Yes | |
+| [AoE Remake - Age of Enlightment Remake](https://www.moddb.com/mods/age-of-enlightenment/downloads/age-of-enlightenment-sp-remake-version-10) | Yes | Yes | |
+| [crimeamod](https://www.moddb.com/mods/crimeamod/downloads/crimeamod-141-unciv-edition) | Yes | Yes |  |
+| [The Northern Struggle](https://www.moddb.com/mods/the-northern-struggle/downloads/the-northern-struggle-234-the-african-update) | No | Yes |  |
+| [RLWAD - Real Life was a Dream](https://www.moddb.com/mods/real-life-was-a-dream-rlwad/downloads/rlwad-mod) | Yes | Yes |  |
+| [Victoria Universalis](https://www.moddb.com/mods/victoria-universalis/downloads/victoria-universalis-v077) | Yes | Yes |  |
+| [Wackria](https://www.moddb.com/mods/wakracia-steel-and-coal/downloads/wakracia-13-brazil-update) | No | Yes |  |
+| [Supernations Mod](https://www.moddb.com/mods/victoria-ii-supernations-mod/downloads/victoria-ii-supernations-mod-v151-the-disun) | No | Yes |  |
+| [Harolds Triumph](https://github.com/FeelsAtlasMan/Harald-s-Triumph) | No | Yes |  |
+| [Divergences of Darkness Expanded](https://github.com/rileyo92/Divergence-Expanded-MP/releases/tag/2.3.2) | Yes | Yes |  |
+
+(The links provided are the exact versions being tested).
+
+# Project Alice Community modding Suggestions
+
+**General Prompt give to each modder for referance**
 Been asking for suggestion that modders might have wanted for Vic2 moddability since there is another OpenV2 attempt, idk if it will work but I want to help them where I can
 ctrl+c ctrl+v section What are some suggestion you or other modders you know, would want to be more moddable about Victoria 2?
 With the stilted prompt out of the way, notes I would like to make, and overall game mechanics will remain stay close to orginal Victoria 2 as possible. They plan that Victoria 2 mods will be compatible with OpenV2 Final note, the project is pretty early, and this is for planning purposes
@@ -131,8 +170,8 @@ Hi jman, I think what can make v2 better is to remove the 8 building per state c
 (Note: His suggestion was through VC going to memory and isn't verbatim)
 His suggestions were primarly economics base as most of his suggestions were already covered my someone else. More configurable economy, such as defines for prioritization of trade the ability, province/state buildings can produce goods, input costs, be owned, and employ pops simlar to a factory, being able to have more 8 factories and have inputs be more than 4 goods or be able to dynamically change based on profitablity, ex; Wool to Textiles can get invested in dynamically to turn to Cotton to Textiles. More Dynamic parties having the ability to change policy over time, parties from annexed countries of accepted culture appearing.
 
-
 ## MaTi5893
+
 (Note: His suggestion was through VC going to memory and isn't verbatim)
 Agree with most everything else stated before, with his main concern being event, decisions, and UI modding.
 
@@ -158,14 +197,14 @@ Cosmetic tags and flags would also be nice.
 
 ## Kiwi/ColdSlav
 
-  ### Modding functionality - Economics
-  - The ability to check for good prices, either by a fixed amount or by a determined percentage of the good's defined default price.
-  - This would also imply the ability to scope goods, either individually, or by group (or other factors that the modder may deem suitable)
-  - The ability to artificially control good prices (definitely not harmful to the economic system), in the same way as above
-  - The ability to scope factories, and check them by type goods produced, input goods consumed (by a modder-defined amount of time), output goods produced (the same way as input), profitability, employees, employee ratio, presence of X type of employyes, cash reserves, if upgradeable, under construction, construction time?, amount (in country), and more?
-  - The ability to not only build factories in the capital but also any state
-  - The ability to modify the amount of factories per state, or even better (if easily implementable), the ability to set factory amount caps on a state basis
-  - the ability to check for most-produced goods on a state level, nationally and internationally (this already sort of exists in vanilla Vic2, but it has barely been used and the way it works is poorly understood)
-  - moddable wages, the abiliy to have a defined base wage value, and the ability to modifiy them on a PoP type, country, factory, and perhaps region basis.
-  - Fix the income modifiers, and also include more of the same modifiers but pop type-based rather than just strata-based
-  - More economic modding
+### Modding functionality - Economics
+- The ability to check for good prices, either by a fixed amount or by a determined percentage of the good's defined default price.
+- This would also imply the ability to scope goods, either individually, or by group (or other factors that the modder may deem suitable)
+- The ability to artificially control good prices (definitely not harmful to the economic system), in the same way as above
+- The ability to scope factories, and check them by type goods produced, input goods consumed (by a modder-defined amount of time), output goods produced (the same way as input), profitability, employees, employee ratio, presence of X type of employyes, cash reserves, if upgradeable, under construction, construction time?, amount (in country), and more?
+- The ability to not only build factories in the capital but also any state
+- The ability to modify the amount of factories per state, or even better (if easily implementable), the ability to set factory amount caps on a state basis
+- the ability to check for most-produced goods on a state level, nationally and internationally (this already sort of exists in vanilla Vic2, but it has barely been used and the way it works is poorly understood)
+- moddable wages, the abiliy to have a defined base wage value, and the ability to modifiy them on a PoP type, country, factory, and perhaps region basis.
+- Fix the income modifiers, and also include more of the same modifiers but pop type-based rather than just strata-based
+- More economic modding
