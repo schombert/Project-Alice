@@ -727,6 +727,27 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
+		auto render_canal = [&](uint32_t index, uint32_t canal_id) {
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
+			auto const adj = state.province_definitions.canals[canal_id];
+			auto const p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
+			auto const p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
+			glm::vec2 pos;
+			if(p0.index() < state.province_definitions.first_sea_province.index()) {
+				pos = state.world.province_get_mid_point(p0);
+			} else if(p1.index() < state.province_definitions.first_sea_province.index()) {
+				pos = state.world.province_get_mid_point(p1);
+			} else {
+				pos = state.world.province_get_mid_point(p0);
+			}
+			glUniform2f(12, pos.x, pos.y);
+			glUniform1f(13, 0.f);
+			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
+		};
+		render_canal(3, 1); //Kiel
+		render_canal(4, 2), //Suez
+		render_canal(2, 3); //Panama
 		// Factory
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
