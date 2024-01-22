@@ -1590,10 +1590,10 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, true);
 		text::add_line_break_to_layout(state, contents);
 
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, true);
 		text::add_line_break_to_layout(state, contents);
 
 		if(!bool(tech_id)) {
