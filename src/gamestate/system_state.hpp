@@ -489,7 +489,7 @@ struct alignas(64) state {
 	float crisis_temperature = 0;
 	dcon::nation_id primary_crisis_attacker;
 	dcon::nation_id primary_crisis_defender;
-	crisis_mode current_crisis_mode;
+	crisis_mode current_crisis_mode = crisis_mode::inactive;
 	uint32_t crisis_last_checked_gp = 0;
 	dcon::war_id crisis_war;
 	sys::date last_crisis_end_date{0}; // initial grace period
@@ -548,7 +548,7 @@ struct alignas(64) state {
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
 	std::optional<state_selection_data> state_selection;
-	map_mode::mode stored_map_mode;
+	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
