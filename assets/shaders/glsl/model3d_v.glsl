@@ -13,6 +13,7 @@ layout (location = 4) uniform float time;
 layout (location = 5) uniform mat3 rotation;
 layout (location = 12) uniform vec2 model_offset;
 layout (location = 13) uniform float target_facing;
+layout (location = 14) uniform float target_topview_fixup;
 
 subroutine vec4 calc_gl_position_class(vec3 world_pos);
 subroutine uniform calc_gl_position_class calc_gl_position;
@@ -62,8 +63,8 @@ vec3 rotate_target(vec3 v) {
 // Skew so the player can see half of the model
 vec3 rotate_skew(vec3 v) {
 	vec3 k = vec3(1.f, 0.f, 0.f);
-	float cos_theta = cos(-0.75f);
-	float sin_theta = sin(-0.75f);
+	float cos_theta = cos(target_topview_fixup);
+	float sin_theta = sin(target_topview_fixup);
 	return (v * cos_theta) + (cross(k, v) * sin_theta) + (k * dot(k, v)) * (1.f - cos_theta);
 }
 
