@@ -575,7 +575,7 @@ public:
 		// 0 == Going up
 		// 1 == Staying same
 		// 2 == Going down
-		auto result = demographics::get_monthly_pop_increase(state, content);
+		auto result = int64_t(demographics::get_monthly_pop_increase(state, content));
 		if(result > 0) {
 			return 0;
 		} else if(result < 0) {
@@ -2472,13 +2472,28 @@ private:
 				return a_fat_id.get_literacy() > b_fat_id.get_literacy();
 			};
 			break;
-		// TODO: Implement revoltrisk and growth sorts
 		case pop_list_sort::revoltrisk:
+			fn = [&](dcon::pop_id a, dcon::pop_id b) {
+				auto a_fat_id = dcon::fatten(state.world, a);
+				auto b_fat_id = dcon::fatten(state.world, b);
+				auto a_reb = a_fat_id.get_rebel_faction_from_pop_rebellion_membership();
+				auto b_reb = b_fat_id.get_rebel_faction_from_pop_rebellion_membership();
+				auto a_mov = a_fat_id.get_movement_from_pop_movement_membership();
+				auto b_mov = b_fat_id.get_movement_from_pop_movement_membership();
+				if(a_reb || b_reb) {
+					return a_reb ? (b_reb ? a_reb.id.index() > b_reb.id.index() : true) : false;
+				} else if(a_mov || b_mov) {
+					return a_mov ? (b_mov ? a_mov.id.index() > b_mov.id.index() : true) : false;
+				} else {
+					return a_fat_id.id.index() > b_fat_id.id.index();
+				}
+			};
+			break;
 		case pop_list_sort::change:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.id.index() < b_fat_id.id.index();
+				return demographics::get_monthly_pop_increase(state, a_fat_id.id) > demographics::get_monthly_pop_increase(state, b_fat_id.id);
 			};
 			break;
 		}
