@@ -482,6 +482,21 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			guiButtonType = {
 				name = "zoom_mode_left"
 				position = { 51 158 }
@@ -489,9 +504,10 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "zoom_mode_right"
-				position = { 269 158 }
+				position = { 151 115 }
 				quadTextureSprite = "option_next"
 			}
+			
 			# Auto save interval
 			instantTextBoxType = {
 				name = "auto_save_label"

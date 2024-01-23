@@ -141,7 +141,12 @@ void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	}
 }
-
+void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
+	state.user_settings.mouse_edge_scrolling = !state.user_settings.mouse_edge_scrolling;
+}
+bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
+	return state.user_settings.mouse_edge_scrolling;
+}
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});
