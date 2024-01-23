@@ -177,24 +177,26 @@ std::vector<uint32_t> fort_map_from(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		int32_t current_lvl = state.world.province_get_building_level(prov_id, economy::province_building_type::fort);
 		int32_t max_local_lvl = state.world.nation_get_max_building_level(state.local_player_nation, economy::province_building_type::fort);
-		uint32_t color;
-		if(province::can_build_fort(state, prov_id, state.local_player_nation)) {
+		uint32_t color = 0x222222;
+		uint32_t stripe_color = 0x222222;
+
+		if(current_lvl > 0) {
 			color = ogl::color_gradient(
-				float(current_lvl) / float(max_lvl), sys::pack_color(14, 240, 44), // green
+				float(current_lvl) / float(max_lvl),
+				sys::pack_color(14, 240, 44), // green
 				sys::pack_color(41, 5, 245) // blue
 			);
-		} else if(current_lvl == max_local_lvl) {
-			color = sys::pack_color(232, 228, 111); // yellow
+		}
+		if(province::can_build_fort(state, prov_id, state.local_player_nation)) {
+			stripe_color = sys::pack_color(232, 228, 111); // yellow
+		} else if(nation == state.local_player_nation && province::has_fort_being_built(state, prov_id)) {
+			stripe_color = sys::pack_color(247, 15, 15); // yellow
 		} else {
-			color = sys::pack_color(222, 7, 46); // red
+			stripe_color = color;
 		}
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = color;
-		if(province::has_fort_being_built(state, prov_id)) {
-			prov_color[i + texture_size] = sys::pack_color(232, 228, 111); // yellow
-		} else {
-			prov_color[i + texture_size] = color;
-		}
+		prov_color[i + texture_size] = stripe_color;
 	});
 	return prov_color;
 }
@@ -214,8 +216,7 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 			total = economy::state_factory_count(state, sid, sel_nation);
 		} else {
 			for(const auto abm : state.world.state_definition_get_abstract_state_membership(sdef)) {
-				auto const factories = abm.get_province().get_factory_location();
-				total += int32_t(factories.end() - factories.begin());
+				total = std::max(total, economy::state_factory_count(state, sid, abm.get_province().get_nation_from_province_ownership()));
 			}
 		}
 		if(total > max_total)

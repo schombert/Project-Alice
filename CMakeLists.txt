@@ -90,6 +90,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
 	"src/alice.rc"
 	${ASSET_FILES})
 add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
@@ -101,6 +102,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
 	${ASSET_FILES})
 add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
 	${ASSET_FILES})

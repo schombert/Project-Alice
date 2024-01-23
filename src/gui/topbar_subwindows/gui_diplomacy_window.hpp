@@ -2255,6 +2255,9 @@ public:
 			auto ptr = make_element_by_type<diplomacy_country_facts>(state, id);
 			country_facts = ptr.get();
 			return ptr;
+		} else if(name == "sort_by_country") {
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::country>>(state, id);
+			return ptr;
 		} else if(name == "sort_by_boss") {
 			auto ptr = make_element_by_type<country_sort_button<country_list_sort::boss>>(state, id);
 			ptr->base_data.position.y -= 1; // Nudge
