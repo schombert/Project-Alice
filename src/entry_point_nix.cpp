@@ -1,6 +1,3 @@
-#ifdef LOCAL_USER_SETTINGS
-#include "local_user_settings.hpp"
-#endif
 #include "serialization.hpp"
 #include "system_state.hpp"
 

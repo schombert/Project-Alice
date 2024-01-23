@@ -163,6 +163,14 @@ void fow_checkbox::button_action(sys::state& state) noexcept {
 	send(state, parent, notify_setting_update{});
 }
 
+bool render_models_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.render_models;
+}
+void render_models_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.render_models = !state.user_settings.render_models;
+	send(state, parent, notify_setting_update{});
+}
+
 bool railroad_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.railroads_enabled;
 }

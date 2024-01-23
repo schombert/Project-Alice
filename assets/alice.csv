@@ -20,6 +20,7 @@ vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same
 vassal_color_none;None
+render_models_label;Render models
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x

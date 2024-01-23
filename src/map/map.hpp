@@ -114,6 +114,8 @@ public:
 	std::vector<textured_line_vertex_b> coastal_vertices;
 	std::vector<GLint> coastal_starts;
 	std::vector<GLsizei> coastal_counts;
+	std::vector<GLint> static_mesh_starts;
+	std::vector<GLsizei> static_mesh_counts;
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
@@ -141,7 +143,8 @@ public:
 	static constexpr uint32_t vo_drag_box = 5;
 	static constexpr uint32_t vo_coastal = 6;
 	static constexpr uint32_t vo_railroad = 7;
-	static constexpr uint32_t vo_count = 8;
+	static constexpr uint32_t vo_static_mesh = 8;
+	static constexpr uint32_t vo_count = 9;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -180,8 +183,12 @@ public:
 	static constexpr uint32_t shader_drag_box = 5;
 	static constexpr uint32_t shader_borders = 6;
 	static constexpr uint32_t shader_railroad_line = 7;
-	static constexpr uint32_t shader_count = 8;
+	static constexpr uint32_t shader_map_standing_object = 8;
+	static constexpr uint32_t shader_count = 9;
 	GLuint shaders[shader_count] = { 0 };
+	// Textures for static meshes
+	static constexpr uint32_t max_static_meshes = 42;
+	GLuint static_mesh_textures[max_static_meshes] = { 0 };
 
 	void load_border_data(parsers::scenario_building_context& context);
 	void create_border_ogl_objects();

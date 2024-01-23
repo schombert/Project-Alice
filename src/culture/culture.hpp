@@ -87,7 +87,7 @@ enum class flag_type : uint8_t {
 
 constexpr inline uint64_t to_bits(dcon::ideology_id id) {
 	if(id)
-		return uint64_t(1 << uint64_t(id.index()));
+		return uint64_t(uint64_t(1) << uint64_t(id.index()));
 	else
 		return 0;
 }
