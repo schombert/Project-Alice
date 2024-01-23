@@ -137,6 +137,8 @@ enum class command_type : uint8_t {
 	c_change_owner = 145,
 	c_change_controller = 146,
 	c_instant_research = 147,
+	c_add_population = 148,
+	c_instant_army = 149,
 };
 
 struct national_focus_data {

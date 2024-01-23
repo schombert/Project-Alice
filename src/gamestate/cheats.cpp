@@ -324,6 +324,15 @@ void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
 }
 
 void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_add_population;
+	p.source = source;
+	p.data.cheat_int.value = ammount;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
 	float total_population = state.world.nation_get_demographics(source, demographics::total);
 	state.world.for_each_pop([&](dcon::pop_id p) {
 		auto pop = dcon::fatten(state.world, p);
@@ -331,6 +340,18 @@ void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount
 			pop.set_size(pop.get_size() + std::ceil(ammount * pop.get_size() / total_population));
 		}
 	});
+}
+
+void c_instant_army(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_army;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_army(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_army = !state.cheat_data.instant_army;
 }
 
 }
