@@ -15,6 +15,7 @@
 #endif
 #include "SPSCQueue.h"
 #include "container_types.hpp"
+#include "commands.hpp"
 
 namespace sys {
 struct state;

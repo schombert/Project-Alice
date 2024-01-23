@@ -623,6 +623,9 @@ float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id
 }
 
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
+	if(state.world.state_instance_get_capital(id).get_is_colonial() == false)
+		return false;
+
 	auto dkey = demographics::to_key(state, state.culture_definitions.bureaucrat);
 	auto bureaucrat_size = state_accepted_bureaucrat_size(state, id);
 	auto total_size = state.world.state_instance_get_demographics(id, demographics::total);

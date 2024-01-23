@@ -1,5 +1,6 @@
 #pragma once
 #include "ve_scalar_extensions.hpp"
+#include "system_state.hpp"
 
 namespace nations {
 

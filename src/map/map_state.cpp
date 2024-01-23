@@ -327,6 +327,30 @@ void map_state::update(sys::state& state) {
 		arrow_key_velocity_vector *= 0.175f;
 		pos_velocity += arrow_key_velocity_vector;
 	}
+
+	glm::vec2 mouse_pos_percent{ state.mouse_x_position / float(state.x_size), state.mouse_y_position / float(state.y_size) };
+	glm::vec2 cursor_velocity_vector{0.0f, 0.0f};
+
+	//check if mouse is at edge of screen, in order to move the map
+	if(mouse_pos_percent.x < 0.02f) {
+		cursor_velocity_vector.x -= 1.f;
+	} else if(mouse_pos_percent.x > 0.98f) {
+		cursor_velocity_vector.x += 1.f;
+	}
+	if(mouse_pos_percent.y < 0.02f) {
+		cursor_velocity_vector.y -= 1.f;
+	} else if(mouse_pos_percent.y > 0.98f) {
+		cursor_velocity_vector.y += 1.f;
+	}
+
+	// check if the vector length is not zero before normalizing
+	if(glm::length(cursor_velocity_vector) != 0.0f) {
+		cursor_velocity_vector = glm::normalize(cursor_velocity_vector);
+		cursor_velocity_vector *= 0.175f;
+		pos_velocity += cursor_velocity_vector;
+	}
+
+
 	pos_velocity /= 1.125;
 
 	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
@@ -502,7 +526,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		map_data.set_drag_box(true, pos1, pos2, pixel_size);
 	} else {
 		map_data.set_drag_box(false, {}, {}, {});
-	}
+	}	
 }
 
 bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {

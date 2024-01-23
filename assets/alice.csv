@@ -20,6 +20,7 @@ vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same
 vassal_color_none;None
+render_models_label;Render models
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
@@ -586,6 +587,19 @@ mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
 mtt_culture_majorities;The cultures in §Y$PROV$§W are:;;;;;;;;;;;;x
 mtt_religion_majorities;The religions in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_dominant_issues;The issues in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_total_income;Total daily income: ;;;;;;;;;;;;x
+mtt_dominant_ideology;The ideologies in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_con_average;Average consciousness: §Y$val$§W;;;;;;;;;;;;x
+mtt_total_employment;Employment: ;;;;;;;;;;;;x
+mtt_literacy_rate;Literacy: ;;;;;;;;;;;;x
+mtt_factory_count;Factories in §Y$state$§W: ;;;;;;;;;;;;x
+mtt_fort_level;Fort level ;;;;;;;;;;;;x
+mtt_fort_being_built;A fort level is under construction here.;;;;;;;;;;;;x
+mtt_can_build_fort;A new fort level can be built here.;;;;;;;;;;;;x
+mtt_population_change;Monthly population change: ;;;;;;;;;;;;x
+mtt_rebels_amount;Rebels active in province: ;;;;;;;;;;;;x
+mtt_rebels_none;There are no rebels in this province.;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
@@ -1308,6 +1322,12 @@ amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;
 amsg_army_built;The nation built an army;;;;;;;;;;;;x
 amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
 amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
+alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
+alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
+alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring
+alice_stockpile_button_1_2;Alright I can't make you stop, perhaps this will?
+alice_stockpile_button_2_0;I'm a souless button, move on
+alice_stockpile_button_3_0;Playing with friends aren't we? §RWELL GOOD LUCK YOU WILL NEED IT§W
 a_alert_reb;One or more of our sphere members has active rebels:;;;;;;;;;;;;x
 event_auto;Automatically choose this option for the remainder of the session.;;;;;;;;;;;;x
 event_taken_auto;This option will automatically be taken on §Y$date$§W.;;;;;;;;;;;;x
@@ -1325,6 +1345,7 @@ auto_save_0;None;;;Ninguno;;;;;;;;;x
 monthly_emigration_lab;Monthly emigration to (top 10);;;;;;;;;;;;x
 monthly_immigration_lab;Monthly immigration from (top 10);;;;;;;;;;;;x
 im_em_header;Predicted immigration/emigration for ;;;;;;;;;;;;x
+ol_unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
 unit_standing_text;$m$ $n$/$x$/$y$ - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
 disarmed_pop;a member of a disarmed nation;;;;;;;;;;;;x

@@ -82,9 +82,11 @@ public:
 		default:
 			break;
 		};
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
 		text::close_layout_box(contents, box);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
 	}
 };
 
@@ -206,7 +208,7 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change * 30.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change});
 		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
@@ -288,7 +290,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
@@ -300,7 +302,7 @@ public:
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
 
 		text::add_line_break_to_layout(state, contents);
-			
+
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, true);
 	}
 
@@ -341,7 +343,7 @@ public:
 		/*
 		// SCHOMBERT: A good portion of this is wrong because it is showing maximum values for some of these expense categories
 		// rather than my scaling them to what the actual spending settings are
-		
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		text::substitution_map sub{};
@@ -1588,10 +1590,10 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, true);
 		text::add_line_break_to_layout(state, contents);
 
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, true);
 		text::add_line_break_to_layout(state, contents);
 
 		if(!bool(tech_id)) {

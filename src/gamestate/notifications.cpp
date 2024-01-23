@@ -1,4 +1,5 @@
 #include "notifications.hpp"
+#include "system_state.hpp"
 
 namespace notification {
 

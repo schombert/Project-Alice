@@ -1,8 +1,13 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "ai.hpp"
 #include "effects.hpp"
+#include "demographics.hpp"
+#include "gui_event.hpp"
 #include "politics.hpp"
+#include "province_templates.hpp"
+#include "prng.hpp"
 
 namespace rebel {
 

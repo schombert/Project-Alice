@@ -1,3 +1,4 @@
+#include "serialization.hpp"
 #include "system_state.hpp"
 
 static sys::state game_state; // too big for the stack

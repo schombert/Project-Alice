@@ -1,5 +1,6 @@
 #pragma once
 
+#include "system_state.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
 

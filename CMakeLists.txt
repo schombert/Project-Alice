@@ -33,26 +33,55 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 list(APPEND ALICE_SOURCES_LIST
 	"src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/parsing/parsers.cpp"
-	"src/parsing/float_from_chars.cpp"
-	"src/text/text.cpp"
-	"src/text/fonts.cpp"
-	"src/graphics/texture.cpp"
-	"src/common_types/date_interface.cpp"
 	"src/ai/ai.cpp"
+	"src/common_types/blake2.cpp"
+	"src/common_types/date_interface.cpp"
+	"src/common_types/prng.cpp"
 	"src/culture/culture.cpp"
+	"src/culture/politics.cpp"
+	"src/culture/rebels.cpp"
+	"src/economy/demographics.cpp"
 	"src/economy/economy.cpp"
+	"src/gamestate/commands.cpp"
+	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"
+	"src/gamestate/notifications.cpp"
 	"src/gamestate/serialization.cpp"
+	"src/graphics/opengl_wrapper.cpp"
+	"src/graphics/texture.cpp"
+	"src/gui/gui_common_elements.cpp"
+	"src/gui/gui_effect_tooltips.cpp"
+	"src/gui/gui_graphics.cpp"
+	"src/gui/gui_leader_select.cpp"
+	"src/gui/gui_leader_tooltip.cpp"
+	"src/gui/gui_modifier_tooltips.cpp"
+	"src/gui/gui_province_window.cpp"
+	"src/gui/gui_trigger_tooltips.cpp"
+	"src/gui/map_tooltip.cpp"
+	"src/gui/topbar_subwindows/gui_population_window.cpp"
+	"src/gui/topbar_subwindows/gui_production_window.cpp"
+	"src/gui/topbar_subwindows/gui_technology_window.cpp"
+	"src/gui/topbar_subwindows/gui_budget_window.cpp"
+	"src/gui/unit_tooltip.cpp"
+	"src/map/map.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_modes.cpp"
+	"src/map/map_state.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
+	"src/network/network.cpp"
+	"src/parsing/float_from_chars.cpp"
+	"src/parsing/parsers.cpp"
+	"src/platform_specific.cpp"
 	"src/provinces/province.cpp"
 	"src/scripting/effects.cpp"
+	"src/scripting/events.cpp"
 	"src/scripting/triggers.cpp"
+	"src/text/bmfont.cpp"
+	"src/text/fonts.cpp"
+	"src/text/text.cpp"
+	"src/zstd/zstd.cpp"
 )
 
 if(WIN32)
@@ -61,6 +90,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
 	"src/alice.rc"
 	${ASSET_FILES})
 add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
@@ -72,6 +102,7 @@ add_executable(Alice WIN32 "src/main.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
 	${ASSET_FILES})
 add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
 	${ASSET_FILES})
@@ -105,6 +136,8 @@ if(WIN32)
 	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	# string(REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
 
+	# To build Non-AVX version : change all "/arch:AVX2" to "/d2archSSE42"
+	# -march=nehalem for clang release
 	set(CMAKE_CXX_FLAGS "")
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
@@ -121,7 +154,7 @@ if(WIN32)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
-											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type
+											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /d2archSSE42 /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
@@ -134,12 +167,12 @@ if(WIN32)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
 		else()
 			message(STATUS "Normal, not PGO, build")

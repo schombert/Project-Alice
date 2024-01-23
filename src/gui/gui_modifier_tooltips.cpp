@@ -1,8 +1,11 @@
-#include <string_view>
+#include "gui_modifier_tooltips.hpp"
 #include "dcon_generated.hpp"
+#include "demographics.hpp"
 #include "system_state.hpp"
-#include "text.hpp"
 #include "script_constants.hpp"
+#include "text.hpp"
+#include "triggers.hpp"
+#include "ve_scalar_extensions.hpp"
 
 namespace ui {
 
@@ -80,7 +83,7 @@ void modifier_description(sys::state& state, text::layout_base& layout, dcon::mo
 }
 
 void active_single_modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation,
-		bool& header, dcon::national_modifier_value nmid, float scaled = 1.f) {
+		bool& header, dcon::national_modifier_value nmid, float scaled) {
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);
@@ -113,7 +116,7 @@ void active_single_modifier_description(sys::state& state, text::layout_base& la
 	}
 }
 void active_single_modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation,
-		bool& header, dcon::provincial_modifier_value pmid, float scaled = 1.f) {
+		bool& header, dcon::provincial_modifier_value pmid, float scaled) {
 	if(scaled == 0.f)
 		return;
 	auto fat_id = dcon::fatten(state.world, mid);

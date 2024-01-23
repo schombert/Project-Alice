@@ -1,8 +1,11 @@
 #include "demographics.hpp"
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "nations.hpp"
 #include "nations_templates.hpp"
+#include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 
 namespace pop_demographics {
