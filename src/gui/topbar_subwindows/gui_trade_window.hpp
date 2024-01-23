@@ -384,6 +384,9 @@ public:
 			text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
 			text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 		}
+
+		text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) });
+		text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
 	}
 };
 

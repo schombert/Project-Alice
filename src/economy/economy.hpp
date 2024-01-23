@@ -117,6 +117,26 @@ constexpr inline dcon::commodity_id money(0);
 //constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
 constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
 
+inline constexpr float production_scale_delta = 0.0001f;
+inline constexpr uint32_t price_history_lenght = 256;
+
+// rgo
+inline constexpr float rgo_overhire_multiplier = 10.f;
+inline constexpr float rgo_production_scale_neg_delta = 0.001f;
+
+// artisans
+inline constexpr float inputs_base_factor_artisans = 1.2f;
+inline constexpr float output_base_factor_artisans = 1.0f;
+// factories
+inline constexpr float inputs_base_factor = 0.8f;
+
+// farmers should be able to produce enough to feed themselves
+inline constexpr float rgo_boost = 1.0f;
+
+//demand modifiers
+inline constexpr float lx_extra_factor = 10.0f;
+inline constexpr float en_extra_factor = 10.0f;
+
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
 float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p);
@@ -146,6 +166,8 @@ void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
 void daily_update(sys::state& state);
 void resolve_constructions(sys::state& state);
+
+float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
@@ -219,18 +241,5 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
-
-inline constexpr float production_scale_delta = 0.0001f;
-inline constexpr uint32_t price_history_lenght = 256;
-
-
-// handcrafted, environment friendly tanks from recycled materials
-// no industrial wastefulness...
-inline constexpr float inputs_base_factor_artisans = 0.1f;
-inline constexpr float output_base_factor_artisans = 0.15f;
-// factories
-inline constexpr float inputs_base_factor = 0.95f;
-
-inline constexpr float rgo_boost = 1.85f;
 
 } // namespace economy

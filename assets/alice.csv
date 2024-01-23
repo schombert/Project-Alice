@@ -1340,6 +1340,8 @@ o_relations_with;Owner of the province's relation with $text$;;;;;;;;;;;;x
 o_add_to_treasury; for the owner of the province;;;;;;;;;;;;x
 w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
 w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
+w_artisan_profit;National artisan profit: $x$;;;;;;;;;;;;x
+w_artisan_distribution;National artisan distribution: $x$;;;;;;;;;;;;x
 w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
 alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
 alice_state_select_title;Select state;;;Seleccionar estado;;;;;;;;;x

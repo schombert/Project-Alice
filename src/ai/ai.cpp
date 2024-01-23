@@ -911,66 +911,74 @@ void update_ai_econ_construction(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
+			// prepare a list of states
+			static std::vector<dcon::state_instance_id> ordered_states;
+			ordered_states.clear();
+			for(auto si : n.get_state_ownership()) {
+				if(si.get_state().get_capital().get_is_colonial() == false)
+					ordered_states.push_back(si.get_state().id);
+			}
+			std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
+				auto apop = state.world.state_instance_get_demographics(a, demographics::total);
+				auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
+				if(apop != bpop)
+					return apop > bpop;
+				else
+					return a.index() < b.index();
+			});
+
+			// try to upgrade factories first:
+			if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
+				for(auto si : ordered_states) {
+					if(max_projects <= 0)
+						break;
+
+					auto pw_num = state.world.state_instance_get_demographics(si,
+							demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+					auto pw_employed = state.world.state_instance_get_demographics(si,
+							demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+
+					if(pw_employed >= pw_num && pw_num > 0.0f)
+						continue; // no spare workers
+
+					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+						for(auto fac : state.world.province_get_factory_location(p)) {
+							auto type = fac.get_factory().get_building_type();
+							if(fac.get_factory().get_unprofitable() == false
+								&& fac.get_factory().get_level() < uint8_t(255)
+								&& fac.get_factory().get_primary_employment() >= 0.95f)
+							{
+								auto ug_in_progress = false;
+								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
+									if(c.get_type() == type) {
+										ug_in_progress = true;
+										break;
+									}
+								}
+								if(!ug_in_progress) {
+									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+									new_up.set_is_pop_project(false);
+									new_up.set_is_upgrade(true);
+									new_up.set_type(type);
+
+									--max_projects;
+									return;
+								}
+							}
+						}
+					});
+				}
+			}
+
+			// try to build
 			static::std::vector<dcon::factory_type_id> desired_types;
 			desired_types.clear();
 			get_desired_factory_types(state, n, desired_types);
 
 			// desired types filled: try to construct or upgrade
-			if(!desired_types.empty()) {
-				static std::vector<dcon::state_instance_id> ordered_states;
-				ordered_states.clear();
-				for(auto si : n.get_state_ownership()) {
-					if(si.get_state().get_capital().get_is_colonial() == false)
-						ordered_states.push_back(si.get_state().id);
-				}
-				std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
-					auto apop = state.world.state_instance_get_demographics(a, demographics::total);
-					auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
-					if(apop != bpop)
-						return apop > bpop;
-					else
-						return a.index() < b.index();
-				});
+			if(!desired_types.empty()) {				
 				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
-					for(auto si : ordered_states) {
-						if(max_projects <= 0)
-							break;
-
-						auto pw_num = state.world.state_instance_get_demographics(si,
-								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-						auto pw_employed = state.world.state_instance_get_demographics(si,
-								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-
-						if(pw_employed >= pw_num && pw_num > 0.0f)
-							continue; // no spare workers
-
-						province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-							for(auto fac : state.world.province_get_factory_location(p)) {
-								auto type = fac.get_factory().get_building_type();
-								if(fac.get_factory().get_unprofitable() == false
-									&& fac.get_factory().get_level() < uint8_t(255) && fac.get_factory().get_primary_employment() >= 0.9f
-									&& std::find(desired_types.begin(), desired_types.end(), type) != desired_types.end()) {
-
-									auto ug_in_progress = false;
-									for(auto c : state.world.state_instance_get_state_building_construction(si)) {
-										if(c.get_type() == type) {
-											ug_in_progress = true;
-											break;
-										}
-									}
-									if(!ug_in_progress) {
-										auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
-										new_up.set_is_pop_project(false);
-										new_up.set_is_upgrade(true);
-										new_up.set_type(type);
-
-										--max_projects;
-										return;
-									}
-								}
-							}
-						});
-					} // END for(auto si : ordered_states) {
+					
 				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)

@@ -1332,7 +1332,7 @@ public:
 		auto need = text::produce_simple_string(state, "life_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction() * 100.f});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -1357,7 +1357,7 @@ public:
 		auto need = text::produce_simple_string(state, "everyday_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction() * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -1382,7 +1382,7 @@ public:
 		auto need = text::produce_simple_string(state, "luxury_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction()});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction() * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
