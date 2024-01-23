@@ -4322,6 +4322,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ yesterday_size }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ savings }
 		type{ float }
 		tag{ save }

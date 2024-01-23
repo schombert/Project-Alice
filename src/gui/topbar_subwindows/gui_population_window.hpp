@@ -2226,17 +2226,46 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
+		text::substitution_map sub2;
 		auto pop_fat_id = dcon::fatten(state.world, content);
 		auto nation_fat = dcon::fatten(state.world, state.local_player_nation);
+
+		float pop_growth = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)) - demographics::get_yesterday_pop_size(state, nation_fat, pop_fat_id);
+
+		//idk really know if there is a preattier way to do this, any suggestion is welcome -wonobory
+		//check if the pop is growing or not and change the text accordingly
+		if(pop_growth < 0) {
+			pop_growth = -pop_growth;
+			text::add_to_substitution_map(sub2, text::variable_type::val,
+				text::pretty_integer{
+						int32_t(pop_growth) });
+			pop_growth = pop_growth * (-1);
+		} else {
+			text::add_to_substitution_map(sub2, text::variable_type::val,
+					text::pretty_integer{
+							int32_t(pop_growth) });
+		}
+		
+		
 		text::add_to_substitution_map(sub, text::variable_type::val,
 				text::pretty_integer{
 						int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
+
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
 		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
+
+		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
+		text::add_to_substitution_map(sub2, text::variable_type::where, nation_fat.get_name());
+		
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
 		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh
-		text::localised_format_box(state, contents, box, std::string_view("pop_promote_info_on_sel"), sub);
+		// NOW IT'S FUCKING DONE!!!
+		if(pop_growth < 0) {
+			text::localised_format_box(state, contents, box, std::string_view("pop_leave_info_on_sel"), sub2);
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("pop_promote_info_on_sel"), sub2);
+		}
 		text::close_layout_box(contents, box);
 	}
 };

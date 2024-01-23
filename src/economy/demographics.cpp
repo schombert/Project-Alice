@@ -1392,10 +1392,10 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					float chances_total = 0.0f;
 					state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
 						if(target_type == ptype) {
-							weights[target_type] = 0.0f;
+							weights[target_type] = 0.0f; //don't promote to the same type
 						} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
-							weights[target_type] = 0.0f;
-						} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) {
+							weights[target_type] = 0.0f; //don't promote if the pop is not in the state capital
+						} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) { //if the selected type is higher strata
 							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
 							if(promote_mod) {
 								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
@@ -1407,7 +1407,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 							} else {
 								weights[target_type] = 0.0f;
 							}
-						} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) {
+						} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) { //if the selected type is lower strata
 							auto promote_mod = state.world.pop_type_get_promotion(ptype, target_type);
 							if(promote_mod) {
 								auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
@@ -1482,6 +1482,25 @@ float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
 			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
 }
 
+void save_yesterday_pop_size(sys::state& state, dcon::nation_id nation)
+{
+	for(auto prov : state.world.nation_get_province_ownership(nation)) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			state.world.pop_set_yesterday_size(pop.get_pop(), state.world.pop_get_size(pop.get_pop()));
+		}
+	}
+}
+
+float get_yesterday_pop_size(sys::state& state, dcon::nation_id nation, dcon::pop_type_id pop_type) {
+	float amount = 0.0f;
+	for(auto prov : state.world.nation_get_province_ownership(nation)) {
+		for(auto pop : prov.get_province().get_pop_location()) {
+			if (pop.get_pop().get_poptype() == pop_type)
+			amount += state.world.pop_get_yesterday_size(pop.get_pop());
+		}
+	}
+	return amount;
+}
 
 float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
