@@ -1929,7 +1929,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		assert(graph_length <= economy::price_history_lenght);
+		assert(graph_length <= economy::price_history_length);
 
 		uint32_t total_commodities = state.world.commodity_size();
 
@@ -1956,7 +1956,7 @@ public:
 			auto newest_index = economy::most_recent_price_record_index(state);
 			if(price_toggle_status[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
-					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_lenght - graph_length + i + 1) % economy::price_history_lenght);
+					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
 					if(price > max) {
 						max = price;
 					}
@@ -1973,7 +1973,7 @@ public:
 				auto newest_index = economy::most_recent_price_record_index(state);
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
-					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_lenght - graph_length + i + 1) % economy::price_history_lenght);
+					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
 				}
 				graph_per_price[commodity.index()]->set_data_points(state, datapoints, min, max);
 			}

@@ -771,7 +771,7 @@ void load_shaders() {
 	simple_fs::add_root(fs, NATIVE("."));
 	auto root = get_root(fs);
 
-	std::string_view vertex_str =
+	std::string_view fragment_str =
 		"subroutine vec4 color_function_class(vec4 color_in);\n"
 		"layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
 		"subroutine vec4 font_function_class(vec2 tc);\n"
@@ -893,7 +893,7 @@ void load_shaders() {
 		"void main() {\n"
 		"\tfrag_color = gamma_correct(coloring_function(font_function(tex_coord)));\n"
 		"}";
-	std::string_view fragment_str =
+	std::string_view vertex_str =
 		"layout (location = 0) in vec2 vertex_position;\n"
 		"layout (location = 1) in vec2 v_tex_coord;\n"
 		"out vec2 tex_coord;\n"

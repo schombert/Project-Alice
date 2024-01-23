@@ -1024,18 +1024,12 @@ void regenerate_land_unit_average(sys::state& state) {
 		auto lo_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier);
 		auto ld_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier);
 
-		auto irregular = state.military_definitions.irregular;
-		auto& irreg_stats = state.world.nation_get_unit_stats(n, irregular);
-
-		// handle irregular infantry as it seems to be unhandled by code below...
-		float total = ((irreg_stats.defence_or_hull + ld_mod) + (irreg_stats.attack_or_gun_power + lo_mod)) *
-			state.military_definitions.unit_base_definitions[irregular].discipline_or_evasion;
-		float count = 1;
-		
+		float total = 0;
+		float count = 0;
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-			if(state.world.nation_get_active_unit(n, u) && state.military_definitions.unit_base_definitions[u].is_land) {
+			if((state.world.nation_get_active_unit(n, u) || state.military_definitions.unit_base_definitions[u].active) && state.military_definitions.unit_base_definitions[u].is_land) {
 				auto& reg_stats = state.world.nation_get_unit_stats(n, u);
 				total += ((reg_stats.defence_or_hull + ld_mod) + (reg_stats.attack_or_gun_power + lo_mod)) *
 								 state.military_definitions.unit_base_definitions[u].discipline_or_evasion;

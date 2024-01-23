@@ -3486,8 +3486,8 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		economy::daily_update(*this);
 
 		// adjust rgo power to economy setup
-		for(int j = 1; j < 3; j++) {
-			for(int i = 1; i < 1000; i++) {
+		for(int j = 1; j < 5; j++) {
+			for(int i = 1; i < 365; i++) {
 				economy::update_rgo_employment(*this);
 				economy::update_factory_employment(*this);
 				economy::daily_update(*this);
@@ -3504,13 +3504,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			world.for_each_commodity([&](dcon::commodity_id c) {
 				world.commodity_set_current_price(c, world.commodity_get_cost(c));
 			});
-		}
-
-		//final adjustment of the economy
-		for(int i = 1; i < 10000; i++) {
-			economy::update_rgo_employment(*this);
-			economy::update_factory_employment(*this);
-			economy::daily_update(*this);
 		}
 	}
 

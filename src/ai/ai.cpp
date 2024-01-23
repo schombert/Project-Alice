@@ -866,7 +866,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
-				bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 1.02f;
+				bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 0.98f;
 
 				float input_total = 0.f;
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
@@ -925,7 +925,7 @@ void update_ai_econ_construction(sys::state& state) {
 			});
 
 			// try to upgrade factories first:
-			if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
+			if((rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
 				for(auto si : ordered_states) {
 					if(max_projects <= 0)
 						break;

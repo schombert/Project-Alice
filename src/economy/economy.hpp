@@ -117,12 +117,12 @@ constexpr inline dcon::commodity_id money(0);
 //constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
 constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
 
-inline constexpr float production_scale_delta = 0.0001f;
-inline constexpr uint32_t price_history_lenght = 256;
+inline constexpr float production_scale_delta = 0.001f;
+inline constexpr uint32_t price_history_length = 256;
 
 // rgo
 inline constexpr float rgo_overhire_multiplier = 10.f;
-inline constexpr float rgo_production_scale_neg_delta = 0.001f;
+inline constexpr float rgo_production_scale_neg_delta = 0.00001f;
 
 // artisans
 inline constexpr float inputs_base_factor_artisans = 1.2f;

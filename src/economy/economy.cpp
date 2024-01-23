@@ -5,6 +5,7 @@
 #include "ai.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
+#include "math_fns.hpp"
 #include "nations_templates.hpp"
 #include "province_templates.hpp"
 #include "triggers.hpp"
@@ -15,7 +16,7 @@ enum class economy_reason {
 	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty
 };
 
-std::string reason_to_string(economy_reason reason) {
+std::string_view reason_to_string(economy_reason reason) {
 	switch(reason) {
 	case economy::economy_reason::pop:
 		return "POP";
@@ -82,10 +83,10 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
-	return (state.current_date.value >> 4) % price_history_lenght;
+	return (state.current_date.value >> 4) % price_history_length;
 }
 int32_t previous_price_record_index(sys::state& state) {
-	return ((state.current_date.value >> 4) + price_history_lenght - 1) % price_history_lenght;
+	return ((state.current_date.value >> 4) + price_history_length - 1) % price_history_length;
 }
 
 float full_spending_cost(sys::state& state, dcon::nation_id n,
@@ -191,7 +192,7 @@ void initialize_needs_weights(sys::state& state, dcon::nation_id n) {
 }
 
 float need_weight(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
-	return 1 / sqrt(state.world.commodity_get_current_price(c));
+	return 1 / math::sqrt(state.world.commodity_get_current_price(c));
 }
 
 void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
@@ -383,9 +384,6 @@ void randomly_assign_artisan_production(sys::state& state, dcon::province_id p, 
 float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
 	auto& inputs = state.world.commodity_get_artisan_inputs(c);
 
-	auto fat_id = dcon::fatten(state.world, c);
-	auto name = text::get_name_as_string(state, fat_id);
-
 	float input_total = 0.0f;
 	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 		if(inputs.commodity_type[i]) {
@@ -421,9 +419,7 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 	auto const csize = state.world.commodity_size();
 	float distribution_drift_speed = 0.001f;
 
-	std::vector<float> temp_weights;
 	std::vector<float> profits;
-	temp_weights.resize(csize);
 	profits.resize(csize);
 
 	{
@@ -442,7 +438,6 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 				auto profit = std::max(base_artisan_profit(state, n, cid), 0.0f) * limit;
 
 				total_ex_weights += w;
-				temp_weights[cid.index()] = profit * profit;
 				profits[cid.index()] = profit;
 				total_weights += profit * profit;
 				total_possible += 1.0f;
@@ -464,7 +459,7 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 					}
 
 					w = std::max(0.f, (1.0f - distribution_drift_speed * speed_modifier) * w
-						+ distribution_drift_speed * speed_modifier * (temp_weights[cid.index()] / total_weights));
+						+ distribution_drift_speed * speed_modifier * (profits[cid.index()] * profits[cid.index()] / total_weights));
 				} else {
 					w = (1.0f - distribution_drift_speed) * w + distribution_drift_speed * (1.0f / total_possible);
 				}
@@ -492,7 +487,7 @@ void initialize(sys::state& state) {
 	state.world.nation_resize_life_needs_weights(state.world.commodity_size());
 	state.world.nation_resize_everyday_needs_weights(state.world.commodity_size());
 	state.world.nation_resize_luxury_needs_weights(state.world.commodity_size());
-	state.world.commodity_resize_price_record(price_history_lenght);
+	state.world.commodity_resize_price_record(price_history_length);
 
 	initialize_artisan_distribution(state);
 
@@ -503,7 +498,7 @@ void initialize(sys::state& state) {
 		fc.set_total_production(0.0f);
 		fc.set_total_real_demand(0.0f);
 
-		for(int32_t i = 0; i < price_history_lenght; ++i) {
+		for(int32_t i = 0; i < price_history_length; ++i) {
 			fc.set_price_record(i, fc.get_cost());
 		}
 		// fc.set_global_market_pool();
@@ -701,11 +696,6 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	if(!c)
 		return 0.01f;
 
-	float occupation_effect = 1.0f;
-	//Occupied provinces employ less RGOs
-	if(state.world.province_get_nation_from_province_ownership(p) != state.world.province_get_nation_from_province_control(p))
-		occupation_effect = 0.95f;
-
 	bool is_mine = state.world.commodity_get_is_mine(c);
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size +
@@ -716,7 +706,7 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	auto specific_pmod = state.world.nation_get_rgo_size(n, c);
 	auto bonus = pmod + nmod + specific_pmod + 1.0f;
 
-	return std::max(sz * bonus * occupation_effect, 0.01f);
+	return std::max(sz * bonus, 0.01f);
 }
 
 float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p) {
@@ -1154,18 +1144,22 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 	auto relevant_population_key = demographics::to_employment_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers);
 	auto relevant_population = state.world.province_get_demographics(p, relevant_population_key); //relevant population
 	auto current_pop_wages = std::min(pops_max_scaled, relevant_population) * expected_min_wage / needs_scaling_factor; //wage expected to be paid to pops
-	auto current_price = state.world.commodity_get_current_price(state.world.province_get_rgo(p));
+	auto rgo = state.world.province_get_rgo(p);
+	auto current_price = state.world.commodity_get_current_price(rgo);
 	auto max_profit = max_production * current_price;
 	auto current_scale = state.world.province_get_rgo_production_scale(p);
 	auto current_profit =
-		std::min(1.f, 1.f / state.world.nation_get_demand_satisfaction(n, state.world.province_get_rgo(p)))
+		std::min(1.f, state.world.commodity_get_total_consumption(rgo) / (state.world.commodity_get_total_production(rgo) + 0.0001f))
 		* overhire_modifier
 		* max_profit
 		* (state.world.province_get_rgo_employment(p) + 0.00001f); // money expected to be earnt with given employment
 
+	// we want our profit to be twice as large as current wages
+	current_pop_wages *= 2.f;
+	
 	if(current_profit >= current_pop_wages) {
 		float profit_percentage = std::min(100.f, (current_profit / (current_pop_wages + 0.00000001f) - 1.f) * 100.f);
-		float speed_modifier = std::max(0.001f, exp(profit_percentage / 5.f) - 1.0f) / rgo_effective_size(state, n, p);
+		float speed_modifier = std::max(0.001f, exp(profit_percentage / 10.f) - 1.0f) / rgo_effective_size(state, n, p);
 		// we want to move VERY slowly and accurately when we are near 0%
 		// because if we are at zero, then every percentage means we could overflow entire market with our product
 		// and add some small number so we are not completely stuck there
@@ -1176,13 +1170,13 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
 	} else {
 		float spendings_percentage = std::min(100.f, (current_pop_wages / (current_profit + 0.00000001f) - 1.f) * 100.f);
-		float speed_modifier = std::max(0.001f, exp(spendings_percentage / 5.f) - 1.0f) / rgo_effective_size(state, n, p);
+		float speed_modifier = std::max(0.001f, exp(spendings_percentage / 10.f) - 1.0f) / rgo_effective_size(state, n, p);
 
 		// we want to get to 0% VERY slowly when we are already near 0%
 		// and quite fast if we are high
-		speed_modifier = speed_modifier * current_scale * current_scale;
+		speed_modifier = 10000.f * speed_modifier * current_scale * current_scale;
 
-		auto new_production_scale = std::max(0.0f, current_scale - rgo_production_scale_neg_delta * speed_modifier);
+		auto new_production_scale = std::max(0.0f, current_scale - rgo_production_scale_neg_delta * speed_modifier - 10.f / pops_max);
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
 	}
 
@@ -1375,7 +1369,7 @@ inline constexpr float slope_non_factory = diff_non_factory * shift_non_factory;
 
 
 float global_non_factory_construction_time_modifier(sys::state& state) {
-	//float t = sqrt((static_cast<float>(state.current_date.value) * 0.01f + 2.f));
+	//float t = math::sqrt((static_cast<float>(state.current_date.value) * 0.01f + 2.f));
 	//return day_inf_build_time_modifier_non_factory + slope_non_factory / (t + shift_non_factory);
 	return 1.f;
 }
@@ -1393,7 +1387,7 @@ inline constexpr float slope_factory = diff_factory * shift_factory;
 // and we need to establish *some* industrial base for world to develop
 // their build time should also become faster with time to delay growth bottleneck
 float global_factory_construction_time_modifier(sys::state& state) {
-	float t = sqrt((static_cast<float>(state.current_date.value) * 0.01f + 2.f));
+	float t = math::sqrt((static_cast<float>(state.current_date.value) * 0.01f + 2.f));
 	return day_inf_build_time_modifier_factory + slope_factory / (t + shift_factory);
 }
 
@@ -2959,7 +2953,7 @@ void daily_update(sys::state& state) {
 			//float price_speed = current_price * std::clamp(0.0000001f * speed_modifier, -10.0f, 10.0f);
 
 			float speed_modifer = overdemand_percentage - oversupply_percentage;
-			float price_speed = 0.0005f * std::max(0.1f, sqrt(current_price)) * speed_modifer;
+			float price_speed = 0.0005f * std::max(0.1f, math::sqrt(current_price)) * speed_modifer;
 			current_price += price_speed;
 		}
 
@@ -3061,7 +3055,7 @@ void daily_update(sys::state& state) {
 											 state.world.nation_get_total_poor_income(n);
 	});
 
-	float target_money = total_pop * primary_commodity_basket / needs_scaling_factor;
+	float target_money = total_pop * primary_commodity_basket / needs_scaling_factor * 10.f;
 
 	// total_pop_money / inflation = real, unadjustead money
 	// want inflation s.t. inflation * r_money = target_money
@@ -3761,7 +3755,7 @@ void add_factory_level_to_state(sys::state& state, dcon::state_instance_id s, dc
 			if(p.get_province().get_nation_from_province_ownership() == o) {
 				for(auto f : p.get_province().get_factory_location()) {
 					if(f.get_factory().get_building_type() == t) {
-						f.get_factory().get_level() += 1 + uint8_t(sqrt(f.get_factory().get_level()) / 2);
+						f.get_factory().get_level() += 1 + uint8_t(math::sqrt(f.get_factory().get_level()) / 2);
 						return;
 					}
 				}
