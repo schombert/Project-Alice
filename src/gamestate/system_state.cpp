@@ -451,6 +451,19 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			keycode = sys::virtual_key::SUBTRACT;
 		else if(keycode == sys::virtual_key::PLUS)
 			keycode = sys::virtual_key::ADD;
+		if(cheat_data.wasd_move_cam) {
+			if(keycode == sys::virtual_key::W)
+				keycode = sys::virtual_key::UP;
+			else
+			if(keycode == sys::virtual_key::A)
+				keycode = sys::virtual_key::LEFT;
+			else
+			if(keycode == sys::virtual_key::S)
+				keycode = sys::virtual_key::DOWN;
+			else
+			if(keycode == sys::virtual_key::D)
+				keycode = sys::virtual_key::RIGHT;
+		}
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				if(ui_state.console_window->is_visible()) {
@@ -485,6 +498,20 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = false;
+
+	if(cheat_data.wasd_move_cam) {
+		if(keycode == sys::virtual_key::W)
+			keycode = sys::virtual_key::UP;
+		else
+		if(keycode == sys::virtual_key::A)
+			keycode = sys::virtual_key::LEFT;
+		else
+		if(keycode == sys::virtual_key::S)
+			keycode = sys::virtual_key::DOWN;
+		else
+		if(keycode == sys::virtual_key::D)
+			keycode = sys::virtual_key::RIGHT;
+	}
 
 	map_state.on_key_up(keycode, mod);
 }
