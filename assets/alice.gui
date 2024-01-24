@@ -504,7 +504,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "zoom_mode_right"
-				position = { 151 115 }
+				position = { 269 158 }
 				quadTextureSprite = "option_next"
 			}
 			
