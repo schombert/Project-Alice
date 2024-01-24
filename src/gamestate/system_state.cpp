@@ -3801,7 +3801,6 @@ void state::single_game_tick() {
 	static demographics::migration_buffer cmbuf;
 	static demographics::migration_buffer imbuf;
 
-	demographics::save_yesterday_pop_size(*this, local_player_nation);
 	// calculate complex changes in parallel where we can, but don't actually apply the results
 	// instead, the changes are saved to be applied only after all triggers have been evaluated
 	concurrency::parallel_for(0, 8, [&](int32_t index) {
