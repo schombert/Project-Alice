@@ -12,6 +12,9 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 	if(state.cheat_data.show_province_id_tooltip) {
 		text::add_to_layout_box(state, contents, box, std::string_view{ "PROVID: " });
 		text::add_to_layout_box(state, contents, box, prov.index());
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, std::string_view{ "TAG: " });
+		text::add_to_layout_box(state, contents, box, nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int()));
 		text::add_divider_to_layout_box(state, contents, box);
 	}
 
