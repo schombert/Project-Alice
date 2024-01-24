@@ -3922,6 +3922,12 @@ guiTypes = {
 			Orientation = "LOWER_RIGHT"
 		}
 		iconType = {
+			name = "minimap_bg-patch"
+			spriteType = "new-minimap-bg"
+			position = { -374 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
 			name = "menubar_bg"
 			spriteType = "GFX_menubar_bg"
 			position = { -64 -200 }
