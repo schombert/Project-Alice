@@ -84,28 +84,29 @@ list(APPEND ALICE_SOURCES_LIST
 	"src/zstd/zstd.cpp"
 )
 
+list(APPEND ALICE_MAIN_SOURCES_LIST
+	"src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
+)
 if(WIN32)
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
-	"src/alice.rc"
-	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
-	"src/alice.rc"
-	${ASSET_FILES})
+	list(APPEND ALICE_MAIN_SOURCES_LIST "src/alice.rc")
+	add_executable(AliceAVX512 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceAVX2 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceAVX WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceSSE42 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceSSE3 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST} "src/alice.rc" ${ASSET_FILES})
 else()
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
-	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
-	${ASSET_FILES})
+	add_executable(AliceAVX512 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceAVX2 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceAVX WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceSSE42 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceSSE3 WIN32 ${ALICE_MAIN_SOURCES_LIST} ${ASSET_FILES})
+	add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST} ${ASSET_FILES})
 endif()
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
@@ -145,12 +146,12 @@ if(WIN32)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -fprofile-instr-use=code.profdata)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -fprofile-instr-use=code.profdata)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
@@ -177,7 +178,7 @@ if(WIN32)
 		else()
 			message(STATUS "Normal, not PGO, build")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /arch:AVX2 /GF /w34388 /w34389 /Z7
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7
 				  $<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
 				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
@@ -187,19 +188,19 @@ if(WIN32)
 		endif()
 	endif()
 else() # GCC or CLANG
-	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
 			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -std=c++20
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(AliceCommon INTERFACE
-										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
 endif()
+
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
@@ -242,123 +243,116 @@ target_include_directories(AliceCommon INTERFACE
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 
-target_link_libraries(Alice PRIVATE AliceCommon)
-target_link_libraries(AliceIncremental PRIVATE AliceCommon)
-
-# System headers
-target_precompile_headers(Alice
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <stddef.h>
-	PRIVATE <stdint.h>
-	PRIVATE <assert.h>
-	PRIVATE <stdarg.h>
-	PRIVATE <stdlib.h>
-	PRIVATE <math.h>
-	PRIVATE <signal.h>
-	PRIVATE <ctype.h>
-)
-# Standard C++ library headers
-target_precompile_headers(Alice
-	PRIVATE <vector>
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <vector>
-	PRIVATE <array>
-	PRIVATE <optional>
-	PRIVATE <memory>
-	PRIVATE <variant>
-	PRIVATE <string>
-	PRIVATE <string_view>
-	PRIVATE <charconv>
-	PRIVATE <algorithm>
-	PRIVATE <iterator>
-	PRIVATE <functional>
-	PRIVATE <atomic>
-	PRIVATE <chrono>
-	PRIVATE <tuple>
-	PRIVATE <type_traits>
-	PRIVATE <new>
-	PRIVATE <limits>
-	PRIVATE <iterator>
-)
-# Aliases for C library
-target_precompile_headers(Alice
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE <cstdlib>
-	PRIVATE <cstddef>
-	PRIVATE <cstdint>
-	PRIVATE <cassert>
-	PRIVATE <cstdarg>
-	PRIVATE <cmath>
-)
-# Alice provided headers
-target_precompile_headers(Alice
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
-)
-target_precompile_headers(AliceIncremental
-	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
-	PRIVATE [["unordered_dense.h"]]
-	PRIVATE [["dcon_generated.hpp"]]
-	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
-	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["date_interface.hpp"]]
-	PRIVATE [["stb_image.h"]]
-)
-
-target_precompile_headers(AliceIncremental
-	PRIVATE [["system_state.hpp"]]
+function(specify_pch_with_different_targets ALICE_TARGET)
+	# System headers
+	target_precompile_headers(${ALICE_TARGET}
+		PRIVATE <stddef.h>
+		PRIVATE <stdint.h>
+		PRIVATE <assert.h>
+		PRIVATE <stdarg.h>
+		PRIVATE <stdlib.h>
+		PRIVATE <math.h>
+		PRIVATE <signal.h>
+		PRIVATE <ctype.h>
+		# Standard C++ library headers
+		PRIVATE <vector>
+		PRIVATE <array>
+		PRIVATE <optional>
+		PRIVATE <memory>
+		PRIVATE <variant>
+		PRIVATE <string>
+		PRIVATE <string_view>
+		PRIVATE <charconv>
+		PRIVATE <algorithm>
+		PRIVATE <iterator>
+		PRIVATE <functional>
+		PRIVATE <atomic>
+		PRIVATE <chrono>
+		PRIVATE <tuple>
+		PRIVATE <type_traits>
+		PRIVATE <new>
+		PRIVATE <limits>
+		PRIVATE <iterator>
+		# Aliases for C library
+		PRIVATE <cstdlib>
+		PRIVATE <cstddef>
+		PRIVATE <cstdint>
+		PRIVATE <cassert>
+		PRIVATE <cstdarg>
+		PRIVATE <cmath>
+		# Alice provided headers
+		PRIVATE [["simple_fs.hpp"]]
+		PRIVATE [["constants.hpp"]]
+		PRIVATE [["unordered_dense.h"]]
+		PRIVATE [["dcon_generated.hpp"]]
+		PRIVATE [["container_types.hpp"]]
+		PRIVATE [["parsers_declarations.hpp"]]
+		PRIVATE [["cyto_any.hpp"]]
+		PRIVATE [["date_interface.hpp"]]
+		PRIVATE [["stb_image.h"]]
 	)
+	if(WIN32)
+	else()
+		target_precompile_headers(${ALICE_TARGET} PRIVATE [["miniaudio.h"]])
+	endif()
+endfunction()
 
+#
+# AVX512
+#
+target_link_libraries(AliceAVX512 PRIVATE AliceCommon)
 if(WIN32)
-else()
-	target_precompile_headers(Alice
-		PRIVATE [["miniaudio.h"]])
-	target_precompile_headers(AliceIncremental
-		PRIVATE [["miniaudio.h"]])
+	target_link_options(AliceAVX512 INTERFACE /arch:AVX512)
+else() # GCC or CLANG
+	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
+	target_compile_options(AliceAVX512 INTERFACE -mfpmath=sse -mavx512 -mfma)
 endif()
+specify_pch_with_different_targets(AliceAVX512)
+#
+# AVX2
+#
+target_link_libraries(AliceAVX2 PRIVATE AliceCommon)
+if(WIN32)
+	target_link_options(AliceAVX2 INTERFACE /arch:AVX2)
+else() # GCC or CLANG
+	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
+	target_compile_options(AliceAVX2 INTERFACE -mfpmath=sse -mavx2 -mfma)
+endif()
+specify_pch_with_different_targets(AliceAVX2)
+#
+# AVX
+#
+target_link_libraries(AliceAVX PRIVATE AliceCommon)
+if(WIN32)
+	target_link_options(AliceAVX INTERFACE /arch:AVX)
+else()
+	target_compile_options(AliceAVX INTERFACE -mfpmath=sse -mavx)
+endif()
+specify_pch_with_different_targets(AliceAVX)
+#
+# SSE 4.2
+#
+target_link_libraries(AliceSSE42 PRIVATE AliceCommon)
+if(WIN32)
+	target_link_options(AliceSSE42 INTERFACE /d2archSSE42)
+else()
+	target_compile_options(AliceSSE42 INTERFACE -mfpmath=sse)
+endif()
+specify_pch_with_different_targets(AliceSSE42)
+#
+# SSE 3
+#
+target_link_libraries(AliceSSE3 PRIVATE AliceCommon)
+if(WIN32)
+	target_link_options(AliceSSE3 INTERFACE /D__SSE3__)
+else()
+	target_compile_options(AliceSSE3 INTERFACE -mfpmath=sse -D__SSE3__)
+endif()
+specify_pch_with_different_targets(AliceSSE3)
+
+target_link_libraries(AliceIncremental PRIVATE AliceCommon)
+specify_pch_with_different_targets(AliceIncremental)
+target_precompile_headers(AliceIncremental PRIVATE [["system_state.hpp"]])
 
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)
@@ -372,7 +366,11 @@ add_custom_command(
 
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
-add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceAVX512 GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceAVX2 GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceAVX GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceSSE42 GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceSSE3 GENERATE_CONTAINER ParserGenerator)
 add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
 
 # The command to build the generated parsers file
@@ -399,15 +397,17 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
-add_dependencies(Alice GENERATE_PARSERS)
+add_dependencies(AliceAVX512 GENERATE_PARSERS)
+add_dependencies(AliceAVX2 GENERATE_PARSERS)
+add_dependencies(AliceAVX GENERATE_PARSERS)
+add_dependencies(AliceSSE42 GENERATE_PARSERS)
+add_dependencies(AliceSSE3 GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)
 
 if (BUILD_TESTING)
     enable_testing()
 	add_subdirectory(tests)
 endif()
-
-add_subdirectory(SaveEditor)
 if(WIN32)
 	add_subdirectory(DbgAlice)
 	add_subdirectory(Launcher)
