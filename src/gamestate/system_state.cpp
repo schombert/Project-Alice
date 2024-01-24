@@ -2098,6 +2098,7 @@ void state::save_user_settings() const {
 	US_SAVE(vassal_color);
 	US_SAVE(left_mouse_click_hold_and_release);
 	US_SAVE(render_models);
+	US_SAVE(mouse_edge_scrolling);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2155,6 +2156,7 @@ void state::load_user_settings() {
 			US_LOAD(vassal_color);
 			US_LOAD(left_mouse_click_hold_and_release);
 			US_LOAD(render_models);
+			US_LOAD(mouse_edge_scrolling);
 #undef US_LOAD
 		} while(false);
 
