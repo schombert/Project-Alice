@@ -253,4 +253,9 @@ spriteTypes = {
 		texturefile = "assets\\mapmode_growth.png"
 		noOfFrames = 2
 	}
+	spriteType = {
+		name = "new-minimap-bg"
+		texturefile = "assets\\sub-minimap.dds"
+		noOfFrames = 1
+	}
 }
