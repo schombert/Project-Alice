@@ -38,6 +38,10 @@ jobs:
       run: |
         cmake --build build --parallel --target Alice
 
+    - name: Build Project Alice Incremental
+      run: |
+        cmake --build build --parallel --target IncrementalAlice
+
   windows-build:
     strategy:
       matrix:
@@ -56,6 +60,10 @@ jobs:
     - name: Build Project Alice
       run: |
         cmake --build build --parallel --target Alice
+
+    - name: Build Project Alice Incremental
+      run: |
+        cmake --build build --parallel --target IncrementalAlice
 
   build-check:
     needs: [windows-build, linux-build]
