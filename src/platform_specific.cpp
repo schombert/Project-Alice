@@ -1,3 +1,7 @@
+#ifdef LOCAL_USER_SETTINGS
+#include "local_user_settings.hpp"
+#endif
+
 #ifdef _WIN64
 // WINDOWS implementations go here
 

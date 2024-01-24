@@ -103,6 +103,12 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 							context.state.province_definitions.canals.resize(canal_id);
 						}
 						context.state.province_definitions.canals[canal_id - 1] = new_rel;
+
+						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+						if(context.state.province_definitions.canal_provinces.size() < canal_id) {
+							context.state.province_definitions.canal_provinces.resize(canal_id);
+						}
+						context.state.province_definitions.canal_provinces[canal_id - 1] = context.original_id_to_prov_id_map[canal_province_id];
 					}
 				}
 			}

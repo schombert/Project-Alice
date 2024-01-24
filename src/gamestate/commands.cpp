@@ -4916,6 +4916,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
 	case command_type::c_instant_research:
+	case command_type::c_add_population:
+	case command_type::c_instant_army:
 		return true;
 	}
 	return false;
@@ -5325,6 +5327,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_instant_research:
 		execute_c_instant_research(state, c.source);
+		break;
+	case command_type::c_add_population:
+		execute_c_add_population(state, c.source, c.data.cheat_int.value);
+		break;
+	case command_type::c_instant_army:
+		execute_c_instant_army(state, c.source);
 		break;
 	}
 }

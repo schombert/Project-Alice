@@ -634,13 +634,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(4, time_counter);
 		glBindVertexArray(vao_array[vo_static_mesh]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_static_mesh]);
+		/*
 		for(uint32_t i = 0; i < uint32_t(static_mesh_starts.size()); i++) {
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[i]);
 			glUniform2f(12, 0.f, float(i * 8));
 			glUniform1f(13, 0.f);
+			glUniform1f(14, -0.75f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[i], static_mesh_counts[i]);
 		}
+		*/
 		// Train stations
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[5]);
@@ -652,6 +655,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				auto pos = center + glm::vec2(-dist_step, dist_step); //top right (from center)
 				glUniform2f(12, pos.x, pos.y);
 				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() * level, 1000)) / 1000.f));
+				glUniform1f(14, -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[5], static_mesh_counts[5]);
 			}
 		}
@@ -679,6 +683,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					glUniform2f(12, p1.x, p1.y);
 					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 					glUniform1f(13, -theta);
+					glUniform1f(14, -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -702,6 +707,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					glUniform2f(12, p1.x, p1.y);
 					auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 					glUniform1f(13, -theta);
+					glUniform1f(14, -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
@@ -723,37 +729,29 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					auto pos = center + glm::vec2(dist_step, -dist_step); //bottom left (from center)
 					glUniform2f(12, pos.x, pos.y);
 					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
+					glUniform1f(14, -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[tier.index], static_mesh_counts[tier.index]);
 				}
 			}
 		}
-		auto render_canal = [&](uint32_t index, uint32_t canal_id) {
-			if(canal_id >= uint32_t(state.province_definitions.canals.size()))
+		auto render_canal = [&](uint32_t index, uint32_t canal_id, float theta) {
+			if(canal_id >= uint32_t(state.province_definitions.canals.size())
+			&& canal_id >= uint32_t(state.province_definitions.canal_provinces.size()))
 				return;
 			auto const adj = state.province_definitions.canals[canal_id];
 			if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0)
 				return;
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
-			auto const p0 = state.world.province_adjacency_get_connected_provinces(adj, 0);
-			auto const p1 = state.world.province_adjacency_get_connected_provinces(adj, 1);
-			glm::vec2 pos;
-			if(p0.index() < state.province_definitions.first_sea_province.index()) {
-				pos = state.world.province_get_mid_point(p0);
-			} else if(p1.index() < state.province_definitions.first_sea_province.index()) {
-				pos = state.world.province_get_mid_point(p1);
-			} else {
-				auto const pos_0 = state.world.province_get_mid_point(p0);
-				auto const pos_1 = state.world.province_get_mid_point(p1);
-				pos = (pos_0 + pos_1) / glm::vec2(2, 2);
-			}
+			glm::vec2 pos = state.world.province_get_mid_point(state.province_definitions.canal_provinces[canal_id]);
 			glUniform2f(12, pos.x, pos.y);
-			glUniform1f(13, 0.f);
+			glUniform1f(13, theta);
+			glUniform1f(14, 0.f);
 			glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 		};
-		render_canal(3, 0); //Kiel
-		render_canal(4, 1), //Suez
-		render_canal(2, 2); //Panama
+		render_canal(3, 0, 0.f); //Kiel
+		render_canal(4, 1, glm::pi<float>() / 2.f), //Suez
+		render_canal(2, 2, 0.f); //Panama
 		// Factory
 		glActiveTexture(GL_TEXTURE14);
 		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[9]);
@@ -765,6 +763,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				auto pos = center + glm::vec2(-dist_step, -dist_step); //top left (from center)
 				glUniform2f(12, pos.x, pos.y);
 				glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index(), 1000)) / 1000.f));
+				glUniform1f(14, -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[9], static_mesh_counts[9]);
 			}
 		}
@@ -779,6 +778,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				glUniform2f(12, p1.x, p1.y);
 				auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 				glUniform1f(13, -theta);
+				glUniform1f(14, -0.75f);
 				glDrawArrays(GL_TRIANGLES, static_mesh_starts[10], static_mesh_counts[10]);
 			}
 		}
@@ -813,6 +813,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						glUniform2f(12, p1.x, p1.y + space + dist_step);
 						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 						glUniform1f(13, -theta);
+						glUniform1f(14, -0.75f);
 						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
@@ -855,6 +856,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 						glUniform2f(12, p1.x, p1.y + space + dist_step);
 						auto theta = glm::atan(p2.y - p1.y, p2.x - p1.x);
 						glUniform1f(13, -theta);
+						glUniform1f(14, -0.75f);
 						glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					}
 				}
@@ -884,9 +886,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					pos.y -= 2.5f;
 					glUniform2f(12, pos.x, pos.y);
 					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j + i, 1000)) / 1000.f));
+					glUniform1f(14, -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 					glUniform2f(12, pos.x, pos.y);
 					glUniform1f(13, 2.f * glm::pi<float>() * (float(rng::reduce(p.index() + j * i, 1000)) / 1000.f));
+					glUniform1f(14, -0.75f);
 					glDrawArrays(GL_TRIANGLES, static_mesh_starts[index], static_mesh_counts[index]);
 				}
 			}
@@ -1693,6 +1697,51 @@ void load_static_meshes(sys::state& state) {
 		1.0f, //41
 		1.0f, //42
 	};
+	constexpr float no_elim = 9999.f;
+	static const std::array<float, display_data::max_static_meshes> elim_factor = {
+		-0.1f, //1
+		no_elim, //2
+		no_elim, //3
+		no_elim, //4
+		no_elim, //5
+		-0.1f, //6
+		-0.1f, //7
+		-0.1f, //8
+		-0.1f, //9
+		no_elim, //10
+		-0.1f, //11
+		-0.1f, //12
+		-0.1f, //13
+		-0.1f, //14
+		-0.1f, //15
+		-0.1f, //16
+		-0.1f, //17
+		-0.1f, //18
+		-0.1f, //19 -- housing
+		-0.1f, //20
+		-0.1f, //21
+		-0.1f, //22
+		-0.1f, //23
+		-0.1f, //24
+		-0.1f, //25
+		-0.1f, //26
+		-0.1f, //27
+		-0.1f, //28
+		-0.1f, //29
+		-0.1f, //30
+		-0.1f, //31
+		-0.1f, //32
+		-0.1f, //33
+		-0.1f, //34
+		-0.1f, //35
+		-0.1f, //36
+		-0.1f, //37
+		-0.1f, //38
+		-0.1f, //39
+		-0.1f, //40
+		-0.1f, //41
+		-0.1f, //42
+	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
 
@@ -1746,11 +1795,13 @@ void load_static_meshes(sys::state& state) {
 							}
 							// Clip standing planes (some models have flat planes
 							// beneath them)
-							if(is_visual
-							//&& triangle_vertices[0].position_.y <= -0.15f
-							//&& triangle_vertices[1].position_.y <= -0.15f
-							//&& triangle_vertices[2].position_.y <= -0.15f
-							) {
+							bool keep = is_visual;
+							if(elim_factor[k] != no_elim) {
+								keep = (triangle_vertices[0].position_.y <= elim_factor[k]
+									&& triangle_vertices[1].position_.y <= elim_factor[k]
+									&& triangle_vertices[2].position_.y <= elim_factor[k]);
+							}
+							if(keep) {
 								for(const auto& smv : triangle_vertices) {
 									static_mesh_vertex tmp = smv;
 									tmp.position_ *= scaling_factor[k];
