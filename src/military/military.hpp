@@ -1,7 +1,8 @@
 #pragma once
-#include "dcon_generated.hpp"
+
 #include "container_types.hpp"
 #include "modifiers.hpp"
+#include "dcon_generated.hpp"
 
 namespace military {
 namespace cb_flag {

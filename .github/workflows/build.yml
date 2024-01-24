@@ -36,7 +36,7 @@ jobs:
 
     - name: Build Project Alice
       run: |
-        cmake --build build --parallel --target Alice
+        cmake --build build --parallel --target AliceAVX2
 
   windows-build:
     strategy:
@@ -55,7 +55,7 @@ jobs:
 
     - name: Build Project Alice
       run: |
-        cmake --build build --parallel --target Alice
+        cmake --build build --parallel --target AliceAVX2
 
   build-check:
     needs: [windows-build, linux-build]

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <stdint.h>
+namespace sys {
+struct state;
+}
+
 // #include "../gamestate/system_state.hpp"
 
 namespace map_mode {

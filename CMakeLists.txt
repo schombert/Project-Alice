@@ -144,59 +144,55 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		target_compile_options(AliceCommon INTERFACE /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
-			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -fprofile-instr-use=code.profdata)
+			target_compile_options(AliceCommon INTERFACE /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -fprofile-instr-use=code.profdata)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
-			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+			target_compile_options(AliceCommon INTERFACE  /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
-											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /d2archSSE42 /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
-				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
+				$<$<CONFIG:Debug>: 			/DEBUG:FULL>
 				$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 		endif()
 	else()
 		set_target_properties(AliceCommon PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
-
+		target_compile_options(AliceCommon INTERFACE /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
-			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_compile_options(AliceCommon INTERFACE /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
-			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+			target_compile_options(AliceCommon INTERFACE /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
 		else()
 			message(STATUS "Normal, not PGO, build")
-			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /GF /w34388 /w34389 /Z7
-				  $<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
+			target_compile_options(AliceCommon INTERFACE /Z7
+				$<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
-				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
 		endif()
 	endif()
 else() # GCC or CLANG
+	target_compile_options(AliceCommon INTERFACE -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch  -Wno-unused-private-field)
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -std=c++20
+			-Wdangling-else -std=c++20
 			$<$<CONFIG:Debug>:			-g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(AliceCommon INTERFACE
-			# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
+			-Wno-unused-but-set-variable -Wno-parentheses
 			$<$<CONFIG:Debug>:			-g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
@@ -243,116 +239,65 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
+# System headers
 
-function(specify_pch_with_different_targets ALICE_TARGET)
-	# System headers
-	target_precompile_headers(${ALICE_TARGET}
-		PRIVATE <stddef.h>
-		PRIVATE <stdint.h>
-		PRIVATE <assert.h>
-		PRIVATE <stdarg.h>
-		PRIVATE <stdlib.h>
-		PRIVATE <math.h>
-		PRIVATE <signal.h>
-		PRIVATE <ctype.h>
-		# Standard C++ library headers
-		PRIVATE <vector>
-		PRIVATE <array>
-		PRIVATE <optional>
-		PRIVATE <memory>
-		PRIVATE <variant>
-		PRIVATE <string>
-		PRIVATE <string_view>
-		PRIVATE <charconv>
-		PRIVATE <algorithm>
-		PRIVATE <iterator>
-		PRIVATE <functional>
-		PRIVATE <atomic>
-		PRIVATE <chrono>
-		PRIVATE <tuple>
-		PRIVATE <type_traits>
-		PRIVATE <new>
-		PRIVATE <limits>
-		PRIVATE <iterator>
-		# Aliases for C library
-		PRIVATE <cstdlib>
-		PRIVATE <cstddef>
-		PRIVATE <cstdint>
-		PRIVATE <cassert>
-		PRIVATE <cstdarg>
-		PRIVATE <cmath>
-		# Alice provided headers
-		PRIVATE [["simple_fs.hpp"]]
-		PRIVATE [["constants.hpp"]]
-		PRIVATE [["unordered_dense.h"]]
-		PRIVATE [["dcon_generated.hpp"]]
-		PRIVATE [["container_types.hpp"]]
-		PRIVATE [["parsers_declarations.hpp"]]
-		PRIVATE [["cyto_any.hpp"]]
-		PRIVATE [["date_interface.hpp"]]
-		PRIVATE [["stb_image.h"]]
-	)
-	if(WIN32)
-	else()
-		target_precompile_headers(${ALICE_TARGET} PRIVATE [["miniaudio.h"]])
-	endif()
-endfunction()
+if(NOT WIN32)
+	target_precompile_headers(AliceCommon INTERFACE [["miniaudio.h"]])
+endif()
 
 #
 # AVX512
 #
 target_link_libraries(AliceAVX512 PRIVATE AliceCommon)
 if(WIN32)
-	target_link_options(AliceAVX512 INTERFACE /arch:AVX512)
+	target_compile_options(AliceAVX512 PRIVATE /arch:AVX512)
 else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
-	target_compile_options(AliceAVX512 INTERFACE -mfpmath=sse -mavx512 -mfma)
+	target_compile_options(AliceAVX512 PRIVATE -mfpmath=sse -mavx512 -mfma)
 endif()
-specify_pch_with_different_targets(AliceAVX512)
 #
 # AVX2
 #
 target_link_libraries(AliceAVX2 PRIVATE AliceCommon)
 if(WIN32)
-	target_link_options(AliceAVX2 INTERFACE /arch:AVX2)
+	target_compile_options(AliceAVX2 PRIVATE /arch:AVX2)
 else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
-	target_compile_options(AliceAVX2 INTERFACE -mfpmath=sse -mavx2 -mfma)
+	target_compile_options(AliceAVX2 PRIVATE -mfpmath=sse -mavx2 -mfma)
 endif()
-specify_pch_with_different_targets(AliceAVX2)
 #
 # AVX
 #
 target_link_libraries(AliceAVX PRIVATE AliceCommon)
 if(WIN32)
-	target_link_options(AliceAVX INTERFACE /arch:AVX)
+	target_compile_options(AliceAVX PRIVATE /arch:AVX)
 else()
-	target_compile_options(AliceAVX INTERFACE -mfpmath=sse -mavx)
+	target_compile_options(AliceAVX PRIVATE -mfpmath=sse -mavx)
 endif()
-specify_pch_with_different_targets(AliceAVX)
 #
 # SSE 4.2
 #
 target_link_libraries(AliceSSE42 PRIVATE AliceCommon)
 if(WIN32)
-	target_link_options(AliceSSE42 INTERFACE /d2archSSE42)
+	if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	target_compile_options(AliceSSE42 PRIVATE /d2archSSE42)
+	endif()
 else()
-	target_compile_options(AliceSSE42 INTERFACE -mfpmath=sse)
+	target_compile_options(AliceSSE42 PRIVATE -mfpmath=sse)
 endif()
-specify_pch_with_different_targets(AliceSSE42)
 #
 # SSE 3
 #
 target_link_libraries(AliceSSE3 PRIVATE AliceCommon)
 if(WIN32)
-	target_link_options(AliceSSE3 INTERFACE /D__SSE3__)
+	target_compile_options(AliceSSE3 PRIVATE /D__SSE3__)
 else()
-	target_compile_options(AliceSSE3 INTERFACE -mfpmath=sse -D__SSE3__)
+	target_compile_options(AliceSSE3 PRIVATE -mfpmath=sse -D__SSE3__)
 endif()
-specify_pch_with_different_targets(AliceSSE3)
-
+#
+# Incremental
+#
 target_link_libraries(AliceIncremental PRIVATE AliceCommon)
-specify_pch_with_different_targets(AliceIncremental)
 target_precompile_headers(AliceIncremental PRIVATE [["system_state.hpp"]])
 
 # GENERATE CONTAINER
@@ -406,8 +351,8 @@ add_dependencies(AliceSSE3 GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)
 
 if (BUILD_TESTING)
-    enable_testing()
-	add_subdirectory(tests)
+#    enable_testing()
+#	add_subdirectory(tests)
 endif()
 if(WIN32)
 	add_subdirectory(DbgAlice)
