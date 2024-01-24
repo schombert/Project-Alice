@@ -82,6 +82,7 @@ list(APPEND ALICE_SOURCES_LIST
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
+	"src/graphics/xac.cpp"
 )
 
 if(WIN32)
