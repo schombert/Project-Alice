@@ -121,6 +121,11 @@ public:
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
 };
+class render_models_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
 class railroad_checkbox : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override;
@@ -281,6 +286,8 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<left_mouse_click_mode_checkbox>(state, id);
 		} else if(name == "fow_checkbox") {
 			return make_element_by_type<fow_checkbox>(state, id);
+		} else if(name == "render_models_checkbox") {
+			return make_element_by_type<render_models_checkbox>(state, id);
 		} else if(name == "railroad_checkbox") {
 			return make_element_by_type<railroad_checkbox>(state, id);
 		} else if(name == "river_checkbox") {

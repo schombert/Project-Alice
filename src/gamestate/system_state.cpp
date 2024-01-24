@@ -2097,6 +2097,7 @@ void state::save_user_settings() const {
 	US_SAVE(zoom_mode);
 	US_SAVE(vassal_color);
 	US_SAVE(left_mouse_click_hold_and_release);
+	US_SAVE(render_models);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2153,6 +2154,7 @@ void state::load_user_settings() {
 			US_LOAD(zoom_mode);
 			US_LOAD(vassal_color);
 			US_LOAD(left_mouse_click_hold_and_release);
+			US_LOAD(render_models);
 #undef US_LOAD
 		} while(false);
 
@@ -4310,17 +4312,6 @@ sys::checksum_key state::get_save_checksum() {
 
 	checksum_key key;
 	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
-	return key;
-}
-
-sys::checksum_key state::get_scenario_checksum() {
-	auto scenario_space = sizeof_scenario_section(*this);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_space]);
-	auto last_written = write_scenario_section(buffer.get(), *this);
-	int32_t last_written_count = int32_t(last_written - buffer.get());
-	assert(size_t(last_written_count) == scenario_space);
-	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), last_written_count, nullptr, 0);
 	return key;
 }
 
