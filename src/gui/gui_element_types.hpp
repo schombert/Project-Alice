@@ -769,6 +769,12 @@ public:
 	void button_shift_action(sys::state& state) noexcept final;
 	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_slider_controls");
+	}
 };
 
 class scrollbar_right : public shift_right_button_element_base {
@@ -779,6 +785,12 @@ public:
 	void button_shift_action(sys::state& state) noexcept final;
 	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_slider_controls");
+	}
 };
 
 class scrollbar_track : public opaque_element_base {
