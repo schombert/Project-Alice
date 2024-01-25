@@ -372,6 +372,7 @@ struct user_settings_s {
 	map_zoom_mode zoom_mode = map_zoom_mode::panning;
 	map_vassal_color_mode vassal_color = map_vassal_color_mode::inherit;
 	bool render_models = false;
+	bool mouse_edge_scrolling = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

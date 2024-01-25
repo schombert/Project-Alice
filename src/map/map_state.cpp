@@ -328,28 +328,29 @@ void map_state::update(sys::state& state) {
 		pos_velocity += arrow_key_velocity_vector;
 	}
 
-	glm::vec2 mouse_pos_percent{ state.mouse_x_position / float(state.x_size), state.mouse_y_position / float(state.y_size) };
-	glm::vec2 cursor_velocity_vector{0.0f, 0.0f};
+	if(state.user_settings.mouse_edge_scrolling) {
+		glm::vec2 mouse_pos_percent{ state.mouse_x_position / float(state.x_size), state.mouse_y_position / float(state.y_size) };
+		glm::vec2 cursor_velocity_vector{ 0.0f, 0.0f };
 
-	//check if mouse is at edge of screen, in order to move the map
-	if(mouse_pos_percent.x < 0.02f) {
-		cursor_velocity_vector.x -= 1.f;
-	} else if(mouse_pos_percent.x > 0.98f) {
-		cursor_velocity_vector.x += 1.f;
+		//check if mouse is at edge of screen, in order to move the map
+		if(mouse_pos_percent.x < 0.02f) {
+			cursor_velocity_vector.x -= 1.f;
+		} else if(mouse_pos_percent.x > 0.98f) {
+			cursor_velocity_vector.x += 1.f;
+		}
+		if(mouse_pos_percent.y < 0.02f) {
+			cursor_velocity_vector.y -= 1.f;
+		} else if(mouse_pos_percent.y > 0.98f) {
+			cursor_velocity_vector.y += 1.f;
+		}
+	
+		// check if the vector length is not zero before normalizing
+		if(glm::length(cursor_velocity_vector) != 0.0f) {
+			cursor_velocity_vector = glm::normalize(cursor_velocity_vector);
+			cursor_velocity_vector *= 0.175f;
+			pos_velocity += cursor_velocity_vector;
+		}
 	}
-	if(mouse_pos_percent.y < 0.02f) {
-		cursor_velocity_vector.y -= 1.f;
-	} else if(mouse_pos_percent.y > 0.98f) {
-		cursor_velocity_vector.y += 1.f;
-	}
-
-	// check if the vector length is not zero before normalizing
-	if(glm::length(cursor_velocity_vector) != 0.0f) {
-		cursor_velocity_vector = glm::normalize(cursor_velocity_vector);
-		cursor_velocity_vector *= 0.175f;
-		pos_velocity += cursor_velocity_vector;
-	}
-
 
 	pos_velocity /= 1.125;
 
