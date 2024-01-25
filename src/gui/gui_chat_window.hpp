@@ -10,10 +10,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<chat_message>(state, parent);
 		auto border = base_data.data.text.border_size;
-		auto color = IsShadow ? text::text_color::black : text::text_color::white;
-		if(!IsShadow && content.target) {
-			color = text::text_color::orange;
-		}
+		auto color = IsShadow ? text::text_color::black : (content.target ? text::text_color::orange : text::text_color::white);
 		auto container = text::create_endless_layout(
 			internal_layout,
 			text::layout_parameters{
