@@ -2266,6 +2266,10 @@ void sort_avilable_declaration_cbs(std::vector<possible_cb>& result, sys::state&
 		auto allowed_countries = state.world.cb_type_get_allowed_countries(cb);
 		auto allowed_states = state.world.cb_type_get_allowed_states(cb);
 
+		if(!allowed_countries && !allowed_states) {
+			return;
+		}
+
 		if(!allowed_countries && allowed_states) {
 			bool any_allowed = false;
 			for(auto si : target_states) {
