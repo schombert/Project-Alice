@@ -980,50 +980,51 @@ void update_ai_econ_construction(sys::state& state) {
 									return true;
 							}
 							return false;
-							}();
-							if(already_in_progress)
-								continue;
+						}();
 
-							// check: if present, try to upgrade
-							bool present_in_location = false;
-							bool under_cap = false;
+						if(already_in_progress)
+							continue;
 
-							province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-								for(auto fac : state.world.province_get_factory_location(p)) {
-									auto type = fac.get_factory().get_building_type();
-									if(type_selection == type) {
-										under_cap = fac.get_factory().get_production_scale() < 0.9f && fac.get_factory().get_primary_employment() >= 0.9f;
-										present_in_location = true;
-										return;
-									}
+						// check: if present, try to upgrade
+						bool present_in_location = false;
+						bool under_cap = false;
+
+						province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+							for(auto fac : state.world.province_get_factory_location(p)) {
+								auto type = fac.get_factory().get_building_type();
+								if(type_selection == type) {
+									under_cap = fac.get_factory().get_production_scale() < 0.9f && fac.get_factory().get_primary_employment() >= 0.9f;
+									present_in_location = true;
+									return;
 								}
-							});
-							if(under_cap) {
-								continue; // factory doesn't need to get larger
 							}
-							if(present_in_location) {
-								if((rules & issue_rule::expand_factory) != 0) {
-									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
-									new_up.set_is_pop_project(false);
-									new_up.set_is_upgrade(true);
-									new_up.set_type(type_selection);
-									--max_projects;
-								}
-								continue;
-							}
-
-							// else -- try to build -- must have room
-							int32_t num_factories = economy::state_factory_count(state, si, n);
-							if(num_factories < int32_t(state.defines.factories_per_state)) {
+						});
+						if(under_cap) {
+							continue; // factory doesn't need to get larger
+						}
+						if(present_in_location) {
+							if((rules & issue_rule::expand_factory) != 0) {
 								auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 								new_up.set_is_pop_project(false);
-								new_up.set_is_upgrade(false);
+								new_up.set_is_upgrade(true);
 								new_up.set_type(type_selection);
 								--max_projects;
-								continue;
-							} else {
-								// TODO: try to delete a factory here
 							}
+							continue;
+						}
+
+						// else -- try to build -- must have room
+						int32_t num_factories = economy::state_factory_count(state, si, n);
+						if(num_factories < int32_t(state.defines.factories_per_state)) {
+							auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+							new_up.set_is_pop_project(false);
+							new_up.set_is_upgrade(false);
+							new_up.set_type(type_selection);
+							--max_projects;
+							continue;
+						} else {
+							// TODO: try to delete a factory here
+						}
 					} // END for(auto si : ordered_states) {
 				} // END if((rules & issue_rule::build_factory) == 0)
 			} // END if(!desired_types.empty()) {
@@ -2933,17 +2934,17 @@ void make_war_decs(sys::state& state) {
 
 		if(nations::is_great_power(state, n)) {
 			for(auto target : state.world.in_nation) {
-				if(target == n)
+				auto real_target = target.get_overlord_as_subject().get_ruler() ? target.get_overlord_as_subject().get_ruler() : target;
+
+				if(target == n || real_target == n)
 					continue;
-				if(state.world.nation_get_owned_province_count(target) == 0)
+				if(state.world.nation_get_owned_province_count(real_target) == 0)
 					continue;
-				if(nations::are_allied(state, n, target))
+				if(nations::are_allied(state, n, real_target))
 					continue;
 				if(target.get_in_sphere_of() == n)
 					continue;
-				if(state.world.nation_get_in_sphere_of(target) == n)
-					continue;
-				if(military::has_truce_with(state, n, target))
+				if(military::has_truce_with(state, n, real_target))
 					continue;
 				if(!military::can_use_cb_against(state, n, target))
 					continue;
@@ -2957,7 +2958,7 @@ void make_war_decs(sys::state& state) {
 						if(path.empty()) {
 							continue;
 						}
-						auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, target) - estimate_defensive_strength(state, target);
+						auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
 						if(str_difference > best_difference) {
 							best_difference = str_difference;
 							targets.set(n, target.id);
@@ -2967,7 +2968,7 @@ void make_war_decs(sys::state& state) {
 				}
 				if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, target) && !naval_supremacy(state, n, target))
 					continue;
-				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, target) - estimate_defensive_strength(state, target);
+				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
 				if(str_difference > best_difference) {
 					best_difference = str_difference;
 					targets.set(n, target.id);
