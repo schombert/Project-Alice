@@ -3934,7 +3934,7 @@ sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id 
 	float distance = province::distance(state, adj);
 	float sum_mods = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost) +
 									 state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::movement_cost);
-	float effective_distance = distance * (sum_mods + 1.0f);
+	float effective_distance = std::max(0.001f, distance * (sum_mods + 1.0f));
 
 	float effective_speed = effective_army_speed(state, a);
 
