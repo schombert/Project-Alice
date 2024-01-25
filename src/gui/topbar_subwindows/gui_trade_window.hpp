@@ -294,6 +294,9 @@ public:
 struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
+struct trade_details_open_window {
+	dcon::commodity_id commodity_id{};
+};
 
 class trade_commodity_entry_button : public tinted_right_click_button_element_base {
 public:
@@ -961,9 +964,6 @@ public:
 	}
 };
 
-struct trade_details_open_window {
-	dcon::commodity_id commodity_id{};
-};
 class trade_details_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
