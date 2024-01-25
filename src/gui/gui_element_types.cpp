@@ -1831,11 +1831,17 @@ void scrollbar_left::button_action(sys::state& state) noexcept {
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
 }
+void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ -step_size * 100, true, true });
+}
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+}
+void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ step_size * 100, true, true });
 }
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {

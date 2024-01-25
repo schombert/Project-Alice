@@ -272,6 +272,18 @@ public:
 	}
 };
 
+class tinted_right_click_button_element_base : public tinted_button_element_base {
+public:
+	virtual void button_right_action(sys::state& state) noexcept { }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			button_right_action(state);
+		}
+		return message_result::consumed;
+	}
+};
+
 class shift_button_element_base : public button_element_base {
 public:
 	virtual void button_shift_action(sys::state& state) noexcept { }
@@ -323,6 +335,7 @@ public:
 };
 
 class shift_right_button_element_base : public shift_button_element_base {
+public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	virtual void button_shift_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
@@ -748,21 +761,23 @@ protected:
 	}
 };
 
-class scrollbar_left : public shift_button_element_base {
+class scrollbar_left : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 
-class scrollbar_right : public shift_button_element_base {
+class scrollbar_right : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
 };
 

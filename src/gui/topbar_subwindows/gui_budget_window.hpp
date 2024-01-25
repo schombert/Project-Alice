@@ -626,6 +626,7 @@ class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_poor_tax(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -641,6 +642,7 @@ class budget_middle_tax_slider : public budget_slider<budget_slider_target::midd
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_middle_tax(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -656,6 +658,7 @@ class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_rich_tax(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -672,6 +675,7 @@ class budget_army_stockpile_slider : public budget_slider<budget_slider_target::
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_land_spending(n) });
 			text::close_layout_box(contents, box);
+			text::add_line(state, contents, "alice_slider_controls");
 		}
 		uint32_t total_commodities = state.world.commodity_size();
 		for(uint32_t i = 1; i < total_commodities; ++i) {
@@ -701,13 +705,12 @@ class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_naval_spending(n) });
 			text::close_layout_box(contents, box);
+			text::add_line(state, contents, "alice_slider_controls");
 		}
-
 		uint32_t total_commodities = state.world.commodity_size();
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -736,13 +739,12 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_construction_spending(n) });
 			text::close_layout_box(contents, box);
+			text::add_line(state, contents, "alice_slider_controls");
 		}
-
 		std::vector<float> total;
 		total.resize(size_t(state.world.commodity_size()), 0.0f);
 
@@ -896,6 +898,7 @@ class budget_education_slider : public budget_slider<budget_slider_target::educa
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_education_spending(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -911,6 +914,7 @@ class budget_administration_slider : public budget_slider<budget_slider_target::
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_administrative_spending(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -926,6 +930,7 @@ class budget_social_spending_slider : public budget_slider<budget_slider_target:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_social_spending(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -941,6 +946,7 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_military_spending(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
@@ -956,6 +962,7 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs>
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs(n) });
 		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 

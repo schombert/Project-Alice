@@ -295,7 +295,7 @@ struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
 
-class trade_commodity_entry_button : public tinted_button_element_base {
+class trade_commodity_entry_button : public tinted_right_click_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
@@ -312,6 +312,13 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		trade_details_select_commodity payload{retrieve<dcon::commodity_id>(state, parent)};
 		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		trade_details_select_commodity payload{ retrieve<dcon::commodity_id>(state, parent) };
+		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
+		Cyto::Any dt_payload = trade_details_open_window{ retrieve<dcon::commodity_id>(state, parent) };
+		state.ui_state.trade_subwindow->impl_get(state, dt_payload);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1131,6 +1138,13 @@ public:
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		float v = std::pow(10.0f, float(raw_value()) * (6.0f / 2000.0f)) - 1.0f;
 		command::change_stockpile_settings(state, state.local_player_nation, com, v, state.world.nation_get_drawing_on_stockpiles(state.local_player_nation, com));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_slider_controls");
 	}
 };
 
