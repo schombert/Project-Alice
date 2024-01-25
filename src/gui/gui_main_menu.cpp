@@ -143,6 +143,7 @@ void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 }
 void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
 	state.user_settings.mouse_edge_scrolling = !state.user_settings.mouse_edge_scrolling;
+	send(state, parent, notify_setting_update{});
 }
 bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
 	return state.user_settings.mouse_edge_scrolling;
