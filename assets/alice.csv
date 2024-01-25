@@ -1506,6 +1506,11 @@ alice_factory_input_item;§R$cost$§W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce §Y$x$§W
 alice_factory_total_bonus;This sums to about §Y$x$§W
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+alice_lobby_back;Back to lobby
+alice_lobby_back_tt_1;You're already in the fucking lobby
+alice_lobby_back_tt_2;Only the host may go back to lobby
+alice_lobby_close;Close
+alice_lobby_close_tt;You can reopen this window with §YTAB§W
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
