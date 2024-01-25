@@ -5058,20 +5058,17 @@ void apply_regiment_damage(sys::state& state) {
 				// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
 				auto army = state.world.regiment_get_army_from_army_membership(s);
 				auto controller = state.world.army_get_controller_from_army_control(army);
+				auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
+
 				if(!controller) {
-					auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
 					if(pop_backer) {
 						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
 					}
 				} else {
 					auto maxr = state.world.nation_get_recruitable_regiments(controller);
-					if(maxr > 0) {
-						auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
-						if(pop_backer) {
-							auto& wex = state.world.nation_get_war_exhaustion(controller);
-							wex = std::min(wex + 0.5f / float(maxr),
-									state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
-						}
+					if(maxr > 0 && pop_backer) {
+						auto& wex = state.world.nation_get_war_exhaustion(controller);
+						wex = std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
 					}
 				}
 
@@ -5090,8 +5087,8 @@ void apply_regiment_damage(sys::state& state) {
 						assert(reserves[j].regiment != s);
 				}
 #endif
-
-				state.world.delete_regiment(s);
+				if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f)
+					state.world.delete_regiment(s);
 			}
 		}
 	}
