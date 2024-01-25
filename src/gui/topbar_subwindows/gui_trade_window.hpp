@@ -1276,12 +1276,12 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
+		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find("alice_buy_from_stockpile")->second.definition);
+		add_child_to_front(std::move(btn));
+
 		auto ptr = make_element_by_type<trade_flow_window>(state, state.ui_state.defs_by_name.find("trade_flow")->second.definition);
 		trade_flow_win = ptr.get();
 		add_child_to_front(std::move(ptr));
-
-		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find("alice_buy_from_stockpile")->second.definition);
-		add_child_to_front(std::move(btn));
 
 		set_visible(state, false);
 	}
