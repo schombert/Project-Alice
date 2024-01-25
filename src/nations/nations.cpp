@@ -1278,6 +1278,21 @@ void run_gc(sys::state& state) {
 	//	rebel::delete_faction(state, (*rebels.begin()).get_rebels());
 	//}
 
+	auto diprel = state.world.nation_get_diplomatic_relation(n);
+	while(diprel.begin() != diprel.end()) {
+		state.world.delete_diplomatic_relation(*diprel.begin());
+	}
+
+	auto uni_diprel = state.world.nation_get_unilateral_relationship_as_source(n);
+	while(uni_diprel.begin() != uni_diprel.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprel.begin());
+	}
+
+	auto uni_diprelb = state.world.nation_get_unilateral_relationship_as_target(n);
+	while(uni_diprelb.begin() != uni_diprelb.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprelb.begin());
+	}
+
 	auto movements = state.world.nation_get_movement_within(n);
 	while(movements.begin() != movements.end()) {
 		state.world.delete_movement((*movements.begin()).get_movement());
