@@ -2004,10 +2004,22 @@ bool valid_construction_target(sys::state& state, dcon::nation_id from, dcon::na
 	if(state.world.nation_get_is_at_war(target)) {
 		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.15f)
 			return false;
-		return true;
 	} else {
-		if(estimate_strength(state, from) < estimate_strength(state, target) * 0.66f)
+		/* Decrement perceived strength if they have active rebel factions in their country
+		now, possible regiments usually don't equate to actual, physical regiments however
+		it's important to remember that rebel factions in a country usually indicate instability
+		so we will take advantage of a country being unstable */
+		float target_str = estimate_strength(state, target);
+		float reb_str = 0.f;
+		for(const auto rw : state.world.nation_get_rebellion_within(target)) {
+			auto const regs = rw.get_rebels().get_army_rebel_control_as_controller();
+			auto const nregs = int32_t(regs.end() - regs.begin());
+			reb_str += rw.get_rebels().get_organization() * float(rw.get_rebels().get_possible_regiments() + nregs);
+		}
+		target_str = std::max(0.f, target_str - reb_str);
+		if(estimate_strength(state, from) < target_str * 0.66f) {
 			return false;
+		}
 	}
 	if(state.world.nation_get_owned_province_count(target) <= 2)
 		return false;
