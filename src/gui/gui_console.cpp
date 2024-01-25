@@ -51,6 +51,7 @@ struct command_info {
 		change_control,
 		change_control_and_owner,
 		province_id_tooltip,
+		wasd,
 		next_song,
 		add_population,
 		instant_army,
@@ -188,6 +189,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "provid", command_info::type::province_id_tooltip, "show province id in mouse tooltip",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "wasd", command_info::type::wasd, "move camera with wasd",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
@@ -1535,6 +1539,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_id_tooltip:
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
+		break;
+	}
+	case command_info::type::wasd:
+	{
+		state.cheat_data.wasd_move_cam = not state.cheat_data.wasd_move_cam;
 		break;
 	}
 	case command_info::type::next_song:

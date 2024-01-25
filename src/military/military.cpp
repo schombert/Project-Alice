@@ -1029,7 +1029,7 @@ void regenerate_land_unit_average(sys::state& state) {
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-			if(state.world.nation_get_active_unit(n, u) && state.military_definitions.unit_base_definitions[u].is_land) {
+			if((state.world.nation_get_active_unit(n, u) || state.military_definitions.unit_base_definitions[u].active)&& state.military_definitions.unit_base_definitions[u].is_land) {
 				auto& reg_stats = state.world.nation_get_unit_stats(n, u);
 				total += ((reg_stats.defence_or_hull + ld_mod) + (reg_stats.attack_or_gun_power + lo_mod)) *
 								 state.military_definitions.unit_base_definitions[u].discipline_or_evasion;
@@ -2240,8 +2240,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 
 	auto real_target = primary_defender;
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
-	if(state.world.overlord_get_ruler(target_ol_rel))
-		real_target = state.world.overlord_get_ruler(target_ol_rel);
+	if(auto ol = state.world.overlord_get_ruler(target_ol_rel); ol && ol != primary_attacker)
+		real_target = ol;
 
 	new_war.set_primary_attacker(primary_attacker);
 	new_war.set_primary_defender(real_target);

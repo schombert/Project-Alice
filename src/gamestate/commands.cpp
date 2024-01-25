@@ -151,12 +151,14 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 	}
 }
 
-void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
-		dcon::national_focus_id focus) {
+void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus) {
 	if(state.world.state_instance_get_nation_from_state_ownership(target_state) == source) {
 		state.world.state_instance_set_owner_focus(target_state, focus);
 	} else {
-		state.world.nation_set_state_from_flashpoint_focus(source, target_state);
+		if(focus)
+			state.world.nation_set_state_from_flashpoint_focus(source, target_state);
+		else
+			state.world.nation_set_state_from_flashpoint_focus(source, dcon::state_instance_id{});
 	}
 }
 
