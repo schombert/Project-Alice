@@ -425,6 +425,23 @@ guiTypes = {
 				position = { 51 326 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			# Black map font (Y/N)
+			instantTextBoxType = {
+				name = "black_map_font_label"
+				position = { 78 350 }
+				text = "black_map_font_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "black_map_font_checkbox"
+				position = { 51 350 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {

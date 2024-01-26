@@ -177,6 +177,14 @@ void render_models_checkbox::button_action(sys::state& state) noexcept {
 	send(state, parent, notify_setting_update{});
 }
 
+bool black_map_font_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.black_map_font;
+}
+void black_map_font_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.black_map_font = !state.user_settings.black_map_font;
+	send(state, parent, notify_setting_update{});
+}
+
 bool railroad_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.railroads_enabled;
 }
