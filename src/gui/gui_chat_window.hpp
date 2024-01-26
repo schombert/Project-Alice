@@ -24,8 +24,11 @@ public:
 				color,
 				false });
 
+
+		std::string sender_name = std::string(state.network_state.map_of_player_names[content.source.index()].to_string_view()) + ": ";
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
+		text::add_to_layout_box(state, container, box, sender_name, text::text_color::orange);
 		text::add_to_layout_box(state, container, box, text_form_msg, color);
 		text::close_layout_box(container, box);
 	}
