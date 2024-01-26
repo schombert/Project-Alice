@@ -378,6 +378,17 @@ native_string produce_mod_path() {
 	return simple_fs::extract_state(dummy);
 }
 
+void save_playername() {
+	auto path = launcher::produce_mod_path();
+	auto game_state = std::make_unique<sys::state>();
+	simple_fs::restore_state(game_state->common_fs, path);
+	//
+	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(game_state->user_settings.playername.data));
+	std::memcpy(game_state->user_settings.playername.data, launcher::player_name.c_str(), len);
+	//
+	game_state->save_user_settings();
+}
+
 native_string to_hex(uint64_t v) {
 	native_string ret;
 	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
@@ -499,6 +510,7 @@ void mouse_click() {
 		return;
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+			save_playername();
 			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
 				native_string temp_command_line = native_string(NATIVE("Alice512.exe ")) + selected_scenario_file;
 
@@ -583,6 +595,8 @@ void mouse_click() {
 	case ui_obj_host_game:
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
+			save_playername();
+
 			native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
 			if(obj_under_mouse == ui_obj_host_game) {
 				temp_command_line += NATIVE(" -host");
@@ -1800,14 +1814,14 @@ int WINAPI wWinMain(
 	DWORD username_len = 256 + 1;
 	GetComputerNameA(username, &username_len);
 
+	// Load from user settings
 	{
 		auto path = launcher::produce_mod_path();
 		auto game_state = std::make_unique<sys::state>();
 		simple_fs::restore_state(game_state->common_fs, path);
 		game_state->load_user_settings();
-		launcher::player_name = game_state->user_settings.playername;
+		launcher::player_name = std::string(game_state->user_settings.playername.data);
 	}
-	//
 
 	launcher::m_hwnd = CreateWindowEx(
 		0,
