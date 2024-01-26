@@ -4249,8 +4249,9 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 		return 0.f;
 	// provide continous function for each military unit composition
 	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
-	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * str_cav / total_str)));
-	return std::max(0.25f, total_str * scale);
+	float min_cav = std::min(str_cav, str_inf * (1.f / 4.f)); // more cavalry isn't bad (if the rest of the composition is 4x/y/4x), just don't underestimate it!
+	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * min_cav / total_str)));
+	return std::max(0.5f, total_str * scale);
 }
 
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
@@ -4281,7 +4282,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	scale += defender_fort;
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
-	return std::max(0.f, strength * scale);
+	return std::max(0.f, strength * std::max(0.5f, scale));
 }
 
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
@@ -4306,7 +4307,7 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 	}
 	// composition bonus
 	float strength = estimate_balanced_composition_factor(state, a);
-	return std::max(0.f, strength * scale);
+	return std::max(0.f, strength * std::max(0.5f, scale));
 }
 
 float estimate_enemy_defensive_force(sys::state& state, dcon::province_id target, dcon::nation_id by) {
