@@ -73,7 +73,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 		} else if(r < 0) { // error
 #ifdef _WIN32
 			int err = WSAGetLastError();
-			if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+			if(err == WSAEINPROGRESS || err == WSAEWOULDBLOCK) {
 				return 0;
 			}
 			return err;
@@ -101,7 +101,7 @@ static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 		} else if(r < 0) {
 #ifdef _WIN32
 			int err = WSAGetLastError();
-			if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+			if(err == WSAEINPROGRESS || err == WSAEWOULDBLOCK) {
 				return 0;
 			}
 			return err;
