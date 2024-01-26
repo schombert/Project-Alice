@@ -1795,11 +1795,9 @@ int WINAPI wWinMain(
 		std::abort();
 	}
 
-	// Use by default the name of the computer
-	char username[256 + 1];
-	DWORD username_len = 256 + 1;
-	GetComputerNameA(username, &username_len);
-	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
+	// Use a randomly generated number
+	srand(time(NULL));
+	launcher::player_name = std::to_string(int32_t(rand()));
 	//
 
 	launcher::m_hwnd = CreateWindowEx(
