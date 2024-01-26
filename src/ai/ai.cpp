@@ -4250,7 +4250,7 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 	// provide continous function for each military unit composition
 	// such that 4x times the infantry (we min with arty for equality reasons) and 1/4th of cavalry
 	float scale = 1.f - math::sin(std::abs(std::min(str_art / total_str, str_inf / total_str) - (4.f * str_cav / total_str)));
-	return std::max(0.f, total_str * scale);
+	return std::max(0.25f, total_str * scale);
 }
 
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
