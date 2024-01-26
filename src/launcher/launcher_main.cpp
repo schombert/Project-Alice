@@ -1799,7 +1799,14 @@ int WINAPI wWinMain(
 	char username[256 + 1];
 	DWORD username_len = 256 + 1;
 	GetComputerNameA(username, &username_len);
-	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
+
+	{
+		auto path = launcher::produce_mod_path();
+		auto game_state = std::make_unique<sys::state>();
+		simple_fs::restore_state(game_state->common_fs, path);
+		game_state->load_user_settings();
+		launcher::player_name = game_state->user_settings.playername;
+	}
 	//
 
 	launcher::m_hwnd = CreateWindowEx(

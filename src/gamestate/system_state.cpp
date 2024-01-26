@@ -2127,6 +2127,7 @@ void state::save_user_settings() const {
 	US_SAVE(render_models);
 	US_SAVE(mouse_edge_scrolling);
 	US_SAVE(black_map_font);
+	US_SAVE(playername);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2186,6 +2187,7 @@ void state::load_user_settings() {
 			US_LOAD(render_models);
 			US_LOAD(mouse_edge_scrolling);
 			US_LOAD(black_map_font);
+			US_LOAD(playername);
 #undef US_LOAD
 		} while(false);
 
@@ -2198,6 +2200,13 @@ void state::load_user_settings() {
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
+
+		if(user_settings.playername.data[0] == '\0') {
+			srand(time(NULL));
+			auto str = std::to_string(int32_t(rand()));
+			auto len = std::min<size_t>(str.length(), sizeof(user_settings.playername.data));
+			std::memcpy(user_settings.playername.data, str.c_str(), len);
+		}
 	}
 
 	// find most recent autosave

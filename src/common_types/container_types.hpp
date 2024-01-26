@@ -288,7 +288,7 @@ struct checksum_key {
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
-	char data[8];
+	char data[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
 		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
