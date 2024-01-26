@@ -1798,7 +1798,7 @@ int WINAPI wWinMain(
 	// Use by default the name of the computer
 	char username[256 + 1];
 	DWORD username_len = 256 + 1;
-	GetUserNameA(username, &username_len);
+	GetComputerNameA(username, &username_len);
 	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
 	//
 
