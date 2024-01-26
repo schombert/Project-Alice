@@ -608,7 +608,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < map::zoom_close && !text_line_vertices.empty()) {
 		load_shader(shaders[shader_text_line]);
-		glUniform1f(12, state.font_collection.map_font_is_black ? 1.f : 0.f);
+		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
