@@ -379,14 +379,12 @@ native_string produce_mod_path() {
 }
 
 void save_playername() {
-	auto path = launcher::produce_mod_path();
-	auto game_state = std::make_unique<sys::state>();
-	simple_fs::restore_state(game_state->common_fs, path);
-	//
-	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(game_state->user_settings.playername.data));
-	std::memcpy(game_state->user_settings.playername.data, launcher::player_name.c_str(), len);
-	//
-	game_state->save_user_settings();
+	sys::player_name p;
+	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(p.data));
+	std::memcpy(p.data, launcher::player_name.c_str(), len);
+
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&p, sizeof(p));
 }
 
 native_string to_hex(uint64_t v) {
@@ -1815,12 +1813,16 @@ int WINAPI wWinMain(
 	GetComputerNameA(username, &username_len);
 
 	// Load from user settings
-	{
-		auto path = launcher::produce_mod_path();
-		auto game_state = std::make_unique<sys::state>();
-		simple_fs::restore_state(game_state->common_fs, path);
-		game_state->load_user_settings();
-		launcher::player_name = std::string(game_state->user_settings.playername.data);
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	if(auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_name.dat")); player_name_file) {
+		auto contents = simple_fs::view_contents(*player_name_file);
+		const sys::player_name *p = (const sys::player_name*)contents.data;
+		if(contents.file_size >= sizeof(*p)) {
+			launcher::player_name = std::string(p->data);
+		}
+	} else {
+		srand(time(NULL));
+		launcher::player_name = std::to_string(int32_t(rand()));
 	}
 
 	launcher::m_hwnd = CreateWindowEx(
