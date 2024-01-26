@@ -5037,7 +5037,7 @@ void apply_regiment_damage(sys::state& state) {
 		dcon::regiment_id s{ dcon::regiment_id::value_base_t(i) };
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
-			auto current_strength = state.world.regiment_get_strength(s);
+			auto& current_strength = state.world.regiment_get_strength(s);
 
 			if(pending_damage > 0) {
 				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
@@ -5089,6 +5089,8 @@ void apply_regiment_damage(sys::state& state) {
 #endif
 				if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f)
 					state.world.delete_regiment(s);
+				else
+					current_strength = 0.0f;
 			}
 		}
 	}
