@@ -186,10 +186,6 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 #endif
 		std::abort();
 	}
-#ifdef _WIN64
-	u_long mode = 1; // 1 to enable non-blocking socket
-	ioctlsocket(socket_fd, FIONBIO, &mode);
-#endif
 	return socket_fd;
 }
 
@@ -247,10 +243,6 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 #endif
 		std::abort();
 	}
-#ifdef _WIN64
-	u_long mode = 1; // 1 to enable non-blocking socket
-	ioctlsocket(socket_fd, FIONBIO, &mode);
-#endif
 	return socket_fd;
 }
 
