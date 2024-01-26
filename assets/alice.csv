@@ -1526,4 +1526,5 @@ mouse_left_click_mode_label;Mouse click hold release
 alice_supply_limit_desc;Supply limit: $x$
 pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
 black_map_font_label;Black map font
+edge_scrolling_label;Edge scrolling
 ;;;;;;;;;;;;;x
