@@ -1527,4 +1527,20 @@ alice_supply_limit_desc;Supply limit: $x$
 pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
 black_map_font_label;Black map font
 edge_scrolling_label;Edge scrolling
+alice_info_box_1;§GWelcome to Project Alice!§W
+alice_info_box_2;Project Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.
+alice_info_box_3;§GNew features!§W
+alice_info_box_4;§YGlobe§W: §GLoved§W by many, §Rhated§W by some, turn it off if it bothers you!
+alice_info_box_5;§YTech queue:§W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)
+alice_info_box_6;§YDomestic investment:§W Instead of investing on individual projects, do it in one go
+alice_info_box_7;§YPerformance:§W The ticks per second (not FPS) are atleast, x10 times faster
+alice_info_box_8;§YLinter:§W Get coverage errors and warnings in your mods, catch bugs and typos easily
+alice_info_box_9;§YMacro builder:§W Build units with varying compositions using our macro builder
+alice_info_box_10;§Y11 new mapmodes:§W Religion, fort, employment, etc
+alice_info_box_11;§YBuild in entire country:§W SHIFT Right-click to build in the entire country!
+alice_info_box_12;§GControls:§W
+alice_info_box_13;§YTAB§W: Open chat window
+alice_info_box_14;§YESC§W: Open main menu and settings menu
+alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
+alice_info_box_16;§GEnjoy the game! =^w^=§W
 ;;;;;;;;;;;;;x
