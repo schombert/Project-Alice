@@ -4294,8 +4294,7 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	return true;
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(source, false);
-
+	//state.world.nation_set_is_player_controlled(source, false);
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
