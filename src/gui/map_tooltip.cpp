@@ -1188,7 +1188,7 @@ void workforce_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		{
 			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_43"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_43"));
 			text::close_layout_box(contents, box);
 		}
 		float total = state.world.province_get_demographics(prov, demographics::total);
