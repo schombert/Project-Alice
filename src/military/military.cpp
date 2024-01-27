@@ -11,7 +11,6 @@
 #include "rebels.hpp"
 #include "triggers.hpp"
 #include "container_types.hpp"
-#include <array>
 
 namespace military {
 
