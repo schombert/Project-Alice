@@ -820,6 +820,7 @@ state_transfer_explain_2;There isn't any crisis currently
 state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
+state_transfer_explain_6;We have more than 1 state
 cancel_ally_explain_1;You cannot cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You are currently allied

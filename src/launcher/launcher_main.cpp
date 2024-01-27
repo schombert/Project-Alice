@@ -378,6 +378,15 @@ native_string produce_mod_path() {
 	return simple_fs::extract_state(dummy);
 }
 
+void save_playername() {
+	sys::player_name p;
+	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(p.data));
+	std::memcpy(p.data, launcher::player_name.c_str(), len);
+
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&p, sizeof(p));
+}
+
 native_string to_hex(uint64_t v) {
 	native_string ret;
 	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
@@ -1646,10 +1655,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						}
 					} else if(obj_under_mouse == ui_obj_player_name) {
 						if(turned_into == '\b') {
-							if(!player_name.empty())
+							if(!player_name.empty()) {
 								player_name.pop_back();
+								save_playername();
+							}
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
 							player_name.push_back(turned_into);
+							save_playername();
 						}
 					} else if(obj_under_mouse == ui_obj_password) {
 						if(turned_into == '\b') {
@@ -1799,8 +1811,19 @@ int WINAPI wWinMain(
 	char username[256 + 1];
 	DWORD username_len = 256 + 1;
 	GetComputerNameA(username, &username_len);
-	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
-	//
+
+	// Load from user settings
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	if(auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_name.dat")); player_name_file) {
+		auto contents = simple_fs::view_contents(*player_name_file);
+		const sys::player_name *p = (const sys::player_name*)contents.data;
+		if(contents.file_size >= sizeof(*p)) {
+			launcher::player_name = std::string(p->data);
+		}
+	} else {
+		srand(time(NULL));
+		launcher::player_name = std::to_string(int32_t(rand()));
+	}
 
 	launcher::m_hwnd = CreateWindowEx(
 		0,

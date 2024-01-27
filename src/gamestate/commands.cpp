@@ -2362,6 +2362,8 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 				return false;
 		}
 	}
+	if(state.world.nation_get_owned_state_count(asker) == 1)
+		return false;
 	return true;
 }
 void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
