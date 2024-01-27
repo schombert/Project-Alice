@@ -877,7 +877,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 		dcon::decision_id did{dcon::decision_id::value_base_t(i)};
-		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
+		if(!state.world.decision_get_hide_notification(did)) {
 			auto lim = state.world.decision_get_potential(did);
 			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				auto allow = state.world.decision_get_allow(did);
@@ -887,7 +887,6 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
-
 	return false;
 }
 
