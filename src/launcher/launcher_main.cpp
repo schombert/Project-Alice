@@ -508,7 +508,6 @@ void mouse_click() {
 		return;
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-			save_playername();
 			if(IsProcessorFeaturePresent(PF_AVX512F_INSTRUCTIONS_AVAILABLE)) {
 				native_string temp_command_line = native_string(NATIVE("Alice512.exe ")) + selected_scenario_file;
 
@@ -593,8 +592,6 @@ void mouse_click() {
 	case ui_obj_host_game:
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-			save_playername();
-
 			native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
 			if(obj_under_mouse == ui_obj_host_game) {
 				temp_command_line += NATIVE(" -host");
@@ -1658,10 +1655,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						}
 					} else if(obj_under_mouse == ui_obj_player_name) {
 						if(turned_into == '\b') {
-							if(!player_name.empty())
+							if(!player_name.empty()) {
 								player_name.pop_back();
+								save_playername();
+							}
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
 							player_name.push_back(turned_into);
+							save_playername();
 						}
 					} else if(obj_under_mouse == ui_obj_password) {
 						if(turned_into == '\b') {
