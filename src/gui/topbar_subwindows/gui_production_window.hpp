@@ -133,6 +133,10 @@ public:
 
 	}
 
+	void button_right_action(sys::state& state) noexcept {
+
+	}
+
 	void button_shift_action(sys::state& state) noexcept {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
@@ -303,7 +307,7 @@ public:
 				is_not_upgrading = false;
 		}
 		if(is_not_upgrading) {
-			shift_button_element_base::render(state, x, y);
+			button_element_base::render(state, x, y);
 		}
 	}
 
