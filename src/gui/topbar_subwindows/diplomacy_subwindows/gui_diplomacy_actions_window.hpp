@@ -1867,6 +1867,7 @@ public:
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
 	}
 };
 
