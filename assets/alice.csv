@@ -570,7 +570,7 @@ factory_stats_5;Inputs availability:;;;;;;;;;;;;x
 factory_stats_6;Efficiency inputs availability:;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold §YSHIFT§W to keep this window open, §YSHIFT-Right-click§W to build this in every state (but not expand);;;;;;;;;;;;x
-alice_expand_factory_controls_0;§YSHIFT-Left-click§W upgrade §Gall§W factories in a state
+alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories in a state
 alice_expand_factory_controls_2;§YSHIFT-Right-click§W upgrade §Gall profitable§W factories in a state 
 alice_expand_factory_controls_3;§YCTRL-Left-click§W upgrade §Gall§W factories in a nation
 alice_expand_factory_controls_4;§YCTRL-Right-click§W upgrade §Gall profitable§W factories in a nation
