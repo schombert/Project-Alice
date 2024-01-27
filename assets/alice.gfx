@@ -254,8 +254,139 @@ spriteTypes = {
 		noOfFrames = 2
 	}
 	spriteType = {
-		name = "new-minimap-bg"
-		texturefile = "assets\\sub-minimap.dds"
-		noOfFrames = 1
+		name = "GFX_mapmode_naval.n"
+		texturefile = "assets\\mapmode_naval.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_crises.n"
+		texturefile = "assets\\mapmode_crises.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_terrain.n"
+		texturefile = "assets\\mapmode_terrain.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_civ_level.n"
+		texturefile = "assets\\mapmode_civ_level.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_migration.n"
+		texturefile = "assets\\mapmode_migration.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_political.n"
+		texturefile = "assets\\mapmode_political.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_revolt.n"
+		texturefile = "assets\\mapmode_revolt.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_diplomatic.n"
+		texturefile = "assets\\mapmode_diplomatic.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_region.n"
+		texturefile = "assets\\mapmode_region.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_infra.n"
+		texturefile = "assets\\mapmode_infra.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_admin.n"
+		texturefile = "assets\\mapmode_admin.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_colonial.n"
+		texturefile = "assets\\mapmode_colonial.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_recruit.n"
+		texturefile = "assets\\mapmode_recruit.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_natfocus.n"
+		texturefile = "assets\\mapmode_natfocus.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_nationality.n"
+		texturefile = "assets\\mapmode_nationality.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_popdensity.n"
+		texturefile = "assets\\mapmode_popdensity.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_rgooutput.n"
+		texturefile = "assets\\mapmode_rgooutput.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_soi.n"
+		texturefile = "assets\\mapmode_soi.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_supplylimit.n"
+		texturefile = "assets\\mapmode_supplylimit.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_partyloyalty.n"
+		texturefile = "assets\\mapmode_partyloyalty.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_rank.n"
+		texturefile = "assets\\mapmode_rank.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_relation.n"
+		texturefile = "assets\\mapmode_relation.n.png"
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_new_minimap_bg"
+		texturefile = "assets\\new_minimap_bg.dds"
 	}
 }
