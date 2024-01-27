@@ -77,6 +77,13 @@ lg_min_mapmode_28;Low militancy
 lg_min_mapmode_29;Low literacy
 lg_min_mapmode_30;Low employment
 lg_min_mapmode_33;Low growth
+lg_min_mapmode_35;Low satisfaction
+lg_min_mapmode_36;Low satisfaction
+lg_min_mapmode_37;Low satisfaction
+lg_min_mapmode_38;Low amount
+lg_min_mapmode_39;Poor CTC ratio
+lg_min_mapmode_40;Low life rating
+lg_min_mapmode_44;Low regiment count
 lg_max_mapmode_8;High admin
 lg_max_mapmode_19;Civilized
 lg_max_mapmode_7;Colonizable
@@ -94,6 +101,13 @@ lg_max_mapmode_28;High militancy
 lg_max_mapmode_29;High literacy
 lg_max_mapmode_30;High employment
 lg_max_mapmode_33;High growth
+lg_max_mapmode_35;High satisfaction
+lg_max_mapmode_36;High satisfaction
+lg_max_mapmode_37;High satisfaction
+lg_max_mapmode_38;High amount
+lg_max_mapmode_39;Rich CTC ratio
+lg_max_mapmode_40;High life rating
+lg_max_mapmode_44;High regiment count
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x

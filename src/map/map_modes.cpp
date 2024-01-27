@@ -642,7 +642,7 @@ std::vector<uint32_t> mobilization_map_from(sys::state& state) {
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
-			float total_regs = float(military::mobilized_regiments_created_from_province(state, prov_id));
+			float total_regs = float(military::regiments_max_possible_from_province(state, prov_id));
 			continent_max_pop[cid] = std::max(continent_max_pop[cid], total_regs);
 			auto i = province::to_map_id(prov_id);
 			prov_population[i] = total_regs;
@@ -810,6 +810,8 @@ void set_map_mode(sys::state& state, mode mode) {
 		case map_mode::mode::life_needs:
 		case map_mode::mode::everyday_needs:
 		case map_mode::mode::luxury_needs:
+		case map_mode::mode::mobilization:
+		case map_mode::mode::officers:
 		case map_mode::mode::life_rating:
 		case map_mode::mode::clerk_to_craftsmen_ratio:
 			if(state.ui_state.map_gradient_legend)
@@ -974,6 +976,9 @@ void set_map_mode(sys::state& state, mode mode) {
 		prov_color = growth_map_from(state);
 		break;
 	//even newer mapmodes
+	case mode::players:
+		prov_color = players_map_from(state);
+		break;
 	case mode::life_needs:
 		prov_color = life_needs_map_from(state);
 		break;
