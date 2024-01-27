@@ -1193,17 +1193,19 @@ void workforce_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		}
 		float total = state.world.province_get_demographics(prov, demographics::total);
 		for(const auto pt : state.world.in_pop_type) {
-			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, pt.get_name(), text::text_color::white);
-			text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
-			text::add_space_to_layout_box(state, contents, box);
 			float value = state.world.province_get_demographics(prov, demographics::to_key(state, pt));
-			text::add_to_layout_box(state, contents, box, text::pretty_integer{ int32_t(value) }, text::text_color::yellow);
-			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::yellow);
-			text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ total / value }, text::text_color::yellow);
-			text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
-			text::close_layout_box(contents, box);
+			if(value > 0.f) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, pt.get_name(), text::text_color::white);
+				text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::pretty_integer{ int32_t(value) }, text::text_color::yellow);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ total / value }, text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
 		}
 	}
 }

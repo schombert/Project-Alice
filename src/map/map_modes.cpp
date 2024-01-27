@@ -688,15 +688,9 @@ std::vector<uint32_t> workforce_map_from(sys::state& state) {
 			}
 			state.world.for_each_province([&](dcon::province_id prov_id) {
 				auto i = province::to_map_id(prov_id);
-				float total = 0.f;
-				float value = 0.f;
-				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					if(pl.get_pop().get_poptype() == fat_id) {
-						value += pl.get_pop().get_size();
-					}
-					total += pl.get_pop().get_size();
-				}
-				auto ratio = value / total;
+				float total = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::total);
+				float value = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::to_key(state, fat_id));
+				auto ratio = total / value;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
 				prov_color[i] = color;
 				prov_color[i + texture_size] = color;
