@@ -569,7 +569,13 @@ factory_stats_4;It made a profit of $val$ in the previous day;;;;;;;;;;;;x
 factory_stats_5;Inputs availability:;;;;;;;;;;;;x
 factory_stats_6;Efficiency inputs availability:;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
-shift_to_hold_open;Hold shift to keep this window open;;;;;;;;;;;;x
+shift_to_hold_open;Hold §YSHIFT§W to keep this window open, §YSHIFT-Right-click§W to build this in every state (but not expand);;;;;;;;;;;;x
+alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories in a state
+alice_expand_factory_controls_2;§YSHIFT-Right-click§W upgrade §Gall profitable§W factories in a state 
+alice_expand_factory_controls_3;§YCTRL-Left-click§W upgrade §Gall§W factories in a nation
+alice_expand_factory_controls_4;§YCTRL-Right-click§W upgrade §Gall profitable§W factories in a nation
+alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall of the same type§W factories in a nation
+alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable of the same type§W factories in a nation
 blank_org_gain;organization gain;;;;;;;;;;;;x
 plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
