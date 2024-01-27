@@ -4294,8 +4294,7 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	return true;
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(source, false);
-
+	//state.world.nation_set_is_player_controlled(source, false);
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
@@ -4348,9 +4347,7 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	if(source == target) // can't perform on self
-		return false;
-	return true;
+	return source != target; // can't perform on self
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(state.network_mode == sys::network_mode_type::host) {

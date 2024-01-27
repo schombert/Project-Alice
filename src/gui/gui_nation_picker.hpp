@@ -201,6 +201,7 @@ public:
 				state.local_player_nation = dcon::nation_id{ };
 				network::write_network_save(state);
 				state.fill_unsaved_data();
+				state.network_state.current_save_checksum = state.get_save_checksum();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
 				state.local_player_nation = old_local_player_nation;

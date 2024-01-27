@@ -49,10 +49,10 @@ static int internal_socket_recv(socket_t socket_fd, void *data, size_t n) {
 	u_long has_pending = 0;
 	auto r = ioctlsocket(socket_fd, FIONREAD, &has_pending);
 	if(has_pending)
-		return static_cast<int>(recv(socket_fd, reinterpret_cast<char *>(data), static_cast<int>(n), 0));
+		return static_cast<int>(recv(socket_fd, reinterpret_cast<char *>(data), static_cast<int>(n), MSG_WAITALL));
 	return 0;
 #else
-	return recv(socket_fd, data, n, MSG_DONTWAIT);
+	return recv(socket_fd, data, n, MSG_WAITALL);
 #endif
 }
 
@@ -473,8 +473,19 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				}
 			}
 		}
+		{ /* Go back to lobby temporarily */
+			command::payload c;
+			memset(&c, 0, sizeof(c));
+			c.type = command::command_type::notify_stop_game;
+			c.source = state.local_player_nation;
+			network::broadcast_to_clients(state, c);
+#ifndef NDEBUG
+			state.console_log("host:send:cmd: (new->start_game)");
+#endif
+		}
 		/* Reload clients */
 		if(!state.network_state.is_new_game) {
+			/* Other fun stuff */
 			std::vector<dcon::nation_id> players;
 			for(const auto n : state.world.in_nation)
 				if(state.world.nation_get_is_player_controlled(n))
@@ -488,43 +499,29 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				read_save_section(ptr_in, ptr_in + length, state);
 			});
 			state.fill_unsaved_data();
+			state.network_state.current_save_checksum = state.get_save_checksum();
 			for(const auto n : players)
 				state.world.nation_set_is_player_controlled(n, true);
 			state.local_player_nation = old_local_player_nation;
 			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-			{ /* Reload all the other clients except the newly connected one */
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
-				c.type = command::command_type::notify_reload;
-				c.source = state.local_player_nation;
-				c.data.notify_reload.checksum = state.get_save_checksum();
-				for(auto& other_client : state.network_state.clients) {
-					if(other_client.playing_as != client.playing_as) {
-						socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
-#ifndef NDEBUG
-						state.console_log("host:send:cmd: (new->reload)");
-#endif
-					}
-				}
-			}
 			{ /* Send the savefile to the newly connected client (if not a new game) */
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
 				c.type = command::command_type::notify_save_loaded;
 				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.target = client.playing_as;
+				c.data.notify_save_loaded.target = dcon::nation_id{}; //send to everyone
 				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_save_checksum);
 #ifndef NDEBUG
 				state.console_log("host:send:cmd: (new->save_loaded)");
 #endif
 			}
 		}
-		{
+		{ /* Go back in-game */
 			command::payload c;
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_start_game;
 			c.source = state.local_player_nation;
-			socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
+			network::broadcast_to_clients(state, c);
 #ifndef NDEBUG
 			state.console_log("host:send:cmd: (new->start_game)");
 #endif
@@ -603,7 +600,6 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
-	state.network_state.current_save_checksum = state.get_save_checksum();
 }
 
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k) {
