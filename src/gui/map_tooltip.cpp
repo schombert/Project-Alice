@@ -1073,14 +1073,16 @@ void life_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 		float total = 0.f;
 		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
 			value += pl.get_pop().get_life_needs_satisfaction();
-			total += pl.get_pop().get_size();
+			total += 1.f;
 		}
-		float ratio = std::max(1.f, value) / std::max(1.f, total);
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
-		text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_35"), sub);
-		text::close_layout_box(contents, box);
+		if(total > 0.f) {
+			float ratio = total / value;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_35"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 }
 void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
@@ -1091,14 +1093,16 @@ void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& content
 		float total = 0.f;
 		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
 			value += pl.get_pop().get_everyday_needs_satisfaction();
-			total += pl.get_pop().get_size();
+			total += 1.f;
 		}
-		float ratio = std::max(1.f, value) / std::max(1.f, total);
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
-		text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_36"), sub);
-		text::close_layout_box(contents, box);
+		if(total > 0.f) {
+			float ratio = total / value;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_36"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 }
 void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
@@ -1111,12 +1115,14 @@ void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents,
 			value += pl.get_pop().get_luxury_needs_satisfaction();
 			total += 1.f;
 		}
-		float ratio = std::max(1.f, total) / std::max(1.f, value);
-		auto box = text::open_layout_box(contents);
-		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
-		text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_37"), sub);
-		text::close_layout_box(contents, box);
+		if(total > 0.f) {
+			float ratio = total / value;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_37"), sub);
+			text::close_layout_box(contents, box);
+		}
 	}
 }
 void officers_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
