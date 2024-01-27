@@ -121,7 +121,7 @@ public:
 	}
 };
 
-class factory_upgrade_button : public shift_button_element_base {
+class factory_upgrade_button : public ctrl_shift_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
@@ -134,12 +134,40 @@ public:
 	}
 
 	void button_shift_action(sys::state& state) noexcept override {
+		const dcon::province_id p = retrieve<dcon::province_id>(state, parent);
+		for(auto fac : state.world.province_get_factory_location(p)) {
+			if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+					state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true)) {
+
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+		
+
+	}
+
+	void button_ctrl_action(sys::state& state) noexcept override {
+		const dcon::province_id p = retrieve<dcon::province_id>(state, parent);
+		for(auto fac: state.world.province_get_factory_location(p)) {
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+				state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true)) {
+
+				command::begin_factory_building_construction(state, state.local_player_nation,
+					state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true);
+			}
+		}
+	}
+
+	void buttons_ctrl_shift_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
 				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-							 p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 
 						command::begin_factory_building_construction(state, state.local_player_nation,
 							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
@@ -147,7 +175,6 @@ public:
 				}
 			}
 		}
-
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -171,7 +198,7 @@ public:
 				is_not_upgrading = false;
 		}
 		if(is_not_upgrading) {
-			shift_button_element_base::render(state, x, y);
+			ctrl_shift_button_element_base::render(state, x, y);
 		}
 	}
 
@@ -233,6 +260,8 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "factory_upgrade_shift_explanation");
+		text::add_line(state, contents, "factory_upgrade_ctrl_explanation");
+		text::add_line(state, contents, "factory_upgrade_ctrl_shift_explanation");
 
 	}
 };
