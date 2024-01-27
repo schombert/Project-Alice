@@ -98,6 +98,7 @@ struct network_state {
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
 	bool handshake = true; // if in handshake mode -> send handshake data
+	bool headless = false;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
