@@ -38,6 +38,8 @@ map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+spoilers_label;Spoilers
+spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
 mapmode_24;Fort Mapmode
 mapmode_25;Ideology Mapmode

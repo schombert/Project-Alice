@@ -479,6 +479,39 @@ guiTypes = {
 				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Edge scrolling checkbox
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Spoilers checkbox
+			instantTextBoxType = {
+				name = "spoilers_label"
+				position = { 78 126 }
+				text = "spoilers_label"
+				tooltipText = "spoilers_tt"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "spoilers_checkbox"
+				position = { 51 125 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"
@@ -498,21 +531,6 @@ guiTypes = {
 				maxsize = { 236 18 }
 				orientation = "UPPER_LEFT"
 				format = centre
-			}
-			instantTextBoxType = {
-				name = "edge_scrolling_label"
-				position = { 220 116 }
-				text = "edge_scrolling_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = left
-			}
-			guiButtonType = {
-				name = "mouse_edge_scrolling_checkbox"
-				position = {200 115}
-				quadTextureSprite = "GFX_checkbox_default"
 			}
 			guiButtonType = {
 				name = "zoom_mode_left"
