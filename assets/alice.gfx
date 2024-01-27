@@ -254,6 +254,61 @@ spriteTypes = {
 		noOfFrames = 2
 	}
 	spriteType = {
+		name = "GFX_mapmode_players"
+		texturefile = "assets\\mapmode_players.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_lf"
+		texturefile = "assets\\mapmode_lf.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_ev"
+		texturefile = "assets\\mapmode_ev.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_lx"
+		texturefile = "assets\\mapmode_lx.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_officers"
+		texturefile = "assets\\mapmode_officers.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_ratio"
+		texturefile = "assets\\mapmode_ratio.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_life_rating"
+		texturefile = "assets\\mapmode_life_rating.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_crime"
+		texturefile = "assets\\mapmode_crime.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_rally"
+		texturefile = "assets\\mapmode_rally.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_workforce"
+		texturefile = "assets\\mapmode_workforce.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_mapmode_mob"
+		texturefile = "assets\\mapmode_mob.png"
+		noOfFrames = 2
+	}
+	spriteType = {
 		name = "new-minimap-bg"
 		texturefile = "assets\\sub-minimap.dds"
 		noOfFrames = 1
