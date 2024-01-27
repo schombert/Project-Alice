@@ -657,13 +657,15 @@ public:
 			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
-					if(c.playing_as == n) {
+					if(c.is_active() && c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;
 						auto total = c.save_stream_size;
 						float progress = (float(total) / float(completed));
-						text::substitution_map sub{};
-						text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-						set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						if(progress < 1.f) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+							set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						}
 					}
 				}
 			}
@@ -766,11 +768,45 @@ public:
 	}
 };
 
+class nation_alice_readme_text : public scrollable_text {
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
+		text::add_line(state, contents, "alice_info_box_1");
+		text::add_line(state, contents, "alice_info_box_2");
+		text::add_line(state, contents, "alice_info_box_3");
+		text::add_line(state, contents, "alice_info_box_4");
+		text::add_line(state, contents, "alice_info_box_5");
+		text::add_line(state, contents, "alice_info_box_6");
+		text::add_line(state, contents, "alice_info_box_7");
+		text::add_line(state, contents, "alice_info_box_8");
+		text::add_line(state, contents, "alice_info_box_9");
+		text::add_line(state, contents, "alice_info_box_10");
+		text::add_line(state, contents, "alice_info_box_11");
+		text::add_line(state, contents, "alice_info_box_12");
+		text::add_line(state, contents, "alice_info_box_13");
+		text::add_line(state, contents, "alice_info_box_14");
+		text::add_line(state, contents, "alice_info_box_15");
+		text::add_line(state, contents, "alice_info_box_16");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "gc_desc");
+	}
+public:
+	void on_create(sys::state& state) noexcept override {
+		scrollable_text::on_create(state);
+		auto container = text::create_endless_layout(delegate->internal_layout,
+		text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
+			base_data.data.text.font_handle, 0, text::alignment::left,
+			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
+			false });
+		populate_layout(state, container);
+		calibrate_scrollbar(state);
+	}
+};
+
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "frontend_chat_bg") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "lobby_chat_edit") {
 			return make_element_by_type<nation_picker_hidden>(state, id);
 		} else if(name == "newgame_tab") {
@@ -794,9 +830,10 @@ public:
 		} else if(name == "play_button") {
 			return make_element_by_type<start_game_button>(state, id);
 		} else if(name == "chatlog") {
+			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find("alice_readme_text")->second.definition);
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<nation_picker_hidden>(state, id);
 		}
-
 		return nullptr;
 	}
 

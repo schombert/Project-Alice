@@ -109,6 +109,11 @@ public:
 class map_zoom_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
+class map_mouse_edge_scrolling: public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
 
 class tooltip_mode_checkbox : public checkbox_button {
 public:
@@ -122,6 +127,11 @@ public:
 	void button_action(sys::state& state) noexcept override;
 };
 class render_models_checkbox : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override;
+	void button_action(sys::state& state) noexcept override;
+};
+class black_map_font_checkbox : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override;
 	void button_action(sys::state& state) noexcept override;
@@ -242,6 +252,8 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<map_zoom_mode_right>(state, id);
 		} else if(name == "tooltip_mode_checkbox") {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
+		} else if(name == "mouse_edge_scrolling_checkbox") {
+			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -288,6 +300,8 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<fow_checkbox>(state, id);
 		} else if(name == "render_models_checkbox") {
 			return make_element_by_type<render_models_checkbox>(state, id);
+		} else if(name == "black_map_font_checkbox") {
+			return make_element_by_type<black_map_font_checkbox>(state, id);
 		} else if(name == "railroad_checkbox") {
 			return make_element_by_type<railroad_checkbox>(state, id);
 		} else if(name == "river_checkbox") {

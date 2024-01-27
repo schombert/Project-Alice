@@ -1113,6 +1113,7 @@ void scrollable_text::on_create(sys::state& state) noexcept {
 	res->base_data.position.y = 0;
 	res->on_create(state);
 	delegate = res.get();
+	delegate->base_data.flags &= ~uint8_t(ui::element_data::orientation_mask);
 	add_child_to_front(std::move(res));
 
 	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
@@ -1831,11 +1832,17 @@ void scrollbar_left::button_action(sys::state& state) noexcept {
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
 }
+void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ -step_size * 10000, true, true });
+}
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+}
+void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ step_size * 10000, true, true });
 }
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {

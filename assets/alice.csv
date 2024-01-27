@@ -820,6 +820,7 @@ state_transfer_explain_2;There isn't any crisis currently
 state_transfer_explain_3;We're not subjects
 state_transfer_explain_4;They're not subjects
 state_transfer_explain_5;We're at peace
+state_transfer_explain_6;We have more than 1 state
 cancel_ally_explain_1;You cannot cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You are currently allied
@@ -1064,7 +1065,7 @@ alice_defence;Defence §G$x$;;;;;;;;;;;;x
 alice_discipline;Discipline §G$x$%;;;;;;;;;;;;x
 alice_maneuver;Maneuver §G$x$;;;;;;;;;;;;x
 alice_recon;Reconaissance §G$x$;;;;;;;;;;;;x
-alice_support;Support §G$x$%;;;;;;;;;;;;x
+alice_support;Support §G$x$;;;;;;;;;;;;x
 alice_evasion;Evasion §G$x$%;;;;;;;;;;;;x
 alice_siege;Siege §G$x$;;;;;;;;;;;;x
 alice_torpedo_attack;Torpedo Attack §G$x$;;;;;;;;;;;;x
@@ -1505,7 +1506,13 @@ alice_factory_inputs;Inputs required:
 alice_factory_input_item;§R$cost$§W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce §Y$x$§W
 alice_factory_total_bonus;This sums to about §Y$x$§W
+alice_slider_controls;§YLeft-Click§W to increment by 1, §YSHIFT-Left-Click§W to increment by 10, §YSHIFT-Right-Click§W to increment to max
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+alice_lobby_back;Back to lobby
+alice_lobby_back_tt_1;You're already in the fucking lobby
+alice_lobby_back_tt_2;Only the host may go back to lobby
+alice_lobby_close;Close
+alice_lobby_close_tt;You can reopen this window with §YTAB§W
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
@@ -1518,7 +1525,28 @@ modifier_min_domestic_investment;Minimum domestic investment rate
 modifier_max_domestic_investment;Maximum domestic investment rate
 mouse_left_click_mode_label;Mouse click hold release
 alice_supply_limit_desc;Supply limit: $x$
+alice_factory_worker_1;Employed: §G$x$§W
+alice_factory_worker_2;Unemployed: §R$x$§W
+alice_rgo_unemployment_country_alert;The following states have unemployed RGOs:
 pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
+black_map_font_label;Black map font
+edge_scrolling_label;Edge scrolling
+alice_info_box_1;§GWelcome to Project Alice!§W
+alice_info_box_2;Project Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.
+alice_info_box_3;§GNew features!§W
+alice_info_box_4;§YGlobe§W: §GLoved§W by many, §Rhated§W by some, turn it off if it bothers you!
+alice_info_box_5;§YTech queue:§W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)
+alice_info_box_6;§YDomestic investment:§W Instead of investing on individual projects, do it in one go
+alice_info_box_7;§YPerformance:§W The ticks per second (not FPS) are atleast, x10 times faster
+alice_info_box_8;§YLinter:§W Get coverage errors and warnings in your mods, catch bugs and typos easily
+alice_info_box_9;§YMacro builder:§W Build units with varying compositions using our macro builder
+alice_info_box_10;§Y11 new mapmodes:§W Religion, fort, employment, etc
+alice_info_box_11;§YBuild in entire country:§W SHIFT Right-click to build in the entire country!
+alice_info_box_12;§GControls:§W
+alice_info_box_13;§YTAB§W: Open chat window
+alice_info_box_14;§YESC§W: Open main menu and settings menu
+alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
+alice_info_box_16;§GEnjoy the game! =^w^=§W
 current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
 current_supply_text2;The amount we could get of our current supply consumption was:
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W

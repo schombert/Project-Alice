@@ -425,6 +425,23 @@ guiTypes = {
 				position = { 51 326 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			# Black map font (Y/N)
+			instantTextBoxType = {
+				name = "black_map_font_label"
+				position = { 78 350 }
+				text = "black_map_font_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "black_map_font_checkbox"
+				position = { 51 350 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {
@@ -482,6 +499,21 @@ guiTypes = {
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			guiButtonType = {
 				name = "zoom_mode_left"
 				position = { 51 158 }
@@ -492,6 +524,7 @@ guiTypes = {
 				position = { 269 158 }
 				quadTextureSprite = "option_next"
 			}
+			
 			# Auto save interval
 			instantTextBoxType = {
 				name = "auto_save_label"
@@ -4220,5 +4253,14 @@ guiTypes = {
 		spriteType = "GFX_minimap"
 		position = { -328 -110 }
 		Orientation = "LOWER_RIGHT"
+	}
+
+	instantTextBoxType = {
+		name = "alice_readme_text"
+		position = { -260 -187 }
+		maxsize = { 520 180 }
+		fixedsize = yes
+		font = "vic_18"
+		Orientation = "CENTER_DOWN"
 	}
 }

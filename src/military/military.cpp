@@ -1031,7 +1031,7 @@ void regenerate_land_unit_average(sys::state& state) {
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-			if(state.world.nation_get_active_unit(n, u) && state.military_definitions.unit_base_definitions[u].is_land) {
+			if((state.world.nation_get_active_unit(n, u) || state.military_definitions.unit_base_definitions[u].active)&& state.military_definitions.unit_base_definitions[u].is_land) {
 				auto& reg_stats = state.world.nation_get_unit_stats(n, u);
 				total += ((reg_stats.defence_or_hull + ld_mod) + (reg_stats.attack_or_gun_power + lo_mod)) *
 								 state.military_definitions.unit_base_definitions[u].discipline_or_evasion;
@@ -2242,8 +2242,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 
 	auto real_target = primary_defender;
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(primary_defender);
-	if(state.world.overlord_get_ruler(target_ol_rel))
-		real_target = state.world.overlord_get_ruler(target_ol_rel);
+	if(auto ol = state.world.overlord_get_ruler(target_ol_rel); ol && ol != primary_attacker)
+		real_target = ol;
 
 	new_war.set_primary_attacker(primary_attacker);
 	new_war.set_primary_defender(real_target);
@@ -5039,7 +5039,7 @@ void apply_regiment_damage(sys::state& state) {
 		dcon::regiment_id s{ dcon::regiment_id::value_base_t(i) };
 		if(state.world.regiment_is_valid(s)) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
-			auto current_strength = state.world.regiment_get_strength(s);
+			auto& current_strength = state.world.regiment_get_strength(s);
 
 			if(pending_damage > 0) {
 				auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
@@ -5060,20 +5060,17 @@ void apply_regiment_damage(sys::state& state) {
 				// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
 				auto army = state.world.regiment_get_army_from_army_membership(s);
 				auto controller = state.world.army_get_controller_from_army_control(army);
+				auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
+
 				if(!controller) {
-					auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
 					if(pop_backer) {
 						state.world.pop_get_militancy(pop_backer) /= state.defines.reduction_after_defeat;
 					}
 				} else {
 					auto maxr = state.world.nation_get_recruitable_regiments(controller);
-					if(maxr > 0) {
-						auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
-						if(pop_backer) {
-							auto& wex = state.world.nation_get_war_exhaustion(controller);
-							wex = std::min(wex + 0.5f / float(maxr),
-									state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
-						}
+					if(maxr > 0 && pop_backer) {
+						auto& wex = state.world.nation_get_war_exhaustion(controller);
+						wex = std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion));
 					}
 				}
 
@@ -5092,8 +5089,10 @@ void apply_regiment_damage(sys::state& state) {
 						assert(reserves[j].regiment != s);
 				}
 #endif
-
-				state.world.delete_regiment(s);
+				if(!controller || state.world.pop_get_size(pop_backer) < 1000.0f)
+					state.world.delete_regiment(s);
+				else
+					current_strength = 0.0f;
 			}
 		}
 	}
