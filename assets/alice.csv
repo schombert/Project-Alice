@@ -108,6 +108,18 @@ lg_max_mapmode_38;High amount
 lg_max_mapmode_39;Rich CTC ratio
 lg_max_mapmode_40;High life rating
 lg_max_mapmode_44;High regiment count
+alice_mmtt_34;Player: $x$
+alice_mmtt_35;Life needs satisfied: $x$
+alice_mmtt_36;Everyday needs satisfied: $x$
+alice_mmtt_37;Luxury needs satisfied: $x$
+alice_mmtt_38;Total officers: $x$ ($y$ of population, $value$ is optimal)
+alice_mmtt_39;Clerks-to-craftsmen-ratio: $fraction$ ($x$/$y$), $value$ is optimal
+alice_mmtt_40;Life rating: $x$
+alice_mmtt_41;Crime: $x$
+alice_mmtt_42_1;Has land rally point?
+alice_mmtt_42_2;Has naval rally point?
+alice_mmtt_43;Workforce distrobution:
+alice_mmtt_44_1;Mobilized regiments from this province: $x$ (out of $y$ possible)
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x

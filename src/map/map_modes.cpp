@@ -591,8 +591,8 @@ std::vector<uint32_t> ctc_map_from(sys::state& state) {
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto total_pw = state.world.province_get_demographics(prov_id, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
 			auto total_sw = state.world.province_get_demographics(prov_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			auto value = std::max(1.f, total_sw) / std::max(1.f, total_pw);
-			value = value / state.economy_definitions.craftsmen_fraction;
+			auto value = total_pw / std::max(1.f, total_pw + total_sw);
+			value = 1.f - (state.economy_definitions.craftsmen_fraction - value);
 			uint32_t color = ogl::color_gradient(value,
 				sys::pack_color(46, 247, 15), // green
 				sys::pack_color(247, 15, 15) // red
