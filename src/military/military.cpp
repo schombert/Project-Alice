@@ -10,6 +10,7 @@
 #include "province_templates.hpp"
 #include "rebels.hpp"
 #include "triggers.hpp"
+#include "container_types.hpp"
 
 namespace military {
 
@@ -6633,6 +6634,67 @@ void increase_dig_in(sys::state& state) {
 			}
 		}
 	}
+}
+
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army) {
+	uint32_t total_commodities = state.world.commodity_size();
+
+	economy::commodity_set commodities;
+	for (uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		commodities.commodity_amounts[i] = 0.0f;
+	}
+
+	for(auto r : state.world.army_get_army_membership(army)) {
+		auto reg = fatten(state.world, r);
+		auto type = state.world.regiment_get_type(r.get_regiment());
+
+		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(supply_cost.commodity_type[i]) {
+				commodities.commodity_amounts[i] += supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption * o_sc_mod;
+				commodities.commodity_type[i] = supply_cost.commodity_type[i];
+			} else {
+				break;
+			}
+		}
+		
+	}
+
+	return commodities;
+}
+
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy) {
+	// supply amount = type_consumption * (2 - admin_eff)*[(type_consumption_mod^0.01)*land_spending]
+	float supply_amount = .0f;
+	int32_t amount_of_units = 0;
+
+	economy::commodity_set commodities;
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		commodities.commodity_amounts[i] = 0.0f;
+	}
+
+	for(auto sh : state.world.navy_get_navy_membership(navy)) {
+		auto shp = fatten(state.world, sh.get_ship());
+		auto type = state.world.ship_get_type(sh.get_ship());
+
+		if(owner) {
+			auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::supply_consumption) + 1.0f);
+			auto& supply_cost = state.military_definitions.unit_base_definitions[type].supply_cost;
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(supply_cost.commodity_type[i]) {
+					commodities.commodity_amounts[i] +=
+						supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(owner, type).supply_consumption *
+						o_sc_mod;
+					commodities.commodity_type[i] = supply_cost.commodity_type[i];
+				} else {
+					break;
+				}
+			}
+		}
+	};
+
+	return commodities;
 }
 
 void recover_org(sys::state& state) {

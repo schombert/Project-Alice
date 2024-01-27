@@ -1553,4 +1553,9 @@ alice_info_box_13;§YTAB§W: Open chat window
 alice_info_box_14;§YESC§W: Open main menu and settings menu
 alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
 alice_info_box_16;§GEnjoy the game! =^w^=§W
+current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
+current_supply_text2;The amount we could get of our current supply consumption was:
+current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
+current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
+current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
 ;;;;;;;;;;;;;x
