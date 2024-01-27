@@ -1169,7 +1169,7 @@ void crime_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::x, text::produce_simple_string(state, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name));
+		text::add_to_substitution_map(sub, text::variable_type::x, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name);
 		text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_41"), sub);
 		text::close_layout_box(contents, box);
 	}
