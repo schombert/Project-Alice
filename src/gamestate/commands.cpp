@@ -4509,9 +4509,9 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.preload();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	state.local_player_nation = dcon::nation_id{ };
-	state.fill_unsaved_data();
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
+	state.fill_unsaved_data();
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));

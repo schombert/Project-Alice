@@ -200,11 +200,12 @@ public:
 				/* Save the buffer before we fill the unsaved data */
 				state.local_player_nation = dcon::nation_id{ };
 				network::write_network_save(state);
-				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
+				state.fill_unsaved_data();
 				state.local_player_nation = old_local_player_nation;
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+				state.network_state.current_save_checksum = state.get_save_checksum();
 				/* Now send the saved buffer before filling the unsaved data to the clients
 				henceforth. */
 				command::payload c;
