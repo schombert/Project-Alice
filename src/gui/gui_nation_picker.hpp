@@ -657,13 +657,15 @@ public:
 			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
-					if(c.playing_as == n) {
+					if(c.is_active() && c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;
 						auto total = c.save_stream_size;
 						float progress = (float(total) / float(completed));
-						text::substitution_map sub{};
-						text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-						set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						if(progress < 1.f) {
+							text::substitution_map sub{};
+							text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+							set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						}
 					}
 				}
 			}
