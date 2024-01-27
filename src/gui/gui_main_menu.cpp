@@ -141,7 +141,13 @@ void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	}
 }
-
+void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
+	state.user_settings.mouse_edge_scrolling = !state.user_settings.mouse_edge_scrolling;
+	send(state, parent, notify_setting_update{});
+}
+bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
+	return state.user_settings.mouse_edge_scrolling;
+}
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});
@@ -160,6 +166,22 @@ bool fow_checkbox::is_active(sys::state& state) noexcept {
 void fow_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 	state.map_state.map_data.update_fog_of_war(state);
+	send(state, parent, notify_setting_update{});
+}
+
+bool render_models_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.render_models;
+}
+void render_models_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.render_models = !state.user_settings.render_models;
+	send(state, parent, notify_setting_update{});
+}
+
+bool black_map_font_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.black_map_font;
+}
+void black_map_font_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.black_map_font = !state.user_settings.black_map_font;
 	send(state, parent, notify_setting_update{});
 }
 

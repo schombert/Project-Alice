@@ -1,8 +1,13 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "ai.hpp"
 #include "effects.hpp"
+#include "demographics.hpp"
+#include "gui_event.hpp"
 #include "politics.hpp"
+#include "province_templates.hpp"
+#include "prng.hpp"
 
 namespace rebel {
 
@@ -775,28 +780,28 @@ void daily_update_rebel_organization(sys::state& state) {
 	});
 }
 
-void get_hunting_targets(sys::state& state, dcon::nation_id n, std::vector<dcon::province_id>& rebel_provs) {
+void get_hunting_targets(sys::state& state, dcon::nation_id n, std::vector<impl::prov_str>& rebel_provs) {
 	assert(rebel_provs.empty());
 	auto nat = dcon::fatten(state.world, n);
 	for(auto prov : nat.get_province_ownership()) {
 		if(prov.get_province().get_rebel_faction_from_province_rebel_control()
 			|| military::rebel_army_in_province(state, prov.get_province()))
-			rebel_provs.push_back(prov.get_province().id);
+			rebel_provs.push_back(impl::prov_str{ prov.get_province().id, ai::estimate_rebel_strength(state,  prov.get_province()) });
 	}
 }
 
-void sort_hunting_targets(sys::state& state, dcon::army_id ar, std::vector<dcon::province_id>& rebel_provs) {
-	auto our_str = ai::estimate_army_strength(state, ar);
-	auto loc = state.world.army_get_location_from_army_location(ar);
-	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
-		auto aa = 0.001f * -(our_str - ai::estimate_rebel_strength(state, a));
-		auto ab = 0.001f * -(our_str - ai::estimate_rebel_strength(state, b));
-		auto da = province::sorting_distance(state, a, loc) + aa;
-		auto db = province::sorting_distance(state, b, loc) + ab;
+void sort_hunting_targets(sys::state& state, impl::arm_str const& ar, std::vector<impl::prov_str>& rebel_provs) {
+	auto our_str = ar.str;
+	auto loc = state.world.army_get_location_from_army_location(ar.a);
+	std::sort(rebel_provs.begin(), rebel_provs.end(), [&](impl::prov_str const& a, impl::prov_str const& b) {
+		auto aa = 0.001f * -(our_str - a.str);
+		auto ab = 0.001f * -(our_str - b.str);
+		auto da = province::sorting_distance(state, a.p, loc) + aa;
+		auto db = province::sorting_distance(state, b.p, loc) + ab;
 		if(da != db)
 			return da < db;
 		else
-			return a.index() < b.index();
+			return a.p.index() < b.p.index();
 	});
 }
 
@@ -805,7 +810,7 @@ void rebel_hunting_check(sys::state& state) {
 		auto const faction_owner = rf.get_ruler_from_rebellion_within();
 		// rebel hunting logic
 		if(faction_owner.get_is_player_controlled()) {
-			static std::vector<dcon::army_id> rebel_hunters;
+			static std::vector<impl::arm_str> rebel_hunters;
 			rebel_hunters.clear();
 			for(auto ar : faction_owner.get_army_control()) {
 				auto loc = ar.get_army().get_location_from_army_location();
@@ -815,11 +820,11 @@ void rebel_hunting_check(sys::state& state) {
 					&& !ar.get_army().get_arrival_time()
 					&& loc.get_nation_from_province_control() == faction_owner
 					) {
-					rebel_hunters.push_back(ar.get_army().id);
+					rebel_hunters.push_back(impl::arm_str{ ar.get_army().id, ai::estimate_army_offensive_strength (state, ar.get_army()) });
 				}
 			}
 
-			static std::vector<dcon::province_id> rebel_provs;
+			static std::vector<impl::prov_str> rebel_provs;
 			rebel_provs.clear();
 			get_hunting_targets(state, faction_owner.id, rebel_provs);
 
@@ -827,22 +832,22 @@ void rebel_hunting_check(sys::state& state) {
 				auto rh = rebel_hunters[0];
 				sort_hunting_targets(state, rh, rebel_provs);
 
-				auto closest_prov = rebel_provs[0];
-				std::sort(rebel_hunters.begin(), rebel_hunters.end(), [&](dcon::army_id a, dcon::army_id b) {
-					auto pa = state.world.army_get_location_from_army_location(a);
-					auto pb = state.world.army_get_location_from_army_location(b);
-					auto as = 0.001f * std::max<float>(ai::estimate_army_strength(state, a), 1.f);
-					auto bs = 0.001f * std::max<float>(ai::estimate_army_strength(state, b), 1.f);
+				auto closest_prov = rebel_provs[0].p;
+				std::sort(rebel_hunters.begin(), rebel_hunters.end(), [&](impl::arm_str const& a, impl::arm_str const& b) {
+					auto pa = state.world.army_get_location_from_army_location(a.a);
+					auto pb = state.world.army_get_location_from_army_location(b.a);
+					auto as = 0.001f * std::max<float>(a.str, 1.f);
+					auto bs = 0.001f * std::max<float>(b.str, 1.f);
 					auto da = province::sorting_distance(state, pa, closest_prov) + as;
 					auto db = province::sorting_distance(state, pb, closest_prov) + bs;
 					if(da != db)
 						return da < db;
 					else
-						return a.index() < b.index();
+						return a.a.index() < b.a.index();
 				});
 
 				for(uint32_t i = 0; i < rebel_hunters.size(); ++i) {
-					auto a = rebel_hunters[i];
+					auto a = rebel_hunters[i].a;
 					if(state.world.army_get_location_from_army_location(a) == closest_prov) {
 						state.world.army_get_path(a).clear();
 						state.world.army_set_arrival_time(a, sys::date{});

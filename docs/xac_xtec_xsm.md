@@ -1,299 +1,260 @@
-## XAC, XSM and XTEC file formats
+## XAC & XSM
 
-Main link : https://aluigi.altervista.org/quickbms.htm
+XAC (EmotionF**X** **Ac**tor files) and XSM (EmotionF**X** **S**keletal **M**otion files) are what powers the 3D "toy soldiers" of the vanilla game.
 
-chrrox work >
-- (model) xac(?) extractor : https://forum.xentax.com/viewtopic.php?p=52319#p52319
-- (texture) xtex(?) extractor : https://forum.xentax.com/viewtopic.php?p=52491#p52491 (does not appear to be used in Vic2)
-- (animation) xsm
+Nowadays they're thoroughly documented in user-friendly C++ code thanks to the XacDecoder by Katerina; which is able to read and write XAC and XSM files.
+
+One thing to consider is the automatic shadow casting that the engine has to do, the game engine by itself has to calculate a cylinder of collision to use as a base for "clicking" on things, such as clicking on a soldier, this should work well, until you are introduced with dynamic collision meshes, of course we won't cover those because your game will not need it.
+
+An implementation will need to use special effects to animate the wake of the ships, since the movement of water is simulated using FX shaders, not of the "sea water", but of the wake itself.
+
+Graphical cultures are hardcoded (with notable exceptions being CSA); otherwise, unit filenames take the following forms:
+- `Generic_xxxx`: `infantry`, `cavalry`, `artillery`, etc.
+- `TAGword_xxxx`: For example, `CHInese_cavalry` (in the game files, `Chinese_Cavalry` can be found instead).
+- `GCword_xxxx`: For example, `European_Cavalry` (not used in vanilla, but still somewhat recognized)
+- `xxxx_Early`: Level 1 - 2, where `xxxx = building_type`.
+- `xxxx_Mid`: Same as above, but level 3 - 4.
+- `xxxx_Late`: Same as above, but level 5 - 6.
+- `xxxx_Full`: Building with unit standing on them (if naval = a ship, else = a regiment)
+- `xxxx_Empty`: Opposite of above.
+- `xxxx_yyyy_Full`/`xxxx_yyyy_Early`: (Where `yyyy = Early/Mid/Late`) Unused.
+- Other: Hardcoded game models, examples are `wake`, `flag`, `floating_flag`, `shadow_addon`.
+
+Shadow addon is just an EmotionFX addon you install on Autodesk Maya which allows you to add precomputed shadows to models easily. But we don't have the addon, unfortunely - but the game uses it for each standing army model atleast (as par of the attachment process).
+
+The binary structure of both XAC and XSM files are in this word file:
 
 ### XAC
-```c
-#define DEF_HEADSIZE 28
-#define DEF_FLAGSIZE 12
-
-struct {
-    char magic[4] = {'X', 'A', 'C', ' '};   // Offset 0x0h  --- Magic Value
-    uint32_t version;                       // Offset 0x4h  --- changes depending on if the file was created by Maya 8.5 x64 or not, if it is then its 01 00 00 01 otherwise its 01 00 00 00
-} xac_header;
-
-struct {
-    uint32_t section_id;                    // Offset 0x8h  --- Based off leafs aggregation, this requires further research though to make sure its valid, it is always 07 00 00 00
-    uint32_t offset_unk;                    // Offset 0xCh  --- Unknown Variable
-    uint32_t unknown1;                      // Offset 0x10h --- Unknown Variable
-    uint32_t unknown2;                      // Offset 0x14h --- Unknown Variable, Appears to be another type of version identifier perhaps?
-    uint32_t unknown3;                      // Offset 0x18h --- FF FF FF FF appears to be something unknown
-    uint32_t unknown4;                      // Offset 0x1Ch --- Unknown Variable
-    uint32_t unknown5;                      // Offset 0x20h --- Unknown Variable, Appears to always be 00 00 00 00 ?
-    uint32_t toolversize;                   // Offset 0x24h --- Size of the Tool String
-    char toolinfo[toolversize];             // Offset 0x28h --- Contains the information regarding what tool was used for creating the file
-    uint32_t workfilesize;                  //              --- Appears to contain how long the workfile entry is
-    char workinfo[workfilesize];            //              --- Contains the information regarding the originial file the XAC file was generated from
-    uint32_t datestrsize;                   //              --- Contains how large the date string is, appears to always be 11 for Vic2s files
-    char dateinfo[datestrsize];             //              --- Contains date when file was compiled
-} metadata_section;
-
-struct {
-    uint32_t section_id;                    // Offset 0x0h  --- Appears to be 00 00 00 00 for this sectionid
-    uint32_t unknown1;                      // Offset 0x4h  --- Appears to always be 0B 00 00 00
-    uint32_t unknown2;                      // Offset 0x8h  --- Unknown Variable
-    uint32_t unknown3;                      // Offset 0xCh  --- Appears to always be 01 00 00 00
-    uint32_t numofelements;                 // Offset 0x10h --- Appears to contain the number of elements / Number of Data header Entries
-    uint32_t unknown7;                      // Offset 0x14h --- Appears to be one of: (( 06 00 00 00 || 0B 00 00 00 || 07 00 00 00 || 04 00 00 00 ))
-} skeleton_section_header; // Size: 24 bytes
-
-struct {
-    uint16_t unknown1[7];
-    char div1[2];
-    uint16_t unknown2[7];
-    char div2[2];
-    uint16_t unknown3[7];
-    char div3[2];
-    uint16_t unknown4;
-    char div4[2];
-    uint16_t unknown5;
-    char div5[2];
-    uint16_t unknown6[17];
-    char div6[2];
-    uint16_t unknown7[9];
-    char div7[2];
-    uint16_t unknown8[9];
-    char div8[2];
-    uint16_t unknown9[9];
-    char div9[2];
-    uint16_t unknown10;
-    char div10[2];
-    uint32_t elementnamesize;
-    std::string type[elementnamesize];
-} skeleton_section_entry;
-
-struct {
-    uint32_t section_id;                    // Offset 0x0h   <=>  Appears to be 0D 00 00 00 for this sectionid
-    uint32_t unknown1;                      // Offset 0x4h   <=>  Appears to always be 0C 00 00 00
-    uint32_t unknown2;                      // Offset 0x8h   <=>  Appears to always be 01 00 00 00
-    uint32_t unknown3;                      // Offset 0xCh   <=>  Appears to always be 03 00 00 00 || 01 00 00 00      Perhaps number of textures?
-    uint32_t unknown3;                      // Offset 0x10h  <=>  Appears to always be 03 00 00 00 || 01 00 00 00      Also perhaps number of textures
-    uint32_t unknown4;                      // Offset 0x14h  <=>  Appears to always be 00 00 00 00
-    uint32_t unknown5;                      // Offset 0x18h  <=>  Appears to always be 03 00 00 00
-    uint32_t unknown6;                      // Offset 0x1Ch  <=>  Appears to be (( 6B 00 00 00 || 60 00 00 00 || 62 00 00 00 ))
-    uint32_t unknown7;                      // Offset 0x20h  <=>  Appears to always be 02 00 00 00
-} texture_section_header;
-
-struct {
-    /* The Data of a entry appears to come before the Type Name */
-    void* unknown_data[0x9C];   // Total, including what we know, is 0xA0
-    // element is followed by a UID, however the first instance of a element does not need one, with the next instance of the element starting out with UID 1
-    uint16_t elementname_size;  // Precedes the element name, its size includes the element name and the UID
-    char element[elementname_size] = "polySurface"                         // 0xA0 Bytes large
-                                    || "pCube"                              // 0xA0 Bytes large
-                                    || "pCylinder"                          // 0xA0 Bytes large
-                                    || "ViewCompass"                        // 0xA0 Bytes large
-                                    || "Manipulator"                        // 0xA0 Bytes large
-                                    || "UniversalManip"                     // 0xA0 Bytes large
-                                    || "Root"                               // 0xA0 Bytes large
-                                    || "Hip"                                // 0xA0 Bytes large
-                                    || "Left_leg_controlgroup"              // 0xA0 Bytes large
-                                    || "ikHandle"                           // 0xA0 Bytes large
-                                    || "Left_Hip"                           // 0xA0 Bytes large
-                                    || "Left_Knee"                          // 0xA0 Bytes large
-                                    || "Left_Foot"                          // 0xA0 Bytes large
-                                    || "effector"                           // 0xA0 Bytes large
-                                    || "Right_leg_controlgroup"             // 0xA0 Bytes large
-                                    || "Right_Hip"                          // 0xA0 Bytes large
-                                    || "Right_Knee"                         // 0xA0 Bytes large
-                                    || "Right_Foot"                         // 0xA0 Bytes large
-                                    || "Spine_Middle"                       // 0xA0 Bytes large
-                                    || "Spine_Top"                          // 0xA0 Bytes large
-                                    || "HelmetNode"                         // 0xA0 Bytes large
-                                    || "Left_Shoulder"                      // 0xA0 Bytes large
-                                    || "Left_Elbow"                         // 0xA0 Bytes large
-                                    || "GunNode"                            // 0xA0 Bytes large
-                                    || "Right_Shoulder"                     // 0xA0 Bytes large
-                                    || "Right_Elbow"                        // 0xA0 Bytes large
-                                    || "Right_Hand"                         // 0xA0 Bytes large
-                                    || "joint"                              // 0xA0 Bytes large
-                                    || "Tank"                               // 0xA0 Bytes large
-                                    || "Wheel_"                             // 0xA0 Bytes large, however numbers often appear at the end of the next elements data causing it to appear larger
-                                    || "Turret"                             // 0xA0 Bytes large
-                                    || "Helmet"                             // 0xA0 Bytes large
-                                    || "flagmesh"                           // 0xA0 Bytes large
-                                    || "Top"                                // 0xA0 Bytes large
-                                    || "J"                                  // 0xA0 Bytes large
-
-
-    // the element is then ended with what appears to be a UID of the type, presumably unique within the same xac file aswell as its accompying xsm files if any.
-} entry;
-
-
-                        || "TexAnim"                            // 0xF3 Bytes large ???
-                        || "British_Infantry_Diffuse"           // 0xA4 Bytes large ???
-                        || "British_Infantry2_Diffuse"          // 0xA4 Bytes large ???
-                        || "british_infantry_diffuse"           // 0xA4 Bytes large ???
-                        || "Blockade_fence"                     // 0xA4 Bytes large ???
-                        || "AustriaHungery_Infantry2_Diffuse"   // 0xA6 Bytes large ???
-                        || "AustriaHungery_Infantry_Diffuse"    // 0xA4 Bytes large ???
-                        || "Austrian_Tank_Diffuse"              // 0xB1 Bytes large ???
-                        || "flag_normal"                        // 0xCF Bytes large ???
-
+```
+https://web.archive.org/web/20140816034951/https://dl.dropboxusercontent.com/u/60681258/xr/xac.txt
+vec3d = float x, float y, float z
+vec4d = float x, float y, float z, float w
+quat = float x, float y, float z, float w
+string = uint32 len, char[len]
+matrix44 = vec4d col1, vec4d col2, vec4d col3, vec4d pos
+file:
+	byte magic[4] = 58 41 43 20 ("XAC ")
+	byte majorVersion = 1
+	byte minorVersion = 0
+	byte bBigEndian
+	byte multiplyOrder
+	chunk[...]
+		int32 chunkType
+		int32 length (sometimes incorrect!)
+		int32 version
+		byte data[length]
+chunk 7: metadata (v2)
+	uint32 repositionMask
+		1 = repositionPos
+		2 = repositionRot
+		4 = repositionScale
+	int32 repositioningNode
+	byte exporterMajorVersion
+	byte exporterMinorVersion
+	byte unused[2]
+	float retargetRootOffset
+	string sourceApp
+	string origFileName
+	string exportDate
+	string actorName
+chunk B: node hierarchy (v1)
+	int32 numNodes
+	int32 numRootNodes (number of nodes with parentId = -1)
+	NodeData[numNodes]
+		quat rotation
+		quat scaleRotation
+		vec3d position
+		vec3d scale
+		float unused[3]
+		int32 -1 (?)
+		int32 -1 (?)
+		int32 parentNodeId (index of parent node or -1 for root nodes)
+		int32 numChildNodes (number of nodes with parentId = this node's index)
+		int32 bIncludeInBoundsCalc
+		matrix44 transform
+		float fImportanceFactor
+		string name
+chunk D: material totals (v1)
+	int32 numTotalMaterials
+	int32 numStandardMaterials
+	int32 numFxMaterials
+chunk 3: material definition (v2)
+	vec4d ambientColor
+	vec4d diffuseColor
+	vec4d specularColor
+	vec4d emissiveColor
+	float shine
+	float shineStrength
+	float opacity
+	float ior
+	byte bDoubleSided
+	byte bWireframe
+	byte unused
+	byte numLayers
+	string name
+	Layer[numLayers]:
+		float amount
+		float uOffset
+		float vOffset
+		float uTiling
+		float vTiling
+		float rotationInRadians
+		int16 materialId (index of the material this layer belongs to = number of preceding chunk 3's)
+		byte mapType
+		byte unused
+		string texture
+chunk 1: mesh (v1)
+	int32 nodeId
+	int32 numInfluenceRanges
+	int32 numVertices (total number of vertices of submeshes)
+	int32 numIndices  (total number of indices of submeshes)
+	int32 numSubMeshes
+	int32 numAttribLayers
+	byte bIsCollisionMesh (each node can have 1 visual mesh and 1 collision mesh)
+	byte pad[3]
+	VerticesAttribute[numAttribLayers]
+		int32 type (determines meaning of data)
+			0 = positions (vec3d)
+			1 = normals (vec3d)
+			2 = tangents (vec4d)
+			3 = uv coords (vec2d)
+			4 = 32-bit colors (uint32)
+			5 = influence range indices (uint32) - index into the InfluenceRange[] array of chunk 2, indicating the bones that affect it
+			6 = 128-bit colors
+			typically: 1x positions, 1x normals, 2x tangents, 2x uv, 1x colors, 1x influence range indices
+		int32 attribSize (size of 1 attribute, for 1 vertex)
+		byte bKeepOriginals
+		byte bIsScaleFactor
+		byte pad[2]
+		byte data[numVertices * attribSize]
+	SubMesh[numSubMeshes]
+		int32 numIndices
+		int32 numVertices
+		int32 materialId
+		int32 numBones
+		int32 relativeIndices[numIndices] (actual index = relative index + total number of vertices of preceding submeshes. each group of 3 sequential indices (vertices) defines a polygon)
+		int32 boneIds[numBones] (unused)
+chunk 2: skinning (v3)
+	int32 nodeId
+	int32 numLocalBones (number of distinct boneId's in InfluenceData)
+	int32 numInfluences
+	byte bIsForCollisionMesh
+	byte pad[3]
+	InfluenceData[numInfluences]
+		float fWeight (0..1)   (for every vertex, the resulting transformed position is calculated for every influencing bone;
+		int16 boneId            the final position is the weighted average of these positions using fWeight as weight)
+		byte pad[2]
+	InfluenceRange[bIsForCollisionMesh ? nodes[nodeId].colMesh.numInfluenceRanges : nodes[nodeId].visualMesh.numInfluenceRanges]
+		int32 firstInfluenceIndex (index into InfluenceData)
+		int32 numInfluences (number of InfluenceData entries relevant for one or more vertices, starting at firstInfluenceIndex)
+chunk C: morph targets (v1)
+	int32 numMorphTargets
+	int32 lodMorphTargetIdx (presumably always 0; this is the index of a *collection* of numMorphTargets morph targets, not an
+							 individual target, and an EmoActor only has one such collection)
+	MorphTarget[numMorphTargets]
+		float fRangeMin (at runtime, fMorphAmount must be >= fRangeMin)
+		float fRangeMax (at runtime, fMorphAmount must be <= fRangeMax)
+		int32 lodLevel (LOD of visual mesh; presumably always 0)
+		int32 numDeformations
+		int32 numTransformations
+		int32 phonemeSetBitmask (indicates which phonemes the morph target can be used for - facial animation)
+			0x1: neutral
+			0x2: M, B, P, X
+			0x4: AA, AO, OW
+			0x8: IH, AE, AH, EY, AY, H
+			0x10: AW
+			0x20: N, NG, CH, J, DH, D, G, T, K, Z, ZH, TH, S, SH
+			0x40: IY, EH, Y
+			0x80: UW, UH, OY
+			0x100: F, V
+			0x200: L, EL
+			0x400: W
+			0x800: R, ER
+		string name
+		Deformation[numDeformations]
+			int32 nodeId
+			float fMinValue
+			float fMaxValue
+			int32 numVertices
+			DeformVertex16 positionOffsets[numVertices]
+				uint16 x (fXOffset = fMinValue + (fMaxValue - fMinValue)*(x / 65535); vecDeformedPos.fX = vecPos.fX + fXOffset*fMorphAmount)
+				uint16 y
+				uint16 z
+			DeformVertex8 normalOffsets[numVertices]
+				byte x (fXOffset = x/127.5 - 1.0; vecDeformedNormal.fX = vecNormal.fX + fXOffset * fMorphAmount)
+				byte y
+				byte z
+			DeformVertex8 tangentOffsets[numVertices] (offsets for first tangent)
+			uint32 vertexIndices[numVertices] (index of the node's visual mesh vertex which the offsets apply to)
+		Transformation[numTransformations] (appears to be unused, i.e. numTransformations = 0)
+			int32 nodeId
+			quat rotation
+			quat scaleRotation
+			vec3d pos
+			vec3d scale
 ```
 
-Program to readback XAC files:
-```c++
-#include <iostream>
-#include <stdint.h>
-#include <stdio.h>
+## XSM
 
-struct xac_header {
-	char magic[3];
-	int32_t version;
-	int32_t unknown_data;
-	char junk[29];
-};
+EmotionFX is meant to capture real-life motion using motion capture (oh you don't tell me?). This means that storage of such data is done in an easy to read and understand animation file format that has absolutely no incongruencies and shadow binary blobs that are hardcoded into the game engine itself... except, it is.
 
-int main(int argc, char *argv[]) {
-	if (argc == 2) {
-		FILE *fp = fopen(argv[1], "rb");
-		xac_header header;
-		fread(&header, sizeof(header), 1, fp);
-		printf("Magic: %c.%c.%c\n",header.magic[0], header.magic[1], header.magic[2]);
-		printf("Version: %d\n", header.version);
-		printf("Unknown: %d\n", header.unknown_data);
-		fclose(fp);
-		return 0;
-	}
-	return -1;
-}
+Every model has an `UniversalManip`, which is an universal manipulator (no way) BUT, if the game engine can't find one in the model it MUST insert it to the model BEFORE loading, otherwise you'll be met with rigging issues. You can't make a boneless XAC, but you can make an animationless XAC, this is because XSM animations failing to load means the model will not move at all.
+
 ```
-
-QuickBMS script:
-```python
-#quickbms script
-#War of Dragons
-#from chrrox
-
-open FDDE tbl2 1
-set arcnum 0
-
-goto 0x10001C 1
-
-for i = 0
-    get offset long 1
-    get zsize long 1
-    get null3 long 1
-    get size long 1
-   get arcnum long 1
-        set NAME1 string "file0"
-    set MYEXT string arcnum
-    strlen MYEXTSZ MYEXT
-    if MYEXTSZ == 1
-        string NAME1 += "00"
-    endif
-    if MYEXTSZ == 2
-        string name1 - 1
-        string NAME1 += "0"
-    endif
-    if MYEXTSZ == 3
-        string name1 - 1
-        string NAME1 += ""
-    endif
-    string NAME1 += MYEXT
-    string NAME1 += .data2
-    open FDSE NAME1 0
-
-
-    get null1 long 1
-    get null2 long 1
-
-    get name string 1
-    Padding 4 1
-
-    get null long 1
-
-        log name offset zsize
-next i
-```
-
-### XTEX
-
-QuickBMS script:
-```python
-#quickbms script
-#War of Dragons
-#from chrrox
-
-open FDDE tbl2 1
-set arcnum 0
-
-
-goto 0x10001C 1
-
-for i = 0
-    get offset long 1
-    get zsize long 1
-    get null3 long 1
-    get size long 1
-   get arcnum long 1
-        set NAME1 string "file0"
-    set MYEXT string arcnum
-    strlen MYEXTSZ MYEXT
-    if MYEXTSZ == 1
-        string NAME1 += "00"
-    endif
-    if MYEXTSZ == 2
-        string name1 - 1
-        string NAME1 += "0"
-    endif
-    if MYEXTSZ == 3
-        string name1 - 1
-        string NAME1 += ""
-    endif
-    string NAME1 += MYEXT
-    string NAME1 += .data2
-    open FDSE NAME1 0
-
-
-    get null1 long 1
-    get null2 long 1
-
-    get name string 1
-    Padding 4 1
-
-    get null long 1
-
-        log name offset zsize
-next i
-```
-
-### XSM
-```c
-struct xsm_header {
-	char magic[4] = {'X', 'S', 'M', ' '}; // Offset 0x0h	--- Magic Value
-	uint16_t fp_num;											// Offset 0x2h	--- First MagicNum, appears to always be 01 00
-	uint16_t sp_num; // Offset 0x4h	--- Second MagicNUm, appears to be 00 01 or 00 00, changing depending on if Maya X64 was used
-									 // or not, might be false though
-};
-
-struct xsm_metadata_section {
-	uint32_t section_id;						// Offset 0x0h	--- Appears to use C9 00 00 00 for the metadata section
-	uint32_t unknown1;							// Offset 0x4h	---
-	uint32_t unk_ident;							// Offset 0x8h	--- Appears to always be 02 00 00 00, same as in XAC
-	uint32_t unknown2;							// Offset 0xCh	--- Appears to always be 00 00 00 3F ???
-	uint32_t unknown3;							// Offset 0x10h	---
-	uint32_t unknown4;							// Offset 0x14h	---
-	uint32_t unknown5;							// Offset 0x18h	---
-	uint32_t toolversize						// Offset 0x1Ch	--- Is how large the CString with the Tool Name and Version in it is
-			char toolname[toolversize]; // Offset 0x20h	--- Is the tool that generated the file
-	uint32_t workfilesize;					//		--- Is how large the CString with the file location is
-	char filename[workfilesize];		//		--- Is the originial, source file, the current file was generated from
-	uint32_t datesize;							//		--- Is how large the CString with the date of creation in it
-	char datestring[datesize];			//		--- Is the CString with the date of creation in it, Format is MMM-DD-YYYY
-};
-
-struct xsm_data_section_header {
-	uint32_t section_id; // Offset 0x0h	--- Appears to use 00 00 00 00 for the data section
-	uint32_t unknown2;	 // Offset 0x4h	--- Appears to always be CA 00 00 00, significance unknown
-	uint32_t unknown3;	 // Offset 0x8h
-	uint32_t unknown4;	 // Offset 0xCh	---
-	uint32_t numentries; // Offset 0x10h	--- Appears to Contain how many Data Section Entries
-};
+https://web.archive.org/web/20140816034945/https://dl.dropboxusercontent.com/u/60681258/xr/xsm.txt
+vec3d = float x, float y, float z
+quat16 = int16 x, int16 y, int16 z, int16 w; fX = x / 32767
+string = uint32 len, char[len]
+file:
+	byte magic[4] = 58 53 4D 20 ("XSM ")
+	byte majorVersion = 1
+	byte minorVersion = 0
+	byte bBigEndian
+	byte pad
+	chunk[...]
+		int32 chunkType
+		int32 length
+		int32 version
+		byte data[length]
+chunk C9: metadata (v2)
+	float unused = 1.0f
+	float fMaxAcceptableError
+	int32 fps
+	byte exporterMajorVersion
+	byte exporterMinorVersion
+	byte pad[2]
+	string sourceApp
+	string origFileName
+	string exportDate
+	string motionName
+chunk CA: bone animation (v2)
+	int32 numSubMotions
+	SkeletalSubMotion[numSubMotions]:
+		quat16 poseRot
+		quat16 bindPoseRot
+		quat16 poseScaleRot
+		quat16 bindPoseScaleRot
+		vec3D posePos
+		vec3D poseScale
+		vec3D bindPosePos
+		vec3D bindPoseScale
+		int32 numPosKeys
+		int32 numRotKeys
+		int32 numScaleKeys
+		int32 numScaleRotKeys
+		float fMaxError
+		string nodeName
+		// fTime of first item in each array must be 0
+		PosKey[numPosKeys]:
+			vec3d pos
+			float fTime
+		RotKey[numRotKeys]:
+			quat16 rot
+			float fTime
+		ScaleKey[numScaleKeys]:
+			vec3d scale
+			float fTime
+		ScaleRotKey[numScaleRotKeys]:
+			quat16 rot
+			float fTime
 ```

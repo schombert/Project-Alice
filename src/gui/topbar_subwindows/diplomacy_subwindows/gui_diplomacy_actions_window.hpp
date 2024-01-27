@@ -343,7 +343,7 @@ public:
 
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(content, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "cancel_ally_explain_3", state.world.diplomatic_relation_get_are_allied(rel));
-			text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
+			//text::add_line_with_condition(state, contents, "cancel_ally_explain_4", !military::are_allied_in_war(state, state.local_player_nation, content));
 
 			auto ol = state.world.nation_get_overlord_as_subject(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "cancel_ally_explain_5", state.world.overlord_get_ruler(ol) != content);
@@ -1867,6 +1867,7 @@ public:
 		text::add_line_with_condition(state, contents, "state_transfer_explain_3", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(source)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_4", !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)));
 		text::add_line_with_condition(state, contents, "state_transfer_explain_5", !(state.world.nation_get_is_at_war(source) || state.world.nation_get_is_at_war(target)));
+		text::add_line_with_condition(state, contents, "state_transfer_explain_6", state.world.nation_get_owned_state_count(source) > 1);
 	}
 };
 

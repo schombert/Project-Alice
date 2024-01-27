@@ -1,6 +1,12 @@
 #include "effects.hpp"
 #include "system_state.hpp"
 #include "ai.hpp"
+#include "demographics.hpp"
+#include "politics.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
+#include "rebels.hpp"
+#include "triggers.hpp"
 
 namespace effect {
 
@@ -1702,7 +1708,7 @@ uint32_t ef_life_rating_state(EFFECT_PARAMTERS) {
 			p,
 			uint8_t(std::clamp(int32_t(ws.world.province_get_life_rating(p)) + trigger::payload(tval[1]).signed_value, 0, 255)));
 	});
-	
+
 	return 0;
 }
 uint32_t ef_religion(EFFECT_PARAMTERS) {
@@ -3791,7 +3797,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 				}
 			}
 		}
-		
+
 	}
 
 	return 0;
@@ -3870,6 +3876,8 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 		return 0;
 	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
 		return 0;
+	if(target == trigger::to_nation(primary_slot))
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3888,6 +3896,8 @@ uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
 	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
+		return 0;
+	if(target == trigger::to_nation(primary_slot))
 		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),

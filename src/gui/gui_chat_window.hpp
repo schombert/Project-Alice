@@ -4,16 +4,13 @@
 
 namespace ui {
 
+template<bool IsShadow>
 class chat_message_text : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<chat_message>(state, parent);
-
 		auto border = base_data.data.text.border_size;
-		auto color = black_text ? text::text_color::black : text::text_color::white;
-		if(!black_text && content.target) {
-			color = text::text_color::orange;
-		}
+		auto color = IsShadow ? text::text_color::black : (content.target ? text::text_color::orange : text::text_color::white);
 		auto container = text::create_endless_layout(
 			internal_layout,
 			text::layout_parameters{
@@ -27,8 +24,11 @@ public:
 				color,
 				false });
 
+
+		std::string sender_name = std::string(state.network_state.map_of_player_names[content.source.index()].to_string_view()) + ": ";
 		std::string text_form_msg = std::string(content.body);
 		auto box = text::open_layout_box(container);
+		text::add_to_layout_box(state, container, box, sender_name, IsShadow ? text::text_color::black : text::text_color::orange);
 		text::add_to_layout_box(state, container, box, text_form_msg, color);
 		text::close_layout_box(container, box);
 	}
@@ -40,9 +40,9 @@ public:
 		if(name == "shield") {
 			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "text_shadow") {
-			return make_element_by_type<chat_message_text>(state, id);
+			return make_element_by_type<chat_message_text<true>>(state, id);
 		} else if(name == "text") {
-			return make_element_by_type<chat_message_text>(state, id);
+			return make_element_by_type<chat_message_text<false>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -240,16 +240,39 @@ class chat_return_to_lobby_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "back"));
+		set_button_text(state, text::produce_simple_string(state, "alice_lobby_back"));
 	}
-
 	void on_update(sys::state& state) noexcept override {
 		disabled = (state.network_mode == sys::network_mode_type::client) || (state.mode == sys::game_mode_type::pick_nation);
 	}
-
 	void button_action(sys::state& state) noexcept override {
 		map_mode::set_map_mode(state, map_mode::mode::political);
 		command::notify_stop_game(state, state.local_player_nation);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.mode == sys::game_mode_type::pick_nation) {
+			text::add_line(state, contents, "alice_lobby_back_tt_1");
+		}
+		if(state.network_mode == sys::network_mode_type::client) {
+			text::add_line(state, contents, "alice_lobby_back_tt_2");
+		}
+	}
+};
+
+class chat_close_button : public generic_close_button {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, text::produce_simple_string(state, "alice_lobby_close"));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_lobby_close_tt");
 	}
 };
 
@@ -259,7 +282,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "start_button") {
-			return make_element_by_type<generic_close_button>(state, id);
+			return make_element_by_type<chat_close_button>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "chatlog") {

@@ -1,16 +1,25 @@
 #include "economy.hpp"
+#include "economy_templates.hpp"
+#include "demographics.hpp"
 #include "dcon_generated.hpp"
+#include "ai.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
+#include "nations_templates.hpp"
+#include "province_templates.hpp"
+#include "triggers.hpp"
 
 namespace economy {
+
+template void for_each_new_factory<std::function<void(new_factory)>>(sys::state&, dcon::state_instance_id, std::function<void(new_factory)>&&);
+template void for_each_upgraded_factory<std::function<void(upgraded_factory)>>(sys::state&, dcon::state_instance_id, std::function<void(upgraded_factory)>&&);
 
 bool can_take_loans(sys::state& state, dcon::nation_id n) {
 	if(!state.world.nation_get_is_player_controlled(n) || !state.world.nation_get_is_debt_spending(n))
 		return false;
 
 	/*
-	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy. 
+	A country cannot borrow if it is less than define:BANKRUPTCY_EXTERNAL_LOAN_YEARS since their last bankruptcy.
 	*/
 	auto last_br = state.world.nation_get_bankrupt_until(n);
 	if(last_br && state.current_date < last_br)
@@ -21,7 +30,7 @@ bool can_take_loans(sys::state& state, dcon::nation_id n) {
 
 float interest_payment(sys::state& state, dcon::nation_id n) {
 	/*
-	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30 
+	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30
 	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 	*/
 	auto debt = state.world.nation_get_stockpiles(n, money);
@@ -32,7 +41,7 @@ float interest_payment(sys::state& state, dcon::nation_id n) {
 }
 float max_loan(sys::state& state, dcon::nation_id n) {
 	/*
-	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base. 
+	There is an income cap to how much may be borrowed, namely: define:MAX_LOAN_CAP_FROM_BANKS x (national-modifier-to-max-loan-amount + 1) x national-tax-base.
 	*/
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
@@ -384,7 +393,7 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 
 				auto limit = artisan_scale_limit(state, n, cid);
 				auto profit = std::max(base_artisan_profit(state, n, cid), 0.0f) * limit;
-				
+
 				total_ex_weights += w;
 				temp_weights[cid.index()] = profit * profit;
 				total_weights += profit * profit;
@@ -1147,7 +1156,7 @@ void update_national_artisan_production(sys::state& state, dcon::nation_id n) {
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		
+
 		if(state.world.nation_get_artisan_distribution(n, cid) > 0.0f) {
 
 			auto production = state.world.nation_get_artisan_actual_production(n, cid);
@@ -1166,7 +1175,7 @@ void update_national_artisan_production(sys::state& state, dcon::nation_id n) {
 				auto amount = min_input * production;
 				state.world.nation_set_artisan_actual_production(n, cid, amount);
 				state.world.nation_get_domestic_market_pool(n, cid) += amount;
-			} 
+			}
 		}
 	}
 }
@@ -3317,7 +3326,7 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 		auto p = po.get_province();
 		if(state.world.province_get_nation_from_province_control(p) != n)
 			continue;
-		
+
 		auto rng = state.world.province_get_province_naval_construction(p);
 		if(rng.begin() != rng.end()) {
 			auto c = *(rng.begin());
@@ -3361,7 +3370,7 @@ float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
 			auto& base_cost = c.get_type().get_construction_costs();
 			auto& current_purchased = c.get_purchased_goods();
 			float construction_time = float(c.get_type().get_construction_time()) * (c.get_is_upgrade() ? 0.1f : 1.0f);
-			
+
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(base_cost.commodity_type[i]) {
 					if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * factory_mod * admin_cost_factor)
@@ -3410,7 +3419,7 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
 			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
 			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
-			
+
 
 			float total = 0.0f;
 			float purchased = 0.0f;
@@ -3426,52 +3435,6 @@ construction_status factory_upgrade(sys::state& state, dcon::factory_id f) {
 	}
 
 	return construction_status{0.0f, false};
-}
-
-template<typename F>
-void for_each_new_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
-	for(auto st_con : state.world.state_instance_get_state_building_construction(s)) {
-		if(!st_con.get_is_upgrade()) {
-			float admin_eff = state.world.nation_get_administrative_efficiency(st_con.get_nation());
-			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
-			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
-			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
-
-			float total = 0.0f;
-			float purchased = 0.0f;
-			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
-
-			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i] * admin_cost_factor;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
-			}
-
-			func(new_factory{total > 0.0f ? purchased / total : 0.0f, st_con.get_type().id});
-		}
-	}
-}
-
-template<typename F>
-void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s, F&& func) {
-	for(auto st_con : state.world.state_instance_get_state_building_construction(s)) {
-		if(st_con.get_is_upgrade()) {
-			float admin_eff = state.world.nation_get_administrative_efficiency(st_con.get_nation());
-			float factory_mod = state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_cost) + 1.0f;
-			float pop_factory_mod = std::max(0.1f, state.world.nation_get_modifier_values(st_con.get_nation(), sys::national_mod_offsets::factory_owner_cost));
-			float admin_cost_factor = (st_con.get_is_pop_project() ? pop_factory_mod : (2.0f - admin_eff)) * factory_mod;
-
-			float total = 0.0f;
-			float purchased = 0.0f;
-			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
-
-			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i] * admin_cost_factor;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
-			}
-
-			func(upgraded_factory{total > 0.0f ? purchased / total : 0.0f, st_con.get_type().id});
-		}
-	}
 }
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft) {
@@ -3515,7 +3478,7 @@ int32_t state_factory_count(sys::state& state, dcon::state_instance_id sid, dcon
 	for(auto p : state.world.state_instance_get_state_building_construction(sid))
 		if(p.get_is_upgrade() == false)
 			++num_factories;
-	
+
 	// For new factories: no more than defines:FACTORIES_PER_STATE existing + under construction new factories must be
 	assert(num_factories <= int32_t(state.defines.factories_per_state));
 	return num_factories;
@@ -3596,13 +3559,15 @@ void resolve_constructions(sys::state& state) {
 		float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
 
 		bool all_finished = true;
-		for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-			if(base_cost.commodity_type[j]) {
-				if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * admin_cost_factor) {
-					all_finished = false;
+		if(!(c.get_nation() == state.local_player_nation && state.cheat_data.instant_army)) {
+			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+				if(base_cost.commodity_type[j]) {
+					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * admin_cost_factor) {
+						all_finished = false;
+					}
+				} else {
+					break;
 				}
-			} else {
-				break;
 			}
 		}
 
@@ -3969,7 +3934,7 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	auto& debt = state.world.nation_get_stockpiles(n, economy::money);
 
 	/*
-	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2. 
+	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2.
 	*/
 	auto existing_br = state.world.nation_get_bankrupt_until(n);
 	if(existing_br && state.current_date < existing_br) {

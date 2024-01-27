@@ -1,4 +1,5 @@
 #include "gui_event.hpp"
+#include "gui_leader_select.hpp"
 #include "triggers.hpp"
 
 namespace ui {
@@ -247,7 +248,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
-	
+
 	// Global crisis stuff
 	// TODO: crisisarea
 	// text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_colony);

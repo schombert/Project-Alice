@@ -411,7 +411,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 3000 }
+	size{ 10000 }
 	tag{ scenario }
 
 	property{
@@ -4298,7 +4298,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 200000 }
+	size{ 300000 }
 	tag{ save }
 
 	property{
@@ -4593,7 +4593,7 @@ object {
 object {
 	name{ national_focus }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 124 }
 	tag{ scenario }
 
 	property{

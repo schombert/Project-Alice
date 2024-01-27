@@ -7,6 +7,7 @@
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
 
+#include "blake2.h"
 #include "zstd.h"
 
 namespace sys {
@@ -277,6 +278,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	}
 	{ // provincial definitions
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
+		ptr_in = deserialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
@@ -457,6 +459,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 	{ // provincial definitions
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
+		ptr_in = serialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
@@ -631,6 +634,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	}
 	{ // provincial definitions
 		sz += serialize_size(state.province_definitions.canals);
+		sz += serialize_size(state.province_definitions.canal_provinces);
 		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
 		sz += sizeof(state.province_definitions.first_sea_province);
 		sz += sizeof(state.province_definitions.europe);
@@ -818,7 +822,7 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 
 	state.scenario_counter = count;
 	state.scenario_time_stamp = header.timestamp;
-	
+
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =

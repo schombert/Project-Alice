@@ -1,7 +1,66 @@
+#define ALICE_NO_ENTRY_POINT 1
+
+#ifdef LOCAL_USER_SETTINGS
+#include "local_user_settings.hpp"
+#endif
+#include "common_types.cpp"
+#include "system_state.cpp"
+#ifndef INCREMENTAL
+#include "parsers.cpp"
+#include "text.cpp"
+#include "float_from_chars.cpp"
+#include "fonts.cpp"
+#include "texture.cpp"
+#include "date_interface.cpp"
+#include "serialization.cpp"
+#include "nations.cpp"
+#include "culture.cpp"
+#include "military.cpp"
+#include "modifiers.cpp"
+#include "province.cpp"
+#include "triggers.cpp"
+#include "effects.cpp"
+#include "economy.cpp"
+#include "demographics.cpp"
+#include "bmfont.cpp"
+#include "rebels.cpp"
+#include "politics.cpp"
+#include "events.cpp"
+#include "gui_graphics.cpp"
+#include "gui_common_elements.cpp"
+#include "gui_trigger_tooltips.cpp"
+#include "gui_effect_tooltips.cpp"
+#include "gui_modifier_tooltips.cpp"
+#include "gui_leader_tooltip.cpp"
+#include "gui_leader_select.cpp"
+#include "gui_production_window.cpp"
+#include "gui_province_window.cpp"
+#include "gui_population_window.cpp"
+#include "gui_budget_window.cpp"
+#include "gui_technology_window.cpp"
+#include "commands.cpp"
+#include "network.cpp"
+#include "diplomatic_messages.cpp"
+#include "notifications.cpp"
+#include "map_tooltip.cpp"
+#include "unit_tooltip.cpp"
+#include "ai.cpp"
+#include "map_modes.cpp"
+#include "platform_specific.cpp"
+#include "opengl_wrapper.cpp"
+#include "prng.cpp"
+#include "blake2.cpp"
+#include "zstd.cpp"
+#endif
+#include "gui_element_types.cpp"
+#include "gui_main_menu.cpp"
+#include "gui_console.cpp"
+#include "gui_event.cpp"
+#include "gui_message_settings_window.cpp"
+
 #ifndef UNICODE
 #define UNICODE
 #endif
-
 #include <Windowsx.h>
 #include <shellapi.h>
 #include "Objbase.h"
@@ -12,21 +71,16 @@
 #include "wglew.h"
 #include <cassert>
 #include "resource.h"
-
 #pragma comment(lib, "Ole32.lib")
 #pragma comment(lib, "Shell32.lib")
-
-#include "local_user_settings.hpp"
 #include "fonts.hpp"
 #include "texture.hpp"
 #include "text.hpp"
-#include "simple_fs_win.cpp"
-#include "prng.cpp"
-extern "C" {
-#include "blake2.c"
-};
+#include "prng.hpp"
+#include "system_state.hpp"
 #include "serialization.hpp"
-#include "network.cpp"
+#include "network.hpp"
+#include "simple_fs.hpp"
 
 namespace launcher {
 
@@ -324,6 +378,15 @@ native_string produce_mod_path() {
 	return simple_fs::extract_state(dummy);
 }
 
+void save_playername() {
+	sys::player_name p;
+	auto len = std::min<size_t>(launcher::player_name.length(), sizeof(p.data));
+	std::memcpy(p.data, launcher::player_name.c_str(), len);
+
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	simple_fs::write_file(settings_location, NATIVE("player_name.dat"), (const char*)&p, sizeof(p));
+}
+
 native_string to_hex(uint64_t v) {
 	native_string ret;
 	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
@@ -453,7 +516,7 @@ void mouse_click() {
 				si.cb = sizeof(si);
 				PROCESS_INFORMATION pi;
 				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process. 
+				// Start the child process.
 				if(CreateProcessW(
 					nullptr,   // Module name
 					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -462,7 +525,34 @@ void mouse_click() {
 					FALSE, // Set handle inheritance to FALSE
 					0, // No creation flags
 					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory 
+					nullptr, // Use parent's starting directory
+					&si, // Pointer to STARTUPINFO structure
+					&pi) != 0) {
+
+					CloseHandle(pi.hProcess);
+					CloseHandle(pi.hThread);
+
+					return; // exit -- don't try starting avx2
+				}
+			}
+			if(!IsProcessorFeaturePresent(PF_AVX2_INSTRUCTIONS_AVAILABLE)) {
+				native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
+
+				STARTUPINFO si;
+				ZeroMemory(&si, sizeof(si));
+				si.cb = sizeof(si);
+				PROCESS_INFORMATION pi;
+				ZeroMemory(&pi, sizeof(pi));
+				// Start the child process.
+				if(CreateProcessW(
+					nullptr,   // Module name
+					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
+					nullptr, // Process handle not inheritable
+					nullptr, // Thread handle not inheritable
+					FALSE, // Set handle inheritance to FALSE
+					0, // No creation flags
+					nullptr, // Use parent's environment block
+					nullptr, // Use parent's starting directory
 					&si, // Pointer to STARTUPINFO structure
 					&pi) != 0) {
 
@@ -480,7 +570,7 @@ void mouse_click() {
 				si.cb = sizeof(si);
 				PROCESS_INFORMATION pi;
 				ZeroMemory(&pi, sizeof(pi));
-				// Start the child process. 
+				// Start the child process.
 				if(CreateProcessW(
 					nullptr,   // Module name
 					const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -489,7 +579,7 @@ void mouse_click() {
 					FALSE, // Set handle inheritance to FALSE
 					0, // No creation flags
 					nullptr, // Use parent's environment block
-					nullptr, // Use parent's starting directory 
+					nullptr, // Use parent's starting directory
 					&si, // Pointer to STARTUPINFO structure
 					&pi) != 0) {
 
@@ -502,7 +592,7 @@ void mouse_click() {
 	case ui_obj_host_game:
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
-			native_string temp_command_line = native_string(NATIVE("Alice.exe ")) + selected_scenario_file;
+			native_string temp_command_line = native_string(NATIVE("AliceSSE.exe ")) + selected_scenario_file;
 			if(obj_under_mouse == ui_obj_host_game) {
 				temp_command_line += NATIVE(" -host");
 				temp_command_line += NATIVE(" -name ");
@@ -530,7 +620,7 @@ void mouse_click() {
 			si.cb = sizeof(si);
 			PROCESS_INFORMATION pi;
 			ZeroMemory(&pi, sizeof(pi));
-			// Start the child process. 
+			// Start the child process.
 			if(CreateProcessW(
 				nullptr,   // Module name
 				const_cast<wchar_t*>(temp_command_line.c_str()), // Command line
@@ -539,7 +629,7 @@ void mouse_click() {
 				FALSE, // Set handle inheritance to FALSE
 				0, // No creation flags
 				nullptr, // Use parent's environment block
-				nullptr, // Use parent's starting directory 
+				nullptr, // Use parent's starting directory
 				&si, // Pointer to STARTUPINFO structure
 				&pi) != 0) {
 
@@ -687,18 +777,154 @@ static GLuint ui_shader_program = 0;
 
 void load_shaders() {
 	simple_fs::file_system fs;
-	simple_fs::add_root(fs, L".");
+	simple_fs::add_root(fs, NATIVE("."));
 	auto root = get_root(fs);
 
-	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
-	auto ui_vshader = open_file(root, NATIVE("assets/shaders/glsl/ui_v_shader.glsl"));
-	if(bool(ui_fshader) && bool(ui_vshader)) {
-		auto vertex_content = view_contents(*ui_vshader);
-		auto fragment_content = view_contents(*ui_fshader);
-		ui_shader_program = create_program(std::string_view(vertex_content.data, vertex_content.file_size), std::string_view(fragment_content.data, fragment_content.file_size));
-	} else {
-		MessageBoxW(m_hwnd, L"Unable to open a necessary shader file", L"OpenGL error", MB_OK);
-	}
+	std::string_view fx_str =
+		"subroutine vec4 color_function_class(vec4 color_in);\n"
+		"layout(location = 0) subroutine uniform color_function_class coloring_function;\n"
+		"subroutine vec4 font_function_class(vec2 tc);\n"
+		"layout(location = 1) subroutine uniform font_function_class font_function;\n"
+		"in vec2 tex_coord;\n"
+		"layout (location = 0) out vec4 frag_color;\n"
+		"layout (binding = 0) uniform sampler2D texture_sampler;\n"
+		"layout (binding = 1) uniform sampler2D secondary_texture_sampler;\n"
+		"layout (location = 2) uniform vec4 d_rect;\n"
+		"layout (location = 6) uniform float border_size;\n"
+		"layout (location = 7) uniform vec3 inner_color;\n"
+		"layout (location = 10) uniform vec4 subrect;\n"
+		"layout (location = 11) uniform float gamma;\n"
+		"vec4 gamma_correct(vec4 colour) {\n"
+		"\treturn vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);\n"
+		"}\n"
+		"layout(index = 0) subroutine(font_function_class)\n"
+		"vec4 border_filter(vec2 tc) {\n"
+		"\tvec4 color_in = texture(texture_sampler, tc);\n"
+		"\tif(color_in.r > 0.5) {\n"
+		"\t\treturn vec4(inner_color, 1.0);\n"
+		"\t} else if(color_in.r > 0.5 - border_size) {\n"
+		"\t\tfloat sm_val = smoothstep(0.5 - border_size / 2.0, 0.5, color_in.r);\n"
+		"\t\treturn vec4(mix(vec3(1.0, 1.0, 1.0) - inner_color, inner_color, sm_val), 1.0);\n"
+		"\t} else {\n"
+		"\t\tfloat sm_val = smoothstep(0.5 - border_size * 1.5, 0.5 - border_size, color_in.r);\n"
+		"\t\treturn vec4(vec3(1.0, 1.0, 1.0) - inner_color, sm_val);\n"
+		"\t}\n"
+		"}\n"
+		"layout(index = 1) subroutine(font_function_class)\n"
+		"vec4 color_filter(vec2 tc) {\n"
+		"\tvec4 color_in = texture(texture_sampler, tc);\n"
+		"\tfloat sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);\n"
+		"\treturn vec4(inner_color, sm_val);\n"
+		"}\n"
+		"layout(index = 2) subroutine(font_function_class)\n"
+		"vec4 no_filter(vec2 tc) {\n"
+		"\treturn texture(texture_sampler, tc);\n"
+		"}\n"
+		"layout(index = 5) subroutine(font_function_class)\n"
+		"vec4 subsprite(vec2 tc) {\n"
+		"\treturn texture(texture_sampler, vec2(tc.x * inner_color.y + inner_color.x, tc.y));\n"
+		"}\n"
+		"layout(index = 15) subroutine(font_function_class)\n"
+		"vec4 subsprite_b(vec2 tc) {\n"
+		"\treturn vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);\n"
+		"}\n"
+		"layout(index = 6) subroutine(font_function_class)\n"
+		"vec4 use_mask(vec2 tc) {\n"
+		"\treturn vec4(texture(texture_sampler, tc).rgb, texture(secondary_texture_sampler, tc).a);\n"
+		"}\n"
+		"layout(index = 7) subroutine(font_function_class)\n"
+		"vec4 progress_bar(vec2 tc) {\n"
+		"\treturn mix( texture(texture_sampler, tc), texture(secondary_texture_sampler, tc), step(border_size, tc.x));\n"
+		"}\n"
+		"layout(index = 8) subroutine(font_function_class)\n"
+		"vec4 frame_stretch(vec2 tc) {\n"
+		"\tconst float realx = tc.x * d_rect.z;\n"
+		"\tconst float realy = tc.y * d_rect.w;\n"
+		"\tconst vec2 tsize = textureSize(texture_sampler, 0);\n"
+		"\tfloat xout = 0.0;\n"
+		"\tfloat yout = 0.0;\n"
+		"\tif(realx <= border_size)\n"
+		"\t\txout = realx / tsize.x;\n"
+		"\telse if(realx >= (d_rect.z - border_size))\n"
+		"\t\txout = (1.0 - border_size / tsize.x) + (border_size - (d_rect.z - realx))  / tsize.x;\n"
+		"\telse\n"
+		"\t\txout = border_size / tsize.x + (1.0 - 2.0 * border_size / tsize.x) * (realx - border_size) / (d_rect.z * 2.0 * border_size);\n"
+		"\tif(realy <= border_size)\n"
+		"\t\tyout = realy / tsize.y;\n"
+		"\telse if(realy >= (d_rect.w - border_size))\n"
+		"\t\tyout = (1.0 - border_size / tsize.y) + (border_size - (d_rect.w - realy))  / tsize.y;\n"
+		"\telse\n"
+		"\t\tyout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);\n"
+		"\treturn texture(texture_sampler, vec2(xout, yout));\n"
+		"}\n"
+		"layout(index = 9) subroutine(font_function_class)\n"
+		"vec4 piechart(vec2 tc) {\n"
+		"\tif(((tc.x - 0.5) * (tc.x - 0.5) + (tc.y - 0.5) * (tc.y - 0.5)) > 0.25)\n"
+		"\t\treturn vec4(0.0, 0.0, 0.0, 0.0);\n"
+		"\telse\n"
+		"\t\treturn texture(texture_sampler, vec2((atan((tc.y - 0.5), (tc.x - 0.5) ) + M_PI) / (2.0 * M_PI), 0.5));\n"
+		"}\n"
+		"layout(index = 10) subroutine(font_function_class)\n"
+		"vec4 barchart(vec2 tc) {\n"
+		"\tvec4 color_in = texture(texture_sampler, vec2(tc.x, 0.5));\n"
+		"\treturn vec4(color_in.rgb, step(1.0 - color_in.a, tc.y));\n"
+		"}\n"
+		"layout(index = 11) subroutine(font_function_class)\n"
+		"vec4 linegraph(vec2 tc) {\n"
+		"\treturn mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0), tc.y);\n"
+		"}\n"
+		"layout(index = 3) subroutine(color_function_class)\n"
+		"vec4 disabled_color(vec4 color_in) {\n"
+		"\tconst float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+		"\treturn vec4(amount, amount, amount, color_in.a);\n"
+		"}\n"
+		"layout(index = 13) subroutine(color_function_class)\n"
+		"vec4 interactable_color(vec4 color_in) {\n"
+		"\treturn vec4(color_in.r + 0.1, color_in.g + 0.1, color_in.b + 0.1, color_in.a);\n"
+		"}\n"
+		"layout(index = 14) subroutine(color_function_class)\n"
+		"vec4 interactable_disabled_color(vec4 color_in) {\n"
+		"\tconst float amount = (color_in.r + color_in.g + color_in.b) / 4.0;\n"
+		"\treturn vec4(amount + 0.1, amount + 0.1, amount + 0.1, color_in.a);\n"
+		"}\n"
+		"layout(index = 12) subroutine(color_function_class)\n"
+		"vec4 tint_color(vec4 color_in) {\n"
+		"\treturn vec4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);\n"
+		"}\n"
+		"layout(index = 4) subroutine(color_function_class)\n"
+		"vec4 enabled_color(vec4 color_in) {\n"
+		"\treturn color_in;\n"
+		"}\n"
+		"layout(index = 16) subroutine(color_function_class)\n"
+		"vec4 alt_tint_color(vec4 color_in) {\n"
+		"\treturn vec4(color_in.r * subrect.r, color_in.g * subrect.g, color_in.b * subrect.b, color_in.a);\n"
+		"}\n"
+		"void main() {\n"
+		"\tfrag_color = gamma_correct(coloring_function(font_function(tex_coord)));\n"
+		"}";
+	std::string_view vx_str =
+		"layout (location = 0) in vec2 vertex_position;\n"
+		"layout (location = 1) in vec2 v_tex_coord;\n"
+		"out vec2 tex_coord;\n"
+		"layout (location = 0) uniform float screen_width;\n"
+		"layout (location = 1) uniform float screen_height;\n"
+		// The 2d coordinates on the screen
+		// d_rect.x - x cooridinate
+		// d_rect.y - y cooridinate
+		// d_rect.z - width
+		// d_rect.w - height
+		"layout (location = 2) uniform vec4 d_rect;\n"
+		"void main() {\n"
+		// Transform the d_rect rectangle to screen space coordinates
+		// vertex_position is used to flip and/or rotate the coordinates
+		"\tgl_Position = vec4(\n"
+		"\t\t-1.0 + (2.0 * ((vertex_position.x * d_rect.z)  + d_rect.x) / screen_width),\n"
+		"\t\t 1.0 - (2.0 * ((vertex_position.y * d_rect.w)  + d_rect.y) / screen_height),\n"
+		"\t\t0.0, 1.0);\n"
+		"\ttex_coord = v_tex_coord;\n"
+		"}";
+
+	ui_shader_program = create_program(vx_str, fx_str);
 }
 
 static GLuint global_square_vao = 0;
@@ -841,7 +1067,12 @@ void bind_vertices_by_rotation(ui::rotation r, bool flipped) {
 	}
 }
 
-void render_textured_rect(color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, int32_t iwidth, int32_t iheight, GLuint texture_handle, ui::rotation r, bool flipped) {
+	float x = float(ix);
+	float y = float(iy);
+	float width = float(iwidth);
+	float height = float(iheight);
+
 	glBindVertexArray(global_square_vao);
 
 	bind_vertices_by_rotation(r, flipped);
@@ -951,9 +1182,9 @@ void render() {
 	glViewport(0, 0, int32_t(base_width * scaling_factor), int32_t(base_height * scaling_factor));
 	glDepthRange(-1.0f, 1.0f);
 
-	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0.0f, 0.0f, base_width, base_height, bg_tex.get_texture_handle(), ui::rotation::upright, false);
+	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0, 0, int32_t(base_width), int32_t(base_height), bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83.0f, 5.0f, 26.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -1147,10 +1378,10 @@ void render() {
 		if(i % 2 == 1) {
 			launcher::ogl::render_textured_rect(
 				launcher::ogl::color_modification::none,
-				60.0f,
-				75.0f + float(ui_row_height * i),
-				440.0f,
-				float(ui_row_height),
+				60,
+				75 + ui_row_height * i,
+				440,
+				ui_row_height,
 				launcher::line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 		}
 
@@ -1413,7 +1644,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			if(GetKeyState(VK_CONTROL) & 0x8000) {
 
 			} else {
-				char turned_into = process_utf16_to_win1250(wParam);
+				char turned_into = process_utf16_to_win1250(wchar_t(wParam));
 				if(turned_into) {
 					if(obj_under_mouse == ui_obj_ip_addr) {
 						if(turned_into == '\b') {
@@ -1424,10 +1655,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						}
 					} else if(obj_under_mouse == ui_obj_player_name) {
 						if(turned_into == '\b') {
-							if(!player_name.empty())
+							if(!player_name.empty()) {
 								player_name.pop_back();
+								save_playername();
+							}
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
 							player_name.push_back(turned_into);
+							save_playername();
 						}
 					} else if(obj_under_mouse == ui_obj_password) {
 						if(turned_into == '\b') {
@@ -1466,7 +1700,7 @@ void signal_abort_handler(int) {
 		si.cb = sizeof(si);
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
-		// Start the child process. 
+		// Start the child process.
 		if(CreateProcessW(
 			L"dbg_alice.exe",   // Module name
 			NULL, // Command line
@@ -1475,7 +1709,7 @@ void signal_abort_handler(int) {
 			FALSE, // Set handle inheritance to FALSE
 			0, // No creation flags
 			NULL, // Use parent's environment block
-			NULL, // Use parent's starting directory 
+			NULL, // Use parent's starting directory
 			&si, // Pointer to STARTUPINFO structure
 			&pi) == 0) {
 
@@ -1486,7 +1720,7 @@ void signal_abort_handler(int) {
 		}
 		// Wait until child process exits.
 		WaitForSingleObject(pi.hProcess, INFINITE);
-		// Close process and thread handles. 
+		// Close process and thread handles.
 		CloseHandle(pi.hProcess);
 		CloseHandle(pi.hThread);
 	}
@@ -1576,9 +1810,20 @@ int WINAPI wWinMain(
 	// Use by default the name of the computer
 	char username[256 + 1];
 	DWORD username_len = 256 + 1;
-	GetUserNameA(username, &username_len);
-	launcher::player_name = std::string(reinterpret_cast<const char*>(&username[0]));
-	//
+	GetComputerNameA(username, &username_len);
+
+	// Load from user settings
+	auto settings_location = simple_fs::get_or_create_settings_directory();
+	if(auto player_name_file = simple_fs::open_file(settings_location, NATIVE("player_name.dat")); player_name_file) {
+		auto contents = simple_fs::view_contents(*player_name_file);
+		const sys::player_name *p = (const sys::player_name*)contents.data;
+		if(contents.file_size >= sizeof(*p)) {
+			launcher::player_name = std::string(p->data);
+		}
+	} else {
+		srand(time(NULL));
+		launcher::player_name = std::to_string(int32_t(rand()));
+	}
 
 	launcher::m_hwnd = CreateWindowEx(
 		0,
@@ -1636,88 +1881,3 @@ int WINAPI wWinMain(
 
 	return 0;
 }
-
-#include "common_types.cpp"
-#include "fonts.cpp"
-#include "texture.cpp"
-#include "text.cpp"
-#include "system_state.cpp"
-#include "parsers.cpp"
-#include "defines.cpp"
-#include "float_from_chars.cpp"
-#include "gui_graphics_parsers.cpp"
-#include "nations_parsing.cpp"
-#include "cultures_parsing.cpp"
-#include "econ_parsing.cpp"
-#include "military_parsing.cpp"
-#include "date_interface.cpp"
-#include "provinces_parsing.cpp"
-#include "trigger_parsing.cpp"
-#include "effect_parsing.cpp"
-#include "serialization.cpp"
-#include "nations.cpp"
-#include "culture.cpp"
-#include "military.cpp"
-#include "modifiers.cpp"
-#include "province.cpp"
-#include "triggers.cpp"
-#include "effects.cpp"
-#include "economy.cpp"
-#include "demographics.cpp"
-#include "bmfont.cpp"
-#include "rebels.cpp"
-#include "parsers_declarations.cpp"
-#include "politics.cpp"
-#include "events.cpp"
-#include "gui_graphics.cpp"
-#include "gui_element_types.cpp"
-#include "gui_common_elements.cpp"
-#include "gui_main_menu.cpp"
-#include "gui_console.cpp"
-#include "gui_province_window.cpp"
-#include "gui_budget_window.cpp"
-#include "gui_technology_window.cpp"
-#include "gui_event.cpp"
-#include "gui_message_settings_window.cpp"
-#include "gui_trigger_tooltips.cpp"
-#include "gui_effect_tooltips.cpp"
-#include "gui_modifier_tooltips.cpp"
-#include "commands.cpp"
-#include "diplomatic_messages.cpp"
-#include "notifications.cpp"
-#include "map_tooltip.cpp"
-#include "unit_tooltip.cpp"
-#include "ai.cpp"
-
-#include "window_win.cpp"
-#include "sound_win.cpp"
-#include "opengl_wrapper_win.cpp"
-#include "opengl_wrapper.cpp"
-
-// zstd
-extern "C" {
-#define XXH_NAMESPACE ZSTD_
-#define ZSTD_DISABLE_ASM
-
-#include "zstd/xxhash.c"
-#include "zstd/zstd_decompress_block.c"
-#include "zstd/zstd_ddict.c"
-#include "zstd/huf_compress.c"
-#include "zstd/fse_compress.c"
-#include "zstd/huf_decompress.c"
-#include "zstd/fse_decompress.c"
-#include "zstd/zstd_common.c"
-#include "zstd/entropy_common.c"
-#include "zstd/hist.c"
-#include "zstd/zstd_compress_superblock.c"
-#include "zstd/zstd_ldm.c"
-#include "zstd/zstd_opt.c"
-#include "zstd/zstd_lazy.c"
-#include "zstd/zstd_double_fast.c"
-#include "zstd/zstd_fast.c"
-#include "zstd/zstd_compress_literals.c"
-#include "zstd/zstd_compress_sequences.c"
-#include "zstd/error_private.c"
-#include "zstd/zstd_decompress.c"
-#include "zstd/zstd_compress.c"
-};

@@ -2665,7 +2665,7 @@ struct effect_body {
 			}
 			context.compiled_effect.push_back(trigger::payload(int16_t(value.value)).value);
 		} else if(value.who.length() == 3) {
-			
+
 			if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value.who[0], value.who[1], value.who[2]));
 					it != context.outer_context.map_of_ident_names.end()) {
 

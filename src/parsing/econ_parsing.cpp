@@ -168,7 +168,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 				}
 			}
 		}
-		context.templates.insert_or_assign(std::string(name), std::move(pt));	
+		context.templates.insert_or_assign(std::string(name), std::move(pt));
 	} else if(pt.type_ == production_type_enum::rgo) {
 		context.outer_context.state.world.commodity_set_is_mine(pt.output_goods_, pt.mine);
 		context.outer_context.state.world.commodity_set_rgo_amount(pt.output_goods_, pt.value);

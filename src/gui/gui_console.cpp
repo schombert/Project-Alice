@@ -51,8 +51,10 @@ struct command_info {
 		change_control,
 		change_control_and_owner,
 		province_id_tooltip,
+		wasd,
 		next_song,
 		add_population,
+		instant_army,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -189,11 +191,17 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "provid", command_info::type::province_id_tooltip, "show province id in mouse tooltip",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "wasd", command_info::type::wasd, "move camera with wasd",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "addpop", command_info::type::add_population, "Add a certain ammount of population to your nation",
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "instant_army", command_info::type::instant_army, "Instantly builds all armies",
+				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 						
 };
@@ -524,6 +532,15 @@ void ui::console_edit::edit_box_down(sys::state& state) noexcept {
 		auto index = int32_t(down.size());
 		this->edit_index_position(state, index);
 	}
+}
+
+template<typename F>
+void write_single_component(sys::state& state, native_string_view filename, F&& func) {
+	auto sdir = simple_fs::get_or_create_oos_directory();
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sys::sizeof_scenario_section(state)]);
+	auto buffer_position = func(buffer.get(), state);
+	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
+	simple_fs::write_file(sdir, filename, reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
@@ -1184,6 +1201,255 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::dump_out_of_sync:
 		state.debug_save_oos_dump();
 		state.debug_scenario_oos_dump();
+		// Extneded data NOT included in normal dumps
+		write_single_component(state, NATIVE("map_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.river_vertices);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.river_starts);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.river_counts);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_vertices);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_starts);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.coastal_counts);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.border_vertices);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.borders);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.terrain_id_map);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_id_map);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.province_area);
+			ptr_in = sys::serialize(ptr_in, state.map_state.map_data.diagonal_borders);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("defines.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			memcpy(ptr_in, &(state.defines), sizeof(parsing::defines));
+			ptr_in += sizeof(parsing::defines);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("economy_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			memcpy(ptr_in, &(state.economy_definitions), sizeof(economy::global_economy_state));
+			ptr_in += sizeof(economy::global_economy_state);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("party_issues.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.party_issues);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("political_issues.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.political_issues);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("social_issues.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.social_issues);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("military_issues.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.military_issues);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("economic_issues.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.economic_issues);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("tech_folders.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.tech_folders);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("crimes.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.culture_definitions.crimes);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("culture_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.artisans);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.capitalists);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.farmers);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.laborers);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.clergy);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.soldiers);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.officers);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.slaves);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.bureaucrat);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.aristocrat);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.primary_factory_worker);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.secondary_factory_worker);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.officer_leadership_points);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.bureaucrat_tax_efficiency);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.conservative);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.jingoism);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.promotion_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.demotion_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.migration_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.colonialmigration_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.emigration_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.assimilation_chance);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.culture_definitions.conversion_chance);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("unit_base_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.military_definitions.unit_base_definitions);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("military_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.first_background_trait);
+			//ptr_in = sys::serialize(ptr_in, state.military_definitions.unit_base_definitions);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.base_army_unit);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.base_naval_unit);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.standard_civil_war);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.standard_great_war);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.standard_status_quo);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.liberate);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.uninstall_communist_gov);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.crisis_colony);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.crisis_liberate);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.irregular);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.infantry);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.artillery);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("national_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.flag_variable_names);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.global_flag_variable_names);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.variable_names);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.triggered_modifiers);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.rebel_id);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.easy_player);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.hard_player);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.very_hard_player);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.very_easy_ai);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.easy_ai);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.hard_ai);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.very_hard_ai);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.overseas);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.coastal);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.non_coastal);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.coastal_sea);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.sea_zone);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.land_province);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.blockaded);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.no_adjacent_controlled);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.core);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.has_siege);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.occupied);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.nationalism);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.infrastructure);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.base_values);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.war);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.peace);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.disarming);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.war_exhaustion);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.badboy);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.debt_default_to);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.bad_debter);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.great_power);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.second_power);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.civ_nation);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.unciv_nation);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.average_literacy);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.plurality);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.generalised_debt_default);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.total_occupation);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.total_blockaded);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.in_bankrupcy);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_variables);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_national_flags);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.num_allocated_global_flags);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.flashpoint_focus);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.national_definitions.flashpoint_amount);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_yearly_pulse);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_quarterly_pulse);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_battle_won);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_battle_lost);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_surrender);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_new_great_nation);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_lost_great_nation);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_election_tick);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_colony_to_state);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_state_conquest);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_colony_to_state_free_slaves);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_debtor_default);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_debtor_default_small);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_debtor_default_second);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_civilize);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_my_factories_nationalized);
+			ptr_in = sys::serialize(ptr_in, state.national_definitions.on_crisis_declare_interest);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("province_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.province_definitions.canals);
+			ptr_in = sys::serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.europe);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.asia);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.africa);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.north_america);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.south_america);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.oceania);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("dates.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::memcpy_serialize(ptr_in, state.start_date);
+			ptr_in = sys::memcpy_serialize(ptr_in, state.end_date);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("trigger_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.trigger_data);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("trigger_data_indices.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.trigger_data_indices);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("effect_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.effect_data);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("effect_data_indices.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.effect_data_indices);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("value_modifier_segments.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.value_modifier_segments);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("value_modifiers.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.value_modifiers);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("text_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.text_data);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("text_components.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.text_components);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("text_sequences.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.text_sequences);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("ui_defs_gfx.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.ui_defs.gfx);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("ui_defs_textures.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.ui_defs.textures);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("ui_defs_textures.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.ui_defs.textures);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("ui_defs_gui.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.ui_defs.gui);
+			return ptr_in;
+		});
+		write_single_component(state, NATIVE("font_collection_font_names.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+			ptr_in = sys::serialize(ptr_in, state.font_collection.font_names);
+			return ptr_in;
+		});
 		break;
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
@@ -1275,6 +1541,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
 		break;
 	}
+	case command_info::type::wasd:
+	{
+		state.cheat_data.wasd_move_cam = not state.cheat_data.wasd_move_cam;
+		break;
+	}
 	case command_info::type::next_song:
 	{
 		sound::play_new_track(state);
@@ -1284,6 +1555,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto ammount = std::get<std::int32_t>(pstate.arg_slots[0]);
 		command::c_add_population(state, state.local_player_nation, ammount);
+		break;
+	}
+	case command_info::type::instant_army:
+	{
+		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::none:
