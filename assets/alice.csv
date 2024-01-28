@@ -38,6 +38,8 @@ map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+spoilers_label;Spoilers
+spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
 mapmode_24;Fort Mapmode
 mapmode_25;Ideology Mapmode
@@ -596,9 +598,6 @@ factory_upgrade_condition_7;The investment target is not at war with you;;;;;;;;
 factory_upgrade_condition_8;The ruling party allows upgrading factories;;;;;;;;;;;;x
 factory_upgrade_condition_9;The factory is not already being upgraded;;;;;;;;;;;;x
 factory_upgrade_condition_10;The factory is not at max level;;;;;;;;;;;;x
-factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment in a state being upgraded.;;;;;;;;;;;;x
-factory_upgrade_ctrl_explanation;Holding CTRL while clicking will result in all factories in a state being upgraded.;;;;;;;;;;;;x
-factory_upgrade_ctrl_shift_explanation;Holding CTRL + SHIFT while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
 factory_delete_header;Delete factory;;;;;;;;;;;;x
 factory_delete_not_allowed;The ruling party does not allow us to delete factories;;;;;;;;;;;;x
 factory_stats_1;This factory is currently operating at $val$ capacity;;;;;;;;;;;;x
@@ -613,8 +612,8 @@ alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories i
 alice_expand_factory_controls_2;§YSHIFT-Right-click§W upgrade §Gall profitable§W factories in a state 
 alice_expand_factory_controls_3;§YCTRL-Left-click§W upgrade §Gall§W factories in a nation
 alice_expand_factory_controls_4;§YCTRL-Right-click§W upgrade §Gall profitable§W factories in a nation
-alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall of the same type§W factories in a nation
-alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable of the same type§W factories in a nation
+alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall profitable with full employment§W factories in a state
+alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable with full employment§W factories in a state
 blank_org_gain;organization gain;;;;;;;;;;;;x
 plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
@@ -718,8 +717,11 @@ pop_lit_5;The national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_7;The base literacy change rate: $x$;;;;;;;;;;;;x
 pop_lit_8;And 0.01;;;;;;;;;;;;x
-pop_growth_topbar;Our population is expected to grow by $x$ within the next month;;;;;;;;;;;;x
-pop_growth_topbar_2;Our population changed by $x$ last month;;;;;;;;;;;;x
+pop_growth_topbar;It's expected to grow by §G$x$§W within the next month.;;;;;;;;;;;;x
+pop_growth_topbar_2;population changed by §G$x$§W in the last §Y30§W days.;;;;;;;;;;;;x
+pop_growth_topbar_3;Our Adult male population is §Y$curr$§W. Our adult male
+separation_topbar;----------------
+pop_growth_topbar_4;Our total population is §Y$val$§W.
 pop_growth_1;Monthly pop growth: ;;;;;;;;;;;;x
 pop_growth_2;Slaves do not grow;;;;;;;;;;;;x
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;;;;;;;;;;;;x

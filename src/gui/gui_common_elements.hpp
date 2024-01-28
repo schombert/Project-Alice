@@ -1244,6 +1244,31 @@ public:
 	}
 };
 
+class military_score_icon : public opaque_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province = retrieve<dcon::province_id>(state, parent);
+		auto nation = retrieve<dcon::nation_id>(state, parent);
+		
+		if(province) {
+			auto fat_id = dcon::fatten(state.world, province);
+			if(fat_id.get_province_ownership().get_nation().get_is_mobilized()) {
+				frame = 1;
+			} else {
+				frame = 0;
+			}
+		} else if (nation) {
+			auto fat_id = dcon::fatten(state.world, nation);
+			if(fat_id.get_is_mobilized()) {
+				frame = 1;
+			} else {
+				frame = 0;
+			}
+		}
+		
+	}
+};
+
 class fixed_pop_type_icon : public opaque_element_base {
 public:
 	dcon::pop_type_id type{};
@@ -1766,7 +1791,7 @@ public:
 						color = text::text_color::red;
 					}
 				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+					if(province::state_admin_efficiency(state, fat_si.id) >= 1.f) {
 						color = text::text_color::red;
 					}
 				}

@@ -297,14 +297,22 @@ void display_data::create_meshes() {
 
 display_data::~display_data() {
 	/* We don't need to check against 0, since the delete functions already do that for us */
-	glDeleteTextures(texture_count, textures);
-	glDeleteTextures(texture_count, texture_arrays);
-	glDeleteTextures(max_static_meshes, static_mesh_textures);
-	glDeleteVertexArrays(vo_count, vao_array);
-	glDeleteBuffers(vo_count, vbo_array);
+	if(textures[0])
+		glDeleteTextures(texture_count, textures);
+	if(texture_arrays[0])
+		glDeleteTextures(texture_count, texture_arrays);
+	if(static_mesh_textures[0])
+		glDeleteTextures(max_static_meshes, static_mesh_textures);
+	if(vao_array[0])
+		glDeleteVertexArrays(vo_count, vao_array);
+	if(vbo_array[0])
+		glDeleteBuffers(vo_count, vbo_array);
+
 	/* Flags shader for deletion, but doesn't delete them until they're no longer in the rendering context */
-	for(const auto shader : shaders)
-		glDeleteProgram(shader);
+	for(const auto shader : shaders) {
+		if(shader)
+			glDeleteProgram(shader);
+	}
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {

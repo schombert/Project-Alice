@@ -296,10 +296,11 @@ public:
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
 		auto pop_change = state.ui_date.value <= 30 ? 0.0f : (pop_amount - state.player_data_cache.population_record[(state.ui_date.value - 30) % 32]);
 
-		text::add_line(state, contents, "topbar_population_visual", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
-		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
 		text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
+		text::add_line(state, contents, "separation_topbar");
+		text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
 		text::add_line_break_to_layout(state, contents);
 
@@ -1874,7 +1875,9 @@ public:
 			var.empty() ? ptr->slot = uint8_t(0) : ptr->slot = uint8_t(std::stoi(var));
 			produced_icons.push_back(ptr.get());
 			return ptr;
-		} else {
+		} else if (name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
+		}  else {
 			return nullptr;
 		}
 	}

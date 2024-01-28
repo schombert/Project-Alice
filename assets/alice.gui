@@ -479,6 +479,38 @@ guiTypes = {
 				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Edge scrolling checkbox
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Spoilers checkbox
+			instantTextBoxType = {
+				name = "spoilers_label"
+				position = { 78 260 }
+				text = "spoilers_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "spoilers_checkbox"
+				position = { 51 260 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"
@@ -498,21 +530,6 @@ guiTypes = {
 				maxsize = { 236 18 }
 				orientation = "UPPER_LEFT"
 				format = centre
-			}
-			instantTextBoxType = {
-				name = "edge_scrolling_label"
-				position = { 220 116 }
-				text = "edge_scrolling_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = left
-			}
-			guiButtonType = {
-				name = "mouse_edge_scrolling_checkbox"
-				position = {200 115}
-				quadTextureSprite = "GFX_checkbox_default"
 			}
 			guiButtonType = {
 				name = "zoom_mode_left"
@@ -3940,7 +3957,7 @@ guiTypes = {
 		}
 		iconType = {
 			name = "minimap_bg-patch"
-			spriteType = "new-minimap-bg"
+			spriteType = "GFX_new_minimap_bg"
 			position = { -374 -220 }
 			Orientation = "LOWER_RIGHT"
 		}
@@ -4335,10 +4352,10 @@ guiTypes = {
 
 	instantTextBoxType = {
 		name = "alice_readme_text"
-		position = { -260 -187 }
-		maxsize = { 520 180 }
+		position = { -235 -180 }
+		maxsize = { 460 160 }
 		fixedsize = yes
-		font = "vic_18"
+		font = "Arial16"
 		Orientation = "CENTER_DOWN"
 	}
 }

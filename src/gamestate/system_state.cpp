@@ -193,7 +193,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					local_player_nation = owner;
 					world.nation_set_is_player_controlled(local_player_nation, true);
 					ui_state.nation_picker->impl_on_update(*this);
-				} else {
+				} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
@@ -2127,6 +2127,7 @@ void state::save_user_settings() const {
 	US_SAVE(render_models);
 	US_SAVE(mouse_edge_scrolling);
 	US_SAVE(black_map_font);
+	US_SAVE(spoilers);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2186,6 +2187,7 @@ void state::load_user_settings() {
 			US_LOAD(render_models);
 			US_LOAD(mouse_edge_scrolling);
 			US_LOAD(black_map_font);
+			US_LOAD(spoilers);
 #undef US_LOAD
 		} while(false);
 
