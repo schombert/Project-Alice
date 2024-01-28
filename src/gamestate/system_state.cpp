@@ -1929,56 +1929,56 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-	auto start_position = text_data.data() + tag.index();
-	auto data_size = text_data.size();
+	auto start_position = text_data[user_settings.current_language].data() + tag.index();
+	auto data_size = text_data[user_settings.current_language].size();
 	auto end_position = start_position;
-	for(; end_position < text_data.data() + data_size; ++end_position) {
+	for(; end_position < text_data[user_settings.current_language].data() + data_size; ++end_position) {
 		if(*end_position == 0)
 			break;
 	}
-	return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
+	return std::string_view(text_data[user_settings.current_language].data() + tag.index(), size_t(end_position - start_position));
 }
 
 dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
 	auto res = add_to_pool(new_text);
 	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+		text_data[user_settings.current_language][res.index() + i] = char(tolower(text_data[user_settings.current_language][res.index() + i]));
 	}
 	return res;
 }
 dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
 	auto res = add_to_pool(new_text);
 	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+		text_data[user_settings.current_language][res.index() + i] = char(tolower(text_data[user_settings.current_language][res.index() + i]));
 	}
 	return res;
 }
 dcon::text_key state::add_to_pool(std::string const& new_text) {
-	auto start = text_data.size();
+	auto start = text_data[user_settings.current_language].size();
 	auto size = new_text.length();
 	if(size == 0)
 		return dcon::text_key();
-	text_data.resize(start + size + 1, char(0));
-	std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
+	text_data[user_settings.current_language].resize(start + size + 1, char(0));
+	std::copy_n(new_text.c_str(), size + 1, text_data[user_settings.current_language].data() + start);
 	return dcon::text_key(uint32_t(start));
 }
 dcon::text_key state::add_to_pool(std::string_view new_text) {
-	auto start = text_data.size();
+	auto start = text_data[user_settings.current_language].size();
 	auto length = new_text.length();
 	if(length == 0)
 		return dcon::text_key();
-	text_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, text_data.data() + start);
-	text_data.back() = 0;
+	text_data[user_settings.current_language].resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, text_data[user_settings.current_language].data() + start);
+	text_data[user_settings.current_language].back() = 0;
 	return dcon::text_key(uint32_t(start));
 }
 
 dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
-		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
+		auto search_result = std::search(text_data[user_settings.current_language].data(), text_data[user_settings.current_language].data() + text_data[user_settings.current_language].size(),
 				std::boyer_moore_horspool_searcher(new_text.c_str(), new_text.c_str() + new_text.length() + 1));
-		if(search_result != text_data.data() + text_data.size()) {
-			return dcon::text_key(uint32_t(search_result - text_data.data()));
+		if(search_result != text_data[user_settings.current_language].data() + text_data[user_settings.current_language].size()) {
+			return dcon::text_key(uint32_t(search_result - text_data[user_settings.current_language].data()));
 		} else {
 			return add_to_pool(new_text);
 		}
@@ -2127,6 +2127,7 @@ void state::save_user_settings() const {
 	US_SAVE(render_models);
 	US_SAVE(mouse_edge_scrolling);
 	US_SAVE(black_map_font);
+	US_SAVE(current_language);
 	US_SAVE(spoilers);
 #undef US_SAVE
 
@@ -2187,6 +2188,7 @@ void state::load_user_settings() {
 			US_LOAD(render_models);
 			US_LOAD(mouse_edge_scrolling);
 			US_LOAD(black_map_font);
+			US_LOAD(current_language);
 			US_LOAD(spoilers);
 #undef US_LOAD
 		} while(false);
@@ -2275,7 +2277,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2, err); // 2 = English
+	text::load_text_data(*this, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 

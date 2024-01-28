@@ -56,18 +56,18 @@ std::string lowercase_str(std::string_view sv) {
 	return result;
 }
 
-text_sequence create_text_sequence(sys::state& state, std::string_view content) {
+text_sequence create_text_sequence(sys::state& state, std::string_view content, uint32_t language) {
 	char const* seq_start = content.data();
 	char const* seq_end = content.data() + content.size();
 	char const* section_start = seq_start;
 
-	const auto component_start_index = state.text_components.size();
+	const auto component_start_index = state.text_components[language].size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
 		if(uint8_t(*pos) == 0xA7) {
 			if(section_start != pos) {
 				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-				state.text_components.emplace_back(added_key);
+				state.text_components[language].emplace_back(added_key);
 			}
 			pos += 1;
 			section_start = pos;
@@ -76,14 +76,14 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 							is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
 				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-				state.text_components.emplace_back(added_key);
+				state.text_components[language].emplace_back(added_key);
 			}
 			section_start = pos += 3;
 			colour_esc = true;
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
 				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-				state.text_components.emplace_back(added_key);
+				state.text_components[language].emplace_back(added_key);
 			}
 			pos += 1;
 			section_start = pos;
@@ -91,21 +91,21 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 		} else if(*pos == '$') {
 			if(section_start != pos) {
 				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-				state.text_components.emplace_back(added_key);
+				state.text_components[language].emplace_back(added_key);
 			}
 			const char* vend = pos + 1;
 			for(; vend != seq_end && *vend != '$'; ++vend)
 				;
 			if(vend > pos + 1)
-				state.text_components.emplace_back(variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)));
+				state.text_components[language].emplace_back(variable_type_from_name(std::string_view(pos + 1, vend - pos - 1)));
 			pos = vend + 1;
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 			if(section_start != pos) {
 				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
-				state.text_components.emplace_back(added_key);
+				state.text_components[language].emplace_back(added_key);
 			}
-			state.text_components.emplace_back(line_break{});
+			state.text_components[language].emplace_back(line_break{});
 			section_start = pos += 2;
 		} else {
 			++pos;
@@ -114,7 +114,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 		// This colour escape sequence must be followed by something, otherwise
 		// we should probably discard the last colour command
 		if(colour_esc && pos < seq_end) {
-			state.text_components.emplace_back(char_to_color(*pos));
+			state.text_components[language].emplace_back(char_to_color(*pos));
 			pos += 1;
 			section_start = pos;
 		}
@@ -122,32 +122,35 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 
 	if(section_start < seq_end) {
 		auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
-		state.text_components.emplace_back(added_key);
+		state.text_components[language].emplace_back(added_key);
 	}
 
 	// TODO: Emit error when 64K boundary is violated
-	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
-	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
+	assert(state.text_components[language].size() < std::numeric_limits<uint32_t>::max());
+	assert(state.text_components[language].size() - component_start_index < std::numeric_limits<uint8_t>::max());
 
 	return text_sequence{
 		static_cast<uint32_t>(component_start_index),
-		static_cast<uint16_t>(state.text_components.size() - component_start_index)
+		static_cast<uint16_t>(state.text_components[language].size() - component_start_index)
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, uint32_t language, parsers::error_handler& err, bool& impedance_warn) {
 	auto to_lower_temp = lowercase_str(key);
-	auto sequence_record = create_text_sequence(state, content);
+	auto sequence_record = create_text_sequence(state, content, language);
 
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-		// maybe report an error here -- repeated definition
-		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
-		//leave previous in place
-		//state.text_sequences[it->second] = sequence_record;
+		if(state.text_sequences[language].size() < it->second.value) {
+			const auto nh = state.text_sequences[language].size();
+			state.text_sequences[language].push_back(sequence_record);
+		} else if(!impedance_warn) {
+			err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
+			impedance_warn = true;
+		}
 		return it->second;
 	} else {
-		const auto nh = state.text_sequences.size();
-		state.text_sequences.push_back(sequence_record);
+		const auto nh = state.text_sequences[language].size();
+		state.text_sequences[language].push_back(sequence_record);
 
 		auto main_key = state.add_to_pool_lowercase(key);
 		dcon::text_sequence_id new_k{ dcon::text_sequence_id::value_base_t(nh) };
@@ -156,19 +159,20 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	}
 }
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
+void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
 	auto start = (file_size != 0 && file_content[0] == '#')
 									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 									 : file_content;
 	while(start < file_content + file_size) {
-		start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';',
-				[&state, &err](std::string_view key, std::string_view content) {
-					create_text_entry(state, key, content, err);
+		bool b = false;
+		start = parsers::parse_first_and_fixed_amount_csv_values<6>(start, file_content + file_size, ';',
+				[&state, &err, &b](std::string_view key, std::string_view content, uint32_t language) {
+					create_text_entry(state, key, content, language, err, b);
 				});
 	}
 }
 
-void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
+void load_text_data(sys::state& state, parsers::error_handler& err) {
 	auto rt = get_root(state.common_fs);
 
 	auto text_dir = open_directory(rt, NATIVE("localisation"));
@@ -179,7 +183,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 		if(ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err);
 		}
 	}
 
@@ -188,7 +192,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 	if(alice_csv) {
 		auto content = view_contents(*alice_csv);
 		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size, err);
+		consume_csv_file(state, content.data, content.file_size, err);
 	}
 
 }
@@ -664,12 +668,12 @@ std::string produce_simple_string(sys::state const& state, dcon::text_sequence_i
 	if(!id)
 		return result;
 
-	auto& seq = state.text_sequences[id];
+	auto& seq = state.text_sequences[state.user_settings.current_language][id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
-		if(state.text_components[i + seq.starting_component].type == text::text_component_type::text_key) {
-			result += state.to_string_view(state.text_components[i + seq.starting_component].data.text_key);
-		} else if(state.text_components[i + seq.starting_component].type == text::text_component_type::variable_type) {
+		if(std::holds_alternative<dcon::text_key>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
+			result += state.to_string_view(state.text_components[state.user_settings.current_language][i + seq.starting_component].data.text_key);
+		} else if(std::holds_alternative<variable_type>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
 			result += '?';
 		}
 	}
@@ -695,7 +699,8 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
-		return create_text_entry(state, local_key_copy, txt, err);
+		bool b = false;
+		return create_text_entry(state, local_key_copy, txt, state.user_settings.current_language, err, b);
 	}
 }
 
@@ -1228,21 +1233,21 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
-	auto seq = state.text_sequences[source_text];
+	auto seq = state.text_sequences[state.user_settings.current_language][source_text];
 	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-		if(state.text_components[i].type == text::text_component_type::text_key) {
-			auto tkey = state.text_components[i].data.text_key;
+		if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::text_key) {
+			auto tkey = state.text_components[state.user_settings.current_language][i].data.text_key;
 			std::string_view text = state.to_string_view(tkey);
 			add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
-		} else if(state.text_components[i].type == text::text_component_type::line_break) {
+		} else if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::line_break) {
 			add_line_break_to_layout_box(state, dest, box);
-		} else if(state.text_components[i].type == text::text_component_type::text_color) {
-			if(state.text_components[i].data.text_color == text_color::reset)
+		} else if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::text_color) {
+			if(state.text_components[state.user_settings.current_language][i].data.text_color == text_color::reset)
 				current_color = dest.fixed_parameters.color;
 			else
-				current_color = state.text_components[i].data.text_color;
-		} else if(state.text_components[i].type == text::text_component_type::variable_type) {
-			auto var_type = state.text_components[i].data.variable_type;
+				current_color = state.text_components[state.user_settings.current_language][i].data.text_color;
+		} else if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::variable_type) {
+			auto var_type = state.text_components[state.user_settings.current_language][i].data.variable_type;
 			if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 				auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 				add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);
@@ -1568,15 +1573,15 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 	std::string result;
 
 	if(source_text) {
-		auto seq = state.text_sequences[source_text];
+		auto seq = state.text_sequences[state.user_settings.current_language][source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
-			if(state.text_components[i].type == text::text_component_type::text_key) {
-				auto tkey = state.text_components[i].data.text_key;
+			if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::text_key) {
+				auto tkey = state.text_components[state.user_settings.current_language][i].data.text_key;
 				std::string_view text = state.to_string_view(tkey);
 				// add_to_layout_box(state, dest, box, std::string_view(text), current_color, std::monostate{});
 				result += text;
-			} else if(state.text_components[i].type == text::text_component_type::variable_type) {
-				auto var_type = state.text_components[i].data.variable_type;
+			} else if(state.text_components[state.user_settings.current_language][i].type == text::text_component_type::variable_type) {
+				auto var_type = state.text_components[state.user_settings.current_language][i].data.variable_type;
 				if(auto it = mp.find(uint32_t(var_type)); it != mp.end()) {
 					auto txt = impl::lb_resolve_substitution(state, it->second, mp);
 					// add_to_layout_box(state, dest, box, std::string_view(txt), current_color, it->second);

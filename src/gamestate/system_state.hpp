@@ -374,6 +374,7 @@ struct user_settings_s {
 	bool render_models = false;
 	bool mouse_edge_scrolling = false;
 	bool black_map_font = true;
+	uint8_t current_language = 0;
 	bool spoilers = false;
 };
 
@@ -463,9 +464,9 @@ struct alignas(64) state {
 	std::vector<value_modifier_segment> value_modifier_segments;
 	tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
 
-	std::vector<char> text_data; // stores string data in the win1250 codepage
-	std::vector<text::text_component> text_components;
-	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
+	std::vector<char> text_data[sys::max_languages]; // stores string data in the win1250 codepage
+	std::vector<text::text_component> text_components[sys::max_languages];
+	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences[sys::max_languages];
 	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
 			key_to_text_sequence;
 
@@ -666,7 +667,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
+	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data[0]), text::vector_backed_eq(text_data[0])), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
 
 	~state() = default;
 

@@ -103,6 +103,28 @@ void autosave_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void language_left::button_action(sys::state& state) noexcept {
+	if(state.user_settings.current_language > 0) {
+		state.user_settings.current_language--;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void language_left::on_update(sys::state& state) noexcept {
+	disabled = state.user_settings.current_language == 0;
+}
+void language_right::button_action(sys::state& state) noexcept {
+	if(state.user_settings.current_language < sys::max_languages - 1) {
+		state.user_settings.current_language++;
+		send(state, parent, notify_setting_update{});
+	}
+}
+void language_right::on_update(sys::state& state) noexcept {
+	disabled = state.user_settings.current_language >= sys::max_languages - 1;
+}
+void language_display::on_update(sys::state& state) noexcept {
+	set_text(state, text::produce_simple_string(state, "language_code"));
+}
+
 void map_zoom_mode_left::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
 	if(scale_index > 0) {
@@ -148,6 +170,7 @@ void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
 bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
 	return state.user_settings.mouse_edge_scrolling;
 }
+
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});
