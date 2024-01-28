@@ -4274,10 +4274,10 @@ guiTypes = {
 
 	instantTextBoxType = {
 		name = "alice_readme_text"
-		position = { -260 -187 }
-		maxsize = { 520 180 }
+		position = { -235 -180 }
+		maxsize = { 460 160 }
 		fixedsize = yes
-		font = "vic_18"
+		font = "Arial16"
 		Orientation = "CENTER_DOWN"
 	}
 }
