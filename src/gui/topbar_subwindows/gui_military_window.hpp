@@ -42,8 +42,8 @@ public:
 		int32_t used = 0;
 		int32_t total = 0;
 		for(const auto po : state.world.nation_get_province_ownership(n)) {
-			used += military::regiments_created_from_province(state, po.get_province());
-			total += military::regiments_max_possible_from_province(state, po.get_province());
+			used += military::mobilized_regiments_created_from_province(state, po.get_province());
+			total += military::mobilized_regiments_possible_from_province(state, po.get_province());
 		}
 		float ratio = used > 0 ? float(total) / float(used) : 0.f;
 		progress = ratio;
@@ -57,8 +57,8 @@ public:
 		int32_t used = 0;
 		int32_t total = 0;
 		for(const auto po : state.world.nation_get_province_ownership(n)) {
-			used += military::regiments_created_from_province(state, po.get_province());
-			total += military::regiments_max_possible_from_province(state, po.get_province());
+			used += military::mobilized_regiments_created_from_province(state, po.get_province());
+			total += military::mobilized_regiments_possible_from_province(state, po.get_province());
 		}
 		float ratio = used > 0 ? float(total) / float(used) : 0.f;
 		set_text(state, text::format_percentage(ratio, 2) + " (" + text::prettify(total) + "/" + text::prettify(used) + ")");
