@@ -1488,8 +1488,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		if(tag == "ALL") {
-			for(const auto po : state.world.in_province_ownership) {
-				command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
+			for(const auto p : state.world.in_province) {
+				command::c_change_owner(state, state.local_player_nation, p, state.local_player_nation);
 			}
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);

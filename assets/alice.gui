@@ -3992,7 +3992,7 @@ guiTypes = {
 			tooltipText = "mapmode_1"
 			position = { -348 -157 }
 			size = { 26 21 }
-			quadTextureSprite ="GFX_mapmode_terrain"
+			quadTextureSprite ="GFX_mapmode_terrain.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "q"
 		}
@@ -4000,7 +4000,7 @@ guiTypes = {
 			name = "mapmode_11"
 			tooltipText = "mapmode_11"
 			position = { -348 -136 }
-			quadTextureSprite ="GFX_mapmode_rgooutput"
+			quadTextureSprite ="GFX_mapmode_rgooutput.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "a"
 		}
@@ -4008,7 +4008,7 @@ guiTypes = {
 			name = "mapmode_12"
 			tooltipText = "mapmode_12"
 			position = { -322 -136 }
-			quadTextureSprite ="GFX_mapmode_popdensity"
+			quadTextureSprite ="GFX_mapmode_popdensity.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "s"
 		}
@@ -4016,7 +4016,7 @@ guiTypes = {
 			name = "mapmode_2"
 			tooltipText = "mapmode_2"
 			position = { -322 -157 }
-			quadTextureSprite ="GFX_mapmode_political"
+			quadTextureSprite ="GFX_mapmode_political.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "w"
 		}
@@ -4024,7 +4024,7 @@ guiTypes = {
 			name = "mapmode_13"
 			tooltipText = "mapmode_13"
 			position = { -296 -136 }
-			quadTextureSprite = "GFX_mapmode_nationality"
+			quadTextureSprite = "GFX_mapmode_nationality.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "d"
 		}
@@ -4032,7 +4032,7 @@ guiTypes = {
 			name = "mapmode_6"
 			tooltipText = "mapmode_6"
 			position = { -296 -157 }
-			quadTextureSprite = "GFX_mapmode_infra"
+			quadTextureSprite = "GFX_mapmode_infra.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "e"
 		}
@@ -4040,7 +4040,7 @@ guiTypes = {
 			name = "mapmode_14"
 			tooltipText = "mapmode_14"
 			position = { -270 -136 }
-			quadTextureSprite = "GFX_mapmode_soi"
+			quadTextureSprite = "GFX_mapmode_soi.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "f"
 		}
@@ -4048,7 +4048,7 @@ guiTypes = {
 			name = "mapmode_4"
 			tooltipText = "mapmode_4"
 			position = { -270 -157 }
-			quadTextureSprite = "GFX_mapmode_diplomatic"
+			quadTextureSprite = "GFX_mapmode_diplomatic.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "r"
 		}
@@ -4056,7 +4056,7 @@ guiTypes = {
 			name = "mapmode_15"
 			tooltipText = "mapmode_15"
 			position = { -244 -136 }
-			quadTextureSprite = "GFX_mapmode_supplylimit"
+			quadTextureSprite = "GFX_mapmode_supplylimit.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "g"
 		}
@@ -4064,7 +4064,7 @@ guiTypes = {
 			name = "mapmode_5"
 			tooltipText = "mapmode_5"
 			position = { -244 -157 }
-			quadTextureSprite = "GFX_mapmode_region"
+			quadTextureSprite = "GFX_mapmode_region.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "t"
 		}
@@ -4072,7 +4072,7 @@ guiTypes = {
 			name = "mapmode_3"
 			tooltipText = "mapmode_3"
 			position = { -218 -157 }
-			quadTextureSprite = "GFX_mapmode_revolt"
+			quadTextureSprite = "GFX_mapmode_revolt.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "y"
 		}
@@ -4080,7 +4080,7 @@ guiTypes = {
 			name = "mapmode_16"
 			tooltipText = "mapmode_16"
 			position = { -218 -136 }
-			quadTextureSprite ="GFX_mapmode_partyloyalty"
+			quadTextureSprite ="GFX_mapmode_partyloyalty.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "h"
 		}
@@ -4088,7 +4088,7 @@ guiTypes = {
 			name = "mapmode_8"
 			tooltipText = "mapmode_8"
 			position = { -192 -157 }
-			quadTextureSprite ="GFX_mapmode_admin"
+			quadTextureSprite ="GFX_mapmode_admin.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "u"
 		}
@@ -4096,7 +4096,7 @@ guiTypes = {
 			name = "mapmode_17"
 			tooltipText = "mapmode_17"
 			position = { -192 -136 }
-			quadTextureSprite = "GFX_mapmode_rank"
+			quadTextureSprite = "GFX_mapmode_rank.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "j"
 		}
@@ -4104,7 +4104,7 @@ guiTypes = {
 			name = "mapmode_7"
 			tooltipText = "mapmode_7"
 			position = { -166 -157 }
-			quadTextureSprite = "GFX_mapmode_colonial"
+			quadTextureSprite = "GFX_mapmode_colonial.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "i"
 		}
@@ -4112,7 +4112,7 @@ guiTypes = {
 			name = "mapmode_18"
 			tooltipText = "mapmode_18"
 			position = { -166 -136 }
-			quadTextureSprite = "GFX_mapmode_migration"
+			quadTextureSprite = "GFX_mapmode_migration.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "k"
 		}
@@ -4120,7 +4120,7 @@ guiTypes = {
 			name = "mapmode_9"
 			tooltipText = "mapmode_9"
 			position = { -140 -157 }
-			quadTextureSprite = "GFX_mapmode_recruit"
+			quadTextureSprite = "GFX_mapmode_recruit.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "o"
 		}
@@ -4128,7 +4128,7 @@ guiTypes = {
 			name = "mapmode_19"
 			tooltipText = "mapmode_19"
 			position = { -140 -136 }
-			quadTextureSprite = "GFX_mapmode_civ_level"
+			quadTextureSprite = "GFX_mapmode_civ_level.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "l"
 		}
@@ -4136,7 +4136,7 @@ guiTypes = {
 			name = "mapmode_10"
 			tooltipText = "mapmode_10"
 			position = { -114 -157 }
-			quadTextureSprite = "GFX_mapmode_natfocus"
+			quadTextureSprite = "GFX_mapmode_natfocus.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "p"
 		}
@@ -4144,21 +4144,21 @@ guiTypes = {
 			name = "mapmode_20"
 			tooltipText = "mapmode_20"
 			position = { -114 -136 }
-			quadTextureSprite = "GFX_mapmode_relation"
+			quadTextureSprite = "GFX_mapmode_relation.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
 			name = "mapmode_21"
 			tooltipText = "mapmode_21"
 			position = { -88 -136 }
-			quadTextureSprite = "GFX_mapmode_crises"
+			quadTextureSprite = "GFX_mapmode_crises.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
 			name = "mapmode_22"
 			tooltipText = "mapmode_22"
 			position = { -88 -157 }
-			quadTextureSprite = "GFX_mapmode_naval"
+			quadTextureSprite = "GFX_mapmode_naval.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		# New Alice mapmodes!
