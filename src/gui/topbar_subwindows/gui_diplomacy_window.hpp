@@ -1794,6 +1794,20 @@ public:
 		auto fat = dcon::fatten(state.world, content);
 		frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_type().get_name(), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, std::string_view(": "), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_target());
+		text::close_layout_box(contents, box);
+	}
 };
 
 class justifying_cb_progress : public progress_bar {
