@@ -4520,7 +4520,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 
 		// issue safe-move gather command
 		for(int32_t m = int32_t(ready_armies.size()); m-- > k + 1; ) {
-			assert(m < ready_armies.size());
+			assert(m >= 0 && m < int32_t(ready_armies.size()));
 			for(auto ar : state.world.province_get_army_location(ready_armies[m].p)) {
 				if(ar.get_army().get_battle_from_army_battle_participation()
 					|| n != ar.get_army().get_controller_from_army_control()
