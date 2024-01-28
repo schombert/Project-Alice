@@ -4275,7 +4275,6 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 			+ state.world.leader_trait_get_defense(back)
 			+ state.world.leader_trait_get_defense(pers) + 1.0f;
 		scale *= def * morale * org;
-		scale *= 1.f + float(state.world.army_get_dig_in(a));
 	}
 	// terrain defensive bonus
 	float terrain_bonus = state.world.province_get_modifier_values(state.world.army_get_location_from_army_location(a), sys::provincial_mod_offsets::defense);
@@ -4568,12 +4567,6 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 }
 
 void make_attacks(sys::state& state) {
-	concurrency::parallel_for(uint32_t(0), state.world.army_size(), [&](uint32_t i) {
-		dcon::army_id a{ dcon::army_id::value_base_t(i) };
-		if(state.world.army_get_arrival_time(a)) {
-			state.world.army_set_dig_in(a, 0);
-		}
-	});
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id n{ dcon::nation_id::value_base_t(i) };
 		if(state.world.nation_is_valid(n)) {
@@ -4583,12 +4576,6 @@ void make_attacks(sys::state& state) {
 }
 
 void make_defense(sys::state& state) {
-	concurrency::parallel_for(uint32_t(0), state.world.army_size(), [&](uint32_t i) {
-		dcon::army_id a{ dcon::army_id::value_base_t(i) };
-		if(state.world.army_get_arrival_time(a)) {
-			state.world.army_set_dig_in(a, 0);
-		}
-	});
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id n{ dcon::nation_id::value_base_t(i) };
 		if(state.world.nation_is_valid(n)) {
