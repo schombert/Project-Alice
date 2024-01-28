@@ -1480,7 +1480,7 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 	if(!rel)
 		return false;
 
-	if(state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
+	if(source != affected_gp && state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
 		return false;
 
 	if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
@@ -1504,17 +1504,16 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
-
 	state.world.nation_set_in_sphere_of(influence_target, dcon::nation_id{});
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
 	l = nations::influence::decrease_level(l);
 
-	if(source != affected_gp)
+	if(source != affected_gp) {
+		state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
 		nations::adjust_relationship(state, source, affected_gp, state.defines.removefromsphere_relation_on_accept);
-	else {
+	} else {
 		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
