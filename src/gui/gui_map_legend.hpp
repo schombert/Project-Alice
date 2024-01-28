@@ -8,49 +8,8 @@
 namespace ui {
 
 class map_legend_title : public simple_text_element_base {
-	std::string_view get_title_from_mode(map_mode::mode v) {
-		switch(v) {
-		case map_mode::mode::admin:
-			return "mapmode_8";
-		case map_mode::mode::civilization_level:
-			return "mapmode_19";
-		case map_mode::mode::colonial:
-			return "mapmode_7";
-		case map_mode::mode::crisis:
-			return "mapmode_21";
-		case map_mode::mode::migration:
-			return "mapmode_18";
-		case map_mode::mode::naval:
-			return "mapmode_22";
-		case map_mode::mode::nationality:
-			return "mapmode_13";
-		case map_mode::mode::national_focus:
-			return "mapmode_10";
-		case map_mode::mode::party_loyalty:
-			return "mapmode_16";
-		case map_mode::mode::political:
-			return "mapmode_2";
-		case map_mode::mode::population:
-			return "mapmode_12";
-		case map_mode::mode::rank:
-			return "mapmode_17";
-		case map_mode::mode::recruitment:
-			return "mapmode_9";
-		case map_mode::mode::region:
-			return "mapmode_5";
-		case map_mode::mode::relation:
-			return "mapmode_20";
-		case map_mode::mode::revolt:
-			return "mapmode_3";
-		case map_mode::mode::rgo_output:
-			return "mapmode_11";
-		case map_mode::mode::supply:
-			return "mapmode_15";
-		case map_mode::mode::terrain:
-			return "mapmode_1";
-		default:
-			return "???";
-		}
+	std::string get_title_from_mode(map_mode::mode v) {
+		return "mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -68,7 +27,13 @@ class map_legend_gradient_image : public image_element_base {
 		case map_mode::mode::admin:
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
+		case map_mode::mode::literacy:
+		case map_mode::mode::growth:
+		case map_mode::mode::income:
+		case map_mode::mode::employment:
 			return 1;
+		case map_mode::mode::conciousness:
+		case map_mode::mode::militancy:
 		case map_mode::mode::population:
 		case map_mode::mode::crisis:
 		case map_mode::mode::revolt:
@@ -83,33 +48,8 @@ public:
 	}
 };
 class map_legend_gradient_max : public simple_text_element_base {
-	std::string_view get_gradient_max_from_mode(map_mode::mode v) {
-		switch(v) {
-		case map_mode::mode::admin:
-			return "lg_max_mapmode_8";
-		case map_mode::mode::civilization_level:
-			return "lg_max_mapmode_19";
-		case map_mode::mode::colonial:
-			return "lg_max_mapmode_7";
-		case map_mode::mode::crisis:
-			return "lg_max_mapmode_21";
-		case map_mode::mode::migration:
-			return "lg_max_mapmode_18";
-		case map_mode::mode::population:
-			return "lg_max_mapmode_12";
-		case map_mode::mode::rank:
-			return "lg_max_mapmode_17";
-		case map_mode::mode::relation:
-			return "lg_max_mapmode_20";
-		case map_mode::mode::revolt:
-			return "lg_max_mapmode_3";
-		case map_mode::mode::rgo_output:
-			return "lg_max_mapmode_11";
-		case map_mode::mode::supply:
-			return "lg_max_mapmode_15";
-		default:
-			return "???";
-		}
+	std::string get_gradient_max_from_mode(map_mode::mode v) {
+		return "lg_max_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -117,33 +57,8 @@ public:
 	}
 };
 class map_legend_gradient_min : public simple_text_element_base {
-	std::string_view get_gradient_min_from_mode(map_mode::mode v) {
-		switch(v) {
-		case map_mode::mode::admin:
-			return "lg_min_mapmode_8";
-		case map_mode::mode::civilization_level:
-			return "lg_min_mapmode_19";
-		case map_mode::mode::colonial:
-			return "lg_min_mapmode_7";
-		case map_mode::mode::crisis:
-			return "lg_min_mapmode_21";
-		case map_mode::mode::migration:
-			return "lg_min_mapmode_18";
-		case map_mode::mode::population:
-			return "lg_min_mapmode_12";
-		case map_mode::mode::rank:
-			return "lg_min_mapmode_17";
-		case map_mode::mode::relation:
-			return "lg_min_mapmode_20";
-		case map_mode::mode::revolt:
-			return "lg_min_mapmode_3";
-		case map_mode::mode::rgo_output:
-			return "lg_min_mapmode_11";
-		case map_mode::mode::supply:
-			return "lg_min_mapmode_15";
-		default:
-			return "???";
-		}
+	std::string get_gradient_min_from_mode(map_mode::mode v) {
+		return "lg_min_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {

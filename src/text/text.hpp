@@ -289,6 +289,7 @@ enum class variable_type : uint16_t {
 	region,
 	rel,
 	relation,
+	religion,
 	req,
 	reqlevel,
 	required,
@@ -417,11 +418,53 @@ enum class variable_type : uint16_t {
 struct line_break { };
 
 struct text_sequence {
-	uint32_t starting_component = 0;
-	uint16_t component_count = 0;
+	uint32_t starting_component = 0; // 4
+	uint16_t component_count = 0; // 6
+	uint16_t padding = 0; // 8
 };
+static_assert(sizeof(text_sequence) == 8);
 
-using text_component = std::variant<line_break, text_color, variable_type, dcon::text_key>;
+enum class text_component_type : uint8_t {
+	line_break, text_color, variable_type, text_key
+};
+struct text_component {
+	union text_component_data {
+		text::line_break line_break;
+		text::text_color text_color;
+		text::variable_type variable_type;
+		dcon::text_key text_key;
+		text_component_data() {
+			std::memset(this, 0, sizeof(*this));
+		}
+	} data;
+	text_component_type type = text_component_type::line_break;
+	uint8_t padding[3] = {};
+
+	text_component() {
+		std::memset(this, 0, sizeof(*this));
+	}
+	text_component(line_break const& o) {
+		std::memset(this, 0, sizeof(*this));
+		type = text_component_type::line_break;
+		data.line_break = o;
+	}
+	text_component(text_color const& o) {
+		std::memset(this, 0, sizeof(*this));
+		type = text_component_type::text_color;
+		data.text_color = o;
+	}
+	text_component(variable_type const& o) {
+		std::memset(this, 0, sizeof(*this));
+		type = text_component_type::variable_type;
+		data.variable_type = o;
+	}
+	text_component(dcon::text_key const& o) {
+		std::memset(this, 0, sizeof(*this));
+		type = text_component_type::text_key;
+		data.text_key = o;
+	}
+};
+static_assert(sizeof(text_component) == 8);
 
 struct vector_backed_hash {
 	using is_avalanching = void;
@@ -680,9 +723,13 @@ std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
 template<class T>
-std::string get_name_as_string(sys::state const& state, T t);
+std::string get_name_as_string(sys::state const& state, T t) {
+	return text::produce_simple_string(state, t.get_name());
+}
 template<class T>
-std::string get_adjective_as_string(sys::state const& state, T t);
+std::string get_adjective_as_string(sys::state const& state, T t) {
+	return text::produce_simple_string(state, t.get_adjective());
+}
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);

@@ -13,11 +13,29 @@ template<class T>
 class subunit_organisation_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
-			progress = fat.get_org();
+		auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+		progress = fat.get_org();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_org"));
+			auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+			auto color = fat.get_org() >= 0.9f ? text::text_color::green
+				: fat.get_org() < 0.5f ? text::text_color::red
+				: text::text_color::yellow;
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ fat.get_org() }, color);
+			text::close_layout_box(contents, box);
+		}
+		if constexpr(std::is_same_v<T, dcon::regiment_id>) {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::land_organisation, true);
+		} else {
+			ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::naval_organisation, true);
 		}
 	}
 };
@@ -26,12 +44,51 @@ template<class T>
 class subunit_strength_progress_bar : public vertical_progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto fat = dcon::fatten(state.world, any_cast<T>(payload));
-			progress = fat.get_strength();
+		auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+		progress = fat.get_strength();
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		{
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view("curr_comb_str"));
+			auto fat = dcon::fatten(state.world, retrieve<T>(state, parent));
+			auto color = fat.get_strength() >= 0.9f ? text::text_color::green
+				: fat.get_strength() < 0.5f ? text::text_color::red
+				: text::text_color::yellow;
+			text::add_to_layout_box(state, contents, box, text::fp_percentage{ fat.get_strength() }, color);
+			text::close_layout_box(contents, box);
 		}
+		auto fat_id = dcon::fatten(state.world, retrieve<T>(state, parent));
+		auto o_sc_mod = std::max(0.01f, state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_consumption) + 1.0f);
+		auto& supply_cost = state.military_definitions.unit_base_definitions[fat_id.get_type()].supply_cost;
+		float total_cost = 0.f;
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(supply_cost.commodity_type[i]) {
+				float cost = state.world.commodity_get_cost(supply_cost.commodity_type[i]);
+				float amount = supply_cost.commodity_amounts[i] * state.world.nation_get_unit_stats(state.local_player_nation, fat_id.get_type()).supply_consumption * o_sc_mod;
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(supply_cost.commodity_type[i]));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+				text::close_layout_box(contents, box);
+				total_cost += cost * amount;
+			} else {
+				break;
+			}
+		}
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ total_cost });
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_spending_unit_1", m);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -51,6 +108,37 @@ public:
 				color = sys::pack_color(200, 200, 0);
 			} else {
 				color = sys::pack_color(255, 255, 255);
+			}
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto reg_id = retrieve<dcon::regiment_id>(state, parent);
+		auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
+
+		if(!base_pop) {
+			text::add_line(state, contents, "alice_reinforce_rate_none");
+		} else {
+			text::add_line(state, contents, "alice_x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
+			text::add_line_break_to_layout(state, contents);
+
+			auto reg_range = state.world.pop_get_regiment_source(base_pop);
+			text::add_line(state, contents, "pop_size_unitview",
+				text::variable_type::val, text::pretty_integer{ int64_t(state.world.pop_get_size(base_pop)) },
+				text::variable_type::allowed, military::regiments_possible_from_pop(state, base_pop),
+				text::variable_type::current, int64_t(reg_range.end() - reg_range.begin())
+			);
+
+			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
+			auto reinf = state.defines.pop_size_per_regiment * military::reinforce_amount(state, a);
+			if(reinf >= 2.0f) {
+				text::add_line(state, contents, "alice_reinforce_rate", text::variable_type::x, int64_t(reinf));
+			} else {
+				text::add_line(state, contents, "alice_reinforce_rate_none");
 			}
 		}
 	}
@@ -226,9 +314,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_left::parent) {
-			Cyto::Any payload = T{};
-			listbox_left::parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			auto content = retrieve<T>(state, listbox_left::parent);
 
 			Cyto::Any vpayload = std::vector<T2>{};
 			listbox_left::parent->impl_get(state, vpayload);
@@ -268,9 +354,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		if(listbox_right::parent) {
-			Cyto::Any payload = T{};
-			listbox_right::parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
+			auto content = retrieve<T>(state, listbox_right::parent);
 
 			Cyto::Any vpayload = std::vector<T2>{};
 			listbox_right::parent->impl_get(state, vpayload);
@@ -396,20 +480,21 @@ public:
 		orginialunit_text->set_text(state, std::string(state.to_string_view(fat.get_name())));
 	}
 
+	void on_visible(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+	void on_hide(sys::state& state) noexcept override {
+		selectedsubunits.clear();
+	}
+
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<T>>()) {
 			unitToReorg = any_cast<element_selection_wrapper<T>>(payload).data;
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		else if(payload.holds_type<T>()) {
+		} else if(payload.holds_type<T>()) {
 			payload.emplace<T>(unitToReorg);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		// SELECTION GETS
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<T2>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<T2>>()) {
 			auto content = any_cast<element_selection_wrapper<T2>>(payload).data;
 			if(!selectedsubunits.empty()) {
 				if(auto result = std::find(selectedsubunits.begin(), selectedsubunits.end(), content); result != selectedsubunits.end()) {
@@ -425,11 +510,7 @@ public:
 		} else if(payload.holds_type<std::vector<T2>>()) {
 			payload.emplace<std::vector<T2>>(selectedsubunits);
 			return message_result::consumed;
-		}
-		//=======================================================================================
-		//	REORGANISATION WINDOW ACTIONS 
-		//=======================================================================================
-		else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
+		} else if(payload.holds_type<element_selection_wrapper<reorg_win_action>>()) {
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
 				case reorg_win_action::close:

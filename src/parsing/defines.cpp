@@ -125,4 +125,7 @@ void parsing::defines::parse_file(sys::state& state, std::string_view data, pars
 			line_num++;
 		}
 	}
+
+	/* Fixups and nudges */
+	state.defines.investment_score_factor *= 0.05f;
 }

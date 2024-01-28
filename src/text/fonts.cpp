@@ -13,8 +13,6 @@
 
 namespace text {
 
-
-
 uint16_t b_to_u16(uint8_t const* bytes) {
 	return (uint16_t(bytes[0]) << 8) | (uint16_t(bytes[1]));
 }
@@ -1328,23 +1326,59 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	return total;
 }
 
+} // namespace text
+
+#include "parsers.hpp"
+struct font_body {
+	uint32_t id = 0;
+	std::vector<std::string> valid_paths;
+	bool smallcaps = false;
+	void path(parsers::association_type, std::string_view value, parsers::error_handler& err, int32_t line, parsers::scenario_building_context& context) {
+		if(valid_paths.empty()) {
+			valid_paths.push_back(std::string(value));
+		} else {
+			valid_paths.resize(valid_paths.size() + 1);
+			valid_paths.back() = valid_paths.front();
+			valid_paths.front() = std::string(value);
+		}
+	}
+	void fallback(parsers::association_type, std::string_view value, parsers::error_handler& err, int32_t line, parsers::scenario_building_context& context) {
+		valid_paths.push_back(std::string(value));
+	}
+	void finish(parsers::scenario_building_context& context) { }
+};
+struct font_file {
+	bool blackmapfont = true;
+	void font(font_body value, parsers::error_handler& err, int32_t line, parsers::scenario_building_context& context) {
+		auto root = simple_fs::get_root(context.state.common_fs);
+		for(const auto& path : value.valid_paths) {
+			if(auto f = simple_fs::open_file(root, simple_fs::utf8_to_native(path)); f) {
+				auto file_content = simple_fs::view_contents(*f);
+				auto feature = text::font_feature::none;
+				if(value.smallcaps)
+					feature = text::font_feature::small_caps;
+				context.state.font_collection.load_font(context.state.font_collection.fonts[value.id - 1], file_content.data, file_content.file_size, feature);
+				break;
+			}
+		}
+	}
+	void finish(parsers::scenario_building_context& context) { }
+};
+#include "font_defs_generated.hpp"
+
+namespace text {
+
 void load_standard_fonts(sys::state& state) {
 	auto root = get_root(state.common_fs);
-	auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
-	if(font_a) {
-		auto file_content = view_contents(*font_a);
-		state.font_collection.load_font(state.font_collection.fonts[0], file_content.data, file_content.file_size, font_feature::none);
+	if(auto f = open_file(root, NATIVE("assets/fonts/font.txt")); f) {
+		auto content = view_contents(*f);
+		parsers::error_handler err("");
+		parsers::scenario_building_context context(state);
+		err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*f));
+		parsers::token_generator gen(content.data, content.data + content.file_size);
+		auto font = parse_font_file(gen, err, context);
+		state.font_collection.map_font_is_black = font.blackmapfont;
 	}
-	auto font_b = open_file(root, NATIVE("assets/fonts/SourceSerif4Subhead-Regular.ttf"));
-	if(font_b) {
-		auto file_content = view_contents(*font_b);
-		state.font_collection.load_font(state.font_collection.fonts[1], file_content.data, file_content.file_size, font_feature::small_caps);
-	}
-	/*auto font_c = open_file(root, NATIVE("assets/fonts/YsabeauSC-Thin.ttf"));
-	if(font_c) {
-		auto file_content = view_contents(*font_c);
-		state.font_collection.load_font(state.font_collection.fonts[2], file_content.data, file_content.file_size, text::font_feature::none);
-	}*/
 }
 
 void load_bmfonts(sys::state& state) { }

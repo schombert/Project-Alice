@@ -38,6 +38,7 @@
 namespace sys {
 
 enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
+enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -46,10 +47,11 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	bool map_is_globe = true;
+	projection_mode map_is_globe = projection_mode::globe_ortho;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
 	bool use_classic_fonts = false;
+	bool left_mouse_click_hold_and_release = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
@@ -70,8 +72,8 @@ struct user_settings_s {
 		message_response::standard_popup,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::log,//factory_complete = 20,
 		message_response::log,//rr_complete = 21,
 		message_response::log,//fort_complete = 22,
@@ -152,6 +154,7 @@ struct user_settings_s {
 		message_response::ignore,//crisis_voluntary_joi_on = 97,
 		message_response::log,//army_built = 98,
 		message_response::log,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::log,//revolt = 0,
@@ -172,8 +175,8 @@ struct user_settings_s {
 		message_response::log,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::ignore,//factory_complete = 20,
 		message_response::ignore,//rr_complete = 21,
 		message_response::ignore,//fort_complete = 22,
@@ -254,6 +257,7 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -274,8 +278,8 @@ struct user_settings_s {
 		message_response::ignore,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
-		message_response::ignore,//mobilization_start = 18,
-		message_response::ignore,//mobilization_end = 19,
+		message_response::standard_popup,//mobilization_start = 18,
+		message_response::standard_popup,//mobilization_end = 19,
 		message_response::ignore,//factory_complete = 20,
 		message_response::ignore,//rr_complete = 21,
 		message_response::ignore,//fort_complete = 22,
@@ -356,12 +360,20 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_voluntary_join_on = 97,
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
+		message_response::standard_popup,//bankruptcy = 100,
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 0;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
+	bool railroads_enabled = true;
+	bool rivers_enabled = true;
+	map_zoom_mode zoom_mode = map_zoom_mode::panning;
+	map_vassal_color_mode vassal_color = map_vassal_color_mode::inherit;
+	bool render_models = false;
+	bool mouse_edge_scrolling = false;
+	bool black_map_font = true;
 	uint8_t current_language = 0;
 };
 
@@ -372,6 +384,11 @@ struct cheat_data_s {
 	bool always_allow_wargoals = false;
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
+	bool show_province_id_tooltip = false;
+	bool wasd_move_cam = false;
+	bool instant_army = false;
+	bool instant_industry = false;
+	std::vector<dcon::nation_id> instant_research_nations;
 };
 
 struct crisis_member_def {
@@ -463,6 +480,7 @@ struct alignas(64) state {
 
 	uint64_t scenario_time_stamp = 0;	// for identifying the scenario file
 	uint32_t scenario_counter = 0;		// as above
+	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
 	native_string loaded_scenario_file;
@@ -478,7 +496,7 @@ struct alignas(64) state {
 	float crisis_temperature = 0;
 	dcon::nation_id primary_crisis_attacker;
 	dcon::nation_id primary_crisis_defender;
-	crisis_mode current_crisis_mode;
+	crisis_mode current_crisis_mode = crisis_mode::inactive;
 	uint32_t crisis_last_checked_gp = 0;
 	dcon::war_id crisis_war;
 	sys::date last_crisis_end_date{0}; // initial grace period
@@ -537,7 +555,7 @@ struct alignas(64) state {
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
 	std::optional<state_selection_data> state_selection;
-	map_mode::mode stored_map_mode;
+	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
@@ -553,6 +571,7 @@ struct alignas(64) state {
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
 	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
+	std::atomic<bool> railroad_built = true; // game state -> map
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;
@@ -586,6 +605,10 @@ struct alignas(64) state {
 	// graphics data
 	ogl::data open_gl;
 
+#ifdef DIRECTX_11
+	directx::data directx;
+#endif
+
 	// cheat data
 	cheat_data_s cheat_data;
 
@@ -616,7 +639,6 @@ struct alignas(64) state {
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
 	sys::checksum_key get_save_checksum();
-	sys::checksum_key get_scenario_checksum();
 	void debug_save_oos_dump();
 	void debug_scenario_oos_dump();
 
@@ -656,7 +678,7 @@ struct alignas(64) state {
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void preload(); // clears data that will be later reconstructed from saved values
 
-	void console_log(ui::element_base* base, std::string message, bool open_console = true);
+	void console_log(std::string_view message);
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
 

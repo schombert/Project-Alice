@@ -57,8 +57,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(46, min_build_railroad, false, modifier_display_type::integer, "railroad_level")                              \
 	MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level") \
 	MOD_LIST_ELEMENT(48, min_build_bank, false, modifier_display_type::integer, "bank_level") \
-	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level")
-#define MOD_PROV_LIST_COUNT 50
+	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level") \
+	MOD_LIST_ELEMENT(50, conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate")
+#define MOD_PROV_LIST_COUNT 51
 
 #define MOD_NAT_LIST                                                                                                             \
 	MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion")                             \
@@ -164,11 +165,11 @@ namespace sys {
 	MOD_LIST_ELEMENT(92, unciv_military_modifier, true, modifier_display_type::percent, "modifier_unciv_military")                 \
 	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, true, modifier_display_type::percent, "modifier_self_unciv_economic")       \
 	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, true, modifier_display_type::percent, "modifier_self_unciv_military")       \
-	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, true, modifier_display_type::percent, "commerce_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(96, army_tech_research_bonus, true, modifier_display_type::percent, "army_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, true, modifier_display_type::percent, "industry_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, true, modifier_display_type::percent, "navy_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, true, modifier_display_type::percent, "culture_tech_research_bonus")         \
+	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, false, modifier_display_type::percent, "commerce_tech_research_bonus")       \
+	MOD_LIST_ELEMENT(96, army_tech_research_bonus, false, modifier_display_type::percent, "army_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, false, modifier_display_type::percent, "industry_tech_research_bonus")       \
+	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, false, modifier_display_type::percent, "navy_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, false, modifier_display_type::percent, "culture_tech_research_bonus")         \
 	MOD_LIST_ELEMENT(100, supply_limit, true, modifier_display_type::percent, "supply_limit_tech")                                 \
 	MOD_LIST_ELEMENT(101, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech")                     \
 	MOD_LIST_ELEMENT(102, max_national_focus, true, modifier_display_type::integer, "tech_max_focus")                              \
@@ -187,8 +188,11 @@ namespace sys {
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
 	MOD_LIST_ELEMENT(116, seperatism, false, modifier_display_type::percent, "separatism_tech")                                     \
 	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
-	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")
-#define MOD_NAT_LIST_COUNT 119
+	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
+	MOD_LIST_ELEMENT(119, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
+	MOD_LIST_ELEMENT(120, min_domestic_investment, false, modifier_display_type::percent, "modifier_min_domestic_investment") \
+	MOD_LIST_ELEMENT(121, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment")
+#define MOD_NAT_LIST_COUNT 122
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
@@ -233,7 +237,12 @@ static_assert(sizeof(national_modifier_definition) ==
 struct commodity_modifier {
 	float amount = 0.0f;
 	dcon::commodity_id type;
+	uint8_t padding[3] = {0};
 };
+static_assert(sizeof(commodity_modifier) ==
+	sizeof(commodity_modifier::amount)
+	+ sizeof(commodity_modifier::type)
+	+ sizeof(commodity_modifier::padding));
 
 struct unit_variable_stats {
 	int32_t build_time = 0;
@@ -272,15 +281,36 @@ struct unit_variable_stats {
 		discipline_or_evasion -= other.discipline_or_evasion;
 	}
 };
+static_assert(sizeof(unit_variable_stats) ==
+	sizeof(unit_variable_stats::build_time)
+	+ sizeof(unit_variable_stats::default_organisation)
+	+ sizeof(unit_variable_stats::maximum_speed)
+	+ sizeof(unit_variable_stats::defence_or_hull)
+	+ sizeof(unit_variable_stats::attack_or_gun_power)
+	+ sizeof(unit_variable_stats::supply_consumption)
+	+ sizeof(unit_variable_stats::support)
+	+ sizeof(unit_variable_stats::siege_or_torpedo_attack)
+	+ sizeof(unit_variable_stats::reconnaissance_or_fire_range)
+	+ sizeof(unit_variable_stats::discipline_or_evasion));
 
 struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
+	uint8_t padding[3] = { 0 };
 };
+static_assert(sizeof(unit_modifier) ==
+	sizeof(unit_variable_stats)
+	+ sizeof(unit_modifier::type)
+	+ sizeof(unit_modifier::padding));
 
 struct rebel_org_modifier {
-	float amount = 0.0f;
-	dcon::rebel_type_id type; // no type set = all rebels
+	float amount = 0.0f; //4
+	dcon::rebel_type_id type; //1 - no type set = all rebels
+	uint8_t padding[3] = { 0, 0, 0 };
 };
+static_assert(sizeof(rebel_org_modifier) ==
+	sizeof(rebel_org_modifier::amount)
+	+ sizeof(rebel_org_modifier::type)
+	+ sizeof(rebel_org_modifier::padding));
 
 struct dated_modifier {
 	sys::date expiration;

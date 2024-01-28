@@ -1,0 +1,47 @@
+#define M_PI 3.1415926535897932384626433832795
+#define PI 3.1415926535897932384626433832795
+
+struct Input {
+	float2 tex_coord;
+};
+struct Output {
+	float4 color;
+};
+
+
+
+Texture2D screen_texture:register(t0);
+SamplerState screen_texture_sampler:register(s0);
+
+float gaussian_radius:SV_Target0;
+float2 screen_size:SV_Target1;
+
+float gaussian_blur(float2 p, float std) {
+	float r = 2.0 * std * std;
+	float t = 3.1415 * r;
+	float s = p.x * p.x + p.y * p.y;
+	return (1.0 / t) * pow(2.71, -(s / r));
+}
+
+float4 gaussian_colour(float2 tex_coord) {
+	if(gaussian_radius <= 1.0) {
+		return screen_texture.Sample(screen_texture_sampler, tex_coord);
+	}
+	float r = gaussian_radius;
+	float dx = 1.0 / screen_size.x;
+	float dy = 1.0 / screen_size.y;
+	float4 col = float4(0.0, 0.0, 0.0, 0.0);
+	float2 p = tex_coord - float2(dx * r, dy * r);
+	for(float x = -r; x <= r; x++, p.x += dx) {
+		for(float y = -r; y <= r; y++, p.y += dy) {
+			col += screen_texture.Sample(screen_texture_sampler, p) * gaussian_blur(float2(x, y), r / 2.0);
+		}
+	}
+	return col;
+}
+
+Output main(Input input) {
+	Output output;
+	output.color = gaussian_colour(input.tex_coord);
+	return output;
+}

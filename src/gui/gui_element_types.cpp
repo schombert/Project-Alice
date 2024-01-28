@@ -2,11 +2,8 @@
 #include <cmath>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 #include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
@@ -524,7 +521,7 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 		}
 	}
 
-	
+
 	lines.set_y(scaled_datapoints.data());
 }
 
@@ -552,7 +549,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		font_handle = base_data.data.text.font_handle;
 
 	extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle);
-	
+
 	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
 		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
 
@@ -561,7 +558,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
-		
+
 		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
@@ -942,7 +939,8 @@ void window_element_base::on_drag(sys::state& state, int32_t oldx, int32_t oldy,
 
 template<class T>
 void piechart<T>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
+	if(distribution.size() > 0)
+		ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
 }
 
 template<class T>
@@ -1052,7 +1050,7 @@ void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 	if(this->parent) {
 		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
-		
+
 		for_each_demo(state, [&](DemoT demo_id) {
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
@@ -1115,6 +1113,7 @@ void scrollable_text::on_create(sys::state& state) noexcept {
 	res->base_data.position.y = 0;
 	res->on_create(state);
 	delegate = res.get();
+	delegate->base_data.flags &= ~uint8_t(ui::element_data::orientation_mask);
 	add_child_to_front(std::move(res));
 
 	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
@@ -1237,7 +1236,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 			if(i < row_contents.size()) {
 				auto prior_content = retrieve<RowConT>(state, row_window);
 				auto new_content = row_contents[i++];
-				
+
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
 					if(!row_window->is_visible()) {
@@ -1717,7 +1716,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
 	if(!bool(ident))
 		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
-	
+
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	culture::flag_type flag_type = culture::flag_type{};
@@ -1833,11 +1832,38 @@ void scrollbar_left::button_action(sys::state& state) noexcept {
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
 }
+void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ -step_size * 10000, true, true });
+}
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+}
+void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ step_size * 10000, true, true });
+}
+
+message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
 }
 
 message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -1847,6 +1873,17 @@ message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, in
 	float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
 	send(state, parent, value_change{ int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false });
 	return message_result::consumed;
+}
+
+tooltip_behavior scrollbar_track::has_tooltip(sys::state& state) noexcept {
+	if(parent)
+		return parent->has_tooltip(state);
+	return opaque_element_base::has_tooltip(state);
+}
+void scrollbar_track::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(parent)
+		return parent->update_tooltip(state, x, y, contents);
+	return opaque_element_base::update_tooltip(state, x, y, contents);
 }
 
 message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -2131,6 +2168,228 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
 	else if(std::holds_alternative<dcon::navy_id>(display_unit))
 		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
+}
+
+void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
+	if(elm.base_data.get_element_type() != ui::element_type::button)
+		return;
+	if(elm.base_data.data.button.shortcut == sys::virtual_key::NONE)
+		return;
+	static const std::string_view key_names[] = { //enum class virtual_key : uint8_t {
+		"", //NONE = 0x00,
+		"Left-Button", //LBUTTON = 0x01,
+		"Right-Button", //RBUTTON = 0x02,
+		"Cancel", //CANCEL = 0x03,
+		"Multimedia button", //MBUTTON = 0x04,
+		"XButton1", //XBUTTON_1 = 0x05,
+		"XButton2", //XBUTTON_2 = 0x06,
+		"", //0x07
+		"Backspace", //BACK = 0x08,
+		"TAB", //TAB = 0x09,
+		"", // 0x0A
+		"", // 0x0B
+		"Clear", //CLEAR = 0x0C,
+		"Return", //RETURN = 0x0D,
+		"", // 0x0E
+		"", // 0x0F
+		"Shift", //SHIFT = 0x10,
+		"Control", //CONTROL = 0x11,
+		"Menu", //MENU = 0x12,
+		"Pause", //PAUSE = 0x13,
+		"Capital", //CAPITAL = 0x14,
+		"Kana", //KANA = 0x15,
+		"", // 0x16
+		"Junja", //JUNJA = 0x17,
+		"Final", //FINAL = 0x18,
+		"Kanji", //KANJI = 0x19,
+		"", // 0x1A
+		"Escape", //ESCAPE = 0x1B,
+		"Convert", //CONVERT = 0x1C,
+		"Nonconvert", //NONCONVERT = 0x1D,
+		"Accept", //ACCEPT = 0x1E,
+		"Modechange", //MODECHANGE = 0x1F,
+		"Spacebar", //SPACE = 0x20,
+		"Prior", //PRIOR = 0x21,
+		"Next", //NEXT = 0x22,
+		"End", //END = 0x23,
+		"Home", //HOME = 0x24,
+		"Left", //LEFT = 0x25,
+		"Up", //UP = 0x26,
+		"Right", //RIGHT = 0x27,
+		"Down", //DOWN = 0x28,
+		"Select", //SELECT = 0x29,
+		"Print", //PRINT = 0x2A,
+		"Execute", //EXECUTE = 0x2B,
+		"Snapshot", //SNAPSHOT = 0x2C,
+		"Insert", //INSERT = 0x2D,
+		"Delete", //DELETE_KEY = 0x2E,
+		"Help", //HELP = 0x2F,
+		"0", //NUM_0 = 0x30,
+		"1", //NUM_1 = 0x31,
+		"2", //NUM_2 = 0x32,
+		"3", //NUM_3 = 0x33,
+		"4", //NUM_4 = 0x34,
+		"5", //NUM_5 = 0x35,
+		"6", //NUM_6 = 0x36,
+		"7", //NUM_7 = 0x37,
+		"8", //NUM_8 = 0x38,
+		"9", //NUM_9 = 0x39,
+		"", // 0x3A
+		"", // 0x3B
+		"", // 0x3C
+		"", // 0x3D
+		"", // 0x3E
+		"", // 0x3F
+		"", // 0x40
+		"A", //A = 0x41,
+		"B", //B = 0x42,
+		"C", //C = 0x43,
+		"D", //D = 0x44,
+		"E", //E = 0x45,
+		"F", //F = 0x46,
+		"G", //G = 0x47,
+		"H", //H = 0x48,
+		"I", //I = 0x49,
+		"J", //J = 0x4A,
+		"K", //K = 0x4B,
+		"L", //L = 0x4C,
+		"M", //M = 0x4D,
+		"N", //N = 0x4E,
+		"O", //O = 0x4F,
+		"P", //P = 0x50,
+		"Q", //Q = 0x51,
+		"R", //R = 0x52,
+		"S", //S = 0x53,
+		"T", //T = 0x54,
+		"U", //U = 0x55,
+		"V", //V = 0x56,
+		"W", //W = 0x57,
+		"X", //X = 0x58,
+		"Y", //Y = 0x59,
+		"Z", //Z = 0x5A,
+		"Left Windows", //LWIN = 0x5B,
+		"Right Windows", //RWIN = 0x5C,
+		"Apps", //APPS = 0x5D,
+		"", // 0x5E
+		"Sleep", //SLEEP = 0x5F,
+		"Numpad 0", //NUMPAD0 = 0x60,
+		"Numpad 1", //NUMPAD1 = 0x61,
+		"Numpad 2", //NUMPAD2 = 0x62,
+		"Numpad 3", //NUMPAD3 = 0x63,
+		"Numpad 4", //NUMPAD4 = 0x64,
+		"Numpad 5", //NUMPAD5 = 0x65,
+		"Numpad 6", //NUMPAD6 = 0x66,
+		"Numpad 7", //NUMPAD7 = 0x67,
+		"Numpad 8", //NUMPAD8 = 0x68,
+		"Numpad 9", //NUMPAD9 = 0x69,
+		"Numpad *", //MULTIPLY = 0x6A,
+		"Numpad +", //ADD = 0x6B,
+		"Numpad .", //SEPARATOR = 0x6C,
+		"Numpad -", //SUBTRACT = 0x6D,
+		"Numpad .", //DECIMAL = 0x6E,
+		"Numpad /", //DIVIDE = 0x6F,
+		"F1", //F1 = 0x70,
+		"F2", //F2 = 0x71,
+		"F3", //F3 = 0x72,
+		"F4", //F4 = 0x73,
+		"F5", //F5 = 0x74,
+		"F6", //F6 = 0x75,
+		"F7", //F7 = 0x76,
+		"F8", //F8 = 0x77,
+		"F9", //F9 = 0x78,
+		"F10", //F10 = 0x79,
+		"F11", //F11 = 0x7A,
+		"F12", //F12 = 0x7B,
+		"F13", //F13 = 0x7C,
+		"F14", //F14 = 0x7D,
+		"F15", //F15 = 0x7E,
+		"F16", //F16 = 0x7F,
+		"F17", //F17 = 0x80,
+		"F18", //F18 = 0x81,
+		"F19", //F19 = 0x82,
+		"F20", //F20 = 0x83,
+		"F21", //F21 = 0x84,
+		"F22", //F22 = 0x85,
+		"F23", //F23 = 0x86,
+		"F24", //F24 = 0x87,
+		"Navigation View", //NAVIGATION_VIEW = 0x88,
+		"Navigation Menu", //NAVIGATION_MENU = 0x89,
+		"Navigation Up", //NAVIGATION_UP = 0x8A,
+		"Navigation Down", //NAVIGATION_DOWN = 0x8B,
+		"Navigation Left", //NAVIGATION_LEFT = 0x8C,
+		"Navigation Right", //NAVIGATION_RIGHT = 0x8D,
+		"Navigation Accept", //NAVIGATION_ACCEPT = 0x8E,
+		"Navigation Cancel", //NAVIGATION_CANCEL = 0x8F,
+		"Numlock", //NUMLOCK = 0x90,
+		"Scroll lock", //SCROLL = 0x91,
+		"=", //OEM_NEC_EQUAL = 0x92,
+		"", // 0x93
+		"", // 0x94
+		"", // 0x95
+		"", // 0x96
+		"", // 0x97
+		"", // 0x98
+		"", // 0x99
+		"", // 0x9A
+		"", // 0x9B
+		"", // 0x9C
+		"", // 0x9D
+		"", // 0x9E
+		"", // 0x9F
+		"Left Shift", //LSHIFT = 0xA0,
+		"Right Shift", //RSHIFT = 0xA1,
+		"Left Control", //LCONTROL = 0xA2,
+		"Right Control", //RCONTROL = 0xA3,
+		"Left Menu", //LMENU = 0xA4,
+		"Right Menu", //RMENU = 0xA5,
+		"", // 0xA6
+		"", // 0xA7
+		"", // 0xA8
+		"", // 0xA9
+		"", // 0xAA
+		"", // 0xAB
+		"", // 0xAC
+		"", // 0xAD
+		"", // 0xAE
+		"", // 0xAF
+		"", // 0xB0
+		"", // 0xB1
+		"", // 0xB2
+		"", // 0xB3
+		"", // 0xB4
+		"", // 0xB5
+		"", // 0xB6
+		"", // 0xB7
+		"", // 0xB8
+		"", // 0xB9
+		";", //SEMICOLON = 0xBA,
+		"+", //PLUS = 0xBB,
+		",", //COMMA = 0xBC,
+		"-", //MINUS = 0xBD,
+		".", //PERIOD = 0xBE,
+		"\\", //FORWARD_SLASH = 0xBF,
+		"~", //TILDA = 0xC0,
+		"", // 0xC1
+		"", // 0xC2
+		"", // 0xC3
+		"", // 0xC4
+		"", // 0xC5
+		"", // 0xC6
+		"", // 0xC7
+		"", // 0xC8
+		"", // 0xC9
+		"", // 0xCA
+		"", // 0xCB
+		"", // 0xCC
+		"", // 0xCD
+		"", // 0xCE
+		"", // 0xCF
+		"[", //OPEN_BRACKET = 0xDB,
+		"/", //BACK_SLASH = 0xDC,
+		"]", //CLOSED_BRACKET = 0xDD,
+		"\"", //QUOTE = 0xDE
+	};
+	text::add_line(state, contents, "alice_shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
 }
 
 } // namespace ui

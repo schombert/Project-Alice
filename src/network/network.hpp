@@ -15,6 +15,7 @@
 #endif
 #include "SPSCQueue.h"
 #include "container_types.hpp"
+#include "commands.hpp"
 
 namespace sys {
 struct state;
@@ -54,6 +55,7 @@ struct client_data {
 	command::payload recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
+	std::vector<char> early_send_buffer;
 
 	// accounting for save progress
 	size_t total_sent_bytes = 0;
@@ -68,40 +70,34 @@ struct client_data {
 };
 
 struct network_state {
-	bool as_v6 = false;
-	bool as_server = false;
+	server_handshake_data s_hshake;
+	sys::player_name nickname;
+	sys::checksum_key current_save_checksum;
 	struct sockaddr_in6 v6_address;
 	struct sockaddr_in v4_address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
-	std::array<client_data, 16> clients;
+	std::array<client_data, 128> clients;
 	std::vector<struct in6_addr> v6_banlist;
 	std::vector<struct in_addr> v4_banlist;
-	socket_t socket_fd = 0;
 	std::string ip_address = "127.0.0.1";
-	uint8_t password[16] = {0};
-
-	command::payload recv_buffer;
-	size_t recv_count = 0;
 	std::vector<char> send_buffer;
-	/* Data to send new clients who join the lobby, replaying the commands of the host as they occurred */
-	std::vector<char> new_client_send_buffer;
-
-	bool save_stream = false; //client
-	uint32_t save_size = 0; //client
+	std::vector<char> early_send_buffer;
+	command::payload recv_buffer;
 	std::vector<uint8_t> save_data; //client
-
+	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
+	std::unique_ptr<uint8_t[]> current_save_buffer;
+	size_t recv_count = 0;
+	uint32_t current_save_length = 0;
+	socket_t socket_fd = 0;
+	uint8_t password[16] = { 0 };
+	std::atomic<bool> save_slock = false;
+	bool as_v6 = false;
+	bool as_server = false;
+	bool save_stream = false; //client
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?
 	bool handshake = true; // if in handshake mode -> send handshake data
-	bool server_handshake = false;
-
-	server_handshake_data s_hshake;
-
-	sys::player_name nickname;
-	ankerl::unordered_dense::map<int32_t, sys::player_name> map_of_player_names;
-
-	std::atomic<bool> save_slock = false;
 
 	network_state() : outgoing_commands(1024) {}
 	~network_state() {}
@@ -113,6 +109,8 @@ void finish(sys::state& state);
 void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n);
+void write_network_save(sys::state& state);
+void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
 void broadcast_to_clients(sys::state& state, command::payload& c);
 
 }

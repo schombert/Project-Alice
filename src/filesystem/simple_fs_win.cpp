@@ -341,7 +341,7 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 
 	native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
 
-	HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_ALWAYS,
+	HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
 		WriteFile(file_handle, file_data, DWORD(file_size), nullptr, nullptr);
@@ -377,6 +377,21 @@ directory get_or_create_save_game_directory() {
 	if(base_path.length() > 0) {
 		CreateDirectoryW(base_path.c_str(), nullptr);
 		base_path += NATIVE("\\saved games");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
+directory get_or_create_templates_directory() {
+	wchar_t* local_path_out = nullptr;
+	std::wstring base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\templates");
 		CreateDirectoryW(base_path.c_str(), nullptr);
 	}
 	return directory(nullptr, base_path);

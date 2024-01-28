@@ -82,7 +82,7 @@ class nation_revanchism_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto revanchism = state.world.nation_get_revanchism(nation_id);
-		return std::to_string(int32_t(revanchism)) + '%';
+		return std::to_string(int32_t(revanchism * 100.0f)) + '%';
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -234,6 +234,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto party = retrieve<dcon::political_party_id>(state, parent);
+
+		{
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, state.world.political_party_get_name(party));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view{ "(" });
+			text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(state.world.political_party_get_ideology(party)));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
+			text::close_layout_box(contents, box);
+		}
+
 		for(auto pi : state.culture_definitions.party_issues) {
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(party, pi).get_name(),
@@ -388,7 +399,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("next_election"));
 			text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::black);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), text::text_color::black);
+			text::add_to_layout_box(state, contents, box, text::date_to_string(state, election_start_date), black_text ? text::text_color::black : text::text_color::white);
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -465,7 +476,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
-			frame = state.world.modifier_get_icon(mod.mod_id) - 1;
+			frame = int8_t(state.world.modifier_get_icon(mod.mod_id)) + 1;
 		}
 	}
 
@@ -520,6 +531,15 @@ public:
 
 		for(auto mods : state.world.nation_get_current_modifiers(state.local_player_nation)) {
 			row_contents.push_back(mods);
+		}
+
+		for(auto tm : state.national_definitions.triggered_modifiers) {
+			if(tm.trigger_condition && tm.linked_modifier) {
+				auto trigger_condition_satisfied =
+					trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+				if(trigger_condition_satisfied)
+					row_contents.push_back(sys::dated_modifier{ sys::date{}, tm.linked_modifier });
+			}
 		}
 		
 		update(state);

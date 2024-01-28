@@ -10,7 +10,7 @@ void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& c
 
 		text::add_line(state, contents, "provinceview_goodsincome", text::variable_type::goods, rgo_good.get_name(), text::variable_type::value,
 					text::fp_three_places{ province::rgo_income(state, prov_id) });
-		
+
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub_map;
@@ -54,6 +54,11 @@ void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& c
 			text::close_layout_box(contents, box);
 		}
 	}
+}
+
+void province_national_focus_button::button_action(sys::state& state) noexcept {
+	auto province_window = static_cast<province_view_window*>(state.ui_state.province_window);
+	province_window->nf_win->set_visible(state, !province_window->nf_win->is_visible());
 }
 
 }

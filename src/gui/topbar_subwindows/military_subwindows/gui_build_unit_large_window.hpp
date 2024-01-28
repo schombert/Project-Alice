@@ -125,7 +125,7 @@ public:
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
 			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100, 0));
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100, 0));
+				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support, 0));
 			}
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
@@ -313,7 +313,7 @@ public:
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).defence_or_hull, 2));
 			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[unit_type].discipline_or_evasion * 100, 0));
 			if(state.military_definitions.unit_base_definitions[unit_type].support > 0) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).support * 100, 0));
+				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).support, 0));
 			}
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[unit_type].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).maximum_speed, 2));
@@ -560,7 +560,7 @@ public:
 						info.is_navy = false;
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
-								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= 1000.0f) {
+								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
 									info.pop_info = pl.get_pop();
 									break;
 								}
@@ -786,8 +786,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "cancel_all_units") {
-			auto ptr = make_element_by_type<cancel_all_units_button>(state, id);
-			return ptr;
+			return make_element_by_type<cancel_all_units_button>(state, id);
 		} else if(name == "build_army_label") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			army_elements.push_back(ptr.get());
@@ -797,8 +796,7 @@ public:
 			navy_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "close") {
-			auto ptr = make_element_by_type<build_unit_close_button>(state, id);
-			return ptr;
+			return make_element_by_type<build_unit_close_button>(state, id);
 		} else if(name == "list") {
 			auto ptr = make_element_by_type<units_build_listbox>(state, id);
 			units_listbox = ptr.get();
@@ -826,7 +824,7 @@ public:
 			auto ptr = make_element_by_type<unit_folder_button>(state, id);
 			int32_t value = std::stoi(std::string(name.substr(12)));
 			for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-				auto def = state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)];
+				auto const& def = state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)];
 				if(def.icon == value) {
 					ptr->unit_type = dcon::unit_type_id(i);
 					if(def.is_land) {
@@ -840,8 +838,7 @@ public:
 			}
 			return ptr;
 		} else if(name == "military_recruit_bg") {
-			auto ptr = make_element_by_type<opaque_element_base>(state, id);
-			return ptr;
+			return make_element_by_type<opaque_element_base>(state, id);
 		} else {
 			return nullptr;
 		}

@@ -11,6 +11,7 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_production_window.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
 
@@ -29,12 +30,34 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::province_id prov_id = retrieve<dcon::province_id>(state, parent);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("provinceview_liferating"),
-				text::variable_type::value, text::fp_one_place{float(state.world.province_get_life_rating(prov_id))});
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("col_liferate_techs"));
-		text::close_layout_box(contents, box);
+		text::add_line(state, contents, "provinceview_liferating", text::variable_type::value, int64_t(state.world.province_get_life_rating(prov_id)));
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "col_liferate_techs");
+		for(auto i : state.world.in_invention) {
+			auto mod = i.get_modifier();
+			for(uint32_t j = 0; j < sys::national_modifier_definition::modifier_definition_size; j++) {
+				if(mod.get_national_values().offsets[j] == sys::national_mod_offsets::colonial_life_rating) {
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, i.get_name(), state.world.nation_get_active_inventions(state.local_player_nation, i) ? text::text_color::green : text::text_color::red);
+
+					dcon::technology_id containing_tech;
+					auto lim_trigger_k = i.get_limit();
+					trigger::recurse_over_triggers(state.trigger_data.data() + state.trigger_data_indices[lim_trigger_k.index() + 1],
+						[&](uint16_t* tval) {
+							if((tval[0] & trigger::code_mask) == trigger::technology)
+								containing_tech = trigger::payload(tval[1]).tech_id;
+						});
+
+					if(containing_tech) {
+						text::add_to_layout_box(state, contents, box, std::string_view{ " (" });
+						text::add_to_layout_box(state, contents, box, state.world.technology_get_name(containing_tech), state.world.nation_get_active_technologies(state.local_player_nation, containing_tech) ? text::text_color::green : text::text_color::red);
+						text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
+					}
+					text::close_layout_box(contents, box);
+					break;
+				}
+			}
+		}
 	}
 };
 
@@ -493,6 +516,7 @@ public:
 
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
 
@@ -848,7 +872,7 @@ public:
 		if(content) {
 			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
 		}
-			
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1167,14 +1191,10 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		// Not sure if this is the right key, but looking through the CSV files, this is the only one with a value you can
-		// substitute.
-		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("avg_mil_on_map"), text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, content) });
+		text::add_line(state, contents, "avg_mil_on_map", text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, content) });
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::core_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::global_pop_militancy_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, true);
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1470,7 +1490,7 @@ public:
 			text::add_line_with_condition(state, contents, "col_start_1", state.world.state_definition_get_colonization_stage(sdef) <= uint8_t(1));
 			text::add_line_with_condition(state, contents, "col_start_2", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
 			text::add_line_with_condition(state, contents, "col_start_3", state.crisis_colony != sdef);
-		
+
 			bool war_participant = false;
 			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
 				if(par.get_nation() == state.local_player_nation)
@@ -1496,7 +1516,7 @@ public:
 			auto num_colonizers = colonizers.end() - colonizers.begin();
 
 			text::add_line_with_condition(state, contents, "col_start_7", num_colonizers < 4);
-		
+
 			bool adjacent = [&]() {
 				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 					if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1540,7 +1560,7 @@ public:
 
 			auto free_points = nations::free_colonial_points(state, state.local_player_nation);
 			auto required_points = int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
-			
+
 			text::add_line_with_condition(state, contents, "col_start_9", free_points > required_points, text::variable_type::x, required_points);
 		} else {
 			text::add_line(state, contents, "col_invest_title");
@@ -1625,7 +1645,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::colonization_id>(state, parent);
-		
+
 		row_contents.clear();
 
 		if(!content) {
@@ -1704,7 +1724,7 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		
+
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		auto fat_def = dcon::fatten(state.world, state.world.province_get_state_from_abstract_state_membership(prov));
 
@@ -1865,13 +1885,6 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
-
-			header_window->impl_on_update(state);
-			foreign_details_window->impl_on_update(state);
-			local_details_window->impl_on_update(state);
-			local_buildings_window->impl_on_update(state);
-			colony_window->impl_on_update(state);
-
 			if(!is_visible())
 				set_visible(state, true);
 			else
@@ -1881,12 +1894,15 @@ public:
 		}
 	}
 
+	void on_update(sys::state& state) noexcept override {
+		header_window->impl_on_update(state);
+		foreign_details_window->impl_on_update(state);
+		local_details_window->impl_on_update(state);
+		local_buildings_window->impl_on_update(state);
+		colony_window->impl_on_update(state);
+	}
+
 	friend class province_national_focus_button;
 };
-
-void province_national_focus_button::button_action(sys::state& state) noexcept {
-	auto province_window = static_cast<province_view_window*>(state.ui_state.province_window);
-	province_window->nf_win->set_visible(state, !province_window->nf_win->is_visible());
-}
 
 } // namespace ui

@@ -119,7 +119,7 @@ scrollbar
 	startvalue        value       none         discard
 	stepsize          value       text         member_fn
 	userangelimit     value       bool         member_fn
-	bordersize        group       gfx_xy_pair  member_fn 
+	bordersize        group       gfx_xy_pair  member_fn
 	guibuttontype     group       button       member_fn
 	icontype          group       image        member_fn
 
@@ -250,6 +250,8 @@ modifier_base
 	max_military_spending                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
+	min_domestic_investment              value      float            member_fn
+	max_domestic_investment              value      float            member_fn
 	factory_owner_cost                        value      float            member_fn
 	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
@@ -404,6 +406,8 @@ modifier_base
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard
+	conversion_rate                     	  value      float            member_fn
+	global_conversion_rate                    value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn

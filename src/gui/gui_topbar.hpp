@@ -82,9 +82,11 @@ public:
 		default:
 			break;
 		};
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("rank_prestige_d"), text::substitution_map{});
 		text::close_layout_box(contents, box);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
 	}
 };
 
@@ -129,25 +131,32 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-		float points = 0.f;
-		state.world.for_each_technology([&](dcon::technology_id t) {
-			if(state.world.nation_get_active_technologies(nation_id, t))
-				points += float(state.world.technology_get_colonial_points(t));
-		});
-
 		text::substitution_map sub;
 		std::string value;
 		value = text::prettify(nations::free_colonial_points(state, nation_id));
 		text::add_to_substitution_map(sub, text::variable_type::value, std::string_view(value));
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("colonial_points"), sub);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("explain_colonial_points"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("available_colonial_power"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("from_technology"), sub);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_technology"), sub);
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::format_float(points, 0), text::text_color::green);
-
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_technology(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_naval_bases"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_naval_bases(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("colonial_points_from_ships"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::colonial_points_from_ships(state, nation_id), 0), text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("used_colonial_maintenance"), sub);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::format_float(nations::used_colonial_points(state, nation_id), 0), text::text_color::red);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -199,8 +208,9 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change * 30.f});
-		auto avg_literacy = text::format_percentage((state.world.nation_get_demographics(nation_id, demographics::literacy) / state.world.nation_get_demographics(nation_id, demographics::total)), 1);
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change});
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
+		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
 		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -280,7 +290,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
@@ -292,7 +302,7 @@ public:
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
 
 		text::add_line_break_to_layout(state, contents);
-			
+
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, true);
 	}
 
@@ -330,6 +340,10 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		/*
+		// SCHOMBERT: A good portion of this is wrong because it is showing maximum values for some of these expense categories
+		// rather than my scaling them to what the actual spending settings are
+
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
 		text::substitution_map sub{};
@@ -346,7 +360,7 @@ public:
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::education);
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::administration);
 		total_expense += economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military);
-		total_expense += economy::estimate_loan_payments(state, nation_id);
+		total_expense += economy::interest_payment(state, nation_id);
 		total_expense += economy::estimate_subsidy_spending(state, nation_id);
 
 		text::add_to_substitution_map(sub, text::variable_type::yesterday,
@@ -390,7 +404,7 @@ public:
 						-economy::estimate_pop_payouts_by_income_type(state, nation_id, culture::income_type::military) }); // $VAL
 		text::add_line(state, contents, std::string_view("budget_interest"), text::variable_type::val,
 				text::fp_one_place{
-						-economy::estimate_loan_payments(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
+						-economy::interest_payment(state, nation_id) }); // $VAL - presumably loan payments == interest (?)
 		text::add_line(state, contents, std::string_view("budget_imports"), text::variable_type::val,
 				text::fp_one_place{ -economy::nation_total_imports(state,
 						nation_id) }); // $VAL - presumably nation_total_imports is for national stockpile (?)
@@ -399,6 +413,8 @@ public:
 
 		text::add_line(state, contents, std::string_view("topbar_projected_income"), text::variable_type::val,
 				text::fp_two_places{ economy::estimate_daily_income(state, nation_id) });
+
+		*/
 	}
 
 };
@@ -427,8 +443,10 @@ public:
 		text::substitution_map sub1;
 		float relevant_pop = state.world.nation_get_demographics(nation_id,
 				demographics::to_key(state, state.world.nation_get_primary_culture(nation_id)));
-		for(auto ac : state.world.nation_get_accepted_cultures(nation_id)) {
-			relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
+		for(auto ac : state.world.in_culture) {
+			if(state.world.nation_get_accepted_cultures(nation_id, ac)) {
+				relevant_pop += state.world.nation_get_demographics(nation_id, demographics::to_key(state, ac));
+			}
 		}
 		text::add_to_substitution_map(sub1, text::variable_type::num, text::pretty_integer{(int64_t)relevant_pop});
 		auto fPoints = relevant_pop / state.defines.national_focus_divider; // NOTE: Occasionally inaccurate by a few 0.01, this
@@ -488,11 +506,11 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto mil_change = demographics::get_estimated_mil_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::militancy) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
+				text::fp_two_places{total != 0.f ? state.world.nation_get_demographics(nation_id, demographics::militancy) / total : 0.f});
 		text::add_to_substitution_map(sub, text::variable_type::val,
-				text::fp_four_places{mil_change * 30.f});
+				text::fp_four_places{mil_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_mil"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -529,10 +547,10 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto con_change = demographics::get_estimated_con_change(state, nation_id);
+		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{(state.world.nation_get_demographics(nation_id, demographics::consciousness) /
-															state.world.nation_get_demographics(nation_id, demographics::total))});
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change * 30.f});
+				text::fp_two_places{total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change});
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -1055,7 +1073,12 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		bool has_unemployed = false;
-		for(auto pt : state.world.in_pop_type) {
+		// Only care about factory workers for displaying the red alert
+		std::array<dcon::pop_type_id, 2> factory_workers{
+			state.culture_definitions.primary_factory_worker,
+			state.culture_definitions.secondary_factory_worker
+		};
+		for(auto pt : factory_workers) {
 			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
 				auto state_instance = si.get_state();
 				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
@@ -1078,7 +1101,11 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		bool header = false;
-		for(auto pt : state.world.in_pop_type) {
+		std::array<dcon::pop_type_id, 2> factory_workers{
+			state.culture_definitions.primary_factory_worker,
+			state.culture_definitions.secondary_factory_worker
+		};
+		for(auto pt : factory_workers) {
 			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
 				auto state_instance = si.get_state();
 				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
@@ -1086,6 +1113,32 @@ public:
 				if(unemployed >= 1.f) {
 					if(!header) {
 						text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
+						header = true;
+					}
+					text::substitution_map sub;
+					text::add_to_substitution_map(sub, text::variable_type::num, int64_t(unemployed));
+					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(pt));
+					auto state_name = text::get_dynamic_state_name(state, state_instance);
+					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
+					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_two_places{ (unemployed / total) * 100.f });
+					auto box = text::open_layout_box(contents);
+					text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
+					text::close_layout_box(contents, box);
+				}
+			}
+		}
+		std::array<dcon::pop_type_id, 2> rgo_workers{
+			state.culture_definitions.farmers,
+			state.culture_definitions.laborers
+		};
+		for(auto pt : rgo_workers) {
+			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+				auto state_instance = si.get_state();
+				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
+				auto unemployed = total - state_instance.get_demographics(demographics::to_employment_key(state, pt));
+				if(unemployed >= 1.f) {
+					if(!header) {
+						text::add_line(state, contents, "alice_rgo_unemployment_country_alert");
 						header = true;
 					}
 					text::substitution_map sub;
@@ -1365,7 +1418,14 @@ public:
 class topbar_colony_icon : public standard_nation_button {
 public:
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		if(nations::can_expand_colony(state, nation_id)) {
+		bool any_integratable = false;
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			if(province::can_integrate_colony(state, si.get_state())) {
+				any_integratable = true;
+				break;
+			}
+		}
+		if(nations::can_expand_colony(state, nation_id) || any_integratable) {
 			return 0;
 		} else if(nations::is_losing_colonial_race(state, nation_id)) {
 			return 1;
@@ -1385,10 +1445,21 @@ public:
 		auto nation_fat_id = dcon::fatten(state.world, nation_id);
 
 		bool is_empty = true;
+
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			if(province::can_integrate_colony(state, si.get_state())) {
+				text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, si.get_state().id);
+				is_empty = false;
+			}
+		}
+
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
-			if(province::can_invest_in_colony(state, nation_id, sdef) || state.world.state_definition_get_colonization_stage(sdef) == 3) {
-				text::add_line(state, contents, "countryalert_colonialgood_state", text::variable_type::region, sdef);
+			if(state.world.state_definition_get_colonization_stage(sdef) == 3) {
+				text::add_line(state, contents, "countryalert_colonialgood_colony", text::variable_type::region, sdef);
+				is_empty = false;
+			} else if(province::can_invest_in_colony(state, nation_id, sdef) ) {
+				text::add_line(state, contents, "countryalert_colonialgood_invest", text::variable_type::region, sdef);
 				is_empty = false;
 			}
 			auto lvl = state.world.colonization_get_level(colony);
@@ -1554,10 +1625,10 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points, true);
 		text::add_line_break_to_layout(state, contents);
 
-		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, false);
+		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::research_points_modifier, true);
 		text::add_line_break_to_layout(state, contents);
 
 		if(!bool(tech_id)) {
@@ -1613,8 +1684,10 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "topbar_bg") { //TODO: maybe create topbar_background class with mouse_test() function that makes the edges for showing tooltip a little nicer
-			return make_element_by_type<opaque_element_base>(state, id);
+		if(name == "topbar_bg") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
+		} else if(name == "topbar_paper") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "topbarbutton_production") {
 			auto btn = make_element_by_type<topbar_tab_button>(state, id);
 

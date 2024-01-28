@@ -5,6 +5,12 @@
 
 namespace economy {
 
+enum commodity_production_type {
+	primary,
+	derivative,
+	both
+};
+
 struct building_information {
 	economy::commodity_set cost;
 	int32_t naval_capacity = 1;
@@ -153,9 +159,9 @@ float estimate_tariff_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
-float estimate_loan_payments(sys::state& state, dcon::nation_id n);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
@@ -185,17 +191,11 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
@@ -209,8 +209,13 @@ int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
-
+void go_bankrupt(sys::state& state, dcon::nation_id n);
 dcon::modifier_id get_province_selector_modifier(sys::state& state);
 dcon::modifier_id get_province_immigrator_modifier(sys::state& state);
 
+bool can_take_loans(sys::state& state, dcon::nation_id n);
+float interest_payment(sys::state& state, dcon::nation_id n);
+float max_loan(sys::state& state, dcon::nation_id n);
+
+commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
 } // namespace economy

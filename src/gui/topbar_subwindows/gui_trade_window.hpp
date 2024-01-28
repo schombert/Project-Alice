@@ -294,8 +294,11 @@ public:
 struct trade_details_select_commodity {
 	dcon::commodity_id commodity_id{};
 };
+struct trade_details_open_window {
+	dcon::commodity_id commodity_id{};
+};
 
-class trade_commodity_entry_button : public tinted_button_element_base {
+class trade_commodity_entry_button : public tinted_right_click_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
@@ -312,6 +315,13 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		trade_details_select_commodity payload{retrieve<dcon::commodity_id>(state, parent)};
 		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		trade_details_select_commodity payload{ retrieve<dcon::commodity_id>(state, parent) };
+		send<trade_details_select_commodity>(state, state.ui_state.trade_subwindow, payload);
+		Cyto::Any dt_payload = trade_details_open_window{ retrieve<dcon::commodity_id>(state, parent) };
+		state.ui_state.trade_subwindow->impl_get(state, dt_payload);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -954,9 +964,6 @@ public:
 	}
 };
 
-struct trade_details_open_window {
-	dcon::commodity_id commodity_id{};
-};
 class trade_details_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1214,6 +1221,52 @@ public:
 	}
 };
 
+class stockpile_buy_from_stockpile_hint : public button_element_base {
+	uint8_t index = 0;
+	uint8_t subindex = 0;
+	uint8_t click_amount = 0;
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		subindex = 0;
+		if(state.network_mode != sys::network_mode_type::single_player) {
+			index = 3;
+		} else {
+			index = uint8_t(state.game_seed % 3);
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(index == 1 && subindex == 2) {
+			return; //no render
+		}
+		button_element_base::render(state, x, y);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(index == 1) {
+			click_amount++;
+			if(click_amount >= 10)
+				subindex = 1;
+			if(click_amount >= 15)
+				subindex = 2;
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		std::string key = "alice_stockpile_button_" + std::to_string(index) + "_" + std::to_string(subindex);
+		text::add_line(state, contents, key);
+	}
+};
+
 class trade_window : public window_element_base {
 	trade_flow_window* trade_flow_win = nullptr;
 	trade_details_window* details_win = nullptr;
@@ -1222,6 +1275,9 @@ class trade_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
+		auto btn = make_element_by_type<stockpile_buy_from_stockpile_hint>(state, state.ui_state.defs_by_name.find("alice_buy_from_stockpile")->second.definition);
+		add_child_to_front(std::move(btn));
 
 		auto ptr = make_element_by_type<trade_flow_window>(state, state.ui_state.defs_by_name.find("trade_flow")->second.definition);
 		trade_flow_win = ptr.get();

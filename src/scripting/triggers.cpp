@@ -1,5 +1,10 @@
 #include "triggers.hpp"
 #include "system_state.hpp"
+#include "demographics.hpp"
+#include "military_templates.hpp"
+#include "nations_templates.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "ve_scalar_extensions.hpp"
 
 namespace trigger {
@@ -1410,14 +1415,7 @@ TRIGGER_FUNCTION(tf_primary_culture_pop) {
 			trigger::payload(tval[1]).cul_id);
 }
 TRIGGER_FUNCTION(tf_accepted_culture) {
-	auto is_accepted = ve::apply(
-			[&ws, c = trigger::payload(tval[1]).cul_id](dcon::nation_id n) {
-				if(n)
-					return ws.world.nation_get_accepted_cultures(n).contains(c);
-				else
-					return false;
-			},
-			to_nation(primary_slot));
+	auto is_accepted = ws.world.nation_get_accepted_cultures(to_nation(primary_slot), trigger::payload(tval[1]).cul_id);
 	return compare_to_true(tval[0], is_accepted);
 }
 TRIGGER_FUNCTION(tf_culture_pop) {
@@ -1704,7 +1702,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_nation) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(c);
 
 	auto tident = ws.world.nation_get_identity_from_identity_holder(to_nation(this_slot));
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(to_nation(this_slot));
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 
@@ -1727,7 +1725,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_state) {
 
 	auto tnation = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
 	auto tident = ws.world.nation_get_identity_from_identity_holder(tnation);
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(tnation);
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 
@@ -1741,7 +1739,7 @@ TRIGGER_FUNCTION(tf_is_cultural_union_this_province) {
 
 	auto tnation = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
 	auto tident = ws.world.nation_get_identity_from_identity_holder(tnation);
-	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(ident);
+	auto tunion_group = ws.world.national_identity_get_culture_group_from_cultural_union_of(tident);
 	auto tculture = ws.world.nation_get_primary_culture(tnation);
 	auto tcg = ws.world.culture_get_group_from_culture_group_membership(tculture);
 
@@ -2910,10 +2908,10 @@ TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 	return compare_values(tval[0], result, int32_t(tval[1]));
 }
 TRIGGER_FUNCTION(tf_plurality) {
-	return compare_values(tval[0], ws.world.nation_get_plurality(to_nation(primary_slot)), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_plurality(to_nation(primary_slot)), read_float_from_payload(tval + 1) / 100.0f);
 }
 TRIGGER_FUNCTION(tf_plurality_pop) {
-	return compare_values(tval[0], ws.world.nation_get_plurality(nations::owner_of_pop(ws, to_pop(primary_slot))), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_plurality(nations::owner_of_pop(ws, to_pop(primary_slot))), read_float_from_payload(tval + 1) / 100.0f);
 }
 TRIGGER_FUNCTION(tf_corruption) {
 	return compare_values(tval[0], nations::central_has_crime_fraction(ws, to_nation(primary_slot)),
@@ -3036,7 +3034,7 @@ template<typename N, typename C>
 auto internal_tf_culture_accepted(sys::state& ws, N nids, C cids) {
 	return ve::apply(
 		[&ws](dcon::nation_id n, dcon::culture_id c) {
-			return ws.world.nation_get_accepted_cultures(n).contains(c);
+			return ws.world.nation_get_accepted_cultures(n, c);
 		}, nids, cids);
 }
 
@@ -3113,7 +3111,7 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_pop) {
 	auto is_accepted = ve::apply(
 			[&ws](dcon::nation_id n, dcon::culture_id c) {
 				if(n)
-					return ws.world.nation_get_accepted_cultures(n).contains(c);
+					return ws.world.nation_get_accepted_cultures(n, c);
 				else
 					return false;
 			},
@@ -3125,7 +3123,7 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_province) {
 	auto is_accepted = ve::apply(
 			[&ws](dcon::nation_id n, dcon::culture_id c) {
 				if(n)
-					return ws.world.nation_get_accepted_cultures(n).contains(c);
+					return ws.world.nation_get_accepted_cultures(n, c);
 				else
 					return false;
 			},
@@ -3137,7 +3135,7 @@ TRIGGER_FUNCTION(tf_is_accepted_culture_state) {
 	auto is_accepted = ve::apply(
 			[&ws](dcon::nation_id n, dcon::culture_id c) {
 				if(n)
-					return ws.world.nation_get_accepted_cultures(n).contains(c);
+					return ws.world.nation_get_accepted_cultures(n, c);
 				else
 					return false;
 			},
@@ -3698,14 +3696,14 @@ TRIGGER_FUNCTION(tf_has_recently_lost_war) {
 	return compare_to_true(tval[0], ve::apply(
 		[&](dcon::nation_id n) {
 			auto d = ws.world.nation_get_last_war_loss(n);
-			return bool(d) && (d + 365 * 5) <= ws.current_date;
+			return bool(d) && ws.current_date <= (d + 365 * 5);
 		}, to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_has_recently_lost_war_pop) {
 	return compare_to_true(tval[0], ve::apply(
 		[&](dcon::nation_id n) {
 			auto d = ws.world.nation_get_last_war_loss(n);
-			return bool(d) && (d + 365 * 5) <= ws.current_date;
+			return bool(d) && ws.current_date <= (d + 365 * 5);
 		}, nations::owner_of_pop(ws, to_pop(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_is_mobilised) {
@@ -4248,8 +4246,10 @@ TRIGGER_FUNCTION(tf_minorities_nation) {
 				if(!pc)
 					return 0.0f;
 				auto accumulated = ws.world.nation_get_demographics(n, demographics::to_key(ws, pc));
-				for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
-					accumulated += ws.world.nation_get_demographics(n, demographics::to_key(ws, ac));
+				for(auto ac : ws.world.in_culture) {
+					if(ws.world.nation_get_accepted_cultures(n, ac)) {
+						accumulated += ws.world.nation_get_demographics(n, demographics::to_key(ws, ac));
+					}
 				}
 				return accumulated;
 			},
@@ -4267,8 +4267,10 @@ TRIGGER_FUNCTION(tf_minorities_state) {
 				if(!pc)
 					return 0.0f;
 				auto accumulated = ws.world.state_instance_get_demographics(i, demographics::to_key(ws, pc));
-				for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
-					accumulated += ws.world.state_instance_get_demographics(i, demographics::to_key(ws, ac));
+				for(auto ac : ws.world.in_culture) {
+					if(ws.world.nation_get_accepted_cultures(n, ac)) {
+						accumulated += ws.world.state_instance_get_demographics(i, demographics::to_key(ws, ac));
+					}
 				}
 				return accumulated;
 			},
@@ -4286,8 +4288,10 @@ TRIGGER_FUNCTION(tf_minorities_province) {
 				if(!pc)
 					return 0.0f;
 				auto accumulated = ws.world.province_get_demographics(i, demographics::to_key(ws, pc));
-				for(auto ac : ws.world.nation_get_accepted_cultures(n)) {
-					accumulated += ws.world.province_get_demographics(i, demographics::to_key(ws, ac));
+				for(auto ac : ws.world.in_culture) {
+					if(ws.world.nation_get_accepted_cultures(n, ac)) {
+						accumulated += ws.world.province_get_demographics(i, demographics::to_key(ws, ac));
+					}
 				}
 				return accumulated;
 			},

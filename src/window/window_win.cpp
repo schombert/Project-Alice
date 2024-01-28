@@ -2,6 +2,7 @@
 #include "map.hpp"
 #include "opengl_wrapper.hpp"
 #include "resource.h"
+#include "system_state.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -297,6 +298,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// this is the message that tells us there is a DirectShow event
 		sound::update_music_track(*state);
 		break;
+	case WM_GETMINMAXINFO:
+		LPMINMAXINFO info = (LPMINMAXINFO)lParam;
+		info->ptMinTrackSize.x = 640;
+		info->ptMinTrackSize.y = 400;
 	}
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
@@ -390,6 +395,18 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
 	game_state.on_create();
+
+	{
+		auto root = simple_fs::get_root(game_state.common_fs);
+		auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+		auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
+		if(auto f = simple_fs::peek_file(cursors_dir, NATIVE("normal.cur")); f) {
+			auto path = simple_fs::get_full_name(*f);
+			HCURSOR h_cursor = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			SetCursor(h_cursor);
+			SetClassLongPtr(game_state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(h_cursor));
+		}
+	}
 
 	MSG msg;
 	// pump message loop

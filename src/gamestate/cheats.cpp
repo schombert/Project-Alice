@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "commands.hpp"
 #include "system_state.hpp"
 #include "nations.hpp"
@@ -27,10 +29,10 @@ void execute_c_switch_nation(sys::state& state, dcon::nation_id source, dcon::na
 	if(bool(source) && source != state.national_definitions.rebel_id) {
 		state.world.nation_set_is_player_controlled(source, false);
 	}
+	if(source == state.local_player_nation) {
+		state.local_player_nation = target;
+	}
 	if(bool(target) && target != state.national_definitions.rebel_id) {
-		if(source == state.local_player_nation) {
-			state.local_player_nation = target;
-		}
 		state.world.nation_set_is_player_controlled(target, true);
 		ai::remove_ai_data(state, target);
 	}
@@ -130,8 +132,13 @@ void c_complete_constructions(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_complete_constructions(sys::state& state, dcon::nation_id source) {
+	
 	for(uint32_t i = state.world.province_building_construction_size(); i-- > 0;) {
 		dcon::province_building_construction_id c{ dcon::province_building_construction_id::value_base_t(i) };
+
+		if(state.world.province_building_construction_get_nation(c) != source)
+			continue;
+
 		auto t = economy::province_building_type(state.world.province_building_construction_get_type(c));
 		auto const& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
@@ -161,7 +168,7 @@ void execute_c_event(sys::state& state, dcon::nation_id source, int32_t id) {
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, source, 0, 0);
+	event::trigger_national_event(state, e, source, state.current_date.value, id ^ source.index());
 }
 void c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_id as, int32_t id) {
 	payload p;
@@ -185,7 +192,7 @@ void execute_c_event_as(sys::state& state, dcon::nation_id source, dcon::nation_
 	if(!e)
 		return;
 
-	event::trigger_national_event(state, e, as, 0, 0);
+	event::trigger_national_event(state, e, as, state.current_date.value, id ^ as.index());
 }
 void c_force_crisis(sys::state& state, dcon::nation_id source) {
 	payload p;
@@ -295,6 +302,68 @@ void execute_c_change_owner(sys::state& state, dcon::nation_id source, dcon::pro
 void execute_c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
 	province::set_province_controller(state, pr, new_controller);
 	military::eject_ships(state, pr);
+}
+void c_instant_research(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_research;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
+	auto pos = std::find(
+		state.cheat_data.instant_research_nations.begin(),
+		state.cheat_data.instant_research_nations.end(),
+		source
+	);
+	if(pos != state.cheat_data.instant_research_nations.end()) {
+		state.cheat_data.instant_research_nations.erase(pos);
+	} else {
+		state.cheat_data.instant_research_nations.push_back(source);
+	}
+}
+
+void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_add_population;
+	p.source = source;
+	p.data.cheat_int.value = ammount;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
+	float total_population = state.world.nation_get_demographics(source, demographics::total);
+	state.world.for_each_pop([&](dcon::pop_id p) {
+		auto pop = dcon::fatten(state.world, p);
+		if(source == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {
+			pop.set_size(pop.get_size() + std::ceil(ammount * pop.get_size() / total_population));
+		}
+	});
+}
+
+void c_instant_army(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_army;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_army(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_army = !state.cheat_data.instant_army;
+}
+
+void c_instant_industry(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_industry;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_industry(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_industry = !state.cheat_data.instant_industry;
 }
 
 }

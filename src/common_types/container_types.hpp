@@ -32,6 +32,64 @@ inline uint32_t pack_color(int32_t r, int32_t g, int32_t b) {
 	return ((uint32_t(r) & 0xFF) << 0) | ((uint32_t(g) & 0xFF) << 8) | ((uint32_t(b) & 0xFF) << 16);
 }
 
+struct hsv {
+	float h;
+	float s;
+	float v;
+};
+
+inline hsv rgb_to_hsv(uint32_t v) {
+	auto r = red_from_int(v);
+	auto g = green_from_int(v);
+	auto b = blue_from_int(v);
+
+	auto cmin = std::min(r, std::min(g, b));
+	auto cmax = std::max(r, std::max(g, b));
+	auto delta = cmax - cmin;
+
+	float h = 0.0f;
+	if(delta == 0.0f) {
+		h = 0.0f;
+	} else if(cmax == r) {
+		h = 60.0f * (fmod((g - b) / delta, 6.0f));
+	} else if(cmax == g) {
+		h = 60.0f * ((b - r) / delta + 2.0f);
+	} else /*if(cmax == b)*/ {
+		h = 60.0f * ((r - g) / delta + 4.0f);
+	}
+
+	return hsv{
+		h,
+		cmax == 0.0f ? 0.0f : delta / cmax,
+		cmax
+	};
+}
+
+inline uint32_t hsv_to_rgb(hsv v) {
+	auto c = v.v * v.s;
+	auto x = c * (1.0f - std::abs(fmod(v.h / 60.0f, 2.0f) - 1.0f));
+	auto m = v.v - c;
+	float r = 0.0f; float g = 0.0f; float b = 0.0f;
+	if(0.0f <= v.h && v.h < 60.0f) {
+		r = c; g = x; b = 0.0f;
+	} else if(60.0f <= v.h && v.h < 120.0f) {
+		r = x; g = c; b = 0.0f;
+	} else if(120.0f <= v.h && v.h < 180.0f) {
+		r = 0.0f; g = c; b = x;
+	} else if(180.0f <= v.h && v.h < 240.0f) {
+		r = 0.0f; g = x; b = c;
+	} else if(240.0f <= v.h && v.h < 300.0f) {
+		r = x; g = 0.0f; b = c;
+	} else /* if(300.0f <= v.h && v.h < 360.0f) */ {
+		r = c; g = 0.0f; b = x;
+	}
+	return pack_color(
+		std::clamp(r + m, 0.0f, 255.0f),
+		std::clamp(g + m, 0.0f, 255.0f),
+		std::clamp(b + m, 0.0f, 255.0f)
+	);
+}
+
 struct value_modifier_segment {
 	float factor = 0.0f;
 	dcon::trigger_key condition;
@@ -230,12 +288,29 @@ struct checksum_key {
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
-	char data[8];
+	char data[48] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
-		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
+		for(int32_t i = sizeof(data) - 1; i >= 0; i--) {
+			if(data[i] != ' ') {
+				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
+			}
+		}
+		return "???";
 	}
 };
 static_assert(sizeof(player_name) == sizeof(player_name::data));
+
+struct macro_builder_template {
+	static constexpr uint32_t max_types = 48;
+	sys::checksum_key scenario_checksum;
+	dcon::nation_id source;
+	char name[8] = { 0 };
+	uint8_t amounts[max_types] = { 0 };
+
+	bool operator!=(macro_builder_template& o) {
+		return std::memcmp(this, &o, sizeof(*this));
+	}
+};
 
 } // namespace sys

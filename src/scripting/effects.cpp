@@ -1,6 +1,12 @@
 #include "effects.hpp"
 #include "system_state.hpp"
 #include "ai.hpp"
+#include "demographics.hpp"
+#include "politics.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
+#include "rebels.hpp"
+#include "triggers.hpp"
 
 namespace effect {
 
@@ -1619,7 +1625,7 @@ uint32_t ef_add_accepted_culture(EFFECT_PARAMTERS) {
 	if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) == trigger::payload(tval[1]).cul_id) {
 		return 0;
 	}
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).add_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, true);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -1628,7 +1634,7 @@ uint32_t ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
 	for(auto c : ws.world.culture_group_get_culture_group_membership(cg)) {
 		if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) != c.get_member().id) {
-			ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).add_unique(c.get_member().id);
+			ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.get_member().id, true);
 		}
 	}
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
@@ -1636,14 +1642,14 @@ uint32_t ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 }
 uint32_t ef_primary_culture(EFFECT_PARAMTERS) {
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_primary_culture_this_nation(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(this_slot));
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -1652,7 +1658,7 @@ uint32_t ef_primary_culture_this_state(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1662,7 +1668,7 @@ uint32_t ef_primary_culture_this_province(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1672,7 +1678,7 @@ uint32_t ef_primary_culture_this_pop(EFFECT_PARAMTERS) {
 	if(owner) {
 		auto c = ws.world.nation_get_primary_culture(owner);
 		ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-		ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+		ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 		nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	}
 	return 0;
@@ -1680,12 +1686,12 @@ uint32_t ef_primary_culture_this_pop(EFFECT_PARAMTERS) {
 uint32_t ef_primary_culture_from_nation(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(from_slot));
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), c);
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(c.id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
 uint32_t ef_remove_accepted_culture(EFFECT_PARAMTERS) {
-	ws.world.nation_get_accepted_cultures(trigger::to_nation(primary_slot)).remove_unique(trigger::payload(tval[1]).cul_id);
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, false);
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
@@ -1702,7 +1708,7 @@ uint32_t ef_life_rating_state(EFFECT_PARAMTERS) {
 			p,
 			uint8_t(std::clamp(int32_t(ws.world.province_get_life_rating(p)) + trigger::payload(tval[1]).signed_value, 0, 255)));
 	});
-	
+
 	return 0;
 }
 uint32_t ef_religion(EFFECT_PARAMTERS) {
@@ -1747,7 +1753,10 @@ uint32_t ef_treasury(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 1);
 	assert(std::isfinite(amount));
 	auto& t = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
-	t = std::max(0.0f, t + amount);
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
+		t += amount;
+	else
+		t = std::max(0.0f, t + amount);
 	return 0;
 }
 uint32_t ef_war_exhaustion(EFFECT_PARAMTERS) {
@@ -2375,6 +2384,7 @@ uint32_t ef_infrastructure(EFFECT_PARAMTERS) {
 	building_level = uint8_t(std::clamp(int32_t(building_level) + int32_t(trigger::payload(tval[1]).signed_value),
 		0,
 		int32_t(ws.world.nation_get_max_building_level(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)), economy::province_building_type::railroad))));
+	ws.railroad_built.store(true, std::memory_order::release);
 	return 0;
 }
 uint32_t ef_infrastructure_state(EFFECT_PARAMTERS) {
@@ -2384,6 +2394,7 @@ uint32_t ef_infrastructure_state(EFFECT_PARAMTERS) {
 			0,
 			int32_t(ws.world.nation_get_max_building_level(ws.world.province_get_nation_from_province_ownership(p), economy::province_building_type::railroad))));
 	});
+	ws.railroad_built.store(true, std::memory_order::release);
 	return 0;
 }
 
@@ -2486,8 +2497,7 @@ uint32_t ef_end_war_this_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_this_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
 	return 0;
 }
 uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
@@ -2495,8 +2505,7 @@ uint32_t ef_end_war_from_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_end_war_from_province(EFFECT_PARAMTERS) {
-	military::end_wars_between(ws, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)),
-			trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)));
 	return 0;
 }
 uint32_t ef_enable_ideology(EFFECT_PARAMTERS) {
@@ -2867,7 +2876,11 @@ uint32_t ef_add_tax_relative_income(EFFECT_PARAMTERS) {
 	auto combined_amount = income * amount;
 	assert(std::isfinite(combined_amount));
 	auto& v = ws.world.nation_get_stockpiles(trigger::to_nation(primary_slot), economy::money);
-	v = std::max(v + combined_amount, 0.0f); // temporary measure since there is no debt
+
+	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
+		v = v + combined_amount;
+	else
+		v = std::max(v + combined_amount, 0.0f); // temporary measure since there is no debt
 	return 0;
 }
 uint32_t ef_neutrality(EFFECT_PARAMTERS) {
@@ -3703,6 +3716,93 @@ uint32_t ef_this_remove_casus_belli_from_province(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
+
+uint32_t ef_add_truce_tag(EFFECT_PARAMTERS) {
+	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[2] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_nation(EFFECT_PARAMTERS) {
+	auto target = trigger::to_nation(this_slot);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_state(EFFECT_PARAMTERS) {
+	auto target = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_province(EFFECT_PARAMTERS) {
+	auto target = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_this_pop(EFFECT_PARAMTERS) {
+	auto target = nations::owner_of_pop(ws, trigger::to_pop(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_from_nation(EFFECT_PARAMTERS) {
+	auto target = trigger::to_nation(from_slot);
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_add_truce_from_province(EFFECT_PARAMTERS) {
+	auto target = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot));
+	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
+		return 0;
+	military::add_truce(ws, target, trigger::to_nation(primary_slot), int32_t(tval[1] * 30.5f));
+	return 0;
+}
+uint32_t ef_call_allies(EFFECT_PARAMTERS) {
+	for(auto drel : ws.world.nation_get_diplomatic_relation(trigger::to_nation(primary_slot))) {
+		auto other_nation = drel.get_related_nations(0) != trigger::to_nation(primary_slot) ? drel.get_related_nations(0) : drel.get_related_nations(1);
+		if(drel.get_are_allied()) {
+			for(auto wfor : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+				if(wfor.get_war().get_primary_attacker() == trigger::to_nation(primary_slot)) {
+					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_defender()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, true)) {
+
+						diplomatic_message::message m;
+						std::memset(&m, 0, sizeof(m));
+						m.from = trigger::to_nation(primary_slot);
+						m.to = other_nation;
+						m.type = diplomatic_message::type_t::call_ally_request;
+						m.data.war = wfor.get_war();
+						diplomatic_message::post(ws, m);
+					}
+				}
+				if(wfor.get_war().get_primary_defender() == trigger::to_nation(primary_slot)) {
+					if(!military::has_truce_with(ws, other_nation, wfor.get_war().get_primary_attacker()) && military::standard_war_joining_is_possible(ws, wfor.get_war(), other_nation, false)) {
+
+						diplomatic_message::message m;
+						std::memset(&m, 0, sizeof(m));
+						m.from = trigger::to_nation(primary_slot);
+						m.to = other_nation;
+						m.type = diplomatic_message::type_t::call_ally_request;
+						m.data.war = wfor.get_war();
+						diplomatic_message::post(ws, m);
+					}
+				}
+			}
+		}
+
+	}
+
+	return 0;
+}
+
 uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
@@ -3776,6 +3876,8 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 		return 0;
 	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
 		return 0;
+	if(target == trigger::to_nation(primary_slot))
+		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3794,6 +3896,8 @@ uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
 	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
+		return 0;
+	if(target == trigger::to_nation(primary_slot))
 		return 0;
 	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
@@ -4578,6 +4682,7 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_yes_limit(EFFECT_PARAMTERS)
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
 			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
+	ws.railroad_built.store(true, std::memory_order::release);
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) {
@@ -4587,21 +4692,26 @@ uint32_t ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_PARAMTERS) 
 		if(ws.world.province_get_modifier_values(p, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
 			ws.world.province_get_building_level(p, economy::province_building_type::railroad) += uint8_t(1);
 	});
+	ws.railroad_built.store(true, std::memory_order::release);
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_no_whole_state_yes_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f) {
 			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
+			ws.railroad_built.store(true, std::memory_order::release);
+		}
 	}
 	return 0;
 }
 uint32_t ef_build_railway_in_capital_no_whole_state_no_limit(EFFECT_PARAMTERS) {
 	auto c = ws.world.nation_get_capital(trigger::to_nation(primary_slot));
 	if(c) {
-		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f)
+		if(ws.world.province_get_modifier_values(c, sys::provincial_mod_offsets::min_build_railroad) <= 1.0f) {
 			ws.world.province_get_building_level(c, economy::province_building_type::railroad) += uint8_t(1);
+			ws.railroad_built.store(true, std::memory_order::release);
+		}
 	}
 	return 0;
 }
@@ -5227,6 +5337,14 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_kill_leader, //constexpr inline uint16_t kill_leader = 0x0199;
 		ef_annex_to_null_nation, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
 		ef_annex_to_null_province, //constexpr inline uint16_t annex_to_null_province = 0x019B;
+		ef_add_truce_tag, //constexpr inline uint16_t add_truce_tag = 0x019C;
+		ef_add_truce_this_nation, //constexpr inline uint16_t add_truce_this_nation = 0x019D;
+		ef_add_truce_this_state, //constexpr inline uint16_t add_truce_this_state = 0x019E;
+		ef_add_truce_this_province, //constexpr inline uint16_t add_truce_this_province = 0x019F;
+		ef_add_truce_this_pop, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
+		ef_add_truce_from_nation, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
+		ef_add_truce_from_province, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
+		ef_call_allies, //constexpr inline uint16_t call_allies = 0x01A3;
 
 		//
 		// SCOPES
