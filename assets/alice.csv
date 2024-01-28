@@ -1554,6 +1554,15 @@ alice_info_box_13;§YTAB§W: Open chat window
 alice_info_box_14;§YESC§W: Open main menu and settings menu
 alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
 alice_info_box_16;§GEnjoy the game! =^w^=§W
+alice_utt_controls_1;§YLeft-click§W select (deselecting everything else)
+alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
+alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
+alice_mw_create_1;Add general
+alice_mw_create_2;Add admiral
+alice_mw_create_lp;We need §R$x$§W §Yleadership points§W to add
+alice_mw_controls_1;§YRight-click§W create §Gall§W possible as generals
+alice_mw_controls_2;§YRight-click§W create §Gall§W possible as admirals
+alice_hint_1;§YLeadership points§W will automatically be used to create generals or admirals when hitting the cap
 current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
 current_supply_text2;The amount we could get of our current supply consumption was:
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
