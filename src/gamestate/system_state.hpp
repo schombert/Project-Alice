@@ -387,6 +387,7 @@ struct cheat_data_s {
 	bool show_province_id_tooltip = false;
 	bool wasd_move_cam = false;
 	bool instant_army = false;
+	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
 };
 

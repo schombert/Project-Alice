@@ -38,7 +38,18 @@ enum class mode : uint8_t {
 	factories = 0x1f,
 	issues = 0x20,
 	growth = 0x21,
-	state_select = 0x22,
+	players = 0x22,
+	life_needs = 0x23,
+	everyday_needs = 0x24,
+	luxury_needs = 0x25,
+	officers = 0x26,
+	clerk_to_craftsmen_ratio = 0x27,
+	life_rating = 0x28,
+	crime = 0x29,
+	rally = 0x2a,
+	workforce = 0x2b,
+	mobilization = 0x2c,
+	state_select = 0x2d,
 };
 
 const uint8_t PROV_COLOR_LAYERS = 2;
