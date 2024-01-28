@@ -500,7 +500,6 @@ guiTypes = {
 				name = "spoilers_label"
 				position = { 78 126 }
 				text = "spoilers_label"
-				tooltipText = "spoilers_tt"
 				font = "Arial16"
 				borderSize = { 0 0 }
 				maxsize = { 236 18 }
@@ -3958,7 +3957,7 @@ guiTypes = {
 		}
 		iconType = {
 			name = "minimap_bg-patch"
-			spriteType = "new-minimap-bg"
+			spriteType = "GFX_new_minimap_bg"
 			position = { -374 -200 }
 			Orientation = "LOWER_RIGHT"
 		}
