@@ -450,6 +450,9 @@ struct notify_save_loaded_data {
 struct notify_reload_data {
 	sys::checksum_key checksum;
 };
+struct notify_leaves_data {
+	bool make_ai;
+};
 
 struct payload {
 	union dtype {
@@ -510,6 +513,7 @@ struct payload {
 		notify_reload_data notify_reload;
 		sys::player_name player_name;
 		cheat_location_data cheat_location;
+		notify_leaves_data notify_leave;
 
 		dtype() { }
 	} data;
@@ -840,8 +844,8 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_leaves(sys::state& state, dcon::nation_id source);
-bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
+void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
