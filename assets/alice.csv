@@ -559,7 +559,9 @@ factory_upgrade_condition_7;The investment target is not at war with you;;;;;;;;
 factory_upgrade_condition_8;The ruling party allows upgrading factories;;;;;;;;;;;;x
 factory_upgrade_condition_9;The factory is not already being upgraded;;;;;;;;;;;;x
 factory_upgrade_condition_10;The factory is not at max level;;;;;;;;;;;;x
-factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
+factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment in a state being upgraded.;;;;;;;;;;;;x
+factory_upgrade_ctrl_explanation;Holding CTRL while clicking will result in all factories in a state being upgraded.;;;;;;;;;;;;x
+factory_upgrade_ctrl_shift_explanation;Holding CTRL + SHIFT while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
 factory_delete_header;Delete factory;;;;;;;;;;;;x
 factory_delete_not_allowed;The ruling party does not allow us to delete factories;;;;;;;;;;;;x
 factory_stats_1;This factory is currently operating at $val$ capacity;;;;;;;;;;;;x
