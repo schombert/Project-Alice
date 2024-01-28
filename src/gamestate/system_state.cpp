@@ -193,7 +193,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					local_player_nation = owner;
 					world.nation_set_is_player_controlled(local_player_nation, true);
 					ui_state.nation_picker->impl_on_update(*this);
-				} else {
+				} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
