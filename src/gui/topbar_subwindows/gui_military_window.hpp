@@ -38,45 +38,40 @@ public:
 class military_mob_progress_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
-			progress = 0.0f;
-			return;
+		auto n = state.local_player_nation;
+		int32_t used = 0;
+		int32_t total = 0;
+		for(const auto po : state.world.nation_get_province_ownership(n)) {
+			used += military::regiments_created_from_province(state, po.get_province());
+			total += military::regiments_max_possible_from_province(state, po.get_province());
 		}
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-		if(mob_size <= 0.0f) {
-			progress = 1.0f;
-			return;
-		}
-		progress = std::min(1.0f, mob_rem / mob_size);
+		float ratio = used > 0 ? float(total) / float(used) : 0.f;
+		progress = ratio;
 	}
 };
 
 class military_mob_progress_bar_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
-			set_text(state, "0%");
-			return;
+		auto n = state.local_player_nation;
+		int32_t used = 0;
+		int32_t total = 0;
+		for(const auto po : state.world.nation_get_province_ownership(n)) {
+			used += military::regiments_created_from_province(state, po.get_province());
+			total += military::regiments_max_possible_from_province(state, po.get_province());
 		}
-
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-
-		if(mob_size <= 0.0f) {
-			set_text(state, "100%");
-			return;
-		}
-		set_text(state, text::format_percentage(std::min(mob_rem / mob_size, 1.0f), 0));
+		float ratio = used > 0 ? float(total) / float(used) : 0.f;
+		set_text(state, text::format_percentage(ratio, 2) + " (" + text::prettify(total) + "/" + text::prettify(used) + ")");
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = state.local_player_nation;
 		text::add_line(state, contents, "mobilization_progress_not_mobilized");
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, true);
 	}
 };
 
