@@ -55,6 +55,7 @@ struct command_info {
 		next_song,
 		add_population,
 		instant_army,
+		instant_industry,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -201,6 +202,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_army", command_info::type::instant_army, "Instantly builds all armies",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 						
@@ -1488,8 +1492,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto tag = std::get<std::string>(pstate.arg_slots[0]);
 		if(tag == "ALL") {
-			for(const auto po : state.world.in_province_ownership) {
-				command::c_change_owner(state, state.local_player_nation, po.get_province(), state.local_player_nation);
+			for(const auto p : state.world.in_province) {
+				command::c_change_owner(state, state.local_player_nation, p, state.local_player_nation);
 			}
 		} else {
 			auto nid = smart_get_national_identity_from_tag(state, parent, tag);
@@ -1560,6 +1564,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::instant_army:
 	{
 		command::c_instant_army(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::instant_industry:
+	{
+		command::c_instant_industry(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::none:

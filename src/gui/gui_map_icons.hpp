@@ -379,6 +379,16 @@ public:
 					state.ui_state.army_combat_window->impl_on_update(state);
 				} else {
 					state.ui_state.army_combat_window->set_visible(state, true);
+					if(state.ui_state.province_window) {
+						state.ui_state.province_window->set_visible(state, false);
+						state.map_state.set_selected_province(dcon::province_id{});
+					}
+					if(state.ui_state.unit_window_army) {
+						state.ui_state.unit_window_army->set_visible(state, false);
+					}
+					if(state.ui_state.naval_combat_window) {
+						state.ui_state.naval_combat_window->set_visible(state, false);
+					}
 				}
 				return message_result::consumed;
 			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
@@ -388,6 +398,16 @@ public:
 					state.ui_state.army_combat_window->impl_on_update(state);
 				} else {
 					state.ui_state.army_combat_window->set_visible(state, true);
+					if(state.ui_state.province_window) {
+						state.ui_state.province_window->set_visible(state, false);
+						state.map_state.set_selected_province(dcon::province_id{});
+					}
+					if(state.ui_state.unit_window_army) {
+						state.ui_state.unit_window_army->set_visible(state, false);
+					}
+					if(state.ui_state.naval_combat_window) {
+						state.ui_state.naval_combat_window->set_visible(state, false);
+					}
 				}
 				return message_result::consumed;
 			}
@@ -402,6 +422,16 @@ public:
 					state.ui_state.naval_combat_window->impl_on_update(state);
 				} else {
 					state.ui_state.naval_combat_window->set_visible(state, true);
+					if(state.ui_state.province_window) {
+						state.ui_state.province_window->set_visible(state, false);
+						state.map_state.set_selected_province(dcon::province_id{});
+					}
+					if(state.ui_state.unit_window_army) {
+						state.ui_state.unit_window_army->set_visible(state, false);
+					}
+					if(state.ui_state.army_combat_window) {
+						state.ui_state.army_combat_window->set_visible(state, false);
+					}
 				}
 				return message_result::consumed;
 			}

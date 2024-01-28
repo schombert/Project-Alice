@@ -989,6 +989,133 @@ public:
 	}
 };
 
+class unit_supply_bar : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		auto navy = retrieve<dcon::navy_id>(state, parent);
+
+		economy::commodity_set commodities;
+
+		auto owner = state.local_player_nation;
+
+		float spending_level = .0f;
+
+		if(army) {
+			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
+		} else if(navy) {
+			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
+		}
+
+		
+		uint32_t total_commodities = state.world.commodity_size();
+
+		float max_supply = 0.0f;
+		float actual_supply = 0.0f;
+
+
+		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
+
+		for(uint32_t i = 0; i < total_commodities; ++i) {
+			if(!commodities.commodity_amounts[i]) {
+				break;
+			}
+
+			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+
+			auto satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+			auto val = commodities.commodity_type[i];
+
+			max_supply += commodities.commodity_amounts[i];
+			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
+		}
+
+		float median_supply = actual_supply ? actual_supply / max_supply : 0.0f;
+
+		progress = median_supply;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto army = retrieve<dcon::army_id>(state, parent);
+		auto navy = retrieve<dcon::navy_id>(state, parent);
+		economy::commodity_set commodities;
+
+		float spending_level = .0f;
+		auto owner = state.local_player_nation;
+
+		if(army) {
+			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
+		} else if(navy) {
+			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
+		}
+		
+		
+		uint32_t total_commodities = state.world.commodity_size();
+
+		float max_supply = 0.0f;
+		float actual_supply = 0.0f;
+
+
+		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
+
+
+		for(uint32_t i = 0; i < total_commodities; ++i) {
+			if(!commodities.commodity_amounts[i]) {
+				break;
+			}
+			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+
+			auto satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+			auto val = commodities.commodity_type[i];
+
+			max_supply += commodities.commodity_amounts[i];
+			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;			
+		}
+
+		float median_supply = max_supply ? actual_supply / max_supply : 0.0f;
+
+		if(army) {
+			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
+			text::add_line(state, contents, "current_supply_text2");
+		} else if(navy) {
+			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
+			text::add_line(state, contents, "current_supply_text2");
+		}
+		
+		text::add_line_break_to_layout(state, contents);
+
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(commodities.commodity_type[i]) {
+				if(commodities.commodity_amounts[i] > 0) {
+
+					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+					float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+					float wanted_commodity = commodities.commodity_amounts[i];
+					float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
+
+					int32_t display_satisfaction = int32_t(satisfaction * 100);
+
+					if(satisfaction == 1 || satisfaction >= 0.95) {
+						text::add_line(state, contents, "current_supply_text_commodity", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+					} else if (satisfaction < 0.95 && satisfaction >= 0.5) {
+						text::add_line(state, contents, "current_supply_text_commodity_orange_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+					} else {
+						text::add_line(state, contents, "current_supply_text_commodity_red_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+					}					
+				}
+			}
+		}
+	}
+};
+
 template<class T>
 class unit_details_buttons : public window_element_base {
 private:
@@ -1141,7 +1268,7 @@ public:
 		} else if(name == "icon_supplies_small") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "supply_status") {
-			auto ptr = make_element_by_type<progress_bar>(state, id);
+			auto ptr = make_element_by_type<unit_supply_bar>(state, id);
 			unitsupply_bar = ptr.get();
 			return ptr;
 		} else if(name == "unitstatus_dugin") {

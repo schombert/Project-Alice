@@ -438,6 +438,8 @@ void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);

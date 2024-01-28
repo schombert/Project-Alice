@@ -29,4 +29,5 @@ void c_change_controller(sys::state& state, dcon::nation_id source, dcon::provin
 void c_instant_research(sys::state& state, dcon::nation_id source);
 void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount);
 void c_instant_army(sys::state& state, dcon::nation_id source);
+void c_instant_industry(sys::state& state, dcon::nation_id source);
 } // namespace command

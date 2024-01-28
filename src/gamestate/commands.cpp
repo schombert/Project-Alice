@@ -21,6 +21,8 @@ bool is_console_command(command_type t) {
 }
 
 void add_to_command_queue(sys::state& state, payload& p) {
+	assert(command::can_perform_command(state, p));
+
 	switch(p.type) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
@@ -2684,7 +2686,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 	if(source == target)
 		return false;
 
-	if(source == state.local_player_nation && state.cheat_data.always_allow_wargoals)
+	if(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_allow_wargoals)
 		return true;
 
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.addwargoal_diplomatic_cost)
@@ -4509,11 +4511,11 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.preload();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	state.local_player_nation = dcon::nation_id{ };
-	state.fill_unsaved_data();
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	state.fill_unsaved_data();
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 }
 
@@ -4922,6 +4924,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_instant_research:
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
+	case command_type::c_instant_industry:
 		return true;
 	}
 	return false;
@@ -5337,6 +5340,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_instant_army:
 		execute_c_instant_army(state, c.source);
+		break;
+	case command_type::c_instant_industry:
+		execute_c_instant_industry(state, c.source);
 		break;
 	}
 }

@@ -354,4 +354,16 @@ void execute_c_instant_army(sys::state& state, dcon::nation_id source) {
 	state.cheat_data.instant_army = !state.cheat_data.instant_army;
 }
 
+void c_instant_industry(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_industry;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_industry(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_industry = !state.cheat_data.instant_industry;
+}
+
 }

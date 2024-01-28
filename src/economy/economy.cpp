@@ -3559,7 +3559,7 @@ void resolve_constructions(sys::state& state) {
 		float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
 
 		bool all_finished = true;
-		if(!(c.get_nation() == state.local_player_nation && state.cheat_data.instant_army)) {
+		if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_army)) {
 			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
 				if(base_cost.commodity_type[j]) {
 					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * admin_cost_factor) {
@@ -3656,6 +3656,7 @@ void resolve_constructions(sys::state& state) {
 		auto& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
 		bool all_finished = true;
+		
 		for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
 			if(base_cost.commodity_type[j]) {
 				if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * admin_cost_factor) {
@@ -3665,7 +3666,7 @@ void resolve_constructions(sys::state& state) {
 				break;
 			}
 		}
-
+		
 		if(all_finished) {
 			if(state.world.province_get_building_level(for_province, t) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), t)) {
 				state.world.province_get_building_level(for_province, t) += 1;
@@ -3727,13 +3728,15 @@ void resolve_constructions(sys::state& state) {
 			float factory_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_cost) + 1.0f;
 
 			bool all_finished = true;
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-				if(base_cost.commodity_type[j]) {
-					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod * admin_cost_factor) {
-						all_finished = false;
+			if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+				for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+					if(base_cost.commodity_type[j]) {
+						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod * admin_cost_factor) {
+							all_finished = false;
+						}
+					} else {
+						break;
 					}
-				} else {
-					break;
 				}
 			}
 			if(all_finished) {
@@ -3746,13 +3749,15 @@ void resolve_constructions(sys::state& state) {
 				std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_owner_cost));
 
 			bool all_finished = true;
-			for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
-				if(base_cost.commodity_type[j]) {
-					if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod ) {
-						all_finished = false;
+			if(!(n == state.local_player_nation && state.cheat_data.instant_industry)) {
+				for(uint32_t j = 0; j < commodity_set::set_size && all_finished; ++j) {
+					if(base_cost.commodity_type[j]) {
+						if(current_purchased.commodity_amounts[j] < base_cost.commodity_amounts[j] * factory_mod) {
+							all_finished = false;
+						}
+					} else {
+						break;
 					}
-				} else {
-					break;
 				}
 			}
 			if(all_finished) {
