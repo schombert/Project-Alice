@@ -3471,41 +3471,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	if(err.accumulated_errors.size() == 0) {
-		// run the economy for three days on scenario creation
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
+	
 
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-
-		// adjust rgo power to economy setup
-		for(int j = 1; j < 5; j++) {
-			for(int i = 1; i < 365; i++) {
-				economy::update_rgo_employment(*this);
-				economy::update_factory_employment(*this);
-				economy::daily_update(*this);
-			}
-
-			world.for_each_commodity([&](dcon::commodity_id c) {
-				auto modifer = (1.f + 
-					(world.commodity_get_total_real_demand(c) + 1.f) 
-					/ (world.commodity_get_total_production(c) + 1.f));
-				world.commodity_set_rgo_amount(c,
-					world.commodity_get_rgo_amount(c) * modifer);
-			});
-
-			world.for_each_commodity([&](dcon::commodity_id c) {
-				world.commodity_set_current_price(c, world.commodity_get_cost(c));
-			});
-		}
-	}
+	if(err.accumulated_errors.size() == 0)
+		economy::presimulate(*this);
+	
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);

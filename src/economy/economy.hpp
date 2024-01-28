@@ -120,13 +120,16 @@ constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
 inline constexpr float production_scale_delta = 0.001f;
 inline constexpr uint32_t price_history_length = 256;
 
+//
+inline constexpr float domestic_investment_multiplier = 2.f;
+
 // rgo
 inline constexpr float rgo_overhire_multiplier = 10.f;
-inline constexpr float rgo_production_scale_neg_delta = 0.00001f;
+inline constexpr float rgo_production_scale_neg_delta = 0.0000001f;
 
 // artisans
 inline constexpr float inputs_base_factor_artisans = 1.2f;
-inline constexpr float output_base_factor_artisans = 1.0f;
+inline constexpr float output_base_factor_artisans = 0.8f;
 // factories
 inline constexpr float inputs_base_factor = 0.8f;
 
@@ -136,6 +139,8 @@ inline constexpr float rgo_boost = 1.0f;
 //demand modifiers
 inline constexpr float lx_extra_factor = 10.0f;
 inline constexpr float en_extra_factor = 10.0f;
+
+void presimulate(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
@@ -168,6 +173,7 @@ void daily_update(sys::state& state);
 void resolve_constructions(sys::state& state);
 
 float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float artisan_scale_limit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);

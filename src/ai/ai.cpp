@@ -900,12 +900,19 @@ void update_ai_econ_construction(sys::state& state) {
 		// skip over: non ais, dead nations, and nations that aren't making money
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || !n.get_is_civilized())
 			continue;
+		/*
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+			continue;
+		*/
+
+		if(economy::estimate_construction_spending(state, n) > 2.f * economy::estimate_daily_income(state, n))
 			continue;
 
 		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
+		int32_t max_projects = std::max(16, int32_t(treasury / 500.0f));
 		auto rules = n.get_combined_issue_rules();
+
+
 
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// prepare a list of states
@@ -929,14 +936,6 @@ void update_ai_econ_construction(sys::state& state) {
 				for(auto si : ordered_states) {
 					if(max_projects <= 0)
 						break;
-
-					auto pw_num = state.world.state_instance_get_demographics(si,
-							demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-					auto pw_employed = state.world.state_instance_get_demographics(si,
-							demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-
-					if(pw_employed >= pw_num && pw_num > 0.0f)
-						continue; // no spare workers
 
 					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 						for(auto fac : state.world.province_get_factory_location(p)) {
@@ -3082,6 +3081,8 @@ void update_budget(sys::state& state) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
+		float base_income = economy::estimate_daily_income(state, n);
+
 		if(n.get_is_at_war()) {
 			n.set_land_spending(int8_t(100));
 			n.set_naval_spending(int8_t(100));
@@ -3092,8 +3093,21 @@ void update_budget(sys::state& state) {
 			n.set_land_spending(int8_t(25));
 			n.set_naval_spending(int8_t(25));
 		}
-		n.set_education_spending(int8_t(100));
+
+		float education_budget = 0.3f * base_income;
+		float ratio_education = std::clamp(
+			100.f * education_budget / (1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education))
+			, 0.f, 100.f);
+
+		n.set_education_spending(int8_t(ratio_education));
 		n.set_construction_spending(int8_t(100));
+
+		if(n.get_is_civilized()) {
+			n.set_domestic_investment_spending(int8_t(2));
+		} else {
+			n.set_domestic_investment_spending(int8_t(0));
+		}
+		
 		n.set_tariffs(int8_t(0));
 
 		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::poor_total))) / 10.f;
