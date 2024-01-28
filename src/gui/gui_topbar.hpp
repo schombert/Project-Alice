@@ -1874,7 +1874,9 @@ public:
 			var.empty() ? ptr->slot = uint8_t(0) : ptr->slot = uint8_t(std::stoi(var));
 			produced_icons.push_back(ptr.get());
 			return ptr;
-		} else {
+		} else if (name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
+		}  else {
 			return nullptr;
 		}
 	}
