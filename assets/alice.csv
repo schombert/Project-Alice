@@ -680,8 +680,11 @@ pop_lit_5;The national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_7;The base literacy change rate: $x$;;;;;;;;;;;;x
 pop_lit_8;And 0.01;;;;;;;;;;;;x
-pop_growth_topbar;Our population is expected to grow by $x$ within the next month;;;;;;;;;;;;x
-pop_growth_topbar_2;Our population changed by $x$ last month;;;;;;;;;;;;x
+pop_growth_topbar;It's expected to grow by §G$x$§W within the next month.;;;;;;;;;;;;x
+pop_growth_topbar_2;population changed by §G$x$§W in the last §Y30§W days.;;;;;;;;;;;;x
+pop_growth_topbar_3;Our Adult male population is §Y$curr$§W. Our adult male
+separation_topbar;----------------
+pop_growth_topbar_4;Our total population is §Y$val$§W.
 pop_growth_1;Monthly pop growth: ;;;;;;;;;;;;x
 pop_growth_2;Slaves do not grow;;;;;;;;;;;;x
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;;;;;;;;;;;;x
