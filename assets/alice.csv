@@ -561,9 +561,6 @@ factory_upgrade_condition_7;The investment target is not at war with you;;;;;;;;
 factory_upgrade_condition_8;The ruling party allows upgrading factories;;;;;;;;;;;;x
 factory_upgrade_condition_9;The factory is not already being upgraded;;;;;;;;;;;;x
 factory_upgrade_condition_10;The factory is not at max level;;;;;;;;;;;;x
-factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment in a state being upgraded.;;;;;;;;;;;;x
-factory_upgrade_ctrl_explanation;Holding CTRL while clicking will result in all factories in a state being upgraded.;;;;;;;;;;;;x
-factory_upgrade_ctrl_shift_explanation;Holding CTRL + SHIFT while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
 factory_delete_header;Delete factory;;;;;;;;;;;;x
 factory_delete_not_allowed;The ruling party does not allow us to delete factories;;;;;;;;;;;;x
 factory_stats_1;This factory is currently operating at $val$ capacity;;;;;;;;;;;;x
@@ -578,8 +575,8 @@ alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories i
 alice_expand_factory_controls_2;§YSHIFT-Right-click§W upgrade §Gall profitable§W factories in a state 
 alice_expand_factory_controls_3;§YCTRL-Left-click§W upgrade §Gall§W factories in a nation
 alice_expand_factory_controls_4;§YCTRL-Right-click§W upgrade §Gall profitable§W factories in a nation
-alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall of the same type§W factories in a nation
-alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable of the same type§W factories in a nation
+alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall profitable with full employment§W factories in a state
+alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable with full employment§W factories in a state
 blank_org_gain;organization gain;;;;;;;;;;;;x
 plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
