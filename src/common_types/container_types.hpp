@@ -292,7 +292,7 @@ struct player_name {
 
 	std::string_view to_string_view() noexcept {
 		for(int32_t i = sizeof(data) - 1; i >= 0; i--) {
-			if(data[i] != ' ') {
+			if(data[i] != ' ' || data[i] == '\0') {
 				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
 			}
 		}
