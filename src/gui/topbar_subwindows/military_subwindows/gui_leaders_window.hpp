@@ -158,6 +158,7 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "alice_mw_create_lp", text::variable_type::x, text::fp_two_places{ state.defines.leader_recruit_cost });
+		text::add_line(state, contents, "alice_mw_create_lpb");
 		if(B) {
 			text::add_line(state, contents, "alice_mw_create_1");
 			text::add_line(state, contents, "alice_mw_controls_1");
