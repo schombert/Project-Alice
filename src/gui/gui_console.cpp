@@ -1418,7 +1418,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			ptr_in = sys::serialize(ptr_in, state.value_modifiers);
 			return ptr_in;
 		});
-		write_single_component(state, NATIVE("text_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
+		/*write_single_component(state, NATIVE("text_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.text_data);
 			return ptr_in;
 		});
@@ -1429,7 +1429,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		write_single_component(state, NATIVE("text_sequences.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.text_sequences);
 			return ptr_in;
-		});
+		});*/
 		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
 			return ptr_in;

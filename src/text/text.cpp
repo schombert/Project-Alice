@@ -671,9 +671,9 @@ std::string produce_simple_string(sys::state const& state, dcon::text_sequence_i
 	auto& seq = state.text_sequences[state.user_settings.current_language][id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
-		if(std::holds_alternative<dcon::text_key>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
+		if(state.text_components[state.user_settings.current_language][i + seq.starting_component].type == text::text_component_type::text_key) {
 			result += state.to_string_view(state.text_components[state.user_settings.current_language][i + seq.starting_component].data.text_key);
-		} else if(std::holds_alternative<variable_type>(state.text_components[state.user_settings.current_language][i + seq.starting_component])) {
+		} else if(state.text_components[state.user_settings.current_language][i + seq.starting_component].type == text::text_component_type::variable_type) {
 			result += '?';
 		}
 	}
