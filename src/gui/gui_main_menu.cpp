@@ -155,6 +155,13 @@ void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 bool tooltip_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.bind_tooltip_mouse;
 }
+void spoilers_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.spoilers = !state.user_settings.spoilers;
+	send(state, parent, notify_setting_update{});
+}
+bool spoilers_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.spoilers;
+}
 
 void fow_checkbox::on_create(sys::state& state) noexcept {
 	checkbox_button::on_create(state);

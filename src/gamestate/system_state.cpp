@@ -2127,6 +2127,7 @@ void state::save_user_settings() const {
 	US_SAVE(render_models);
 	US_SAVE(mouse_edge_scrolling);
 	US_SAVE(black_map_font);
+	US_SAVE(spoilers);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2186,6 +2187,7 @@ void state::load_user_settings() {
 			US_LOAD(render_models);
 			US_LOAD(mouse_edge_scrolling);
 			US_LOAD(black_map_font);
+			US_LOAD(spoilers);
 #undef US_LOAD
 		} while(false);
 
