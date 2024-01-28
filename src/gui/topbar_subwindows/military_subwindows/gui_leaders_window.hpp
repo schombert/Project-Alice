@@ -137,7 +137,7 @@ public:
 };
 
 template<bool B>
-class military_make_leader_button : public right_button_element_base {
+class military_make_leader_button : public right_click_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
@@ -145,7 +145,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		command::make_leader(state, state.local_player_nation, B);
 	}
-	void right_button_action(sys::state& state) noexcept override {
+	void button_right_action(sys::state& state) noexcept override {
 		auto lp = state.world.nation_get_leadership_points(state.local_player_nation);
 		int32_t count = int32_t(lp / state.defines.leader_recruit_cost);
 		for(; count > 0; count--) {
