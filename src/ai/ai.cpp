@@ -5108,7 +5108,7 @@ void perform_foreign_investments(sys::state& state) {
 		for(auto ft : state.world.in_factory_type) {
 			if(ft.get_is_available_from_start() || n.get_active_building(ft)) {
 				float amount = 0.0f;
-				auto& base_cost = state.world.factory_type_get_construction_costs(t);
+				auto& base_cost = state.world.factory_type_get_construction_costs(ft);
 				for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 					if(base_cost.commodity_type[j]) {
 						amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
