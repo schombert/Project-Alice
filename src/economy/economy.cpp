@@ -666,14 +666,16 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 			auto kf = state.world.commodity_get_key_factory(cid);
 
+			float market_size = state.world.commodity_get_total_consumption(cid) * 0.001f;
+
 			if(state.world.commodity_get_artisan_output_amount(cid) > 0.0f && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_artisan_distribution(n, cid);
 				if(profits[cid.index()] < 0) {
-					w = std::max(0.f, (1.0f + profits[cid.index()] * 0.001f * w) * w);
+					w = std::max(0.f, (1.0f + profits[cid.index()] * 0.001f * w * market_size - 100.f / num_artisans) * w);
 				} else if(total_weights > 0.0001f) {
 					float ideal_weight = (profits[cid.index()] / total_weights);
-					float speed = std::clamp(distribution_drift_speed * (w + 100.f / num_artisans) * profits[cid.index()], 0.f, 1.f);
-					w = std::clamp((1.0f - speed) * w + speed * ideal_weight, 0.f, 0.1f);
+					float speed = std::clamp(distribution_drift_speed * w * profits[cid.index()] * market_size + 100.f / num_artisans, 0.f, 0.01f);
+					w = std::clamp((1.0f - speed) * w + speed * ideal_weight, 0.f, 1.f);
 
 					assert(std::isfinite(w));
 				} else if (total_possible > 0.f) {
@@ -1378,7 +1380,7 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 		//* (state.world.province_get_rgo_employment(p) + 0.00001f); // money expected to be earnt with given employment
 
 	// landowners want much larger profit than total minimal wage of their workers
-	current_pop_wages *= 10000.f;
+	current_pop_wages *= 100.f;
 		
 	if(current_profit >= current_pop_wages) {
 		float profit_ratio = std::min(100.f, (current_profit / (current_pop_wages + 0.00000001f) - 1.f));
@@ -1575,9 +1577,9 @@ void populate_navy_consumption(sys::state& state) {
 
 // we want "cheaper per day"(= slower) construction at the start to avoid initial demand bomb
 // and "more expensive"(=faster) construction at late game
-inline constexpr float day_1_build_time_modifier_non_factory = 10.f;
+inline constexpr float day_1_build_time_modifier_non_factory = 2.f;
 inline constexpr float day_inf_build_time_modifier_non_factory = 0.5f;
-inline constexpr float day_1_derivative_non_factory = -0.4f;
+inline constexpr float day_1_derivative_non_factory = -0.2f;
 
 inline constexpr float diff_non_factory = day_1_build_time_modifier_non_factory - day_inf_build_time_modifier_non_factory;
 inline constexpr float shift_non_factory = - diff_non_factory / day_1_derivative_non_factory;
@@ -2006,13 +2008,12 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, ve::vectorizab
 
 			float life_needs_fraction = total_budget >= ln_cost ? 1.0f : total_budget / ln_cost;
 			total_budget -= ln_cost;
-			float everyday_needs_fraction = total_budget >= en_cost ? 1.0f : std::max(0.0f, total_budget / en_cost);
-			total_budget -= en_cost;
+			
 
 			//eliminate potential negative number before investment
 			total_budget = std::max(total_budget, 0.f);
 
-			//handle investment before luxury goods:
+			//handle investment before everyday goods - they could be very hard to satisfy, depending on a mod:
 			if(!nation_allows_investment || (t != state.culture_definitions.aristocrat && t != state.culture_definitions.capitalists)) {
 
 			} else if(t == state.culture_definitions.capitalists) {
@@ -2022,6 +2023,9 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, ve::vectorizab
 				state.world.nation_get_private_investment(n) += total_budget > 0.0f ? total_budget * 0.025f : 0.0f;
 				total_budget -= total_budget * 0.025f;
 			}
+
+			float everyday_needs_fraction = total_budget >= en_cost ? 1.0f : std::max(0.0f, total_budget / en_cost);
+			total_budget -= en_cost;
 
 			float luxury_needs_fraction = total_budget >= xn_cost ? 1.0f : std::max(0.0f, total_budget / xn_cost);
 			total_budget -= xn_cost;
@@ -3173,7 +3177,7 @@ void daily_update(sys::state& state) {
 			speed_modifer = (overdemand_factor - oversupply_factor) * (overdemand_factor - oversupply_factor) * (overdemand_factor - oversupply_factor);
 		}
 
-		float price_speed = 0.00001f * std::max(0.1f, current_price) * speed_modifer;
+		float price_speed = 0.00005f * std::max(0.1f, current_price) * speed_modifer;
 		current_price += price_speed;
 
 		state.world.commodity_set_current_price(cid, std::clamp(current_price, 0.001f, 100000.0f));

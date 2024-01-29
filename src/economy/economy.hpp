@@ -129,7 +129,7 @@ inline constexpr float rgo_production_scale_neg_delta = 0.0000001f;
 
 // artisans
 inline constexpr float inputs_base_factor_artisans = 1.2f;
-inline constexpr float output_base_factor_artisans = 0.8f;
+inline constexpr float output_base_factor_artisans = 0.4f;
 // factories
 inline constexpr float inputs_base_factor = 0.8f;
 

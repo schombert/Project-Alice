@@ -905,11 +905,15 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 		*/
 
-		if(economy::estimate_construction_spending(state, n) > 2.f * economy::estimate_daily_income(state, n))
+		if(economy::estimate_construction_spending(state, n) > 0.3f * economy::estimate_daily_income(state, n))
+			continue;
+
+		//if our army is too small, ignore buildings:
+		if(0.7 * n.get_recruitable_regiments() < n.get_active_regiments())
 			continue;
 
 		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(16, int32_t(treasury / 500.0f));
+		int32_t max_projects = std::max(8, int32_t(treasury / 64000.0f));
 		auto rules = n.get_combined_issue_rules();
 
 
@@ -1065,6 +1069,9 @@ void update_ai_econ_construction(sys::state& state) {
 					continue;
 				if(n != o.get_province().get_nation_from_province_control())
 					continue;
+				// avoid overbuilding!
+				if(!province::has_naval_base_being_built(state, o.get_province()))
+					max_projects -= 4;
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 				if(o.get_province().get_building_level(economy::province_building_type::naval_base) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
@@ -1097,7 +1104,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
-				--max_projects;
+				max_projects -= 4;
 			}
 		}
 
@@ -1153,6 +1160,12 @@ void update_ai_econ_construction(sys::state& state) {
 			for(auto o : n.get_province_ownership()) {
 				if(n != o.get_province().get_nation_from_province_control())
 					continue;
+
+				if(province::has_fort_being_built(state, o.get_province())) {
+					// if we are already building a fort, count it as a building choice to not let AI overspend money on forts
+					max_projects -= 2;
+				}
+
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
@@ -1182,7 +1195,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::fort));
-				--max_projects;
+				max_projects -= 2;
 			}
 		}
 	}
