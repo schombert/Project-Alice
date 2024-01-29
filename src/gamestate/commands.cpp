@@ -21,6 +21,8 @@ bool is_console_command(command_type t) {
 }
 
 void add_to_command_queue(sys::state& state, payload& p) {
+	assert(command::can_perform_command(state, p));
+
 	switch(p.type) {
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
@@ -151,12 +153,14 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 	}
 }
 
-void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
-		dcon::national_focus_id focus) {
+void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state, dcon::national_focus_id focus) {
 	if(state.world.state_instance_get_nation_from_state_ownership(target_state) == source) {
 		state.world.state_instance_set_owner_focus(target_state, focus);
 	} else {
-		state.world.nation_set_state_from_flashpoint_focus(source, target_state);
+		if(focus)
+			state.world.nation_set_state_from_flashpoint_focus(source, target_state);
+		else
+			state.world.nation_set_state_from_flashpoint_focus(source, dcon::state_instance_id{});
 	}
 }
 
@@ -1476,7 +1480,7 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 	if(!rel)
 		return false;
 
-	if(state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
+	if(source != affected_gp && state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
 		return false;
 
 	if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
@@ -1500,17 +1504,16 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
-
 	state.world.nation_set_in_sphere_of(influence_target, dcon::nation_id{});
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
 	l = nations::influence::decrease_level(l);
 
-	if(source != affected_gp)
+	if(source != affected_gp) {
+		state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
 		nations::adjust_relationship(state, source, affected_gp, state.defines.removefromsphere_relation_on_accept);
-	else {
+	} else {
 		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
@@ -2360,6 +2363,8 @@ bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_i
 				return false;
 		}
 	}
+	if(state.world.nation_get_owned_state_count(asker) == 1)
+		return false;
 	return true;
 }
 void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
@@ -2680,7 +2685,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 	if(source == target)
 		return false;
 
-	if(source == state.local_player_nation && state.cheat_data.always_allow_wargoals)
+	if(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_allow_wargoals)
 		return true;
 
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.addwargoal_diplomatic_cost)
@@ -4409,6 +4414,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
@@ -4505,11 +4511,11 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.preload();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	state.local_player_nation = dcon::nation_id{ };
-	state.fill_unsaved_data();
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	state.fill_unsaved_data();
 	assert(state.session_host_checksum.is_equal(state.get_save_checksum()));
 }
 
@@ -4916,6 +4922,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_toggle_ai:
 	case command_type::c_complete_constructions:
 	case command_type::c_instant_research:
+	case command_type::c_add_population:
+	case command_type::c_instant_army:
+	case command_type::c_instant_industry:
 		return true;
 	}
 	return false;
@@ -5325,6 +5334,15 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_instant_research:
 		execute_c_instant_research(state, c.source);
+		break;
+	case command_type::c_add_population:
+		execute_c_add_population(state, c.source, c.data.cheat_int.value);
+		break;
+	case command_type::c_instant_army:
+		execute_c_instant_army(state, c.source);
+		break;
+	case command_type::c_instant_industry:
+		execute_c_instant_industry(state, c.source);
 		break;
 	}
 }

@@ -701,13 +701,11 @@ class budget_navy_stockpile_slider : public budget_slider<budget_slider_target::
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_naval_spending(n) });
 			text::close_layout_box(contents, box);
 		}
-
 		uint32_t total_commodities = state.world.commodity_size();
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -736,13 +734,11 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_construction_spending(n) });
 			text::close_layout_box(contents, box);
 		}
-
 		std::vector<float> total;
 		total.resize(size_t(state.world.commodity_size()), 0.0f);
 
@@ -1099,6 +1095,7 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::raw)] = 0;
 		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation) * state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);

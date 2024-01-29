@@ -42,16 +42,13 @@ public:
 			progress = 0.0f;
 			return;
 		}
-	
 		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
 		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
 		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-
 		if(mob_size <= 0.0f) {
 			progress = 1.0f;
 			return;
 		}
-
 		progress = std::min(1.0f, mob_rem / mob_size);
 	}
 };

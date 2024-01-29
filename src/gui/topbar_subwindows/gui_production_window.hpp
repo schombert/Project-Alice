@@ -121,7 +121,7 @@ public:
 	}
 };
 
-class factory_upgrade_button : public shift_button_element_base {
+class factory_upgrade_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
@@ -133,29 +133,165 @@ public:
 
 	}
 
-	void button_shift_action(sys::state& state) noexcept override {
+	void button_right_action(sys::state& state) noexcept {
+
+	}
+
+	void button_shift_action(sys::state& state) noexcept {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		for(auto p : state.world.nation_get_province_ownership(n)) {
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+	}
+
+	void button_shift_right_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
 			for(auto fac : p.get_province().get_factory_location()) {
 				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-							 p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
-
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 						command::begin_factory_building_construction(state, state.local_player_nation,
 							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
 					}
 				}
 			}
 		}
+	}
 
+	void button_ctrl_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+	}
+
+	void button_ctrl_right_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+						command::begin_factory_building_construction(state, state.local_player_nation,
+							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+					}
+				}
+			}
+		}
+	}
+
+	void button_ctrl_shift_action(sys::state& state) noexcept {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
+				&& command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+	}
+
+	void button_ctrl_shift_right_action(sys::state& state) noexcept {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
+				&& fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+						command::begin_factory_building_construction(state, state.local_player_nation,
+							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+					}
+				}
+			}
+		}
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(!disabled) {
+				//ToDo: Make button change appearance while pressed
+				//disabled = true;
+			}
+		} else if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else
+				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_right_action(state);
+			else
+				button_right_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(under_mouse) {
+				sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+				if(mods == sys::key_modifiers::modifiers_shift)
+					button_shift_action(state);
+				else if(mods == sys::key_modifiers::modifiers_ctrl)
+					button_ctrl_action(state);
+				else
+					button_action(state);
+			} else {
+				//ToDo: Make button revert appearance when released
+				//disabled = false;
+			}
+		}
+		return message_result::consumed;
+	}
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else
+				button_action(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -171,7 +307,7 @@ public:
 				is_not_upgrading = false;
 		}
 		if(is_not_upgrading) {
-			shift_button_element_base::render(state, x, y);
+			button_element_base::render(state, x, y);
 		}
 	}
 
@@ -209,7 +345,6 @@ public:
 
 		bool is_activated = state.world.nation_get_active_building(n, type) == true || state.world.factory_type_get_is_available_from_start(type);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
-
 		if(n != state.local_player_nation) {
 			bool gp_condition = (state.world.nation_get_is_great_power(state.local_player_nation) == true &&
 					state.world.nation_get_is_great_power(n) == false);
@@ -227,13 +362,16 @@ public:
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
-
-
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
-		text::add_line(state, contents, "factory_upgrade_shift_explanation");
 
+		text::add_line(state, contents, "alice_expand_factory_controls_1");
+		text::add_line(state, contents, "alice_expand_factory_controls_2");
+		text::add_line(state, contents, "alice_expand_factory_controls_3");
+		text::add_line(state, contents, "alice_expand_factory_controls_4");
+		text::add_line(state, contents, "alice_expand_factory_controls_5");
+		text::add_line(state, contents, "alice_expand_factory_controls_6");
 	}
 };
 
@@ -1159,15 +1297,42 @@ public:
 class per_state_primary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker)))));
+		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+		auto unemployed = total - employed;
+		set_text(state, text::prettify(int64_t(unemployed)) + "/" + text::prettify(int64_t(employed)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
+		auto unemployed = total - employed;
+		text::add_line(state, contents, "alice_factory_worker_1", text::variable_type::x, text::pretty_integer{ int32_t(employed) });
+		text::add_line(state, contents, "alice_factory_worker_2", text::variable_type::x, text::pretty_integer{ int32_t(unemployed) });
 	}
 };
 
 class per_state_secondary_worker_amount : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		set_text(state, text::prettify(int64_t(state.world.state_instance_get_demographics(content,
-												demographics::to_key(state, state.culture_definitions.secondary_factory_worker)))));
+		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+		auto unemployed = total - employed;
+		set_text(state, text::prettify(int64_t(unemployed)) + "/" + text::prettify(int64_t(employed)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto total = state.world.state_instance_get_demographics(content, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+		auto employed = state.world.state_instance_get_demographics(content, demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+		auto unemployed = total - employed;
+		text::add_line(state, contents, "alice_factory_worker_1", text::variable_type::x, text::pretty_integer{ int32_t(employed) });
+		text::add_line(state, contents, "alice_factory_worker_2", text::variable_type::x, text::pretty_integer{ int32_t(unemployed) });
 	}
 };
 

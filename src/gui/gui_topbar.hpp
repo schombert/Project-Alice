@@ -296,10 +296,11 @@ public:
 		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
 		auto pop_change = state.ui_date.value <= 30 ? 0.0f : (pop_amount - state.player_data_cache.population_record[(state.ui_date.value - 30) % 32]);
 
-		text::add_line(state, contents, "topbar_population_visual", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
-		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
 		text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
+		text::add_line(state, contents, "separation_topbar");
+		text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
 		text::add_line_break_to_layout(state, contents);
 
@@ -1073,7 +1074,12 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		bool has_unemployed = false;
-		for(auto pt : state.world.in_pop_type) {
+		// Only care about factory workers for displaying the red alert
+		std::array<dcon::pop_type_id, 2> factory_workers{
+			state.culture_definitions.primary_factory_worker,
+			state.culture_definitions.secondary_factory_worker
+		};
+		for(auto pt : factory_workers) {
 			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
 				auto state_instance = si.get_state();
 				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
@@ -1096,7 +1102,11 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		bool header = false;
-		for(auto pt : state.world.in_pop_type) {
+		std::array<dcon::pop_type_id, 2> factory_workers{
+			state.culture_definitions.primary_factory_worker,
+			state.culture_definitions.secondary_factory_worker
+		};
+		for(auto pt : factory_workers) {
 			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
 				auto state_instance = si.get_state();
 				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
@@ -1104,6 +1114,32 @@ public:
 				if(unemployed >= 1.f) {
 					if(!header) {
 						text::add_line(state, contents, "remove_countryalert_hasunemployedworkers");
+						header = true;
+					}
+					text::substitution_map sub;
+					text::add_to_substitution_map(sub, text::variable_type::num, int64_t(unemployed));
+					text::add_to_substitution_map(sub, text::variable_type::type, state.world.pop_type_get_name(pt));
+					auto state_name = text::get_dynamic_state_name(state, state_instance);
+					text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
+					text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_two_places{ (unemployed / total) * 100.f });
+					auto box = text::open_layout_box(contents);
+					text::localised_format_box(state, contents, box, "topbar_unemployed", sub);
+					text::close_layout_box(contents, box);
+				}
+			}
+		}
+		std::array<dcon::pop_type_id, 2> rgo_workers{
+			state.culture_definitions.farmers,
+			state.culture_definitions.laborers
+		};
+		for(auto pt : rgo_workers) {
+			for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+				auto state_instance = si.get_state();
+				auto total = state_instance.get_demographics(demographics::to_key(state, pt));
+				auto unemployed = total - state_instance.get_demographics(demographics::to_employment_key(state, pt));
+				if(unemployed >= 1.f) {
+					if(!header) {
+						text::add_line(state, contents, "alice_rgo_unemployment_country_alert");
 						header = true;
 					}
 					text::substitution_map sub;
@@ -1839,7 +1875,9 @@ public:
 			var.empty() ? ptr->slot = uint8_t(0) : ptr->slot = uint8_t(std::stoi(var));
 			produced_icons.push_back(ptr.get());
 			return ptr;
-		} else {
+		} else if (name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
+		}  else {
 			return nullptr;
 		}
 	}

@@ -372,6 +372,9 @@ struct user_settings_s {
 	map_zoom_mode zoom_mode = map_zoom_mode::panning;
 	map_vassal_color_mode vassal_color = map_vassal_color_mode::inherit;
 	bool render_models = false;
+	bool mouse_edge_scrolling = false;
+	bool black_map_font = true;
+	bool spoilers = true;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -382,6 +385,9 @@ struct cheat_data_s {
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
 	bool show_province_id_tooltip = false;
+	bool wasd_move_cam = false;
+	bool instant_army = false;
+	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
 };
 
