@@ -784,13 +784,9 @@ alice_milscore_4;Is disarmed? (penalty factor of $x$)
 alice_milscore_5;Supply consumption modifier: $x$
 alice_milscore_6;Average land unit score: $x$
 alice_milscore_7;Total number of leaders: $x$
-alice_indscore_1;$x$ contribution:
-alice_indscore_2;Total factory capacity: $x$
-alice_indscore_3;Total factory level: $x$
-alice_indscore_4;Total worker pool: $x$
-alice_indscore_5;Total: $x$
-alice_indscore_6;The following foreign investments also add up (weight factor $x$):
-alice_indscore_7;A $y$ foreign investment given to $x$
+alice_indscore_1;$name$ (capacity $cap$ + level $level$ + worker pool $amount$) = $total$
+alice_indscore_2;The following foreign investments also add up (weight factor $x$):
+alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
