@@ -272,6 +272,18 @@ public:
 	}
 };
 
+class tinted_right_click_button_element_base : public tinted_button_element_base {
+public:
+	virtual void button_right_action(sys::state& state) noexcept { }
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			button_right_action(state);
+		}
+		return message_result::consumed;
+	}
+};
+
 class shift_button_element_base : public button_element_base {
 public:
 	virtual void button_shift_action(sys::state& state) noexcept { }
@@ -322,7 +334,74 @@ public:
 	}
 };
 
+
+class ctrl_shift_button_element_base : public button_element_base {
+public:
+	virtual void button_shift_action(sys::state& state) noexcept { }
+	virtual void button_ctrl_action(sys::state& state) noexcept { };
+	virtual void buttons_ctrl_shift_action(sys::state& state) noexcept { };
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(!disabled) {
+				//ToDo: Make button change appearance while pressed
+				//disabled = true;
+			}
+		} else if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
+				buttons_ctrl_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(under_mouse) {
+				sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+				if(mods == sys::key_modifiers::modifiers_ctrl_shift)
+					buttons_ctrl_shift_action(state);
+				else if(mods == sys::key_modifiers::modifiers_shift)
+					button_shift_action(state);
+				else if(mods == sys::key_modifiers::modifiers_ctrl)
+					button_ctrl_action(state);
+				else
+					button_action(state);
+			} else {
+				//ToDo: Make button revert appearance when released
+				//disabled = false;
+			}
+		}
+		return message_result::consumed;
+	}
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
+				buttons_ctrl_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
+};
+
 class shift_right_button_element_base : public shift_button_element_base {
+public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	virtual void button_shift_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
@@ -758,22 +837,36 @@ protected:
 	}
 };
 
-class scrollbar_left : public shift_button_element_base {
+class scrollbar_left : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_slider_controls");
+	}
 };
 
-class scrollbar_right : public shift_button_element_base {
+class scrollbar_right : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
+	void button_shift_right_action(sys::state& state) noexcept final;
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept final;
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_slider_controls");
+	}
 };
 
 class scrollbar_track : public opaque_element_base {

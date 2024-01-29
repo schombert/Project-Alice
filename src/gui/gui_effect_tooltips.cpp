@@ -2092,7 +2092,7 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_set_country_flag(EFFECT_DISPLAY_PARAMS) {
-	{
+	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
@@ -2103,7 +2103,7 @@ uint32_t ef_set_country_flag(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_clr_country_flag(EFFECT_DISPLAY_PARAMS) {
-	{
+	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,

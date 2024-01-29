@@ -438,7 +438,7 @@ public:
 						color = text::text_color::red;
 					}
 				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+					if(province::state_admin_efficiency(state, fat_si.id) >= 1.f) {
 						color = text::text_color::red;
 					}
 				}

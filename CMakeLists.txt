@@ -31,8 +31,17 @@ endforeach()
 
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
-list(APPEND ALICE_SOURCES_LIST
+list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/main.cpp"
+	"src/map/map_state.cpp"
+	"src/map/map_data_loading.cpp"
+	"src/map/map_borders.cpp"
+	"src/map/map.cpp"
+	"src/graphics/xac.cpp"
+)
+
+list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
+	${ALICE_CORE_SOURCES_LIST}
 	"src/ai/ai.cpp"
 	"src/common_types/blake2.cpp"
 	"src/common_types/date_interface.cpp"
@@ -64,11 +73,7 @@ list(APPEND ALICE_SOURCES_LIST
 	"src/gui/topbar_subwindows/gui_technology_window.cpp"
 	"src/gui/topbar_subwindows/gui_budget_window.cpp"
 	"src/gui/unit_tooltip.cpp"
-	"src/map/map.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map_data_loading.cpp"
 	"src/map/map_modes.cpp"
-	"src/map/map_state.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
 	"src/network/network.cpp"
@@ -86,26 +91,20 @@ list(APPEND ALICE_SOURCES_LIST
 )
 
 if(WIN32)
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
+add_executable(Alice WIN32
+	${ALICE_CORE_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
+add_executable(AliceIncremental WIN32
+	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
 else()
-add_executable(Alice WIN32 "src/main.cpp"
-	"src/map/map_state.cpp"
-	"src/map/map_data_loading.cpp"
-	"src/map/map_borders.cpp"
-	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
+add_executable(Alice WIN32
+	${ALICE_CORE_SOURCES_LIST}
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 ${ALICE_SOURCES_LIST}
+add_executable(AliceIncremental WIN32
+	${ALICE_INCREMENTAL_SOURCES_LIST}
 	${ASSET_FILES})
 endif()
 

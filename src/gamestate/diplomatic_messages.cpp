@@ -364,10 +364,9 @@ void accept(sys::state& state, message const& m) {
 			notification::post(state, notification::message{
 				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
 					text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, source);
-
 				},
 				"msg_crisis_settled_title",
-				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+				m.to, m.from, dcon::nation_id{},
 				sys::message_base_type::crisis_resolution_accepted
 			});
 		}
@@ -388,7 +387,7 @@ void accept(sys::state& state, message const& m) {
 }
 
 bool ai_will_accept(sys::state& state, message const& m) {
-	if(m.from == state.local_player_nation && state.cheat_data.always_accept_deals)
+	if(state.world.nation_get_is_player_controlled(m.from) && state.cheat_data.always_accept_deals)
 		return true;
 
 	switch(m.type) {

@@ -297,14 +297,22 @@ void display_data::create_meshes() {
 
 display_data::~display_data() {
 	/* We don't need to check against 0, since the delete functions already do that for us */
-	glDeleteTextures(texture_count, textures);
-	glDeleteTextures(texture_count, texture_arrays);
-	glDeleteTextures(max_static_meshes, static_mesh_textures);
-	glDeleteVertexArrays(vo_count, vao_array);
-	glDeleteBuffers(vo_count, vbo_array);
+	if(textures[0])
+		glDeleteTextures(texture_count, textures);
+	if(texture_arrays[0])
+		glDeleteTextures(texture_count, texture_arrays);
+	if(static_mesh_textures[0])
+		glDeleteTextures(max_static_meshes, static_mesh_textures);
+	if(vao_array[0])
+		glDeleteVertexArrays(vo_count, vao_array);
+	if(vbo_array[0])
+		glDeleteBuffers(vo_count, vbo_array);
+
 	/* Flags shader for deletion, but doesn't delete them until they're no longer in the rendering context */
-	for(const auto shader : shaders)
-		glDeleteProgram(shader);
+	for(const auto shader : shaders) {
+		if(shader)
+			glDeleteProgram(shader);
+	}
 }
 
 std::optional<simple_fs::file> try_load_shader(simple_fs::directory& root, native_string_view name) {
@@ -608,7 +616,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < map::zoom_close && !text_line_vertices.empty()) {
 		load_shader(shaders[shader_text_line]);
-		glUniform1f(12, state.font_collection.map_font_is_black ? 1.f : 0.f);
+		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		auto const& f = state.font_collection.fonts[2];
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[0]);

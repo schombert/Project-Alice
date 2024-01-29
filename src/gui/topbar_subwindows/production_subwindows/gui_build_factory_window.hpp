@@ -18,7 +18,7 @@ public:
 	}
 };
 
-class factory_build_button : public shift_button_element_base {
+class factory_build_button : public shift_right_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
@@ -26,12 +26,10 @@ public:
 		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 	}
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			auto sid = retrieve<dcon::state_instance_id>(state, parent);
-			auto content = retrieve<dcon::factory_type_id>(state, parent);
-			command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
-			parent->set_visible(state, false);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		if(parent) parent->set_visible(state, false);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -43,6 +41,16 @@ public:
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+	}
+	void button_shift_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		auto n = retrieve<dcon::nation_id>(state, parent); //n may be another nation, i.e foreign investment
+		for(const auto s : state.world.nation_get_state_ownership_as_nation(n)) {
+			auto sid = s.get_state();
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false)) {
+				command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+			}
+		}
 	}
 };
 

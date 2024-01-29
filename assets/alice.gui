@@ -425,6 +425,23 @@ guiTypes = {
 				position = { 51 326 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			# Black map font (Y/N)
+			instantTextBoxType = {
+				name = "black_map_font_label"
+				position = { 78 350 }
+				text = "black_map_font_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "black_map_font_checkbox"
+				position = { 51 350 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {
@@ -462,6 +479,38 @@ guiTypes = {
 				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Edge scrolling checkbox
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Spoilers checkbox
+			instantTextBoxType = {
+				name = "spoilers_label"
+				position = { 78 260 }
+				text = "spoilers_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "spoilers_checkbox"
+				position = { 51 260 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"
@@ -492,6 +541,7 @@ guiTypes = {
 				position = { 269 158 }
 				quadTextureSprite = "option_next"
 			}
+			
 			# Auto save interval
 			instantTextBoxType = {
 				name = "auto_save_label"
@@ -3906,6 +3956,12 @@ guiTypes = {
 			Orientation = "LOWER_RIGHT"
 		}
 		iconType = {
+			name = "minimap_bg-patch"
+			spriteType = "GFX_new_minimap_bg"
+			position = { -374 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
 			name = "menubar_bg"
 			spriteType = "GFX_menubar_bg"
 			position = { -64 -200 }
@@ -3953,7 +4009,7 @@ guiTypes = {
 			tooltipText = "mapmode_1"
 			position = { -348 -157 }
 			size = { 26 21 }
-			quadTextureSprite ="GFX_mapmode_terrain"
+			quadTextureSprite ="GFX_mapmode_terrain.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "q"
 		}
@@ -3961,7 +4017,7 @@ guiTypes = {
 			name = "mapmode_11"
 			tooltipText = "mapmode_11"
 			position = { -348 -136 }
-			quadTextureSprite ="GFX_mapmode_rgooutput"
+			quadTextureSprite ="GFX_mapmode_rgooutput.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "a"
 		}
@@ -3969,7 +4025,7 @@ guiTypes = {
 			name = "mapmode_12"
 			tooltipText = "mapmode_12"
 			position = { -322 -136 }
-			quadTextureSprite ="GFX_mapmode_popdensity"
+			quadTextureSprite ="GFX_mapmode_popdensity.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "s"
 		}
@@ -3977,7 +4033,7 @@ guiTypes = {
 			name = "mapmode_2"
 			tooltipText = "mapmode_2"
 			position = { -322 -157 }
-			quadTextureSprite ="GFX_mapmode_political"
+			quadTextureSprite ="GFX_mapmode_political.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "w"
 		}
@@ -3985,7 +4041,7 @@ guiTypes = {
 			name = "mapmode_13"
 			tooltipText = "mapmode_13"
 			position = { -296 -136 }
-			quadTextureSprite = "GFX_mapmode_nationality"
+			quadTextureSprite = "GFX_mapmode_nationality.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "d"
 		}
@@ -3993,7 +4049,7 @@ guiTypes = {
 			name = "mapmode_6"
 			tooltipText = "mapmode_6"
 			position = { -296 -157 }
-			quadTextureSprite = "GFX_mapmode_infra"
+			quadTextureSprite = "GFX_mapmode_infra.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "e"
 		}
@@ -4001,7 +4057,7 @@ guiTypes = {
 			name = "mapmode_14"
 			tooltipText = "mapmode_14"
 			position = { -270 -136 }
-			quadTextureSprite = "GFX_mapmode_soi"
+			quadTextureSprite = "GFX_mapmode_soi.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "f"
 		}
@@ -4009,7 +4065,7 @@ guiTypes = {
 			name = "mapmode_4"
 			tooltipText = "mapmode_4"
 			position = { -270 -157 }
-			quadTextureSprite = "GFX_mapmode_diplomatic"
+			quadTextureSprite = "GFX_mapmode_diplomatic.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "r"
 		}
@@ -4017,7 +4073,7 @@ guiTypes = {
 			name = "mapmode_15"
 			tooltipText = "mapmode_15"
 			position = { -244 -136 }
-			quadTextureSprite = "GFX_mapmode_supplylimit"
+			quadTextureSprite = "GFX_mapmode_supplylimit.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "g"
 		}
@@ -4025,7 +4081,7 @@ guiTypes = {
 			name = "mapmode_5"
 			tooltipText = "mapmode_5"
 			position = { -244 -157 }
-			quadTextureSprite = "GFX_mapmode_region"
+			quadTextureSprite = "GFX_mapmode_region.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "t"
 		}
@@ -4033,7 +4089,7 @@ guiTypes = {
 			name = "mapmode_3"
 			tooltipText = "mapmode_3"
 			position = { -218 -157 }
-			quadTextureSprite = "GFX_mapmode_revolt"
+			quadTextureSprite = "GFX_mapmode_revolt.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "y"
 		}
@@ -4041,7 +4097,7 @@ guiTypes = {
 			name = "mapmode_16"
 			tooltipText = "mapmode_16"
 			position = { -218 -136 }
-			quadTextureSprite ="GFX_mapmode_partyloyalty"
+			quadTextureSprite ="GFX_mapmode_partyloyalty.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "h"
 		}
@@ -4049,7 +4105,7 @@ guiTypes = {
 			name = "mapmode_8"
 			tooltipText = "mapmode_8"
 			position = { -192 -157 }
-			quadTextureSprite ="GFX_mapmode_admin"
+			quadTextureSprite ="GFX_mapmode_admin.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "u"
 		}
@@ -4057,7 +4113,7 @@ guiTypes = {
 			name = "mapmode_17"
 			tooltipText = "mapmode_17"
 			position = { -192 -136 }
-			quadTextureSprite = "GFX_mapmode_rank"
+			quadTextureSprite = "GFX_mapmode_rank.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "j"
 		}
@@ -4065,7 +4121,7 @@ guiTypes = {
 			name = "mapmode_7"
 			tooltipText = "mapmode_7"
 			position = { -166 -157 }
-			quadTextureSprite = "GFX_mapmode_colonial"
+			quadTextureSprite = "GFX_mapmode_colonial.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "i"
 		}
@@ -4073,7 +4129,7 @@ guiTypes = {
 			name = "mapmode_18"
 			tooltipText = "mapmode_18"
 			position = { -166 -136 }
-			quadTextureSprite = "GFX_mapmode_migration"
+			quadTextureSprite = "GFX_mapmode_migration.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "k"
 		}
@@ -4081,7 +4137,7 @@ guiTypes = {
 			name = "mapmode_9"
 			tooltipText = "mapmode_9"
 			position = { -140 -157 }
-			quadTextureSprite = "GFX_mapmode_recruit"
+			quadTextureSprite = "GFX_mapmode_recruit.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "o"
 		}
@@ -4089,7 +4145,7 @@ guiTypes = {
 			name = "mapmode_19"
 			tooltipText = "mapmode_19"
 			position = { -140 -136 }
-			quadTextureSprite = "GFX_mapmode_civ_level"
+			quadTextureSprite = "GFX_mapmode_civ_level.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "l"
 		}
@@ -4097,7 +4153,7 @@ guiTypes = {
 			name = "mapmode_10"
 			tooltipText = "mapmode_10"
 			position = { -114 -157 }
-			quadTextureSprite = "GFX_mapmode_natfocus"
+			quadTextureSprite = "GFX_mapmode_natfocus.n"
 			Orientation = "LOWER_RIGHT"
 			shortcut = "p"
 		}
@@ -4105,21 +4161,21 @@ guiTypes = {
 			name = "mapmode_20"
 			tooltipText = "mapmode_20"
 			position = { -114 -136 }
-			quadTextureSprite = "GFX_mapmode_relation"
+			quadTextureSprite = "GFX_mapmode_relation.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
 			name = "mapmode_21"
 			tooltipText = "mapmode_21"
 			position = { -88 -136 }
-			quadTextureSprite = "GFX_mapmode_crises"
+			quadTextureSprite = "GFX_mapmode_crises.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {
 			name = "mapmode_22"
 			tooltipText = "mapmode_22"
 			position = { -88 -157 }
-			quadTextureSprite = "GFX_mapmode_naval"
+			quadTextureSprite = "GFX_mapmode_naval.n"
 			Orientation = "LOWER_RIGHT"
 		}
 		# New Alice mapmodes!
@@ -4214,5 +4270,14 @@ guiTypes = {
 		spriteType = "GFX_minimap"
 		position = { -328 -110 }
 		Orientation = "LOWER_RIGHT"
+	}
+
+	instantTextBoxType = {
+		name = "alice_readme_text"
+		position = { -235 -180 }
+		maxsize = { 460 160 }
+		fixedsize = yes
+		font = "Arial16"
+		Orientation = "CENTER_DOWN"
 	}
 }

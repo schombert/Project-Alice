@@ -877,7 +877,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 		dcon::decision_id did{dcon::decision_id::value_base_t(i)};
-		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
+		if(!state.world.decision_get_hide_notification(did)) {
 			auto lim = state.world.decision_get_potential(did);
 			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				auto allow = state.world.decision_get_allow(did);
@@ -887,7 +887,6 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -1277,6 +1276,21 @@ void run_gc(sys::state& state) {
 	//while(rebels.begin() != rebels.end()) {
 	//	rebel::delete_faction(state, (*rebels.begin()).get_rebels());
 	//}
+
+	auto diprel = state.world.nation_get_diplomatic_relation(n);
+	while(diprel.begin() != diprel.end()) {
+		state.world.delete_diplomatic_relation(*diprel.begin());
+	}
+
+	auto uni_diprel = state.world.nation_get_unilateral_relationship_as_source(n);
+	while(uni_diprel.begin() != uni_diprel.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprel.begin());
+	}
+
+	auto uni_diprelb = state.world.nation_get_unilateral_relationship_as_target(n);
+	while(uni_diprelb.begin() != uni_diprelb.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprelb.begin());
+	}
 
 	auto movements = state.world.nation_get_movement_within(n);
 	while(movements.begin() != movements.end()) {
