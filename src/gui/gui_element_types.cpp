@@ -2168,6 +2168,10 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
 	else if(std::holds_alternative<dcon::navy_id>(display_unit))
 		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
+	text::add_line(state, contents, "alice_utt_controls_1");
+	text::add_line(state, contents, "alice_utt_controls_2");
+	if(state.network_mode != sys::network_mode_type::single_player)
+		text::add_line(state, contents, "alice_utt_controls_3");
 }
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {

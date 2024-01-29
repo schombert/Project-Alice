@@ -137,14 +137,35 @@ public:
 };
 
 template<bool B>
-class military_make_leader_button : public button_element_base {
+class military_make_leader_button : public right_click_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
-
 	void button_action(sys::state& state) noexcept override {
 		command::make_leader(state, state.local_player_nation, B);
+	}
+	void button_right_action(sys::state& state) noexcept override {
+		auto lp = state.world.nation_get_leadership_points(state.local_player_nation);
+		int32_t count = int32_t(lp / state.defines.leader_recruit_cost);
+		for(; count > 0; count--) {
+			command::make_leader(state, state.local_player_nation, B);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_mw_create_lp", text::variable_type::x, text::fp_two_places{ state.defines.leader_recruit_cost });
+		text::add_line(state, contents, "alice_mw_create_lpb");
+		if(B) {
+			text::add_line(state, contents, "alice_mw_create_1");
+			text::add_line(state, contents, "alice_mw_controls_1");
+		} else {
+			text::add_line(state, contents, "alice_mw_create_2");
+			text::add_line(state, contents, "alice_mw_controls_2");
+		}
 	}
 };
 
@@ -233,34 +254,24 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "sort_leader_prestige") {
 			return make_element_by_type<leaders_sortby_prestige>(state, id);
-
 		} else if(name == "sort_prestige_icon") {
 			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "sort_leader_type") {
 			return make_element_by_type<leaders_sortby_type>(state, id);
-
 		} else if(name == "sort_leader_name") {
 			return make_element_by_type<leaders_sortby_name>(state, id);
-
 		} else if(name == "sort_leader_army") {
 			return make_element_by_type<leaders_sortby_army>(state, id);
-
 		} else if(name == "leader_listbox") {
 			return make_element_by_type<military_leaders_listbox>(state, id);
-
 		} else if(name == "new_general") {
 			return make_element_by_type<military_make_leader_button<true>>(state, id);
-
 		} else if(name == "new_admiral") {
 			return make_element_by_type<military_make_leader_button<false>>(state, id);
-
 		} else if(name == "generals") {
 			return make_element_by_type<military_general_count>(state, id);
-
 		} else if(name == "admirals") {
 			return make_element_by_type<military_admiral_count>(state, id);
-
 		} else if(name == "auto_create") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "auto_create_text") {
