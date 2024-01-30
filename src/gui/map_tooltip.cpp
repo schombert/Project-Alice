@@ -1,6 +1,7 @@
 #include "map_tooltip.hpp"
 #include "demographics.hpp"
 #include "rebels.hpp"
+#include "unit_tooltip.hpp"
 
 namespace ui {
 
@@ -35,6 +36,21 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
 		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
 		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
+
+		for(const auto a : state.selected_armies) {
+			auto controller = dcon::fatten(state.world, state.local_player_nation);
+			ui::unitamounts amounts = ui::calc_amounts_from_army(state, dcon::fatten(state.world, a));
+			text::substitution_map sub{};
+			auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+			text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
+			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
+			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
+			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ military::relative_attrition_amount(state, a, prov) });
+			box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, "alice_unit_relative_attrition", sub);
+			text::close_layout_box(contents, box);
+		}
 	} else if(state.selected_navies.size() > 0) {
 		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
 		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
