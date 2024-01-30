@@ -33,11 +33,13 @@ float interest_payment(sys::state& state, dcon::nation_id n) {
 	Every day, a nation must pay its creditors. It must pay national-modifier-to-loan-interest x debt-amount x interest-to-debt-holder-rate / 30
 	When a nation takes a loan, the interest-to-debt-holder-rate is set at nation-taking-the-loan-technology-loan-interest-modifier + define:LOAN_BASE_INTEREST, with a minimum of 0.01.
 	*/
-	auto debt = state.world.nation_get_stockpiles(n, money);
-	if(debt >= 0)
-		return 0.0f;
+	auto debt = 0.0f;
+	for(auto loan : fatten(state.world, n).get_loan_as_debtor()) {
+		if(loan.get_is_interest_active())
+			debt += loan.get_principal();
+	}
 
-	return -debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
+	return debt * std::max(0.01f, (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::loan_interest) + 1.0f) * state.defines.loan_base_interest) / 30.0f;
 }
 float max_loan(sys::state& state, dcon::nation_id n) {
 	/*
@@ -46,6 +48,109 @@ float max_loan(sys::state& state, dcon::nation_id n) {
 	auto mod = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::max_loan_modifier) + 1.0f);
 	auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
 	return std::max(0.0f, total_tax_base * mod);
+}
+
+/*
+Try to take out enough loans to cover `amount`, starting with the national bank
+then if that doesn't work, try other countries and if that doesn't work, loan from "shadowy financiers" per defines.
+Returns the amount not covered by the loans so if it returns > 0 amount then the country can't cover its debt through loans
+and goes bankrupt.
+*/
+float take_loans(sys::state& state, dcon::nation_id n, float amount) {
+	assert(amount > 0.0f);
+	float remainder = amount;
+
+	// first try national bank
+	remainder = take_loan_from(state, n, n, remainder);
+	if(remainder <= 0.0f)
+		return 0.0f;
+
+	// otherwise try other countries
+	for(auto nat : state.nations_by_rank) {
+		remainder = take_loan_from(state, n, nat, remainder);
+		if(remainder <= 0.0f)
+			return 0.0f;
+	}
+
+	// finally try shadowy financiers
+	return take_loan_from(state, n, dcon::nation_id{}, remainder);
+}
+
+/*
+Try to take out a loan of `amount` pounds from `creditor`, adding to an existing loan if it exists. Returns the amount not covered
+by the new or updated loan.
+*/
+float take_loan_from(sys::state& state, dcon::nation_id debtor, dcon::nation_id creditor, float amount) {
+	auto existing_loan = state.world.get_loan_by_loan_pair(debtor, creditor);
+	float& existing_principal = state.world.loan_get_principal(existing_loan);
+	float to_cover = std::max(amount - existing_principal, 0.0f);
+	if(!creditor && existing_principal + to_cover <= state.defines.shadowy_financiers_max_loan_amount) {
+		existing_principal += to_cover;
+		return 0.0f;
+	} else if (!creditor) { // shadowy financiers can't cover
+		return amount;
+	}
+
+	float may_receive = std::max(max_loan(state, debtor) - existing_principal, 0.0f); // account for outstanding loan
+	float available_for_loan = std::min(nations::get_available_for_loan(state, creditor), may_receive);
+	to_cover = std::min(to_cover, available_for_loan); // maximum amount we can borrow from this creditor
+	float actually_covered = std::min(to_cover, available_for_loan);
+	existing_principal += actually_covered;
+	return std::max(amount - actually_covered, 0.0f);
+}
+
+/*
+Allocates `amount` for repaying existing loan principals in the following order of precedence:
+- foreign countries ordered by loan principal
+- shadowy financiers
+- national bank
+Returns any amount of allocated money not used to repay loan principal.
+*/
+float repay_loans(sys::state& state, dcon::nation_id n, float amount) {
+	assert(amount > 0.0f);
+	float remainder = amount;
+
+	std::vector<dcon::loan_fat_id> loans;
+	for(auto loan : fatten(state.world, n).get_loan_as_debtor()) {
+		if(!loan.get_creditor() || loan.get_creditor() == n)
+			continue; // will be handled later
+		if(loan.get_principal() > 0.1f) {
+			loans.push_back(loan);
+		}
+	}
+
+	std::sort(loans.begin(), loans.end(), [&](dcon::loan_fat_id a, dcon::loan_fat_id b) {
+		return a.get_principal() >= b.get_principal();
+	});
+
+	// repay other countries
+	for(auto loan : loans) {
+		remainder = repay_loan_from(state, n, loan.get_creditor(), remainder);
+		if(remainder <= 0.0f)
+			return 0.0f;
+	}
+
+	// try to repay shadowy financiers
+	remainder = repay_loan_from(state, n, dcon::nation_id{}, remainder);
+	if(remainder <= 0.0f)
+		return 0.0f;
+
+	// last repay national bank
+	return repay_loan_from(state, n, n, remainder);
+}
+
+/*
+Try to repay of `amount` loan principal from `creditor`. Returns the remaining amount of money that is available for repaying more loans.
+*/
+float repay_loan_from(sys::state& state, dcon::nation_id debtor, dcon::nation_id creditor, float amount) {
+	auto existing_loan = state.world.get_loan_by_loan_pair(debtor, creditor);
+	float& existing_principal = state.world.loan_get_principal(existing_loan);
+	if(existing_principal <= 0.0f)
+		return amount;
+	float to_repay = std::min(amount, existing_principal);
+	existing_principal = std::max(existing_principal - to_repay, 0.0f);
+
+	return std::max(amount - to_repay, 0.0f);
 }
 
 int32_t most_recent_price_record_index(sys::state& state) {
@@ -251,10 +356,9 @@ bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::fac
 	return false;
 }
 
-bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor) {
-	return state.world.nation_get_is_bankrupt(debt_holder) &&
-				 state.world.unilateral_relationship_get_owns_debt_of(
-						 state.world.get_unilateral_relationship_by_unilateral_pair(debtor, debt_holder)) > 0.1f;
+bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id creditor, dcon::nation_id debtor) {
+	return state.world.nation_get_is_bankrupt(debtor) &&
+				 state.world.loan_get_principal(state.world.get_loan_by_loan_pair(debtor, creditor)) > 0.1f;
 }
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n) {
@@ -2802,9 +2906,17 @@ void daily_update(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		auto m = n.get_stockpiles(money);
 		if(m < 0) {
-			if(m < -max_loan(state, n)) {
-				go_bankrupt(state, n);
+			// try to cover deficit with loans
+			float remaining = take_loans(state, n, -m);
+			if(remaining > 0.1f) {
+				go_bankrupt(state, n); // can't cover
+			} else {
+				n.set_stockpiles(money, 0.0f); // covered
 			}
+		}
+		auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
+		if(interest_payment(state, n) > total_tax_base) {
+			go_bankrupt(state, n); // can't make interest payments
 		}
 	}
 
@@ -3941,25 +4053,20 @@ void go_bankrupt(sys::state& state, dcon::nation_id n) {
 	/*
 	 If a nation cannot pay and the amount it owes is less than define:SMALL_DEBT_LIMIT, the nation it owes money to gets an on_debtor_default_small event (with the nation defaulting in the from slot). Otherwise, the event is pulled from on_debtor_default. The nation then goes bankrupt. It receives the bad_debter modifier for define:BANKRUPCY_EXTERNAL_LOAN_YEARS years (if it goes bankrupt again within this period, creditors receive an on_debtor_default_second event). It receives the in_bankrupcy modifier for define:BANKRUPCY_DURATION days. Its prestige is reduced by a factor of define:BANKRUPCY_FACTOR, and each of its pops has their militancy increase by 2.
 	*/
-	auto existing_br = state.world.nation_get_bankrupt_until(n);
-	if(existing_br && state.current_date < existing_br) {
-		for(auto gn : state.great_nations) {
-			if(gn.nation && gn.nation != n) {
-				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_second, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
-			}
+	for(auto loan : fatten(state.world, n).get_loan_as_debtor()) {
+		auto creditor = loan.get_creditor();
+		if(!creditor || creditor == n)
+			continue;
+		std::vector<nations::fixed_event> event;
+		if(loan.get_is_interest_active() == false) { // second default
+			event = state.national_definitions.on_debtor_default_second;
+		} else if (loan.get_principal() < state.defines.small_debt_limit) {
+			event = state.national_definitions.on_debtor_default_small;
+		} else {
+			event = state.national_definitions.on_debtor_default;
 		}
-	} else if(debt >= -state.defines.small_debt_limit) {
-		for(auto gn : state.great_nations) {
-			if(gn.nation && gn.nation != n) {
-				event::fire_fixed_event(state, state.national_definitions.on_debtor_default_small, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
-			}
-		}
-	} else {
-		for(auto gn : state.great_nations) {
-			if(gn.nation && gn.nation != n) {
-				event::fire_fixed_event(state, state.national_definitions.on_debtor_default, trigger::to_generic(gn.nation), event::slot_type::nation, gn.nation, trigger::to_generic(n), event::slot_type::nation);
-			}
-		}
+		event::fire_fixed_event(state, event, trigger::to_generic(creditor), event::slot_type::nation, creditor, trigger::to_generic(n), event::slot_type::nation);
+		loan.set_is_interest_active(false);
 	}
 
 	sys::add_modifier_to_nation(state, n, state.national_definitions.in_bankrupcy, state.current_date + int32_t(state.defines.bankrupcy_duration * 365));

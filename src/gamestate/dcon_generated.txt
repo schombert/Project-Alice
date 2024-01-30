@@ -1513,7 +1513,7 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
-	
+
 	composite_key{
 		name{province_pair}
 		index{connected_provinces}
@@ -1543,7 +1543,7 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
-	
+
 	composite_key{
 		name{nation_adjacency_pair}
 		index{connected_nations}
@@ -1566,16 +1566,16 @@ object {
 		type{ unit_type_id }
 		tag{ save }
 	}
-	property{	
+	property{
 		name{ strength }
 		type{ float }
 		tag{ save }
 	}
-	property{	
+	property{
 		name{ pending_damage }
 		type{ float }
 	}
-	property{	
+	property{
 		name{ org }
 		type{ float }
 		tag{ save }
@@ -1602,12 +1602,12 @@ object {
 		type{ unit_type_id }
 		tag{ save }
 	}
-	property{	
+	property{
 		name{ strength }
 		type{ float }
 		tag{ save }
 	}
-	property{	
+	property{
 		name{ org }
 		type{ float }
 		tag{ save }
@@ -2173,12 +2173,12 @@ object {
 		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
-	
+
 	property{
 		name{ defender_casualties }
 		type{ float }
 	}
-	
+
 	property{
 		name{ attacker_casualties }
 		type{ float }
@@ -3736,7 +3736,7 @@ relationship{
 		index_storage{array}
 		multiple{2}
 	}
-	
+
 	composite_key{
 		name{diplomatic_pair}
 		index{related_nations}
@@ -3777,7 +3777,7 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
-	
+
 	composite_key{
 		name{unilateral_pair}
 		index{target}
@@ -3786,11 +3786,6 @@ relationship{
 
 	property{
 		name{ foreign_investment }
-		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ owns_debt_of }
 		type{ float }
 		tag{ save }
 	}
@@ -3806,6 +3801,42 @@ relationship{
 	}
 	property{
 		name{ reparations }
+		type{ bitfield }
+		tag{ save }
+	}
+}
+
+relationship{
+	name{ loan }
+	storage_type{ compactable }
+	size{ 50000 }
+	tag{ save }
+
+	link{
+		object{nation}
+		name{debtor}
+		type{many}
+		index_storage{array}
+	}
+	link{
+		object{nation}
+		name{creditor}
+		type{many}
+		index_storage{array}
+	}
+
+	composite_key{
+		name{loan_pair}
+		index{debtor}
+		index{creditor}
+	}
+	property{
+		name{ principal }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ is_interest_active }
 		type{ bitfield }
 		tag{ save }
 	}
