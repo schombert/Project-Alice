@@ -1417,7 +1417,60 @@ public:
 };
 
 class topbar_colony_icon : public standard_nation_button {
+	uint32_t index = 0;
+
+	dcon::province_id get_state_def_province(sys::state& state, dcon::state_definition_id sdef) noexcept {
+		for(auto const p : state.world.state_definition_get_abstract_state_membership(sdef)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				return p.get_province();
+			}
+		}
+		return dcon::province_id{};
+	}
 public:
+	void button_action(sys::state& state) noexcept override {
+		std::vector<dcon::province_id> provinces;
+		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
+			if(province::can_integrate_colony(state, si.get_state())) {
+				provinces.push_back(si.get_state().get_capital());
+			}
+		}
+		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
+			auto sdef = state.world.colonization_get_state(colony);
+			if(state.world.state_definition_get_colonization_stage(sdef) == 3) { //make protectorate
+				provinces.push_back(get_state_def_province(sdef));
+			} else if(province::can_invest_in_colony(state, nation_id, sdef)) { //invest
+				provinces.push_back(get_state_def_province(sdef));
+			} else { //losing rase
+				auto lvl = state.world.colonization_get_level(colony);
+				for(auto cols : state.world.state_definition_get_colonization(sdef)) {
+					if(lvl < cols.get_level()) {
+						provinces.push_back(get_state_def_province(sdef));
+						break;
+					}
+				}
+			}
+		});
+		if(!provinces.empty()) {
+			index++;
+			if(index >= uint32_t(provinces.size())) {
+				index = 0;
+			}
+			if(auto prov = provinces[index]; prov) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				state.map_state.set_selected_province(prov);
+				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
+				if(state.map_state.get_zoom() < 8)
+					state.map_state.zoom = 8.0f;
+				auto map_pos = state.world.province_get_mid_point(prov);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
+		}
+	}
+
 	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		bool any_integratable = false;
 		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
@@ -1459,7 +1512,7 @@ public:
 			if(state.world.state_definition_get_colonization_stage(sdef) == 3) {
 				text::add_line(state, contents, "countryalert_colonialgood_colony", text::variable_type::region, sdef);
 				is_empty = false;
-			} else if(province::can_invest_in_colony(state, nation_id, sdef) ) {
+			} else if(province::can_invest_in_colony(state, nation_id, sdef)) {
 				text::add_line(state, contents, "countryalert_colonialgood_invest", text::variable_type::region, sdef);
 				is_empty = false;
 			}
