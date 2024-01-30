@@ -1430,6 +1430,8 @@ class topbar_colony_icon : public standard_nation_button {
 public:
 	void button_action(sys::state& state) noexcept override {
 		std::vector<dcon::province_id> provinces;
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+		auto nation_fat_id = dcon::fatten(state.world, nation_id);
 		for(auto si : state.world.nation_get_state_ownership(nation_id)) {
 			if(province::can_integrate_colony(state, si.get_state())) {
 				provinces.push_back(si.get_state().get_capital());
