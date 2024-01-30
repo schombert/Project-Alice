@@ -1440,14 +1440,14 @@ public:
 		nation_fat_id.for_each_colonization([&](dcon::colonization_id colony) {
 			auto sdef = state.world.colonization_get_state(colony);
 			if(state.world.state_definition_get_colonization_stage(sdef) == 3) { //make protectorate
-				provinces.push_back(get_state_def_province(sdef));
+				provinces.push_back(get_state_def_province(state, sdef));
 			} else if(province::can_invest_in_colony(state, nation_id, sdef)) { //invest
-				provinces.push_back(get_state_def_province(sdef));
+				provinces.push_back(get_state_def_province(state, sdef));
 			} else { //losing rase
 				auto lvl = state.world.colonization_get_level(colony);
 				for(auto cols : state.world.state_definition_get_colonization(sdef)) {
 					if(lvl < cols.get_level()) {
-						provinces.push_back(get_state_def_province(sdef));
+						provinces.push_back(get_state_def_province(state, sdef));
 						break;
 					}
 				}
