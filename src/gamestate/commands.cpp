@@ -4925,6 +4925,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
+	case command_type::c_innovate:
 		return true;
 	}
 	return false;
@@ -5344,6 +5345,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
+	case command_type::c_innovate:
+		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
 	}
 }
 
