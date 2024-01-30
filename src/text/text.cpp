@@ -686,17 +686,24 @@ std::string produce_simple_string(sys::state const& state, std::string_view txt)
 	}
 }
 
-dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
+dcon::text_sequence_id find_key(sys::state& state, std::string_view txt) {
 	auto it = state.key_to_text_sequence.find(lowercase_str(txt));
 	if(it != state.key_to_text_sequence.end()) {
 		return it->second;
-	} else {
+	}
+	return dcon::text_sequence_id{};
+}
+
+dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
+	auto key = text::find_key(state, txt);
+	if(!key) {
 		auto new_key = state.add_to_pool_lowercase(txt);
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
 		return create_text_entry(state, local_key_copy, txt, err);
 	}
+	return key;
 }
 
 
