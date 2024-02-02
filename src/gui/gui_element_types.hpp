@@ -419,13 +419,23 @@ public:
 class line_graph : public element_base {
 private:
 	ogl::lines lines;
-
 public:
+	bool is_coloured = false;
+	float r = 0.f;
+	float g = 0.f;
+	float b = 0.f;
+
 	const uint32_t count;
 
-	line_graph(uint32_t sz) : lines(sz), count(sz) { }
+	line_graph(uint32_t sz) : lines(sz), count(sz) {
+		is_coloured = false;
+		r = 0.f;
+		g = 0.f;
+		b = 0.f;
+	}
 
 	void set_data_points(sys::state& state, std::vector<float> const& datapoints) noexcept;
+	void set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max) noexcept;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 
