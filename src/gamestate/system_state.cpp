@@ -3511,20 +3511,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	if(err.accumulated_errors.size() == 0) {
-		// run the economy for three days on scenario creation
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
+	
 
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-	}
+	if(err.accumulated_errors.size() == 0)
+		economy::presimulate(*this);
+	
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);

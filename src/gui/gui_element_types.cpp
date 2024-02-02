@@ -525,12 +525,34 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 	lines.set_y(scaled_datapoints.data());
 }
 
+void line_graph::set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max) noexcept {
+	assert(datapoints.size() == count);
+	float y_height = max - min;
+	std::vector<float> scaled_datapoints = std::vector<float>(count);
+	if(y_height == 0.f) {
+		for(size_t i = 0; i < count; i++) {
+			scaled_datapoints[i] = .5f;
+		}
+	} else {
+		for(size_t i = 0; i < count; i++) {
+			scaled_datapoints[i] = (datapoints[i] - min) / y_height;
+		}
+	}
+
+
+	lines.set_y(scaled_datapoints.data());
+}
+
 void line_graph::on_create(sys::state& state) noexcept {
 	element_base::on_create(state);
 }
 
 void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
+	if(!is_coloured) {
+		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
+	} else {
+		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, r, g, b, lines);
+	}	
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
