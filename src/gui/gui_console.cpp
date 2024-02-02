@@ -1582,7 +1582,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		bool found = false;
 		for(auto invention: state.world.in_invention) {
 			auto innovation_name = text::produce_simple_string(state, invention.get_name());
-			std::transform(innovation_name.begin(), innovation_name.end(), innovation_name.begin(),[](unsigned char c) { return std::tolower(c); });
+			std::transform(innovation_name.begin(), innovation_name.end(), innovation_name.begin(),[](unsigned char c) { return (char)std::tolower(c); });
 
 			if(searched_name == innovation_name) {
 				command::c_innovate(state, state.local_player_nation, invention);
