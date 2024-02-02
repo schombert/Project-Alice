@@ -58,6 +58,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gamestate/serialization.cpp"
 	"src/graphics/opengl_wrapper.cpp"
 	"src/graphics/texture.cpp"
+	"src/graphics/xac.cpp"
 	"src/gui/gui_common_elements.cpp"
 	"src/gui/gui_effect_tooltips.cpp"
 	"src/gui/gui_graphics.cpp"
