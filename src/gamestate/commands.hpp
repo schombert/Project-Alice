@@ -429,7 +429,7 @@ struct cheat_event_data {
 	dcon::nation_id as;
 };
 
-struct cheat_invention_data {
+struct cheat_invention_data_t {
 	dcon::invention_id invention;
 };
 
@@ -515,7 +515,7 @@ struct payload {
 		notify_reload_data notify_reload;
 		sys::player_name player_name;
 		cheat_location_data cheat_location;
-		cheat_invention_data cheat_invention_data;
+		cheat_invention_data_t cheat_invention_data;
 		dtype() { }
 	} data;
 	dcon::nation_id source;
