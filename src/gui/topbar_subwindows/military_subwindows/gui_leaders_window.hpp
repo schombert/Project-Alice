@@ -142,9 +142,9 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		right_click_button_element_base::on_create(state);
 		if(B) {
-			set_button_text(state, text::produce_simple_string("alice_mw_create_1"));
+			set_button_text(state, text::produce_simple_string(state, "alice_mw_create_1"));
 		} else {
-			set_button_text(state, text::produce_simple_string("alice_mw_create_2"));
+			set_button_text(state, text::produce_simple_string(state, "alice_mw_create_2"));
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
