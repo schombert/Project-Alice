@@ -157,7 +157,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 }
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_or_add_key(context.state, name);
+	auto name_id = text::find_key(context.state, name);
 	auto state_id = context.state.world.create_state_definition();
 
 	context.map_of_state_names.insert_or_assign(std::string(name), state_id);

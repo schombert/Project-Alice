@@ -498,7 +498,7 @@ guiTypes = {
 			# Spoilers checkbox
 			instantTextBoxType = {
 				name = "spoilers_label"
-				position = { 78 126 }
+				position = { 78 260 }
 				text = "spoilers_label"
 				font = "Arial16"
 				borderSize = { 0 0 }
@@ -508,7 +508,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "spoilers_checkbox"
-				position = { 51 125 }
+				position = { 51 260 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style
@@ -4274,10 +4274,10 @@ guiTypes = {
 
 	instantTextBoxType = {
 		name = "alice_readme_text"
-		position = { -260 -187 }
-		maxsize = { 520 180 }
+		position = { -235 -180 }
+		maxsize = { 460 160 }
 		fixedsize = yes
-		font = "vic_18"
+		font = "Arial16"
 		Orientation = "CENTER_DOWN"
 	}
 }

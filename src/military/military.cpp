@@ -1030,7 +1030,7 @@ void regenerate_land_unit_average(sys::state& state) {
 
 		for(uint32_t i = 2; i < max; ++i) {
 			dcon::unit_type_id u{dcon::unit_type_id::value_base_t(i)};
-			if((state.world.nation_get_active_unit(n, u) || state.military_definitions.unit_base_definitions[u].active)&& state.military_definitions.unit_base_definitions[u].is_land) {
+			if((state.world.nation_get_active_unit(n, u) || state.military_definitions.unit_base_definitions[u].active) && state.military_definitions.unit_base_definitions[u].is_land) {
 				auto& reg_stats = state.world.nation_get_unit_stats(n, u);
 				total += ((reg_stats.defence_or_hull + ld_mod) + (reg_stats.attack_or_gun_power + lo_mod)) *
 								 state.military_definitions.unit_base_definitions[u].discipline_or_evasion;
@@ -4836,12 +4836,10 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
 }
 
-float attrition_amount(sys::state& state, dcon::navy_id a) {
+float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov) {
 	return 0.0f;
 }
-float attrition_amount(sys::state& state, dcon::army_id a) {
-	auto prov = state.world.army_get_location_from_army_location(a);
-
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov) {
 	float total_army_weight = 0;
 	for(auto ar : state.world.province_get_army_location(prov)) {
 		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
@@ -4877,6 +4875,12 @@ float attrition_amount(sys::state& state, dcon::army_id a) {
 	auto value = std::clamp(total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort), 0.0f, state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition))
 		+ state.world.province_get_siege_progress(prov) > 0.f ? state.defines.siege_attrition : 0.0f;
 	return value * 0.01f;
+}
+float attrition_amount(sys::state& state, dcon::navy_id a) {
+	return relative_attrition_amount(state, a, state.world.navy_get_location_from_navy_location(a));
+}
+float attrition_amount(sys::state& state, dcon::army_id a) {
+	return relative_attrition_amount(state, a, state.world.army_get_location_from_army_location(a));
 }
 
 void apply_attrition(sys::state& state) {

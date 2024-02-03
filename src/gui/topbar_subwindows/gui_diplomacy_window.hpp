@@ -1326,11 +1326,11 @@ public:
 			ptr->base_data.position.y -= 8 - 1; // Nudge
 			war_elements[13] = ptr.get();
 			return ptr;
-		} else if(name == "current_wargoals") { 
+		} else if(name == "current_wargoals") {
 			auto ptr = make_element_by_type<overlapping_active_wargoals>(state, id);
 			war_elements[14] = ptr.get();
 			return ptr;
-		} else if(name == "country_cb") { 
+		} else if(name == "country_cb") {
 			auto ptr = make_element_by_type<overlapping_wargoals>(state, id);
 			war_elements[15] = ptr.get();
 			return ptr;
@@ -1354,6 +1354,8 @@ public:
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
 			return ptr;
+		} else if(name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
 		} else {
 			return nullptr;
 		}

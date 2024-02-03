@@ -394,6 +394,9 @@ public:
 			text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
 			text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 		}
+
+		text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
+		text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
 	}
 };
 
@@ -442,8 +445,8 @@ class commodity_price_trend : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		auto current_price = state.world.commodity_get_price_record(com, (state.ui_date.value >> 4) % 32);
-		auto previous_price = state.world.commodity_get_price_record(com, ((state.ui_date.value >> 4) - 1) % 32);
+		auto current_price = state.world.commodity_get_price_record(com, (state.ui_date.value >> 4) % economy::price_history_length);
+		auto previous_price = state.world.commodity_get_price_record(com, ((state.ui_date.value >> 4) + economy::price_history_length - 1) % economy::price_history_length);
 		if(current_price > previous_price) {
 			frame = 0;
 		} else if(current_price < previous_price) {
@@ -994,10 +997,13 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
+
+		assert(economy::price_history_length >= 32);
+
 		std::vector<float> datapoints(32);
-		auto newest_index = (state.ui_date.value >> 4) % 32;
+		auto newest_index = economy::most_recent_price_record_index(state);
 		for(uint32_t i = 0; i < 32; ++i) {
-			datapoints[i] = state.world.commodity_get_price_record(com, (newest_index + i + 1) % 32);
+			datapoints[i] = state.world.commodity_get_price_record(com, (newest_index + i + economy::price_history_length - 32) % economy::price_history_length);
 		}
 		set_data_points(state, datapoints);
 	}
@@ -1012,8 +1018,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		float max_price = state.world.commodity_get_price_record(com, 0);
+
+		auto newest_index = economy::most_recent_price_record_index(state);
 		for(int32_t i = 1; i < 32; ++i) {
-			max_price = std::max(state.world.commodity_get_price_record(com, i), max_price);
+			max_price = std::max(state.world.commodity_get_price_record(com, (newest_index + i + economy::price_history_length - 32) % economy::price_history_length), max_price);
 		}
 		set_text(state, text::format_money(max_price));
 	}
@@ -1024,8 +1032,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		float min_price = state.world.commodity_get_price_record(com, 0);
+
+		auto newest_index = economy::most_recent_price_record_index(state);
 		for(int32_t i = 1; i < 32; ++i) {
-			min_price = std::min(state.world.commodity_get_price_record(com, i), min_price);
+			min_price = std::min(state.world.commodity_get_price_record(com, (newest_index + i + economy::price_history_length - 32) % economy::price_history_length), min_price);
 		}
 		set_text(state, text::format_money(min_price));
 	}

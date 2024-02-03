@@ -680,8 +680,11 @@ pop_lit_5;The national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_7;The base literacy change rate: $x$;;;;;;;;;;;;x
 pop_lit_8;And 0.01;;;;;;;;;;;;x
-pop_growth_topbar;Our population is expected to grow by $x$ within the next month;;;;;;;;;;;;x
-pop_growth_topbar_2;Our population changed by $x$ last month;;;;;;;;;;;;x
+pop_growth_topbar;It's expected to grow by §G$x$§W within the next month.;;;;;;;;;;;;x
+pop_growth_topbar_2;population changed by §G$x$§W in the last §Y30§W days.;;;;;;;;;;;;x
+pop_growth_topbar_3;Our Adult male population is §Y$curr$§W. Our adult male
+separation_topbar;----------------
+pop_growth_topbar_4;Our total population is §Y$val$§W.
 pop_growth_1;Monthly pop growth: ;;;;;;;;;;;;x
 pop_growth_2;Slaves do not grow;;;;;;;;;;;;x
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;;;;;;;;;;;;x
@@ -781,13 +784,9 @@ alice_milscore_4;Is disarmed? (penalty factor of $x$)
 alice_milscore_5;Supply consumption modifier: $x$
 alice_milscore_6;Average land unit score: $x$
 alice_milscore_7;Total number of leaders: $x$
-alice_indscore_1;$x$ contribution:
-alice_indscore_2;Total factory capacity: $x$
-alice_indscore_3;Total factory level: $x$
-alice_indscore_4;Total worker pool: $x$
-alice_indscore_5;Total: $x$
-alice_indscore_6;The following foreign investments also add up (weight factor $x$):
-alice_indscore_7;A $y$ foreign investment given to $x$
+alice_indscore_1;$name$ (capacity $cap$ + level $level$ + worker pool $amount$) = $total$
+alice_indscore_2;The following foreign investments also add up (weight factor $x$):
+alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
@@ -1353,6 +1352,7 @@ auto_save_0;None;;;Ninguno;;;;;;;;;x
 monthly_emigration_lab;Monthly emigration to (top 10);;;;;;;;;;;;x
 monthly_immigration_lab;Monthly immigration from (top 10);;;;;;;;;;;;x
 im_em_header;Predicted immigration/emigration for ;;;;;;;;;;;;x
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = §R$val$§W attrition
 ol_unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
 unit_standing_text;$m$ $n$/$x$/$y$ - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
@@ -1369,6 +1369,8 @@ o_relations_with;Owner of the province's relation with $text$;;;;;;;;;;;;x
 o_add_to_treasury; for the owner of the province;;;;;;;;;;;;x
 w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
 w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
+w_artisan_profit;National artisan profit: $x$;;;;;;;;;;;;x
+w_artisan_distribution;National artisan distribution: $x$;;;;;;;;;;;;x
 w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
 alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
 alice_state_select_title;Select state;;;Seleccionar estado;;;;;;;;;x
@@ -1554,6 +1556,15 @@ alice_info_box_13;§YTAB§W: Open chat window
 alice_info_box_14;§YESC§W: Open main menu and settings menu
 alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
 alice_info_box_16;§GEnjoy the game! =^w^=§W
+alice_utt_controls_1;§YLeft-click§W select (deselecting everything else)
+alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
+alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
+alice_mw_create_1;Add general
+alice_mw_create_2;Add admiral
+alice_mw_create_lpb;§YLeadership points§W will automatically be used to create generals or admirals when hitting the cap
+alice_mw_create_lp;We need §R$x$§W §Yleadership points§W to add
+alice_mw_controls_1;§YRight-click§W create §Gall§W possible as generals
+alice_mw_controls_2;§YRight-click§W create §Gall§W possible as admirals
 current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
 current_supply_text2;The amount we could get of our current supply consumption was:
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W

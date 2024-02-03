@@ -1026,6 +1026,9 @@ public:
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
 			return make_element_by_type<province_supply_limit_text>(state, id);
+		} else if (name == "selected_military_icon") {
+			auto ptr = make_element_by_type<military_score_icon>(state, id);
+			return ptr;
 		} else if(name == "rally_land_icon"
 			|| name == "rallypoint_merge_icon"
 			|| name == "rally_naval_icon"

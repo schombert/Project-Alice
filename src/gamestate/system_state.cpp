@@ -1305,13 +1305,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::navy_built:
 						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
-					case message_base_type::province_event:
-						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::national_event:
-					case message_base_type::major_event:
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
 					case message_base_type::alliance_declined:
 					case message_base_type::ally_called_declined:
 					case message_base_type::crisis_join_offer_declined:
@@ -1326,6 +1319,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::crisis_resolution_accepted:
 					case message_base_type::mil_access_start:
 						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::province_event:
+					case message_base_type::national_event:
+					case message_base_type::major_event:
+						//Sound effect is played on above logic (free/non-free loop events above)
 						break;
 					default:
 						break;
@@ -3513,20 +3511,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	if(err.accumulated_errors.size() == 0) {
-		// run the economy for three days on scenario creation
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
+	
 
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-	}
+	if(err.accumulated_errors.size() == 0)
+		economy::presimulate(*this);
+	
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
