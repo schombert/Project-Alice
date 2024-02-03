@@ -842,9 +842,9 @@ public:
 		} else if(name == "output") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "closed_overlay") {
-			return make_element_by_type<invisible_element_base>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "factory_closed_text") {
-			return make_element_by_type<invisible_element_base>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "prod_factory_inprogress_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			build_elements.push_back(ptr.get());
