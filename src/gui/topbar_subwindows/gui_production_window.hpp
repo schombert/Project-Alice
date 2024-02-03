@@ -842,13 +842,9 @@ public:
 		} else if(name == "output") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "closed_overlay") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "factory_closed_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "prod_factory_inprogress_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			build_elements.push_back(ptr.get());
@@ -860,13 +856,6 @@ public:
 		} else if(name == "prod_cancel_progress") {
 			auto ptr = make_element_by_type<factory_cancel_new_const_button>(state, id);
 			build_elements.push_back(ptr.get());
-
-			/* // Where should this button go ?
-			auto ptrb = make_element_by_type<factory_cancel_upgrade_button>(state, id);
-			upgrade_elements.push_back(ptrb.get());
-			add_child_to_front(std::move(ptrb));
-			*/
-
 			return ptr;
 		} else if(name == "upgrade_factory_progress") {
 			auto ptr = make_element_by_type<factory_upgrade_progress_bar>(state, id);
@@ -899,11 +888,9 @@ public:
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_reopen_button>(state, id);
 			closed_elements.push_back(ptr.get());
-
 			auto ptrb = make_element_by_type<factory_close_and_delete_button>(state, id);
 			factory_elements.push_back(ptrb.get());
 			add_child_to_front(std::move(ptrb));
-
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
