@@ -938,25 +938,24 @@ void finish(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.save_stream) {
 			// send the outgoing commands to the server and flush the entire queue
-			auto* c = state.network_state.outgoing_commands.front();
-			while(c) {
-				if(c->type == command::command_type::save_game) {
-					command::execute_command(state, *c);
-					command_executed = true;
-				} else {
-					socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
-				}
-				state.network_state.outgoing_commands.pop();
-				c = state.network_state.outgoing_commands.front();
-			}
 			{
-				command::payload c;
-				memset(&c, 0, sizeof(c));
-				c.type = command::command_type::notify_player_leaves;
-				c.source = state.local_player_nation;
-				c.data.notify_leave.make_ai = true;
-				socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
+				auto* c = state.network_state.outgoing_commands.front();
+				while(c) {
+					if(c->type == command::command_type::save_game) {
+						command::execute_command(state, *c);
+					} else {
+						socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
+					}
+					state.network_state.outgoing_commands.pop();
+					c = state.network_state.outgoing_commands.front();
+				}
 			}
+			command::payload c;
+			memset(&c, 0, sizeof(c));
+			c.type = command::command_type::notify_player_leaves;
+			c.source = state.local_player_nation;
+			c.data.notify_leave.make_ai = true;
+			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 			while(state.network_state.send_buffer.size() > 0) {
 				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
 #ifdef _WIN64
