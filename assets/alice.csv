@@ -1556,6 +1556,7 @@ alice_info_box_13;即TAB劬: Open chat window
 alice_info_box_14;即ESC劬: Open main menu and settings menu
 alice_info_box_15;即Tilde (`)劬 or 即Tilde (~)劬: Open console
 alice_info_box_16;佈Enjoy the game! =^w^=劬
+alice_nf_controls;即Left-click劬 to select or replace\n即Right-click劬 to remove
 alice_utt_controls_1;即Left-click劬 select (deselecting everything else)
 alice_utt_controls_2;即SHIFT-Left-click劬 add to selection
 alice_utt_controls_3;即Right-click on a province劬 partial retreat (佈cycling/rotation劬) to province
