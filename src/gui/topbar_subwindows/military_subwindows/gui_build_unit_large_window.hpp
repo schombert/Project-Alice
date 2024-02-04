@@ -484,10 +484,10 @@ public:
 				auto culture_id = state.world.pop_get_culture(content.pop_info);
 				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
 				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
-				unit_name->set_text(state, culture_content + " " + unit_type_name);
+				unit_name->set_text(state, "(" + std::to_string(content.num_possible) + ") " + culture_content + " " + unit_type_name);
 			} else {
 				build_button->frame = 1;
-				unit_name->set_text(state, "(" + std::to_string(content.num_possible) + ") " + text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 			}
 		} else {
 			int16_t r = 0;
