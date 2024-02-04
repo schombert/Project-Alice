@@ -371,6 +371,40 @@ void init(sys::state& state) {
 	}
 }
 
+void deinit(sys::state& state) {
+	if(state.network_mode == sys::network_mode_type::client) {
+		{	
+			command::payload c;
+			memset(&c, 0, sizeof(c));
+			c.type = command::command_type::notify_player_leaves;
+			c.source = state.local_player_nation;
+			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
+		}
+		if(!state.network_state.save_stream) {
+			// send the outgoing commands to the server and flush the entire queue
+			auto* c = state.network_state.outgoing_commands.front();
+			while(c) {
+				if(c->type == command::command_type::save_game) {
+					command::execute_command(state, *c);
+					command_executed = true;
+				} else {
+					socket_add_to_send_queue(state.network_state.send_buffer, c, sizeof(*c));
+				}
+				state.network_state.outgoing_commands.pop();
+				c = state.network_state.outgoing_commands.front();
+			}
+			while(state.network_state.send_buffer.size() > 0) {
+				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
+#ifdef _WIN64
+					MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+#endif
+					std::abort();
+				}
+			}
+		}
+	}
+}
+
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
 	if(command::can_notify_player_leaves(state, client.playing_as, graceful)) {
 		command::notify_player_leaves(state, client.playing_as, graceful);
