@@ -378,6 +378,7 @@ void deinit(sys::state& state) {
 			memset(&c, 0, sizeof(c));
 			c.type = command::command_type::notify_player_leaves;
 			c.source = state.local_player_nation;
+			c.data.notify_leave.make_ai = true;
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 		}
 		if(!state.network_state.save_stream) {
