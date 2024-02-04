@@ -140,6 +140,7 @@ enum class command_type : uint8_t {
 	c_add_population = 148,
 	c_instant_army = 149,
 	c_instant_industry = 150,
+	c_innovate = 151,
 };
 
 struct national_focus_data {
@@ -428,6 +429,10 @@ struct cheat_event_data {
 	dcon::nation_id as;
 };
 
+struct cheat_invention_data_t {
+	dcon::invention_id invention;
+};
+
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
 	dcon::nation_id target;
@@ -514,7 +519,7 @@ struct payload {
 		sys::player_name player_name;
 		cheat_location_data cheat_location;
 		notify_leaves_data notify_leave;
-
+		cheat_invention_data_t cheat_invention_data;
 		dtype() { }
 	} data;
 	dcon::nation_id source;

@@ -4416,6 +4416,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
@@ -4926,6 +4927,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
+	case command_type::c_innovate:
 		return true;
 	}
 	return false;
@@ -5345,6 +5347,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
+	case command_type::c_innovate:
+		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
 	}
 }
 

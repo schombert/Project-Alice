@@ -1326,11 +1326,11 @@ public:
 			ptr->base_data.position.y -= 8 - 1; // Nudge
 			war_elements[13] = ptr.get();
 			return ptr;
-		} else if(name == "current_wargoals") { 
+		} else if(name == "current_wargoals") {
 			auto ptr = make_element_by_type<overlapping_active_wargoals>(state, id);
 			war_elements[14] = ptr.get();
 			return ptr;
-		} else if(name == "country_cb") { 
+		} else if(name == "country_cb") {
 			auto ptr = make_element_by_type<overlapping_wargoals>(state, id);
 			war_elements[15] = ptr.get();
 			return ptr;
@@ -1354,6 +1354,8 @@ public:
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
 			return ptr;
+		} else if(name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1793,6 +1795,20 @@ public:
 		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
 		auto fat = dcon::fatten(state.world, content);
 		frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_type().get_name(), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, std::string_view(": "), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_target());
+		text::close_layout_box(contents, box);
 	}
 };
 
