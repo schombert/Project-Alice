@@ -106,6 +106,11 @@ vec4 linegraph(vec2 tc) {
 	return mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0), tc.y);
 }
 
+layout(index = 17) subroutine(font_function_class)
+vec4 linegraph_color(vec2 tc) {
+	return vec4(inner_color, 1.0);
+}
+
 layout(index = 3) subroutine(color_function_class)
 vec4 disabled_color(vec4 color_in) {
 	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;

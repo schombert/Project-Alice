@@ -121,8 +121,7 @@ public:
 	}
 };
 
-
-class factory_upgrade_button : public ctrl_shift_button_element_base {
+class factory_upgrade_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
@@ -134,42 +133,92 @@ public:
 
 	}
 
-	void button_shift_action(sys::state& state) noexcept override {
-		const dcon::province_id p = retrieve<dcon::province_id>(state, parent);
-		for(auto fac : state.world.province_get_factory_location(p)) {
-			if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
-				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-					state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true)) {
+	void button_right_action(sys::state& state) noexcept {
 
+	}
+
+	void button_shift_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 					command::begin_factory_building_construction(state, state.local_player_nation,
-						state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true);
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
 				}
 			}
 		}
-
-
 	}
 
-	void button_ctrl_action(sys::state& state) noexcept override {
-		const dcon::province_id p = retrieve<dcon::province_id>(state, parent);
-		for(auto fac : state.world.province_get_factory_location(p)) {
-			if(command::can_begin_factory_building_construction(state, state.local_player_nation,
-				state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true)) {
-
-				command::begin_factory_building_construction(state, state.local_player_nation,
-					state.world.province_get_state_membership(p), fac.get_factory().get_building_type(), true);
+	void button_shift_right_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+						command::begin_factory_building_construction(state, state.local_player_nation,
+							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+					}
+				}
 			}
 		}
 	}
 
-	void buttons_ctrl_shift_action(sys::state& state) noexcept override {
+	void button_ctrl_action(sys::state& state) noexcept {
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+	}
+
+	void button_ctrl_right_action(sys::state& state) noexcept {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
 				if(fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
 					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
 						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+						command::begin_factory_building_construction(state, state.local_player_nation,
+							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+					}
+				}
+			}
+		}
+	}
 
+	void button_ctrl_shift_action(sys::state& state) noexcept {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
+				&& command::can_begin_factory_building_construction(state, state.local_player_nation,
+					p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
+					command::begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
+				}
+			}
+		}
+	}
+
+	void button_ctrl_shift_right_action(sys::state& state) noexcept {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			for(auto fac : p.get_province().get_factory_location()) {
+				if(fac.get_factory().get_building_type() == state.world.factory_get_building_type(fid)
+				&& fac.get_factory().get_primary_employment() >= 0.95f && fac.get_factory().get_production_scale() > 0.8f) {
+					if(command::can_begin_factory_building_construction(state, state.local_player_nation,
+						p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true)) {
 						command::begin_factory_building_construction(state, state.local_player_nation,
 							p.get_province().get_state_membership(), fac.get_factory().get_building_type(), true);
 					}
@@ -182,8 +231,69 @@ public:
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		auto fat = dcon::fatten(state.world, fid);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
+	}
+
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(!disabled) {
+				//ToDo: Make button change appearance while pressed
+				//disabled = true;
+			}
+		} else if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_right_action(state);
+			else
+				button_right_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
+		if(state.user_settings.left_mouse_click_hold_and_release) {
+			if(under_mouse) {
+				sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+				if(mods == sys::key_modifiers::modifiers_shift)
+					button_shift_action(state);
+				else if(mods == sys::key_modifiers::modifiers_ctrl)
+					button_ctrl_action(state);
+				else
+					button_action(state);
+			} else {
+				//ToDo: Make button revert appearance when released
+				//disabled = false;
+			}
+		}
+		return message_result::consumed;
+	}
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+			sound::play_interface_sound(state, sound::get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else
+				button_action(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -199,7 +309,7 @@ public:
 				is_not_upgrading = false;
 		}
 		if(is_not_upgrading) {
-			ctrl_shift_button_element_base::render(state, x, y);
+			button_element_base::render(state, x, y);
 		}
 	}
 
@@ -237,7 +347,6 @@ public:
 
 		bool is_activated = state.world.nation_get_active_building(n, type) == true || state.world.factory_type_get_is_available_from_start(type);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
-
 		if(n != state.local_player_nation) {
 			bool gp_condition = (state.world.nation_get_is_great_power(state.local_player_nation) == true &&
 					state.world.nation_get_is_great_power(n) == false);
@@ -255,8 +364,6 @@ public:
 			auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 			text::add_line_with_condition(state, contents, "factory_upgrade_condition_8", (rules & issue_rule::expand_factory) != 0);
 		}
-
-
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
@@ -267,11 +374,6 @@ public:
 		text::add_line(state, contents, "alice_expand_factory_controls_4");
 		text::add_line(state, contents, "alice_expand_factory_controls_5");
 		text::add_line(state, contents, "alice_expand_factory_controls_6");
-
-		text::add_line(state, contents, "factory_upgrade_shift_explanation");
-		text::add_line(state, contents, "factory_upgrade_ctrl_explanation");
-		text::add_line(state, contents, "factory_upgrade_ctrl_shift_explanation");
-
 	}
 };
 
@@ -742,13 +844,9 @@ public:
 		} else if(name == "output") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "closed_overlay") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "factory_closed_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "prod_factory_inprogress_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			build_elements.push_back(ptr.get());
@@ -760,13 +858,6 @@ public:
 		} else if(name == "prod_cancel_progress") {
 			auto ptr = make_element_by_type<factory_cancel_new_const_button>(state, id);
 			build_elements.push_back(ptr.get());
-
-			/* // Where should this button go ?
-			auto ptrb = make_element_by_type<factory_cancel_upgrade_button>(state, id);
-			upgrade_elements.push_back(ptrb.get());
-			add_child_to_front(std::move(ptrb));
-			*/
-
 			return ptr;
 		} else if(name == "upgrade_factory_progress") {
 			auto ptr = make_element_by_type<factory_upgrade_progress_bar>(state, id);
@@ -799,11 +890,9 @@ public:
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_reopen_button>(state, id);
 			closed_elements.push_back(ptr.get());
-
 			auto ptrb = make_element_by_type<factory_close_and_delete_button>(state, id);
 			factory_elements.push_back(ptrb.get());
 			add_child_to_front(std::move(ptrb));
-
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
@@ -860,7 +949,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < 0.05f;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::production_scale_delta;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1164,11 +1253,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = n != state.local_player_nation;
-		state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+		disabled = true;
+		for(auto nfid : state.world.in_national_focus) {
 			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-		});
+		}
 		frame = get_icon_frame(state);
 	}
 
@@ -1186,11 +1274,38 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, focus.get_name());
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fat_si = dcon::fatten(state.world, sid);
+		text::add_to_layout_box(state, contents, box, sid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto content = state.world.state_instance_get_owner_focus(sid);
+		if(bool(content)) {
+			auto fat_nf = dcon::fatten(state.world, content);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::add_line_break_to_layout_box(state, contents, box);
+			auto color = text::text_color::white;
+			if(fat_nf.get_promotion_type()) {
+				//Is the NF not optimal? Recolor it
+				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
+					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
+						color = text::text_color::red;
+					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
+				}
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
+				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
+			}
+		}
 		text::close_layout_box(contents, box);
+		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+			modifier_description(state, contents, mid, 15);
+		}
+		text::add_line(state, contents, "alice_nf_controls");
 	}
 };
 

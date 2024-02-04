@@ -1480,7 +1480,7 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 	if(!rel)
 		return false;
 
-	if(state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
+	if(source != affected_gp && state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
 		return false;
 
 	if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
@@ -1504,17 +1504,16 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
-
 	state.world.nation_set_in_sphere_of(influence_target, dcon::nation_id{});
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
 	l = nations::influence::decrease_level(l);
 
-	if(source != affected_gp)
+	if(source != affected_gp) {
+		state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
 		nations::adjust_relationship(state, source, affected_gp, state.defines.removefromsphere_relation_on_accept);
-	else {
+	} else {
 		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
@@ -4416,6 +4415,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
@@ -4927,6 +4927,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
+	case command_type::c_innovate:
 		return true;
 	}
 	return false;
@@ -5346,6 +5347,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
+	case command_type::c_innovate:
+		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
 	}
 }
 

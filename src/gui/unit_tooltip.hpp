@@ -5,14 +5,12 @@
 namespace ui {
 
 struct unitamounts {
-	uint16_t type1 = 0;
-	uint32_t type1_pop = 0;
-
-	uint16_t type2 = 0;
-	uint32_t type2_pop = 0;
-
-	uint16_t type3 = 0;
-	uint32_t type3_pop = 0;
+	uint32_t type1_pop = 0; //4-0
+	uint32_t type2_pop = 0; //4-4
+	uint32_t type3_pop = 0; //4-8
+	uint16_t type1 = 0; //2-12
+	uint16_t type2 = 0; //2-14
+	uint16_t type3 = 0; //2-16,18
 };
 
 unitamounts calc_amounts_from_army(sys::state& state, dcon::army_fat_id army);
