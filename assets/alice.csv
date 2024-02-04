@@ -1397,7 +1397,7 @@ alice_unit_disable_rebel_hunt;Stop hunting rebels;;;;;;;;;;;;x
 alice_regiment_battle_info;$m$ $name$ 即$type$劬\nOrganisation: 即$organisation$劬\nStrength: 即$strength$劬;;;;;;;;;;;;x
 alice_understaffed_regiment;刪This regiment is understaffed and will only have $value$ soldiers!劬;;;;;;;;;;;;x
 alice_tech_queue_info;Press 即SHIFT劬 to add to queue, 即Right-click劬 to remove;;;;;;;;;;;;x
-alice_province_building_build;即SHIFT劬 to build on the entire state.\n即SHIFT + Right-click劬 to build on the entire country.;;;;;;;;;;;;x
+alice_province_building_build;即SHIFT劬 to build on the entire 佈state劬.\n即SHIFT-Right-click劬 to build on the entire 佈country劬.;;;;;;;;;;;;x
 alice_commodity_shortage;刪There is a shortage of this commodity;;;;;;;;;;;;x
 alice_commodity_surplus;佈There is a surplus of this commodity;;;;;;;;;;;;x
 alice_trade_flow_produced;即Domestic production:;;;;;;;;;;;;x
