@@ -6,7 +6,7 @@
 
 namespace ui {
 
-std::vector<bool> price_toggle_status;
+
 
 class ledger_page_number {
 public:
@@ -1952,9 +1952,13 @@ public:
 		float min = 0.f;
 		float max = 0.f;
 
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return;
+
 		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
 			auto newest_index = economy::most_recent_price_record_index(state);
-			if(price_toggle_status[commodity.index()]) {
+			if((*ptr)[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
 					if(price > max) {
@@ -1965,7 +1969,7 @@ public:
 		});
 
 		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
-			if(!(price_toggle_status[commodity.index()])) {
+			if(!((*ptr)[commodity.index()])) {
 				graph_per_price[commodity.index()]->set_visible(state, false);
 			} else {
 				graph_per_price[commodity.index()]->set_visible(state, true);
@@ -1988,14 +1992,20 @@ public:
 	price_toggle_checkbox(dcon::commodity_id good_id) {
 		index = good_id.index();
 	};
-	void button_action(sys::state& state) noexcept {
+	void button_action(sys::state& state) noexcept override {
 		if(index < 0) return;
-		price_toggle_status[index] = !price_toggle_status[index];
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return;
+		(*ptr)[index] = !(*ptr)[index];
 		state.game_state_updated.store(true, std::memory_order_release);
 	}
-	bool is_active(sys::state& state) noexcept {
+	bool is_active(sys::state& state) noexcept override {
 		if(index < 0) return false;
-		return price_toggle_status[index];
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return false;
+		return (*ptr)[index];
 	}
 };
 
@@ -2084,6 +2094,8 @@ class ledger_window : public window_element_base {
 		commodity_linegraph_legend->set_visible(state, false);
 		commodity_linegraph_image->set_visible(state, false);
 	}
+
+	std::vector<bool> price_toggle_status;
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -2313,6 +2325,9 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<ledger_sort>>()) {
 			current_sorting = any_cast<element_selection_wrapper<ledger_sort>>(payload).data;
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type< std::vector<bool>*>()) {
+			payload.emplace<std::vector<bool>*>(&price_toggle_status);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

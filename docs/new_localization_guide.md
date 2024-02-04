@@ -20,7 +20,7 @@ Note that up to 255 total attributes can be defined. Any attribute that you atte
 
 ### Keys and Content
 
-Each file consists of a number of *keys* and their accompanying text *content*. All text in the file must be utf8 encoded. A key is separated from its content by one or more white-space characters, and content is separated from the next key by one or more newlines. A key consists of a key name followed, optionally, by one or more attributes, each separated from the key name and each other by `.` characters. For example, `apple` is a key consisting of just the key name `apple`. `apple.many` is the key name `apple` plus the attribute `many`. And `apple.many.def` is the key name apple plus two attributes: `many` and `def`. A key name may appear more than once in the file. All the keys for a single key name are grouped together, and it is possible to select one of the particular contents associated with that key name by specifying attributes to match against, as described below. Note that a key name may not contain the following characters: `.`, `?`, `{`, '}', or '\'.
+Each file consists of a number of *keys* and their accompanying text *content*. All text in the file must be utf8 encoded. A key is separated from its content by one or more white-space characters, and content is separated from the next key by one or more newlines. A key consists of a key name followed, optionally, by one or more attributes, each separated from the key name and each other by `.` characters. For example, `apple` is a key consisting of just the key name `apple`. `apple.many` is the key name `apple` plus the attribute `many`. And `apple.many.def` is the key name apple plus two attributes: `many` and `def`. A key name may appear more than once in the file. All the keys for a single key name are grouped together, and it is possible to select one of the particular contents associated with that key name by specifying attributes to match against, as described below. Note that a key name may not contain the following characters: `.`, `?`, `{`, `}`, or `\`.
 
 ### Special Content Sequences
 
@@ -88,13 +88,13 @@ All commands, except for further `\match` commands and `\a` commands may appear 
 
 ##### An example
 
-Consider the content `I have \\match{number?one}{ an apple }{number?z}{ no apples} }{}{ {number} apples }.`. Assuming that the variable `number` is the number `0`, or `1`, or `3` with the appropriate attributes, this content will produce, for each of these possibilities:
+Consider the content `I have \match{number?one}{ an apple }{number?z}{ no apples} }{}{ {number} apples }.`. Assuming that the variable `number` is the number `0`, or `1`, or `3` with the appropriate attributes, this content will produce, for each of these possibilities:
 ```
 I have an apple.
 I have no apples.
 I have 3 apples.
 ```
-Now, let us consider something a bit more complex: the content `I have \\match{number?one}{ {obj.ind} }{number?z}{ no {obj.many} } }{}{ {number} {obj.many} }.` And assume also that the following keys and content have been defined:
+Now, let us consider something a bit more complex: the content `I have \match {number?one}{ {obj.ind} } {number?z}{ no {obj.many} } {}{ {number} {obj.many} }.` And assume also that the following keys and content have been defined:
 ```
 apple apple
 apple.ind an apple
