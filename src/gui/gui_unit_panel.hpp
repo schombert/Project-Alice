@@ -1019,7 +1019,7 @@ public:
 		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
 
 		for(uint32_t i = 0; i < total_commodities; ++i) {
-			if(!commodities.commodity_amounts[i]) {
+			if(!commodities.commodity_type[i]) {
 				break;
 			}
 
@@ -1032,7 +1032,7 @@ public:
 			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 		}
 
-		float median_supply = actual_supply ? actual_supply / max_supply : 0.0f;
+		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
 
 		progress = median_supply;
 	}
@@ -1068,7 +1068,7 @@ public:
 
 
 		for(uint32_t i = 0; i < total_commodities; ++i) {
-			if(!commodities.commodity_amounts[i]) {
+			if(!commodities.commodity_type[i]) {
 				break;
 			}
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
@@ -1080,7 +1080,7 @@ public:
 			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;			
 		}
 
-		float median_supply = max_supply ? actual_supply / max_supply : 0.0f;
+		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
 
 		if(army) {
 			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));

@@ -784,13 +784,9 @@ alice_milscore_4;Is disarmed? (penalty factor of $x$)
 alice_milscore_5;Supply consumption modifier: $x$
 alice_milscore_6;Average land unit score: $x$
 alice_milscore_7;Total number of leaders: $x$
-alice_indscore_1;$x$ contribution:
-alice_indscore_2;Total factory capacity: $x$
-alice_indscore_3;Total factory level: $x$
-alice_indscore_4;Total worker pool: $x$
-alice_indscore_5;Total: $x$
-alice_indscore_6;The following foreign investments also add up (weight factor $x$):
-alice_indscore_7;A $y$ foreign investment given to $x$
+alice_indscore_1;$name$ (capacity $cap$ + level $level$ + worker pool $amount$) = $total$
+alice_indscore_2;The following foreign investments also add up (weight factor $x$):
+alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
@@ -1356,6 +1352,7 @@ auto_save_0;None;;;Ninguno;;;;;;;;;x
 monthly_emigration_lab;Monthly emigration to (top 10);;;;;;;;;;;;x
 monthly_immigration_lab;Monthly immigration from (top 10);;;;;;;;;;;;x
 im_em_header;Predicted immigration/emigration for ;;;;;;;;;;;;x
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = 刪$val$劬 attrition
 ol_unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
 unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - 刪$cost$劬 ($attunit$/$defunit$);;;;;;;;;;;;x
 unit_standing_text;$m$ $n$/$x$/$y$ - 刪$cost$劬 ($attunit$/$defunit$);;;;;;;;;;;;x
@@ -1400,7 +1397,7 @@ alice_unit_disable_rebel_hunt;Stop hunting rebels;;;;;;;;;;;;x
 alice_regiment_battle_info;$m$ $name$ 即$type$劬\nOrganisation: 即$organisation$劬\nStrength: 即$strength$劬;;;;;;;;;;;;x
 alice_understaffed_regiment;刪This regiment is understaffed and will only have $value$ soldiers!劬;;;;;;;;;;;;x
 alice_tech_queue_info;Press 即SHIFT劬 to add to queue, 即Right-click劬 to remove;;;;;;;;;;;;x
-alice_province_building_build;即SHIFT劬 to build on the entire state.\n即SHIFT + Right-click劬 to build on the entire country.;;;;;;;;;;;;x
+alice_province_building_build;即SHIFT劬 to build on the entire 佈state劬.\n即SHIFT-Right-click劬 to build on the entire 佈country劬.;;;;;;;;;;;;x
 alice_commodity_shortage;刪There is a shortage of this commodity;;;;;;;;;;;;x
 alice_commodity_surplus;佈There is a surplus of this commodity;;;;;;;;;;;;x
 alice_trade_flow_produced;即Domestic production:;;;;;;;;;;;;x
@@ -1559,9 +1556,13 @@ alice_info_box_13;即TAB劬: Open chat window
 alice_info_box_14;即ESC劬: Open main menu and settings menu
 alice_info_box_15;即Tilde (`)劬 or 即Tilde (~)劬: Open console
 alice_info_box_16;佈Enjoy the game! =^w^=劬
+alice_nf_controls;即Left-click劬 to select or replace\n即Right-click劬 to remove
 alice_utt_controls_1;即Left-click劬 select (deselecting everything else)
 alice_utt_controls_2;即SHIFT-Left-click劬 add to selection
 alice_utt_controls_3;即Right-click on a province劬 partial retreat (佈cycling/rotation劬) to province
+alice_demobilize;Demobilize
+alice_mobilize;Mobilize
+alice_mob_controls;即Right-click劬 to remobilize
 alice_mw_create_1;Add general
 alice_mw_create_2;Add admiral
 alice_mw_create_lpb;即Leadership points劬 will automatically be used to create generals or admirals when hitting the cap

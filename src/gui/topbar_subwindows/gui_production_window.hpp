@@ -245,6 +245,8 @@ public:
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
 				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
 			else
 				button_action(state);
 		}
@@ -842,13 +844,9 @@ public:
 		} else if(name == "output") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "closed_overlay") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "factory_closed_text") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			closed_elements.push_back(ptr.get());
-			return ptr;
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "prod_factory_inprogress_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			build_elements.push_back(ptr.get());
@@ -860,13 +858,6 @@ public:
 		} else if(name == "prod_cancel_progress") {
 			auto ptr = make_element_by_type<factory_cancel_new_const_button>(state, id);
 			build_elements.push_back(ptr.get());
-
-			/* // Where should this button go ?
-			auto ptrb = make_element_by_type<factory_cancel_upgrade_button>(state, id);
-			upgrade_elements.push_back(ptrb.get());
-			add_child_to_front(std::move(ptrb));
-			*/
-
 			return ptr;
 		} else if(name == "upgrade_factory_progress") {
 			auto ptr = make_element_by_type<factory_upgrade_progress_bar>(state, id);
@@ -899,11 +890,9 @@ public:
 		} else if(name == "open_close") {
 			auto ptr = make_element_by_type<factory_reopen_button>(state, id);
 			closed_elements.push_back(ptr.get());
-
 			auto ptrb = make_element_by_type<factory_close_and_delete_button>(state, id);
 			factory_elements.push_back(ptrb.get());
 			add_child_to_front(std::move(ptrb));
-
 			return ptr;
 		} else if(name.substr(0, 6) == "input_") {
 			auto input_index = size_t(std::stoi(std::string(name.substr(6))));
@@ -1264,11 +1253,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-
-		disabled = n != state.local_player_nation;
-		state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+		disabled = true;
+		for(auto nfid : state.world.in_national_focus) {
 			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-		});
+		}
 		frame = get_icon_frame(state);
 	}
 
@@ -1286,11 +1274,38 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, focus.get_name());
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fat_si = dcon::fatten(state.world, sid);
+		text::add_to_layout_box(state, contents, box, sid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto content = state.world.state_instance_get_owner_focus(sid);
+		if(bool(content)) {
+			auto fat_nf = dcon::fatten(state.world, content);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::add_line_break_to_layout_box(state, contents, box);
+			auto color = text::text_color::white;
+			if(fat_nf.get_promotion_type()) {
+				//Is the NF not optimal? Recolor it
+				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
+					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
+						color = text::text_color::red;
+					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
+				}
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
+				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
+			}
+		}
 		text::close_layout_box(contents, box);
+		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+			modifier_description(state, contents, mid, 15);
+		}
+		text::add_line(state, contents, "alice_nf_controls");
 	}
 };
 
