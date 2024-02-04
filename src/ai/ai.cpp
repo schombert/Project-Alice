@@ -5149,51 +5149,6 @@ float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
 void perform_foreign_investments(sys::state& state) {
 	//Ensure we're atleast x25 of the total cost, aka. we have A LOT OF MONEY lying around for us to spend
 	constexpr float invest_safety_factor = 25.f;
-	for(const auto& gn : state.great_nations) {
-		auto n = dcon::fatten(state.world, gn.nation);
-		if(n.get_is_player_controlled())
-			continue;
-		if((n.get_combined_issue_rules() & issue_rule::allow_foreign_investment) == 0)
-			continue;
-
-		std::vector<dcon::factory_type_id> possible;
-		std::vector<float> possible_cost;
-		for(auto ft : state.world.in_factory_type) {
-			if(ft.get_is_available_from_start() || n.get_active_building(ft)) {
-				float amount = 0.0f;
-				auto& base_cost = state.world.factory_type_get_construction_costs(ft);
-				for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
-					if(base_cost.commodity_type[j]) {
-						amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
-					} else {
-						break;
-					}
-				}
-				possible.push_back(ft);
-				possible_cost.push_back(amount);
-			}
-		}
-		if(!possible.empty()) {
-			for(auto gprl : state.world.nation_get_gp_relationship_as_great_power(n)) {
-				auto target = gprl.get_influence_target();
-				if(!target.get_is_civilized())
-					continue;
-				auto index = rng::reduce(uint32_t(rng::get_random(state, uint32_t((n.id.index() << 3) ^ target.id.index()))), uint32_t(possible.size()));
-				auto t = possible[index];
-				for(const auto so : target.get_state_ownership()) {
-					auto money = n.get_stockpiles(economy::money);
-					if(money >= possible_cost[index] * invest_safety_factor) {
-						if(command::can_begin_factory_building_construction(state, n, so.get_state(), t, true)) {
-							command::execute_begin_factory_building_construction(state, n, so.get_state(), t, true);
-						} else if(command::can_begin_factory_building_construction(state, n, so.get_state(), t, false)) {
-							command::execute_begin_factory_building_construction(state, n, so.get_state(), t, false);
-						}
-					}
-				}
-			}
-		}
-	}
-
 	// Spam railroads whenever possible
 	for(auto gprl : state.world.in_gp_relationship) {
 		if(gprl.get_great_power().get_is_player_controlled()) {
@@ -5204,7 +5159,6 @@ void perform_foreign_investments(sys::state& state) {
 				continue;
 			if(!gprl.get_influence_target().get_is_civilized())
 				continue;
-
 			float amount = 0.0f;
 			auto& base_cost = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].cost;
 			for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
@@ -5214,7 +5168,6 @@ void perform_foreign_investments(sys::state& state) {
 					break;
 				}
 			}
-
 			int32_t max_rails_lvl = gprl.get_great_power().get_max_building_level(economy::province_building_type::railroad);
 			for(const auto p : gprl.get_influence_target().get_province_ownership()) {
 				int32_t current_rails_lvl = p.get_province().get_building_level(economy::province_building_type::railroad);
