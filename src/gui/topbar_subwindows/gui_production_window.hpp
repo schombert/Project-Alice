@@ -1253,10 +1253,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		disabled = n != state.local_player_nation;
-		state.world.for_each_national_focus([&](dcon::national_focus_id nfid) {
+		disabled = true;
+		for(auto nfid : state.world.in_national_focus) {
 			disabled = command::can_set_national_focus(state, state.local_player_nation, content, nfid) ? false : disabled;
-		});
+		}
 		frame = get_icon_frame(state);
 	}
 
