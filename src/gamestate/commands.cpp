@@ -4297,8 +4297,9 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
 	return true;
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(source, false);
-
+	if(state.network_state.headless) { //only automatically set to AI on headless servers
+		state.world.nation_set_is_player_controlled(source, false);
+	}
 	ui::chat_message m{};
 	m.source = source;
 	text::substitution_map sub{};
@@ -4513,6 +4514,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.local_player_nation = dcon::nation_id{ };
 	for(const auto n : players)
 		state.world.nation_set_is_player_controlled(n, true);
+	state.fill_unsaved_data();
 	state.local_player_nation = old_local_player_nation;
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	state.fill_unsaved_data();

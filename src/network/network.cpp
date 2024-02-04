@@ -495,11 +495,12 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			with_network_decompressed_section(state.network_state.current_save_buffer.get(), [&state](uint8_t const* ptr_in, uint32_t length) {
 				read_save_section(ptr_in, ptr_in + length, state);
 			});
-			state.fill_unsaved_data();
 			for(const auto n : players)
 				state.world.nation_set_is_player_controlled(n, true);
+			state.fill_unsaved_data();
 			state.local_player_nation = old_local_player_nation;
 			assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+			state.network_state.current_save_checksum = state.get_save_checksum();
 			{ /* Reload all the other clients except the newly connected one */
 				command::payload c;
 				memset(&c, 0, sizeof(command::payload));
@@ -507,7 +508,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				c.source = state.local_player_nation;
 				c.data.notify_reload.checksum = state.get_save_checksum();
 				for(auto& other_client : state.network_state.clients) {
-					if(other_client.playing_as != client.playing_as) {
+					if(other_client.is_active() && other_client.playing_as != client.playing_as) {
 						socket_add_to_send_queue(other_client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 						state.console_log("host:send:cmd: (new->reload)");
@@ -611,7 +612,6 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
-	state.network_state.current_save_checksum = state.get_save_checksum();
 }
 
 void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k) {
@@ -845,9 +845,9 @@ void send_and_receive_commands(sys::state& state) {
 					read_save_section(ptr_in, ptr_in + length, state);
 				});
 				state.local_player_nation = dcon::nation_id{ };
-				state.fill_unsaved_data();
 				for(const auto n : players)
 					state.world.nation_set_is_player_controlled(n, true);
+				state.fill_unsaved_data();
 				state.local_player_nation = old_local_player_nation;
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 #ifndef NDEBUG

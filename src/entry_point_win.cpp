@@ -124,7 +124,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 		int headless_speed = 6;
 		bool headless_repeat = false;
-		bool headless = false;
 		if(num_params < 2) {
 #ifdef NDEBUG
 			auto msg = std::string("Start Alice.exe using the launcher");
@@ -193,7 +192,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
 					game_state.network_state.as_v6 = false;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-headless")) {
-					headless = true;
+					game_state.network_state.headless = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-repeat")) {
 					headless_repeat = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-speed")) {
@@ -223,7 +222,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		text::load_bmfonts(game_state);
 		ui::populate_definitions_map(game_state);
 
-		if(headless) {
+		if(game_state.network_state.headless) {
 			game_state.actual_game_speed = headless_speed;
 			game_state.ui_pause.store(false, std::memory_order::release);
 			game_state.mode = sys::game_mode_type::in_game;

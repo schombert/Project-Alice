@@ -402,18 +402,20 @@ void button::buttontext(association_type, std::string_view txt, error_handler& e
 	if(it != context.full_state.key_to_text_sequence.end()) {
 		target.data.button.txt = it->second;
 	} else {
-		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.emplace_back(new_key);
-		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
-			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
-		}
+		for(uint8_t i = 0; i < sys::max_languages; i++) {
+			auto new_key = context.full_state.add_to_pool_lowercase(txt);
+			auto component_sz = context.full_state.text_components[i].size();
+			context.full_state.text_components[i].push_back(new_key);
+			if(context.full_state.text_components[i].size() >= std::numeric_limits<uint32_t>::max()) {
+				err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
+			}
+			auto seq_size = context.full_state.text_sequences[i].size();
+			context.full_state.text_sequences[i].push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
-		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
-		target.data.button.txt = new_id;
-		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
+			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
+			target.data.button.txt = new_id;
+			context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
+		}
 	}
 }
 
@@ -513,18 +515,20 @@ void textbox::text(association_type, std::string_view txt, error_handler& err, i
 	if(it != context.full_state.key_to_text_sequence.end()) {
 		target.data.text.txt = it->second;
 	} else {
-		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.emplace_back(new_key);
-		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
-			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
-		}
+		for(uint8_t i = 0; i < sys::max_languages; i++) {
+			auto new_key = context.full_state.add_to_pool_lowercase(txt);
+			auto component_sz = context.full_state.text_components[i].size();
+			context.full_state.text_components[i].push_back(new_key);
+			if(context.full_state.text_components[i].size() >= std::numeric_limits<uint32_t>::max()) {
+				err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
+			}
+			auto seq_size = context.full_state.text_sequences[i].size();
+			context.full_state.text_sequences[i].push_back(text::text_sequence{ uint32_t(component_sz), uint16_t(1) });
 
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
-		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
-		target.data.text.txt = new_id;
-		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
+			auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
+			target.data.text.txt = new_id;
+			context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
+		}
 	}
 }
 void textbox::texturefile(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
