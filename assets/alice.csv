@@ -1426,8 +1426,8 @@ aml_civ_s5;Colony
 macro_builder;Macro-builder;;;Macro-constructor
 macro_total_desc;Total unit stats:
 macro_remove_template;Delete
-macro_switch_type_land;Switch to: Land
-macro_switch_type_naval;Switch to: Naval
+macro_switch_type_land;Build army
+macro_switch_type_naval;Build navy
 macro_save_template;Save template;;;Guardar plantilla
 macro_new_template;New template;;;Nueva plantila
 macro_warn_overseas;§RCan't build this unit overseas!§W
