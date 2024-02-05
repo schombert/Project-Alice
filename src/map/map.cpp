@@ -834,7 +834,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		render_regiment(15, military::unit_type::cavalry, 0.f); //horse
 		render_regiment(18, military::unit_type::support, -dist_step); //artillery
 		// Render navies
-		auto render_ship = [&](uint32_t index, military::unit_type type, float space) {
+		auto render_ship = [&](uint32_t index, military::unit_type type, int32_t min_port, float space) {
 			glActiveTexture(GL_TEXTURE14);
 			glBindTexture(GL_TEXTURE_2D, static_mesh_textures[index]);
 			for(uint32_t i = uint32_t(state.province_definitions.first_sea_province.index()); i < state.world.province_size(); i++) {
@@ -848,7 +848,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 					for(const auto unit : units) {
 						for(const auto sm : unit.get_navy().get_navy_membership()) {
 							auto& t = state.military_definitions.unit_base_definitions[sm.get_ship().get_type()];
-							if(t.type == type) {
+							if(t.type == type && t.min_port_level <= min_port) {
 								has_unit = true;
 								break;
 							}
@@ -870,12 +870,22 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		};
-		render_ship(16, military::unit_type::transport, dist_step); //wake
-		render_ship(16, military::unit_type::big_ship, 0.f); //wake
-		render_ship(16, military::unit_type::light_ship, -dist_step); //wake
-		render_ship(14, military::unit_type::transport, dist_step); //transport
-		render_ship(13, military::unit_type::big_ship, 0.f); //manowar
-		render_ship(12, military::unit_type::light_ship, -dist_step); //frigate
+		render_ship(16, military::unit_type::big_ship, 2, 3.f * dist_step); //raider
+		render_ship(16, military::unit_type::transport, -1, 2.f * dist_step); //transport
+		render_ship(16, military::unit_type::big_ship, -1, dist_step); //manowar
+		render_ship(16, military::unit_type::light_ship, -1, 0.f); //frigate
+		render_ship(16, military::unit_type::big_ship, 4, -dist_step); //battleship
+		render_ship(16, military::unit_type::light_ship, 3, -2.f * dist_step); //cruiser
+		render_ship(16, military::unit_type::big_ship, 3, -3.f * dist_step); //ironclad
+		//
+		render_ship(37, military::unit_type::big_ship, 2, 3.f * dist_step); //raider
+		render_ship(14, military::unit_type::transport, -1, 2.f * dist_step); //transport
+		render_ship(13, military::unit_type::big_ship, -1, dist_step); //manowar
+		render_ship(12, military::unit_type::light_ship, -1, 0.f); //frigate
+		render_ship(34, military::unit_type::big_ship, 4, -dist_step); //battleship
+		render_ship(35, military::unit_type::light_ship, 3, -2.f * dist_step); //cruiser
+		render_ship(36, military::unit_type::big_ship, 3, -3.f * dist_step); //ironclad
+
 		for(uint32_t i = 0; i < 3 * 3; i++) {
 			auto index = 19 + i;
 			glActiveTexture(GL_TEXTURE14);
@@ -1660,6 +1670,10 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Navalbase_Early_Full"), //31 -- naval base with a docked ship
 		NATIVE("Navalbase_Mid_Empty"), //32 -- naval base with no ships
 		NATIVE("Navalbase_Mid_Full"), //33 -- naval base with a docked ship
+		NATIVE("Generic_Battleship"), //34 -- battleship
+		NATIVE("Generic_Cruiser"), //35 -- cruiser
+		NATIVE("Generic_Ironclad"), //36 -- ironclad
+		NATIVE("Generic_Raider"), //37 -- raider
 	};
 	static const std::array<float, display_data::max_static_meshes> scaling_factor = {
 		1.f, //1
@@ -1805,7 +1819,7 @@ void load_static_meshes(sys::state& state) {
 							// beneath them)
 							bool keep = is_visual;
 							if(elim_factor[k] != no_elim) {
-								keep = (triangle_vertices[0].position_.y <= elim_factor[k]
+								keep = !(triangle_vertices[0].position_.y <= elim_factor[k]
 									&& triangle_vertices[1].position_.y <= elim_factor[k]
 									&& triangle_vertices[2].position_.y <= elim_factor[k]);
 							}
