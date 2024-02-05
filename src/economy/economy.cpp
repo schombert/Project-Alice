@@ -1359,14 +1359,15 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 	float d_scale = 0.001f;
 
-	auto relevant_population_key = demographics::to_employment_key(state, is_mine ? state.culture_definitions.laborers : state.culture_definitions.farmers);
-	auto relevant_population = state.world.province_get_demographics(p, relevant_population_key); //relevant population
-	//auto current_pop_wages = std::min(pops_max_scaled, relevant_population) * expected_min_wage / needs_scaling_factor; //wage expected to be paid to pops
-	auto slaves = state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
-	auto current_pop_wages = (relevant_population + slaves * 0.2f) * expected_min_wage / needs_scaling_factor; //wage expected to be paid to pops
-	
+	auto relevant_paid_population = 0.f;
+	for(auto wt : state.culture_definitions.rgo_workers) {
+		relevant_paid_population += state.world.province_get_demographics(p, demographics::to_key(state, wt));
+	}
 
-	auto relevant_to_max_ratio = (relevant_population + slaves) / (pops_max + 1.f);
+	auto slaves = state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
+	auto current_pop_wages = (relevant_paid_population + slaves * 0.2f) * expected_min_wage / needs_scaling_factor; //wage expected to be paid to pops
+	
+	auto relevant_to_max_ratio = (relevant_paid_population + slaves) / (pops_max + 1.f);
 
 	auto rgo = state.world.province_get_rgo(p);
 	auto current_price = state.world.commodity_get_current_price(rgo);
