@@ -4277,7 +4277,7 @@ guiTypes = {
 		position = { -235 -180 }
 		maxsize = { 460 160 }
 		fixedsize = yes
-		font = "Arial16"
+		font = "Arial14"
 		Orientation = "CENTER_DOWN"
 	}
 }
