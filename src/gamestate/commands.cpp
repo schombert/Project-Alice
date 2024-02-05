@@ -4285,19 +4285,21 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 		ai::remove_ai_data(state, source);
 }
 
-void notify_player_leaves(sys::state& state, dcon::nation_id source) {
+void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_leaves;
 	p.source = source;
+	p.data.notify_leave.make_ai = make_ai;
 	add_to_command_queue(state, p);
 }
-bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	// TODO: bans, kicks, mutes?
-	return true;
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
+	return state.world.nation_get_is_player_controlled(source);
 }
-void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(source, false);
+void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
+	if(make_ai) {
+		state.world.nation_set_is_player_controlled(source, false);
+	}
 
 	ui::chat_message m{};
 	m.source = source;
@@ -4877,7 +4879,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_notify_player_joins(state, c.source, c.data.player_name);
 
 	case command_type::notify_player_leaves:
-		return can_notify_player_leaves(state, c.source);
+		return can_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
 
 	case command_type::notify_player_picks_nation:
 		return can_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
@@ -4925,6 +4927,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
+	case command_type::c_innovate:
 		return true;
 	}
 	return false;
@@ -5247,7 +5250,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_joins(state, c.source, c.data.player_name);
 		break;
 	case command_type::notify_player_leaves:
-		execute_notify_player_leaves(state, c.source);
+		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
 		break;
 	case command_type::notify_player_picks_nation:
 		execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
@@ -5344,6 +5347,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
+	case command_type::c_innovate:
+		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
 	}
 }
 

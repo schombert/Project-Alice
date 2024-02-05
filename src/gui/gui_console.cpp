@@ -56,6 +56,7 @@ struct command_info {
 		add_population,
 		instant_army,
 		instant_industry,
+		innovate,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -206,6 +207,9 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
 				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
+				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
 						
 };
@@ -1569,6 +1573,27 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::instant_industry:
 	{
 		command::c_instant_industry(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::innovate:
+	{
+		auto searched_name = std::get<std::string>(pstate.arg_slots[0]);
+		std::replace(searched_name.begin(), searched_name.end(), '_', ' ');
+		bool found = false;
+		for(auto invention: state.world.in_invention) {
+			auto innovation_name = text::produce_simple_string(state, invention.get_name());
+			std::transform(innovation_name.begin(), innovation_name.end(), innovation_name.begin(),[](unsigned char c) { return (char)std::tolower(c); });
+
+			if(searched_name == innovation_name) {
+				command::c_innovate(state, state.local_player_nation, invention);
+				found = true;
+				break;
+			}
+		}
+		if(!found) {
+			log_to_console(state, parent, "Couldn't find innovation: " + searched_name);
+		}
+		//command::c_innovate(state, state.local_player_nation, )
 		break;
 	}
 	case command_info::type::none:

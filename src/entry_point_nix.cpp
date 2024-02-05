@@ -85,5 +85,6 @@ int main(int argc, char **argv) {
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
 
+	network::finish(game_state);
 	return EXIT_SUCCESS;
 }

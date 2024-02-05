@@ -139,6 +139,14 @@ public:
 template<bool B>
 class military_make_leader_button : public right_click_button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		right_click_button_element_base::on_create(state);
+		if(B) {
+			set_button_text(state, text::produce_simple_string(state, "alice_mw_create_1"));
+		} else {
+			set_button_text(state, text::produce_simple_string(state, "alice_mw_create_2"));
+		}
+	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_make_leader(state, state.local_player_nation, B);
 	}
@@ -160,10 +168,8 @@ public:
 		text::add_line(state, contents, "alice_mw_create_lp", text::variable_type::x, text::fp_two_places{ state.defines.leader_recruit_cost });
 		text::add_line(state, contents, "alice_mw_create_lpb");
 		if(B) {
-			text::add_line(state, contents, "alice_mw_create_1");
 			text::add_line(state, contents, "alice_mw_controls_1");
 		} else {
-			text::add_line(state, contents, "alice_mw_create_2");
 			text::add_line(state, contents, "alice_mw_controls_2");
 		}
 	}
