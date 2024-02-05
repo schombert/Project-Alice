@@ -114,7 +114,33 @@ constexpr inline dcon::commodity_id money(0);
 // to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
 // if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
-constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+//constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
+
+inline constexpr float production_scale_delta = 0.001f;
+inline constexpr uint32_t price_history_length = 256;
+
+//
+inline constexpr float domestic_investment_multiplier = 2.f;
+
+// rgo
+inline constexpr float rgo_overhire_multiplier = 10.f;
+inline constexpr float rgo_production_scale_neg_delta = 0.0000001f;
+
+// artisans
+inline constexpr float inputs_base_factor_artisans = 1.2f;
+inline constexpr float output_base_factor_artisans = 0.4f;
+// factories
+inline constexpr float inputs_base_factor = 0.8f;
+
+// farmers should be able to produce enough to feed themselves
+inline constexpr float rgo_boost = 1.0f;
+
+//demand modifiers
+inline constexpr float lx_extra_factor = 10.0f;
+inline constexpr float en_extra_factor = 10.0f;
+
+void presimulate(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
@@ -146,6 +172,9 @@ void update_factory_employment(sys::state& state);
 void daily_update(sys::state& state);
 void resolve_constructions(sys::state& state);
 
+float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float artisan_scale_limit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
@@ -159,9 +188,9 @@ float estimate_tariff_income(sys::state& state, dcon::nation_id n);
 float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps);
-float estimate_loan_payments(sys::state& state, dcon::nation_id n);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
+float estimate_domestic_investment(sys::state& state, dcon::nation_id n);
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
@@ -191,17 +220,11 @@ struct new_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_new_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 struct upgraded_factory {
 	float progress = 0.0f;
 	dcon::factory_type_id type;
 };
-template<typename F>
-void for_each_upgraded_factory(sys::state& state, dcon::state_instance_id s,
-		F&& func); // calls the function repeatedly with new_factory as parameters
 
 bool state_contains_constructed_factory(sys::state& state, dcon::state_instance_id si, dcon::factory_type_id ft);
 bool state_contains_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id ft);
@@ -224,4 +247,5 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
+
 } // namespace economy

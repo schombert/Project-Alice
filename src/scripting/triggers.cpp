@@ -1,5 +1,10 @@
 #include "triggers.hpp"
 #include "system_state.hpp"
+#include "demographics.hpp"
+#include "military_templates.hpp"
+#include "nations_templates.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "ve_scalar_extensions.hpp"
 
 namespace trigger {
@@ -3691,14 +3696,14 @@ TRIGGER_FUNCTION(tf_has_recently_lost_war) {
 	return compare_to_true(tval[0], ve::apply(
 		[&](dcon::nation_id n) {
 			auto d = ws.world.nation_get_last_war_loss(n);
-			return bool(d) && (d + 365 * 5) <= ws.current_date;
+			return bool(d) && ws.current_date <= (d + 365 * 5);
 		}, to_nation(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_has_recently_lost_war_pop) {
 	return compare_to_true(tval[0], ve::apply(
 		[&](dcon::nation_id n) {
 			auto d = ws.world.nation_get_last_war_loss(n);
-			return bool(d) && (d + 365 * 5) <= ws.current_date;
+			return bool(d) && ws.current_date <= (d + 365 * 5);
 		}, nations::owner_of_pop(ws, to_pop(primary_slot))));
 }
 TRIGGER_FUNCTION(tf_is_mobilised) {

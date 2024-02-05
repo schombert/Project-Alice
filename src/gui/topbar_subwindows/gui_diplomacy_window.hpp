@@ -600,7 +600,8 @@ protected:
 					case country_list_filter::allies:
 						return nations::are_allied(state, id, state.local_player_nation);
 					case country_list_filter::find_allies:
-						return ai::ai_will_accept_alliance(state, id, state.local_player_nation);
+						return ai::ai_will_accept_alliance(state, id, state.local_player_nation)
+							&& command::can_ask_for_alliance(state, state.local_player_nation, id, false);
 					case country_list_filter::enemies:
 						return military::are_at_war(state, state.local_player_nation, id);
 					case country_list_filter::sphere:
@@ -1325,11 +1326,11 @@ public:
 			ptr->base_data.position.y -= 8 - 1; // Nudge
 			war_elements[13] = ptr.get();
 			return ptr;
-		} else if(name == "current_wargoals") { 
+		} else if(name == "current_wargoals") {
 			auto ptr = make_element_by_type<overlapping_active_wargoals>(state, id);
 			war_elements[14] = ptr.get();
 			return ptr;
-		} else if(name == "country_cb") { 
+		} else if(name == "country_cb") {
 			auto ptr = make_element_by_type<overlapping_wargoals>(state, id);
 			war_elements[15] = ptr.get();
 			return ptr;
@@ -1353,6 +1354,8 @@ public:
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
 			return ptr;
+		} else if(name == "selected_military_icon") {
+			return make_element_by_type<military_score_icon>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1793,6 +1796,20 @@ public:
 		auto fat = dcon::fatten(state.world, content);
 		frame = fat.get_constructing_cb_type().get_sprite_index() - 1;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		const dcon::nation_id content = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_type().get_name(), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, std::string_view(": "), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, fat.get_constructing_cb_target());
+		text::close_layout_box(contents, box);
+	}
 };
 
 class justifying_cb_progress : public progress_bar {
@@ -1809,21 +1826,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto fab_by = retrieve<dcon::nation_id>(state, parent);
-		if(fab_by == state.local_player_nation) {
-			auto target = state.world.nation_get_constructing_cb_target(state.local_player_nation);
-			
-			if(nations::is_involved_in_crisis(state, state.local_player_nation)) {
-				text::add_line(state, contents, "fab_is_paused");
-			} else {
-				auto rem_progress = 100.0f - state.world.nation_get_constructing_cb_progress(state.local_player_nation);
-				auto daily_progress = state.defines.cb_generation_base_speed * state.world.nation_get_constructing_cb_type(state.local_player_nation).get_construction_speed()* (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
-				auto days = int32_t(std::ceil(rem_progress / daily_progress));
-				text::add_line(state, contents, "fab_finish_date", text::variable_type::date, state.current_date + days);
-			}
-
-			text::add_line_break_to_layout(state, contents);
-			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::cb_generation_speed_modifier, true);
+		auto target = state.world.nation_get_constructing_cb_target(fab_by);
+		if(nations::is_involved_in_crisis(state, fab_by)) {
+			text::add_line(state, contents, "fab_is_paused");
+		} else {
+			auto rem_progress = 100.0f - state.world.nation_get_constructing_cb_progress(fab_by);
+			auto daily_progress = state.defines.cb_generation_base_speed * state.world.nation_get_constructing_cb_type(fab_by).get_construction_speed()* (state.world.nation_get_modifier_values(fab_by, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f);
+			auto days = int32_t(std::ceil(rem_progress / daily_progress));
+			text::add_line(state, contents, "fab_finish_date", text::variable_type::date, state.current_date + days);
 		}
+		text::add_line_break_to_layout(state, contents);
+		active_modifiers_description(state, contents, fab_by, 0, sys::national_mod_offsets::cb_generation_speed_modifier, true);
 	}
 };
 
@@ -1881,6 +1894,11 @@ public:
 
 class diplomacy_casus_belli_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.y -= int16_t(20); //nudge
+		listbox_row_element_base<dcon::nation_id>::on_create(state);
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "diplo_cb_entrybg") {
 			return make_element_by_type<image_element_base>(state, id);
@@ -2252,6 +2270,9 @@ public:
 		} else if(name == "diplomacy_country_facts") {
 			auto ptr = make_element_by_type<diplomacy_country_facts>(state, id);
 			country_facts = ptr.get();
+			return ptr;
+		} else if(name == "sort_by_country") {
+			auto ptr = make_element_by_type<country_sort_button<country_list_sort::country>>(state, id);
 			return ptr;
 		} else if(name == "sort_by_boss") {
 			auto ptr = make_element_by_type<country_sort_button<country_list_sort::boss>>(state, id);

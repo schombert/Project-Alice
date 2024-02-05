@@ -411,7 +411,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 3000 }
+	size{ 10000 }
 	tag{ scenario }
 
 	property{
@@ -439,7 +439,7 @@ object {
 object {
 	name{ factory_type }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 256 }
 	tag{ scenario }
 
 	property{
@@ -3312,6 +3312,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ domestic_investment_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ land_spending }
 		type{ int8_t }
 		tag{ save }
@@ -4293,7 +4298,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 200000 }
+	size{ 300000 }
 	tag{ save }
 
 	property{
@@ -4588,7 +4593,7 @@ object {
 object {
 	name{ national_focus }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 124 }
 	tag{ scenario }
 
 	property{

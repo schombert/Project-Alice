@@ -2,11 +2,8 @@
 #include <cmath>
 #include <stddef.h>
 #include <stdint.h>
-#include <string.h>
-#include <string_view>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 #include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
@@ -524,7 +521,25 @@ void line_graph::set_data_points(sys::state& state, std::vector<float> const& da
 		}
 	}
 
-	
+
+	lines.set_y(scaled_datapoints.data());
+}
+
+void line_graph::set_data_points(sys::state& state, std::vector<float> const& datapoints, float min, float max) noexcept {
+	assert(datapoints.size() == count);
+	float y_height = max - min;
+	std::vector<float> scaled_datapoints = std::vector<float>(count);
+	if(y_height == 0.f) {
+		for(size_t i = 0; i < count; i++) {
+			scaled_datapoints[i] = .5f;
+		}
+	} else {
+		for(size_t i = 0; i < count; i++) {
+			scaled_datapoints[i] = (datapoints[i] - min) / y_height;
+		}
+	}
+
+
 	lines.set_y(scaled_datapoints.data());
 }
 
@@ -533,7 +548,11 @@ void line_graph::on_create(sys::state& state) noexcept {
 }
 
 void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
+	if(!is_coloured) {
+		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
+	} else {
+		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, r, g, b, lines);
+	}	
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
@@ -552,7 +571,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		font_handle = base_data.data.text.font_handle;
 
 	extent = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), font_handle);
-	
+
 	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
 		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
 
@@ -561,7 +580,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
-		
+
 		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
 	if(base_data.get_element_type() == element_type::button) {
@@ -1053,7 +1072,7 @@ void demographic_piechart<SrcT, DemoT>::on_update(sys::state& state) noexcept {
 	if(this->parent) {
 		this->parent->impl_get(state, obj_id_payload);
 		float total_pops = 0.f;
-		
+
 		for_each_demo(state, [&](DemoT demo_id) {
 			float volume = 0.f;
 			if(obj_id_payload.holds_type<dcon::province_id>()) {
@@ -1116,6 +1135,7 @@ void scrollable_text::on_create(sys::state& state) noexcept {
 	res->base_data.position.y = 0;
 	res->on_create(state);
 	delegate = res.get();
+	delegate->base_data.flags &= ~uint8_t(ui::element_data::orientation_mask);
 	add_child_to_front(std::move(res));
 
 	auto ptr = make_element_by_type<multiline_text_scrollbar>(state, "standardlistbox_slider");
@@ -1238,7 +1258,7 @@ void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
 			if(i < row_contents.size()) {
 				auto prior_content = retrieve<RowConT>(state, row_window);
 				auto new_content = row_contents[i++];
-				
+
 				if(prior_content != new_content) {
 					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
 					if(!row_window->is_visible()) {
@@ -1601,7 +1621,9 @@ void overlapping_truce_flags::on_update(sys::state& state) noexcept {
 	for(auto rel : state.world.nation_get_diplomatic_relation(current_nation)) {
 		if(rel.get_truce_until() && state.current_date < rel.get_truce_until()) {
 			auto other = rel.get_related_nations(0) != current_nation ? rel.get_related_nations(0) : rel.get_related_nations(1);
-			row_contents.push_back(truce_pair{other, rel.get_truce_until()});
+			if(!military::are_at_war(state, current_nation, other)) {
+				row_contents.push_back(truce_pair{ other, rel.get_truce_until() });
+			}
 		}
 	}
 	update(state);
@@ -1718,7 +1740,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
 	if(!bool(ident))
 		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
-	
+
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
 	culture::flag_type flag_type = culture::flag_type{};
@@ -1834,11 +1856,38 @@ void scrollbar_left::button_action(sys::state& state) noexcept {
 void scrollbar_left::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ -step_size * 5, true, true });
 }
+void scrollbar_left::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ -step_size * 10000, true, true });
+}
 void scrollbar_right::button_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size, true, true });
 }
 void scrollbar_right::button_shift_action(sys::state& state) noexcept {
 	send(state, parent, value_change{ step_size * 5, true, true });
+}
+void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
+	send(state, parent, value_change{ step_size * 10000, true, true });
+}
+
+message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<scrollbar_settings>()) {
+		if(hold_continous) {
+			button_action(state);
+		}
+
+		return message_result::consumed;
+	}
+	return message_result::unseen;
 }
 
 message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -1848,6 +1897,17 @@ message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, in
 	float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
 	send(state, parent, value_change{ int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false });
 	return message_result::consumed;
+}
+
+tooltip_behavior scrollbar_track::has_tooltip(sys::state& state) noexcept {
+	if(parent)
+		return parent->has_tooltip(state);
+	return opaque_element_base::has_tooltip(state);
+}
+void scrollbar_track::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(parent)
+		return parent->update_tooltip(state, x, y, contents);
+	return opaque_element_base::update_tooltip(state, x, y, contents);
 }
 
 message_result scrollbar_slider::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -2132,6 +2192,10 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
 	else if(std::holds_alternative<dcon::navy_id>(display_unit))
 		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
+	text::add_line(state, contents, "alice_utt_controls_1");
+	text::add_line(state, contents, "alice_utt_controls_2");
+	if(state.network_mode != sys::network_mode_type::single_player)
+		text::add_line(state, contents, "alice_utt_controls_3");
 }
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
@@ -2147,19 +2211,26 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Multimedia button", //MBUTTON = 0x04,
 		"XButton1", //XBUTTON_1 = 0x05,
 		"XButton2", //XBUTTON_2 = 0x06,
+		"", //0x07
 		"Backspace", //BACK = 0x08,
 		"TAB", //TAB = 0x09,
+		"", // 0x0A
+		"", // 0x0B
 		"Clear", //CLEAR = 0x0C,
 		"Return", //RETURN = 0x0D,
+		"", // 0x0E
+		"", // 0x0F
 		"Shift", //SHIFT = 0x10,
 		"Control", //CONTROL = 0x11,
 		"Menu", //MENU = 0x12,
 		"Pause", //PAUSE = 0x13,
 		"Capital", //CAPITAL = 0x14,
 		"Kana", //KANA = 0x15,
+		"", // 0x16
 		"Junja", //JUNJA = 0x17,
 		"Final", //FINAL = 0x18,
 		"Kanji", //KANJI = 0x19,
+		"", // 0x1A
 		"Escape", //ESCAPE = 0x1B,
 		"Convert", //CONVERT = 0x1C,
 		"Nonconvert", //NONCONVERT = 0x1D,
@@ -2191,6 +2262,13 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"7", //NUM_7 = 0x37,
 		"8", //NUM_8 = 0x38,
 		"9", //NUM_9 = 0x39,
+		"", // 0x3A
+		"", // 0x3B
+		"", // 0x3C
+		"", // 0x3D
+		"", // 0x3E
+		"", // 0x3F
+		"", // 0x40
 		"A", //A = 0x41,
 		"B", //B = 0x42,
 		"C", //C = 0x43,
@@ -2220,6 +2298,7 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Left Windows", //LWIN = 0x5B,
 		"Right Windows", //RWIN = 0x5C,
 		"Apps", //APPS = 0x5D,
+		"", // 0x5E
 		"Sleep", //SLEEP = 0x5F,
 		"Numpad 0", //NUMPAD0 = 0x60,
 		"Numpad 1", //NUMPAD1 = 0x61,
@@ -2272,12 +2351,45 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"Numlock", //NUMLOCK = 0x90,
 		"Scroll lock", //SCROLL = 0x91,
 		"=", //OEM_NEC_EQUAL = 0x92,
+		"", // 0x93
+		"", // 0x94
+		"", // 0x95
+		"", // 0x96
+		"", // 0x97
+		"", // 0x98
+		"", // 0x99
+		"", // 0x9A
+		"", // 0x9B
+		"", // 0x9C
+		"", // 0x9D
+		"", // 0x9E
+		"", // 0x9F
 		"Left Shift", //LSHIFT = 0xA0,
 		"Right Shift", //RSHIFT = 0xA1,
 		"Left Control", //LCONTROL = 0xA2,
 		"Right Control", //RCONTROL = 0xA3,
 		"Left Menu", //LMENU = 0xA4,
 		"Right Menu", //RMENU = 0xA5,
+		"", // 0xA6
+		"", // 0xA7
+		"", // 0xA8
+		"", // 0xA9
+		"", // 0xAA
+		"", // 0xAB
+		"", // 0xAC
+		"", // 0xAD
+		"", // 0xAE
+		"", // 0xAF
+		"", // 0xB0
+		"", // 0xB1
+		"", // 0xB2
+		"", // 0xB3
+		"", // 0xB4
+		"", // 0xB5
+		"", // 0xB6
+		"", // 0xB7
+		"", // 0xB8
+		"", // 0xB9
 		";", //SEMICOLON = 0xBA,
 		"+", //PLUS = 0xBB,
 		",", //COMMA = 0xBC,
@@ -2285,6 +2397,21 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		".", //PERIOD = 0xBE,
 		"\\", //FORWARD_SLASH = 0xBF,
 		"~", //TILDA = 0xC0,
+		"", // 0xC1
+		"", // 0xC2
+		"", // 0xC3
+		"", // 0xC4
+		"", // 0xC5
+		"", // 0xC6
+		"", // 0xC7
+		"", // 0xC8
+		"", // 0xC9
+		"", // 0xCA
+		"", // 0xCB
+		"", // 0xCC
+		"", // 0xCD
+		"", // 0xCE
+		"", // 0xCF
 		"[", //OPEN_BRACKET = 0xDB,
 		"/", //BACK_SLASH = 0xDC,
 		"]", //CLOSED_BRACKET = 0xDD,

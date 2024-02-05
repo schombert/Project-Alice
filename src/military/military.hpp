@@ -147,7 +147,7 @@ struct global_military_state {
 
 	dcon::cb_type_id crisis_colony;
 	dcon::cb_type_id crisis_liberate;
-	
+
 	dcon::unit_type_id irregular;
 	dcon::unit_type_id infantry;
 	dcon::unit_type_id artillery;
@@ -261,6 +261,8 @@ dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
+dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general);
+void kill_leader(sys::state& state, dcon::leader_id l);
 
 // tests whether joining the war would violate the constraint that you can't both be in a war with and
 // fighting against the same nation or fighting against them twice
@@ -271,11 +273,13 @@ bool standard_war_joining_is_possible(sys::state& state, dcon::war_id wfor, dcon
 bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a, dcon::war_id w);
 bool defenders_have_non_status_quo_wargoal(sys::state const& state, dcon::war_id w);
 bool defenders_have_status_quo_wargoal(sys::state const& state, dcon::war_id w);
+bool attackers_have_status_quo_wargoal(sys::state const& state, dcon::war_id w);
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w);
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n);
 bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool state_claimed_in_war(sys::state& state, dcon::war_id w, dcon::nation_id from, dcon::nation_id target, dcon::state_definition_id cb_state);
 void set_initial_leaders(sys::state& state);
+std::string get_war_name(sys::state& state, dcon::war_id war);
 
 // war score from the perspective of the primary attacker offering a peace deal to the primary defender; -100 to 100
 float primary_warscore(sys::state& state, dcon::war_id w);
@@ -294,16 +298,9 @@ bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_
 enum class war_role { none, attacker, defender };
 war_role get_role(sys::state const& state, dcon::war_id w, dcon::nation_id n);
 
-template<typename T>
-auto province_is_blockaded(sys::state const& state, T ids);
-template<typename T>
-auto province_is_under_siege(sys::state const& state, T ids);
+bool province_is_blockaded(sys::state const& state, dcon::province_id ids);
 bool province_is_under_siege(sys::state const& state, dcon::province_id ids);
-
 void update_blockade_status(sys::state& state);
-
-template<typename T>
-auto battle_is_ongoing_in_province(sys::state const& state, T ids);
 
 float recruited_pop_fraction(sys::state const& state, dcon::nation_id n);
 bool state_has_naval_base(sys::state const& state, dcon::state_instance_id di);
@@ -410,12 +407,15 @@ void advance_mobilizations(sys::state& state);
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a);
+dcon::navy_id find_embark_target(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a);
 float effective_army_speed(sys::state& state, dcon::army_id a);
 float effective_navy_speed(sys::state& state, dcon::navy_id n);
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a);
 bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
+float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 float reinforce_amount(sys::state& state, dcon::army_id a);
 
@@ -440,6 +440,8 @@ void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
+economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::navy_id navy);
 void recover_org(sys::state& state);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);

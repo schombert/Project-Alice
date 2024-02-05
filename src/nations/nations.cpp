@@ -1,4 +1,5 @@
 #include "nations.hpp"
+#include "nations_templates.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "modifiers.hpp"
@@ -10,6 +11,8 @@
 #include "events.hpp"
 #include "prng.hpp"
 #include "effects.hpp"
+#include "province_templates.hpp"
+#include "rebels.hpp"
 
 namespace nations {
 
@@ -21,6 +24,14 @@ int32_t get_level(sys::state& state, dcon::nation_id gp, dcon::nation_id target)
 }
 
 } // namespace influence
+
+template auto nation_accepts_culture<ve::tagged_vector<dcon::nation_id>, dcon::culture_id>(sys::state const&, ve::tagged_vector<dcon::nation_id>, dcon::culture_id);
+template auto primary_culture_group<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
+template auto owner_of_pop<ve::tagged_vector<dcon::pop_id>>(sys::state const&, ve::tagged_vector<dcon::pop_id>);
+template auto central_blockaded_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
+template auto central_reb_controlled_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
+template auto central_has_crime_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
+template auto occupied_provinces_fraction<ve::tagged_vector<dcon::nation_id>>(sys::state const&, ve::tagged_vector<dcon::nation_id>);
 
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n) {
 	/* TODO -
@@ -71,62 +82,9 @@ dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n) {
 	return dcon::nation_id{};
 }
 
-// returns whether a culture is on the accepted list OR is the primary culture
-template<typename T, typename U>
-auto nation_accepts_culture(sys::state const& state, T ids, U cul_ids) {
-	auto is_accepted = ve::apply(
-			[&state](dcon::nation_id n, dcon::culture_id c) {
-				if(n)
-					return state.world.nation_get_accepted_cultures(n, c);
-				else
-					return false;
-			},
-			ids, cul_ids);
-	return (state.world.nation_get_primary_culture(ids) == cul_ids) || is_accepted;
-}
-
-template<typename T>
-auto primary_culture_group(sys::state const& state, T ids) {
-	auto cultures = state.world.nation_get_primary_culture(ids);
-	return state.world.culture_get_group_from_culture_group_membership(cultures);
-}
-
 dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids) {
 	auto location = state.world.pop_get_province_from_pop_location(pop_ids);
 	return state.world.province_get_nation_from_province_ownership(location);
-}
-template<typename T>
-auto owner_of_pop(sys::state const& state, T pop_ids) {
-	auto location = state.world.pop_get_province_from_pop_location(pop_ids);
-	return state.world.province_get_nation_from_province_ownership(location);
-}
-
-template<typename T>
-auto central_reb_controlled_fraction(sys::state const& state, T ids) {
-	auto cpc = ve::to_float(state.world.nation_get_central_province_count(ids));
-	auto reb_count = ve::to_float(state.world.nation_get_central_rebel_controlled(ids));
-	return ve::select(cpc != 0.0f, reb_count / cpc, decltype(cpc)());
-}
-
-template<typename T>
-auto central_blockaded_fraction(sys::state const& state, T ids) {
-	auto cpc = ve::to_float(state.world.nation_get_central_ports(ids));
-	auto b_count = ve::to_float(state.world.nation_get_central_blockaded(ids));
-	return ve::select(cpc != 0.0f, b_count / cpc, decltype(cpc)());
-}
-
-template<typename T>
-auto central_has_crime_fraction(sys::state const& state, T ids) {
-	auto cpc = ve::to_float(state.world.nation_get_central_province_count(ids));
-	auto crim_count = ve::to_float(state.world.nation_get_central_crime_count(ids));
-	return ve::select(cpc != 0.0f, crim_count / cpc, decltype(cpc)());
-}
-
-template<typename T>
-auto occupied_provinces_fraction(sys::state const& state, T ids) {
-	auto cpc = ve::to_float(state.world.nation_get_owned_province_count(ids));
-	auto occ_count = ve::to_float(state.world.nation_get_occupied_count(ids));
-	return ve::select(cpc != 0.0f, occ_count / cpc, decltype(cpc)());
 }
 
 void restore_state_instances(sys::state& state) {
@@ -326,7 +284,7 @@ float daily_research_points(sys::state& state, dcon::nation_id n) {
 		}
 	});
 
-	return (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f);
+	return std::max(0.0f, (sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f));
 }
 
 void update_research_points(sys::state& state) {
@@ -352,7 +310,7 @@ void update_research_points(sys::state& state) {
 			}
 		});
 		auto amount = ve::select(total_pop > 0.0f && state.world.nation_get_owned_province_count(ids) != 0,
-				(sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f);
+				ve::max((sum_from_pops + rp_mod) * (rp_mod_mod + 1.0f), 0.0f), 0.0f);
 		/*
 		If a nation is not currently researching a tech (or is an unciv), research points will be banked, up to a total of 365 x
 		daily research points, for civs, or define:MAX_RESEARCH_POINTS for uncivs.
@@ -414,13 +372,12 @@ void update_military_scores(sys::state& state) {
 	And then we add one point either per leader or per regiment, whichever is greater.
 	*/
 	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
-		float sum = 0;
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
 		auto is_disarmed =
 				ve::apply([&](dcon::nation_id i) { return state.world.nation_get_disarmed_until(i) < state.current_date; }, n);
 		auto disarm_factor = ve::select(is_disarmed, ve::fp_vector(disarm), ve::fp_vector(1.0f));
-		auto supply_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f;
+		auto supply_mod = ve::max(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_consumption) + 1.0f, 0.1f);
 		auto avg_land_score = state.world.nation_get_averge_land_unit_score(n);
 		auto num_leaders = ve::apply(
 				[&](dcon::nation_id i) {
@@ -435,8 +392,8 @@ void update_military_scores(sys::state& state) {
 }
 
 float prestige_score(sys::state const& state, dcon::nation_id n) {
-	return state.world.nation_get_prestige(n) +
-				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige);
+	return std::max(0.0f, state.world.nation_get_prestige(n) +
+				 state.world.nation_get_modifier_values(n, sys::national_mod_offsets::permanent_prestige));
 }
 
 void update_rankings(sys::state& state) {
@@ -920,7 +877,7 @@ bool has_reform_available(sys::state& state, dcon::nation_id n) {
 bool has_decision_available(sys::state& state, dcon::nation_id n) {
 	for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 		dcon::decision_id did{dcon::decision_id::value_base_t(i)};
-		if(n != state.local_player_nation || !state.world.decision_get_hide_notification(did)) {
+		if(!state.world.decision_get_hide_notification(did)) {
 			auto lim = state.world.decision_get_potential(did);
 			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
 				auto allow = state.world.decision_get_allow(did);
@@ -930,7 +887,6 @@ bool has_decision_available(sys::state& state, dcon::nation_id n) {
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -992,10 +948,16 @@ void update_monthly_points(sys::state& state) {
 	/*
 	- Prestige: a nation with a prestige modifier gains that amount of prestige per month (on the 1st)
 	*/
-	state.world.execute_serial_over_nation([&](auto ids) {
-		auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
-		state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
-	});
+
+	// Removed monthly prestige update: this is because technologies have a prestige effect that is supposed to act as a multiplier to earned prestige
+	// while the other prestige modifiers are supposed to add monthly prestige
+	// they need to be separated out from each other (even though they have the same name)
+	// until we do that, removing ticking prestige is the easier fix
+	
+	//state.world.execute_serial_over_nation([&](auto ids) {
+	//	auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
+	//	state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
+	//});
 	/*
 	- Infamy: a nation with a badboy modifier gains that amount of infamy per month
 	*/
@@ -1275,7 +1237,7 @@ void run_gc(sys::state& state) {
 	}
 }
 
-void cleanup_nation(sys::state& state, dcon::nation_id n) {
+ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
 	auto control = state.world.nation_get_province_control(n);
@@ -1315,6 +1277,21 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	//	rebel::delete_faction(state, (*rebels.begin()).get_rebels());
 	//}
 
+	auto diprel = state.world.nation_get_diplomatic_relation(n);
+	while(diprel.begin() != diprel.end()) {
+		state.world.delete_diplomatic_relation(*diprel.begin());
+	}
+
+	auto uni_diprel = state.world.nation_get_unilateral_relationship_as_source(n);
+	while(uni_diprel.begin() != uni_diprel.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprel.begin());
+	}
+
+	auto uni_diprelb = state.world.nation_get_unilateral_relationship_as_target(n);
+	while(uni_diprelb.begin() != uni_diprelb.end()) {
+		state.world.delete_unilateral_relationship(*uni_diprelb.begin());
+	}
+
 	auto movements = state.world.nation_get_movement_within(n);
 	while(movements.begin() != movements.end()) {
 		state.world.delete_movement((*movements.begin()).get_movement());
@@ -1332,6 +1309,7 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	state.national_definitions.gc_pending = true;
 	state.diplomatic_cached_values_out_of_date = true; // refresh stored counts of allies, vassals, etc
+	politics::update_displayed_identity(state, n);
 
 	if(n == state.local_player_nation) {
 		// Player was defeated, show end screen

@@ -53,7 +53,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 
 	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
 	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
-	context.outer_context.state.world.modifier_set_province_values(modifier_id, constructed_definition_p);
+	context.outer_context.state.world.modifier_set_national_values(modifier_id, force_national_mod());
 
 	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
 
@@ -813,6 +813,16 @@ void make_focus_group(std::string_view name, token_generator& gen, error_handler
 		t = nations::focus_type::production_focus;
 	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_loyalty_focus"))
 		t = nations::focus_type::party_loyalty_focus;
+	// non vanilla but present in some MP mods
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_1_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_2_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_3_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_4_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_5_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_6_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_7_focus")
+		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
+		t = nations::focus_type::promotion_focus;
 	else
 		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
 
@@ -1231,6 +1241,9 @@ void make_oob_relationship(std::string_view tag, token_generator& gen, error_han
 void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_alliance(gen, err, context);
 
+	if(!a.first_ || !a.second_)
+		return;
+
 	auto rel = context.state.world.get_diplomatic_relation_by_diplomatic_pair(a.first_, a.second_);
 	if(rel) {
 		context.state.world.diplomatic_relation_set_are_allied(rel, true);
@@ -1241,13 +1254,13 @@ void make_alliance(token_generator& gen, error_handler& err, scenario_building_c
 }
 void make_vassal(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_vassal_description(gen, err, context);
-	if(!a.invalid) {
+	if(!a.invalid && a.second_ && a.first_) {
 		context.state.world.force_create_overlord(a.second_, a.first_);
 	}
 }
 void make_substate(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_vassal_description(gen, err, context);
-	if(!a.invalid) {
+	if(!a.invalid && a.second_ && a.first_) {
 		context.state.world.force_create_overlord(a.second_, a.first_);
 		context.state.world.nation_set_is_substate(a.second_, true);
 	}

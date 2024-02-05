@@ -33,79 +33,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
-		switch(target) {
-		case map_mode::mode::state_select:
-			break; // doesn't appear as a button
-		case map_mode::mode::admin:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_8"));
-			break;
-		case map_mode::mode::civilization_level:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_19"));
-			break;
-		case map_mode::mode::colonial:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_7"));
-			break;
-		case map_mode::mode::crisis:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_21"));
-			break;
-		case map_mode::mode::diplomatic:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_4"));
-			break;
-		case map_mode::mode::infrastructure:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_6"));
-			break;
-		case map_mode::mode::migration:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_18"));
-			break;
-		case map_mode::mode::naval:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_22"));
-			break;
-		case map_mode::mode::nationality:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_13"));
-			break;
-		case map_mode::mode::national_focus:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_10"));
-			break;
-		case map_mode::mode::party_loyalty:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_16"));
-			break;
-		case map_mode::mode::political:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_2"));
-			break;
-		case map_mode::mode::population:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_12"));
-			break;
-		case map_mode::mode::rank:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_17"));
-			break;
-		case map_mode::mode::recruitment:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_9"));
-			break;
-		case map_mode::mode::region:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_5"));
-			break;
-		case map_mode::mode::relation:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_20"));
-			break;
-		case map_mode::mode::revolt:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_3"));
-			break;
-		case map_mode::mode::rgo_output:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_11"));
-			break;
-		case map_mode::mode::sphere:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_14"));
-			break;
-		case map_mode::mode::supply:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_15"));
-			break;
-		case map_mode::mode::terrain:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_1"));
-			break;
-		case map_mode::mode::religion:
-			text::localised_format_box(state, contents, box, std::string_view("mapmode_24"));
-			break;
-		}
+		auto s = "mapmode_" + std::to_string(uint32_t(target));
+		text::localised_format_box(state, contents, box, std::string_view(s));
 		text::close_layout_box(contents, box);
 	}
 };
@@ -272,6 +201,9 @@ public:
 		}
 	}
 };
+struct macro_builder_state {
+	bool is_land;
+};
 class macro_builder_unit_listbox : public listbox_element_base<macro_builder_unit_entry, dcon::unit_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
@@ -280,7 +212,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		bool is_land = retrieve<bool>(state, parent);
+		bool is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land) {
 				row_contents.push_back(dcon::unit_type_id(i));
@@ -335,10 +267,11 @@ public:
 		send(state, parent, notify_setting_update{});
 	}
 };
+struct notify_macro_toggle_is_land {};
 class macro_builder_switch_type_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		if(is_land) {
 			set_button_text(state, text::produce_simple_string(state, "macro_switch_type_naval"));
 		} else {
@@ -346,8 +279,7 @@ public:
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
-		send(state, parent, element_selection_wrapper<bool>{ !is_land });
+		send(state, parent, notify_macro_toggle_is_land{});
 	}
 };
 class macro_builder_name_input : public edit_box_element_base {
@@ -366,7 +298,7 @@ public:
 				text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
 			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
 
 		float reconnaissance_or_fire_range = 0.f;
@@ -434,7 +366,7 @@ public:
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(defence_or_hull, 2));
 			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(discipline_or_evasion * 100, 0));
 			if(support > 0.f) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(support * 100, 0));
+				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(support, 0));
 			}
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(maximum_speed, 2));
@@ -474,7 +406,7 @@ public:
 				text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull * float(t.amounts[i]), 2));
 				text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100 * float(t.amounts[i]), 0));
 				if(state.military_definitions.unit_base_definitions[utid].support > 0.f) {
-					text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100 * float(t.amounts[i]), 0));
+					text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * float(t.amounts[i]), 0));
 				}
 				text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver * float(t.amounts[i]), 0));
 				text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed * float(t.amounts[i]), 2));
@@ -526,51 +458,101 @@ public:
 		disabled = (state.map_state.selected_province == dcon::province_id{});
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
-
-		provinces.clear();
-		marked.assign(marked.size(), false);
-		get_provinces(state, state.map_state.selected_province);
-		if(provinces.empty()) {
-			return;
-		}
-
-		std::vector<bool> marked_p(state.world.province_size() + 1, false);
-		std::vector<bool> marked_c(state.world.culture_size() + 1, false);
-		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
-			if(t.amounts[i] == 0) //not needed to show this
-				continue;
-			dcon::unit_type_id utid = dcon::unit_type_id(i);
-			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
-				continue;
-			uint8_t total_built = 0;
-			if(is_land) {
-				for(const auto p : provinces) {
-					for(const auto c : state.world.in_culture) {
-						if(marked_p[p.index()] == false
-						&& marked_c[c.id.index()] == false
-						&& command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
-							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province);
-							marked_p[p.index()] = true;
-							marked_c[c.id.index()] = true;
-							total_built++;
+		const auto template_province = state.map_state.selected_province;
+		uint8_t rem_to_build[sys::macro_builder_template::max_types];
+		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+		if(is_land) {
+			provinces.clear();
+			marked.assign(marked.size(), false);
+			get_provinces(state, state.map_state.selected_province);
+			if(provinces.empty())
+				return;
+			// Have to queue commands [temporarily on UI side] or it may mess calculations up
+			struct build_queue_data {
+				dcon::province_id p;
+				dcon::culture_id c;
+				dcon::unit_type_id u;
+			};
+			std::vector<build_queue_data> build_queue;
+			for(const auto prov : provinces) {
+				for(const auto p : state.world.province_get_pop_location_as_province(prov)) {
+					if(p.get_pop().get_poptype() != state.culture_definitions.soldiers)
+						continue;
+					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
+					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					int32_t avail = possible - used;
+					if(possible > 0 && avail > 0) {
+						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
+							dcon::unit_type_id utid = dcon::unit_type_id(i);
+							if(rem_to_build[i] > 0
+							&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
+							&& command::can_start_land_unit_construction(state, state.local_player_nation, prov, p.get_pop().get_culture(), utid, template_province)) {
+								for(int32_t j = 0; j < int32_t(rem_to_build[i]) && j < avail; j++) {
+									build_queue.push_back(build_queue_data{ prov, p.get_pop().get_culture(), utid });
+									rem_to_build[i]--;
+									avail--;
+									if(rem_to_build[i] == 0)
+										break;
+								}
+							}
 						}
-						if(total_built >= t.amounts[i]) break;
 					}
-					if(total_built >= t.amounts[i]) break;
-				}
-			} else {
-				for(const auto p : provinces) {
-					if(marked_p[p.index()] == false
-					&& command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
-						command::start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province);
-						marked_p[p.index()] = true;
-						total_built++;
-					}
-					if(total_built >= t.amounts[i]) break;
 				}
 			}
+			// Then flush them all!
+			for(const auto& build : build_queue) {
+				command::start_land_unit_construction(state, state.local_player_nation, build.p, build.c, build.u, template_province);
+			}
+			state.game_state_updated.store(true, std::memory_order::release);
+		} else {
+			provinces.clear();
+			for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+				if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
+				&& pc.get_province().get_is_coast()) {
+					provinces.push_back(pc.get_province());
+				}
+			}
+			if(provinces.empty())
+				return;
+			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
+				auto ab = state.world.province_get_province_naval_construction_as_province(a);
+				auto bb = state.world.province_get_province_naval_construction_as_province(b);
+				int32_t asz = int32_t(ab.end() - ab.begin());
+				int32_t bsz = int32_t(bb.end() - bb.begin());
+				if(asz == bsz)
+					return a.index() < b.index();
+				return asz < bsz;
+			});
+			for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
+				dcon::unit_type_id utid = dcon::unit_type_id(i);
+				if(rem_to_build[i] > 0
+				&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
+				&& (state.military_definitions.unit_base_definitions[utid].active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
+					for(const auto prov : provinces) {
+						auto const port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
+						if(port_level >= state.military_definitions.unit_base_definitions[utid].min_port_level
+						&& command::can_start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province)) {
+							command::start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province);
+							rem_to_build[i]--;
+							if(rem_to_build[i] == 0)
+								break;
+						}
+					}
+					// sort provinces again so that the ships can be built on parallel
+					std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
+						auto ab = state.world.province_get_province_naval_construction_as_province(a);
+						auto bb = state.world.province_get_province_naval_construction_as_province(b);
+						int32_t asz = int32_t(ab.end() - ab.begin());
+						int32_t bsz = int32_t(bb.end() - bb.begin());
+						if(asz == bsz)
+							return a.index() < b.index();
+						return asz < bsz;
+					});
+				}
+			}
+			state.game_state_updated.store(true, std::memory_order::release);
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -582,55 +564,98 @@ public:
 			text::add_line(state, contents, "macro_select_province");
 			return;
 		}
-
-		provinces.clear();
-		marked.assign(marked.size(), false);
-		get_provinces(state, state.map_state.selected_province);
-		if(provinces.empty()) {
-			text::add_line(state, contents, "macro_warn_invalid_province");
-			return;
-		}
-
-		auto is_land = retrieve<bool>(state, parent);
+		auto is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		auto const& t = state.ui_state.current_template;
-
-		std::vector<bool> marked_p(state.world.province_size() + 1, false);
-		std::vector<bool> marked_c(state.world.culture_size() + 1, false);
-		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
-			if(t.amounts[i] == 0) //not needed to show this
-				continue;
-			dcon::unit_type_id utid = dcon::unit_type_id(i);
-			if(is_land != state.military_definitions.unit_base_definitions[utid].is_land)
-				continue;
-			uint8_t total_built = 0;
-			if(is_land) {
-				for(const auto p : provinces) {
-					for(const auto c : state.world.in_culture) {
-						if(marked_p[p.index()] == false
-						&& marked_c[c.id.index()] == false
-						&& command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid, state.map_state.selected_province)) {
-							marked_p[p.index()] = true;
-							marked_c[c.id.index()] = true;
-							total_built++;
+		const auto template_province = state.map_state.selected_province;
+		uint8_t rem_to_build[sys::macro_builder_template::max_types];
+		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+		if(is_land) {
+			provinces.clear();
+			marked.assign(marked.size(), false);
+			get_provinces(state, state.map_state.selected_province);
+			if(provinces.empty()) {
+				text::add_line(state, contents, "macro_warn_invalid_province");
+				return;
+			}
+			for(const auto prov : provinces) {
+				for(const auto p : state.world.province_get_pop_location_as_province(prov)) {
+					if(p.get_pop().get_poptype() != state.culture_definitions.soldiers)
+						continue;
+					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
+					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					int32_t avail = possible - used;
+					if(possible > 0 && avail > 0) {
+						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
+							dcon::unit_type_id utid = dcon::unit_type_id(i);
+							if(rem_to_build[i] > 0
+							&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
+							&& command::can_start_land_unit_construction(state, state.local_player_nation, prov, p.get_pop().get_culture(), utid, template_province)) {
+								for(int32_t j = 0; j < int32_t(rem_to_build[i]) && j < avail; j++) {
+									rem_to_build[i]--;
+									avail--;
+									if(rem_to_build[i] == 0)
+										break;
+								}
+							}
 						}
-						if(total_built >= t.amounts[i]) break;
 					}
-					if(total_built >= t.amounts[i]) break;
-				}
-			} else {
-				for(const auto p : provinces) {
-					if(marked_p[p.index()] == false
-					&& command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid, state.map_state.selected_province)) {
-						marked_p[p.index()] = true;
-						total_built++;
-					}
-					if(total_built >= t.amounts[i]) break;
 				}
 			}
-			if(total_built != t.amounts[i]) {
+		} else {
+			provinces.clear();
+			for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+				if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
+				&& pc.get_province().get_is_coast()) {
+					provinces.push_back(pc.get_province());
+				}
+			}
+			if(provinces.empty()) {
+				text::add_line(state, contents, "macro_warn_invalid_province");
+				return;
+			}
+			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
+				auto ab = state.world.province_get_province_naval_construction_as_province(a);
+				auto bb = state.world.province_get_province_naval_construction_as_province(b);
+				int32_t asz = int32_t(ab.end() - ab.begin());
+				int32_t bsz = int32_t(bb.end() - bb.begin());
+				if(asz == bsz)
+					return a.index() < b.index();
+				return asz < bsz;
+			});
+			for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
+				dcon::unit_type_id utid = dcon::unit_type_id(i);
+				if(rem_to_build[i] > 0
+				&& is_land == state.military_definitions.unit_base_definitions[utid].is_land
+				&& (state.military_definitions.unit_base_definitions[utid].active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
+					for(const auto prov : provinces) {
+						auto const port_level = state.world.province_get_building_level(prov, economy::province_building_type::naval_base);
+						if(port_level >= state.military_definitions.unit_base_definitions[utid].min_port_level
+						&& command::can_start_naval_unit_construction(state, state.local_player_nation, prov, utid, template_province)) {
+							rem_to_build[i]--;
+							if(rem_to_build[i] == 0)
+								break;
+						}
+					}
+					// sort provinces again so that the ships can be built on parallel
+					std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
+						auto ab = state.world.province_get_province_naval_construction_as_province(a);
+						auto bb = state.world.province_get_province_naval_construction_as_province(b);
+						int32_t asz = int32_t(ab.end() - ab.begin());
+						int32_t bsz = int32_t(bb.end() - bb.begin());
+						if(asz == bsz)
+							return a.index() < b.index();
+						return asz < bsz;
+					});
+				}
+			}
+		}
+
+		for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
+			if(rem_to_build[i] > 0) {
+				dcon::unit_type_id utid = dcon::unit_type_id(i);
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::x, text::int_wholenum{ t.amounts[i] });
-				text::add_to_substitution_map(sub, text::variable_type::y, text::int_wholenum{ total_built });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::int_wholenum{ t.amounts[i] - rem_to_build[i] });
 				text::add_to_substitution_map(sub, text::variable_type::name, state.military_definitions.unit_base_definitions[utid].name);
 				auto box = text::open_layout_box(contents);
 				text::localised_format_box(state, contents, box, "macro_warn_insuff", sub);
@@ -679,11 +704,11 @@ public:
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<bool>()) {
-			payload.emplace<bool>(is_land);
+		if(payload.holds_type<macro_builder_state>()) {
+			payload.emplace<macro_builder_state>(macro_builder_state{ is_land });
 			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			is_land = Cyto::any_cast<element_selection_wrapper<bool>>(payload).data;
+		} else if(payload.holds_type< notify_macro_toggle_is_land>()) {
+			is_land = !is_land;
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type< notify_template_select>()) {
@@ -698,7 +723,7 @@ public:
 			impl_on_update(state);
 			return message_result::consumed;
 		}
-		return window_element_base::impl_get(state, payload);
+		return message_result::consumed;// window_element_base::impl_get(state, payload);
 	}
 };
 class minimap_macro_builder_button : public button_element_base {
@@ -911,8 +936,6 @@ public:
 			auto ptr = make_element_by_type<open_msg_log_button>(state, id);
 			ptr->base_data.position.y += 1; //nudge
 			return ptr;
-		} else if(name == "chat_window") {
-			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_goto") {
@@ -928,25 +951,19 @@ public:
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_bg") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
-		} else if(name == "menubar_mail_bg") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_settings") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_combat") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_diplo") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_unit") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_province") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_event") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_msg_other") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_plans_toggle") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "menubar_plans_open") {
+		} else if(name == "menubar_bg") {
+			return partially_transparent_image::make_element_by_type_alias(state, id);
+		} else if(name == "chat_window"
+			|| name == "menubar_mail_bg"
+			|| name == "menubar_msg_settings"
+			|| name == "menubar_msg_combat"
+			|| name == "menubar_msg_diplo"
+			|| name == "menubar_msg_unit"
+			|| name == "menubar_msg_province"
+			|| name == "menubar_msg_event"
+			|| name == "menubar_msg_other"
+			|| name == "menubar_plans_toggle"
+			|| name == "menubar_plans_open") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name.starts_with(mapmode_btn_prefix)) {
 			auto ptr = make_element_by_type<minimap_mapmode_button>(state, id);

@@ -1,7 +1,9 @@
-
 #include "politics.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
+#include "effects.hpp"
+#include "prng.hpp"
+#include "province_templates.hpp"
 #include "triggers.hpp"
 
 namespace politics {
@@ -889,7 +891,7 @@ void update_elections(sys::state& state) {
 
 void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_id opt) {
 	auto parent = state.world.issue_option_get_parent_issue(opt);
-	
+
 	auto effect_t = state.world.issue_option_get_on_execute_trigger(opt);
 	auto effect_k = state.world.issue_option_get_on_execute_effect(opt);
 	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {
@@ -901,7 +903,7 @@ void set_issue_option(sys::state& state, dcon::nation_id n, dcon::issue_option_i
 }
 void set_reform_option(sys::state& state, dcon::nation_id n, dcon::reform_option_id opt) {
 	auto parent = state.world.reform_option_get_parent_reform(opt);
-	
+
 	auto effect_t = state.world.reform_option_get_on_execute_trigger(opt);
 	auto effect_k = state.world.reform_option_get_on_execute_effect(opt);
 	if(effect_k && (!effect_t || trigger::evaluate(state, effect_t, trigger::to_generic(n), trigger::to_generic(n), 0))) {

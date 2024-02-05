@@ -1,4 +1,5 @@
 #include "province.hpp"
+#include "province_templates.hpp"
 #include "dcon_generated.hpp"
 #include "demographics.hpp"
 #include "nations.hpp"
@@ -6,16 +7,13 @@
 #include <vector>
 #include "rebels.hpp"
 #include "math_fns.hpp"
+#include "prng.hpp"
+#include "triggers.hpp"
 
 namespace province {
 
-template<typename T>
-auto is_overseas(sys::state const& state, T ids) {
-	auto owners = state.world.province_get_nation_from_province_ownership(ids);
-	auto owner_cap = state.world.nation_get_capital(owners);
-	return (state.world.province_get_continent(ids) != state.world.province_get_continent(owner_cap)) &&
-				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
-}
+template auto is_overseas<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
+template void for_each_province_in_state_instance<std::function<void(dcon::province_id)>>(sys::state&, dcon::state_instance_id, std::function<void(dcon::province_id)> const&);
 
 bool is_overseas(sys::state const& state, dcon::province_id ids) {
 	auto owners = state.world.province_get_nation_from_province_ownership(ids);
@@ -24,40 +22,6 @@ bool is_overseas(sys::state const& state, dcon::province_id ids) {
 				 (state.world.province_get_connected_region_id(ids) != state.world.province_get_connected_region_id(owner_cap));
 }
 
-template<typename F>
-void for_each_land_province(sys::state& state, F const& func) {
-	int32_t last = state.province_definitions.first_sea_province.index();
-	for(int32_t i = 0; i < last; ++i) {
-		dcon::province_id pid{dcon::province_id::value_base_t(i)};
-		func(pid);
-	}
-}
-
-template<typename F>
-void ve_for_each_land_province(sys::state& state, F const& func) {
-	int32_t last = state.province_definitions.first_sea_province.index();
-	ve::execute_serial<dcon::province_id>(uint32_t(last), func);
-}
-
-template<typename F>
-void for_each_sea_province(sys::state& state, F const& func) {
-	int32_t first = state.province_definitions.first_sea_province.index();
-	for(int32_t i = first; i < int32_t(state.world.province_size()); ++i) {
-		dcon::province_id pid{dcon::province_id::value_base_t(i)};
-		func(pid);
-	}
-}
-
-template<typename F>
-void for_each_province_in_state_instance(sys::state& state, dcon::state_instance_id s, F const& func) {
-	auto d = state.world.state_instance_get_definition(s);
-	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
-	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
-		if(p.get_province().get_nation_from_province_ownership() == o) {
-			func(p.get_province().id);
-		}
-	}
-}
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
@@ -432,7 +396,7 @@ bool can_build_naval_base(sys::state& state, dcon::province_id id, dcon::nation_
 		return false;
 
 	auto si = state.world.province_get_state_membership(id);
-	
+
 	int32_t current_lvl = state.world.province_get_building_level(id, economy::province_building_type::naval_base);
 	int32_t max_local_lvl = state.world.nation_get_max_building_level(n, economy::province_building_type::naval_base);
 	int32_t min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_naval_base));
@@ -659,6 +623,9 @@ float state_sorting_distance(sys::state& state, dcon::state_instance_id state_id
 }
 
 bool can_integrate_colony(sys::state& state, dcon::state_instance_id id) {
+	if(state.world.state_instance_get_capital(id).get_is_colonial() == false)
+		return false;
+
 	auto dkey = demographics::to_key(state, state.culture_definitions.bureaucrat);
 	auto bureaucrat_size = state_accepted_bureaucrat_size(state, id);
 	auto total_size = state.world.state_instance_get_demographics(id, demographics::total);
@@ -1429,6 +1396,23 @@ void update_colonization(sys::state& state) {
 		auto colonizers = state.world.state_definition_get_colonization(d);
 		auto num_colonizers = colonizers.end() - colonizers.begin();
 
+		if(num_colonizers > 0) { // check for states that have become un-colonizable
+			int32_t unowned_provs = 0;
+			for(auto p : d.get_abstract_state_membership()) {
+				if(!(p.get_province().get_nation_from_province_ownership())) {
+					++unowned_provs;
+					break;
+				}
+			}
+			if(unowned_provs == 0) {
+				while(colonizers.begin() != colonizers.end()) {
+					state.world.delete_colonization(*(colonizers.begin()));
+				}
+				d.set_colonization_stage(uint8_t(0));
+				continue;
+			}
+		}
+
 		if(num_colonizers == 0 && d.get_colonization_stage() != 0) {
 			d.set_colonization_stage(uint8_t(0));
 		} else if(num_colonizers > 1 && d.get_colonization_stage() == uint8_t(2)) {
@@ -1733,8 +1717,11 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 
 				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
 					if(has_access_to_province(state, nation_as, other_prov)) {
+						/* This will work fine for most instances, except, possibly, for allied nations or enemy ones */
+						auto armies = state.world.province_get_army_location(other_prov);
+						float danger_factor = (armies.begin() == armies.end() || (*armies.begin()).get_army().get_controller_from_army_control() == nation_as) ? 1.f : 4.f;
 						path_heap.push_back(
-								province_and_distance{nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov});
+								province_and_distance{nearest.distance_covered + distance * danger_factor, direct_distance(state, other_prov, end) * danger_factor, other_prov});
 						std::push_heap(path_heap.begin(), path_heap.end());
 						origins_vector.set(other_prov, nearest.province);
 					} else {
@@ -1902,7 +1889,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 							nearest.province.index() >= state.province_definitions.first_sea_province.index())) {
 
 
-				
+
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is sea province
 					if(other_prov == end) {
 						fill_path_result(nearest.province);

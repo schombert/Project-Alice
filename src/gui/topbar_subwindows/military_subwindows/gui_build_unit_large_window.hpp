@@ -12,10 +12,11 @@ public:
 	// true == navy
 	bool is_navy;
 	dcon::modifier_id continent;
-	int16_t number_of_units_on_continent;
+	int16_t num_on_continent = 0;
+	int16_t num_possible = 0;
 
 	bool operator==(buildable_unit_entry_info const& o) const {
-		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent && number_of_units_on_continent == o.number_of_units_on_continent;
+		return pop_info == o.pop_info && province_info == o.province_info && is_navy == o.is_navy && continent == o.continent && num_on_continent == o.num_on_continent;
 	}
 	bool operator!=(buildable_unit_entry_info const& o) const {
 		return !(*this == o);
@@ -125,7 +126,7 @@ public:
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull, 2));
 			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100, 0));
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support * 100, 0));
+				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).support, 0));
 			}
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed, 2));
@@ -313,7 +314,7 @@ public:
 			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).defence_or_hull, 2));
 			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[unit_type].discipline_or_evasion * 100, 0));
 			if(state.military_definitions.unit_base_definitions[unit_type].support > 0) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).support * 100, 0));
+				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).support, 0));
 			}
 			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[unit_type].maneuver, 0));
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).maximum_speed, 2));
@@ -483,7 +484,7 @@ public:
 				auto culture_id = state.world.pop_get_culture(content.pop_info);
 				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
 				auto unit_type_name = text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name);
-				unit_name->set_text(state, culture_content + " " + unit_type_name);
+				unit_name->set_text(state, "(" + std::to_string(content.num_possible) + ") " + culture_content + " " + unit_type_name);
 			} else {
 				build_button->frame = 1;
 				unit_name->set_text(state, text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
@@ -496,7 +497,7 @@ public:
 			for(auto com : state.military_definitions.unit_base_definitions[utid].build_cost.commodity_type) {
 				if(state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] > 0.0f) {
 					resource_cost_elements[r]->good_frame = state.world.commodity_get_icon(com);
-					resource_cost_elements[r]->good_quantity = ((state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * (2.0f - state.world.nation_get_administrative_efficiency(state.local_player_nation))) * float(content.number_of_units_on_continent));
+					resource_cost_elements[r]->good_quantity = ((state.military_definitions.unit_base_definitions[utid].build_cost.commodity_amounts[r] * (2.0f - state.world.nation_get_administrative_efficiency(state.local_player_nation))) * float(content.num_on_continent));
 					resource_cost_elements[r]->set_visible(state, true);
 					resource_cost_elements[r]->base_data.position.x = build_button->base_data.size.x - (resource_cost_elements[r]->base_data.size.x * (r + 1));
 					r++;
@@ -512,7 +513,7 @@ public:
 
 			unit_icon->frame = int32_t(state.military_definitions.unit_base_definitions[utid].icon - 1);
 			province->set_text(state, text::produce_simple_string(state, state.world.modifier_get_name(content.continent)));
-			unit_name->set_text(state, std::to_string(content.number_of_units_on_continent) + " " + text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
+			unit_name->set_text(state, std::to_string(content.num_on_continent) + " " + text::produce_simple_string(state, state.military_definitions.unit_base_definitions[utid].name));
 		}
 	}
 
@@ -562,6 +563,7 @@ public:
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
 									info.pop_info = pl.get_pop();
+									info.num_possible = int16_t(military::regiments_possible_from_pop(state, pl.get_pop()));
 									break;
 								}
 							}
@@ -583,10 +585,10 @@ public:
 				group_info.continent = con;
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
-						num_units_on_con++;
+						num_units_on_con += bu.num_possible;
 					}
 				}
-				group_info.number_of_units_on_continent = num_units_on_con;
+				group_info.num_on_continent = num_units_on_con;
 				// pass 1 - put fully staffed regiments first
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
@@ -630,7 +632,7 @@ public:
 						num_units_on_con++;
 					}
 				}
-				group_info.number_of_units_on_continent = num_units_on_con;
+				group_info.num_on_continent = num_units_on_con;
 				row_contents.push_back(group_info);
 				for(auto bu : list_of_possible_units) {
 					if(bu.continent == con) {
@@ -901,43 +903,6 @@ public:
 			return message_result::consumed;
 		}
 		return message_result::unseen;
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		if(state.military_definitions.unit_base_definitions[unit_type].is_land) {
-			dcon::unit_type_id utid = dcon::unit_type_id{ 0 };
-			uint32_t count = 0;
-			uint8_t unit_def_count = 0;
-			for(auto const& testing : state.military_definitions.unit_base_definitions) {
-				if(state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].is_land) {
-					if(!state.military_definitions.unit_base_definitions[dcon::unit_type_id{ unit_def_count }].primary_culture) {
-						//continue;
-					}
-				}
-				unit_def_count++;
-			}
-			utid = dcon::unit_type_id{ unit_def_count };
-			for(auto ucon : state.world.nation_get_province_land_construction(state.local_player_nation)) {
-				count++;
-				if(count) {
-					return;
-				}
-			}
-			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-				auto p = po.get_province();
-				state.world.for_each_culture([&](dcon::culture_id c) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
-						count++;
-					}
-				});
-				if(count) {
-					return;
-				}
-			}
-			state.ui_state.unit_window_army->set_visible(state, true);
-			state.ui_state.unit_window_navy->set_visible(state, true);
-			set_visible(state, false);
-		}
 	}
 
 	std::vector<element_base*> army_elements;

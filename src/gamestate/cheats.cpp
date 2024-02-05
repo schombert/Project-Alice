@@ -132,8 +132,13 @@ void c_complete_constructions(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_c_complete_constructions(sys::state& state, dcon::nation_id source) {
+	
 	for(uint32_t i = state.world.province_building_construction_size(); i-- > 0;) {
 		dcon::province_building_construction_id c{ dcon::province_building_construction_id::value_base_t(i) };
+
+		if(state.world.province_building_construction_get_nation(c) != source)
+			continue;
+
 		auto t = economy::province_building_type(state.world.province_building_construction_get_type(c));
 		auto const& base_cost = state.economy_definitions.building_definitions[int32_t(t)].cost;
 		auto& current_purchased = state.world.province_building_construction_get_purchased_goods(c);
@@ -310,12 +315,68 @@ void execute_c_instant_research(sys::state& state, dcon::nation_id source) {
 		state.cheat_data.instant_research_nations.begin(),
 		state.cheat_data.instant_research_nations.end(),
 		source
-);
+	);
 	if(pos != state.cheat_data.instant_research_nations.end()) {
 		state.cheat_data.instant_research_nations.erase(pos);
 	} else {
 		state.cheat_data.instant_research_nations.push_back(source);
 	}
+}
+
+void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_add_population;
+	p.source = source;
+	p.data.cheat_int.value = ammount;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount) {
+	float total_population = state.world.nation_get_demographics(source, demographics::total);
+	state.world.for_each_pop([&](dcon::pop_id p) {
+		auto pop = dcon::fatten(state.world, p);
+		if(source == pop.get_pop_location().get_province().get_nation_from_province_ownership()) {
+			pop.set_size(pop.get_size() + std::ceil(ammount * pop.get_size() / total_population));
+		}
+	});
+}
+
+void c_instant_army(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_army;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_army(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_army = !state.cheat_data.instant_army;
+}
+
+void c_instant_industry(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_industry;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_instant_industry(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_industry = !state.cheat_data.instant_industry;
+}
+
+void c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_innovate;
+	p.source = source;
+	p.data.cheat_invention_data.invention = invention;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention) {
+	culture::apply_invention(state, source, invention);
 }
 
 }

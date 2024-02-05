@@ -1,0 +1,13 @@
+struct Output {
+	float4 frag_color:SV_Target0;
+};
+
+float gamma:SV_Target7;
+float4 gamma_correct(float4 colour) {
+	return float4(pow(colour.rgb, float3(1.f / gamma)), colour.a);
+}
+
+void main() {
+	Output output;
+	output.frag_color = gamma_correct(float4(0.85f, 0.85f, 0.85f, 1.f));
+}

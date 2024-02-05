@@ -289,6 +289,7 @@ enum class variable_type : uint16_t {
 	region,
 	rel,
 	relation,
+	religion,
 	req,
 	reqlevel,
 	required,
@@ -711,6 +712,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
+dcon::text_sequence_id find_key(sys::state& state, std::string_view txt);
 dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 std::string date_to_string(sys::state const& state, sys::date date);
 
@@ -722,9 +724,13 @@ std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
 template<class T>
-std::string get_name_as_string(sys::state const& state, T t);
+std::string get_name_as_string(sys::state const& state, T t) {
+	return text::produce_simple_string(state, t.get_name());
+}
 template<class T>
-std::string get_adjective_as_string(sys::state const& state, T t);
+std::string get_adjective_as_string(sys::state const& state, T t) {
+	return text::produce_simple_string(state, t.get_adjective());
+}
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);

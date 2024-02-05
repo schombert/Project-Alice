@@ -532,6 +532,15 @@ public:
 		for(auto mods : state.world.nation_get_current_modifiers(state.local_player_nation)) {
 			row_contents.push_back(mods);
 		}
+
+		for(auto tm : state.national_definitions.triggered_modifiers) {
+			if(tm.trigger_condition && tm.linked_modifier) {
+				auto trigger_condition_satisfied =
+					trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+				if(trigger_condition_satisfied)
+					row_contents.push_back(sys::dated_modifier{ sys::date{}, tm.linked_modifier });
+			}
+		}
 		
 		update(state);
 	}

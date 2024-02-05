@@ -11,6 +11,7 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_production_window.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
 
@@ -231,7 +232,6 @@ public:
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
-
 		return bool(state.world.state_instance_get_owner_focus(content).id)
 							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
 							 : 0;
@@ -245,7 +245,6 @@ public:
 		}
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			disabled = false;
-
 		frame = get_icon_frame(state);
 	}
 
@@ -259,13 +258,38 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation) {
-			text::add_line(state, contents, state.world.national_focus_get_name(state.national_definitions.flashpoint_focus));
-		} else {
-			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
-			text::add_line(state, contents, focus.get_name());
+		auto box = text::open_layout_box(contents, 0);
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fat_si = dcon::fatten(state.world, sid);
+		text::add_to_layout_box(state, contents, box, sid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto content = state.world.state_instance_get_owner_focus(sid);
+		if(bool(content)) {
+			auto fat_nf = dcon::fatten(state.world, content);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::add_line_break_to_layout_box(state, contents, box);
+			auto color = text::text_color::white;
+			if(fat_nf.get_promotion_type()) {
+				//Is the NF not optimal? Recolor it
+				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
+					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
+						color = text::text_color::red;
+					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
+				}
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
+				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
+			}
 		}
+		text::close_layout_box(contents, box);
+		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+			modifier_description(state, contents, mid, 15);
+		}
+		text::add_line(state, contents, "alice_nf_controls");
 	}
 };
 
@@ -871,7 +895,7 @@ public:
 		if(content) {
 			open_build_foreign_factory(state, state.world.province_get_state_membership(content));
 		}
-			
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1025,6 +1049,9 @@ public:
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
 			return make_element_by_type<province_supply_limit_text>(state, id);
+		} else if (name == "selected_military_icon") {
+			auto ptr = make_element_by_type<military_score_icon>(state, id);
+			return ptr;
 		} else if(name == "rally_land_icon"
 			|| name == "rallypoint_merge_icon"
 			|| name == "rally_naval_icon"
@@ -1489,7 +1516,7 @@ public:
 			text::add_line_with_condition(state, contents, "col_start_1", state.world.state_definition_get_colonization_stage(sdef) <= uint8_t(1));
 			text::add_line_with_condition(state, contents, "col_start_2", state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.colonial_rank), text::variable_type::x, uint16_t(state.defines.colonial_rank));
 			text::add_line_with_condition(state, contents, "col_start_3", state.crisis_colony != sdef);
-		
+
 			bool war_participant = false;
 			for(auto par : state.world.war_get_war_participant(state.crisis_war)) {
 				if(par.get_nation() == state.local_player_nation)
@@ -1515,7 +1542,7 @@ public:
 			auto num_colonizers = colonizers.end() - colonizers.begin();
 
 			text::add_line_with_condition(state, contents, "col_start_7", num_colonizers < 4);
-		
+
 			bool adjacent = [&]() {
 				for(auto p : state.world.state_definition_get_abstract_state_membership(sdef)) {
 					if(!p.get_province().get_nation_from_province_ownership()) {
@@ -1559,7 +1586,7 @@ public:
 
 			auto free_points = nations::free_colonial_points(state, state.local_player_nation);
 			auto required_points = int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
-			
+
 			text::add_line_with_condition(state, contents, "col_start_9", free_points > required_points, text::variable_type::x, required_points);
 		} else {
 			text::add_line(state, contents, "col_invest_title");
@@ -1644,7 +1671,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::colonization_id>(state, parent);
-		
+
 		row_contents.clear();
 
 		if(!content) {
@@ -1723,7 +1750,7 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		
+
 		auto prov = retrieve<dcon::province_id>(state, parent);
 		auto fat_def = dcon::fatten(state.world, state.world.province_get_state_from_abstract_state_membership(prov));
 
@@ -1903,10 +1930,5 @@ public:
 
 	friend class province_national_focus_button;
 };
-
-void province_national_focus_button::button_action(sys::state& state) noexcept {
-	auto province_window = static_cast<province_view_window*>(state.ui_state.province_window);
-	province_window->nf_win->set_visible(state, !province_window->nf_win->is_visible());
-}
 
 } // namespace ui

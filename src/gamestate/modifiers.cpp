@@ -1,7 +1,12 @@
 #include "modifiers.hpp"
 #include "system_state.hpp"
-#include "province.hpp"
+#include "demographics.hpp"
 #include "military.hpp"
+#include "military_templates.hpp"
+#include "province.hpp"
+#include "province_templates.hpp"
+#include "triggers.hpp"
+#include "ve_scalar_extensions.hpp"
 
 namespace sys {
 
@@ -396,7 +401,7 @@ void recreate_national_modifiers(sys::state& state) {
 			auto size_used = state.world.nation_size();
 			ve::execute_serial_fast<dcon::nation_id>(size_used, [&](auto nids) {
 				auto trigger_condition_satisfied =
-						trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(nids), trigger::to_generic(nids), 0) ||
+						trigger::evaluate(state, tm.trigger_condition, trigger::to_generic(nids), trigger::to_generic(nids), 0) &&
 						ve::apply([size_used](auto n) { return n.index() < int32_t(size_used); }, nids);
 				auto compressed_res = ve::compress_mask(trigger_condition_satisfied);
 				if(compressed_res.v == ve::vbitfield_type::storage(0)) {

@@ -490,6 +490,22 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
+void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b,
+		lines& l) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	l.bind_buffer();
+
+	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	glUniform3f(parameters::inner_color, r, g, b);
+	glLineWidth(2.0f);
+
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_color };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call	
+
+	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+}
+
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		data_texture& t, ui::rotation r, bool flipped) {
 	glBindVertexArray(state.open_gl.global_square_vao);

@@ -1,8 +1,13 @@
-#include <string_view>
+#include "gui_effect_tooltips.hpp"
 #include "dcon_generated.hpp"
+#include "gui_event.hpp"
+#include "gui_modifier_tooltips.hpp"
+#include "gui_trigger_tooltips.hpp"
+#include "prng.hpp"
+#include "script_constants.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
-#include "script_constants.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -2087,7 +2092,7 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_set_country_flag(EFFECT_DISPLAY_PARAMS) {
-	{
+	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
@@ -2098,7 +2103,7 @@ uint32_t ef_set_country_flag(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_clr_country_flag(EFFECT_DISPLAY_PARAMS) {
-	{
+	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
@@ -3476,9 +3481,8 @@ uint32_t ef_assimilate_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_province", m);
 		text::close_layout_box(layout, box);
-
-		return 0;
 	}
+	return 0;
 }
 uint32_t ef_assimilate_state(EFFECT_DISPLAY_PARAMS) {
 	if(auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)); owner) {
@@ -3498,9 +3502,8 @@ uint32_t ef_assimilate_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_province", m);
 		text::close_layout_box(layout, box);
-
-		return 0;
 	}
+	return 0;
 }
 uint32_t ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
 	if(auto owner = nations::owner_of_pop(ws, trigger::to_pop(primary_slot)); owner) {
@@ -3520,9 +3523,8 @@ uint32_t ef_assimilate_pop(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, std::string_view{ t });
 		text::localised_format_box(ws, layout, box, "assimilate_pop", m);
 		text::close_layout_box(layout, box);
-
-		return 0;
 	}
+	return 0;
 }
 uint32_t ef_literacy(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);

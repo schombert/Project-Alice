@@ -68,16 +68,12 @@ std::vector<uint32_t> get_religion_diaspora_color(sys::state& state) {
 		if((full_color & 0xFF) + (full_color >> 8 & 0xFF) + (full_color >> 16 & 0xFF) > 140 * 3) {
 			empty_color = 0x222222;
 		}
-
 		state.world.for_each_province([&](dcon::province_id prov_id) {
 			auto i = province::to_map_id(prov_id);
-			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto total_pop = state.world.province_get_demographics(prov_id, demographics::total);
 			auto religion_pop = state.world.province_get_demographics(prov_id, religion_key);
 			auto ratio = religion_pop / total_pop;
-
 			auto color = ogl::color_gradient(ratio, full_color, empty_color);
-
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;
 		});
@@ -92,6 +88,5 @@ std::vector<uint32_t> religion_map_from(sys::state& state) {
 	} else {
 		prov_color = get_religion_global_color(state);
 	}
-
 	return prov_color;
 }

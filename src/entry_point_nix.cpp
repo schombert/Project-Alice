@@ -1,3 +1,4 @@
+#include "serialization.hpp"
 #include "system_state.hpp"
 
 static sys::state game_state; // too big for the stack
@@ -84,5 +85,6 @@ int main(int argc, char **argv) {
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
 
+	network::finish(game_state);
 	return EXIT_SUCCESS;
 }

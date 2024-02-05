@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_production_enum.hpp"
 #include "ai.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -17,41 +18,40 @@ public:
 	}
 };
 
-class factory_build_button : public shift_button_element_base {
+class factory_build_button : public shift_right_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 	}
-
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			auto sid = retrieve<dcon::state_instance_id>(state, parent);
-			auto content = retrieve<dcon::factory_type_id>(state, parent);
-
-			command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
-
-			parent->set_visible(state, false);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+		if(parent) parent->set_visible(state, false);
 	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		text::add_line(state, contents, "shift_to_hold_open");
 	}
-
 	void button_shift_action(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
-
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
 	}
-
-
+	void button_shift_right_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		auto n = retrieve<dcon::nation_id>(state, parent); //n may be another nation, i.e foreign investment
+		for(const auto s : state.world.nation_get_state_ownership_as_nation(n)) {
+			auto sid = s.get_state();
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, sid, content, false)) {
+				command::begin_factory_building_construction(state, state.local_player_nation, sid, content, false);
+			}
+		}
+	}
 };
 
 class factory_build_output_name_text : public simple_text_element_base {
@@ -124,6 +124,64 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		send(state, parent, element_selection_wrapper<dcon::factory_type_id>{content});
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(retrieve<bool>(state, parent)) {
+			text::add_line(state, contents, "alice_recommended_build");
+		}
+		//
+		auto content = retrieve<dcon::factory_type_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto n = state.world.state_ownership_get_nation(state.world.state_instance_get_state_ownership(sid));
+		//
+		text::add_line(state, contents, "alice_factory_base_workforce", text::variable_type::x, state.world.factory_type_get_base_workforce(content));
+		//
+		text::add_line(state, contents, "alice_factory_inputs");
+		auto const& cset = state.world.factory_type_get_inputs(content);
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
+			if(cset.commodity_type[i] && cset.commodity_amounts[i] > 0.0f) {
+				auto amount = cset.commodity_amounts[i];
+				auto cid = cset.commodity_type[i];
+				auto cost = state.world.commodity_get_current_price(cid);
+
+				text::substitution_map m;
+				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+				auto box = text::open_layout_box(contents, 0);
+				text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
+				text::close_layout_box(contents, box);
+			}
+		}
+		//
+		float sum = 0.f;
+		if(auto b1 = state.world.factory_type_get_bonus_1_trigger(content); b1) {
+			text::add_line(state, contents, "alice_factory_bonus", text::variable_type::x, text::fp_four_places{ state.world.factory_type_get_bonus_1_amount(content) });
+			if(trigger::evaluate(state, b1, trigger::to_generic(sid), trigger::to_generic(n), 0)) {
+				sum -= state.world.factory_type_get_bonus_1_amount(content);
+			}
+			ui::trigger_description(state, contents, b1, trigger::to_generic(sid), trigger::to_generic(n), 0);
+		}
+		if(auto b2 = state.world.factory_type_get_bonus_2_trigger(content); b2) {
+			text::add_line(state, contents, "alice_factory_bonus", text::variable_type::x, text::fp_four_places{ state.world.factory_type_get_bonus_2_amount(content) });
+			if(trigger::evaluate(state, b2, trigger::to_generic(sid), trigger::to_generic(n), 0)) {
+				sum -= state.world.factory_type_get_bonus_2_amount(content);
+			}
+			ui::trigger_description(state, contents, b2, trigger::to_generic(sid), trigger::to_generic(n), 0);
+		}
+		if(auto b3 = state.world.factory_type_get_bonus_3_trigger(content); b3) {
+			text::add_line(state, contents, "alice_factory_bonus", text::variable_type::x, text::fp_four_places{ state.world.factory_type_get_bonus_3_amount(content) });
+			if(trigger::evaluate(state, b3, trigger::to_generic(sid), trigger::to_generic(n), 0)) {
+				sum -= state.world.factory_type_get_bonus_3_amount(content);
+			}
+			ui::trigger_description(state, contents, b3, trigger::to_generic(sid), trigger::to_generic(n), 0);
+		}
+		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });
 	}
 };
 
@@ -337,7 +395,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(c)	
+		if(c)
 			text::add_line(state, contents, state.world.commodity_get_name(c));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

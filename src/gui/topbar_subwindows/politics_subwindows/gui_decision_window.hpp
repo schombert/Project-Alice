@@ -84,14 +84,13 @@ public:
 // Decision Name
 // -------------
 
-void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
+inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
 	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
 	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
 	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
-
 }
 
 class decision_name : public multiline_text_element_base {

@@ -173,6 +173,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.under_mouse != nullptr) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
+		ui_state.left_mouse_hold_target = ui_state.under_mouse;
 	} else {
 		x_drag_start = x;
 		y_drag_start = y;
@@ -192,7 +193,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					local_player_nation = owner;
 					world.nation_set_is_player_controlled(local_player_nation, true);
 					ui_state.nation_picker->impl_on_update(*this);
-				} else {
+				} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
 					command::notify_player_picks_nation(*this, local_player_nation, owner);
 				}
 			}
@@ -218,8 +219,37 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(mode != sys::game_mode_type::in_game)
+	if(mode != sys::game_mode_type::in_game) {
+		if(state::user_settings.left_mouse_click_hold_and_release) {
+			if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+			}
+		}
 		return;
+	}
+	if(state::user_settings.left_mouse_click_hold_and_release) {
+		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+			ui_state.left_mouse_hold_target = nullptr;
+			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
+			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+		}
+	}
+	if(ui_state.left_mouse_hold_target != nullptr) {
+
+		ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
+
+		ui_state.left_mouse_hold_target = nullptr;
+
+		if(ui_state.scrollbar_continuous_movement) {
+			Cyto::Any payload = ui::scrollbar_settings{};
+			temp_hold_target->impl_set(*this, payload);
+			ui_state.scrollbar_continuous_movement = false;
+		}
+	}
+	ui_state.scrollbar_timer = 0;
 
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
@@ -421,6 +451,19 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			keycode = sys::virtual_key::SUBTRACT;
 		else if(keycode == sys::virtual_key::PLUS)
 			keycode = sys::virtual_key::ADD;
+		if(cheat_data.wasd_move_cam) {
+			if(keycode == sys::virtual_key::W)
+				keycode = sys::virtual_key::UP;
+			else
+			if(keycode == sys::virtual_key::A)
+				keycode = sys::virtual_key::LEFT;
+			else
+			if(keycode == sys::virtual_key::S)
+				keycode = sys::virtual_key::DOWN;
+			else
+			if(keycode == sys::virtual_key::D)
+				keycode = sys::virtual_key::RIGHT;
+		}
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			if(keycode == virtual_key::ESCAPE) {
 				if(ui_state.console_window->is_visible()) {
@@ -456,6 +499,20 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = false;
 
+	if(cheat_data.wasd_move_cam) {
+		if(keycode == sys::virtual_key::W)
+			keycode = sys::virtual_key::UP;
+		else
+		if(keycode == sys::virtual_key::A)
+			keycode = sys::virtual_key::LEFT;
+		else
+		if(keycode == sys::virtual_key::S)
+			keycode = sys::virtual_key::DOWN;
+		else
+		if(keycode == sys::virtual_key::D)
+			keycode = sys::virtual_key::RIGHT;
+	}
+
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char c) { // c is win1250 codepage value
@@ -475,6 +532,31 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
+	}
+
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+	if(ui_state.last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
+		ui_state.last_render_time = now;
+	}
+	if(ui_state.fps_timer > 20) {
+		auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
+		auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
+		ui_state.last_fps = frames_per_second;
+		ui_state.fps_timer = 0;
+		ui_state.last_render_time = now;
+	}
+	ui_state.fps_timer += 1;
+
+	if(ui_state.scrollbar_timer > 500 * (ui_state.last_fps / 60)) {
+		ui_state.scrollbar_continuous_movement = true;
+		if(ui_state.left_mouse_hold_target != nullptr) {
+			Cyto::Any payload = ui::scrollbar_settings{};
+			ui_state.left_mouse_hold_target->impl_set(*this, payload);
+		}
+	}
+
+	if(ui_state.left_mouse_hold_target != nullptr) {
+		ui_state.scrollbar_timer += 1;
 	}
 
 	if(mode == sys::game_mode_type::end_screen) { // END SCREEN RENDERING
@@ -754,7 +836,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			glDepthRange(-1.0f, 1.0f);
 			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
 			if(gfx_def.primary_texture_handle) {
-				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
+				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size) / user_settings.ui_scale, float(y_size) / user_settings.ui_scale,
 						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 						ui::rotation::upright, gfx_def.is_vertically_flipped());
 			}
@@ -1223,13 +1305,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::navy_built:
 						sound::play_effect(*this, sound::get_navy_built_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
-					case message_base_type::province_event:
-						sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
-					case message_base_type::national_event:
-					case message_base_type::major_event:
-						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
-						break;
 					case message_base_type::alliance_declined:
 					case message_base_type::ally_called_declined:
 					case message_base_type::crisis_join_offer_declined:
@@ -1244,6 +1319,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::crisis_resolution_accepted:
 					case message_base_type::mil_access_start:
 						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::province_event:
+					case message_base_type::national_event:
+					case message_base_type::major_event:
+						//Sound effect is played on above logic (free/non-free loop events above)
 						break;
 					default:
 						break;
@@ -1672,6 +1752,12 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(window));
 	}
 	{
+		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
+		ui_state.console_window_r = window.get();
+		window->set_visible(*this, false);
+		ui_state.nation_picker->add_child_to_front(std::move(window));
+	}
+	{
 		auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
 		ui_state.outliner_window = new_elm.get();
 		new_elm->impl_on_update(*this);
@@ -1700,7 +1786,7 @@ void state::on_create() {
 		}
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "menubar");
+		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "alice_menubar");
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
@@ -2035,6 +2121,11 @@ void state::save_user_settings() const {
 	US_SAVE(rivers_enabled);
 	US_SAVE(zoom_mode);
 	US_SAVE(vassal_color);
+	US_SAVE(left_mouse_click_hold_and_release);
+	US_SAVE(render_models);
+	US_SAVE(mouse_edge_scrolling);
+	US_SAVE(black_map_font);
+	US_SAVE(spoilers);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2090,6 +2181,11 @@ void state::load_user_settings() {
 			US_LOAD(rivers_enabled);
 			US_LOAD(zoom_mode);
 			US_LOAD(vassal_color);
+			US_LOAD(left_mouse_click_hold_and_release);
+			US_LOAD(render_models);
+			US_LOAD(mouse_edge_scrolling);
+			US_LOAD(black_map_font);
+			US_LOAD(spoilers);
 #undef US_LOAD
 		} while(false);
 
@@ -2773,6 +2869,15 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 
+
+		// NICK: 
+		// Attempts to look through the start date as defined by the mod.
+		// If it does not find any pop files there, it defaults to looking through 1836.1.1
+		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
+		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
+		if(directory_file_count == 0)
+			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -3406,20 +3511,11 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	if(err.accumulated_errors.size() == 0) {
-		// run the economy for three days on scenario creation
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
+	
 
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-
-		economy::update_rgo_employment(*this);
-		economy::update_factory_employment(*this);
-		economy::daily_update(*this);
-	}
+	if(err.accumulated_errors.size() == 0)
+		economy::presimulate(*this);
+	
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
@@ -4250,17 +4346,6 @@ sys::checksum_key state::get_save_checksum() {
 	return key;
 }
 
-sys::checksum_key state::get_scenario_checksum() {
-	auto scenario_space = sizeof_scenario_section(*this);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_space]);
-	auto last_written = write_scenario_section(buffer.get(), *this);
-	int32_t last_written_count = int32_t(last_written - buffer.get());
-	assert(size_t(last_written_count) == scenario_space);
-	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), last_written_count, nullptr, 0);
-	return key;
-}
-
 void state::debug_save_oos_dump() {
 	auto sdir = simple_fs::get_or_create_oos_directory();
 	{
@@ -4347,15 +4432,24 @@ void state::game_loop() {
 	}
 }
 
-void state::console_log(ui::element_base* base, std::string message, bool open_console) {
-	if(ui_state.console_window != nullptr) {
-
-		Cyto::Any payload = std::string(to_string_view(base->base_data.name)) + ": " + std::string(message);
-		ui_state.console_window->impl_get(*this, payload);
-
-		if(open_console && !(ui_state.console_window->is_visible())) {
-			ui_state.root->move_child_to_front(ui_state.console_window);
-			ui_state.console_window->set_visible(*this, true);
+void state::console_log(std::string_view message) {
+	if(mode == game_mode_type::pick_nation) {
+		if(ui_state.console_window_r != nullptr) {
+			Cyto::Any payload = std::string(message);
+			ui_state.console_window_r->impl_get(*this, payload);
+			if(true && !(ui_state.console_window_r->is_visible())) {
+				ui_state.nation_picker->move_child_to_front(ui_state.console_window_r);
+				ui_state.console_window_r->set_visible(*this, true);
+			}
+		}
+	} else {
+		if(ui_state.console_window != nullptr) {
+			Cyto::Any payload = std::string(message);
+			ui_state.console_window->impl_get(*this, payload);
+			if(true && !(ui_state.console_window->is_visible())) {
+				ui_state.root->move_child_to_front(ui_state.console_window);
+				ui_state.console_window->set_visible(*this, true);
+			}
 		}
 	}
 }

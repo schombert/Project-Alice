@@ -288,10 +288,15 @@ struct checksum_key {
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
 struct player_name {
-	char data[8];
+	char data[48] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 	std::string_view to_string_view() noexcept {
-		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
+		for(uint32_t i = 0; i < sizeof(data); i++) {
+			if(data[i] == ' ' || data[i] == '\0') {
+				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
+			}
+		}
+		return "???";
 	}
 };
 static_assert(sizeof(player_name) == sizeof(player_name::data));

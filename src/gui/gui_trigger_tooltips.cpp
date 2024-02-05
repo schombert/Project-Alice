@@ -1,4 +1,4 @@
-#include <string_view>
+#include "gui_trigger_tooltips.hpp"
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
@@ -123,7 +123,7 @@ void tf_none(TRIGGER_DISPLAY_PARAMS) { }
 
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
-		
+
 			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
 				text::add_to_layout_box(ws, layout, box, std::string_view("\x02"), text::text_color::green);
 				text::add_space_to_layout_box(ws, layout, box);
@@ -131,12 +131,12 @@ void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 				text::add_to_layout_box(ws, layout, box, std::string_view("\x01"), text::text_color::red);
 				text::add_space_to_layout_box(ws, layout, box);
 			}
-		
+
 	} else {
-		
+
 		text::add_to_layout_box(ws, layout, box, std::string_view("\x95"), text::text_color::white);
 		text::add_space_to_layout_box(ws, layout, box);
-		
+
 	}
 }
 
@@ -3710,11 +3710,11 @@ void tf_is_accepted_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_is_accepted_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	
+
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 		text::produce_simple_string(ws, "this_nation_accepted_culture"),
 		ws, layout, box);
-	
+
 	text::close_layout_box(layout, box);
 }
 void tf_is_accepted_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
@@ -5095,7 +5095,7 @@ void tf_pop_majority_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_pop_majority_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	
+
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(trigger::to_nation(this_slot)))), ws, layout, box);

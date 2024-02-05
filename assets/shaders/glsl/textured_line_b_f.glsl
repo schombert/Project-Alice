@@ -14,6 +14,10 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
+	// frag_color = vec4(tex_coord, tex_coord, tex_coord, 1.0);
+	// return;
+
+
 	vec4 out_color = texture(line_texture, vec2(o_dist, tex_coord));
 	vec2 prov_id = texture(provinces_texture_sampler, map_coord).xy;
 	out_color.rgb *= texture(province_fow, prov_id).rgb;

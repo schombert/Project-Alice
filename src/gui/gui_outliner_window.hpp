@@ -340,7 +340,7 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "unit_standing_text", sub);
+			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, army.get_location_from_army_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
@@ -357,7 +357,7 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "unit_standing_text", sub);
+			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, navy.get_location_from_navy_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
@@ -399,7 +399,7 @@ public:
 			auto name = economy::province_building_type_get_name(economy::province_building_type(btid));
 			float progress = economy::province_building_construction(state, state.world.province_building_construction_get_province(pbcid), economy::province_building_type(btid)).progress;
 
-			auto full_str = std::string(name) + " (" + text::format_percentage(progress, 0) + ")";
+			auto full_str = text::produce_simple_string(state, name) + " (" + text::format_percentage(progress, 0) + ")";
 
 			color = text::text_color::white;
 			set_text(state, full_str);
@@ -438,7 +438,7 @@ public:
 						color = text::text_color::red;
 					}
 				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
-					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+					if(province::state_admin_efficiency(state, fat_si.id) >= 1.f) {
 						color = text::text_color::red;
 					}
 				}
