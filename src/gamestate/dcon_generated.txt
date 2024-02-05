@@ -439,7 +439,7 @@ object {
 object {
 	name{ factory_type }
 	storage_type{ contiguous }
-	size{ 256 }
+	size{ 125 }
 	tag{ scenario }
 
 	property{
