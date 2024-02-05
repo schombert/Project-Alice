@@ -1819,7 +1819,7 @@ void load_static_meshes(sys::state& state) {
 							// beneath them)
 							bool keep = is_visual;
 							if(elim_factor[k] != no_elim) {
-								keep = !(triangle_vertices[0].position_.y <= elim_factor[k]
+								keep = (triangle_vertices[0].position_.y <= elim_factor[k]
 									&& triangle_vertices[1].position_.y <= elim_factor[k]
 									&& triangle_vertices[2].position_.y <= elim_factor[k]);
 							}
