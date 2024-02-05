@@ -791,7 +791,9 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled);
+
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 /*
 PEACE OFFER COMMANDS:
