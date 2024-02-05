@@ -536,9 +536,9 @@ public:
 			} else if constexpr(Value == economy::province_building_type::university) {
 				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
 			}
-
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(Value)].province_modifier);
 		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
