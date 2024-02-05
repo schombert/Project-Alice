@@ -2772,12 +2772,21 @@ void daily_update(sys::state& state) {
 					lx_max.get(pt) += lx_val * sat;
 				}
 			}
+
 			if(ln_total > 0)
 				ln_max.get(pt) /= ln_total;
+			else
+				ln_max.get(pt) = 1.f;
+
 			if(en_total > 0)
 				en_max.get(pt) /= en_total;
+			else
+				en_max.get(pt) = 1.f;
+
 			if(lx_total > 0)
 				lx_max.get(pt) /= lx_total;
+			else
+				lx_max.get(pt) = 1.f;
 		});
 
 		/*
