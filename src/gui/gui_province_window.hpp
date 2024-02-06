@@ -12,6 +12,7 @@
 #include "text.hpp"
 #include "gui_production_window.hpp"
 #include "province_templates.hpp"
+#include "nations_templates.hpp"
 
 namespace ui {
 
@@ -362,6 +363,40 @@ public:
 	}
 };
 
+class province_move_capital_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_move_capital(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::move_capital(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		text::add_line(state, contents, "alice_mvcap_1");
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis != sys::crisis_type::none));
+		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_4", !(state.world.nation_get_capital(source) == p));
+		text::add_line_with_condition(state, contents, "alice_mvcap_5", !(state.world.province_get_is_colonial(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_6", !(state.world.province_get_continent(state.world.nation_get_capital(source)) != state.world.province_get_continent(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_7", !(nations::nation_accepts_culture(state, source, state.world.province_get_dominant_culture(p)) == false));
+		text::add_line_with_condition(state, contents, "alice_mvcap_8", !(state.world.province_get_siege_progress(p) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_9", !(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_10", !(state.world.province_get_nation_from_province_ownership(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_11", !(state.world.province_get_nation_from_province_control(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_12", !(state.world.province_get_is_owner_core(p) == false));
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -401,6 +436,9 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
+			auto btn = make_element_by_type<province_move_capital_button>(state, id);
+			btn->base_data.position.x -= btn->base_data.size.x;
+			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
 			return ptr;
