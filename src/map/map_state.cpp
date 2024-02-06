@@ -100,10 +100,63 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	}
 }
 
+void update_bbox(std::array<glm::vec2, 5>& bbox, dcon::province_fat_id p) {
+	if(p.get_mid_point().x <= bbox[1].x) {
+		bbox[1] = p.get_mid_point();
+	} if(p.get_mid_point().y <= bbox[2].y) {
+		bbox[2] = p.get_mid_point();
+	} if(p.get_mid_point().x >= bbox[3].x) {
+		bbox[3] = p.get_mid_point();
+	} if(p.get_mid_point().y >= bbox[4].y) {
+		bbox[4] = p.get_mid_point();
+	}
+}
+
+bool is_inside_bbox(std::array<glm::vec2, 5>& bbox, dcon::province_fat_id p) {
+	if(p.get_mid_point().x <= bbox[1].x) {
+		return false;
+	} if(p.get_mid_point().y <= bbox[2].y) {
+		return false;
+	} if(p.get_mid_point().x >= bbox[3].x) {
+		return false;
+	} if(p.get_mid_point().y >= bbox[4].y) {
+		return false;
+	}
+
+	return true;
+}
+
+void update_bbox_negative(std::array<glm::vec2, 5>& bbox, dcon::province_fat_id p) {
+	if(!is_inside_bbox(bbox, p))
+		return;
+
+	//auto mp = p.get_mid_point();
+	//if(mp.x <= bbox[0].x)
+	//	bbox[1].x = mp.x * 0.1f + bbox[1].x * 0.9f;
+	//if(mp.x >= bbox[0].x)
+	//	bbox[3].x = mp.x * 0.1f + bbox[3].x * 0.9f;
+}
+
+dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
+	auto olr = state.world.nation_get_overlord_as_subject(n);
+	auto ol = state.world.overlord_get_ruler(olr);
+	auto ol_temp = n;
+
+	while(ol && state.world.nation_get_name(ol)) {
+		olr = state.world.nation_get_overlord_as_subject(ol);
+		ol_temp = ol;
+		ol = state.world.overlord_get_ruler(olr);
+	}
+
+	return ol_temp;
+}
+
 void update_text_lines(sys::state& state, display_data& map_data) {
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
 	std::vector<bool> visited(65536, false);
+	std::vector<uint16_t> group_of_regions;
+
 	for(auto p : state.world.in_province) {
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
@@ -113,6 +166,56 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		auto n = p.get_nation_from_province_ownership();
 		if(!n || !n.get_name())
 			continue;
+		
+		n = get_top_overlord(state, n.id);
+
+		group_of_regions.clear();
+		group_of_regions.push_back(rid);
+
+		// flood fill for several iterations:
+		
+		for(int i = 0; i < 5; i++) {
+			for(auto candidate : state.world.in_province) {
+				if(visited[uint16_t(candidate.get_connected_region_id())])
+					continue;
+
+				auto n2 = state.world.province_get_nation_from_province_ownership(candidate);
+				if(!n2)
+					continue;
+				n2 = get_top_overlord(state, n2);
+				if(n2 != n)
+					continue;
+
+				for(auto adj : candidate.get_province_adjacency()) {
+					auto indx = adj.get_connected_provinces(0) != candidate.id ? 0 : 1;
+					auto neighbor = adj.get_connected_provinces(indx);
+					for(auto visited_region : group_of_regions) {
+						if(neighbor.get_connected_region_id() == visited_region) {
+							group_of_regions.push_back(candidate.get_connected_region_id());
+							visited[uint16_t(candidate.get_connected_region_id())] = true;
+							goto next_candidate;
+						}
+
+						if(neighbor.id.index() >= state.province_definitions.first_sea_province.index()) {
+							for(auto adj2 : neighbor.get_province_adjacency()) {
+								auto indx2 = adj2.get_connected_provinces(0) != neighbor.id ? 0 : 1;
+								auto neighbor2 = adj2.get_connected_provinces(indx2);
+
+								if(neighbor2.get_connected_region_id() == visited_region) {
+									group_of_regions.push_back(candidate.get_connected_region_id());
+									visited[uint16_t(candidate.get_connected_region_id())] = true;
+									goto next_candidate;
+								}
+							}
+						}
+					}
+				}
+
+				next_candidate: continue;
+			}
+		}
+		
+
 		std::array<glm::vec2, 5> key_provs{
 			p.get_mid_point(), //capital
 			p.get_mid_point(), //min x
@@ -120,38 +223,58 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			p.get_mid_point(), //max x
 			p.get_mid_point() //max y
 		};
-		for(auto p2 : state.world.in_province) {
-			if(p2.get_connected_region_id() == rid) {
-				if(p2.get_mid_point().x <= key_provs[1].x) {
-					key_provs[1] = p2.get_mid_point();
-				} if(p2.get_mid_point().y <= key_provs[2].y) {
-					key_provs[2] = p2.get_mid_point();
-				} if(p2.get_mid_point().x >= key_provs[3].x) {
-					key_provs[3] = p2.get_mid_point();
-				} if(p2.get_mid_point().y >= key_provs[4].y) {
-					key_provs[4] = p2.get_mid_point();
-				}
-			
-				for(auto adj : p2.get_province_adjacency()) {
-					auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
-					auto prov = adj.get_connected_provinces(indx);
 
-					// check if it's a sea province and expand the box
-					if(prov.id.index() >= state.province_definitions.first_sea_province.index()) {
-						if(prov.get_mid_point().x <= key_provs[1].x) {
-							key_provs[1] = prov.get_mid_point();
-						} if(prov.get_mid_point().y <= key_provs[2].y) {
-							key_provs[2] = prov.get_mid_point();
-						} if(prov.get_mid_point().x >= key_provs[3].x) {
-							key_provs[3] = prov.get_mid_point();
-						} if(prov.get_mid_point().y >= key_provs[4].y) {
-							key_provs[4] = prov.get_mid_point();
+		for(auto visited_region : group_of_regions) {
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == visited_region) {
+					update_bbox(key_provs, p2);
+				}
+			}
+		}
+
+		//expand the box slightly
+		for(auto visited_region : group_of_regions) {
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == visited_region) {
+					for(auto adj : p2.get_province_adjacency()) {
+						auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
+						auto prov = adj.get_connected_provinces(indx);
+
+						// check if it's a sea province and expand the box 
+						// if(prov.id.index() >= state.province_definitions.first_sea_province.index())
+						// actually just expand it anyway
+						{
+							if(prov.get_mid_point().x <= key_provs[1].x) {
+								key_provs[1] = key_provs[1] * 0.8f + prov.get_mid_point() * 0.2f;
+							}
+							if(prov.get_mid_point().y <= key_provs[2].y) {
+								key_provs[2] = key_provs[2] * 0.8f + prov.get_mid_point() * 0.2f;
+							}
+							if(prov.get_mid_point().x >= key_provs[3].x) {
+								key_provs[3] = key_provs[3] * 0.8f + prov.get_mid_point() * 0.2f;
+							}
+							if(prov.get_mid_point().y >= key_provs[4].y) {
+								key_provs[4] = key_provs[4] * 0.8f + prov.get_mid_point() * 0.2f;
+							}
 						}
 					}
 				}
 			}
 		}
-		
+
+		//shrink the box
+		for(auto negative_candidate : state.world.in_province) {
+			auto n2 = state.world.province_get_nation_from_province_ownership(negative_candidate);
+			if(!n2)
+				continue;
+			n2 = get_top_overlord(state, n2);
+			if(n2 == n)
+				continue;
+
+			update_bbox_negative(key_provs, negative_candidate);
+		}
+
+
 		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
 		glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
 		glm::vec2 ratio{ key_provs[3].x - key_provs[1].x, key_provs[4].y - key_provs[2].y };
@@ -171,45 +294,49 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<std::array<float, 4>> in_x;
 		std::vector<std::array<float, 4>> in_y;
 
+		for(auto visited_region : group_of_regions) {
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == visited_region) {
+					auto e = p2.get_mid_point();
+					e -= basis;
+					e /= ratio;
+					out_y.push_back(e.y);
+					out_x.push_back(e.x);
+					w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
+					in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
+					in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 
-		for(auto p2 : state.world.in_province) {
-			if(p2.get_connected_region_id() == rid) {
-				auto e = p2.get_mid_point();
-				e -= basis;
-				e /= ratio;
-				out_y.push_back(e.y);
-				out_x.push_back(e.x);
-				w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
-				in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1 * e.x, l_1 * e.x * e.x, l_3 * e.x * e.x * e.x});
-				in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1 * e.y, l_1 * e.y * e.y, l_3 * e.y * e.y * e.y});
+					/*
+					for(auto adj : p2.get_province_adjacency()) {
+						auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
+						auto prov = adj.get_connected_provinces(indx);
 
-				for(auto adj : p2.get_province_adjacency()) {
-					auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
-					auto prov = adj.get_connected_provinces(indx);
+						// check if it's a sea province and add it to the list with lower weight
+						if(prov.id.index() < state.province_definitions.first_sea_province.index())
+							continue;
 
-					// check if it's a sea province and add it to the list with lower weight
-					if(prov.id.index() < state.province_definitions.first_sea_province.index())
-						continue;
-
-					auto e2 = prov.get_mid_point();
-					e2 -= basis;
-					e2 /= ratio;
-					out_y.push_back(e2.y);
-					out_x.push_back(e2.x);
-					w.push_back(0.01f * float(map_data.province_area[province::to_map_id(prov)]));
-					in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.x, l_1* e2.x* e2.x, l_3* e2.x* e2.x* e2.x});
-					in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.y, l_1* e2.y* e2.y, l_3* e2.y* e2.y* e2.y});
+						auto e2 = prov.get_mid_point();
+						e2 -= basis;
+						e2 /= ratio;
+						out_y.push_back(e2.y);
+						out_x.push_back(e2.x);
+						w.push_back(0.01f * float(map_data.province_area[province::to_map_id(prov)]));
+						in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.x, l_1* e2.x* e2.x, l_3* e2.x* e2.x* e2.x});
+						in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.y, l_1* e2.y* e2.y, l_3* e2.y* e2.y* e2.y});
+					}
+					*/
 				}
 			}
 		}
 
-		std::string name = text::produce_simple_string(state, n.get_name());
-		if(n.get_capital().get_connected_region_id() != rid) {
-			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
-		}
-
+		// Adjective + " " + Continent
+		std::string name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
 		
+		for(auto visited_region : group_of_regions) {
+			if(n.get_capital().get_connected_region_id() == visited_region) {
+				name = text::produce_simple_string(state, n.get_name());
+			}
+		}		
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
@@ -257,7 +384,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			};
 
 			auto regularisation_grad = [&]() {
-				return glm::vec4(0, 0, mo[2] / 2.f, mo[3] / 3.f);
+				return glm::vec4(0, 0, mo[2] / 4.f, mo[3] / 6.f);
 			};
 
 			for(glm::length_t r = 0; r < glm::length_t(in_x.size()); r++) {
