@@ -667,11 +667,12 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 			auto kf = state.world.commodity_get_key_factory(cid);
 
 			float market_size = state.world.commodity_get_total_consumption(cid) * 0.001f;
+			auto consumed_ratio = std::min(1.f, (state.world.commodity_get_total_consumption(cid) + 0.0001f) / (state.world.commodity_get_total_production(cid) + 0.0001f));
 
 			if(state.world.commodity_get_artisan_output_amount(cid) > 0.0f && (state.world.commodity_get_is_available_from_start(cid) || (kf && state.world.nation_get_active_building(n, kf)))) {
 				auto& w = state.world.nation_get_artisan_distribution(n, cid);
 				if(profits[cid.index()] < 0) {
-					w = std::max(0.f, (1.0f + profits[cid.index()] * 0.001f * w * market_size - 100.f / num_artisans) * w);
+					w = std::max(0.f, (1.0f + profits[cid.index()] * 0.1f * w * market_size / consumed_ratio / consumed_ratio - 100.f / num_artisans) * w);
 				} else if(total_weights > 0.0001f) {
 					float ideal_weight = (profits[cid.index()] / total_weights);
 					float speed = std::clamp(distribution_drift_speed * w * profits[cid.index()] * market_size + 100.f / num_artisans, 0.f, 0.01f);
@@ -679,7 +680,8 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 
 					assert(std::isfinite(w));
 				} else if (total_possible > 0.f) {
-					w = (1.0f - distribution_drift_speed) * w + distribution_drift_speed * (1.0f / total_possible);
+					// move toward 0 production
+					w = (1.0f - distribution_drift_speed) * w;
 					assert(std::isfinite(w));
 				}
 			} else {
