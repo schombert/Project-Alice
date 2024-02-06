@@ -12,6 +12,231 @@
 
 namespace ai {
 
+namespace alliance_factors {
+/*
+	Returns `true` if `other` has one of `n`'s cores
+*/
+bool has_our_core(sys::state& state, dcon::nation_id n, dcon::nation_id other) {
+	for(auto prov : state.world.nation_get_province_ownership(other)) {
+		auto fat = fatten(state.world, prov).get_province();
+		for(auto c : fat.get_core_as_province()) {
+			auto core = fatten(state.world, c);
+			if(core.get_identity().get_nation_from_identity_holder() == n)
+				return true;
+		}
+	}
+	return false;
+}
+
+bool too_many_gp_allies(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	uint32_t upper_gp_ally_limit = (state.military_definitions.great_wars_enabled) ? uint32_t(2) : uint32_t(1);
+	uint32_t gp_ally_count = uint32_t(0);
+
+	std::vector<dcon::nation_id> allies;
+	nations::get_allies(state, from, allies);
+	for(auto a : allies) {
+		if(a != target && nations::is_great_power(state, a)) // don't double count `target` since it will be accounted for below
+			++gp_ally_count;
+	}
+	if(gp_ally_count >= upper_gp_ally_limit)
+		return true;
+
+	// repeat for target
+	allies.clear();
+	nations::get_allies(state, target, allies);
+	for(auto a : allies) {
+		if(nations::is_great_power(state, a))
+			++gp_ally_count;
+	}
+	return gp_ally_count >= upper_gp_ally_limit;
+}
+
+uint32_t number_of_gp_allies(sys::state& state, dcon::nation_id n) {
+	uint32_t gp_ally_count = uint32_t(0);
+
+	std::vector<dcon::nation_id> allies;
+	nations::get_allies(state, n, allies);
+	for(auto a : allies) {
+		if(nations::is_great_power(state, a))
+			++gp_ally_count;
+	}
+	return gp_ally_count;
+}
+
+/*
+	Score = -10 * sum of the number of alliances between the two parties.
+	Spherelings and vassals/substates are excluded, and if the two nations are already allied
+	(which is the case if the AI is evaluating a current alliance), subtract out the duplicate count
+*/
+float number_of_alliances(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	uint32_t ally_count = 0;
+	std::vector<dcon::nation_id> allies;
+	nations::get_allies(state, target, allies);
+	for(auto a : allies) {
+		if(a == from)
+			continue; // don't double count existing ally
+		if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(a)) == target)
+			continue; // vassal/substate so doesn't count
+		auto a_sphere = fatten(state.world, a).get_in_sphere_of();
+		if(a_sphere == target)
+			continue; // sphereling so doesn't count
+		++ally_count;
+	}
+
+	allies.clear();
+	nations::get_allies(state, from, allies);
+	for(auto a : allies) {
+		if(a == target)
+			continue; // don't double count existing ally
+		if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(a)) == from)
+			continue; // vassal/substate so doesn't count
+		auto a_sphere = fatten(state.world, a).get_in_sphere_of();
+		if(a_sphere == from)
+			continue; // sphereling so doesn't count
+		++ally_count;
+	}
+	return -10.0f * ally_count;
+}
+
+float relationship(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto rel = nations::get_diplomatic_relation(state, target, from);
+	if(!rel)
+		return 0.0f;
+	auto rel_v = state.world.diplomatic_relation_get_value(rel);
+	return std::floor(rel_v / 4.0f);
+}
+
+float opinion(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	if(nations::is_great_power(state, from) == nations::is_great_power(state, target))
+		return 0.0f; // one must be a GP
+
+	auto target_is_gp = state.world.get_gp_relationship_by_gp_influence_pair(from, target);
+	auto from_is_gp = state.world.get_gp_relationship_by_gp_influence_pair(target, from);
+	auto status = target_is_gp ? fatten(state.world, target_is_gp).get_status() : fatten(state.world, from_is_gp).get_status();
+
+	int32_t level = 0;
+	switch(nations::influence::level_mask & status) {
+		case nations::influence::level_in_sphere:
+			level = 3;
+			break;
+		case nations::influence::level_friendly:
+			level = 2;
+			break;
+		case nations::influence::level_cordial:
+			level = 1;
+			break;
+		case nations::influence::level_neutral:
+			level = 0;
+			break;
+		case nations::influence::level_opposed:
+			level = -1;
+			break;
+		case nations::influence::level_hostile:
+			level = -2;
+			break;
+	}
+	return float(level) * 10.0f;
+}
+
+float sphere_of_influence(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto t_sphere = fatten(state.world, target).get_in_sphere_of();
+	auto f_sphere = fatten(state.world, from).get_in_sphere_of();
+
+	if(nations::in_same_sphere(state, target, from)) {
+		return 25.0f; // same sphere
+	} else if(nations::is_great_power(state, target) && f_sphere && f_sphere != target) {
+		return -25.0f; // target is GP and from is in a different sphere
+	} else if(nations::is_great_power(state, from) && t_sphere && t_sphere != from) {
+		return -1000.0f; // from is GP and target is in a different sphere
+	} else if(t_sphere && f_sphere) {
+		return -25.0f; // both non-GP and in different spheres
+	}
+	return 0.0f;
+}
+
+float infamy(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	return -std::floor(state.world.nation_get_infamy(from) * 2.0f);
+}
+
+float ai_political_considerations(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	float score = 0.0f;
+	auto t_rival = state.world.nation_get_ai_rival(target);
+	auto f_rival = state.world.nation_get_ai_rival(from);
+	// bonus if same rivals
+	if(t_rival && t_rival == f_rival)
+		score += 25.0f;
+	if(ai_has_mutual_enemy(state, from, target))
+		score += 25.0f;
+	if(state.world.nation_get_ai_is_threatened(target))
+		score += 25.0f;
+	// TODO: does `from` border `target`'s rival? beneficial for `from`
+	return score;
+}
+
+float civilization_difference(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto t_status = state.world.nation_get_is_civilized(target);
+	auto f_status = state.world.nation_get_is_civilized(from);
+	if(t_status && !f_status) { // requester unciv, recipient civ
+		return -80.0f;
+	} else if(!t_status && f_status) { // requester civ, recipient unciv
+		return -30.0f;
+	} else {
+		return 0.0f;
+	}
+}
+
+float current_wars(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	float value = 0.0f;
+	std::vector<dcon::nation_id> allies;
+	nations::get_allies(state, target, allies);
+	for(auto& a : allies) {
+		if(military::find_war_between(state, from, a)) {
+			value -= 25.0f; // -25/`target` ally that `from` is at war with
+		}
+	}
+
+	if(military::are_in_common_war(state, from, target) && !military::are_at_war(state, from, target)) {
+		value += 25.0f;
+	}
+
+	// iterate over `from`'s wars
+	// 1) if `from` is at war with someone who borders `target`,
+	//		subtract half the strength of this neighbor from the alliance acceptance score since they'll likely be in conflict with them
+	// 2) if `from` is in any wars where the balance of force is not in their favor, subtract half the difference in force
+	for(auto wa : state.world.nation_get_war_participant(from)) {
+		float war_balance = 0.0f;
+		for(auto other_participant : wa.get_war().get_war_participant()) {
+			float mult = (other_participant.get_is_attacker() == wa.get_is_attacker()) ? 0.5f : -0.5f;
+			war_balance += mult * estimate_strength(state, other_participant.get_nation());
+
+			if(other_participant.get_is_attacker() != wa.get_is_attacker() && nations::are_neighbors(state, target, other_participant.get_nation())) {
+				// `from` is at war with one of target's neighbors
+				value -= 0.5f * estimate_strength(state, other_participant.get_nation());
+			}
+		}
+
+		if(war_balance < 0.0f)
+			value += war_balance;
+	}
+
+	return value;
+}
+
+float military_difference(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto target_score = estimate_strength(state, target);
+	auto source_score = estimate_strength(state, from);
+	return std::floor(std::clamp(0.5f * (source_score - target_score), -20.0f, 20.0f));
+}
+
+float distance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
+	auto t_capital = state.world.nation_get_capital(target);
+	auto f_capital = state.world.nation_get_capital(from);
+	float dist = province::direct_distance(state, t_capital, f_capital);
+	return -std::floor(dist / 50.0f); // largest value is nearly 40
+}
+
+} // namespace alliance_factors
+
 float estimate_strength(sys::state& state, dcon::nation_id n) {
 	float value = state.world.nation_get_military_score(n);
 	for(auto subj : state.world.nation_get_overlord_as_ruler(n))
@@ -118,7 +343,9 @@ void update_ai_general_status(sys::state& state) {
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
-		if(other != n && other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
+		if(other.get_is_player_controlled() == false
+				&& command::can_ask_for_alliance(state, n, other)
+				&& ai_will_accept_alliance(state, other, n))
 			alliance_targets.push_back(other.id);
 	}
 }
@@ -150,23 +377,27 @@ static void internal_get_alliance_targets(sys::state& state, dcon::nation_id n, 
 void form_alliances(sys::state& state) {
 	static std::vector<dcon::nation_id> alliance_targets;
 	for(auto n : state.world.in_nation) {
-		if(!n.get_is_player_controlled() && n.get_ai_is_threatened() && !(n.get_overlord_as_subject().get_ruler())) {
-			alliance_targets.clear();
-			internal_get_alliance_targets(state, n, alliance_targets);
-			if(!alliance_targets.empty()) {
-				std::sort(alliance_targets.begin(), alliance_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-					if(estimate_strength(state, a) != estimate_strength(state, b))
-						return estimate_strength(state, a) > estimate_strength(state, b);
-					else
-						return a.index() > b.index();
-				});
-				nations::make_alliance(state, n, alliance_targets[0]);
+		if(n.get_is_player_controlled())
+			continue;
+		if((n.get_overlord_as_subject().get_ruler()))
+			continue;
+		if(state.world.nation_get_diplomatic_points(n) < state.defines.alliance_diplomatic_cost)
+			continue;
+		alliance_targets.clear();
+		internal_get_alliance_targets(state, n, alliance_targets);
+		if(!alliance_targets.empty()) {
+			std::sort(alliance_targets.begin(), alliance_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+				if(estimate_strength(state, a) != estimate_strength(state, b))
+					return estimate_strength(state, a) > estimate_strength(state, b);
+				else
+					return a.index() > b.index();
+			});
+			command::execute_ask_for_alliance(state, n, alliance_targets[0]);
 
-				// Call our new allies into wars.... they may not accept but they may just may join!
-				//for(auto wp : state.world.nation_get_war_participant(n))
-				//	if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))
-				//		command::execute_call_to_arms(state, n, alliance_targets[0], wp.get_war());
-			}
+			// Call our new allies into wars.... they may not accept but they may just may join!
+			//for(auto wp : state.world.nation_get_war_participant(n))
+			//	if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))
+			//		command::execute_call_to_arms(state, n, alliance_targets[0], wp.get_war());
 		}
 	}
 }
@@ -174,62 +405,24 @@ void form_alliances(sys::state& state) {
 void prune_alliances(sys::state& state) {
 	static std::vector<dcon::nation_id> prune_targets;
 	for(auto n : state.world.in_nation) {
-		if(!n.get_is_player_controlled()
-		&& !n.get_ai_is_threatened()
-		&& !(n.get_overlord_as_subject().get_ruler())) {
-			prune_targets.clear();
-			for(auto dr : n.get_diplomatic_relation()) {
-				if(dr.get_are_allied()) {
-					auto other = dr.get_related_nations(0) != n ? dr.get_related_nations(0) : dr.get_related_nations(1);
-					if(other.get_in_sphere_of() != n
-					&& !military::are_allied_in_war(state, n, other)) {
-						prune_targets.push_back(other);
-					}
-				}
-			}
+		if(n.get_is_player_controlled())
+			continue;
+		if(n.get_ai_is_threatened())
+			continue;
+		if((n.get_overlord_as_subject().get_ruler()))
+			continue;
+		if(state.world.nation_get_diplomatic_points(n) < state.defines.cancelalliance_diplomatic_cost)
+			continue;
+		prune_targets.clear();
+		nations::get_allies(state, n, prune_targets);
 
-			if(prune_targets.empty())
-				continue;
+		if(prune_targets.empty())
+			continue;
 
-			std::sort(prune_targets.begin(), prune_targets.end(), [&](dcon::nation_id a, dcon::nation_id b) {
-				if(estimate_strength(state, a) != estimate_strength(state, b))
-					return estimate_strength(state, a) < estimate_strength(state, b);
-				else
-					return a.index() > b.index();
-			});
-
-			float greatest_neighbor = 0.0f;
-			auto in_sphere_of = state.world.nation_get_in_sphere_of(n);
-
-			for(auto b : state.world.nation_get_nation_adjacency_as_connected_nations(n)) {
-				auto other = b.get_connected_nations(0) != n ? b.get_connected_nations(0) : b.get_connected_nations(1);
-				if(!nations::are_allied(state, n, other) && (!in_sphere_of || in_sphere_of != other.get_in_sphere_of())) {
-					greatest_neighbor = std::max(greatest_neighbor, estimate_strength(state, other));
-				}
-			}
-
-			float defensive_str = estimate_defensive_strength(state, n);
-			auto ll = state.world.nation_get_last_war_loss(n);
-			float safety_factor = 1.2f;
-			if(ll && state.current_date < ll + 365 * 4) {
-				safety_factor = 1.8f;
-			}
-
-			auto safety_margin = defensive_str - safety_factor * greatest_neighbor;
-
-			for(auto pt : prune_targets) {
-				auto weakest_str = estimate_strength(state, pt);
-				if(weakest_str * 1.25 < safety_margin) {
-					safety_margin -= weakest_str;
-					assert(command::can_cancel_alliance(state, n, pt, true));
-					command::execute_cancel_alliance(state, n, pt);
-				} else if(state.world.nation_get_infamy(pt) >= state.defines.badboy_limit) {
-					safety_margin -= weakest_str;
-					assert(command::can_cancel_alliance(state, n, pt, true));
-					command::execute_cancel_alliance(state, n, pt);
-				} else {
-					break;
-				}
+		for(auto other : prune_targets) {
+			if(ai_will_cancel_alliance(state, n, other)) {
+				assert(command::can_cancel_alliance(state, n, other, true));
+				command::execute_cancel_alliance(state, n, other);
 			}
 		}
 	}
@@ -241,7 +434,7 @@ bool ai_is_close_enough(sys::state& state, dcon::nation_id target, dcon::nation_
 	return (target_continent == source_continent) || bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(target, from));
 }
 
-static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
+bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	auto rival_a = state.world.nation_get_ai_rival(target);
 	auto rival_b = state.world.nation_get_ai_rival(from);
 	// Same rival equates to instantaneous alliance (we benefit from more allies against a common enemy)
@@ -265,50 +458,241 @@ static bool ai_has_mutual_enemy(sys::state& state, dcon::nation_id from, dcon::n
 	return false;
 }
 
-constexpr inline float ally_overestimate = 2.f;
-
 bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::nation_id from) {
-	if(!state.world.nation_get_ai_is_threatened(target))
+	auto rel = nations::get_diplomatic_relation(state, target, from);
+
+	if(military::are_at_war(state, target, from))
 		return false;
 
 	// Has not surpassed infamy limit
 	if(state.world.nation_get_infamy(target) >= state.defines.badboy_limit * 0.75f)
 		return false;
 
+	// vassals always ally liege
+	if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == from)
+		return true;
+
+	if(state.world.diplomatic_relation_get_value(rel) < state.defines.relation_limit_no_alliance_offer)
+		return false;
+
+	// enforce upper limit on GP allies
+	if(nations::is_great_power(state, from)) {
+		uint32_t upper_gp_ally_limit = (state.military_definitions.great_wars_enabled) ? uint32_t(2) : uint32_t(1);
+		if(alliance_factors::number_of_gp_allies(state, target) >= upper_gp_ally_limit)
+			return false;
+		if(nations::is_great_power(state, target) && alliance_factors::number_of_gp_allies(state, from) >= upper_gp_ally_limit)
+			return false;
+	}
+
+	// Great Powers can't ally non-GPs in different spheres
+	auto target_sphere_of = state.world.nation_get_in_sphere_of(target);
+	auto from_sphere_of = state.world.nation_get_in_sphere_of(from);
+	if(nations::is_great_power(state, from) && !nations::is_great_power(state, target) && target_sphere_of && target_sphere_of != from) {
+		return false;
+	} else if(nations::is_great_power(state, target) && nations::is_great_power(state, from) && from_sphere_of && from_sphere_of != target) {
+		return false;
+	}
+
+	// don't accept alliance from someone who has our core
+	// allows alliances between overlords and vassals even if OL owns vassal's core(s)
+	if(alliance_factors::has_our_core(state, from, target))
+		return false;
+
 	// Won't ally our rivals
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
 
-	if(ai_has_mutual_enemy(state, from, target))
-		return true;
+	float current_score = -50.0f; // base reluctance
 
-	// Otherwise we may consider alliances only iff they are close to our continent or we are adjacent
-	if(!ai_is_close_enough(state, target, from))
+	// relationship
+	current_score += alliance_factors::relationship(state, target, from);
+
+	// opinion
+	current_score += alliance_factors::opinion(state, target, from);
+
+	// check if in same sphere
+	current_score += alliance_factors::sphere_of_influence(state, target, from);
+
+	// political considerations
+	current_score += alliance_factors::ai_political_considerations(state, target, from);
+
+	// power differential
+	current_score += alliance_factors::military_difference(state, target, from);
+
+	// current wars
+	current_score += alliance_factors::current_wars(state, target, from);
+
+	// at this point we will only consider factors that have a negative contribution
+	// to the score so we can do a quick check to see if we need to do those
+	if(current_score <= 0.0f)
 		return false;
 
-	// And also if they're powerful enough to be considered for an alliance
-	auto target_score = estimate_strength(state, target);
-	auto source_score = estimate_strength(state, from);
-	return std::max<float>(source_score, 1.f) * ally_overestimate >= target_score;
+	// infamy
+	current_score += alliance_factors::infamy(state, target, from);
+
+	// allies
+	current_score += alliance_factors::number_of_alliances(state, target, from);
+
+	// civ/unciv relations
+	current_score += alliance_factors::civilization_difference(state, target, from);
+
+	// distance
+	current_score += alliance_factors::distance(state, target, from);
+
+	return current_score > 0.0f;
 }
 
 void explain_ai_alliance_reasons(sys::state& state, dcon::nation_id target, text::layout_base& contents, int32_t indent) {
 
-	text::add_line_with_condition(state, contents, "ai_alliance_1", state.world.nation_get_ai_is_threatened(target), indent);
+	auto rel = nations::get_diplomatic_relation(state, target, state.local_player_nation);
+	if(state.defines.relation_limit_no_alliance_offer > -200.0f) {
+		text::add_line_with_condition(state, contents, "ai_alliance_minimum_relation", state.world.diplomatic_relation_get_value(rel) >= state.defines.relation_limit_no_alliance_offer, indent);
+	}
 
-	text::add_line(state, contents, "kierkegaard_1", indent);
+	int32_t current_score = -50;
+	text::add_line(state, contents, "ai_alliance_base_reluctance", text::variable_type::x, current_score);
+	auto from = state.local_player_nation;
+	{
+		int32_t f = (alliance_factors::has_our_core(state, target, from)) ? int32_t(-1000) : int32_t(0);
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_has_our_cores", text::variable_type::x, f);
+	}
+	{
+		int32_t f = 0;
+		if(nations::is_great_power(state, from)) {
+			uint32_t upper_gp_ally_limit = (state.military_definitions.great_wars_enabled) ? uint32_t(2) : uint32_t(1);
+			if(alliance_factors::number_of_gp_allies(state, target) >= upper_gp_ally_limit)
+				f -= 1000;
+			else if(nations::is_great_power(state, target) && alliance_factors::number_of_gp_allies(state, from) >= upper_gp_ally_limit)
+				f -= 1000;
+		}
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_number_of_gp_allies", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::number_of_alliances(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_number_of_alliances", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::relationship(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_relationship", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::opinion(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_opinion", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::sphere_of_influence(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_same_sphere", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::infamy(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_infamy", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::current_wars(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_current_wars", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::ai_political_considerations(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_political_considerations", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::civilization_difference(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_civilization_difference", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::military_difference(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_ai_military_difference", text::variable_type::x, f);
+	}
+	{
+		auto f = int32_t(alliance_factors::distance(state, target, from));
+		current_score += f;
+		if(f != 0)
+			text::add_line(state, contents, "ai_alliance_ai_distance", text::variable_type::x, f);
+	}
+	text::add_line_with_condition(state, contents, "ai_alliance_total_score", current_score > 0, text::variable_type::x, current_score, indent);
+}
 
-	text::add_line_with_condition(state, contents, "ai_alliance_5", ai_has_mutual_enemy(state, state.local_player_nation, target), indent + 15);
+bool ai_will_cancel_alliance(sys::state& state, dcon::nation_id this_nation, dcon::nation_id ally) {
+	// don't cancel the alliance if we're on the same side in an active war
+	if(military::are_allied_in_war(state, this_nation, ally))
+		return false;
 
-	text::add_line(state, contents, "kierkegaard_2", indent);
+	// too infamous
+	if(state.world.nation_get_infamy(ally) >= state.defines.badboy_limit)
+		return true;
 
-	text::add_line_with_condition(state, contents, "ai_alliance_2", ai_is_close_enough(state, target, state.local_player_nation), indent + 15);
+	// enforce upper limit on GP allies
+	if(nations::is_great_power(state, ally) && alliance_factors::too_many_gp_allies(state, ally, this_nation))
+		return true;
 
-	text::add_line_with_condition(state, contents, "ai_alliance_3", state.world.nation_get_ai_rival(target) != state.local_player_nation && state.world.nation_get_ai_rival(state.local_player_nation) != target, indent + 15);
+	// vassals are free allies so don't cancel alliance
+	if(state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(ally)) == this_nation)
+		return false;
 
-	auto target_score = estimate_strength(state, target);
-	auto source_score = estimate_strength(state, state.local_player_nation);
-	text::add_line_with_condition(state, contents, "ai_alliance_4", std::max<float>(source_score, 1.f) * ally_overestimate >= target_score, indent + 15);
+	// cancel alliance with someone who has our core
+	if(alliance_factors::has_our_core(state, this_nation, ally))
+		return true;
+
+	float current_score = 50.0f; // base reluctance to change
+
+	// relationship
+	current_score += alliance_factors::relationship(state, this_nation, ally);
+
+	// opinion
+	current_score += alliance_factors::opinion(state, this_nation, ally);
+
+	// check if in same sphere
+	current_score += alliance_factors::sphere_of_influence(state, this_nation, ally);
+
+	// political considerations
+	current_score += alliance_factors::ai_political_considerations(state, this_nation, ally);
+
+	// power differential
+	current_score += alliance_factors::military_difference(state, this_nation, ally);
+
+	// current wars
+	current_score += alliance_factors::current_wars(state, this_nation, ally);
+
+	// at this point we will only consider factors that have a negative contribution
+	// to the score so we can do a quick check to see if we need to do those
+	if(current_score < 0.0f)
+		return true;
+
+	// infamy
+	current_score += alliance_factors::infamy(state, this_nation, ally);
+
+	// allies
+	current_score += alliance_factors::number_of_alliances(state, this_nation, ally);
+
+	// civ/unciv relations
+	current_score += alliance_factors::civilization_difference(state, this_nation, ally);
+
+	// distance
+	current_score += alliance_factors::distance(state, this_nation, ally);
+
+	return current_score < 0.0f;
 }
 
 bool ai_will_grant_access(sys::state& state, dcon::nation_id target, dcon::nation_id from) {

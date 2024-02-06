@@ -695,6 +695,7 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);

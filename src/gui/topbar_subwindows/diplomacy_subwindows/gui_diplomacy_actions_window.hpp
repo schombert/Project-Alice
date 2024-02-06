@@ -1065,6 +1065,10 @@ public:
 		if(state.world.nation_get_diplomatic_points(source) < state.defines.make_cb_diplomatic_cost)
 			disabled = true;
 
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+		if(state.world.diplomatic_relation_get_value(rel) >= state.defines.make_cb_relation_limit)
+			disabled = true;
+
 		if(military::are_at_war(state, target, source))
 			disabled = true;
 	}
@@ -1105,7 +1109,9 @@ public:
 
 		text::add_line_with_condition(state, contents, "fab_explain_6", !military::are_at_war(state, target, source));
 
-
+		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(source, target);
+		if(state.defines.make_cb_relation_limit < 200.0f)
+			text::add_line_with_condition(state, contents, "fab_explain_7", state.world.diplomatic_relation_get_value(rel) < state.defines.make_cb_relation_limit);
 	}
 };
 

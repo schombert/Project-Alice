@@ -262,6 +262,7 @@ dcon::technology_id current_research(sys::state const& state, dcon::nation_id n)
 float suppression_points(sys::state const& state, dcon::nation_id n);
 
 float diplomatic_points(sys::state const& state, dcon::nation_id n);
+dcon::diplomatic_relation_id get_diplomatic_relation(sys::state& state, dcon::nation_id a, dcon::nation_id b, bool force_create = false);
 float monthly_diplomatic_points(sys::state const& state, dcon::nation_id n);
 
 float leadership_points(sys::state const& state, dcon::nation_id n);
@@ -293,6 +294,9 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+void get_allies(sys::state& state, dcon::nation_id n, std::vector<dcon::nation_id>& allies);
+bool in_same_sphere(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+bool are_neighbors(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 
 bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
 military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
