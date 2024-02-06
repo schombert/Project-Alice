@@ -372,7 +372,7 @@ void presimulate(sys::state& state) {
 			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
 				auto adj_pop_of_type = state.world.nation_get_demographics(n, demographics::to_key(state, pt)) / needs_scaling_factor;
 
-				float base_life = state.world.pop_type_get_life_needs(pt, c);
+				float base_life = state.world.pop_type_get_life_needs(pt, c) * 0.9f;
 				float base_everyday = state.world.pop_type_get_everyday_needs(pt, c) * 0.8f;
 				float base_luxury = state.world.pop_type_get_luxury_needs(pt, c) * 0.1f;
 
@@ -2039,8 +2039,8 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, ve::vectorizab
 			float total_cost = ln_cost + en_cost + xn_cost;
 
 			if((total_budget > 0.f)) {
-				float life_needs_budget		= total_budget * 0.05f;
-				float everyday_needs_budget = total_budget * 0.55f;
+				float life_needs_budget		= total_budget * 0.20f;
+				float everyday_needs_budget = total_budget * 0.40f;
 				float luxury_needs_budget	= total_budget * 0.40f;
 
 				float induced_life_needs_demand = life_needs_budget / std::max(0.001f, ln_cost);
