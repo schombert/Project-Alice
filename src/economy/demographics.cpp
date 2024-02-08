@@ -952,7 +952,7 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	the literacy of each pop changes by:
 	0.01
 	x define:LITERACY_CHANGE_SPEED
-	x education-spending
+	x (0.5 + 0.5 * education-spending)
 	x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) /
 	(define:MAX_CLERGY_FOR_LITERACY
 	- define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0).
@@ -969,8 +969,8 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 
 		auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-		auto espending =
-				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
+		auto espending = 0.5f + 
+				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner) * 0.5f;
 		auto cmod = ve::max(0.0f, ve::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
 																	(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
 

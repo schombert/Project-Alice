@@ -755,14 +755,14 @@ void initialize(sys::state& state) {
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
 
-		float pop_amount = 0.0f;
-		for(auto pt : state.world.in_pop_type) {
-			if(pt == state.culture_definitions.slaves) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-			} else if(pt.get_is_paid_rgo_worker()) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
-			}
-		}
+		//float pop_amount = 0.0f;
+		//for(auto pt : state.world.in_pop_type) {
+		//	if(pt == state.culture_definitions.slaves) {
+		//		pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
+		//	} else if(pt.get_is_paid_rgo_worker()) {
+		//		pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
+		//	}
+		//}
 
 		//auto amount = std::ceil(1.1f * pop_amount / rgo_per_size_employment);
 		auto amount = std::ceil(1'000'000.f / rgo_per_size_employment);
@@ -3036,6 +3036,12 @@ void daily_update(sys::state& state) {
 					}
 					float total_rgo_profit = state.world.province_get_rgo_full_profit(p);
 					float total_worker_wage = 0.0f;
+
+					if(num_rgo_owners > 0) {
+						// owners ALWAYS get some chunk of income
+						rgo_owner_profit += 0.3f * total_rgo_profit;
+						total_rgo_profit = 0.7f * total_rgo_profit;
+					}
 
 					if(total_min_to_workers <= total_rgo_profit && num_rgo_owners > 0) {
 						total_worker_wage = total_min_to_workers + (total_rgo_profit - total_min_to_workers) * 0.2f;
