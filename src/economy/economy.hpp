@@ -121,7 +121,7 @@ inline constexpr float production_scale_delta = 0.001f;
 inline constexpr uint32_t price_history_length = 256;
 
 //
-inline constexpr float domestic_investment_multiplier = 2.f;
+inline constexpr float domestic_investment_multiplier = 2.0f;
 
 // rgo
 inline constexpr float rgo_overhire_multiplier = 10.f;

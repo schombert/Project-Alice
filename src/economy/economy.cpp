@@ -1857,13 +1857,13 @@ float full_spending_cost(sys::state& state, dcon::nation_id n, ve::vectorizable_
 	assert(std::isfinite(total) && total >= 0.0f);
 	// direct payments to pops
 
-	auto const a_spending = float(state.world.nation_get_administrative_spending(n)) / 100.0f;
+	auto const a_spending = float(state.world.nation_get_administrative_spending(n)) / 100.0f * float(state.world.nation_get_administrative_spending(n)) / 100.0f;
 	auto const s_spending = state.world.nation_get_administrative_efficiency(n) * float(state.world.nation_get_social_spending(n)) / 100.0f;
-	auto const e_spending = float(state.world.nation_get_education_spending(n)) / 100.0f;
-	auto const m_spending = float(state.world.nation_get_military_spending(n)) / 100.0f;
+	auto const e_spending = float(state.world.nation_get_education_spending(n)) * float(state.world.nation_get_education_spending(n)) / 100.0f / 100.0f;
+	auto const m_spending = float(state.world.nation_get_military_spending(n)) * float(state.world.nation_get_military_spending(n)) / 100.0f / 100.f;
 	auto const p_level = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level);
 	auto const unemp_level = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit);
-	auto const di_spending = float(state.world.nation_get_domestic_investment_spending(n)) / 100.0f;
+	auto const di_spending = float(state.world.nation_get_domestic_investment_spending(n)) * float(state.world.nation_get_domestic_investment_spending(n)) / 100.0f / 100.0f;
 
 	total += domestic_investment_multiplier * di_spending *
 		(state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.capitalists))
@@ -2711,14 +2711,14 @@ void daily_update(sys::state& state) {
 		auto pop_of_type = state.world.pop_get_size(ids);
 		auto adj_pop_of_type = pop_of_type / needs_scaling_factor;
 
-		auto const a_spending = owner_spending * ve::to_float(state.world.nation_get_administrative_spending(owners)) / 100.0f;
+		auto const a_spending = owner_spending * ve::to_float(state.world.nation_get_administrative_spending(owners)) * ve::to_float(state.world.nation_get_administrative_spending(owners)) / 100.0f / 100.f;
 		auto const s_spending = owner_spending * state.world.nation_get_administrative_efficiency(owners) *
 														ve::to_float(state.world.nation_get_social_spending(owners)) / 100.0f;
-		auto const e_spending = owner_spending * ve::to_float(state.world.nation_get_education_spending(owners)) / 100.0f;
-		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f;
+		auto const e_spending = owner_spending * ve::to_float(state.world.nation_get_education_spending(owners)) * ve::to_float(state.world.nation_get_education_spending(owners)) / 100.0f / 100.f;
+		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f / 100.0f;
 		auto const p_level = state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::pension_level);
 		auto const unemp_level = state.world.nation_get_modifier_values(owners, sys::national_mod_offsets::unemployment_benefit);
-		auto const di_level = owner_spending * ve::to_float(state.world.nation_get_domestic_investment_spending(owners)) / 100.0f;
+		auto const di_level = owner_spending * ve::to_float(state.world.nation_get_domestic_investment_spending(owners)) * ve::to_float(state.world.nation_get_domestic_investment_spending(owners)) / 100.0f / 100.f;
 
 		auto types = state.world.pop_get_poptype(ids);
 
@@ -3778,9 +3778,20 @@ float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
 	auto adj_pop_of_type_capis = (state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.capitalists))) / economy::needs_scaling_factor;
 	auto adj_pop_of_type_arist = (state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.aristocrat))) / economy::needs_scaling_factor;
 
-	return domestic_investment_multiplier * (
-		adj_pop_of_type_capis * state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.capitalists)
-		+ adj_pop_of_type_arist * state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.aristocrat)
+	float arist_costs =
+		state.world.nation_get_life_needs_costs(n, state.culture_definitions.aristocrat)
+		+ state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.aristocrat)
+		+ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.aristocrat);
+
+	float capis_costs =
+		state.world.nation_get_life_needs_costs(n, state.culture_definitions.capitalists)
+		+ state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.capitalists)
+		+ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.capitalists);
+
+	return domestic_investment_multiplier
+	* (
+		adj_pop_of_type_capis * capis_costs
+		+ adj_pop_of_type_arist * arist_costs
 	);
 }
 

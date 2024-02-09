@@ -3102,14 +3102,15 @@ void update_budget(sys::state& state) {
 		float base_income = economy::estimate_daily_income(state, n);
 
 		// they don't have to add up to 1.f
-		// the reason they are there is to slow down AI spendings
+		// the reason they are there is to slow down AI spendings,
+		// make them more or less balanced
 		// and stabilize economy faster
 		// not to allow it to hoard money
 
 		float land_budget_ratio				= 0.15f;
 		float sea_budget_ratio				= 0.05f;
 		float education_budget_ratio		= 0.30f;
-		float investments_budget_ratio		= 0.10f;
+		float investments_budget_ratio		= 0.05f;
 		float soldiers_budget_ratio			= 0.40f;
 		float construction_budget_ratio		= 0.50f;
 		float administration_budget_ratio	= 0.30f;
@@ -3130,6 +3131,10 @@ void update_budget(sys::state& state) {
 		}
 		float land_budget = land_budget_ratio * base_income;
 		float naval_budget = sea_budget_ratio * base_income;
+		float education_budget = education_budget_ratio * base_income;
+		float construction_budget = construction_budget_ratio * base_income;
+		float administration_budget = administration_budget_ratio * base_income;
+		float soldiers_budget = soldiers_budget_ratio * base_income;
 
 		float ratio_land = 100.f * land_budget / (1.f + economy::estimate_land_spending(state, n));
 		float ratio_naval = 100.f * naval_budget / (1.f + economy::estimate_naval_spending(state, n));
@@ -3139,33 +3144,36 @@ void update_budget(sys::state& state) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 
-		float education_budget = education_budget_ratio * base_income;
-		float ratio_education = std::clamp(
-			100.f * education_budget / (1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education))
-			, 1.f, 100.f);
-		n.set_education_spending(int8_t(ratio_education));
 
-		float construction_budget = construction_budget_ratio * base_income;
 		float ratio_construction = 100.f * construction_budget / (1.f + economy::estimate_construction_spending(state, n));
 		ratio_construction = std::clamp(ratio_construction, 1.f, 100.f);
 		n.set_construction_spending(int8_t(ratio_construction));
 
+		
+		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
+		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
+		float max_admin_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::administration);
+
+
+		// solving x^2 * max = desired
+		float ratio_education = 100.f * math::sqrt(education_budget / max_education_budget);
+		ratio_education = std::clamp(ratio_education, 1.f, 100.f);
+		n.set_education_spending(int8_t(ratio_education));		
+
 		if(n.get_is_civilized()) {
 			float investment_budget = investments_budget_ratio * base_income;
-			float investment_ratio = 100.f * investment_budget / (1.f + economy::estimate_domestic_investment(state, n));
+			float max_investment_budget = 1.f + economy::estimate_domestic_investment(state, n);
+			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
 			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
-
 			n.set_domestic_investment_spending(int8_t(investment_ratio));
 		} else {
 			n.set_domestic_investment_spending(int8_t(0));
 		}
-
-		float soldiers_budget = soldiers_budget_ratio * base_income;
-		float soldiers_max_ratio = 100.f * soldiers_budget / (1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military));
+				
+		float soldiers_max_ratio = 100.f * math::sqrt(soldiers_budget / max_soldiers_budget);
 		soldiers_max_ratio = std::clamp(soldiers_max_ratio, 0.f, 100.f);
-
-		float administration_budget = administration_budget_ratio * base_income;
-		float administration_max_ratio = 100.f * administration_budget / (1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::administration));
+				
+		float administration_max_ratio = 100.f * math::sqrt(administration_budget / max_admin_budget);
 		administration_max_ratio = std::clamp(administration_max_ratio, 0.f, 100.f);
 
 		n.set_tariffs(int8_t(0));
