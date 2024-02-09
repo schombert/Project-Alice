@@ -888,6 +888,7 @@ fab_explain_3;You are not currently fabricating a casus belli
 fab_explain_4;You are an independent nation or the target is your overlord
 fab_explain_5;The target is not in your sphere of influence
 fab_explain_6;You are not currently at war with the target
+fab_explain_7;You can fabricate a casus belli
 peace_description;Make a peace offer to end hostilities between you and this nation
 peace_explain_1;Is not a subject nation
 peace_explain_2;The target is not a subject nation
