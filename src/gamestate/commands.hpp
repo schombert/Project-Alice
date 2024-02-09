@@ -100,6 +100,7 @@ enum class command_type : uint8_t {
 	state_transfer = 91,
 	release_subject = 92,
 	enable_debt = 93,
+	move_capital = 94,
 
 	// network
 	notify_player_ban = 106,
@@ -790,6 +791,9 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled);
+
+void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 /*
 PEACE OFFER COMMANDS:
