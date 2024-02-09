@@ -1017,9 +1017,10 @@ class price_chart_high : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		float max_price = state.world.commodity_get_price_record(com, 0);
-
+		
 		auto newest_index = economy::most_recent_price_record_index(state);
+		float max_price = state.world.commodity_get_price_record(com, newest_index);
+
 		for(int32_t i = 1; i < 32; ++i) {
 			max_price = std::max(state.world.commodity_get_price_record(com, (newest_index + i + economy::price_history_length - 32) % economy::price_history_length), max_price);
 		}
@@ -1031,9 +1032,10 @@ class price_chart_low : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
-		float min_price = state.world.commodity_get_price_record(com, 0);
-
+		
 		auto newest_index = economy::most_recent_price_record_index(state);
+		float min_price = state.world.commodity_get_price_record(com, newest_index);
+
 		for(int32_t i = 1; i < 32; ++i) {
 			min_price = std::min(state.world.commodity_get_price_record(com, (newest_index + i + economy::price_history_length - 32) % economy::price_history_length), min_price);
 		}
