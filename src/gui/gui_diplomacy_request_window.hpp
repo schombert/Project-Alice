@@ -346,7 +346,7 @@ public:
 			set_visible(state, false);
 		}
 
-		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
+		count_text->set_text(state, std::to_string(int32_t(index + 1)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(messages.empty()) {
