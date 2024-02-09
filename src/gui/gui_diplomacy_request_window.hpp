@@ -349,10 +349,14 @@ public:
 		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(index >= int32_t(messages.size()))
+		if(messages.empty()) {
 			index = 0;
-		else if(index < 0)
-			index = int32_t(messages.size()) - 1;
+		} else {
+			if(index >= int32_t(messages.size()))
+				index = 0;
+			else if(index < 0)
+				index = int32_t(messages.size()) - 1;
+		}
 
 		if(payload.holds_type<dcon::nation_id>()) {
 			if(messages.empty()) {
