@@ -1590,6 +1590,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
 
+	if(ui_state.tl_chat_list) {
+		ui_state.root->move_child_to_front(ui_state.tl_chat_list);
+	}
+
 	if(map_state.get_zoom() > 5) {
 		if(!ui_state.ctrl_held_down) {
 			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
@@ -1742,9 +1746,9 @@ void state::on_create() {
 		new_elm->base_data.position.x += 156; // nudge
 		new_elm->base_data.position.y += 24; // nudge
 		new_elm->impl_on_update(*this);
+		ui_state.tl_chat_list = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
-
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window = window.get();
