@@ -22,6 +22,16 @@ void map_state::load_map(sys::state& state) {
 	map_data.load_map(state);
 }
 
+map_view map_state::current_view(sys::state& state) {
+	auto current_view = map::map_view::globe;
+	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
+		current_view = map::map_view::flat;
+	} else if(state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
+		current_view = map::map_view::globe_perspect;
+	}
+	return current_view;
+}
+
 void map_state::set_selected_province(dcon::province_id prov_id) {
 	unhandled_province_selection = selected_province != prov_id;
 	selected_province = prov_id;
@@ -31,7 +41,7 @@ void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) 
 	update(state);
 	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
 	map_data.render(state, glm::vec2(screen_x, screen_y), offset, zoom,
-			state.user_settings.map_is_globe ? map_view::globe : map_view::flat, active_map_mode, globe_rotation, time_counter);
+			current_view(state), active_map_mode, globe_rotation, time_counter);
 }
 
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
@@ -47,7 +57,7 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	auto& vertex = map_data.border_vertices[border.start_index + border.count / 2];
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
-	return vertex.position_ * map_size;
+	return vertex.position * map_size;
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
@@ -67,48 +77,27 @@ glm::vec2 get_army_location(sys::state& state, dcon::province_id prov_id) {
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
+	map_data.unit_arrow_counts.clear();
+	map_data.unit_arrow_starts.clear();
 
 	for(auto selected_army : state.selected_armies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_army_path(state, map_data.unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 	for(auto selected_navy : state.selected_navies) {
+		auto old_size = map_data.unit_arrow_vertices.size();
+		map_data.unit_arrow_starts.push_back(GLint(old_size));
 		map::make_navy_path(state, map_data.unit_arrow_vertices, selected_navy, float(map_data.size_x), float(map_data.size_y));
+		map_data.unit_arrow_counts.push_back(GLsizei(map_data.unit_arrow_vertices.size() - old_size));
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, map_data.unit_arrow_vbo);
-	if(map_data.unit_arrow_vertices.size() > 0) {
-		glBufferData(GL_ARRAY_BUFFER, sizeof(unit_arrow_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+	if(!map_data.unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_unit_arrow]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.unit_arrow_vertices.size(), map_data.unit_arrow_vertices.data(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	/*
-	std::vector<std::vector<glm::vec2>> arrows;
-	std::vector<float> progresses;
-	for(auto selected_army : state.selected_armies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_army));
-
-		auto current_pos = state.world.army_get_location_from_army_location(selected_army);
-		auto path = state.world.army_get_path(selected_army);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_army_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto army_pos = get_army_location(state, path[i]);
-			arrows.back().push_back(army_pos);
-		}
-	}
-	for(auto selected_navy : state.selected_navies) {
-		progresses.push_back(military::fractional_distance_covered(state, selected_navy));
-
-		auto current_pos = state.world.navy_get_location_from_navy_location(selected_navy);
-		auto path = state.world.navy_get_path(selected_navy);
-		arrows.push_back(std::vector<glm::vec2>());
-		arrows.back().push_back(get_navy_location(state, current_pos));
-		for(auto i = path.size(); i-- > 0;) {
-			auto navy_pos = get_navy_location(state, path[i]);
-			arrows.back().push_back(navy_pos);
-		}
-	}
-	map_data.set_unit_arrows(arrows, progresses);
-	*/
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
@@ -182,7 +171,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// [ x1^0 x1^1 x1^2 x1^3 ]
 			// [ ...  ...  ...  ...  ]
 			// [ xn^0 xn^1 xn^2 xn^3 ]
-			
 			// [AB]i,j = sum(n, r=1, a_(i,r) * b(r,j))
 			// [ x0^0 x0^1 x0^2 x0^3 ] * [ x0^0 x1^0 ... xn^0 ] = [ a0 a1 a2 ... an ]
 			// [ x1^0 x1^1 x1^2 x1^3 ] * [ x0^1 x1^1 ... xn^1 ] = [ b0 b1 b2 ... bn ]
@@ -231,19 +219,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		bool use_linear = false;
 		if(state.user_settings.map_label == sys::map_label_mode::quadratic || use_quadratic) {
 			// Now lets try quadratic
-
-			/*
-			std::vector<std::array<float, 3>> mx;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					auto e = p2.get_mid_point();
-					e -= basis;
-					e /= ratio;
-					mx.push_back(std::array<float, 3>{ 1.f, e.x, e.x* e.x });
-				}
-			}
-			*/
-
 			glm::mat3x3 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
@@ -286,17 +261,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
 			// Now lets try linear
-			/*
-			std::vector<std::array<float, 2>> mx;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					auto e = p2.get_mid_point();
-					e -= basis;
-					e /= ratio;
-					mx.push_back(std::array<float, 2>{ 1.f, e.x });
-				}
-			}
-			*/
 			glm::mat2x2 m0(0.f);
 			for(glm::length_t i = 0; i < m0.length(); i++)
 				for(glm::length_t j = 0; j < m0.length(); j++)
@@ -311,21 +275,32 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			for(glm::length_t i = 0; i < mo.length(); i++)
 				for(glm::length_t j = 0; j < mo.length(); j++)
 					mo[i] += m0[i][j] * m1[j];
+
 			// y = a + bx
 			// y = mo[0] + mo[1] * x
-			text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
+			auto poly_fn = [&](float x) {
+				return mo[0] + mo[1] * x;
+			};
+			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
+				text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
 		}
 	}
 	map_data.set_text_lines(state, text_data);
 }
 
 void map_state::update(sys::state& state) {
-	std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 	// Set the last_update_time if it hasn't been set yet
-	if(last_update_time == std::chrono::time_point<std::chrono::system_clock>{})
+	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
 
 	update_unit_arrows(state, map_data);
+
+	// Update railroads, only if railroads are being built and we have 'em enabled
+	if(state.user_settings.railroads_enabled && state.railroad_built.load(std::memory_order::acquire)) {
+		state.map_state.map_data.update_railroad_paths(state);
+		state.railroad_built.store(false, std::memory_order::release);
+	}
 
 	auto microseconds_since_last_update = std::chrono::duration_cast<std::chrono::microseconds>(now - last_update_time);
 	float seconds_since_last_update = (float)(microseconds_since_last_update.count() / 1e6);
@@ -352,27 +327,44 @@ void map_state::update(sys::state& state) {
 		arrow_key_velocity_vector *= 0.175f;
 		pos_velocity += arrow_key_velocity_vector;
 	}
+
+	if(state.user_settings.mouse_edge_scrolling) {
+		glm::vec2 mouse_pos_percent{ state.mouse_x_position / float(state.x_size), state.mouse_y_position / float(state.y_size) };
+		glm::vec2 cursor_velocity_vector{ 0.0f, 0.0f };
+
+		//check if mouse is at edge of screen, in order to move the map
+		if(mouse_pos_percent.x < 0.02f) {
+			cursor_velocity_vector.x -= 1.f;
+		} else if(mouse_pos_percent.x > 0.98f) {
+			cursor_velocity_vector.x += 1.f;
+		}
+		if(mouse_pos_percent.y < 0.02f) {
+			cursor_velocity_vector.y -= 1.f;
+		} else if(mouse_pos_percent.y > 0.98f) {
+			cursor_velocity_vector.y += 1.f;
+		}
+	
+		// check if the vector length is not zero before normalizing
+		if(glm::length(cursor_velocity_vector) != 0.0f) {
+			cursor_velocity_vector = glm::normalize(cursor_velocity_vector);
+			cursor_velocity_vector *= 0.175f;
+			pos_velocity += cursor_velocity_vector;
+		}
+	}
+
 	pos_velocity /= 1.125;
 
-	glm::vec2 velocity;
-
-	velocity = pos_velocity * (seconds_since_last_update / zoom);
+	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
 	pos += velocity;
 
 	pos.x = glm::mod(pos.x, 1.f);
 	pos.y = glm::clamp(pos.y, 0.f, 1.f);
 
-	if(pgup_key_down) {
-		zoom_change += 0.1f;
-	}
-	if(pgdn_key_down) {
-		zoom_change -= 0.1f;
-	}
-
 	glm::vec2 mouse_pos{ state.mouse_x_position, state.mouse_y_position };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
-	auto view_mode = state.user_settings.map_is_globe ? map_view::globe : map_view::flat;
+	glm::vec2 screen_center = screen_size / 2.f;
+	auto view_mode = current_view(state);
 	glm::vec2 pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
 
@@ -383,7 +375,38 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
-		pos += pos_before_zoom - pos_after_zoom;
+		switch(state.user_settings.zoom_mode) {
+		case sys::map_zoom_mode::panning:
+			pos += pos_before_zoom - pos_after_zoom;
+			break;
+		case sys::map_zoom_mode::inverted:
+			pos -= pos_before_zoom - pos_after_zoom;
+			break;
+		case sys::map_zoom_mode::centered:
+			//no pos change
+			break;
+		}
+	}
+
+	static float keyboard_zoom_change = 0.f;
+	if(pgup_key_down) {
+		keyboard_zoom_change += 0.1f;
+	}
+	if(pgdn_key_down) {
+		keyboard_zoom_change -= 0.1f;
+	}
+
+	glm::vec2 pos_before_keyboard_zoom;
+	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
+
+	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
+	zoom += keyboard_zoom_diff;
+	keyboard_zoom_change *= std::exp(-seconds_since_last_update * 20);
+	zoom = glm::clamp(zoom, min_zoom, max_zoom);
+
+	glm::vec2 pos_after_keyboard_zoom;
+	if(valid_pos && screen_to_map(screen_center, screen_size, view_mode, pos_after_keyboard_zoom)) {
+		pos += pos_before_keyboard_zoom - pos_after_keyboard_zoom;
 	}
 
 
@@ -504,7 +527,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		map_data.set_drag_box(true, pos1, pos2, pixel_size);
 	} else {
 		map_data.set_drag_box(false, {}, {}, {});
-	}
+	}	
 }
 
 bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {
@@ -529,6 +552,49 @@ bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_v
 			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
 			float pi = glm::pi<float>();
 			map_pos = glm::vec2((phi / (2 * pi)) + 0.5f, theta / pi);
+			return true;
+		}
+		return false;
+	} else if (view_mode == map_view::globe_perspect) {
+		float aspect_ratio = screen_size.x / screen_size.y;
+		float pi = glm::pi<float>();
+
+		//normalize screen
+		screen_pos -= screen_size * 0.5f;
+		screen_pos /= -screen_size;
+
+		//perspective values
+		float near_plane = 0.1f;
+		float far_plane = 1.2f;
+		float right = near_plane * tan(pi / 6.f) / zoom * aspect_ratio * 2.f;
+		float top = near_plane * tan(pi / 6.f) / zoom * 2.f;
+
+		//transform screen plane to near plane
+		screen_pos.x *= right;
+		screen_pos.y *= top;
+
+		//set up data for glm::intersectRaySphere
+		float cursor_radius = glm::length(screen_pos);
+		glm::vec3 camera = glm::vec3(0.f, 0.f, 0.f);
+		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, screen_pos.y, -near_plane);
+		glm::vec3 cursor_direction = glm::normalize(cursor_pos);
+		glm::vec3 sphere_center = glm::vec3(0.f, 0.f, -1.2f);
+		float sphere_radius = 1.f / pi;
+
+
+		glm::vec3 intersection_pos;
+		glm::vec3 intersection_normal;
+
+		if(glm::intersectRaySphere(camera, cursor_direction, sphere_center, sphere_radius, intersection_pos,
+			intersection_normal)) {
+			intersection_pos -= sphere_center;
+
+			intersection_pos = glm::vec3(-intersection_pos.x, -intersection_pos.z, intersection_pos.y);
+
+			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
+			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
+			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
+			map_pos = glm::vec2((phi / (2.f * pi)) + 0.5f, theta / pi);
 			return true;
 		}
 		return false;
@@ -577,7 +643,7 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 	if(mouse_diff.x <= std::ceil(screen_size_x * 0.0025f) && mouse_diff.y <= std::ceil(screen_size_y * 0.0025f)) {
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 		glm::vec2 map_pos;
-		if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+		if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 			return;
 		}
 		map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
@@ -603,7 +669,7 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	glm::vec2 map_pos;
-	if(!screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+	if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 		return;
 	}
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
@@ -619,7 +685,7 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	auto mouse_pos = glm::vec2(x, y);
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	glm::vec2 map_pos;
-	if(!map_state::screen_to_map(mouse_pos, screen_size, state.user_settings.map_is_globe ? map_view::globe : map_view::flat, map_pos)) {
+	if(!map_state::screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 		return dcon::province_id{};
 	}
 	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
@@ -637,76 +703,161 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 }
 
 bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos) {
-	if(state.user_settings.map_is_globe) {
-		glm::vec3 cartesian_coords;
-		float section = 200;
-		float pi = glm::pi<float>();
-		float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
-		float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
-		if(!std::isfinite(angle_x1)) {
-			assert(false);
-			angle_x1 = 0.0f;
+	switch(state.user_settings.map_is_globe) {
+	case sys::projection_mode::globe_ortho:
+		{
+			glm::vec3 cartesian_coords;
+			float section = 200;
+			float pi = glm::pi<float>();
+			float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
+			float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
+			if(!std::isfinite(angle_x1)) {
+				assert(false);
+				angle_x1 = 0.0f;
+			}
+			if(!std::isfinite(angle_x2)) {
+				assert(false);
+				angle_x2 = 0.0f;
+			}
+			if(!std::isfinite(map_pos.x)) {
+				assert(false);
+				map_pos.x = 0.0f;
+			}
+			if(!std::isfinite(map_pos.y)) {
+				assert(false);
+				map_pos.y = 0.0f;
+			}
+			cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
+			cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
+
+			float angle_y = (1.f - map_pos.y) * pi;
+			cartesian_coords.x *= std::sin(angle_y);
+			cartesian_coords.y *= std::sin(angle_y);
+			cartesian_coords.z = std::cos(angle_y);
+			cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
+			cartesian_coords /= glm::pi<float>();
+			cartesian_coords.x *= -1;
+			cartesian_coords.y *= -1;
+			if(cartesian_coords.y > 0) {
+				return false;
+			}
+			cartesian_coords += glm::vec3(0.5f);
+
+			screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.z);
+			screen_pos = (2.f * screen_pos - glm::vec2(1.f));
+			screen_pos *= zoom;
+			screen_pos.x *= screen_size.y / screen_size.x;
+			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
+			screen_pos *= screen_size;
+			return true;
 		}
-		if(!std::isfinite(angle_x2)) {
-			assert(false);
-			angle_x2 = 0.0f;
+	case sys::projection_mode::globe_perpect:
+		{
+			float aspect_ratio = screen_size.x / screen_size.y;
+
+			glm::vec3 cartesian_coords;
+			float section = 200;
+			float angle_x1 = 2.f * glm::pi<float>() * std::floor(map_pos.x * section) / section;
+			float angle_x2 = 2.f * glm::pi<float>() * std::floor(map_pos.x * section + 1) / section;
+			if(!std::isfinite(angle_x1)) {
+				assert(false);
+				angle_x1 = 0.0f;
+			}
+			if(!std::isfinite(angle_x2)) {
+				assert(false);
+				angle_x2 = 0.0f;
+			}
+			if(!std::isfinite(map_pos.x)) {
+				assert(false);
+				map_pos.x = 0.0f;
+			}
+			if(!std::isfinite(map_pos.y)) {
+				assert(false);
+				map_pos.y = 0.0f;
+			}
+			cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
+			cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
+
+			float angle_y = (map_pos.y) * glm::pi<float>();
+			cartesian_coords.x *= std::sin(angle_y);
+			cartesian_coords.y *= std::sin(angle_y);
+			cartesian_coords.z = std::cos(angle_y);
+
+			glm::vec3 temp_vector = cartesian_coords;
+
+			// Apply rotation
+			cartesian_coords.z *= -1;
+			cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
+			cartesian_coords.z *= -1;
+
+			cartesian_coords /= glm::pi<float>(); // Will make the zoom be the same for the globe and flat map
+			cartesian_coords.x *= -1;
+			cartesian_coords.z *= -1;
+
+			float temp = cartesian_coords.z;
+			cartesian_coords.z = cartesian_coords.y;
+			cartesian_coords.y = temp;
+
+			// shift the globe away from camera
+			cartesian_coords.z -= 1.2f;
+			float near_plane = 0.1f;
+
+			// optimal far plane for culling out invisible part of a planet
+			constexpr float tangent_length_square = 1.2f * 1.2f - 1 / glm::pi<float>() / glm::pi<float>();
+			float far_plane = tangent_length_square / 1.2f;
+
+			float right = near_plane * tan(glm::pi<float>() / 6.f) / zoom;
+			float top = near_plane * tan(glm::pi<float>() / 6.f) / zoom;
+
+			cartesian_coords.x *= near_plane / right;
+			cartesian_coords.y *= near_plane / top;
+
+			// depth calculations just for reference
+			float w = -cartesian_coords.z;
+			cartesian_coords.z = -(far_plane + near_plane) / (far_plane - near_plane) * cartesian_coords.z - 2 * far_plane * near_plane / (far_plane - near_plane);
+
+			if(cartesian_coords.z > far_plane) {
+				return false;
+			}
+
+			screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.y) / w;
+			//screen_pos = (2.f * screen_pos - glm::vec2(1.f));
+			//screen_pos *= zoom;
+			screen_pos.x *= screen_size.y / screen_size.x;
+			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
+			screen_pos *= screen_size;
+			return true;
 		}
-		if(!std::isfinite(map_pos.x)) {
-			assert(false);
-			map_pos.x = 0.0f;
+	case sys::projection_mode::flat:
+		{
+			map_pos -= pos;
+
+			if(map_pos.x >= 0.5f)
+				map_pos.x -= 1.0f;
+			if(map_pos.x < -0.5f)
+				map_pos.x += 1.0f;
+
+			map_pos *= zoom;
+
+			map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
+			map_pos.x *= screen_size.y / screen_size.x;
+			map_pos *= screen_size;
+			map_pos += screen_size * 0.5f;
+			screen_pos = map_pos;
+			if(screen_pos.x >= float(std::numeric_limits<int16_t>::max() / 2))
+				return false;
+			if(screen_pos.x <= float(std::numeric_limits<int16_t>::min() / 2))
+				return false;
+			if(screen_pos.y >= float(std::numeric_limits<int16_t>::max() / 2))
+				return false;
+			if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
+				return false;
+			return true;
 		}
-		if(!std::isfinite(map_pos.y)) {
-			assert(false);
-			map_pos.y = 0.0f;
-		}
-		cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
-		cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
-
-		float angle_y = (1.f - map_pos.y) * pi;
-		cartesian_coords.x *= std::sin(angle_y);
-		cartesian_coords.y *= std::sin(angle_y);
-		cartesian_coords.z = std::cos(angle_y);
-		cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
-		cartesian_coords /= glm::pi<float>();
-		cartesian_coords.x *= -1;
-		cartesian_coords.y *= -1;
-		if(cartesian_coords.y > 0) {
-			return false;
-		}
-		cartesian_coords += glm::vec3(0.5f);
-
-		screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.z);
-		screen_pos = (2.f * screen_pos - glm::vec2(1.f));
-		screen_pos *= zoom;
-		screen_pos.x *= screen_size.y / screen_size.x;
-		screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
-		screen_pos *= screen_size;
-		return true;
-	} else {
-
-		map_pos -= pos;
-
-		if(map_pos.x >= 0.5f)
-			map_pos.x -= 1.0f;
-		if(map_pos.x < -0.5f)
-			map_pos.x += 1.0f;
-
-		map_pos *= zoom;
-
-		map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
-		map_pos.x *= screen_size.y / screen_size.x;
-		map_pos *= screen_size;
-		map_pos += screen_size * 0.5f;
-		screen_pos = map_pos;
-		if(screen_pos.x >= float(std::numeric_limits<int16_t>::max() / 2))
-			return false;
-		if(screen_pos.x <= float(std::numeric_limits<int16_t>::min() / 2))
-			return false;
-		if(screen_pos.y >= float(std::numeric_limits<int16_t>::max() / 2))
-			return false;
-		if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
-			return false;
-		return true;
+	case sys::projection_mode::num_of_modes:
+		return false;
+	default:
+		return false;
 	}
 }
 

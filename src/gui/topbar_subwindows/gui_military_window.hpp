@@ -8,18 +8,24 @@
 
 namespace ui {
 
-class military_mob_button : public button_element_base {
+class military_mob_button : public right_click_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		command::toggle_mobilization(state, state.local_player_nation);
 	}
 
+	void button_right_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::toggle_mobilization(state, n);
+		command::toggle_mobilization(state, n);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.world.nation_get_is_mobilized(n)) {
-			set_button_text(state, text::produce_simple_string(state, "demobilize"));
+			set_button_text(state, text::produce_simple_string(state, "alice_demobilize"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "mobilize"));
+			set_button_text(state, text::produce_simple_string(state, "alice_mobilize"));
 		}
 	}
 
@@ -30,8 +36,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, true);
-		text::add_line_break_to_layout(state, contents);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, true);
+		text::add_line(state, contents, "alice_mob_controls");
 	}
 };
 
@@ -42,16 +48,13 @@ public:
 			progress = 0.0f;
 			return;
 		}
-	
 		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
 		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
 		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-
 		if(mob_size <= 0.0f) {
 			progress = 1.0f;
 			return;
 		}
-
 		progress = std::min(1.0f, mob_rem / mob_size);
 	}
 };
@@ -153,7 +156,7 @@ public:
 			return make_element_by_type<image_element_base>(state, id);
 
 		} else if(name == "bg_military") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<opaque_element_base>(state, id);
 
 		} else if(name == "headline_military") {
 			return make_element_by_type<simple_text_element_base>(state, id);

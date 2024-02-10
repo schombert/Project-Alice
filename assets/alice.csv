@@ -9,9 +9,20 @@ window_mode_label;Fullscreen;;;Pantalla completa;;;;;;;;;x
 map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
 map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
+map_projection_globe_perspective;Vertical
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
+zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
+zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
+zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
+river_label;Rivers;;;Rios;;;;;;;;;x
+vassal_color_label;Vassal coloring
+vassal_color_inherit;Inherit
+vassal_color_same;Same
+vassal_color_none;None
+render_models_label;Render models
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
+railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
 master_volume_label;Master volume;;;Volumen total;;;;;;;;;x
 music_volume_label;Music volume;;;Volumen de la musica;;;;;;;;;x
 interface_volume_label;Interface volume;;;Volumen de la interfaz;;;;;;;;;x
@@ -20,12 +31,26 @@ fonts_label;Classic fonts;;;Letra clasica;;;;;;;;;x
 tooltip_mode_label;Floating tooltip;;;;;;;;;;;;x
 music_player;Music player;;;Reproductor de musica;;;;;;;;;x
 gaussianblur_label;Gaussian blur;;;Desenfoque guassian;;;;;;;;;x
+gamma_label;Gamma;Gamma;Gamma;Gamma;;;;;;;;;x
 map_label;Map lettering;;;Letras del mapa;;;;;;;;;x
 map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+spoilers_label;Spoilers
+spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
+mapmode_23;Religion Mapmode;;;;;;;;;;;;x
+mapmode_24;Fort Mapmode
+mapmode_25;Ideology Mapmode
+mapmode_26;Income Mapmode
+mapmode_27;Conciousness Mapmode
+mapmode_28;Militancy Mapmode
+mapmode_29;Literacy Mapmode
+mapmode_30;Employment Mapmode
+mapmode_31;Factories Mapmode
+mapmode_32;Issues Mapmode
+mapmode_33;Growth Mapmode
 lg_min_mapmode_8;Low admin
 lg_min_mapmode_19;Uncivilized
 lg_min_mapmode_7;Uncolonized
@@ -37,6 +62,12 @@ lg_min_mapmode_20;Low relations
 lg_min_mapmode_3;Low revolt risk
 lg_min_mapmode_11;Low RGO output
 lg_min_mapmode_15;Low supply
+lg_min_mapmode_26;Low income
+lg_min_mapmode_27;Low conciousness
+lg_min_mapmode_28;Low militancy
+lg_min_mapmode_29;Low literacy
+lg_min_mapmode_30;Low employment
+lg_min_mapmode_33;Low growth
 lg_max_mapmode_8;High admin
 lg_max_mapmode_19;Civilized
 lg_max_mapmode_7;Colonizable
@@ -48,6 +79,12 @@ lg_max_mapmode_20;High relations
 lg_max_mapmode_3;High revolt risk
 lg_max_mapmode_11;High RGO output
 lg_max_mapmode_15;High supply
+lg_max_mapmode_26;High income
+lg_max_mapmode_27;High conciousness
+lg_max_mapmode_28;High militancy
+lg_max_mapmode_29;High literacy
+lg_max_mapmode_30;High employment
+lg_max_mapmode_33;High growth
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -61,7 +98,7 @@ empty_neighboring_province;Empty neighboring province;;;Provincia vecina vacia;;
 poor_strata_pop;poor strata pop;;;Pop de estrato pobre;;;;;;;;;x
 middle_strata_pop;middle strata pop;;;Pop de estrata media;;;;;;;;;x
 rich_strata_pop;rich strata pop;;;Pop de estrata rica;;;;;;;;;x
-pop;pop;;;Pop;;;;;;;;;x
+pop;Pop;Pop;Pop;Pop;Pop;Pop;;;;;;;x
 owned_province;province belonging to;;;Provincia perteneciente a;;;;;;;;;x
 singular_nation;that nation;;;Esa nacion;;;;;;;;;x
 singular_state;that state;;;Ese estado;;;;;;;;;x
@@ -101,7 +138,7 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
-change_rgo_production_to;Change rgo production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
+change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x
 union_culture_accepted;All cultures in the nation's primary culture group become accepted;;;Todas las culturas en el grupo primario de culturas de la nacion se vuelven aceptadas;;;;;;;;;x
@@ -218,6 +255,7 @@ railroad_in_capital;+1 railroad level in capital;;;+1 ferrocarril en la capital;
 railroad_in_capital_state;+1 railroad level in capital state;;;+1 ferrocarril en el estado capital;;;;;;;;;x
 fort_in_capital;+1 fort level in capital;;;+1 fortaleza en la capital;;;;;;;;;x
 fort_in_capital_state;+1 fort level in capital state;;;+1 fortaleza en el estado capital;;;;;;;;;x
+war_start_date_desc;War started in §Y$date$§W
 set_national_variable_to;Set national variable $text$ to $value$;;;;;;;;;;;;x
 increase_national_variable_by;Increase national variable $text$ by $value$;;;;;;;;;;;;x
 decrease_national_variable_by;Decrease national variable $text$ by $value$;;;;;;;;;;;;x
@@ -269,7 +307,7 @@ technology_school;technology school;;;Escuela de tecnologia;;;;;;;;;x
 primary_culture;primary culture;;;Cultura primaria;;;;;;;;;x
 primary_culture_pop;the primary culture of the nation the pop is in;;;;;;;;;;;;x
 an_accepted_culture;an accepted culture;;;Una cultura aceptada;;;;;;;;;x
-culture;culture;;;Cultura;;;;;;;;;x
+culture;Culture;;;Cultura;;;;;;;;;x
 dominant_culture;dominant culture;;;Cultura dominante;;;;;;;;;x
 a_primary_or_accepted;a primary or accepted culture;;;Una cultura primaria o aceptada;;;;;;;;;x
 rebel_culture;rebel culture;;;Cultura rebelde;;;;;;;;;x
@@ -286,7 +324,7 @@ rebel_religion;the rebel religion;;;Religion rebelde;;;;;;;;;x
 this_nation_religion;the national religion of this nation;;;La religion nacional de esta nacion;;;;;;;;;x
 from_nation_religion;the national religion of the from nation;;;La religion nacional de esa nacion;;;;;;;;;x
 province_terrain;province terrain;;;Terreno de provincia;;;;;;;;;x
-rgo_production;Rgo production;;;Produccion de RGO;;;;;;;;;x
+rgo_production;RGO production;;;Produccion de RGO;;;;;;;;;x
 a_secondary_power;a colonial power;;;Un poder colonial;;;;;;;;;x
 owner;owner;;;Dueï¿½o;;;;;;;;;x
 an_active_rebel;an active rebel faction;;;Una faccion activa;;;;;;;;;x
@@ -318,7 +356,7 @@ num_of_vassals;number of vassals;;;Numero de subyugados;;;;;;;;;x
 owned_by;owned by;;;Propiedad de;;;;;;;;;x
 exists;exists;;;Existe;;;;;;;;;x
 does_not_exist;does not exist;;;No existe;;;;;;;;;x
-set;set;;;Establece;;;;;;;;;x
+att_set;set;;;Establece;;;;;;;;;x
 in;in;;;En;;;;;;;;;x
 located_in;located in;;;;;;;;;;;;x
 the_owner_of_region;the owner of every province in;;;;;;;;;;;;x
@@ -523,7 +561,6 @@ factory_upgrade_condition_7;The investment target is not at war with you;;;;;;;;
 factory_upgrade_condition_8;The ruling party allows upgrading factories;;;;;;;;;;;;x
 factory_upgrade_condition_9;The factory is not already being upgraded;;;;;;;;;;;;x
 factory_upgrade_condition_10;The factory is not at max level;;;;;;;;;;;;x
-factory_upgrade_shift_explanation;Holding shift while clicking will result in all profitable factories with full employment being upgraded.;;;;;;;;;;;;x
 factory_delete_header;Delete factory;;;;;;;;;;;;x
 factory_delete_not_allowed;The ruling party does not allow us to delete factories;;;;;;;;;;;;x
 factory_stats_1;This factory is currently operating at $val$ capacity;;;;;;;;;;;;x
@@ -533,7 +570,13 @@ factory_stats_4;It made a profit of $val$ in the previous day;;;;;;;;;;;;x
 factory_stats_5;Inputs availability:;;;;;;;;;;;;x
 factory_stats_6;Efficiency inputs availability:;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
-shift_to_hold_open;Hold shift to keep this window open;;;;;;;;;;;;x
+shift_to_hold_open;Hold §YSHIFT§W to keep this window open, §YSHIFT-Right-click§W to build this in every state (but not expand);;;;;;;;;;;;x
+alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories in a state
+alice_expand_factory_controls_2;§YSHIFT-Right-click§W upgrade §Gall profitable§W factories in a state 
+alice_expand_factory_controls_3;§YCTRL-Left-click§W upgrade §Gall§W factories in a nation
+alice_expand_factory_controls_4;§YCTRL-Right-click§W upgrade §Gall profitable§W factories in a nation
+alice_expand_factory_controls_5;§YCTRL-SHIFT-Left-click§W upgrade §Gall profitable with full employment§W factories in a state
+alice_expand_factory_controls_6;§YCTRL-SHIFT-Right-click§W upgrade §Gall profitable with full employment§W factories in a state
 blank_org_gain;organization gain;;;;;;;;;;;;x
 plurality_change_reason;(based on the average consciousness);;;;;;;;;;;;x
 revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more);;;;;;;;;;;;x
@@ -549,7 +592,21 @@ sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our mo
 mtt_name;$state$ ($name$ - );;;;;;;;;;;;x
 mtt_core_entry;$$faction$ - $name$;;;;;;;;;;;;x
 mtt_state_entry; - $state$ \n $continentname$;;;;;;;;;;;;x
-mtt_culture_majorities;The cultures in the §Y$PROV$§W  are:;;;;;;;;;;;;x
+mtt_culture_majorities;The cultures in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_religion_majorities;The religions in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_dominant_issues;The issues in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_total_income;Total daily income: ;;;;;;;;;;;;x
+mtt_dominant_ideology;The ideologies in §Y$PROV$§W are:;;;;;;;;;;;;x
+mtt_con_average;Average consciousness: §Y$val$§W;;;;;;;;;;;;x
+mtt_total_employment;Employment: ;;;;;;;;;;;;x
+mtt_literacy_rate;Literacy: ;;;;;;;;;;;;x
+mtt_factory_count;Factories in §Y$state$§W: ;;;;;;;;;;;;x
+mtt_fort_level;Fort level ;;;;;;;;;;;;x
+mtt_fort_being_built;A fort level is under construction here.;;;;;;;;;;;;x
+mtt_can_build_fort;A new fort level can be built here.;;;;;;;;;;;;x
+mtt_population_change;Monthly population change: ;;;;;;;;;;;;x
+mtt_rebels_amount;Rebels active in province: ;;;;;;;;;;;;x
+mtt_rebels_none;There are no rebels in this province.;;;;;;;;;;;;x
 pop_size_1;In the coming month the size of this pop is expected to change by: ;;;;;;;;;;;;x
 pop_size_2;From growth: ;;;;;;;;;;;;x
 pop_size_3;From promotion and demotion: ;;;;;;;;;;;;x
@@ -557,6 +614,7 @@ pop_size_4;From assimilation: ;;;;;;;;;;;;x
 pop_size_5;From internal migration: ;;;;;;;;;;;;x
 pop_size_6;From colonial migration: ;;;;;;;;;;;;x
 pop_size_7;From emigration: ;;;;;;;;;;;;x
+pop_size_8;From conversion: ;;;;;;;;;;;;x
 pop_l_migration_header;§YMigration away: $val$;;;;;;;;;;;;x
 pop_l_c_migration_header;§YColonial migration away: $val$;;;;;;;;;;;;x
 pop_l_emigration_header;§YEmigration away: $val$;;;;;;;;;;;;x
@@ -612,7 +670,8 @@ pop_mil_8;From reform desire: §R+$x$;;;;;;;;;;;;x
 pop_mil_9;Local pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_10;National pop militancy modifier: ;;;;;;;;;;;;x
 pop_mil_11;National non-colonial pop militancy modifier: ;;;;;;;;;;;;x
-pop_mil_12;§R+$val$§! from base militancy from separatism §R+$x$§! times national separatism modifier: §R$y$;;;;;;;;;;;;x
+pop_mil_12;From separatism: §R+$val$§! (§R+$x$§! times national separatism modifier §R$y$);;;;;;;;;;;;x
+pop_mil_13;From war exhaustion §R+$val$§!;;;;;;;;;;;;x
 pop_lit_1;Monthly literacy change: ;;;;;;;;;;;;x
 pop_lit_2;Is the product of:;;;;;;;;;;;;x
 pop_lit_3;From the local clergymen percentage ($val$): $x$;;;;;;;;;;;;x
@@ -621,8 +680,11 @@ pop_lit_5;The national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$;;;;;;;;;;;;x
 pop_lit_7;The base literacy change rate: $x$;;;;;;;;;;;;x
 pop_lit_8;And 0.01;;;;;;;;;;;;x
-pop_growth_topbar;Our population is expected to grow by $x$ within the next month;;;;;;;;;;;;x
-pop_growth_topbar_2;Our population changed by $x$ last month;;;;;;;;;;;;x
+pop_growth_topbar;It's expected to grow by §G$x$§W within the next month.;;;;;;;;;;;;x
+pop_growth_topbar_2;population changed by §G$x$§W in the last §Y30§W days.;;;;;;;;;;;;x
+pop_growth_topbar_3;Our Adult male population is §Y$curr$§W. Our adult male
+separation_topbar;----------------
+pop_growth_topbar_4;Our total population is §Y$val$§W.
 pop_growth_1;Monthly pop growth: ;;;;;;;;;;;;x
 pop_growth_2;Slaves do not grow;;;;;;;;;;;;x
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:;;;;;;;;;;;;x
@@ -646,6 +708,14 @@ pop_assim_9;The local assimilation-rate modifier: $x$;;;;;;;;;;;;x
 pop_assim_10;0.1 for not having an overseas culture;;;;;;;;;;;;x
 pop_assim_11;$x$ from cores present in the province;;;;;;;;;;;;x
 pop_assim_12;Variable assimilation factors: $x$;;;;;;;;;;;;x
+pop_conver_1;Monthly pop conversion: $x$;;;;;;;;;;;;x
+pop_conver_2;Pops of the state religion do not convert;;;;;;;;;;;;x
+pop_conver_3;Pops do not convert unless there are pops of the state religion in the same province;;;;;;;;;;;;x
+pop_conver_4;Conversion is proportional to the size of the pop times the product of:;;;;;;;;;;;;x
+pop_conver_5;The base conversion scale: $x$;;;;;;;;;;;;x
+pop_conver_6;The national conversion-rate modifier: $x$;;;;;;;;;;;;x
+pop_conver_7;The local conversion-rate modifier: $x$;;;;;;;;;;;;x
+pop_conver_8;Variable conversion factors: $x$;;;;;;;;;;;;x
 pop_issue_attraction_1;Issue attraction: $x$;;;;;;;;;;;;x
 pop_issue_attraction_2;This reform is not currently possible;;;;;;;;;;;;x
 pop_issue_attraction_3;Issue attraction is the product of:;;;;;;;;;;;;x
@@ -707,6 +777,16 @@ intervene_14;None of your sphere members are on the opposing side
 intervene_15;None of your allies are on the opposing side
 intervene_16;None of your armies are located in provinces owned by the opposing side
 intervene_17;Primary defender has a friendly opinion of you
+alice_milscore_1;Capital ship score: $x$
+alice_milscore_2;Recruitable regiments: $x$
+alice_milscore_3;Active regiments: $x$
+alice_milscore_4;Is disarmed? (penalty factor of $x$)
+alice_milscore_5;Supply consumption modifier: $x$
+alice_milscore_6;Average land unit score: $x$
+alice_milscore_7;Total number of leaders: $x$
+alice_indscore_1;$name$ (capacity $cap$ + level $level$ + worker pool $amount$) = $total$
+alice_indscore_2;The following foreign investments also add up (weight factor $x$):
+alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
@@ -737,6 +817,16 @@ dec_op_explain_3;The target's opinion of you is better than hostile
 dec_op_explain_4;The target's opinion of a great power cannot be made worse than hostile
 iaction_explain_5;You are a great power
 iaction_explain_6;The target is not a great power
+state_transfer_di;State transfer
+state_transfer_button;State transfer
+state_transfer_offer;$actor$ is offering to give us the states of:
+state_transfer_desc;Transfers the ownership of one state to another nation, useful for negotiations beyond the game's scope
+state_transfer_explain_1;The target nation is a player
+state_transfer_explain_2;There isn't any crisis currently
+state_transfer_explain_3;We're not subjects
+state_transfer_explain_4;They're not subjects
+state_transfer_explain_5;We're at peace
+state_transfer_explain_6;We have more than 1 state
 cancel_ally_explain_1;You cannot cancel an alliance with yourself
 cancel_ally_explain_2;You have at least $x$ diplomatic point(s)
 cancel_ally_explain_3;You are currently allied
@@ -798,6 +888,7 @@ fab_explain_3;You are not currently fabricating a casus belli
 fab_explain_4;You are an independent nation or the target is your overlord
 fab_explain_5;The target is not in your sphere of influence
 fab_explain_6;You are not currently at war with the target
+fab_explain_7;You can fabricate a casus belli
 peace_description;Make a peace offer to end hostilities between you and this nation
 peace_explain_1;Is not a subject nation
 peace_explain_2;The target is not a subject nation
@@ -981,7 +1072,7 @@ alice_defence;Defence §G$x$;;;;;;;;;;;;x
 alice_discipline;Discipline §G$x$%;;;;;;;;;;;;x
 alice_maneuver;Maneuver §G$x$;;;;;;;;;;;;x
 alice_recon;Reconaissance §G$x$;;;;;;;;;;;;x
-alice_support;Support §G$x$%;;;;;;;;;;;;x
+alice_support;Support §G$x$;;;;;;;;;;;;x
 alice_evasion;Evasion §G$x$%;;;;;;;;;;;;x
 alice_siege;Siege §G$x$;;;;;;;;;;;;x
 alice_torpedo_attack;Torpedo Attack §G$x$;;;;;;;;;;;;x
@@ -1087,6 +1178,9 @@ msg_war_join_on;;;;;;;;;;;;;x
 msg_cb_fab_finished;;;;;;;;;;;;;x
 msg_cb_fab_cancelled;;;;;;;;;;;;;x
 msg_crisis_voluntary_join;;;;;;;;;;;;;x
+msg_bankruptcy_title;Bankruptcy
+amsg_bankruptcy;When a nation goes bankrupt
+msg_bankruptcy_1;$x$ has gone bankrupt
 uv_sort_a;Att;;;Atq;;;;;;;;;x
 uv_sort_b;Def;;;Def;;;;;;;;;x
 uv_sort_c;Org;;;Org;;;;;;;;;x
@@ -1095,6 +1189,7 @@ uv_sort_e;Spd;;;Vel;;;;;;;;;x
 uv_sort_f;Rec;;;Rec;;;;;;;;;x
 uv_sort_g;Rel;;;Rel;;;;;;;;;x
 uv_sort_h;Exp;;;Exp;;;;;;;;;x
+alice_condition_diplo_points;Has atleast $x$ diplomatic points;;;;;;;;;;;;x
 alice_retreat;Retreat from battle;;;Retirarse de la batalla;;;;;;;;;x
 alice_retreat_1;It has been at least $x$ days since the battle started;;;;;;;;;;;;x
 alice_retreat_2;You are the lead attacker or defender;;;;;;;;;;;;x
@@ -1110,8 +1205,12 @@ et_add_selector;enable province selector;;;habilita el selector provincial;;;;;;
 et_remove_selector;disable province selector;;;deshabilita el selector provincial;;;;;;;;;x
 et_add_immigrator;enable province immigrator;;;habilita el inmigrador provincial;;;;;;;;;x
 et_remove_immigrator;disable province immigrator;;;deshabilita el inmigrador provincial;;;;;;;;;x
+et_if;If;;;Si;;;;;;;;;x
+et_else_if;Else;;;De lo contrario;;;;;;;;;x
 modifier_province_selector;Province selector;;;Selector provincial;;;;;;;;;x
 modifier_province_immigrator;Province immigrator;;;Inmigrador provincial;;;;;;;;;x
+modifier_conversion_rate;Conversion Rate;;;;;;;;;;;;x
+modifier_attrition;Attrition;;;;;;;;;;;;x
 chat_player_joins;@$x$ $playername$ joined;;;@$x$ $playername$ se unio;;;;;;;;;x
 chat_player_leaves;@$x$ $playername$ left;;;@$x$ $playername$ se fue;;;;;;;;;x
 chat_player_ban;@$x$ $playername$ was banned;;;@$x$ $playername$ fue baneado;;;;;;;;;x
@@ -1228,8 +1327,18 @@ amsg_war_join_on;A nation joins a war against this nation;;;;;;;;;;;;x
 amsg_cb_fab_finished;The nation finished fabricating a CB;;;;;;;;;;;;x
 amsg_cb_fab_cancelled;CB fabrication by the nation is canceled;;;;;;;;;;;;x
 amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;;x
+amsg_army_built;The nation built an army;;;;;;;;;;;;x
+amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
+amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
+alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
+alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
+alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring
+alice_stockpile_button_1_2;Alright I can't make you stop, perhaps this will?
+alice_stockpile_button_2_0;I'm a souless button, move on
+alice_stockpile_button_3_0;Playing with friends aren't we? §RWELL GOOD LUCK YOU WILL NEED IT§W
 a_alert_reb;One or more of our sphere members has active rebels:;;;;;;;;;;;;x
-event_auto;Automatically choose this option for the remainder of the session;;;;;;;;;;;;x
+event_auto;Automatically choose this option for the remainder of the session.;;;;;;;;;;;;x
+event_taken_auto;This option will automatically be taken on §Y$date$§W.;;;;;;;;;;;;x
 alice_load_unload_1;A navy docked here has sufficient capacity;;;;;;;;;;;;x
 alice_load_unload_2;The army is being transported;;;;;;;;;;;;x
 alice_load_unload_3;The transporting fleet is docked;;;;;;;;;;;;x
@@ -1244,8 +1353,10 @@ auto_save_0;None;;;Ninguno;;;;;;;;;x
 monthly_emigration_lab;Monthly emigration to (top 10);;;;;;;;;;;;x
 monthly_immigration_lab;Monthly immigration from (top 10);;;;;;;;;;;;x
 im_em_header;Predicted immigration/emigration for ;;;;;;;;;;;;x
-unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$);;;;;;;;;;;;x
-unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = §R$val$§W attrition
+ol_unit_standing_text;$m$ $n$/$x$/$y$;;;;;;;;;;;;x
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
+unit_standing_text;$m$ $n$/$x$/$y$ - §R$cost$§W ($attunit$/$defunit$);;;;;;;;;;;;x
 disarmed_pop;a member of a disarmed nation;;;;;;;;;;;;x
 cancel_fac_construction;Cancel factory construction;;;;;;;;;;;;x
 cancel_fac_upgrade;Cancel factory upgrade;;;;;;;;;;;;x
@@ -1259,6 +1370,8 @@ o_relations_with;Owner of the province's relation with $text$;;;;;;;;;;;;x
 o_add_to_treasury; for the owner of the province;;;;;;;;;;;;x
 w_rgo_prod;Global RGO production: $x$;;;;;;;;;;;;x
 w_artisan_prod;Global artisan production: $x$;;;;;;;;;;;;x
+w_artisan_profit;National artisan profit: $x$;;;;;;;;;;;;x
+w_artisan_distribution;National artisan distribution: $x$;;;;;;;;;;;;x
 w_fac_prod;Global factory production: $x$;;;;;;;;;;;;x
 alice_lose_gp;We are losing §YGreat Power§W status!;;;;;;;;;;;;x
 alice_state_select_title;Select state;;;Seleccionar estado;;;;;;;;;x
@@ -1284,7 +1397,8 @@ alice_join_crisis_offer;$ACTOR$ will give us the following if we join their side
 alice_unit_disable_rebel_hunt;Stop hunting rebels;;;;;;;;;;;;x
 alice_regiment_battle_info;$m$ $name$ §Y$type$§W\nOrganisation: §Y$organisation$§W\nStrength: §Y$strength$§W;;;;;;;;;;;;x
 alice_understaffed_regiment;§RThis regiment is understaffed and will only have $value$ soldiers!§W;;;;;;;;;;;;x
-alice_tech_queue_info;Press SHIFT to add to queue, right click to remove;;;;;;;;;;;;x
+alice_tech_queue_info;Press §YSHIFT§W to add to queue, §YRight-click§W to remove;;;;;;;;;;;;x
+alice_province_building_build;§YSHIFT§W to build on the entire §Gstate§W.\n§YSHIFT-Right-click§W to build on the entire §Gcountry§W.;;;;;;;;;;;;x
 alice_commodity_shortage;§RThere is a shortage of this commodity;;;;;;;;;;;;x
 alice_commodity_surplus;§GThere is a surplus of this commodity;;;;;;;;;;;;x
 alice_trade_flow_produced;§YDomestic production:;;;;;;;;;;;;x
@@ -1310,6 +1424,20 @@ aml_civ_s2;Uncolonized
 aml_civ_s3;100% Westernized
 aml_civ_s4;0% Westernized
 aml_civ_s5;Colony
+macro_builder;Macro-builder;;;Macro-constructor
+macro_total_desc;Total unit stats:
+macro_remove_template;Delete
+macro_switch_type_land;Build army
+macro_switch_type_naval;Build navy
+macro_save_template;Save template;;;Guardar plantilla
+macro_new_template;New template;;;Nueva plantila
+macro_warn_overseas;§RCan't build this unit overseas!§W
+macro_warn_culture;§RCan only build using primary culture POPs!§W
+macro_warn_unlocked;§RUsing units not unlocked yet!§W
+macro_select_province;Please select a province on the map
+macro_warn_insuff;§RCan't build $x$ $name$ (only $y$)§W
+macro_warn_invalid_province;§RProvince not part of a region§W
+macro_apply_template;Apply
 aml_col_s1;Potential
 aml_col_s2;NA
 aml_col_s3;Can Invest
@@ -1340,4 +1468,111 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
+alice_shortcut_tooltip;Shortcut: §Y$x$§W
+alice_filter_all;Show §Yall§W relevant nations.
+alice_filter_allies;Filter by nations we have an §Yalliance§W with.
+alice_filter_allies_right;§YRight-click§W to filter by nations which want to ally us.
+alice_filter_enemies;Filter by nations that are either §Yenemies or at war with us§W.
+alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§W.
+alice_filter_neighbors;Filter by nations we share a §Yborder§W with.
+alice_filter_best_guess;Filter using a §Ybest guess§W by relevancy, this includes all §Yallies§W, §Yenemies§W, §Yspherelings§W and nations we share a §Yborder§W with.
+alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§W.
+alice_invention_chance;The chance of discovering this §Yinvention§W are as follows:
+is_primary_culture;§Y$NAME$§W is primary culture.
+is_primary_religion;§Y$NAME$§W is primary religion.
+tt_can_use_nation;The conditions needed to allow the use of this wargoal:
+et_on_add;The effects executed from adding this wargoal to a war:
+et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
+alice_no_possible_units;No possible units can be built, and no units are in construction.
+alice_debt_spending;Enable/disable debt spending
+alice_loan_size;Our current maximum loan is $x$. Debt greater than that will cause us to go bankrupt
+alice_currently_bankrupt;We are bankrupt (until $x$)
+alice_no_loans_possible;We are currently unable to take loans
+alice_rf_demands_enforced_trigger;The rebels will only enforce their demands if:
+alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will apply the following effect:
+alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
+alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
+may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
+alice_mil_decay_description;Natural decay §G-$x$
+alice_con_decay_description;Natural decay §R-$x$
+alice_x_from_y;$x$ from $y$
+alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
+alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
+alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
+alice_budget_setting_percent;Set at $perc$.
+alice_spending_land_construction;Land construction in $name$: §R$cost$§W
+alice_spending_naval_construction;Naval construction in $name$: §R$cost$§W
+alice_spending_building_construction;Building construction in $name$: §R$cost$§W
+alice_spending_factory_construction;Factory construction in $name$: §R$cost$§W
+alice_spending_unit;Total spent on this unit in $name$: §R$cost$§W
+alice_spending_unit_1;Total spent on this unit: §R$cost$§W
+alice_spending_total;§YTotal spent:§W
+alice_spending_commodity;§R$cost$§W - Needs $need$ of $name$ ($val$)
+alice_spending_commodity_2;§R$cost$§W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
+alice_recommended_build;§GThis factory is recommended to be built§W
+alice_factory_bonus;We will receive a §Y$x$§W bonus if:
+alice_factory_inputs;Inputs required:
+alice_factory_input_item;§R$cost$§W - Needs $need$ of $name$ ($val$)
+alice_factory_base_workforce;Base workforce §Y$x$§W
+alice_factory_total_bonus;This sums to about §Y$x$§W
+alice_slider_controls;§YLeft-Click§W to increment by 1, §YSHIFT-Left-Click§W to increment by 10, §YSHIFT-Right-Click§W to increment to max
+explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+alice_lobby_back;Back to lobby
+alice_lobby_back_tt_1;You're already in the fucking lobby
+alice_lobby_back_tt_2;Only the host may go back to lobby
+alice_lobby_close;Close
+alice_lobby_close_tt;You can reopen this window with §YTAB§W
+colonial_points_from_technology;From technologies:
+colonial_points_from_naval_bases;From naval bases:
+colonial_points_from_ships;From ships:
+used_colonial_maintenance;Maintaining existing colonies:
+att_call_no_allies;You don't have any allies!
+att_truce_with;Truce with $text$ until $y$
+domestic_investment_label;Domestic investment:
+att_call_allies_effect;Call allies of this nation into its current wars
+modifier_min_domestic_investment;Minimum domestic investment rate
+modifier_max_domestic_investment;Maximum domestic investment rate
+mouse_left_click_mode_label;Mouse click hold release
+alice_supply_limit_desc;Supply limit: $x$
+alice_factory_worker_1;Employed: §G$x$§W
+alice_factory_worker_2;Unemployed: §R$x$§W
+alice_rgo_unemployment_country_alert;The following states have unemployed RGOs:
+pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
+black_map_font_label;Black map font
+edge_scrolling_label;Edge scrolling
+alice_info_box_1;§GWelcome to Project Alice!§W
+alice_info_box_2;Project Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.
+alice_info_box_3;§GNew features!§W
+alice_info_box_4;§YGlobe§W: §GLoved§W by many, §Rhated§W by some, turn it off if it bothers you!
+alice_info_box_5;§YTech queue:§W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)
+alice_info_box_6;§YDomestic investment:§W Instead of investing on individual projects, do it in one go
+alice_info_box_7;§YPerformance:§W The ticks per second (not FPS) are atleast, x10 times faster
+alice_info_box_8;§YLinter:§W Get coverage errors and warnings in your mods, catch bugs and typos easily
+alice_info_box_9;§YMacro builder:§W Build units with varying compositions using our macro builder
+alice_info_box_10;§Y11 new mapmodes:§W Religion, fort, employment, etc
+alice_info_box_11;§YBuild in entire country:§W SHIFT Right-click to build in the entire country!
+alice_info_box_12;§GControls:§W
+alice_info_box_13;§YTAB§W: Open chat window
+alice_info_box_14;§YESC§W: Open main menu and settings menu
+alice_info_box_15;§YTilde (`)§W or §YTilde (~)§W: Open console
+alice_info_box_16;§GEnjoy the game! =^w^=§W
+alice_nf_controls;§YLeft-click§W to select or replace\n§YRight-click§W to remove
+alice_utt_controls_1;§YLeft-click§W select (deselecting everything else)
+alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
+alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
+alice_demobilize;Demobilize
+alice_mobilize;Mobilize
+alice_mob_controls;§YRight-click§W to remobilize
+alice_mw_create_1;Add general
+alice_mw_create_2;Add admiral
+alice_mw_create_lpb;§YLeadership points§W will automatically be used to create generals or admirals when hitting the cap
+alice_mw_create_lp;We need §R$x$§W §Yleadership points§W to add
+alice_mw_controls_1;§YRight-click§W create §Gall§W possible as generals
+alice_mw_controls_2;§YRight-click§W create §Gall§W possible as admirals
+current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
+current_supply_text2;The amount we could get of our current supply consumption was:
+current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
+current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
+current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
 ;;;;;;;;;;;;;x

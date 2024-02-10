@@ -1,6 +1,8 @@
 #pragma once
 #include "dcon_generated.hpp"
 #include "commands.hpp"
+#include "gui_common_elements.hpp"
+#include "prng.hpp"
 #include "text.hpp"
 
 namespace ui {
@@ -30,7 +32,7 @@ public:
 			default_img = base_data.data.image.gfx_object;
 
 		dcon::leader_id lid = retrieve<dcon::leader_id>(state, parent);
-		
+
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
@@ -392,7 +394,7 @@ public:
 			return make_element_by_type<set_leader_button>(state, id);
 		} else if(name == "photo") {
 			return make_element_by_type<passive_leader_image>(state, id);
-		} else if(name == "leader_name") { 
+		} else if(name == "leader_name") {
 			return make_element_by_type<passive_leader_name>(state, id);
 		} else if(name == "unitleader_a") {
 			return make_element_by_type < passive_leader_attack>(state, id);
@@ -540,7 +542,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "select_leader_bg") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "prestige_bar_frame") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "current_leader_prestige_bar") {
@@ -622,18 +624,6 @@ public:
 	}
 };
 
-void open_leader_selection(sys::state& state, dcon::army_id a, dcon::navy_id v, int32_t x, int32_t y) {
-	leader_selection_window* win = static_cast<leader_selection_window*>(state.ui_state.change_leader_window);
-	win->a = a;
-	win->v = v;
-	if(state.ui_state.change_leader_window->is_visible()) {
-		state.ui_state.change_leader_window->impl_on_update(state);
-	} else {
-		state.ui_state.change_leader_window->set_visible(state, true);
-	}
-	state.ui_state.change_leader_window->base_data.position.x = int16_t(x);
-	state.ui_state.change_leader_window->base_data.position.y= int16_t(std::clamp(y, 64, int32_t(state.ui_state.root->base_data.size.y - state.ui_state.change_leader_window->base_data.size.y)));
-	state.ui_state.root->move_child_to_front(state.ui_state.change_leader_window);
-}
+void open_leader_selection(sys::state& state, dcon::army_id a, dcon::navy_id v, int32_t x, int32_t y);
 
 }

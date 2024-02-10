@@ -173,11 +173,25 @@ enum class autosave_frequency : uint8_t {
 	daily = 3,
 };
 
+constexpr inline int32_t max_autosaves = 16;
+
 enum class map_label_mode : uint8_t {
 	none = 0,
 	linear = 1,
 	quadratic = 2,
 	cubic = 3
+};
+
+enum class map_zoom_mode : uint8_t {
+	panning = 0,
+	inverted = 1,
+	centered = 2
+};
+
+enum class map_vassal_color_mode : uint8_t {
+	inherit = 0,
+	same = 1,
+	none = 2
 };
 
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, industrial_and_consumer_goods, count };
@@ -284,6 +298,7 @@ enum class message_setting_type : uint8_t {
 	// split
 	army_built = 98, // added
 	navy_built = 99, // added
+	bankruptcy = 100,
 	count = 128
 };
 
@@ -359,7 +374,8 @@ enum class message_base_type : uint8_t {
 	crisis_voluntary_join = 68, // added
 	army_built = 69, // added
 	navy_built = 70, // added
-	count = 71
+	bankruptcy = 71,
+	count = 72
 };
 
 struct msg_setting_entry {
@@ -479,6 +495,7 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::crisis_voluntary_join,	message_setting_type::count,				message_setting_type::count}, //crisis_voluntary_join = 68, // added
 	msg_setting_entry{ message_setting_type::army_built,				message_setting_type::count,				message_setting_type::count}, //army_built = 69, // added
 	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
+	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
 };
 
 namespace  message_response {
@@ -527,7 +544,7 @@ namespace ui {
 
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
-constexpr inline uint32_t max_chat_message_len = 48;
+constexpr inline uint32_t max_chat_message_len = 64;
 
 }
 
@@ -550,7 +567,9 @@ inline constexpr float rgo_per_size_employment = 40'000.0f;
 namespace map {
 constexpr inline float min_zoom = 1.0f;
 constexpr inline float max_zoom = 75.0f;
- }
+constexpr inline float zoom_close = 5.f;
+constexpr inline float zoom_very_close = 8.f;
+}
 
 namespace ai {
 enum class fleet_activity {

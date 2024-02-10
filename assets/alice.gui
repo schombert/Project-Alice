@@ -151,6 +151,53 @@ guiTypes = {
 				position = { 51 123 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Dynamic railroads (Y/N)
+			instantTextBoxType = {
+				name = "railroad_label"
+				position = { 194 124 }
+				text = "railroad_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "railroad_checkbox"
+				position = { 167 123 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Rivers (Y/N)
+			instantTextBoxType = {
+				name = "river_label"
+				position = { 78 148 }
+				text = "river_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "river_checkbox"
+				position = { 51 147 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			instantTextBoxType = {
+				name = "mouse_left_click_mode_label"
+				position = { 164 147 }
+				text = "mouse_left_click_mode_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_left_click_mode_checkbox"
+				position = { 137 147 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Projection settings for the map: equirectangular, orthographic
 			instantTextBoxType = {
 				name = "projection_label"
@@ -278,6 +325,7 @@ guiTypes = {
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
+				text = "gaussianblur_label"
 				orientation = "UPPER_LEFT"
 				format = left
 			}
@@ -330,6 +378,70 @@ guiTypes = {
 				position = { 289 276 }
 				quadTextureSprite = "option_next"
 			}
+			# Vassal colouring
+			instantTextBoxType = {
+				position = { 58 300 }
+				name = "vassal_color_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "vassal_color_label"
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			instantTextBoxType = {
+				position = { 216 300 }
+				name = "vassal_color_value"
+				font = "Arial14"
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
+				orientation = "UPPER_LEFT"
+				format = center
+			}
+			guiButtonType = {
+				name = "vassal_color_left"
+				position = { 186 296 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "vassal_color_right"
+				position = { 289 296 }
+				quadTextureSprite = "option_next"
+			}
+
+			# 3D Models (Y/N)
+			instantTextBoxType = {
+				name = "render_models_label"
+				position = { 78 326 }
+				text = "render_models_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "render_models_checkbox"
+				position = { 51 326 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+
+			# Black map font (Y/N)
+			instantTextBoxType = {
+				name = "black_map_font_label"
+				position = { 78 350 }
+				text = "black_map_font_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			checkboxType = {
+				name = "black_map_font_checkbox"
+				position = { 51 350 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 
 		windowType = {
@@ -367,6 +479,38 @@ guiTypes = {
 				position = { 51 115 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Edge scrolling checkbox
+			instantTextBoxType = {
+				name = "edge_scrolling_label"
+				position = { 220 116 }
+				text = "edge_scrolling_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_edge_scrolling_checkbox"
+				position = {200 115}
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Spoilers checkbox
+			instantTextBoxType = {
+				name = "spoilers_label"
+				position = { 78 260 }
+				text = "spoilers_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "spoilers_checkbox"
+				position = { 51 260 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"
@@ -397,6 +541,7 @@ guiTypes = {
 				position = { 269 158 }
 				quadTextureSprite = "option_next"
 			}
+			
 			# Auto save interval
 			instantTextBoxType = {
 				name = "auto_save_label"
@@ -643,7 +788,7 @@ guiTypes = {
 		name = "alice_page_count"
 		font = "vic_18_black"
 		borderSize = { 0 0}
-		maxsize = { 32 18 }
+		maxsize = { 48 18 }
 		orientation = "UPPER_LEFT"
 		format = centre
 	}
@@ -1337,6 +1482,24 @@ guiTypes = {
 				name = "overlay_right"
 				spriteType = "GFX_alice_battle_caps"
 				position = { 79 0 }
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "attacker_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType = {
+				position = { 0 0 }
+				name = "defender_casualties"
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 53 17 }
+				orientation = "UPPER_LEFT"
+				format = centre
 			}
 		}
 	}
@@ -2705,13 +2868,13 @@ guiTypes = {
 	windowType = {
 		name = "alice_map_legend_gradient_window"
 		position = { 0 0 }
-		size = { 200 64 }
+		size = { 300 64 }
 		Orientation = UPPER_LEFT
 		
 		iconType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 200 64 }
+			size = { 300 64 }
 			spriteType = "console_background"
 		}
 		#instantTextBoxType = {
@@ -2727,23 +2890,24 @@ guiTypes = {
 			name = "gradient_icon"
 			spriteType = "GFX_legend_gradient"
 			position = { 10 8 }
+			size = { 280 32 }
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
 			name = "gradient_min"
-			position = { 6 42 }
+			position = { 10 42 }
 			font = "Arial16"
 			borderSize = { 0 0 }
-			maxsize = { 90 20 }
+			maxsize = { 134 20 }
 			orientation = "UPPER_LEFT"
 			format = left
 		}
 		instantTextBoxType = {
 			name = "gradient_max"
-			position = { 104 42 }
+			position = { 154 42 }
 			font = "Arial16"
 			borderSize = { 0 0 }
-			maxsize = { 90 20 }
+			maxsize = { 134 20 }
 			orientation = "UPPER_LEFT"
 			format = right
 		}
@@ -2953,6 +3117,7 @@ guiTypes = {
 			name = "s3_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3056,6 +3221,7 @@ guiTypes = {
 			name = "s3_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3225,6 +3391,7 @@ guiTypes = {
 			name = "s7_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 8 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3247,6 +3414,7 @@ guiTypes = {
 			name = "s8_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 158 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3269,6 +3437,7 @@ guiTypes = {
 			name = "s9_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 308 48 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3400,6 +3569,7 @@ guiTypes = {
 			name = "s5_ico_b"
 			spriteType = "GFX_alice_striped_rectangle"
 			position = { 158 8 }
+			scale = 0.5
 			Orientation = "UPPER_LEFT"
 		}
 		instantTextBoxType = {
@@ -3465,25 +3635,649 @@ guiTypes = {
 		}
 	}
 
+	checkboxType = {
+		name = "alice_debt_checkbox"
+		position = { 165 490 }
+		quadTextureSprite = "GFX_checkbox_default"
+	}
+
+	instantTextBoxType = {
+		name = "alice_domestic_investment_label"
+		text = "domestic_investment_label"
+		position = { 38 588 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 146 18 }
+		orientation = "UPPER_LEFT"
+		format = left
+	}
+	instantTextBoxType = {
+		name = "alice_domestic_investment_value"
+		text = "0.0"
+		position = { 418 588 }
+		font = "vic_18_black"
+		borderSize = { 0 0 }
+		maxsize = { 60 18 }
+		orientation = "UPPER_LEFT"
+		format = right
+	}
+	scrollbarType = {
+		name = "alice_domestic_investment_slider"	
+		slider = "slider"
+		track = "track"
+		leftbutton = "up"
+		rightbutton = "down"
+		size = { 220 20 }
+		position = { 198 588 }
+		priority = 100			
+		minValue = 0
+		maxValue = 100
+		stepSize = 1
+		startValue = 0
+		horizontal = 1
+		useRangeLimit = yes
+		rangeLimitMin = 0
+		rangeLimitMax = 100
+		rangeLimitMinIcon = "min"
+		rangeLimitMaxIcon = "max"
+		guiButtonType = {
+			name = "slider"	
+			quadTextureSprite = "GFX_slider_circle"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "track"
+			quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "up"
+			quadTextureSprite = "GFX_slider_left"
+			position = { 0 0 }
+		}
+		guiButtonType = {
+			name = "down"
+			quadTextureSprite = "GFX_slider_right"
+			position = { 0 220 }
+		}
+		iconType = {
+			name = "min"
+			spriteType = "GFX_scroll_limit"
+			position = { 0 0 }
+		}
+		iconType = {
+			name = "max"
+			spriteType = "GFX_scroll_limit2"
+			position = { 0 0 }
+		}
+	}
+
 	windowType = {
 		name = "alice_macro_builder"
-		position = { 0 200 }
-		size = { 320 320 }
+		position = { 420 400 }
+		size = { 640 320 }
 		guiButtonType = {
 			name = "background"
 			position = { 0 0 }
-			size = { 320 320 }
+			size = { 640 320 }
 			quadTextureSprite = "console_background"
+		}
+		guiButtonType = {
+			name = "close"
+			position = { -32 0 }
+			orientation = "UPPER_RIGHT"
+			quadTextureSprite = "GFX_main_close_button"
 		}
 		instantTextBoxType = {
 			name = "title"
-			text = "Macro builder"
+			text = "macro_builder"
 			position = { 0 4 }
 			font = "vic_22"
 			borderSize = { 0 0 }
-			maxsize = { 320 24 }
-			orientation = "UPPER_LEFT"
+			maxsize = { 640 24 }
 			format = center
 		}
+		listboxType = 	{
+			name = "template_listbox"
+			position = { 0 28 }
+			size = { 105 240 }
+			spacing = 0
+			borderSize = { 0 0 }
+		}
+		listboxType = 	{
+			name = "unit_listbox"
+			position = { 108 28 }
+			size = { 210 240 }
+			spacing = 0
+			borderSize = { 0 0 }
+		}
+		guiButtonType = {
+			name = "new_template"
+			position = { 2 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "macro_new_template"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "save_template"
+			position = { 128 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "macro_save_template"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "remove_template"
+			position = { 256 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "macro_remove_template"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "switch_type"
+			position = { 384 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = ""
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "apply"
+			position = { 510 288 }
+			size = { 128 24 }
+			quadTextureSprite = "GFX_button_128wide"
+			buttonText = "macro_apply_template"
+			buttonFont = "vic_22_black"
+		}
+		editBoxType = {
+			name = "input"
+			position = { 330 28 }
+			textureFile = "gfx\\interface\\small_tiles_dialog.dds"
+			font = "FPS_Font"
+			borderSize = { 10 10 }
+			maxsize = { 308 40 }
+			format = center
+		}
+		instantTextBoxType = {
+			name = "details"
+			position = { 330 72 }
+			font = "Arial14"
+			borderSize = { 0 0 }
+			maxsize = { 288 172 }
+			format = center
+		}
+	}
+	windowType = {
+		name = "alice_macro_builder_template_entry"
+		position = { 0 0 }
+		size = { 105 24 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 105 24 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "name"
+			position = { 32 0 }
+			font = "vic_22"
+			borderSize = { 0 0 }
+			maxsize = { 70 24 }
+			format = center
+		}
+		guiButtonType = {
+			name = "shield"
+			position = { 4 4 }
+			quadTextureSprite = "GFX_flag_new"
+			Orientation = "UPPER_LEFT"
+		}
+	}
+	windowType = {
+		name = "alice_macro_builder_unit_entry"
+		position = { 0 0 }
+		size = { 210 24 }
+		guiButtonType = {
+			name = "background"
+			position = { 0 0 }
+			size = { 210 24 }
+			quadTextureSprite = "console_background"
+		}
+		instantTextBoxType = {
+			name = "name"
+			position = { 4 0 }
+			font = "vic_22"
+			borderSize = { 0 0 }
+			maxsize = { 128 24 }
+			format = left
+		}
+	}
+
+	windowType = {
+		name = "alice_menubar"
+		backGround = ""
+		position = { 0 0 }	
+		size = { 100 100 }
+		moveable = 0
+		horizontalBorder = ""
+		verticalBorder = ""
+		fullScreen = yes
+		windowType = {
+			name = "messagelog_window"
+			backGround = ""
+			position = { -874 -156 }	
+			size = { 720 100 }	
+			moveable = 0
+			horizontalBorder = ""
+			verticalBorder = ""
+			fullScreen = no
+			Orientation = "LOWER_RIGHT"
+			iconType = {
+				name = "log_bg"
+				spriteType = "GFX_log_bg"
+				position = { 0 -3 }
+				Orientation = "UPPER_LEFT"
+			}
+			listboxType = {
+				name = "messagelog"
+				position = { 0 11 }
+				backGround = ""
+				size = { 422 115}
+				#Orientation = "LOWER_RIGHT"
+				Orientation = "UPPER_LEFT"
+				spacing = 1
+				scrollbartype = "standardlistbox_slider"
+				borderSize = { 0 0}
+			}
+			guiButtonType = {
+				name = "closebutton"
+				position = { -293 27 }
+				quadTextureSprite = "GFX_closelog_button"
+				tooltip = ""
+				tooltipText = ""
+				buttonText = "  "
+				buttonFont = "Main_14_black"
+				Orientation = "LOWER_RIGHT"
+				shortcut = "<"
+			}
+			checkboxType = {
+				name = "messagecat_combat"
+				position = { -705 25 }
+				quadTextureSprite = "GFX_messagecat_combat"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_diplomacy"
+				position = { -665 25 }
+				quadTextureSprite = "GFX_messagecat_diplo"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_units"
+				position = { -625 25 }
+				quadTextureSprite = "GFX_messagecat_units"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_provinces"
+				position = { -585 25 }
+				quadTextureSprite = "GFX_messagecat_provinces"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_events"
+				position = { -545 25 }
+				quadTextureSprite = "GFX_messagecat_events"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_others"
+				position = { -505 25 }
+				quadTextureSprite = "GFX_messagecat_other"
+				Orientation = "LOWER_RIGHT"
+			}
+		}
+		guiButtonType = {
+			name = "openbutton"
+			position = { -447 -29 }
+			quadTextureSprite = "GFX_openlog_button"
+			tooltip = ""
+			tooltipText = ""
+			buttonText = " "
+			buttonFont = "Main_14_black"
+			shortcut = "<"
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "minimap_bg"
+			spriteType = "GFX_minimap_bg"
+			position = { -374 -172 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "minimap_bg-patch"
+			spriteType = "GFX_new_minimap_bg"
+			position = { -374 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "menubar_bg"
+			spriteType = "GFX_menubar_bg"
+			position = { -64 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "menu_button"
+			position = { -49 -155 }
+			quadTextureSprite = "GFX_menu_button"
+			Orientation = "LOWER_RIGHT"
+			clicksound = click
+		}
+		guiButtonType = {
+			name = "ledger_button"
+			position = { -49 -125 }
+			quadTextureSprite = "GFX_ledger_button"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "l"
+		}
+		guiButtonType = {
+			name = "button_goto"
+			position = { -49 -90 }
+			quadTextureSprite ="GFX_button_goto"
+			tooltip = ""
+			tooltipText = ""
+			delayedTooltipText = ""
+			buttonText = ""
+			buttonFont = "Main_14_black"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "map_zoom_in"
+			position = { -45 -35 }
+			quadTextureSprite ="GFX_map_zoom_in"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "map_zoom_out"
+			position = { -24 -35 }
+			quadTextureSprite = "GFX_map_zoom_out"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_1"
+			tooltipText = "mapmode_1"
+			position = { -348 -157 }
+			size = { 26 21 }
+			quadTextureSprite ="GFX_mapmode_terrain.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "q"
+		}
+		guiButtonType = {
+			name = "mapmode_11"
+			tooltipText = "mapmode_11"
+			position = { -348 -136 }
+			quadTextureSprite ="GFX_mapmode_rgooutput.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "a"
+		}
+		guiButtonType = {
+			name = "mapmode_12"
+			tooltipText = "mapmode_12"
+			position = { -322 -136 }
+			quadTextureSprite ="GFX_mapmode_popdensity.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "s"
+		}
+		guiButtonType = {
+			name = "mapmode_2"
+			tooltipText = "mapmode_2"
+			position = { -322 -157 }
+			quadTextureSprite ="GFX_mapmode_political.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "w"
+		}
+		guiButtonType = {
+			name = "mapmode_13"
+			tooltipText = "mapmode_13"
+			position = { -296 -136 }
+			quadTextureSprite = "GFX_mapmode_nationality.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "d"
+		}
+		guiButtonType = {
+			name = "mapmode_6"
+			tooltipText = "mapmode_6"
+			position = { -296 -157 }
+			quadTextureSprite = "GFX_mapmode_infra.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "e"
+		}
+		guiButtonType = {
+			name = "mapmode_14"
+			tooltipText = "mapmode_14"
+			position = { -270 -136 }
+			quadTextureSprite = "GFX_mapmode_soi.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "f"
+		}
+		guiButtonType = {
+			name = "mapmode_4"
+			tooltipText = "mapmode_4"
+			position = { -270 -157 }
+			quadTextureSprite = "GFX_mapmode_diplomatic.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "r"
+		}
+		guiButtonType = {
+			name = "mapmode_15"
+			tooltipText = "mapmode_15"
+			position = { -244 -136 }
+			quadTextureSprite = "GFX_mapmode_supplylimit.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "g"
+		}
+		guiButtonType = {
+			name = "mapmode_5"
+			tooltipText = "mapmode_5"
+			position = { -244 -157 }
+			quadTextureSprite = "GFX_mapmode_region.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "t"
+		}
+		guiButtonType = {
+			name = "mapmode_3"
+			tooltipText = "mapmode_3"
+			position = { -218 -157 }
+			quadTextureSprite = "GFX_mapmode_revolt.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "y"
+		}
+		guiButtonType = {
+			name = "mapmode_16"
+			tooltipText = "mapmode_16"
+			position = { -218 -136 }
+			quadTextureSprite ="GFX_mapmode_partyloyalty.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "h"
+		}
+		guiButtonType = {
+			name = "mapmode_8"
+			tooltipText = "mapmode_8"
+			position = { -192 -157 }
+			quadTextureSprite ="GFX_mapmode_admin.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "u"
+		}
+		guiButtonType = {
+			name = "mapmode_17"
+			tooltipText = "mapmode_17"
+			position = { -192 -136 }
+			quadTextureSprite = "GFX_mapmode_rank.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "j"
+		}
+		guiButtonType = {
+			name = "mapmode_7"
+			tooltipText = "mapmode_7"
+			position = { -166 -157 }
+			quadTextureSprite = "GFX_mapmode_colonial.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "i"
+		}
+		guiButtonType = {
+			name = "mapmode_18"
+			tooltipText = "mapmode_18"
+			position = { -166 -136 }
+			quadTextureSprite = "GFX_mapmode_migration.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "k"
+		}
+		guiButtonType = {
+			name = "mapmode_9"
+			tooltipText = "mapmode_9"
+			position = { -140 -157 }
+			quadTextureSprite = "GFX_mapmode_recruit.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "o"
+		}
+		guiButtonType = {
+			name = "mapmode_19"
+			tooltipText = "mapmode_19"
+			position = { -140 -136 }
+			quadTextureSprite = "GFX_mapmode_civ_level.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "l"
+		}
+		guiButtonType = {
+			name = "mapmode_10"
+			tooltipText = "mapmode_10"
+			position = { -114 -157 }
+			quadTextureSprite = "GFX_mapmode_natfocus.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "p"
+		}
+		guiButtonType = {
+			name = "mapmode_20"
+			tooltipText = "mapmode_20"
+			position = { -114 -136 }
+			quadTextureSprite = "GFX_mapmode_relation.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_21"
+			tooltipText = "mapmode_21"
+			position = { -88 -136 }
+			quadTextureSprite = "GFX_mapmode_crises.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_22"
+			tooltipText = "mapmode_22"
+			position = { -88 -157 }
+			quadTextureSprite = "GFX_mapmode_naval.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		# New Alice mapmodes!
+		guiButtonType = {
+			name = "mapmode_23"
+			tooltipText = "mapmode_23"
+			position = { -348 -178 }
+			quadTextureSprite = "GFX_mapmode_religion"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_24"
+			tooltipText = "mapmode_24"
+			position = { -322 -178 }
+			quadTextureSprite = "GFX_mapmode_fort"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_25"
+			tooltipText = "mapmode_25"
+			position = { -296 -178 }
+			quadTextureSprite = "GFX_mapmode_ideology"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_26"
+			tooltipText = "mapmode_26"
+			position = { -270 -178 }
+			quadTextureSprite = "GFX_mapmode_income"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_27"
+			tooltipText = "mapmode_27"
+			position = { -244 -178 }
+			quadTextureSprite = "GFX_mapmode_con"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_28"
+			tooltipText = "mapmode_28"
+			position = { -218 -178 }
+			quadTextureSprite = "GFX_mapmode_militancy"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_29"
+			tooltipText = "mapmode_29"
+			position = { -192 -178 }
+			quadTextureSprite = "GFX_mapmode_literacy"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_30"
+			tooltipText = "mapmode_30"
+			position = { -166 -178 }
+			quadTextureSprite = "GFX_mapmode_employment"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_31"
+			tooltipText = "mapmode_31"
+			position = { -140 -178 }
+			quadTextureSprite = "GFX_mapmode_factories"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_32"
+			tooltipText = "mapmode_32"
+			position = { -114 -178 }
+			quadTextureSprite = "GFX_mapmode_issues"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_33"
+			tooltipText = "mapmode_33"
+			position = { -88 -178 }
+			quadTextureSprite = "GFX_mapmode_growth"
+			Orientation = "LOWER_RIGHT"
+		}
+	}
+
+	checkboxType = {
+		name = "alice_buy_from_stockpile"
+		position = { 715 388 }
+		quadTextureSprite = "GFX_trade_stockpile_checkbox"
+		Orientation = "UPPER_LEFT"
+	}
+
+	iconType = {
+		name = "minimap_pic"
+		spriteType = "GFX_minimap"
+		position = { -328 -110 }
+		Orientation = "LOWER_RIGHT"
+	}
+
+	instantTextBoxType = {
+		name = "alice_readme_text"
+		position = { -235 -180 }
+		maxsize = { 460 160 }
+		fixedsize = yes
+		font = "Arial14"
+		Orientation = "CENTER_DOWN"
 	}
 }

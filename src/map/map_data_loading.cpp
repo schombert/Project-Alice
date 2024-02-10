@@ -3,6 +3,19 @@
 #include "province.hpp"
 #include "system_state.hpp"
 #include "parsers_declarations.hpp"
+#include "opengl_wrapper.hpp"
+
+#ifdef _WIN64
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+
+#include "Windows.h"
+
+#endif
 
 namespace map
 {
@@ -21,6 +34,101 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
+#ifdef _WIN64
+
+	int32_t compression_type = 0;
+	int32_t size_x = 0;
+	int32_t size_y = 0;
+
+	BITMAPFILEHEADER const* fh = (BITMAPFILEHEADER const*)(start);
+	uint8_t const* data = start + fh->bfOffBits;
+	std::unique_ptr<uint8_t[]> decompressed_data;
+
+	BITMAPCOREHEADER const* core_h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+	if(core_h->bcSize == sizeof(BITMAPINFOHEADER)) {
+		BITMAPINFOHEADER const* h = (BITMAPINFOHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		size_x = h->biWidth;
+		size_y = h->biHeight;
+		if(h->biCompression == BI_RLE8) {
+			compression_type = 1;
+		}
+	} else if(core_h->bcSize == sizeof(BITMAPV5HEADER)) {
+		BITMAPV5HEADER const* h = (BITMAPV5HEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		if(h->bV5Compression == BI_RLE8) {
+			compression_type = 1;
+		}
+		size_x = h->bV5Width;
+		size_y = h->bV5Height;
+	} else if(core_h->bcSize == sizeof(BITMAPV4HEADER)) {
+		BITMAPV4HEADER const* h = (BITMAPV4HEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		if(h->bV4V4Compression == BI_RLE8) {
+			compression_type = 1;
+		}
+		size_x = h->bV4Width;
+		size_y = h->bV4Height;
+	} else if(core_h->bcSize == sizeof(BITMAPCOREHEADER)) {
+		BITMAPCOREHEADER const* h = (BITMAPCOREHEADER const*)(start + sizeof(BITMAPFILEHEADER));
+		size_x = h->bcWidth;
+		size_y = h->bcHeight;
+	} else {
+		std::abort(); // unknown bitmap type
+	}
+
+	if(compression_type == 1) {
+		decompressed_data.reset(new uint8_t[std::abs(size_x) * std::abs(size_y)]);
+		memset(decompressed_data.get(), 0xFF, std::abs(size_x) * std::abs(size_y));
+		auto out_ptr = decompressed_data.get();
+		int32_t out_x = 0;;
+		int32_t out_y = 0;
+
+		for(auto ptr = data; ptr < start + content.file_size; ) {
+			if(ptr[0] == 0) {
+				if(ptr[1] == 0) {  // end of line
+					auto offset = out_ptr - decompressed_data.get();
+					auto line = (offset - 1) / std::abs(size_x);
+					out_ptr = decompressed_data.get() + (line + 1) * std::abs(size_x);
+					ptr += 2;
+				} else if(ptr[1] == 1) {  // end of bitmap
+					break;
+				} else if(ptr[1] == 2) {  // move cursor
+					auto right = ptr[2];
+					auto up = ptr[3];
+					auto offset = out_ptr - decompressed_data.get();
+					auto line = offset / std::abs(size_x);
+					auto x = out_ptr - (decompressed_data.get() + line * std::abs(size_x));
+					auto new_line = line + up;
+					out_ptr = decompressed_data.get() + new_line * std::abs(size_x) + x + right;
+					ptr += 4;
+				} else { // absolute mode
+					auto num_pixels = int32_t(ptr[1]);
+					auto amount_to_copy = std::min(ptrdiff_t(num_pixels),
+						std::min(
+							decompressed_data.get() + std::abs(size_x) * std::abs(size_y) - out_ptr,
+							start + content.file_size - (ptr + 2)
+					));
+					memcpy(out_ptr, ptr + 2, amount_to_copy);
+					ptr += 2 + int32_t(ptr[1]) + ((ptr[1] & 1) != 0);
+					out_ptr += num_pixels;
+				}
+			} else {
+				auto num_pixels = ptr[0];
+				auto color_index = ptr[1];
+
+				while(num_pixels > 0 && out_ptr < decompressed_data.get() + std::abs(size_x) * std::abs(size_y)) {
+					*out_ptr = color_index;
+					++out_ptr;
+					--num_pixels;
+				}
+				ptr += 2;
+			}
+		}
+		data = decompressed_data.get();
+	}
+
+	assert(size_x == int32_t(map_size.x));
+	uint32_t free_space = uint32_t(std::max(0, map_size.y - size_y)); // schombert: find out how much water we need to add
+#else
+
 	// Data offset is where the pixel data starts
 	uint8_t const* ptr = start + 10;
 	uint32_t data_offset = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
@@ -31,20 +139,18 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	ptr = start + 22;
 	uint32_t size_y = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
 
-	assert(size_x == uint32_t(map_size.x));
 
 	uint8_t const* data = start + data_offset;
+	assert(size_x == uint32_t(map_size.x));
+	uint32_t free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
+#endif
 
 	// Calculate how much extra we add at the poles
-	auto free_space = std::max(uint32_t(0), map_size.y - size_y); // schombert: find out how much water we need to add
-	auto top_free_space = (free_space * 3) / 5;
+	uint32_t top_free_space = (free_space * 3) / 5;
 
-	// Fill the output with the given data
-	
-
-	// Copy over the bmp data to the middle of the output_data
-	for(int y = top_free_space + size_y - 1; y >= int(top_free_space); --y) {
-		for(int x = 0; x < int(size_x); ++x) {
+	// Fill the output with the given data - copy over the bmp data to the middle of the output_data
+	for(uint32_t y = top_free_space + size_y - 1; y >= uint32_t(top_free_space); --y) {
+		for(uint32_t x = 0; x < uint32_t(size_x); ++x) {
 			output_data[y * size_x + x] = *data;
 			data++;
 		}
@@ -134,9 +240,9 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		auto terrain_file = open_file(map_dir, NATIVE("alice_terrain.png"));
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
-		image terrain_data;
+		ogl::image terrain_data;
 		if(terrain_file)
-			terrain_data = load_stb_image(*terrain_file);
+			terrain_data = ogl::load_stb_image(*terrain_file);
 
 		auto terrain_resolution = internal_make_index_map();
 
@@ -144,7 +250,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 			for(uint32_t ty = 0; ty < size_y; ++ty) {
 				uint32_t y = size_y - ty - 1;
 				for(uint32_t x = 0; x < size_x; ++x) {
-					
+
 
 					uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
 					auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
@@ -209,7 +315,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 							terrain_id_map[ty * size_x + x] = resolved_index;
 						}
-						
+
 					}
 				}
 			}
@@ -290,7 +396,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 	}
 }
 
-void display_data::load_province_data(parsers::scenario_building_context& context, image& image) {
+void display_data::load_province_data(parsers::scenario_building_context& context, ogl::image& image) {
 	uint32_t imsz = uint32_t(size_x * size_y);
 	if(!context.new_maps) {
 		auto free_space = std::max(uint32_t(0), size_y - image.size_y); // schombert: find out how much water we need to add
@@ -339,17 +445,17 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 
 	// Load the province map
-	auto provinces_png = open_file(map_dir, NATIVE("alice_provinces.png"));
-	map::image provinces_image;
+	auto provinces_png = simple_fs::open_file(map_dir, NATIVE("alice_provinces.png"));
+	ogl::image provinces_image;
 	if(provinces_png) {
-		provinces_image = load_stb_image(*provinces_png);
+		provinces_image = ogl::load_stb_image(*provinces_png);
 		size_x = uint32_t(provinces_image.size_x);
 		size_y = uint32_t(provinces_image.size_y);
 		context.new_maps = true;
 	} else {
-		auto provinces_bmp = open_file(map_dir, NATIVE("provinces.bmp"));
+		auto provinces_bmp = simple_fs::open_file(map_dir, NATIVE("provinces.bmp"));
 		if(provinces_bmp) {
-			provinces_image = load_stb_image(*provinces_bmp);
+			provinces_image = ogl::load_stb_image(*provinces_bmp);
 			size_x = uint32_t(provinces_image.size_x);
 			size_y = uint32_t(provinces_image.size_y * 1.3); // schombert: force the correct map size
 		} else {
@@ -366,12 +472,12 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 		auto size = glm::ivec2(size_x, size_y);
 		river_data = load_bmp(context, NATIVE("rivers.bmp"), size, 255);
 	} else {
-		auto river_file = open_file(map_dir, NATIVE("alice_rivers.png"));
+		auto river_file = simple_fs::open_file(map_dir, NATIVE("alice_rivers.png"));
 		river_data.resize(size_x * size_y, uint8_t(255));
 
-		image river_image_data;
+		ogl::image river_image_data;
 		if(river_file)
-			river_image_data = load_stb_image(*river_file);
+			river_image_data = ogl::load_stb_image(*river_file);
 
 		auto terrain_resolution = internal_make_index_map();
 
@@ -382,17 +488,34 @@ void display_data::load_map_data(parsers::scenario_building_context& context) {
 				for(uint32_t x = 0; x < size_x; ++x) {
 
 					uint8_t* ptr = river_image_data.data + (x + size_x * y) * 4;
-					if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 && terrain_id_map[x + size_x * ty] != uint8_t(255))
-						river_data[ty * size_x + x] = 0;
+					if(ptr[0] + ptr[2] < 128 * 2 && ptr[1] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 0; // source
+					else if(ptr[1] + ptr[2] < 128 * 2 && ptr[0] > 128 /* && terrain_id_map[x + size_x * ty] != uint8_t(255)*/ )
+						river_data[ty * size_x + x] = 1; // merge
+					else if(ptr[0] + ptr[1] + ptr[2] < 128 * 3 /*&& terrain_id_map[x + size_x * ty] != uint8_t(255)*/)
+						river_data[ty * size_x + x] = 2;
 					else
 						river_data[ty * size_x + x] = 255;
-					
+
 				}
 			}
 		}
 	}
 
-	river_vertices = create_river_vertices(*this, context, river_data);
+
+	load_river_crossings(context, river_data, glm::vec2(float(size_x), float(size_y)));
+
+	create_curved_river_vertices(context, river_data, terrain_id_map);
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_coastal_borders(context.state, borders_visited);
+	}
+	{
+		std::vector<bool> borders_visited;
+		borders_visited.resize(size_x * size_y * 2, false);
+		make_borders(context.state, borders_visited);
+	}
 }
 
 // Called to load the terrain and province map data

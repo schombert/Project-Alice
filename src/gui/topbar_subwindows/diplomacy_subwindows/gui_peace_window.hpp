@@ -10,11 +10,13 @@ public:
 		auto target = retrieve<dcon::nation_id>(state, parent);
 		auto war = military::find_war_between(state, target, state.local_player_nation);
 
-		auto we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
-		auto they_lead = (target == state.world.war_get_primary_attacker(war) || target == state.world.war_get_primary_defender(war));
+		auto const we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
+		auto const they_lead = (target == state.world.war_get_primary_attacker(war) || target == state.world.war_get_primary_defender(war));
 
-		text::add_line(state, contents, we_lead ? "po_welead" : "po_wenotlead");
-		text::add_line(state, contents, they_lead ? "po_theylead" : "po_theynotlead");
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, we_lead ? std::string_view("po_welead") : std::string_view("po_wenotlead"));
+		text::localised_format_box(state, contents, box, they_lead ? std::string_view("po_theylead") : std::string_view("po_theynotlead"));
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -263,8 +265,15 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto sent_to = retrieve<dcon::nation_id>(state, parent);
-		if(state.world.nation_get_is_player_controlled(sent_to)) {
+		auto target = retrieve<dcon::nation_id>(state, parent);
+
+		auto war = military::find_war_between(state, target, state.local_player_nation);
+		auto const we_lead = (state.local_player_nation == state.world.war_get_primary_attacker(war) || state.local_player_nation == state.world.war_get_primary_defender(war));
+		if(we_lead) {
+			text::add_line(state, contents, "alice_warn_war_ends_for_us");
+		}
+
+		if(state.world.nation_get_is_player_controlled(target)) {
 			// no tooltip -- no expected acceptance from players
 			return;
 		}
@@ -395,7 +404,7 @@ public:
 					auto wg = fatten(state.world, twg.wg);
 					if(military::get_role(state, war, wg.get_added_by()) == (attacker_filter ? military::war_role::attacker : military::war_role::defender)) {
 
-						total += military::peace_cost(state, retrieve<dcon::war_id>(state, parent), wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+						total += military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 					}
 				}
 			}

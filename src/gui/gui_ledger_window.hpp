@@ -2,8 +2,11 @@
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "province_templates.hpp"
 
 namespace ui {
+
+
 
 class ledger_page_number {
 public:
@@ -1917,6 +1920,95 @@ public:
 //
 // Commodity price
 //
+
+
+class all_prices_graph : public window_element_base {
+	std::vector<line_graph*> graph_per_price;
+	const uint32_t graph_length = 256;
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+
+		assert(graph_length <= economy::price_history_length);
+
+		uint32_t total_commodities = state.world.commodity_size();
+
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto ptr = make_element_by_type<line_graph>(state, "ledger_linechart", graph_length);
+			auto graph = reinterpret_cast<line_graph*>(ptr.get());
+			auto color = state.world.commodity_get_color(commodity);
+			graph->is_coloured = true;
+			graph->r = sys::red_from_int(color);
+			graph->g = sys::green_from_int(color);
+			graph->b = sys::blue_from_int(color);
+
+			graph_per_price.push_back(graph);
+			add_child_to_front(std::move(ptr));
+		});
+	}
+	void on_update(sys::state& state) noexcept override {
+		uint32_t total_commodities = state.world.commodity_size();
+
+		float min = 0.f;
+		float max = 0.f;
+
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return;
+
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto newest_index = economy::most_recent_price_record_index(state);
+			if((*ptr)[commodity.index()]) {
+				for(uint32_t i = 0; i < graph_length; ++i) {
+					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
+					if(price > max) {
+						max = price;
+					}
+				}
+			}
+		});
+
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			if(!((*ptr)[commodity.index()])) {
+				graph_per_price[commodity.index()]->set_visible(state, false);
+			} else {
+				graph_per_price[commodity.index()]->set_visible(state, true);
+				std::vector<float> datapoints(graph_length);
+				auto newest_index = economy::most_recent_price_record_index(state);
+
+				for(uint32_t i = 0; i < graph_length; ++i) {
+					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
+				}
+				graph_per_price[commodity.index()]->set_data_points(state, datapoints, min, max);
+			}
+		});
+	}
+};
+
+
+class price_toggle_checkbox : public checkbox_button {
+public:
+	int32_t index;
+	price_toggle_checkbox(dcon::commodity_id good_id) {
+		index = good_id.index();
+	};
+	void button_action(sys::state& state) noexcept override {
+		if(index < 0) return;
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return;
+		(*ptr)[index] = !(*ptr)[index];
+		state.game_state_updated.store(true, std::memory_order_release);
+	}
+	bool is_active(sys::state& state) noexcept override {
+		if(index < 0) return false;
+		auto ptr = retrieve< std::vector<bool>*>(state, parent);
+		if(!ptr)
+			return false;
+		return (*ptr)[index];
+	}
+};
+
 class ledger_commodity_price_entry : public listbox_row_element_base<dcon::commodity_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1924,21 +2016,29 @@ public:
 			return make_element_by_type<generic_name_text<dcon::commodity_id>>(state, id);
 		} else if(name == "ledger_legend_plupp") {
 			return make_element_by_type<ledger_commodity_plupp>(state, id);
+		} else if(name == "ledger_legend_checkbox") {
+			return make_element_by_type<price_toggle_checkbox>(state, id, content);
 		} else {
 			return nullptr;
 		}
 	}
+
+	void on_update(sys::state& state) noexcept override {
+		(reinterpret_cast<price_toggle_checkbox*>(get_child_by_name(state, "ledger_legend_checkbox")))->index = content.index();
+	}
 };
+
 class ledger_commodity_price_listbox : public listbox_element_base<ledger_commodity_price_entry, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "ledger_legend_entry";
 	}
-
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		state.world.for_each_commodity([&](dcon::commodity_id id) { row_contents.push_back(id); });
+		state.world.for_each_commodity([&](dcon::commodity_id id) {
+			row_contents.push_back(id);
+		});
 		update(state);
 	}
 };
@@ -1957,7 +2057,7 @@ class ledger_window : public window_element_base {
 	dcon::gui_def_id listbox_def_id{};
 	dcon::gui_def_id sort_buttons_window_id{};
 
-	window_element_base* commodity_linegraph = nullptr;
+	all_prices_graph* commodity_linegraph = nullptr;
 	commodity_linegraph_legend_window* commodity_linegraph_legend = nullptr;
 	image_element_base* commodity_linegraph_image = nullptr;
 	simple_text_element_base* page_number_text = nullptr;
@@ -1995,9 +2095,16 @@ class ledger_window : public window_element_base {
 		commodity_linegraph_image->set_visible(state, false);
 	}
 
+	std::vector<bool> price_toggle_status;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
+
+		uint32_t total_commodities = state.world.commodity_size();
+		for(uint32_t k = 0; k < total_commodities; ++k) {
+			price_toggle_status.push_back(true);
+		}
 
 		{
 			auto ptr = make_element_by_type<ledger_nation_ranking_listbox>(state, listbox_def_id);
@@ -2122,7 +2229,7 @@ public:
 		} else if(name == "ledger_bg") {
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "ledger_linegraphs") {
-			auto ptr = make_element_by_type<window_element_base>(state, id);
+			auto ptr = make_element_by_type<all_prices_graph>(state, id);
 			commodity_linegraph = ptr.get();
 			return ptr;
 		} else if(name == "ledger_linegraph_legend") {
@@ -2218,6 +2325,9 @@ public:
 		} else if(payload.holds_type<element_selection_wrapper<ledger_sort>>()) {
 			current_sorting = any_cast<element_selection_wrapper<ledger_sort>>(payload).data;
 			impl_on_update(state);
+			return message_result::consumed;
+		} else if(payload.holds_type< std::vector<bool>*>()) {
+			payload.emplace<std::vector<bool>*>(&price_toggle_status);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

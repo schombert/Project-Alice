@@ -7,6 +7,7 @@
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
 
+#include "blake2.h"
 #include "zstd.h"
 
 namespace sys {
@@ -139,11 +140,17 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.border_vertices);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.province_area);
+		ptr_in = deserialize(ptr_in, state.map_state.map_data.diagonal_borders);
 	}
 	{
 		memcpy(&(state.defines), ptr_in, sizeof(parsing::defines));
@@ -192,6 +199,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.standard_status_quo);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.liberate);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.crisis_colony);
@@ -270,6 +278,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	}
 	{ // provincial definitions
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
+		ptr_in = deserialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
@@ -312,11 +321,17 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.border_vertices);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_id_map);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.province_area);
+		ptr_in = serialize(ptr_in, state.map_state.map_data.diagonal_borders);
 	}
 	{
 		memcpy(ptr_in, &(state.defines), sizeof(parsing::defines));
@@ -365,6 +380,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.base_naval_unit);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_civil_war);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_great_war);
+		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.standard_status_quo);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.liberate);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.uninstall_communist_gov);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.crisis_colony);
@@ -443,6 +459,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	}
 	{ // provincial definitions
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
+		ptr_in = serialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
@@ -485,11 +502,17 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
 		sz += serialize_size(state.map_state.map_data.river_vertices);
+		sz += serialize_size(state.map_state.map_data.river_starts);
+		sz += serialize_size(state.map_state.map_data.river_counts);
+		sz += serialize_size(state.map_state.map_data.coastal_vertices);
+		sz += serialize_size(state.map_state.map_data.coastal_starts);
+		sz += serialize_size(state.map_state.map_data.coastal_counts);
 		sz += serialize_size(state.map_state.map_data.border_vertices);
 		sz += serialize_size(state.map_state.map_data.borders);
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
 		sz += serialize_size(state.map_state.map_data.province_id_map);
 		sz += serialize_size(state.map_state.map_data.province_area);
+		sz += serialize_size(state.map_state.map_data.diagonal_borders);
 	}
 	{ sz += sizeof(parsing::defines); }
 	{ sz += sizeof(economy::global_economy_state); }
@@ -532,6 +555,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.base_naval_unit);
 		sz += sizeof(state.military_definitions.standard_civil_war);
 		sz += sizeof(state.military_definitions.standard_great_war);
+		sz += sizeof(state.military_definitions.standard_status_quo);
 		sz += sizeof(state.military_definitions.liberate);
 		sz += sizeof(state.military_definitions.uninstall_communist_gov);
 		sz += sizeof(state.military_definitions.crisis_colony);
@@ -610,6 +634,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 	}
 	{ // provincial definitions
 		sz += serialize_size(state.province_definitions.canals);
+		sz += serialize_size(state.province_definitions.canal_provinces);
 		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
 		sz += sizeof(state.province_definitions.first_sea_province);
 		sz += sizeof(state.province_definitions.europe);
@@ -797,7 +822,7 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 
 	state.scenario_counter = count;
 	state.scenario_time_stamp = header.timestamp;
-	
+
 
 	// this is an upper bound, since compacting the data may require less space
 	size_t total_size =
@@ -933,10 +958,6 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 			return false;
 		}
 
-		//if(state.scenario_counter != header.count)
-		//	return false;
-		//if(state.scenario_time_stamp != header.timestamp)
-		//	return false;
 		if(!state.scenario_checksum.is_equal(header.checksum))
 			return false;
 
@@ -971,10 +992,12 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state) {
+void write_save_file(sys::state& state, bool autosave) {
 	save_header header;
 	header.count = state.scenario_counter;
-	header.timestamp = state.scenario_time_stamp;
+	//header.timestamp = state.scenario_time_stamp;
+	auto time_stamp = std::time(nullptr);
+	header.timestamp = int64_t(time_stamp);
 	header.checksum = state.scenario_checksum;
 	header.tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
@@ -997,12 +1020,16 @@ void write_save_file(sys::state& state) {
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	auto ymd_date = state.current_date.to_ymd(state.start_date);
-	auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-
 	auto sdir = simple_fs::get_or_create_save_game_directory();
-	simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 
+	if(autosave) {
+		simple_fs::write_file(sdir, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin")), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		state.autosave_counter = (state.autosave_counter + 1) % sys::max_autosaves;
+	} else {
+		auto ymd_date = state.current_date.to_ymd(state.start_date);
+		auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+	}
 	delete[] temp_buffer;
 
 	state.save_list_updated.store(true, std::memory_order::release); // update for ui

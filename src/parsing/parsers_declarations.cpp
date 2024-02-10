@@ -60,25 +60,31 @@ void culture_group::union_tag(association_type, uint32_t v, error_handler& err, 
 
 void good::money(association_type, bool v, error_handler& err, int32_t line, good_context& context) {
 	if(v) {
-		context.outer_context.state.world.commodity_set_color(economy::money,
-				context.outer_context.state.world.commodity_get_color(context.id));
-		context.outer_context.state.world.commodity_set_cost(economy::money,
-				context.outer_context.state.world.commodity_get_cost(context.id));
-		context.outer_context.state.world.commodity_set_commodity_group(economy::money,
-				context.outer_context.state.world.commodity_get_commodity_group(context.id));
-		context.outer_context.state.world.commodity_set_name(economy::money,
-				context.outer_context.state.world.commodity_get_name(context.id));
-		context.outer_context.state.world.commodity_set_is_available_from_start(economy::money,
-				context.outer_context.state.world.commodity_get_is_available_from_start(context.id));
+		if(context.outer_context.money_set) {
+			context.outer_context.state.world.commodity_set_money_rgo(context.id, true);
+		} else {
+			context.outer_context.state.world.commodity_set_color(economy::money,
+					context.outer_context.state.world.commodity_get_color(context.id));
+			context.outer_context.state.world.commodity_set_cost(economy::money,
+					context.outer_context.state.world.commodity_get_cost(context.id));
+			context.outer_context.state.world.commodity_set_commodity_group(economy::money,
+					context.outer_context.state.world.commodity_get_commodity_group(context.id));
+			context.outer_context.state.world.commodity_set_name(economy::money,
+					context.outer_context.state.world.commodity_get_name(context.id));
+			context.outer_context.state.world.commodity_set_is_available_from_start(economy::money,
+					context.outer_context.state.world.commodity_get_is_available_from_start(context.id));
+			context.outer_context.state.world.commodity_set_money_rgo(economy::money, true);
 
-		for(auto& pr : context.outer_context.map_of_commodity_names) {
-			if(pr.second == context.id) {
-				pr.second = economy::money;
-				break;
+			for(auto& pr : context.outer_context.map_of_commodity_names) {
+				if(pr.second == context.id) {
+					pr.second = economy::money;
+					break;
+				}
 			}
+			context.id = economy::money;
+			context.outer_context.state.world.pop_back_commodity();
+			context.outer_context.money_set = true;
 		}
-		context.id = economy::money;
-		context.outer_context.state.world.pop_back_commodity();
 	}
 }
 
@@ -197,6 +203,14 @@ void government_type::flagtype(association_type, std::string_view value, error_h
 		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::national_syndicalist));
 	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "theocratic"))
 		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::theocratic));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot1"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot1));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot2"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot2));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot3"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot3));
+	else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "slot4"))
+		context.outer_context.state.world.government_type_set_flag(context.id, uint8_t(::culture::flag_type::slot4));
 	else {
 		err.accumulated_errors += "Unknown flag type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
@@ -2630,7 +2644,7 @@ void country_history_file::culture(association_type, std::string_view value, err
 
 	if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
 			it != context.outer_context.map_of_culture_names.end()) {
-		context.outer_context.state.world.nation_get_accepted_cultures(context.holder_id).push_back(it->second);
+		context.outer_context.state.world.nation_set_accepted_cultures(context.holder_id, it->second, true);
 	} else {
 		err.accumulated_errors +=
 				"invalid culture " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2739,10 +2753,8 @@ void country_history_file::non_state_culture_literacy(association_type, float va
 			bool non_accepted = [&]() {
 				if(prov_pop.get_pop().get_culture() == fh.get_primary_culture())
 					return false;
-				for(auto c : fh.get_accepted_cultures()) {
-					if(prov_pop.get_pop().get_culture() == c)
-						return false;
-				}
+				if(fh.get_accepted_cultures(prov_pop.get_pop().get_culture()))
+					return false;
 				return true;
 			}();
 			if(non_accepted)
@@ -3151,6 +3163,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_primary_attacker(context.attackers[0]);
 		new_war.set_primary_defender(context.defenders[0]);
 		new_war.set_is_great(context.great_war);
+		new_war.set_original_target(context.defenders[0]);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		auto it = context.outer_context.state.key_to_text_sequence.find(

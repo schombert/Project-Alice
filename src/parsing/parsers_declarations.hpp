@@ -40,7 +40,7 @@ struct gfx_xy_pair {
 	void free_value(int32_t v, error_handler& err, int32_t line, building_gfx_context& context) {
 		if(context.on_second_pair_y) {
 			if(y != 0) {
-				err.accumulated_errors += "More than 2 elements for pair " + err.file_name + " line " + std::to_string(line) + "\n"; 
+				err.accumulated_errors += "More than 2 elements for pair " + err.file_name + " line " + std::to_string(line) + "\n";
 			}
 			y = v;
 		} else {
@@ -398,6 +398,7 @@ struct scenario_building_context {
 	int32_t number_of_commodities_seen = 0;
 	int32_t number_of_national_values_seen = 0;
 	bool new_maps = false;
+	bool money_set = false;
 };
 
 struct national_identity_file {
@@ -592,6 +593,8 @@ public:
 	MOD_NAT_FUNCTION(max_military_spending)
 	MOD_NAT_FUNCTION(min_social_spending)
 	MOD_NAT_FUNCTION(max_social_spending)
+	MOD_NAT_FUNCTION(min_domestic_investment)
+	MOD_NAT_FUNCTION(max_domestic_investment)
 	MOD_NAT_FUNCTION(factory_owner_cost)
 	MOD_NAT_FUNCTION(min_tariff)
 	MOD_NAT_FUNCTION(max_tariff)
@@ -655,14 +658,16 @@ public:
 	MOD_PROV_FUNCTION(mine_rgo_eff)
 	MOD_PROV_FUNCTION(farm_rgo_size)
 	MOD_PROV_FUNCTION(mine_rgo_size)
+	MOD_PROV_FUNCTION(conversion_rate)
+	MOD_NAT_FUNCTION(global_conversion_rate)
 	template<typename T>
 	void m_rgo_size(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(v == 0.0f) return;
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
-				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n"; 
+				err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_p.offsets[next_to_add_p] = sys::provincial_mod_offsets::farm_rgo_size;
-			constructed_definition_p.values[next_to_add_p] = v; 
+			constructed_definition_p.values[next_to_add_p] = v;
 			++next_to_add_p;
 		}
 		if(next_to_add_p >= sys::provincial_modifier_definition::modifier_definition_size) {
@@ -952,6 +957,12 @@ public:
 					temp.values[temp_next] = constructed_definition_p.values[i];
 					++temp_next;
 				}
+			}  else if(constructed_definition_p.offsets[i] == sys::provincial_mod_offsets::conversion_rate) {
+				if(temp_next < sys::national_modifier_definition::modifier_definition_size) {
+					temp.offsets[temp_next] = sys::national_mod_offsets::global_conversion_rate;
+					temp.values[temp_next] = constructed_definition_p.values[i];
+					++temp_next;
+				}
 			}
 		}
 		return temp;
@@ -1156,6 +1167,7 @@ struct national_values_file {
 void m_very_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
+void m_very_hard_player(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_very_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_easy_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
 void m_hard_ai(token_generator& gen, error_handler& err, scenario_building_context& context);
@@ -2584,7 +2596,7 @@ struct war_history_file {
 void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context);
 
 struct mod_file_context {
-	
+
 };
 
 struct dependencies_list {
@@ -2624,4 +2636,5 @@ void make_leader_images(scenario_building_context& outer_context);
 
 #include "trigger_parsing.hpp"
 #include "effect_parsing.hpp"
+#include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"

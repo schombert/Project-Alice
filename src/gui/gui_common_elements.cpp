@@ -142,7 +142,7 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 	if(!sort_ascend) {
 		std::reverse(list.begin(), list.end());
 	}
-	
+
 }
 std::string get_status_text(sys::state& state, dcon::nation_id nation_id) {
 	switch(nations::get_status(state, nation_id)) {

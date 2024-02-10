@@ -58,9 +58,7 @@ void ui_scale_right::on_update(sys::state& state) noexcept {
 	disabled = (scale_index >= uint32_t(sys::ui_scales_count - 1));
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
-	std::string temp(16, '\0');
-	std::snprintf(temp.data(), temp.size(), "%.2fx", state.user_settings.ui_scale);
-	set_text(state, temp);
+	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
 }
 
 void autosave_left::button_action(sys::state& state) noexcept {
@@ -105,12 +103,64 @@ void autosave_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void map_zoom_mode_left::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	if(scale_index > 0) {
+		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index - 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_zoom_mode_left::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	disabled = (scale_index == 0);
+}
+void map_zoom_mode_right::button_action(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	if(scale_index < 2) {
+		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index + 1);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void map_zoom_mode_right::on_update(sys::state& state) noexcept {
+	auto scale_index = uint8_t(state.user_settings.zoom_mode);
+	disabled = (scale_index >= 2);
+}
+void map_zoom_mode_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.zoom_mode) {
+	case sys::map_zoom_mode::panning:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_panning"));
+		break;
+	case sys::map_zoom_mode::inverted:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_inverted"));
+		break;
+	case sys::map_zoom_mode::centered:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_centered"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
+	state.user_settings.mouse_edge_scrolling = !state.user_settings.mouse_edge_scrolling;
+	send(state, parent, notify_setting_update{});
+}
+bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
+	return state.user_settings.mouse_edge_scrolling;
+}
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});
 }
 bool tooltip_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.bind_tooltip_mouse;
+}
+void spoilers_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.spoilers = !state.user_settings.spoilers;
+	send(state, parent, notify_setting_update{});
+}
+bool spoilers_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.spoilers;
 }
 
 void fow_checkbox::on_create(sys::state& state) noexcept {
@@ -123,6 +173,39 @@ bool fow_checkbox::is_active(sys::state& state) noexcept {
 void fow_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 	state.map_state.map_data.update_fog_of_war(state);
+	send(state, parent, notify_setting_update{});
+}
+
+bool render_models_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.render_models;
+}
+void render_models_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.render_models = !state.user_settings.render_models;
+	send(state, parent, notify_setting_update{});
+}
+
+bool black_map_font_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.black_map_font;
+}
+void black_map_font_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.black_map_font = !state.user_settings.black_map_font;
+	send(state, parent, notify_setting_update{});
+}
+
+bool railroad_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.railroads_enabled;
+}
+void railroad_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.railroads_enabled = !state.user_settings.railroads_enabled;
+	state.railroad_built.store(true, std::memory_order::release);
+	send(state, parent, notify_setting_update{});
+}
+
+bool river_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.rivers_enabled;
+}
+void river_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.rivers_enabled = !state.user_settings.rivers_enabled;
 	send(state, parent, notify_setting_update{});
 }
 
@@ -193,7 +276,7 @@ void antialiasing_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.antialias_level >= 16);
 }
 void antialiasing_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + std::to_string(int32_t(state.user_settings.antialias_level)));
+	set_text(state, std::to_string(int32_t(state.user_settings.antialias_level)));
 }
 
 void gaussianblur_left::button_action(sys::state& state) noexcept {
@@ -216,7 +299,7 @@ void gaussianblur_right::on_update(sys::state& state) noexcept {
 }
 void gaussianblur_display::on_update(sys::state& state) noexcept {
 	/* More user friendly displaying of gaussian blur */
-	set_text(state, "x" + text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
+	set_text(state, text::format_float((state.user_settings.gaussianblur_level - 1.f) * 64.f));
 }
 
 void gamma_left::button_action(sys::state& state) noexcept {
@@ -238,7 +321,46 @@ void gamma_right::on_update(sys::state& state) noexcept {
 	disabled = (state.user_settings.gamma >= 2.5f);
 }
 void gamma_display::on_update(sys::state& state) noexcept {
-	set_text(state, "x" + text::format_float(state.user_settings.gamma));
+	set_text(state, text::format_float(state.user_settings.gamma));
+}
+
+void vassal_color_left::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.vassal_color);
+	if(index > 0) {
+		state.user_settings.vassal_color = sys::map_vassal_color_mode(index - 1);
+		map_mode::update_map_mode(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void vassal_color_left::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.vassal_color) == 0);
+}
+void vassal_color_right::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.vassal_color);
+	if(index < 2) {
+		state.user_settings.vassal_color = sys::map_vassal_color_mode(index + 1);
+		map_mode::update_map_mode(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void vassal_color_right::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.vassal_color) >= 2);
+}
+void vassal_color_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.vassal_color) {
+	case sys::map_vassal_color_mode::inherit:
+		set_text(state, text::produce_simple_string(state, "vassal_color_inherit"));
+		break;
+	case sys::map_vassal_color_mode::same:
+		set_text(state, text::produce_simple_string(state, "vassal_color_same"));
+		break;
+	case sys::map_vassal_color_mode::none:
+		set_text(state, text::produce_simple_string(state, "vassal_color_none"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
 }
 
 /*
@@ -270,17 +392,35 @@ bool window_mode_checkbox::is_active(sys::state& state) noexcept {
 }
 
 void projection_mode_left::button_action(sys::state& state) noexcept {
-	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
+	state.user_settings.map_is_globe = static_cast<sys::projection_mode> (static_cast<uint8_t>(state.user_settings.map_is_globe) + 1);
+	if(state.user_settings.map_is_globe >= sys::projection_mode::num_of_modes) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(0);
+	}
 	send(state, parent, notify_setting_update{});
 }
 void projection_mode_left::on_update(sys::state& state) noexcept { }
 void projection_mode_right::button_action(sys::state& state) noexcept {
-	state.user_settings.map_is_globe = !state.user_settings.map_is_globe;
+	//validation
+	if(state.user_settings.map_is_globe >= sys::projection_mode::num_of_modes) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(0);
+	}
+
+	if(static_cast<uint8_t>(state.user_settings.map_is_globe) == 0) {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode>(static_cast<uint8_t>(sys::projection_mode::num_of_modes) - 1);
+	} else {
+		state.user_settings.map_is_globe = static_cast<sys::projection_mode> (static_cast<uint8_t>(state.user_settings.map_is_globe) - 1);
+	}
 	send(state, parent, notify_setting_update{});
 }
 void projection_mode_right::on_update(sys::state& state) noexcept { }
 void projection_mode_display::on_update(sys::state& state) noexcept {
-	auto it = state.user_settings.map_is_globe ? std::string_view("map_projection_globe") : std::string_view("map_projection_flat");
+	auto it = std::string_view("map_projection_globe");
+	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
+		it = std::string_view("map_projection_flat");
+	} else if (state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
+		it = std::string_view("map_projection_globe_perspective");
+	}
+
 	set_text(state, text::produce_simple_string(state, it));
 }
 
@@ -302,6 +442,14 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 }
 bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.use_classic_fonts;
+}
+
+void left_mouse_click_mode_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.left_mouse_click_hold_and_release = !state.user_settings.left_mouse_click_hold_and_release;
+	send(state, parent, notify_setting_update{});
+}
+bool left_mouse_click_mode_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.left_mouse_click_hold_and_release;
 }
 
 void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {

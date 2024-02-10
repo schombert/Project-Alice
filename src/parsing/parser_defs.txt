@@ -119,7 +119,7 @@ scrollbar
 	startvalue        value       none         discard
 	stepsize          value       text         member_fn
 	userangelimit     value       bool         member_fn
-	bordersize        group       gfx_xy_pair  member_fn 
+	bordersize        group       gfx_xy_pair  member_fn
 	guibuttontype     group       button       member_fn
 	icontype          group       image        member_fn
 
@@ -250,6 +250,8 @@ modifier_base
 	max_military_spending                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
+	min_domestic_investment              value      float            member_fn
+	max_domestic_investment              value      float            member_fn
 	factory_owner_cost                        value      float            member_fn
 	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
@@ -404,6 +406,8 @@ modifier_base
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard
+	conversion_rate                     	  value      float            member_fn
+	global_conversion_rate                    value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -924,6 +928,7 @@ trigger_body
 	has_accepted_culture      value      text               member_fn (accepted_culture)
 	brigades_compare      value      float              member_fn
 	has_country_flag      value      text               member_fn
+	has_province_flag     value      text               discard
 	has_culture_core      value      bool               member_fn
 	has_pop_religion      value      text               member_fn
 	industrial_score      value      text               member_fn
@@ -1298,6 +1303,9 @@ ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
 effect_body
+	if                              extern      ef_scope_if         discard
+	else_if                         extern      ef_scope_else_if    discard
+	else                            extern      ef_scope_else_if    discard (else_if)
 	capital                         value       int                 member_fn
 	add_core                        value       text                member_fn
 	remove_core                     value       text                member_fn

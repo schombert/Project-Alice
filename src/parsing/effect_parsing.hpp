@@ -199,6 +199,9 @@ struct ef_wargoal {
 	bool target_country_is_this = false;
 	bool target_country_is_from = false;
 	dcon::province_id state_province_id_;
+	bool special_end_wargoal = false;
+	bool special_call_ally_wargoal = false;
+
 	void country(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(is_this(value)) {
 			target_country_is_this = true;
@@ -217,9 +220,12 @@ struct ef_wargoal {
 			return;
 		}
 	}
-	void casus_belli(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		if(auto it = context.outer_context.map_of_cb_types.find(std::string(value));
+	void casus_belli(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "test_end_war")) {
+			special_end_wargoal = true;
+		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "call_allies_cb")) {
+			special_call_ally_wargoal = true;
+		} else if(auto it = context.outer_context.map_of_cb_types.find(std::string(value));
 				it != context.outer_context.map_of_cb_types.end()) {
 			casus_belli_ = it->second.id;
 		} else {
@@ -2655,7 +2661,7 @@ struct effect_body {
 			}
 			context.compiled_effect.push_back(trigger::payload(int16_t(value.value)).value);
 		} else if(value.who.length() == 3) {
-			
+
 			if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value.who[0], value.who[1], value.who[2]));
 					it != context.outer_context.map_of_ident_names.end()) {
 
@@ -3092,6 +3098,53 @@ struct effect_body {
 		if(context.main_slot != trigger::slot_contents::nation) {
 			err.accumulated_errors +=
 					"war effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		if(value.attacker_goal.special_end_wargoal) {
+			if(is_from(value.target)) {
+				if(context.from_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(effect::add_truce_from_nation);
+				else if(context.from_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(effect::add_truce_from_province);
+				else {
+					err.accumulated_errors +=
+						"war = from effect (used to create a truce) used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(is_this(value.target)) {
+				if(context.this_slot == trigger::slot_contents::nation)
+					context.compiled_effect.push_back(effect::add_truce_this_nation);
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(effect::add_truce_this_province);
+				else if(context.this_slot == trigger::slot_contents::state)
+					context.compiled_effect.push_back(effect::add_truce_this_state);
+				else if(context.this_slot == trigger::slot_contents::province)
+					context.compiled_effect.push_back(effect::add_truce_this_province);
+				else {
+					err.accumulated_errors +=
+						"war = this  (used to create a truce) used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else if(value.target.length() == 3) {
+				if(auto it = context.outer_context.map_of_ident_names.find(
+					nations::tag_to_int(value.target[0], value.target[1], value.target[2]));
+					it != context.outer_context.map_of_ident_names.end()) {
+					context.compiled_effect.push_back(effect::add_truce_tag);
+					context.compiled_effect.push_back(trigger::payload(it->second).value);
+				} else {
+					err.accumulated_errors +=
+						"war = effect (used to create a truce) given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					return;
+				}
+			} else {
+				err.accumulated_errors +=
+					"war = effect (used to create a truce) given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(uint16_t(12)); // months
+			return;
+		} else if(value.attacker_goal.special_call_ally_wargoal) {
+			context.compiled_effect.push_back(effect::call_allies);
 			return;
 		}
 		if(is_from(value.target)) {
@@ -3602,6 +3655,9 @@ dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handl
 
 dcon::trigger_key ef_limit(token_generator& gen, error_handler& err, effect_building_context& context);
 
+void ef_scope_if(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_else_if(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_else(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);

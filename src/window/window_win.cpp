@@ -2,6 +2,7 @@
 #include "map.hpp"
 #include "opengl_wrapper.hpp"
 #include "resource.h"
+#include "system_state.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -252,10 +253,23 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	}
 	case WM_KEYDOWN: // fallthrough
 	case WM_SYSKEYDOWN:
-		if((HIWORD(lParam) & KF_REPEAT) != 0)
-			return 0;
+	{
+		sys::virtual_key key = sys::virtual_key(wParam);
+		switch(key) {
+		case sys::virtual_key::BACK: [[fallthrough]];
+		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
+		case sys::virtual_key::LEFT: [[fallthrough]];
+		case sys::virtual_key::RIGHT: [[fallthrough]];
+		case sys::virtual_key::UP: [[fallthrough]];
+		case sys::virtual_key::DOWN:
+			break;
+		default:
+			if((HIWORD(lParam) & KF_REPEAT) != 0)
+				return 0;
+		}
 		state->on_key_down(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
+	}
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
@@ -284,6 +298,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// this is the message that tells us there is a DirectShow event
 		sound::update_music_track(*state);
 		break;
+	case WM_GETMINMAXINFO:
+		LPMINMAXINFO info = (LPMINMAXINFO)lParam;
+		info->ptMinTrackSize.x = 640;
+		info->ptMinTrackSize.y = 400;
 	}
 	return DefWindowProcW(hwnd, message, wParam, lParam);
 }
@@ -377,6 +395,18 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
 	game_state.on_create();
+
+	{
+		auto root = simple_fs::get_root(game_state.common_fs);
+		auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+		auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
+		if(auto f = simple_fs::peek_file(cursors_dir, NATIVE("normal.cur")); f) {
+			auto path = simple_fs::get_full_name(*f);
+			HCURSOR h_cursor = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			SetCursor(h_cursor);
+			SetClassLongPtr(game_state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(h_cursor));
+		}
+	}
 
 	MSG msg;
 	// pump message loop

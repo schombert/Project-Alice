@@ -317,6 +317,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ money_rgo }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ is_mine }
 		type{ bitfield }
 		tag{ scenario }
@@ -406,7 +411,7 @@ object {
 object {
 	name{ modifier }
 	storage_type{ contiguous }
-	size{ 3000 }
+	size{ 10000 }
 	tag{ scenario }
 
 	property{
@@ -434,7 +439,7 @@ object {
 object {
 	name{ factory_type }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 256 }
 	tag{ scenario }
 
 	property{
@@ -2168,6 +2173,16 @@ object {
 		type{vector_pool{5000}{military::reserve_regiment}}
 		tag{ save }
 	}
+	
+	property{
+		name{ defender_casualties }
+		type{ float }
+	}
+	
+	property{
+		name{ attacker_casualties }
+		type{ float }
+	}
 }
 
 relationship{
@@ -2256,7 +2271,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 20000 }
+	size{ 25000 }
 	tag{ save }
 
 	property{
@@ -3025,7 +3040,7 @@ object {
 
 	property{
 		name{ accepted_cultures }
-		type{vector_pool{10000}{culture_id}}
+		type{array{culture_id}{bitfield}}
 		tag{ save }
 	}
 	property{
@@ -3297,6 +3312,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ domestic_investment_spending }
+		type{ int8_t }
+		tag{ save }
+	}
+	property {
 		name{ land_spending }
 		type{ int8_t }
 		tag{ save }
@@ -3556,6 +3576,16 @@ object {
 	property{
 		name{ is_player_controlled }
 		type{ bitfield }
+	}
+	property{
+		name{ is_debt_spending }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ bankrupt_until }
+		type{ sys::date }
+		tag{ save }
 	}
 	property{
 		name{ is_colonial_nation }
@@ -4268,7 +4298,7 @@ relationship{
 object {
 	name { pop }
 	storage_type{ compactable }
-	size{ 200000 }
+	size{ 300000 }
 	tag{ save }
 
 	property{
@@ -4563,7 +4593,7 @@ object {
 object {
 	name{ national_focus }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 124 }
 	tag{ scenario }
 
 	property{

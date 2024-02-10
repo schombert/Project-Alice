@@ -54,6 +54,8 @@ public:
 			return text::produce_simple_string(state, "back_crisis_di");
 		case diplomatic_message::type_t::crisis_peace_offer:
 			return text::produce_simple_string(state, "crisis_offer_di");
+		case diplomatic_message::type_t::state_transfer:
+			return text::produce_simple_string(state, "state_transfer_di");
 		}
 		return std::string("???");
 	}
@@ -154,6 +156,7 @@ class diplomacy_request_desc_text : public scrollable_text {
 			}
 			break;
 		case diplomatic_message::type_t::crisis_peace_offer:
+		{
 			auto is_concession = state.world.peace_offer_get_is_concession(diplomacy_request.data.peace);
 			if(is_concession) {
 				text::add_line(state, contents, "crisisofferdesc", text::variable_type::country, diplomacy_request.from);
@@ -184,10 +187,20 @@ class diplomacy_request_desc_text : public scrollable_text {
 			if(is_wp) {
 				text::add_line(state, contents, "peace_whitepeace");
 			}
+		} break;
+		case diplomatic_message::type_t::state_transfer:
+			text::add_line(state, contents, "state_transfer_offer", text::variable_type::actor, diplomacy_request.from);
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, diplomacy_request.data.state);
+			text::close_layout_box(contents, box);
 			break;
 		}
 	}
 public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.y = int16_t(150);
+		scrollable_text::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
 		switch(base_data.data.text.get_alignment()) {
@@ -333,13 +346,17 @@ public:
 			set_visible(state, false);
 		}
 
-		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
+		count_text->set_text(state, std::to_string(int32_t(index + 1)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(index >= int32_t(messages.size()))
+		if(messages.empty()) {
 			index = 0;
-		else if(index < 0)
-			index = int32_t(messages.size()) - 1;
+		} else {
+			if(index >= int32_t(messages.size()))
+				index = 0;
+			else if(index < 0)
+				index = int32_t(messages.size()) - 1;
+		}
 
 		if(payload.holds_type<dcon::nation_id>()) {
 			if(messages.empty()) {

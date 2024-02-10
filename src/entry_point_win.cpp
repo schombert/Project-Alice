@@ -1,4 +1,5 @@
 #include "system_state.hpp"
+#include "serialization.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -15,8 +16,6 @@
 #pragma comment(lib, "Shell32.lib")
 
 static sys::state game_state; // too big for the stack
-
-
 static CRITICAL_SECTION guard_abort_handler;
 
 void signal_abort_handler(int) {
@@ -58,7 +57,7 @@ void signal_abort_handler(int) {
 	LeaveCriticalSection(&guard_abort_handler);
 }
 
-LONG WINAPI uef_wrapper( struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
+LONG WINAPI uef_wrapper(struct _EXCEPTION_POINTERS* lpTopLevelExceptionFilter) {
 	signal_abort_handler(0);
 	return EXCEPTION_CONTINUE_SEARCH;
 }
@@ -82,13 +81,15 @@ void EnableCrashingOnCrashes() {
 	const DWORD EXCEPTION_SWALLOWING = 0x1;
 
 	HMODULE kernel32 = LoadLibraryA("kernel32.dll");
-	tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy");
-	tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy");
-	if(pGetPolicy && pSetPolicy) {
-		DWORD dwFlags;
-		if(pGetPolicy(&dwFlags)) {
-			// Turn off the filter
-			pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+	if(kernel32) {
+		tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32, "GetProcessUserModeExceptionPolicy");
+		tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32, "SetProcessUserModeExceptionPolicy");
+		if(pGetPolicy && pSetPolicy) {
+			DWORD dwFlags;
+			if(pGetPolicy(&dwFlags)) {
+				// Turn off the filter
+				pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+			}
 		}
 	}
 	BOOL insanity = FALSE;
@@ -121,6 +122,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		int num_params = 0;
 		auto parsed_cmd = CommandLineToArgvW(GetCommandLineW(), &num_params);
 
+		int headless_speed = 6;
+		bool headless_repeat = false;
+		bool headless = false;
 		if(num_params < 2) {
 #ifdef NDEBUG
 			auto msg = std::string("Start Alice.exe using the launcher");
@@ -177,17 +181,34 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
 						i++;
 					}
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-password")) {
+					if(i + 1 < num_params) {
+						auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						std::memset(game_state.network_state.password, '\0', sizeof(game_state.network_state.password));
+						std::memcpy(game_state.network_state.password, str.c_str(), std::min(sizeof(game_state.network_state.password), str.length()));
+						i++;
+					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v6")) {
 					game_state.network_state.as_v6 = true;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-v4")) {
 					game_state.network_state.as_v6 = false;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-headless")) {
+					headless = true;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-repeat")) {
+					headless_repeat = true;
+				} else if(native_string(parsed_cmd[i]) == NATIVE("-speed")) {
+					if(i + 1 < num_params) {
+						auto str = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						headless_speed = std::atoi(str.c_str());
+						i++;
+					}
 				}
 			}
 
 			if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
 				game_state.fill_unsaved_data();
 			} else {
-				auto msg = std::string("Scenario file ") +  simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
+				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
 				window::emit_error_message(msg, true);
 				return 0;
 			}
@@ -202,14 +223,47 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		text::load_bmfonts(game_state);
 		ui::populate_definitions_map(game_state);
 
-		std::thread update_thread([&]() { game_state.game_loop(); });
+		if(headless) {
+			game_state.actual_game_speed = headless_speed;
+			game_state.ui_pause.store(false, std::memory_order::release);
+			game_state.mode = sys::game_mode_type::in_game;
+			game_state.local_player_nation = dcon::nation_id{};
+			if(headless_repeat) {
+				std::thread update_thread([&]() { game_state.game_loop(); });
+				while(!game_state.quit_signaled.load(std::memory_order::acquire)) {
+					while(game_state.mode == sys::game_mode_type::in_game) {
+						std::this_thread::sleep_for(std::chrono::milliseconds(15));
+					}
+					//Reload savefile
+					network::finish(game_state);
+					game_state.actual_game_speed = 0;
+					//
+					if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
+						game_state.fill_unsaved_data();
+					} else {
+						auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(parsed_cmd[1]) + " could not be read";
+						window::emit_error_message(msg, true);
+						return 0;
+					}
+					//
+					network::init(game_state);
+					game_state.mode = sys::game_mode_type::in_game;
+					game_state.actual_game_speed = headless_speed;
+				};
+				update_thread.join();
+			} else {
+				game_state.game_loop();
+			}
+		} else {
+			std::thread update_thread([&]() { game_state.game_loop(); });
+			// entire game runs during this line
+			window::create_window(game_state,
+					window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
+			game_state.quit_signaled.store(true, std::memory_order_release);
+			update_thread.join();
+		}
 
-		// entire game runs during this line
-		window::create_window(game_state,
-				window::creation_parameters{1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen});
-
-		game_state.quit_signaled.store(true, std::memory_order_release);
-		update_thread.join();
+		network::finish(game_state);
 		CoUninitialize();
 	}
 	return 0;

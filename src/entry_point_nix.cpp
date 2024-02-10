@@ -1,3 +1,4 @@
+#include "serialization.hpp"
 #include "system_state.hpp"
 
 static sys::state game_state; // too big for the stack
@@ -33,6 +34,13 @@ int main(int argc, char **argv) {
 					memcpy(game_state.network_state.nickname.data, nickname.data(), std::min<size_t>(nickname.length(), 8));
 					i++;
 				}
+			} else if(native_string(argv[i]) == NATIVE("-password")) {
+				if(i + 1 < argc) {
+					auto str = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+					std::memset(game_state.network_state.password, '\0', sizeof(game_state.network_state.password));
+					std::memcpy(game_state.network_state.password, str.c_str(), std::min(sizeof(game_state.network_state.password), str.length()));
+					i++;
+				}
 			} else if(native_string(argv[i]) == NATIVE("-v6")) {
 				game_state.network_state.as_v6 = true;
 			} else if(native_string(argv[i]) == NATIVE("-v4")) {
@@ -50,6 +58,19 @@ int main(int argc, char **argv) {
 
 		network::init(game_state);
 	}
+	else {
+		if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
+			// scenario making functions
+			parsers::error_handler err{ "" };
+			game_state.load_scenario_data(err);
+			if(!err.accumulated_errors.empty())
+				window::emit_error_message(err.accumulated_errors, true);
+			sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
+			game_state.loaded_scenario_file = NATIVE("development_test_file.bin");
+		} else {
+			game_state.fill_unsaved_data();
+		}
+	}
 
 	// scenario loading functions (would have to run these even when scenario is pre-built
 	game_state.load_user_settings();
@@ -59,10 +80,11 @@ int main(int argc, char **argv) {
 
 	std::thread update_thread([&]() { game_state.game_loop(); });
 
-	window::create_window(game_state, window::creation_parameters());
+	window::create_window(game_state, window::creation_parameters{1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen});
 
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
 
+	network::finish(game_state);
 	return EXIT_SUCCESS;
 }
