@@ -1081,7 +1081,7 @@ class diplomacy_action_justify_war_button : public button_element_base {
 		} else { // this is a declare war action
 			auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
 			for(auto cb : state.world.in_cb_type) {
-				bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) && [&]() {
+				bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, content, cb) || [&]() {
 					if((cb.get_type_bits() & military::cb_flag::always) != 0) {
 						return true;
 					}
@@ -1153,7 +1153,7 @@ public:
 		text::add_line_with_condition(state, contents, "fab_explain_4", !state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol) == target);
 		text::add_line_with_condition(state, contents, "fab_explain_5", state.world.nation_get_in_sphere_of(target) != source);
 		text::add_line_with_condition(state, contents, "fab_explain_6", !military::are_at_war(state, target, source));
-		text::add_line_with_condition(state, contents, "fab_explain_7", !has_any_usable_cb(state, target));
+		text::add_line_with_condition(state, contents, "fab_explain_7", has_any_usable_cb(state, target));
 	}
 };
 
