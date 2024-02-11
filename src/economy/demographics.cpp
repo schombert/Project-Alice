@@ -797,7 +797,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto en_mod_b =
 				ve::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 		//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
-		auto war_exhaustion = state.world.nation_get_war_exhaustion(owner) * 0.005f;
+		auto war_exhaustion = state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
 		auto old_mil = state.world.pop_get_militancy(ids);
 
 		state.world.pop_set_militancy(ids,
