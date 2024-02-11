@@ -1,15 +1,11 @@
 #include <cmath>
+#include <bit>
 
 #include "fonts.hpp"
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
 #include "bmfont.hpp"
-
-#ifdef _MSC_VER
-#include <intrin.h>
-#define __builtin_popcount __popcnt
-#endif
 
 namespace text {
 
@@ -471,7 +467,7 @@ inline constexpr uint16_t X_ADVANCE_DEVICE = 0x0040;
 inline constexpr uint16_t Y_ADVANCE_DEVICE = 0x0080;
 
 size_t size(uint16_t format) {
-	return size_t(__builtin_popcount(format) * 2);
+	return size_t(std::popcount<uint16_t>(format) * 2);
 }
 
 int16_t get_x_placement(uint8_t const* t, uint16_t format) {
@@ -487,35 +483,35 @@ int16_t get_y_placement(uint8_t const* t, uint16_t format) {
 int16_t get_x_advance(uint8_t const* t, uint16_t format) {
 	if((format & X_ADVANCE) == 0)
 		return 0;
-	return b_to_i16(t + __builtin_popcount(format & (X_ADVANCE - 1)) * 2);
+	return b_to_i16(t + std::popcount<uint16_t>(format & (X_ADVANCE - 1)) * 2);
 }
 int16_t get_y_advance(uint8_t const* t, uint16_t format) {
 	if((format & Y_ADVANCE) == 0)
 		return 0;
-	return b_to_i16(t + __builtin_popcount(format & (Y_ADVANCE - 1)) * 2);
+	return b_to_i16(t + std::popcount<uint16_t>(format & (Y_ADVANCE - 1)) * 2);
 }
 uint8_t const* get_x_pla_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
 	if((format & X_PLACEMENT_DEVICE) == 0)
 		return nullptr;
-	auto v = b_to_u16(t + __builtin_popcount(format & (X_PLACEMENT_DEVICE - 1)) * 2);
+	auto v = b_to_u16(t + std::popcount<uint16_t>(format & (X_PLACEMENT_DEVICE - 1)) * 2);
 	return v ? parent_base + v : nullptr;
 }
 uint8_t const* get_y_pla_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
 	if((format & Y_PLACEMENT_DEVICE) == 0)
 		return nullptr;
-	auto v = b_to_u16(t + __builtin_popcount(format & (Y_PLACEMENT_DEVICE - 1)) * 2);
+	auto v = b_to_u16(t + std::popcount<uint16_t>(format & (Y_PLACEMENT_DEVICE - 1)) * 2);
 	return v ? parent_base + v : nullptr;
 }
 uint8_t const* get_x_adv_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
 	if((format & X_ADVANCE_DEVICE) == 0)
 		return nullptr;
-	auto v = b_to_u16(t + __builtin_popcount(format & (X_ADVANCE_DEVICE - 1)) * 2);
+	auto v = b_to_u16(t + std::popcount<uint16_t>(format & (X_ADVANCE_DEVICE - 1)) * 2);
 	return v ? parent_base + v : nullptr;
 }
 uint8_t const* get_y_adv_device_table(uint8_t const* t, uint16_t format, uint8_t const* parent_base) {
 	if((format & Y_ADVANCE_DEVICE) == 0)
 		return nullptr;
-	auto v = b_to_u16(t + __builtin_popcount(format & (Y_ADVANCE_DEVICE - 1)) * 2);
+	auto v = b_to_u16(t + std::popcount<uint16_t>(format & (Y_ADVANCE_DEVICE - 1)) * 2);
 	return v ? parent_base + v : nullptr;
 }
 }

@@ -121,11 +121,11 @@ inline constexpr float production_scale_delta = 0.001f;
 inline constexpr uint32_t price_history_length = 256;
 
 //
-inline constexpr float domestic_investment_multiplier = 2.f;
+inline constexpr float domestic_investment_multiplier = 2.0f;
 
 // rgo
 inline constexpr float rgo_overhire_multiplier = 10.f;
-inline constexpr float rgo_production_scale_neg_delta = 0.0000001f;
+inline constexpr float rgo_production_scale_neg_delta = 0.001f;
 
 // artisans
 inline constexpr float inputs_base_factor_artisans = 1.2f;
@@ -166,6 +166,16 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
+
+float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
+float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+
+std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_desired_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
+float rgo_expected_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float total_relevant_population);
+
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);

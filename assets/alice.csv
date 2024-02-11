@@ -888,6 +888,7 @@ fab_explain_3;You are not currently fabricating a casus belli
 fab_explain_4;You are an independent nation or the target is your overlord
 fab_explain_5;The target is not in your sphere of influence
 fab_explain_6;You are not currently at war with the target
+fab_explain_7;You can fabricate a casus belli
 peace_description;Make a peace offer to end hostilities between you and this nation
 peace_explain_1;Is not a subject nation
 peace_explain_2;The target is not a subject nation
@@ -1426,8 +1427,8 @@ aml_civ_s5;Colony
 macro_builder;Macro-builder;;;Macro-constructor
 macro_total_desc;Total unit stats:
 macro_remove_template;Delete
-macro_switch_type_land;Switch to: Land
-macro_switch_type_naval;Switch to: Naval
+macro_switch_type_land;Build army
+macro_switch_type_naval;Build navy
 macro_save_template;Save template;;;Guardar plantilla
 macro_new_template;New template;;;Nueva plantila
 macro_warn_overseas;§RCan't build this unit overseas!§W
@@ -1574,4 +1575,16 @@ current_supply_text2;The amount we could get of our current supply consumption w
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_mvcap_1;Moves the capital to this province
+alice_mvcap_2;No ongoing crisis
+alice_mvcap_3;At peace
+alice_mvcap_4;Not the capital already
+alice_mvcap_5;Not colonial
+alice_mvcap_6;On the same continent as current capital
+alice_mvcap_7;Dominant accepted culture
+alice_mvcap_8;This province is not being sieged
+alice_mvcap_9;The current capital not being sieged
+alice_mvcap_10;Is owned by you
+alice_mvcap_11;Is controlled by you
+alice_mvcap_12;Is owner core
 ;;;;;;;;;;;;;x

@@ -434,6 +434,7 @@ struct state {
 	element_base* map_nav_legend = nullptr;
 	element_base* map_rank_legend = nullptr;
 	element_base* map_rec_legend = nullptr;
+	element_base* tl_chat_list = nullptr;
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;

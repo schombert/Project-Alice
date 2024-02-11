@@ -765,14 +765,25 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			culture::fix_slaves_in_province(state, new_owner, id);
 		}
 
+		auto province_fac_range = state.world.province_get_factory_location(id);
+		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
+
 		int32_t factories_in_new_state = 0;
 		province::for_each_province_in_state_instance(state, new_si, [&](dcon::province_id pr) {
 			auto fac_range = state.world.province_get_factory_location(pr);
+			// Merge factories and accumulate levels of merged factories
+			for(const auto pfac : province_fac_range) {
+				for(int32_t i = 0; i < int32_t(fac_range.end() - fac_range.begin()); i++) {
+					const auto fac = *(fac_range.begin() + i);
+					if(fac.get_factory().get_building_type() == pfac.get_factory().get_building_type()) {
+						pfac.get_factory().get_level() += fac.get_factory().get_level();
+						state.world.delete_factory(fac.get_factory().id);
+						--i;
+					}
+				}
+			}
 			factories_in_new_state += int32_t(fac_range.end() - fac_range.begin());
 		});
-
-		auto province_fac_range = state.world.province_get_factory_location(id);
-		int32_t factories_in_province = int32_t(province_fac_range.end() - province_fac_range.begin());
 
 		auto excess_factories = std::min((factories_in_new_state + factories_in_province) - int32_t(state.defines.factories_per_state), factories_in_province);
 		while(excess_factories > 0) {

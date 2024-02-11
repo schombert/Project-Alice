@@ -1523,7 +1523,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 			if(source == affected_gp)
 				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 			else
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+				text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_rem_sphere_title",
 		source, affected_gp, influence_target,
@@ -4220,6 +4220,45 @@ void execute_enable_debt(sys::state& state, dcon::nation_id source, bool debt_is
 	state.world.nation_set_is_debt_spending(source, debt_is_enabled);
 }
 
+void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::move_capital;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(state.current_crisis != sys::crisis_type::none)
+		return false;
+	if(state.world.nation_get_is_at_war(source))
+		return false;
+	if(state.world.nation_get_capital(source) == p)
+		return false;
+	if(state.world.province_get_is_colonial(p))
+		return false;
+	if(state.world.province_get_continent(state.world.nation_get_capital(source)) != state.world.province_get_continent(p))
+		return false;
+	if(nations::nation_accepts_culture(state, source, state.world.province_get_dominant_culture(p)) == false)
+		return false;
+	if(state.world.province_get_siege_progress(p) > 0.f)
+		return false;
+	if(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(p) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_control(p) != source)
+		return false;
+	if(state.world.province_get_is_owner_core(p) == false)
+		return false;
+	return true;
+}
+
+void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	state.world.nation_set_capital(source, p);
+}
+
 static void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
@@ -4858,6 +4897,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::enable_debt:
 		return true;
 
+	case command_type::move_capital:
+		return can_move_capital(state, c.source, c.data.generic_location.prov);
+		
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5228,7 +5270,10 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::enable_debt:
 		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
 		break;
-
+	case command_type::move_capital:
+		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+		
 		// common mp commands
 	case command_type::chat_message:
 	{
