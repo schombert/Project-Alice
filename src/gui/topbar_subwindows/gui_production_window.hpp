@@ -838,7 +838,7 @@ public:
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "income_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<factory_income_image>(state, id);
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "output") {

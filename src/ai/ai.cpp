@@ -907,7 +907,9 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 		*/
 
-		if(economy::estimate_construction_spending(state, n) > 0.3f * economy::estimate_daily_income(state, n))
+		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
+
+		if(economy::estimate_construction_spending(state, n) > 0.5f * base_income)
 			continue;
 
 		//if our army is too small, ignore buildings:
@@ -948,7 +950,7 @@ void update_ai_econ_construction(sys::state& state) {
 							auto type = fac.get_factory().get_building_type();
 							if(fac.get_factory().get_unprofitable() == false
 								&& fac.get_factory().get_level() < uint8_t(255)
-								&& fac.get_factory().get_primary_employment() >= 0.95f)
+								&& fac.get_factory().get_primary_employment() >= 0.9f)
 							{
 								auto ug_in_progress = false;
 								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
@@ -3099,7 +3101,7 @@ void update_budget(sys::state& state) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
-		float base_income = economy::estimate_daily_income(state, n);
+		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,
@@ -3185,9 +3187,9 @@ void update_budget(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(70.f * (1.f - poor_militancy));
-			int max_mid_tax = int(80.f * (1.f - mid_militancy));
-			int max_rich_tax = int(90.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 70.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 80.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 90.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?
@@ -3229,9 +3231,9 @@ void update_budget(sys::state& state) {
 				}
 			}
 		} else {
-			int max_poor_tax = int(90.f * (1.f - poor_militancy));
-			int max_mid_tax = int(90.f * (1.f - mid_militancy));
-			int max_rich_tax = int(40.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?

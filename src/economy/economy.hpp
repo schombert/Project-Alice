@@ -128,8 +128,8 @@ inline constexpr float rgo_overhire_multiplier = 10.f;
 inline constexpr float rgo_production_scale_neg_delta = 0.001f;
 
 // artisans
-inline constexpr float inputs_base_factor_artisans = 1.2f;
-inline constexpr float output_base_factor_artisans = 0.4f;
+inline constexpr float inputs_base_factor_artisans = 1.1f;
+inline constexpr float output_base_factor_artisans = 0.6f;
 // factories
 inline constexpr float inputs_base_factor = 0.8f;
 

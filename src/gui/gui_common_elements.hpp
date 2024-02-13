@@ -1601,6 +1601,21 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
+class factory_income_image : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::factory_id>(state, parent);
+		float profit = state.world.factory_get_full_profit(content);
+
+		if(profit > 0.f) {
+			frame = 0;
+		} else if (profit < 0.f) {
+			frame = 1;
+		} else {
+			frame = 2; //empty frame
+		}
+	}
+};
 class factory_priority_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
