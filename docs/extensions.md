@@ -119,3 +119,37 @@ These `else_if` statments are chained together, if the first runs, the second wi
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
+
+### New defines
+
+Alice adds a handful of new defines:
+
+- `factories_per_state`: Factories allowed per state, default 8
+- `alice_speed_1`: Speed 1 in miliseconds
+- `alice_speed_2`: Same as above but with speed 2
+- `alice_speed_3`: Same as above but with speed 3
+- `alice_speed_4`: Same as above but with speed 4
+- `alice_speed_5`: Same as above but with speed 5
+- `alice_ai_gather_radius`: Radius AI will use to gather nearby armies to make deathstacks
+- `alice_ai_threat_radius`: Radius AI will scan for threats
+- `alice_ai_threat_overestimate`: Overestimate AI opponents (higher values leads to camping)
+- `alice_ai_attack_target_radius`: Radius AI will perform attacks
+- `alice_full_reinforce`: 1 = Normal vanilla behaviour, 0 = Understaffed armies are allowed
+- `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive oppontent (makes AI less aggressive)
+
+### Dense CSV pop listing
+
+This is an extension that allows you to use CSV files instead of scripting pops manually, this allowing you to edit the pop files on a spreadsheet program, for example:
+
+```
+province-id;size;culture;religion;pop-type;rebel-faction(optional)
+825;100;albanian;orthodox;clergymen;jacobin
+825;150;albanian;orthodox;aristocrats;jacobin
+825;744;albanian;orthodox;capitalists;jacobin
+825;4019578;albanian;orthodox;farmers;jacobin
+...
+```
+
+This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
+
+Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.

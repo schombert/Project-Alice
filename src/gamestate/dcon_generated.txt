@@ -439,7 +439,7 @@ object {
 object {
 	name{ factory_type }
 	storage_type{ contiguous }
-	size{ 64 }
+	size{ 256 }
 	tag{ scenario }
 
 	property{
@@ -2271,7 +2271,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 20000 }
+	size{ 25000 }
 	tag{ save }
 
 	property{

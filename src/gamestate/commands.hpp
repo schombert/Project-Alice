@@ -100,6 +100,7 @@ enum class command_type : uint8_t {
 	state_transfer = 91,
 	release_subject = 92,
 	enable_debt = 93,
+	move_capital = 94,
 
 	// network
 	notify_player_ban = 106,
@@ -140,6 +141,7 @@ enum class command_type : uint8_t {
 	c_add_population = 148,
 	c_instant_army = 149,
 	c_instant_industry = 150,
+	c_innovate = 151,
 };
 
 struct national_focus_data {
@@ -428,6 +430,10 @@ struct cheat_event_data {
 	dcon::nation_id as;
 };
 
+struct cheat_invention_data_t {
+	dcon::invention_id invention;
+};
+
 struct chat_message_data {
 	char body[ui::max_chat_message_len];
 	dcon::nation_id target;
@@ -449,6 +455,9 @@ struct notify_save_loaded_data {
 };
 struct notify_reload_data {
 	sys::checksum_key checksum;
+};
+struct notify_leaves_data {
+	bool make_ai;
 };
 
 struct payload {
@@ -510,7 +519,8 @@ struct payload {
 		notify_reload_data notify_reload;
 		sys::player_name player_name;
 		cheat_location_data cheat_location;
-
+		notify_leaves_data notify_leave;
+		cheat_invention_data_t cheat_invention_data;
 		dtype() { }
 	} data;
 	dcon::nation_id source;
@@ -782,6 +792,9 @@ void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled);
 
+void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+
 /*
 PEACE OFFER COMMANDS:
 
@@ -840,8 +853,8 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_leaves(sys::state& state, dcon::nation_id source);
-bool can_notify_player_leaves(sys::state& state, dcon::nation_id source);
+void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai);
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 void notify_player_oos(sys::state& state, dcon::nation_id source);

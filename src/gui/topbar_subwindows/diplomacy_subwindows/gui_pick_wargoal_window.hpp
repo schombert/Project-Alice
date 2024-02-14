@@ -112,7 +112,6 @@ public:
 				}
 
 				if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::always) == 0 && military::cb_conditions_satisfied(state, state.local_player_nation, content, cb_type)) {
-
 					bool cb_fabbed = false;
 					for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
 						if(fab_cb.cb_type == cb_type && fab_cb.target == content) {
@@ -126,16 +125,13 @@ public:
 
 						auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 						auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
-
 						if(state.world.war_get_is_great(w)) {
 							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement * state.defines.gw_wargoal_jingoism_requirement_mod) {
-
 								row_contents.push_back(cb_type);
 								continue;
 							}
 						} else {
 							if(jingoism_perc >= state.defines.wargoal_jingoism_requirement) {
-
 								row_contents.push_back(cb_type);
 								continue;
 							}
@@ -151,7 +147,6 @@ public:
 					}
 				}
 			}
-
 		} else { // this is a declare war action
 			auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
 			for(auto cb : state.world.in_cb_type) {
@@ -235,28 +230,25 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			//if(n != target && n != actor) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-					trigger::to_generic(n.id))) {
-
-					auto id = state.world.nation_get_identity_from_identity_holder(n);
-					if(!war) {
-						row_contents.push_back(id);
-					} else if(military::cb_requires_selection_of_a_state(state, cb)) {
-						row_contents.push_back(id);
+			if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
+				trigger::to_generic(n.id))) {
+				auto id = state.world.nation_get_identity_from_identity_holder(n);
+				if(!war) {
+					row_contents.push_back(id);
+				} else if(military::cb_requires_selection_of_a_state(state, cb)) {
+					row_contents.push_back(id);
+				} else {
+					if(military::cb_requires_selection_of_a_liberatable_tag(state, cb)) {
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, id, dcon::nation_id{})) {
+							row_contents.push_back(id);
+						}
 					} else {
-						if(military::cb_requires_selection_of_a_liberatable_tag(state, cb)) {
-							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, id, dcon::nation_id{})) {
-								row_contents.push_back(id);
-							}
-						} else {
-							if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, dcon::national_identity_id{}, n)) {
-								row_contents.push_back(id);
-							}
+						if(!military::war_goal_would_be_duplicate(state, state.local_player_nation, war, target, cb, dcon::state_definition_id{}, dcon::national_identity_id{}, n)) {
+							row_contents.push_back(id);
 						}
 					}
 				}
-			//}
+			}
 		}
 
 		update(state);
@@ -930,13 +922,11 @@ private:
 			target_state = dcon::state_definition_id{};
 			if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
-				//wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);
 			} else {
 				cb_to_use = dcon::cb_type_id{};
 				wargoal_decided_upon = false;
 				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, false);
 			}
 			impl_on_update(state);
@@ -1019,44 +1009,36 @@ public:
 				wargoal_decided_upon = false;
 			} else if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
-				//wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, true);
 			} else if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, true);
 				wargoal_country_win->set_visible(state, false);
 				select_mode(state);
 			} else {
 				wargoal_decided_upon = true;
 				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, false);
 			}
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<dcon::national_identity_id>>()) {
 			target_country = any_cast<element_selection_wrapper<dcon::national_identity_id>>(payload).data;
-
 			if(target_country) { // goto next step
 				if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 					wargoal_setup_win->set_visible(state, true);
-					//wargoal_state_win->set_visible(state, true);
 					wargoal_country_win->set_visible(state, false);
 					select_mode(state);
 				} else {
 					wargoal_decided_upon = true;
 					wargoal_setup_win->set_visible(state, true);
-					//wargoal_state_win->set_visible(state, false);
 					wargoal_country_win->set_visible(state, false);
 				}
 			} else {
 				wargoal_decided_upon = false;
 				cb_to_use = dcon::cb_type_id{};
 				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, false);
 				wargoal_country_win->set_visible(state, false);
 			}
-
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
@@ -1365,14 +1347,11 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			//if(n != target && n != actor && n != state.local_player_nation) {
-				if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-					trigger::to_generic(n.id))) {
-
-					auto id = state.world.nation_get_identity_from_identity_holder(n);
-					row_contents.push_back(id);
-				}
-			//}
+			if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
+				trigger::to_generic(n.id))) {
+				auto id = state.world.nation_get_identity_from_identity_holder(n);
+				row_contents.push_back(id);
+			}
 		}
 
 		update(state);

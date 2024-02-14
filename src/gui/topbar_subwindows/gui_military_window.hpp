@@ -8,18 +8,24 @@
 
 namespace ui {
 
-class military_mob_button : public button_element_base {
+class military_mob_button : public right_click_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		command::toggle_mobilization(state, state.local_player_nation);
 	}
 
+	void button_right_action(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		command::toggle_mobilization(state, n);
+		command::toggle_mobilization(state, n);
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.world.nation_get_is_mobilized(n)) {
-			set_button_text(state, text::produce_simple_string(state, "demobilize"));
+			set_button_text(state, text::produce_simple_string(state, "alice_demobilize"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "mobilize"));
+			set_button_text(state, text::produce_simple_string(state, "alice_mobilize"));
 		}
 	}
 
@@ -30,8 +36,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, true);
-		text::add_line_break_to_layout(state, contents);
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, true);
+		text::add_line(state, contents, "alice_mob_controls");
 	}
 };
 

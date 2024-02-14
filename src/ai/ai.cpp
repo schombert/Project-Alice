@@ -428,11 +428,13 @@ void initialize_ai_tech_weights(sys::state& state) {
 			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
-				base *= 1.2f;
+				base *= 2.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_throughput) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_input) {
-				base *= 1.2f;
+				base *= 2.0f;
+			} else if(vals.offsets[i] == sys::national_mod_offsets::tax_efficiency) {
+				base *= 5.0f;
 			}
 		}
 
@@ -837,6 +839,8 @@ void update_ai_ruling_party(sys::state& state) {
 void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vector<dcon::factory_type_id>& desired_types) {
 	assert(desired_types.empty());
 	auto n = dcon::fatten(state.world, nid);
+
+	/*
 	// first pass: try to fill shortages
 	for(auto type : state.world.in_factory_type) {
 		if(n.get_active_building(type) || type.get_is_available_from_start()) {
@@ -857,20 +861,36 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 			}
 		} // END if building unlocked
 	}
+	*/
+
 	if(desired_types.empty()) { // second pass: try to make money
 		for(auto type : state.world.in_factory_type) {
 			if(n.get_active_building(type) || type.get_is_available_from_start()) {
 				auto& inputs = type.get_inputs();
 				bool lacking_input = false;
+				bool lacking_output = n.get_demand_satisfaction(type.get_output()) < 0.98f;
+
+				float input_total = 0.f;
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 					if(inputs.commodity_type[i]) {
-						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 1.0f)
+						input_total += inputs.commodity_amounts[i] * state.world.commodity_get_current_price(inputs.commodity_type[i]);
+						if(n.get_demand_satisfaction(inputs.commodity_type[i]) < 0.98f)
 							lacking_input = true;
 					} else {
 						break;
 					}
 				}
-				if(!lacking_input)
+
+				float output_total = type.get_output_amount() * state.world.commodity_get_current_price(type.get_output());
+
+				float input_multiplier = std::max(0.1f, (economy::inputs_base_factor +
+					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)));
+
+				float output_multiplier = state.world.nation_get_factory_goods_output(n, type.get_output()) +
+					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_output) + 1.0f;
+
+
+				if(!lacking_input && (lacking_output || (input_total * input_multiplier * 0.9 <= output_total * output_multiplier)))
 					desired_types.push_back(type.id);
 			} // END if building unlocked
 		}
@@ -882,74 +902,85 @@ void update_ai_econ_construction(sys::state& state) {
 		// skip over: non ais, dead nations, and nations that aren't making money
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || !n.get_is_civilized())
 			continue;
+		/*
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
+			continue;
+		*/
+
+		if(economy::estimate_construction_spending(state, n) > 0.3f * economy::estimate_daily_income(state, n))
+			continue;
+
+		//if our army is too small, ignore buildings:
+		if(0.7 * n.get_recruitable_regiments() < n.get_active_regiments())
 			continue;
 
 		auto treasury = n.get_stockpiles(economy::money);
-		int32_t max_projects = std::max(8, int32_t(treasury / 8000.0f));
+		int32_t max_projects = std::max(8, int32_t(treasury / 64000.0f));
 		auto rules = n.get_combined_issue_rules();
 
+
+
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
+			// prepare a list of states
+			static std::vector<dcon::state_instance_id> ordered_states;
+			ordered_states.clear();
+			for(auto si : n.get_state_ownership()) {
+				if(si.get_state().get_capital().get_is_colonial() == false)
+					ordered_states.push_back(si.get_state().id);
+			}
+			std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
+				auto apop = state.world.state_instance_get_demographics(a, demographics::total);
+				auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
+				if(apop != bpop)
+					return apop > bpop;
+				else
+					return a.index() < b.index();
+			});
+
+			// try to upgrade factories first:
+			if((rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
+				for(auto si : ordered_states) {
+					if(max_projects <= 0)
+						break;
+
+					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+						for(auto fac : state.world.province_get_factory_location(p)) {
+							auto type = fac.get_factory().get_building_type();
+							if(fac.get_factory().get_unprofitable() == false
+								&& fac.get_factory().get_level() < uint8_t(255)
+								&& fac.get_factory().get_primary_employment() >= 0.95f)
+							{
+								auto ug_in_progress = false;
+								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
+									if(c.get_type() == type) {
+										ug_in_progress = true;
+										break;
+									}
+								}
+								if(!ug_in_progress) {
+									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
+									new_up.set_is_pop_project(false);
+									new_up.set_is_upgrade(true);
+									new_up.set_type(type);
+
+									--max_projects;
+									return;
+								}
+							}
+						}
+					});
+				}
+			}
+
+			// try to build
 			static::std::vector<dcon::factory_type_id> desired_types;
 			desired_types.clear();
 			get_desired_factory_types(state, n, desired_types);
 
 			// desired types filled: try to construct or upgrade
-			if(!desired_types.empty()) {
-				static std::vector<dcon::state_instance_id> ordered_states;
-				ordered_states.clear();
-				for(auto si : n.get_state_ownership()) {
-					if(si.get_state().get_capital().get_is_colonial() == false)
-						ordered_states.push_back(si.get_state().id);
-				}
-				std::sort(ordered_states.begin(), ordered_states.end(), [&](auto a, auto b) {
-					auto apop = state.world.state_instance_get_demographics(a, demographics::total);
-					auto bpop = state.world.state_instance_get_demographics(b, demographics::total);
-					if(apop != bpop)
-						return apop > bpop;
-					else
-						return a.index() < b.index();
-				});
+			if(!desired_types.empty()) {				
 				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
-					for(auto si : ordered_states) {
-						if(max_projects <= 0)
-							break;
-
-						auto pw_num = state.world.state_instance_get_demographics(si,
-								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-						auto pw_employed = state.world.state_instance_get_demographics(si,
-								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-
-						if(pw_employed >= pw_num && pw_num > 0.0f)
-							continue; // no spare workers
-
-						province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-							for(auto fac : state.world.province_get_factory_location(p)) {
-								auto type = fac.get_factory().get_building_type();
-								if(fac.get_factory().get_unprofitable() == false
-									&& fac.get_factory().get_level() < uint8_t(255) && fac.get_factory().get_primary_employment() >= 0.9f
-									&& std::find(desired_types.begin(), desired_types.end(), type) != desired_types.end()) {
-
-									auto ug_in_progress = false;
-									for(auto c : state.world.state_instance_get_state_building_construction(si)) {
-										if(c.get_type() == type) {
-											ug_in_progress = true;
-											break;
-										}
-									}
-									if(!ug_in_progress) {
-										auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
-										new_up.set_is_pop_project(false);
-										new_up.set_is_upgrade(true);
-										new_up.set_type(type);
-
-										--max_projects;
-										return;
-									}
-								}
-							}
-						});
-					} // END for(auto si : ordered_states) {
+					
 				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
 					for(auto si : ordered_states) {
 						if(max_projects <= 0)
@@ -993,7 +1024,7 @@ void update_ai_econ_construction(sys::state& state) {
 							for(auto fac : state.world.province_get_factory_location(p)) {
 								auto type = fac.get_factory().get_building_type();
 								if(type_selection == type) {
-									under_cap = fac.get_factory().get_production_scale() < 0.9f && fac.get_factory().get_primary_employment() >= 0.9f;
+									under_cap = fac.get_factory().get_production_scale() < 0.9f || fac.get_factory().get_primary_employment() < 0.9f;
 									present_in_location = true;
 									return;
 								}
@@ -1041,6 +1072,9 @@ void update_ai_econ_construction(sys::state& state) {
 					continue;
 				if(n != o.get_province().get_nation_from_province_control())
 					continue;
+				// avoid overbuilding!
+				if(!province::has_naval_base_being_built(state, o.get_province()))
+					max_projects -= 4;
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 				if(o.get_province().get_building_level(economy::province_building_type::naval_base) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
@@ -1073,7 +1107,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
-				--max_projects;
+				max_projects -= 4;
 			}
 		}
 
@@ -1129,6 +1163,12 @@ void update_ai_econ_construction(sys::state& state) {
 			for(auto o : n.get_province_ownership()) {
 				if(n != o.get_province().get_nation_from_province_control())
 					continue;
+
+				if(province::has_fort_being_built(state, o.get_province())) {
+					// if we are already building a fort, count it as a building choice to not let AI overspend money on forts
+					max_projects -= 2;
+				}
+
 				if(military::province_is_under_siege(state, o.get_province()))
 					continue;
 
@@ -1158,7 +1198,7 @@ void update_ai_econ_construction(sys::state& state) {
 				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[i], n));
 				new_rr.set_is_pop_project(false);
 				new_rr.set_type(uint8_t(economy::province_building_type::fort));
-				--max_projects;
+				max_projects -= 2;
 			}
 		}
 	}
@@ -1588,8 +1628,8 @@ void update_crisis_leaders(sys::state& state) {
 				assert(command::can_send_crisis_peace_offer(state, state.primary_crisis_attacker));
 				command::execute_send_crisis_peace_offer(state, state.primary_crisis_attacker);
 			} else if(!defender_victory && state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false) {
-				assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, true));
-				command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, true);
+				assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_defender, true));
+				command::execute_start_crisis_peace_offer(state, state.primary_crisis_defender, true);
 				auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_defender);
 
 				for(auto& par : state.crisis_participants) {
@@ -1604,7 +1644,7 @@ void update_crisis_leaders(sys::state& state) {
 						wg.set_secondary_nation(par.joined_with_offer.wargoal_secondary_nation);
 						wg.set_target_nation(par.joined_with_offer.target);
 						wg.set_type(par.joined_with_offer.wargoal_type);
-						assert(command::can_add_to_crisis_peace_offer(state, state.primary_crisis_attacker, par.id, par.joined_with_offer.target, par.joined_with_offer.wargoal_type, par.joined_with_offer.wargoal_state, par.joined_with_offer.wargoal_tag, par.joined_with_offer.wargoal_secondary_nation));
+						assert(command::can_add_to_crisis_peace_offer(state, state.primary_crisis_defender, par.id, par.joined_with_offer.target, par.joined_with_offer.wargoal_type, par.joined_with_offer.wargoal_state, par.joined_with_offer.wargoal_tag, par.joined_with_offer.wargoal_secondary_nation));
 					}
 				}
 
@@ -3059,18 +3099,83 @@ void update_budget(sys::state& state) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
+		float base_income = economy::estimate_daily_income(state, n);
+
+		// they don't have to add up to 1.f
+		// the reason they are there is to slow down AI spendings,
+		// make them more or less balanced
+		// and stabilize economy faster
+		// not to allow it to hoard money
+
+		float land_budget_ratio				= 0.15f;
+		float sea_budget_ratio				= 0.05f;
+		float education_budget_ratio		= 0.30f;
+		float investments_budget_ratio		= 0.05f;
+		float soldiers_budget_ratio			= 0.40f;
+		float construction_budget_ratio		= 0.50f;
+		float administration_budget_ratio	= 0.30f;
+
 		if(n.get_is_at_war()) {
-			n.set_land_spending(int8_t(100));
-			n.set_naval_spending(int8_t(100));
+			land_budget_ratio = 2.f;
+			sea_budget_ratio = 2.f;
+			//n.set_land_spending(int8_t(100));
+			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
-			n.set_land_spending(int8_t(50));
-			n.set_naval_spending(int8_t(50));
+			land_budget_ratio = 0.5f;
+			sea_budget_ratio = 0.25f;
+			//n.set_land_spending(int8_t(50));
+			//n.set_naval_spending(int8_t(50));
 		} else {
-			n.set_land_spending(int8_t(25));
-			n.set_naval_spending(int8_t(25));
+			//n.set_land_spending(int8_t(25));
+			//n.set_naval_spending(int8_t(25));
 		}
-		n.set_education_spending(int8_t(100));
-		n.set_construction_spending(int8_t(100));
+		float land_budget = land_budget_ratio * base_income;
+		float naval_budget = sea_budget_ratio * base_income;
+		float education_budget = education_budget_ratio * base_income;
+		float construction_budget = construction_budget_ratio * base_income;
+		float administration_budget = administration_budget_ratio * base_income;
+		float soldiers_budget = soldiers_budget_ratio * base_income;
+
+		float ratio_land = 100.f * land_budget / (1.f + economy::estimate_land_spending(state, n));
+		float ratio_naval = 100.f * naval_budget / (1.f + economy::estimate_naval_spending(state, n));
+
+		ratio_land = std::clamp(ratio_land, 0.f, 100.f);
+		ratio_naval = std::clamp(ratio_naval, 0.f, 100.f);
+		n.set_land_spending(int8_t(ratio_land));
+		n.set_naval_spending(int8_t(ratio_naval));
+
+
+		float ratio_construction = 100.f * construction_budget / (1.f + economy::estimate_construction_spending(state, n));
+		ratio_construction = std::clamp(ratio_construction, 1.f, 100.f);
+		n.set_construction_spending(int8_t(ratio_construction));
+
+		
+		float max_education_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::education);
+		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
+		float max_admin_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::administration);
+
+
+		// solving x^2 * max = desired
+		float ratio_education = 100.f * math::sqrt(education_budget / max_education_budget);
+		ratio_education = std::clamp(ratio_education, 1.f, 100.f);
+		n.set_education_spending(int8_t(ratio_education));		
+
+		if(n.get_is_civilized()) {
+			float investment_budget = investments_budget_ratio * base_income;
+			float max_investment_budget = 1.f + economy::estimate_domestic_investment(state, n);
+			float investment_ratio = 100.f * math::sqrt(investment_budget / max_investment_budget);
+			investment_ratio = std::clamp(investment_ratio, 0.f, 100.f);
+			n.set_domestic_investment_spending(int8_t(investment_ratio));
+		} else {
+			n.set_domestic_investment_spending(int8_t(0));
+		}
+				
+		float soldiers_max_ratio = 100.f * math::sqrt(soldiers_budget / max_soldiers_budget);
+		soldiers_max_ratio = std::clamp(soldiers_max_ratio, 0.f, 100.f);
+				
+		float administration_max_ratio = 100.f * math::sqrt(administration_budget / max_admin_budget);
+		administration_max_ratio = std::clamp(administration_max_ratio, 0.f, 100.f);
+
 		n.set_tariffs(int8_t(0));
 
 		float poor_militancy = (state.world.nation_get_demographics(n, demographics::poor_militancy) / std::max(1.0f, state.world.nation_get_demographics(n, demographics::poor_total))) / 10.f;
@@ -3080,11 +3185,20 @@ void update_budget(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(30.f * (1.f - poor_militancy));
-			int max_mid_tax = int(60.f * (1.f - mid_militancy));
+			int max_poor_tax = int(70.f * (1.f - poor_militancy));
+			int max_mid_tax = int(80.f * (1.f - mid_militancy));
 			int max_rich_tax = int(90.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
+			// enough tax?
+			bool enough_tax = true;
+			if(ratio_education < 50.f || ratio_construction < 50.f) {
+				enough_tax = false;
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
+			}
+
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
@@ -3094,9 +3208,9 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 0, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 0, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -3108,18 +3222,29 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 0, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 0, max_rich_tax)));
+				if(enough_tax) {
+					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 10, std::max(10, max_poor_tax))));
+					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, std::max(10, max_mid_tax))));
+					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 10, std::max(10, max_rich_tax))));
+				}
 			}
 		} else {
 			int max_poor_tax = int(90.f * (1.f - poor_militancy));
-			int max_mid_tax = int(60.f * (1.f - mid_militancy));
-			int max_rich_tax = int(30.f * (1.f - rich_militancy));
+			int max_mid_tax = int(90.f * (1.f - mid_militancy));
+			int max_rich_tax = int(40.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
+			// enough tax?
+			bool enough_tax = true;
+			if(ratio_education < 50.f || ratio_construction < 50.f) {
+				enough_tax = false;
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
+			}
+
 			// Laissez faire prioritize tax free capitalists
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || ratio_education < 50.f || ratio_construction < 50.f) { // losing money
 				if(n.get_administrative_efficiency() > 0.98f) {
 					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
 				}
@@ -3128,9 +3253,9 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 0, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 0, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 0, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -3142,11 +3267,16 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 0, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 0, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 0, max_rich_tax)));
+				if(enough_tax) {
+					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, std::max(10, max_poor_tax))));
+					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, std::max(10, max_mid_tax))));
+					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 10, std::max(10, max_rich_tax))));
+				}
 			}
 		}
+
+		n.set_administrative_spending(int8_t(std::min(int8_t(administration_max_ratio), n.get_administrative_spending())));
+		n.set_military_spending(int8_t(std::min(int8_t(soldiers_max_ratio), n.get_military_spending())));
 
 		economy::bound_budget_settings(state, n);
 	});
