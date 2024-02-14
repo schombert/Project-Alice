@@ -1435,9 +1435,7 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 	auto current_scale = std::min(state.world.province_get_rgo_production_scale(p), relevant_to_max_ratio);
 
 	float expected_profit = rgo_expected_worker_norm_profit(state, p, n);
-	float desired_profit = rgo_desired_worker_norm_profit(state, p, n, expected_min_wage);
-	if(desired_profit == 0.0f) {
-
+	float desired_profit = rgo_desired_worker_norm_profit(state, p, n, expected_min_wage, total_relevant);
 
 	auto c = state.world.province_get_rgo(p);
 	if(c.get_money_rgo()) {

@@ -900,8 +900,13 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
-		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || !n.get_is_civilized())
+		if(n.get_owned_province_count() == 0 || !n.get_is_civilized())
 			continue;
+
+		if(n.get_is_player_controlled()) {
+			OutputDebugStringA("!!!");
+		}
+
 		/*
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
 			continue;
@@ -913,7 +918,7 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 
 		//if our army is too small, ignore buildings:
-		if(0.7 * n.get_recruitable_regiments() < n.get_active_regiments())
+		if(0.7 * n.get_recruitable_regiments() > n.get_active_regiments())
 			continue;
 
 		auto treasury = n.get_stockpiles(economy::money);
@@ -948,10 +953,13 @@ void update_ai_econ_construction(sys::state& state) {
 					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 						for(auto fac : state.world.province_get_factory_location(p)) {
 							auto type = fac.get_factory().get_building_type();
-							if(fac.get_factory().get_unprofitable() == false
-								&& fac.get_factory().get_level() < uint8_t(255)
-								&& fac.get_factory().get_primary_employment() >= 0.9f)
-							{
+
+							auto unprofitable = fac.get_factory().get_unprofitable();
+							auto factory_level = fac.get_factory().get_level();
+							auto primary_employment = fac.get_factory().get_primary_employment();
+
+							if(!unprofitable && factory_level < uint8_t(255) && primary_employment >= 0.9f) {
+								// test if factory is already upgrading
 								auto ug_in_progress = false;
 								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
 									if(c.get_type() == type) {
@@ -959,6 +967,7 @@ void update_ai_econ_construction(sys::state& state) {
 										break;
 									}
 								}
+
 								if(!ug_in_progress) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
@@ -966,7 +975,7 @@ void update_ai_econ_construction(sys::state& state) {
 									new_up.set_type(type);
 
 									--max_projects;
-									return;
+									//return;
 								}
 							}
 						}
