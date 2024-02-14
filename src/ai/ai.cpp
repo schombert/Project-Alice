@@ -904,7 +904,8 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 
 		if(n.get_is_player_controlled()) {
-			OutputDebugStringA("!!!");
+			// to handle the logic of player building automation later
+			continue;
 		}
 
 		/*
