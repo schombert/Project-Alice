@@ -1523,7 +1523,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 			if(source == affected_gp)
 				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 			else
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+				text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_rem_sphere_title",
 		source, affected_gp, influence_target,

@@ -62,10 +62,9 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<buildable_unit_entry_info>(state, parent);
-		if(std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(content.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
+		color = sys::pack_color(255, 255, 255);
+		if(is_navy == false && std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(content.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
 			color = sys::pack_color(255, 196, 196);
-		} else {
-			color = sys::pack_color(255, 255, 255);
 		}
 	}
 
@@ -74,14 +73,14 @@ public:
 		dcon::unit_type_id utid = retrieve<dcon::unit_type_id>(state, parent);
 		dcon::province_id p = retrieve<dcon::province_id>(state, parent);
 
-		if(is_navy == false) {
+		if(is_navy) {
+			if(command::can_start_naval_unit_construction(state, n, p, utid)) {
+				command::start_naval_unit_construction(state, n, p, utid);
+			}
+		} else {
 			dcon::culture_id c = retrieve<dcon::culture_id>(state, parent);
 			if(command::can_start_land_unit_construction(state, n, p, c, utid)) {
 				command::start_land_unit_construction(state, n, p, c, utid);
-			}
-		} else {
-			if(command::can_start_naval_unit_construction(state, n, p, utid)) {
-				command::start_naval_unit_construction(state, n, p, utid);
 			}
 		}
 	}
@@ -144,16 +143,16 @@ public:
 		for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 			auto p = po.get_province();
 			if(state.world.province_get_continent(p) == con) {
-				if(is_navy == false) {
+				if(is_navy) {
+					if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
+						command::start_naval_unit_construction(state, state.local_player_nation, p, utid);
+					}
+				} else {
 					state.world.for_each_culture([&](dcon::culture_id c) {
 						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
 							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid);
 						}
 					});
-				} else {
-					if(command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid)) {
-						command::start_naval_unit_construction(state, state.local_player_nation, p, utid);
-					}
 				}
 			}
 		}

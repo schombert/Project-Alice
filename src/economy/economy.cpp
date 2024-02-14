@@ -963,7 +963,9 @@ void update_rgo_employment(sys::state& state) {
 		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		float labor_pool = worker_pool + slave_pool;
 
-		state.world.province_set_rgo_employment(p, labor_pool >= rgo_max_scaled ? scale : labor_pool / rgo_max);
+		auto new_val = labor_pool >= rgo_max_scaled ? scale : labor_pool / rgo_max;
+		assert(new_val >= 0.0f && new_val <= 1.0f);
+		state.world.province_set_rgo_employment(p, new_val);
 
 		auto slave_fraction = (slave_pool > rgo_max_scaled) ? rgo_max_scaled / slave_pool : 1.0f;
 		auto free_fraction = std::max(0.0f, (worker_pool > rgo_max_scaled - slave_pool) ? (rgo_max_scaled - slave_pool) / std::max(worker_pool, 0.01f) : 1.0f);
@@ -1375,7 +1377,7 @@ float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation
 }
 
 
-float rgo_desired_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population) {
+float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population) {
 	auto pops_max = rgo_max_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
 	auto current_employment = pops_max * state.world.province_get_rgo_employment(p);
 
@@ -1403,8 +1405,7 @@ float rgo_desired_profit(sys::state& state, dcon::province_id p, dcon::nation_id
 	//return (aristos_desired_cut + min_wage / needs_scaling_factor * (current_employment + 1));// / total_relevant_population; //* total_relevant_population;
 }
 
-float rgo_expected_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float total_relevant_population) {
-	auto pops_max = rgo_max_employment(state, n, p);
+float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto overhire_modifier = rgo_overhire_modifier(state, p, n);
 	auto efficiency = rgo_efficiency(state, n, p);
 	auto rgo = state.world.province_get_rgo(p);
@@ -1433,8 +1434,9 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 	auto relevant_to_max_ratio = total_relevant / (pops_max + 1.f);
 	auto current_scale = std::min(state.world.province_get_rgo_production_scale(p), relevant_to_max_ratio);
 
-	float expected_profit = rgo_expected_profit(state, p, n, total_relevant);
-	float desired_profit = rgo_desired_profit(state, p, n, expected_min_wage, total_relevant);
+	float expected_profit = rgo_expected_worker_norm_profit(state, p, n);
+	float desired_profit = rgo_desired_worker_norm_profit(state, p, n, expected_min_wage);
+	if(desired_profit == 0.0f) {
 
 
 	auto c = state.world.province_get_rgo(p);

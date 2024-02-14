@@ -3196,9 +3196,9 @@ void update_budget(sys::state& state) {
 			bool enough_tax = true;
 			if(ratio_education < 50.f || ratio_construction < 50.f) {
 				enough_tax = false;
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
 			}
 
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
@@ -3210,9 +3210,9 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 2, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -3225,9 +3225,9 @@ void update_budget(sys::state& state) {
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				if(enough_tax) {
-					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 10, max_poor_tax)));
-					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, max_mid_tax)));
-					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 10, max_rich_tax)));
+					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 2, 10, std::max(10, max_poor_tax))));
+					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, std::max(10, max_mid_tax))));
+					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 5, 10, std::max(10, max_rich_tax))));
 				}
 			}
 		} else {
@@ -3240,9 +3240,9 @@ void update_budget(sys::state& state) {
 			bool enough_tax = true;
 			if(ratio_education < 50.f || ratio_construction < 50.f) {
 				enough_tax = false;
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
 			}
 
 			// Laissez faire prioritize tax free capitalists
@@ -3255,9 +3255,9 @@ void update_budget(sys::state& state) {
 				}
 				n.set_social_spending(int8_t(std::max(0, n.get_social_spending() - 2)));
 
-				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, max_poor_tax)));
-				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, max_mid_tax)));
-				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, max_rich_tax)));
+				n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() + 5, 10, std::max(10, max_poor_tax))));
+				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
+				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
 				if(n.get_administrative_efficiency() < 0.98f) {
 					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
@@ -3270,9 +3270,9 @@ void update_budget(sys::state& state) {
 				n.set_social_spending(int8_t(std::min(max_social, n.get_social_spending() + 2)));
 
 				if(enough_tax) {
-					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, max_poor_tax)));
-					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, max_mid_tax)));
-					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 10, max_rich_tax)));
+					n.set_poor_tax(int8_t(std::clamp(n.get_poor_tax() - 5, 10, std::max(10, max_poor_tax))));
+					n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() - 3, 10, std::max(10, max_mid_tax))));
+					n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() - 2, 10, std::max(10, max_rich_tax))));
 				}
 			}
 		}
