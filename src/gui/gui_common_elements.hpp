@@ -571,14 +571,39 @@ public:
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			if(per_state > 0.f) {
+				/*
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::name, si.get_state());
 				text::add_to_substitution_map(sub, text::variable_type::cap, text::fp_two_places{ total_factory_capacity });
 				text::add_to_substitution_map(sub, text::variable_type::level, text::int_wholenum{ int32_t(total_level) });
 				text::add_to_substitution_map(sub, text::variable_type::amount, text::fp_two_places{ worker_total });
 				text::add_to_substitution_map(sub, text::variable_type::total, text::fp_two_places{ per_state });
+				*/
+
 				auto box = text::open_layout_box(contents);
-				text::localised_format_box(state, contents, box, std::string_view("alice_indscore_1"), sub);
+				text::layout_box name_entry = box;
+				text::layout_box level_entry = box;
+				text::layout_box workers_entry = box;
+				text::layout_box max_workers_entry = box;
+				text::layout_box score_box = box;
+
+				name_entry.x_size /= 10;
+				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20));
+				
+				level_entry.x_position += 150;
+				text::add_to_layout_box(state, contents, level_entry, text::int_wholenum{ int32_t(total_level) });
+
+				workers_entry.x_position += 180;
+				text::add_to_layout_box(state, contents, workers_entry, text::int_wholenum{ int32_t(worker_total) });
+
+				max_workers_entry.x_position += 250;
+				text::add_to_layout_box(state, contents, max_workers_entry, text::int_wholenum{ int32_t(total_factory_capacity) });
+
+				score_box.x_position += 350;
+				text::add_to_layout_box(state, contents, score_box, text::fp_two_places{ per_state });
+
+				//text::localised_format_box(state, contents, box, std::string_view("alice_indscore_1"), sub);
+				text::add_to_layout_box(state, contents, box, std::string(" "));
 				text::close_layout_box(contents, box);
 			}
 		}
