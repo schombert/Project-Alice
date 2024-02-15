@@ -131,7 +131,7 @@ inline constexpr float rgo_production_scale_neg_delta = 0.001f;
 inline constexpr float inputs_base_factor_artisans = 1.1f;
 inline constexpr float output_base_factor_artisans = 0.6f;
 // factories
-inline constexpr float inputs_base_factor = 0.8f;
+inline constexpr float inputs_base_factor = 1.0f;
 
 // farmers should be able to produce enough to feed themselves
 inline constexpr float rgo_boost = 1.0f;
