@@ -731,6 +731,7 @@ template<class T>
 std::string get_adjective_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_adjective());
 }
+std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
