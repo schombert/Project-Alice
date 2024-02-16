@@ -280,6 +280,93 @@ void rebalance_needs_weights(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+
+void convert_commodities_into_ingredients(
+	sys::state& state,
+	std::vector<float>& buffer_commodities,
+	std::vector<float>& buffer_ingredients,
+	std::vector<float>& buffer_weights
+) {
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		float amount = buffer_commodities[c.index()];
+
+		if(state.world.commodity_get_rgo_amount(c) > 0.f) {
+			buffer_ingredients[c.index()] += amount;
+		} else {
+			//calculate input vectors weights:
+			std::vector<float> weights;
+			float total_weight = 0.f;
+			float non_zero_count = 0.f;
+
+			state.world.for_each_factory_type([&](dcon::factory_type_id t) {
+				auto o = state.world.factory_type_get_output(t);
+				if(o == c) {
+					auto& inputs = state.world.factory_type_get_inputs(t);
+
+					float weight_current = 0;
+
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(inputs.commodity_type[i]) {
+							float weight_input = buffer_weights[inputs.commodity_type[i].index()];
+							total_weight += weight_input;
+							weight_current += weight_input;
+						} else {
+							break;
+						}
+					}
+
+					if(weight_current > 0.f)
+						non_zero_count++;
+
+					weights.push_back(weight_current);
+				}
+			});
+
+			if(total_weight == 0) {
+				for(size_t i = 0; i < weights.size(); i++) {
+					weights[i] = 1.f;
+					total_weight++;
+				}
+			} else {
+				float average_weight = total_weight / non_zero_count;
+				for(size_t i = 0; i < weights.size(); i++) {
+					if(weights[i] == 0.f) {
+						weights[i] = average_weight;
+						total_weight += average_weight;
+					}
+				}
+			}
+
+			//now we have weights and can use them for transformation of output into ingredients:
+			size_t index = 0;
+
+			state.world.for_each_factory_type([&](dcon::factory_type_id t) {
+				auto o = state.world.factory_type_get_output(t);
+				if(o == c) {
+					auto& inputs = state.world.factory_type_get_inputs(t);
+					float output_power = state.world.factory_type_get_output_amount(t);
+
+					float weight_current = weights[index] / total_weight;
+					index++;
+
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(inputs.commodity_type[i]) {
+
+							buffer_ingredients[inputs.commodity_type[i].index()] += inputs.commodity_amounts[i] * amount / output_power * weight_current;
+
+							float weight_input = buffer_weights[inputs.commodity_type[i].index()];
+							total_weight += weight_input;
+							weight_current += weight_input;
+						} else {
+							break;
+						}
+					}
+				}
+			});
+		}
+	});
+}
+
 // something is wrong with this whole process,
 // for some reason it does not behave like
 // economy simulation of the game itself
@@ -349,100 +436,18 @@ void presimulate(sys::state& state) {
 	*/
 
 	//as simulation above just doesn't work, lets calculate and compare needs of initial population and initial production:
+
+
 	uint32_t total_commodities = state.world.commodity_size();
-
-	std::vector<float> max_demand_buffer_depth_0;
-	max_demand_buffer_depth_0.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_1;
-	max_demand_buffer_depth_1.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_2;
-	max_demand_buffer_depth_2.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_3;
-	max_demand_buffer_depth_3.resize(total_commodities + 1);
 
 	std::vector<float> max_rgo_production_buffer;
 	max_rgo_production_buffer.resize(total_commodities + 1);
 
-	//populate max demand
-	for(auto n : state.nations_by_rank) {
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-				auto adj_pop_of_type = state.world.nation_get_demographics(n, demographics::to_key(state, pt)) / needs_scaling_factor;
+	float total_max_rgo_production = 0.f;
 
-				float base_life = state.world.pop_type_get_life_needs(pt, c) * 0.9f;
-				float base_everyday = state.world.pop_type_get_everyday_needs(pt, c) * 0.3f;
-				float base_luxury = state.world.pop_type_get_luxury_needs(pt, c) * 0.005f;
+	std::vector<float> rgo_weights;
+	rgo_weights.resize(total_commodities + 1);
 
-				max_demand_buffer_depth_0[c.index()] += (base_life + base_everyday + base_luxury) * adj_pop_of_type;
-			});
-		});
-	}
-
-	// turn goods into ingredients
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		float amount = max_demand_buffer_depth_0[c.index()];
-
-		if(state.world.commodity_get_rgo_amount(c) > 0.f) {
-			max_demand_buffer_depth_1[c.index()] += amount;
-		} else {
-			auto kf = state.world.commodity_get_key_factory(c);
-			auto output_power = kf.get_output_amount();
-
-			auto& inputs = kf.get_inputs();
-			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				if(inputs.commodity_type[i]) {
-					max_demand_buffer_depth_1[inputs.commodity_type[i].index()] += inputs.commodity_amounts[i] * amount / output_power;
-				} else {
-					break;
-				}
-			}
-		}
-	});
-
-	// turn ingredients into their ingredients
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		float amount = max_demand_buffer_depth_1[c.index()];
-
-		if(state.world.commodity_get_rgo_amount(c) > 0.f) {
-			max_demand_buffer_depth_2[c.index()] += amount;
-		} else {
-			auto kf = state.world.commodity_get_key_factory(c);
-			auto output_power = kf.get_output_amount();
-
-			auto& inputs = kf.get_inputs();
-			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				if(inputs.commodity_type[i]) {
-					max_demand_buffer_depth_2[inputs.commodity_type[i].index()] += inputs.commodity_amounts[i] * amount / output_power;
-				} else {
-					break;
-				}
-			}
-		}
-	});
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		float amount = max_demand_buffer_depth_2[c.index()];
-
-		if(state.world.commodity_get_rgo_amount(c) > 0.f) {
-			max_demand_buffer_depth_3[c.index()] += amount;
-		} else {
-			auto kf = state.world.commodity_get_key_factory(c);
-			auto output_power = kf.get_output_amount();
-
-			auto& inputs = kf.get_inputs();
-			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				if(inputs.commodity_type[i]) {
-					max_demand_buffer_depth_3[inputs.commodity_type[i].index()] += inputs.commodity_amounts[i] * amount / output_power;
-				} else {
-					break;
-				}
-			}
-		}
-	});
-	// should be enough steps for rough estimate...
-	// TODO: make a loop with switching buffers
 
 
 	// calculate total rgo production
@@ -466,7 +471,48 @@ void presimulate(sys::state& state) {
 		auto pops_max = rgo_max_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
 
 		max_rgo_production_buffer[c.id.index()] += pop_amount / pops_max * max_production; // rough estimate again
+		total_max_rgo_production += pop_amount / pops_max * max_production;
 	});
+
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		rgo_weights[c.index()] = max_rgo_production_buffer[c.index()] / total_max_rgo_production;
+	});
+
+	std::vector<float> max_demand_buffer_depth_0;
+	max_demand_buffer_depth_0.resize(total_commodities + 1);
+
+	std::vector<float> max_demand_buffer_depth_1;
+	max_demand_buffer_depth_1.resize(total_commodities + 1);
+
+	std::vector<float> max_demand_buffer_depth_2;
+	max_demand_buffer_depth_2.resize(total_commodities + 1);
+
+	std::vector<float> max_demand_buffer_depth_3;
+	max_demand_buffer_depth_3.resize(total_commodities + 1);
+
+	//populate max demand
+	for(auto n : state.nations_by_rank) {
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
+				auto adj_pop_of_type = state.world.nation_get_demographics(n, demographics::to_key(state, pt)) / needs_scaling_factor;
+
+				float base_life = state.world.pop_type_get_life_needs(pt, c) * 0.9f;
+				float base_everyday = state.world.pop_type_get_everyday_needs(pt, c) * 0.3f;
+				float base_luxury = state.world.pop_type_get_luxury_needs(pt, c) * 0.005f;
+
+				max_demand_buffer_depth_0[c.index()] += (base_life + base_everyday + base_luxury) * adj_pop_of_type;
+			});
+		});
+	}
+
+	// turn goods into ingredients
+	convert_commodities_into_ingredients(state, max_demand_buffer_depth_0, max_demand_buffer_depth_1, rgo_weights);
+
+	// turn ingredients into their ingredients
+	convert_commodities_into_ingredients(state, max_demand_buffer_depth_1, max_demand_buffer_depth_2, rgo_weights);
+	convert_commodities_into_ingredients(state, max_demand_buffer_depth_2, max_demand_buffer_depth_3, rgo_weights);
+	// should be enough steps for rough estimate...
+	// TODO: make a loop with switching buffers
 
 	// reduce imbalance
 	float total_shortage = 0.f;
@@ -1219,7 +1265,7 @@ void update_single_factory_consumption(sys::state& state, dcon::factory_id f, dc
 	float small_size_effect = 1.f;
 	float small_bound = factory_per_level_employment * 5.f;
 	if(total_workers < small_bound) {
-		small_size_effect = 0.1f + total_workers / small_bound * 0.9f;
+		small_size_effect = 0.5f + total_workers / small_bound * 0.5f;
 	}
 
 	float input_multiplier =
