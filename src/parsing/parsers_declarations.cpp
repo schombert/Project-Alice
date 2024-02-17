@@ -2872,6 +2872,18 @@ void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line,
 	}
 }
 
+void country_file::template_(std::string_view value, error_handler& err, int32_t line, country_file_context& context) {
+	auto root = simple_fs::get_root(context.outer_context.state.common_fs);
+	auto common_dir = simple_fs::open_directory(root, NATIVE("common"));
+	auto countries_dir = simple_fs::open_directory(root, NATIVE("countries"));
+	if(auto f = simple_fs::open_file(countries_dir, simple_fs::utf8_to_native(value)); f) {
+		auto content = simple_fs::view_contents(*f);
+		err.file_name = std::string(value);
+		parsers::token_generator gen(content.data, content.data + content.file_size);
+		parsers::parse_country_file(gen, err, context);
+	}
+}
+
 void country_file::any_group(std::string_view name, color_from_3i c, error_handler& err, int32_t line, country_file_context& context) {
 	if(auto it = context.outer_context.map_of_governments.find(std::string(name)); it != context.outer_context.map_of_governments.end()) {
 		context.outer_context.state.world.national_identity_set_government_color(context.id, it->second, c.value);
