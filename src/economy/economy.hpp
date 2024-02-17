@@ -128,10 +128,10 @@ inline constexpr float rgo_overhire_multiplier = 10.f;
 inline constexpr float rgo_production_scale_neg_delta = 0.001f;
 
 // artisans
-inline constexpr float inputs_base_factor_artisans = 1.2f;
-inline constexpr float output_base_factor_artisans = 0.4f;
+inline constexpr float inputs_base_factor_artisans = 1.1f;
+inline constexpr float output_base_factor_artisans = 0.6f;
 // factories
-inline constexpr float inputs_base_factor = 0.8f;
+inline constexpr float inputs_base_factor = 1.0f;
 
 // farmers should be able to produce enough to feed themselves
 inline constexpr float rgo_boost = 1.0f;
@@ -173,7 +173,7 @@ float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_
 
 std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
 float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
-float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage);
+float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
 float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n);
 
 

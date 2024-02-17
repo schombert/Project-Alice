@@ -830,6 +830,22 @@ std::string prettify(int64_t num) {
 	return std::string("#inf");
 }
 
+std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+	auto fat_id = dcon::fatten(state.world, state_id);
+	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
+		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
+			if(!fat_id.get_definition().get_name()) {
+				return get_name_as_string(state, fat_id.get_capital());
+			} else {
+				return get_name_as_string(state, fat_id.get_definition());
+			}
+		}
+	}
+	if(!fat_id.get_definition().get_name())
+		return get_name_as_string(state, fat_id.get_capital());
+	return get_name_as_string(state, fat_id.get_definition());
+}
+
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
 	auto fat_id = dcon::fatten(state.world, state_id);
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {

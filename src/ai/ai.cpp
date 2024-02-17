@@ -900,18 +900,26 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 void update_ai_econ_construction(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
-		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0 || !n.get_is_civilized())
+		if(n.get_owned_province_count() == 0 || !n.get_is_civilized())
 			continue;
+
+		if(n.get_is_player_controlled()) {
+			// to handle the logic of player building automation later
+			continue;
+		}
+
 		/*
 		if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money))
 			continue;
 		*/
 
-		if(economy::estimate_construction_spending(state, n) > 0.3f * economy::estimate_daily_income(state, n))
+		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
+
+		if(economy::estimate_construction_spending(state, n) > 0.5f * base_income)
 			continue;
 
 		//if our army is too small, ignore buildings:
-		if(0.7 * n.get_recruitable_regiments() < n.get_active_regiments())
+		if(0.7 * n.get_recruitable_regiments() > n.get_active_regiments())
 			continue;
 
 		auto treasury = n.get_stockpiles(economy::money);
@@ -946,10 +954,13 @@ void update_ai_econ_construction(sys::state& state) {
 					province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
 						for(auto fac : state.world.province_get_factory_location(p)) {
 							auto type = fac.get_factory().get_building_type();
-							if(fac.get_factory().get_unprofitable() == false
-								&& fac.get_factory().get_level() < uint8_t(255)
-								&& fac.get_factory().get_primary_employment() >= 0.95f)
-							{
+
+							auto unprofitable = fac.get_factory().get_unprofitable();
+							auto factory_level = fac.get_factory().get_level();
+							auto primary_employment = fac.get_factory().get_primary_employment();
+
+							if(!unprofitable && factory_level < uint8_t(255) && primary_employment >= 0.9f) {
+								// test if factory is already upgrading
 								auto ug_in_progress = false;
 								for(auto c : state.world.state_instance_get_state_building_construction(si)) {
 									if(c.get_type() == type) {
@@ -957,6 +968,7 @@ void update_ai_econ_construction(sys::state& state) {
 										break;
 									}
 								}
+
 								if(!ug_in_progress) {
 									auto new_up = fatten(state.world, state.world.force_create_state_building_construction(si, n));
 									new_up.set_is_pop_project(false);
@@ -964,7 +976,7 @@ void update_ai_econ_construction(sys::state& state) {
 									new_up.set_type(type);
 
 									--max_projects;
-									return;
+									//return;
 								}
 							}
 						}
@@ -3099,7 +3111,7 @@ void update_budget(sys::state& state) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
-		float base_income = economy::estimate_daily_income(state, n);
+		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,
@@ -3113,16 +3125,22 @@ void update_budget(sys::state& state) {
 		float investments_budget_ratio		= 0.05f;
 		float soldiers_budget_ratio			= 0.40f;
 		float construction_budget_ratio		= 0.50f;
-		float administration_budget_ratio	= 0.30f;
+		float administration_budget_ratio	= 0.15f;
 
 		if(n.get_is_at_war()) {
 			land_budget_ratio = 2.f;
 			sea_budget_ratio = 2.f;
+
+			administration_budget_ratio *= 0.15f;
+			education_budget_ratio *= 0.15f;
 			//n.set_land_spending(int8_t(100));
 			//n.set_naval_spending(int8_t(100));
 		} else if(n.get_ai_is_threatened()) {
 			land_budget_ratio = 0.5f;
 			sea_budget_ratio = 0.25f;
+
+			administration_budget_ratio *= 0.75f;
+			education_budget_ratio *= 0.75f;
 			//n.set_land_spending(int8_t(50));
 			//n.set_naval_spending(int8_t(50));
 		} else {
@@ -3185,9 +3203,9 @@ void update_budget(sys::state& state) {
 		auto rules = n.get_combined_issue_rules();
 		if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0) {
 			// Non-lf prioritize poor people
-			int max_poor_tax = int(70.f * (1.f - poor_militancy));
-			int max_mid_tax = int(80.f * (1.f - mid_militancy));
-			int max_rich_tax = int(90.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 70.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 80.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 90.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?
@@ -3199,10 +3217,10 @@ void update_budget(sys::state& state) {
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
 			}
 
-			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money)) { // losing money
-				if(n.get_administrative_efficiency() > 0.98f) {
-					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
-				}
+			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || ratio_education < 50.f || ratio_construction < 50.f) { // losing money
+				//if(n.get_administrative_efficiency() > 0.98f) {
+				//	n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
+				//}
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
@@ -3212,9 +3230,9 @@ void update_budget(sys::state& state) {
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 5, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
-				if(n.get_administrative_efficiency() < 0.98f) {
-					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
-				}
+				//if(n.get_administrative_efficiency() < 0.98f) {
+				//	n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
+				//}
 				if(n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
 				} else {
@@ -3229,9 +3247,9 @@ void update_budget(sys::state& state) {
 				}
 			}
 		} else {
-			int max_poor_tax = int(90.f * (1.f - poor_militancy));
-			int max_mid_tax = int(90.f * (1.f - mid_militancy));
-			int max_rich_tax = int(40.f * (1.f - rich_militancy));
+			int max_poor_tax = int(10.f + 90.f * (1.f - poor_militancy));
+			int max_mid_tax = int(10.f + 90.f * (1.f - mid_militancy));
+			int max_rich_tax = int(10.f + 40.f * (1.f - rich_militancy));
 			int max_social = int(100.f * poor_militancy);
 
 			// enough tax?
@@ -3245,9 +3263,9 @@ void update_budget(sys::state& state) {
 
 			// Laissez faire prioritize tax free capitalists
 			if(n.get_spending_level() < 1.0f || n.get_last_treasury() >= n.get_stockpiles(economy::money) || ratio_education < 50.f || ratio_construction < 50.f) { // losing money
-				if(n.get_administrative_efficiency() > 0.98f) {
-					n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
-				}
+				//if(n.get_administrative_efficiency() > 0.98f) {
+				//	n.set_administrative_spending(int8_t(std::max(0, n.get_administrative_spending() - 2)));
+				//}
 				if(!n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::max(50, n.get_military_spending() - 5)));
 				}
@@ -3257,9 +3275,9 @@ void update_budget(sys::state& state) {
 				n.set_middle_tax(int8_t(std::clamp(n.get_middle_tax() + 3, 10, std::max(10, max_mid_tax))));
 				n.set_rich_tax(int8_t(std::clamp(n.get_rich_tax() + 2, 10, std::max(10, max_rich_tax))));
 			} else if(n.get_last_treasury() < n.get_stockpiles(economy::money)) { // gaining money
-				if(n.get_administrative_efficiency() < 0.98f) {
-					n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
-				}
+				//if(n.get_administrative_efficiency() < 0.98f) {
+				//	n.set_administrative_spending(int8_t(std::min(100, n.get_administrative_spending() + 2)));
+				//}
 				if(n.get_ai_is_threatened()) {
 					n.set_military_spending(int8_t(std::min(100, n.get_military_spending() + 10)));
 				} else {
@@ -3276,6 +3294,7 @@ void update_budget(sys::state& state) {
 		}
 
 		n.set_administrative_spending(int8_t(std::min(int8_t(administration_max_ratio), n.get_administrative_spending())));
+		n.set_administrative_spending(int8_t(administration_max_ratio));
 		n.set_military_spending(int8_t(std::min(int8_t(soldiers_max_ratio), n.get_military_spending())));
 
 		economy::bound_budget_settings(state, n);
