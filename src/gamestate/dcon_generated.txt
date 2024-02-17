@@ -4653,6 +4653,7 @@ object {
 	}
 }
 
+
 object {
 	name{ stored_trigger }
 	storage_type{ contiguous }
