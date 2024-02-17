@@ -2872,7 +2872,7 @@ void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line,
 	}
 }
 
-void country_file::template_(std::string_view value, error_handler& err, int32_t line, country_file_context& context) {
+void country_file::template_(association_type, std::string_view value, error_handler& err, int32_t line, country_file_context& context) {
 	auto root = simple_fs::get_root(context.outer_context.state.common_fs);
 	auto common_dir = simple_fs::open_directory(root, NATIVE("common"));
 	auto countries_dir = simple_fs::open_directory(root, NATIVE("countries"));
