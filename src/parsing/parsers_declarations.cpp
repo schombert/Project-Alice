@@ -2875,7 +2875,7 @@ void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line,
 void country_file::template_(association_type, std::string_view value, error_handler& err, int32_t line, country_file_context& context) {
 	auto root = simple_fs::get_root(context.outer_context.state.common_fs);
 	auto common_dir = simple_fs::open_directory(root, NATIVE("common"));
-	auto countries_dir = simple_fs::open_directory(root, NATIVE("templates"));
+	auto countries_dir = simple_fs::open_directory(common_dir, NATIVE("templates"));
 	if(auto f = simple_fs::open_file(countries_dir, simple_fs::utf8_to_native(value)); f) {
 		auto content = simple_fs::view_contents(*f);
 		err.file_name = std::string(value);
