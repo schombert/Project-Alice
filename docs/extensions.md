@@ -153,3 +153,13 @@ province-id;size;culture;religion;pop-type;rebel-faction(optional)
 This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
 
 Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
+
+### Country templates
+
+This allows to remove a lot of copy-pasting for countries, and other common files.
+
+```
+template = "test.txt"
+```
+
+Where `test.txt` would be in `common/templates/test.txt`.
