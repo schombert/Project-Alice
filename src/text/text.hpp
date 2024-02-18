@@ -412,7 +412,10 @@ enum class variable_type : uint16_t {
 	total,
 	infantry,
 	cavalry,
-	special
+	special,
+	//non-vanilla
+	fromcontinent,
+	fromcapital,
 };
 
 struct line_break { };

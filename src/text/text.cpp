@@ -560,6 +560,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_2_adj)
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
+		CT_STRING_ENUM(fromcapital)
 	} else if(v.length() == 12) {
 		if(false) { }
 		CT_STRING_ENUM(construction)
@@ -590,6 +591,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(value_int_0_2)
 		CT_STRING_ENUM(value_int_0_3)
 		CT_STRING_ENUM(value_int_0_4)
+		CT_STRING_ENUM(fromcontinent)
 	} else if(v.length() == 14) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name)
