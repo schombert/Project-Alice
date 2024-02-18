@@ -3292,35 +3292,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	nations_by_prestige_score.resize(2000);
 	crisis_participants.resize(2000);
 
-	{
-		std::string csv_data = "";
-		for(const auto pop : world.in_pop) {
-			auto reverse_find_key = [&](dcon::text_sequence_id txt) {
-				if(!txt)
-					return std::string_view("");
-				for(const auto kt : key_to_text_sequence) {
-					if(kt.second == txt) {
-						return to_string_view(kt.first);
-					}
-				}
-				return std::string_view("???");
-			};
-			csv_data += std::to_string(context.prov_id_to_original_id_map[pop.get_province_from_pop_location()].id);
-			csv_data += ";";
-			csv_data += std::to_string(pop.get_size());
-			csv_data += ";";
-			csv_data += reverse_find_key(pop.get_culture().get_name());
-			csv_data += ";";
-			csv_data += reverse_find_key(pop.get_religion().get_name());
-			csv_data += ";";
-			csv_data += reverse_find_key(pop.get_poptype().get_name());
-			csv_data += ";";
-			csv_data += reverse_find_key(pop.get_rebel_faction_from_pop_rebellion_membership().get_type().get_name());
-			csv_data += "\n";
-		}
-		simple_fs::write_file(simple_fs::get_or_create_save_game_directory(), NATIVE("pops.csv"), csv_data.data(), uint32_t(csv_data.length()));
-	}
-
 	for(auto t : world.in_technology) {
 		for(auto n : world.in_nation) {
 			if(n.get_active_technologies(t))
