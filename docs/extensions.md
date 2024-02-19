@@ -175,4 +175,10 @@ Where `test.txt` would be in `common/templates/test.txt`.
 
 ### New triggers
 
-- `every_country`: Like `any_country`, but applies to EVERY country, even non-existing ones!
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
+
+### New effects
+
+- `increment_variable = ...`: Shorthand to increment by 1
+- `decrement_variable = ...`: Shorthand to decrement by 1
+- `set_variable_to_zero = ...`: Shorthand to set a variable to 0

@@ -3369,6 +3369,39 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
 	}
+	void increment_variable(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(1.f);
+	}
+	void decrement_variable(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(-1.f);
+	}
+	void set_variable_to_zero(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"set_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::set_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(0.f);
+	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors +=

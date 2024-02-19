@@ -1475,6 +1475,9 @@ effect_body
 	state_scope                     extern      ef_state_scope              discard
 	random                          extern      ef_scope_random             discard
 	random_list                     extern      ef_scope_random_list        discard
+	increment_variable              value       text                        member_fn
+	decrement_variable              value       text                        member_fn
+	set_variable_to_zero            value       text                        member_fn
 	#any                            extern      ef_scope_variable           discard
 
 cb_body
