@@ -175,7 +175,7 @@ Where `test.txt` would be in `common/templates/test.txt`.
 
 ### New triggers
 
-- `every_country = { ... }`: Like `any_country`, but applies to EVERY country, even non-existing ones!
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
 
 ### New effects
 
