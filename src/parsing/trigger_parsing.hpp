@@ -5905,6 +5905,7 @@ void tr_crisis_state_scope(token_generator& gen, error_handler& err, trigger_bui
 void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_country(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_every_country(token_generator& gen, error_handler& err, trigger_building_context& context);
 
 void invert_trigger(uint16_t* source);
 bool scope_is_empty(uint16_t const* source);

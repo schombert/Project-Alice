@@ -163,3 +163,16 @@ template = "test.txt"
 ```
 
 Where `test.txt` would be in `common/templates/test.txt`.
+
+### New event substitutions
+
+- `$GOVERNMENT$`: Name of the government of `THIS`.
+- `$IDEOLOGY$`: Name of the ideology of the ruling party of `THIS`.
+- `$PARTY$`: Name of the party of `THIS`.
+- `$POP$`: Total population of `THIS`.
+- `$FROMCONTINENT$`: Continent of `FROM`.
+- `$FROMCAPITAL$`: Capital of `FROM`.
+
+### New triggers
+
+- `every_country`: Like `any_country`, but applies to EVERY country, even non-existing ones!
