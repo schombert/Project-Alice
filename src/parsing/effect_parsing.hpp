@@ -3400,7 +3400,7 @@ struct effect_body {
 		auto which_ = context.outer_context.get_national_variable(std::string(value));
 		context.compiled_effect.push_back(effect::set_variable);
 		context.compiled_effect.push_back(trigger::payload(which_).value);
-		context.add_float_to_payload(-1.f);
+		context.add_float_to_payload(0.f);
 	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
