@@ -1066,7 +1066,8 @@ trigger_body
 	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
-	any_country                     extern      tr_scope_any_country        discard
+	any_country                  extern tr_scope_any_country            discard
+	every_country                extern tr_scope_every_country          discard
 	#any                         extern tr_scope_variable               discard
 
 pop_history_definition
