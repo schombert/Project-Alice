@@ -136,7 +136,7 @@ private:
 
 public:
 	void on_create(sys::state& state) noexcept override {
-		base_data.size.y = 77;
+		base_data.size.y = 76;
 		scrollable_text::on_create(state);
 	}
 
