@@ -182,3 +182,6 @@ Where `test.txt` would be in `common/templates/test.txt`.
 - `increment_variable = ...`: Shorthand to increment by 1
 - `decrement_variable = ...`: Shorthand to decrement by 1
 - `set_variable_to_zero = ...`: Shorthand to set a variable to 0
+- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
+- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope

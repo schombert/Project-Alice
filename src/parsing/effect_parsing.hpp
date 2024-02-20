@@ -862,6 +862,14 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "union")) {
 				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union | effect::no_payload));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "this_union")) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union_this | effect::no_payload));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "from_union")) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union_from | effect::no_payload));
+			} else if(is_this(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_this | effect::no_payload));
+			} else if(is_from(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_from | effect::no_payload));
 			} else if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
 								it != context.outer_context.map_of_culture_names.end()) {
 				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture));
@@ -1877,13 +1885,17 @@ struct effect_body {
 	void ruling_party_ideology(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
-			if(auto it = context.outer_context.map_of_ideologies.find(std::string(value));
+			if(is_this(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::ruling_party_this));
+			} else if(is_from(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::ruling_party_from));
+			} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(value));
 					it != context.outer_context.map_of_ideologies.end()) {
 				context.compiled_effect.push_back(uint16_t(effect::ruling_party_ideology));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors += "ruling_party_ideology effect supplied with invalid ideology name " + std::string(value) +
-																	" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
