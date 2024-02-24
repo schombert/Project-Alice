@@ -119,11 +119,10 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(m, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// TODO: Is this correct? I remember in vanilla it could vary
-	text::add_to_substitution_map(m, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(n)));
-	text::add_to_substitution_map(m, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(n)));
 	auto pc = state.world.nation_get_primary_culture(n);
-	auto pcg_adj = pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective();
-	text::add_to_substitution_map(m, text::variable_type::union_adj, pcg_adj);
+	text::add_to_substitution_map(m, text::variable_type::culture, state.world.culture_get_name(pc));
+	text::add_to_substitution_map(m, text::variable_type::culture_group_union, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_nation_from_identity_holder());
+	text::add_to_substitution_map(m, text::variable_type::union_adj, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 	text::add_to_substitution_map(m, text::variable_type::countryculture, state.world.culture_get_name(pc));
 	uint32_t seed_base = (uint32_t(n.index()) << 6) ^ uint32_t(state.current_date.to_ymd(state.start_date).year);
 	auto names_pair = rng::get_random_pair(state, seed_base + 1);
