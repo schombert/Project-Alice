@@ -944,6 +944,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
 		fid.set_triggered_strings(event_result.triggered_strings);
+		fid.set_not_triggered_strings(event_result.not_triggered_strings);
 		fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 		fid.set_name(event_result.title_);
 		fid.set_mtth(event_result.mean_time_to_happen);
@@ -993,6 +994,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
 		fid.set_triggered_strings(event_result.triggered_strings);
+		fid.set_not_triggered_strings(event_result.not_triggered_strings);
 		fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 		fid.set_name(event_result.title_);
 		fid.set_image(event_result.picture_);
@@ -1076,6 +1078,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
 				fid.set_triggered_strings(event_result.triggered_strings);
+				fid.set_not_triggered_strings(event_result.not_triggered_strings);
 				fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 				fid.set_name(event_result.title_);
 				fid.set_image(event_result.picture_);
@@ -1183,6 +1186,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
 				fid.set_triggered_strings(event_result.triggered_strings);
+				fid.set_not_triggered_strings(event_result.not_triggered_strings);
 				fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;

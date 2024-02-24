@@ -2227,6 +2227,7 @@ struct generic_event {
 	dcon::text_sequence_id title_;
 	dcon::text_sequence_id desc_;
 	std::array<dcon::text_sequence_id, sys::max_triggered_strings> triggered_strings;
+	std::array<dcon::text_sequence_id, sys::max_triggered_strings> not_triggered_strings;
 	std::array<dcon::trigger_key, sys::max_triggered_strings> triggered_strings_triggers;
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
@@ -2235,6 +2236,10 @@ struct generic_event {
 	void string_0_1(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void string_0_2(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void string_0_3(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+	void not_string_0_0(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+	void not_string_0_1(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+	void not_string_0_2(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
+	void not_string_0_3(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void trigger_string_0_0(dcon::trigger_key value, error_handler& err, int32_t line, event_building_context& context) {
 		triggered_strings_triggers[0] = value;
 	}

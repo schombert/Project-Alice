@@ -1867,6 +1867,10 @@ generic_event
 	string_0_1						value		text							 member_fn
 	string_0_2						value		text							 member_fn
 	string_0_3						value		text							 member_fn
+	not_string_0_0					value		text							 member_fn
+	not_string_0_1					value		text							 member_fn
+	not_string_0_2					value		text							 member_fn
+	not_string_0_3					value		text							 member_fn
 	trigger_string_0_0				extern		make_event_trigger				member (triggered_strings_triggers[0])
 	trigger_string_0_1				extern		make_event_trigger				member (triggered_strings_triggers[1])
 	trigger_string_0_2				extern		make_event_trigger				member (triggered_strings_triggers[2])

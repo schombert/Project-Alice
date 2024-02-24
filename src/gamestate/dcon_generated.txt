@@ -4451,6 +4451,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ not_triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
 		name{ triggered_strings_triggers }
 		type{ std::array<trigger_key,sys::max_triggered_strings> }
 		tag{ scenario }
@@ -4484,6 +4489,11 @@ object {
 	}
 	property{
 		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ not_triggered_strings }
 		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
 		tag{ scenario }
 	}
@@ -4566,6 +4576,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ not_triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
 		name{ triggered_strings_triggers }
 		type{ std::array<trigger_key,sys::max_triggered_strings> }
 		tag{ scenario }
@@ -4620,6 +4635,11 @@ object {
 	}
 	property{
 		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ not_triggered_strings }
 		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
 		tag{ scenario }
 	}
