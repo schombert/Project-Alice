@@ -133,8 +133,8 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 		auto last_names = state.world.culture_get_last_names(state.world.nation_get_primary_culture(n));
 		if(last_names.size() > 0) {
 			auto last_name = last_names.at(rng::reduce(uint32_t(names_pair.high), last_names.size()));
-			text::add_to_substitution_map(m, text::variable_type::culture_first_name, state.to_string_view(first_name));
-			text::add_to_substitution_map(m, text::variable_type::culture_last_name, state.to_string_view(last_name));
+			text::add_to_substitution_map(m, text::variable_type::culture_first_name, std::string(state.to_string_view(first_name)));
+			text::add_to_substitution_map(m, text::variable_type::culture_last_name, std::string(state.to_string_view(last_name)));
 		}
 	}
 }
