@@ -166,12 +166,40 @@ Where `test.txt` would be in `common/templates/test.txt`.
 
 ### New event substitutions
 
-- `$GOVERNMENT$`: Name of the government of `THIS`.
-- `$IDEOLOGY$`: Name of the ideology of the ruling party of `THIS`.
-- `$PARTY$`: Name of the party of `THIS`.
+**Events-only:**
+
 - `$POP$`: Total population of `THIS`.
 - `$FROMCONTINENT$`: Continent of `FROM`.
 - `$FROMCAPITAL$`: Capital of `FROM`.
+- `$GOOD$`, `$RESOURCE$`: Good produced by province `THIS`.
+- `$NUMFACTORIES$`: Factories in state `THIS`.
+- `$FROMRULER$`: Equivalent to `$MONARCHTITLE$` but for `FROM`
+- `$FOCUS$`, `$NF$`: National focus of state `THIS`.
+- `$TEMPERATURE$`: Current temperature of crisis.
+- `$TERRAIN$`: Name of the terrain of province `THIS`.
+
+**Decision and events:**
+
+- `$GOVERNMENT$`: Name of the government of `THIS`.
+- `$IDEOLOGY$`: Name of the ideology of the ruling party of `THIS`.
+- `$PARTY$`: Name of the party of `THIS`.
+- `$INFAMY$`, `$BADBOY$`: Current infamy.
+- `$SPHEREMASTER$`: Sphere master of `THIS`.
+- `$OVERLORD$`: Overlord of `THIS`.
+- `$NATIONALVALUE$`: Name of the national value of `THIS`.
+- `$CULTURE_FIRST_NAME$`: Randomly generated first-name, of primary culture of `THIS`.
+- `$CULTURE_LAST_NAME$`: Randomly generated last-name, of primary culture of `THIS`.
+
+Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`, `$CRISISATTACKER$`, `$CRISISDEFENDER$`, `$CRISISTARGET$`, `$CRISISTARGET_ADJ$` and `$CRISISAREA$` - additionally, they can use `$CULTURE$`, `$CULTURE_GROUP_UNION$`, `$UNION_ADJ$` and `$COUNTRYCULTURE$`, working in the same fashion as their event counterparts.
+
+**New crisis substitutions:**
+
+- `$CRISISTAKER_CAPITAL$`: Capital of liberation tag.
+- `$CRISISTAKER_CONTINENT$`: Continent of liberation tag, based from capital.
+- `$CRISISATTACKER_CAPITAL$`: Capital of attacker.
+- `$CRISISATTACKER_CONTINENT$`: Continent of attacker, based from capital.
+- `$CRISISDEFENDER_CAPITAL$`: Capital of defender.
+- `$CRISISDEFENDER_CONTINENT$`: Continent of attacker, based from capital.
 
 ### New triggers
 

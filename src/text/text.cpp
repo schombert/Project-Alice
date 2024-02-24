@@ -614,14 +614,36 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
+	} else if(v.length() == 17) {
+		if(false) { }
+		CT_STRING_ENUM(culture_last_name)
 	} else if(v.length() == 18) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name_adj)
 		CT_STRING_ENUM(head_of_government)
+		CT_STRING_ENUM(crisisattacker_adj)
+		CT_STRING_ENUM(crisisdefender_adj)
+		CT_STRING_ENUM(culture_first_name)
 	} else if(v.length() == 19) {
 		if(false) { }
 		CT_STRING_ENUM(culture_group_union)
 		CT_STRING_ENUM(numspecialfactories)
+		CT_STRING_ENUM(crisistaker_capital)
+	} else if(v.length() == 20) {
+		if(false) { }
+	} else if(v.length() == 21) {
+		if(false) { }
+		CT_STRING_ENUM(crisistaker_continent)
+	} else if(v.length() == 22) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_capital)
+		CT_STRING_ENUM(crisisdefender_capital)
+	} else if(v.length() == 23) {
+		if(false) { }
+	} else if(v.length() == 24) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_continent)
+		CT_STRING_ENUM(crisisdefender_continent)
 	} else if(is_fixed_token_ci(v, "invested_in_us_message")) {
 		return variable_type::invested_in_us_message;
 	}

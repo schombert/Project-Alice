@@ -416,6 +416,16 @@ enum class variable_type : uint16_t {
 	//non-vanilla
 	fromcontinent,
 	fromcapital,
+	crisistaker_continent,
+	crisistaker_capital,
+	crisisattacker_continent,
+	crisisattacker_adj,
+	crisisattacker_capital,
+	crisisdefender_continent,
+	crisisdefender_adj,
+	crisisdefender_capital,
+	culture_first_name,
+	culture_last_name,
 };
 
 struct line_break { };
