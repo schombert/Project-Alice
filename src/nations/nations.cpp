@@ -371,6 +371,7 @@ void update_military_scores(sys::state& state) {
 
 	And then we add one point either per leader or per regiment, whichever is greater.
 	*/
+	float lp_factor = state.defines.alice_military_score_leadership_factor;
 	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
@@ -382,7 +383,7 @@ void update_military_scores(sys::state& state) {
 		auto num_leaders = ve::apply(
 				[&](dcon::nation_id i) {
 					auto gen_range = state.world.nation_get_leader_loyalty(i);
-					return float((gen_range.end() - gen_range.begin()));
+					return float((gen_range.end() - gen_range.begin())) * lp_factor;
 				},
 				n);
 		state.world.nation_set_military_score(n,
