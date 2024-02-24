@@ -140,6 +140,9 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	int32_t primary_slot = -1;
 	sys::date event_date;
 
+	std::array<dcon::text_sequence_id, sys::max_triggered_strings> triggered_strings;
+	std::array<bool, sys::max_triggered_strings> triggered_strings_results;
+
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
@@ -156,6 +159,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		primary_slot = e.primary_slot;
 		pt = e.pt;
 		event_date = e.date;
+		triggered_strings = dcon::fatten(state.world, e.e).get_triggered_strings();
+		for(int32_t i = 0; i < sys::max_triggered_strings; i++) {
+			triggered_strings_results[i] = trigger::evaluate(state, state.world.national_event_get_triggered_strings_triggers(e.e)[i], trigger::to_generic(e.n), trigger::to_generic(e.n), e.from_slot);
+		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
@@ -165,6 +172,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_state = state.world.province_get_state_membership(target_province);
 
 		event_date = e.date;
+		triggered_strings = dcon::fatten(state.world, e.e).get_triggered_strings();
+		for(int32_t i = 0; i < sys::max_triggered_strings; i++) {
+			triggered_strings_results[i] = trigger::evaluate(state, state.world.free_national_event_get_triggered_strings_triggers(e.e)[i], trigger::to_generic(e.n), trigger::to_generic(e.n), -1);
+		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(phe)) {
 		auto const& e = std::get<event::pending_human_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
@@ -176,6 +187,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		from_slot = e.from_slot;
 		ft = e.ft;
 		event_date = e.date;
+		triggered_strings = dcon::fatten(state.world, e.e).get_triggered_strings();
+		for(int32_t i = 0; i < sys::max_triggered_strings; i++) {
+			triggered_strings_results[i] = trigger::evaluate(state, state.world.provincial_event_get_triggered_strings_triggers(e.e)[i], trigger::to_generic(e.p), trigger::to_generic(e.p), e.from_slot);
+		}
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(phe)) {
 		auto const& e = std::get<event::pending_human_f_p_event>(phe);
 		target_nation = state.world.province_get_nation_from_province_ownership(e.p);
@@ -184,6 +199,10 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_province = e.p;
 		target_pop = int32_t(state.world.province_get_demographics(target_province, demographics::total));
 		event_date = e.date;
+		triggered_strings = dcon::fatten(state.world, e.e).get_triggered_strings();
+		for(int32_t i = 0; i < sys::max_triggered_strings; i++) {
+			triggered_strings_results[i] = trigger::evaluate(state, state.world.free_provincial_event_get_triggered_strings_triggers(e.e)[i], trigger::to_generic(e.p), trigger::to_generic(e.p), -1);
+		}
 	}
 
 	switch(ft) {
@@ -257,6 +276,20 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
+
+	// Non-vanilla, dynamic strings
+	if(triggered_strings_results[0]) {
+		text::add_to_substitution_map(sub, text::variable_type::string_0_0, triggered_strings[0]);
+	}
+	if(triggered_strings_results[1]) {
+		text::add_to_substitution_map(sub, text::variable_type::string_0_1, triggered_strings[1]);
+	}
+	if(triggered_strings_results[2]) {
+		text::add_to_substitution_map(sub, text::variable_type::string_0_2, triggered_strings[2]);
+	}
+	if(triggered_strings_results[3]) {
+		text::add_to_substitution_map(sub, text::variable_type::string_0_3, triggered_strings[3]);
+	}
 
 	// Global crisis stuff
 	// TODO: crisisarea

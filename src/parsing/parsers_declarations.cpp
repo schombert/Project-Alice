@@ -2903,6 +2903,23 @@ void generic_event::desc(association_type, std::string_view value, error_handler
 	desc_ = text::find_or_add_key(context.outer_context.state, value);
 }
 
+void generic_event::string_0_0(association_type, std::string_view value, error_handler& err, int32_t line,
+		event_building_context& context) {
+	triggered_strings[0] = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::string_0_1(association_type, std::string_view value, error_handler& err, int32_t line,
+		event_building_context& context) {
+	triggered_strings[1] = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::string_0_2(association_type, std::string_view value, error_handler& err, int32_t line,
+		event_building_context& context) {
+	triggered_strings[2] = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::string_0_3(association_type, std::string_view value, error_handler& err, int32_t line,
+		event_building_context& context) {
+	triggered_strings[3] = text::find_or_add_key(context.outer_context.state, value);
+}
+
 void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
 	if(last_option_added < sys::max_event_options) {
 		options[last_option_added] = value;

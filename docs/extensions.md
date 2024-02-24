@@ -185,3 +185,19 @@ Where `test.txt` would be in `common/templates/test.txt`.
 - `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
 - `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
+
+### Dynamic localisation
+
+```
+country_event = {
+	desc = "$STRING_0_0$ $STRING_0_1$"
+	string_0_0 = "Hello World (Uncivilized)"
+	trigger_string_0_0 = {
+		civilized = no
+	}
+	string_0_1 = "Hello World (Civilized)"
+	trigger_string_0_1 = {
+		civilized = yes
+	}
+}
+```

@@ -528,6 +528,7 @@ enum class network_mode_type {
 
 
 constexpr int32_t max_event_options = 8;
+constexpr int32_t max_triggered_strings = 4;
 
 } // namespace sys
 

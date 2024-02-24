@@ -4445,6 +4445,16 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ triggered_strings_triggers }
+		type{ std::array<trigger_key,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4471,6 +4481,16 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+	}
+	property{
+		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ triggered_strings_triggers }
+		type{ std::array<trigger_key,sys::max_triggered_strings> }
+		tag{ scenario }
 	}
 }
 
@@ -4540,6 +4560,16 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ triggered_strings_triggers }
+		type{ std::array<trigger_key,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4587,6 +4617,16 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+	}
+	property{
+		name{ triggered_strings }
+		type{ std::array<text_sequence_id,sys::max_triggered_strings> }
+		tag{ scenario }
+	}
+	property{
+		name{ triggered_strings_triggers }
+		type{ std::array<trigger_key,sys::max_triggered_strings> }
+		tag{ scenario }
 	}
 }
 

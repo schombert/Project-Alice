@@ -856,7 +856,6 @@ void make_decision(std::string_view name, token_generator& gen, error_handler& e
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
 	auto decisions = open_directory(pictures, NATIVE("decisions"));
-	
 
 	context.state.world.decision_set_name(new_decision, name_id);
 	context.state.world.decision_set_description(new_decision, desc_id);
@@ -944,6 +943,8 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 		auto new_id = context.state.world.create_free_provincial_event();
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
+		fid.set_triggered_strings(event_result.triggered_strings);
+		fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 		fid.set_name(event_result.title_);
 		fid.set_mtth(event_result.mean_time_to_happen);
 		fid.set_only_once(event_result.fire_only_once);
@@ -991,6 +992,8 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		auto new_id = context.state.world.create_free_national_event();
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
+		fid.set_triggered_strings(event_result.triggered_strings);
+		fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 		fid.set_name(event_result.title_);
 		fid.set_image(event_result.picture_);
 		fid.set_immediate_effect(event_result.immediate_);
@@ -1072,6 +1075,8 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
+				fid.set_triggered_strings(event_result.triggered_strings);
+				fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 				fid.set_name(event_result.title_);
 				fid.set_image(event_result.picture_);
 				fid.set_immediate_effect(event_result.immediate_);
@@ -1177,6 +1182,8 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
+				fid.set_triggered_strings(event_result.triggered_strings);
+				fid.set_triggered_strings_triggers(event_result.triggered_strings_triggers);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;
 

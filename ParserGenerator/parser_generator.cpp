@@ -117,7 +117,7 @@ size_t get_column(std::string_view const s, std::string_view::iterator const it)
 }
 
 bool is_ident(char c) {
-	return std::isalnum(c) || c == '#' || c == '@' || c == '_';
+	return std::isalnum(c) || c == '#' || c == '@' || c == '_' || c == '[' || c == ']';
 }
 
 void tokenize_line(std::string_view const line) {
