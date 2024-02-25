@@ -592,6 +592,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(value_int_0_3)
 		CT_STRING_ENUM(value_int_0_4)
 		CT_STRING_ENUM(fromcontinent)
+		CT_STRING_ENUM(fromstatename)
 	} else if(v.length() == 14) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name)
@@ -1017,18 +1018,24 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 	mp.insert_or_assign(uint32_t(key), value);
 }
 
-std::string localize_month(sys::state const& state, uint16_t month) {
+dcon::text_sequence_id localize_month(sys::state const& state, uint16_t month) {
 	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may_month_name", "june", "july", "august",
-			"september", "october", "november", "december"};
+		"september", "october", "november", "december"};
+	auto it = state.key_to_text_sequence.find(lowercase_str("january"));
 	if(month == 0 || month > 12) {
-		return text::produce_simple_string(state, "january");
+		return it->second;
 	}
-	return text::produce_simple_string(state, month_names[month - 1]);
+	it = state.key_to_text_sequence.find(lowercase_str(month_names[month - 1]));
+	if(it != state.key_to_text_sequence.end()) {
+		return it->second;
+	} else {
+		return dcon::text_sequence_id{};
+	}
 }
 
 std::string date_to_string(sys::state const& state, sys::date date) {
 	sys::year_month_day ymd = date.to_ymd(state.start_date);
-	return localize_month(state, ymd.month) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	return text::produce_simple_string(state, localize_month(state, ymd.month)) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
 }
 
 text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {

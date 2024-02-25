@@ -426,6 +426,7 @@ enum class variable_type : uint16_t {
 	crisisdefender_capital,
 	culture_first_name,
 	culture_last_name,
+	fromstatename,
 };
 
 struct line_break { };

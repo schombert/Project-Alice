@@ -272,7 +272,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// Dates
 	text::add_to_substitution_map(sub, text::variable_type::year, int32_t(event_date.to_ymd(state.start_date).year));
-	//text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
+	text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
 	text::add_to_substitution_map(sub, text::variable_type::day, int32_t(event_date.to_ymd(state.start_date).day));
 
 	// Non-vanilla
@@ -306,6 +306,25 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 			text::add_to_substitution_map(sub, text::variable_type::culture_first_name, state.to_string_view(first_name));
 			text::add_to_substitution_map(sub, text::variable_type::culture_last_name, state.to_string_view(last_name));
 		}
+	}
+	text::add_to_substitution_map(sub, text::variable_type::fromstatename, from_state);
+	if(auto fl = state.world.province_get_factory_location_as_province(target_province); fl.begin() != fl.end()) {
+		text::add_to_substitution_map(sub, text::variable_type::factory, (*fl.begin()).get_factory().get_building_type().get_name());
+	}
+	text::add_to_substitution_map(sub, text::variable_type::tech, state.world.nation_get_current_research(target_nation).get_name());
+	//std::string list_provinces = "";
+	//for(const auto p : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(target_state))) {
+	//	list_provinces += text::produce_simple_string(state, p.get_province().get_name()) + ", ";
+	//}
+	//text::add_to_substitution_map(sub, text::variable_type::provinces, list_provinces);
+	text::add_to_substitution_map(sub, text::variable_type::date, event_date);
+	text::add_to_substitution_map(sub, text::variable_type::now, state.current_date);
+	text::add_to_substitution_map(sub, text::variable_type::control, state.world.province_get_nation_from_province_control(target_province));
+	text::add_to_substitution_map(sub, text::variable_type::owner, state.world.province_get_nation_from_province_ownership(target_province));
+	if(auto plist = state.world.nation_get_province_ownership(target_nation); plist.begin() != plist.end()) {
+		auto plist_size = uint32_t(plist.end() - plist.begin());
+		uint32_t index = rng::reduce(uint32_t(names_pair.high), plist_size);
+		text::add_to_substitution_map(sub, text::variable_type::anyprovince, (*(plist.begin() + index)).get_province());
 	}
 }
 

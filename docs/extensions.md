@@ -177,6 +177,11 @@ Where `test.txt` would be in `common/templates/test.txt`.
 - `$FOCUS$`, `$NF$`: National focus of state `THIS`.
 - `$TEMPERATURE$`: Current temperature of crisis.
 - `$TERRAIN$`: Name of the terrain of province `THIS`.
+- `$FROMSTATENAME$`: State name of `FROM`.
+- `$FACTORY$`: Name of the factory of `THIS` province.
+- `$DATE$`: Date that the event fired on.
+- `$CONTROL$`: Nation that is currently controlling `THIS` province.
+- `$OWNER$`: Nation that has ownership over `THIS` province.
 
 **Decision and events:**
 
@@ -189,6 +194,9 @@ Where `test.txt` would be in `common/templates/test.txt`.
 - `$NATIONALVALUE$`: Name of the national value of `THIS`.
 - `$CULTURE_FIRST_NAME$`: Randomly generated first-name, of primary culture of `THIS`.
 - `$CULTURE_LAST_NAME$`: Randomly generated last-name, of primary culture of `THIS`.
+- `$TECH$`: Currently researched tech.
+- `$NOW$`: Current date.
+- `$ANYPROVINCE$`: Any (random) province owned by this nation.
 
 Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`, `$CRISISATTACKER$`, `$CRISISDEFENDER$`, `$CRISISTARGET$`, `$CRISISTARGET_ADJ$` and `$CRISISAREA$` - additionally, they can use `$CULTURE$`, `$CULTURE_GROUP_UNION$`, `$UNION_ADJ$` and `$COUNTRYCULTURE$`, working in the same fashion as their event counterparts.
 
