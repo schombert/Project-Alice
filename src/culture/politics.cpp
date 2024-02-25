@@ -234,12 +234,12 @@ float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
 	return reform_factor;
 }
 
-bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
+bool political_party_is_active(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
 	auto start_date = state.world.political_party_get_start_date(p);
 	auto end_date = state.world.political_party_get_end_date(p);
 	bool b = true;
 	if(auto k = state.world.political_party_get_trigger(p); k) {
-		b = trigger::evaluate(state, k, -1, -1, -1);
+		b = trigger::evaluate(state, k, trigger::to_generic(n), trigger::to_generic(n), - 1);
 	}
 	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
 }
@@ -261,7 +261,7 @@ void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ide
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == id) {
+		if(politics::political_party_is_active(state, n, pid) && state.world.political_party_get_ideology(pid) == id) {
 			set_ruling_party(state, n, pid);
 			return;
 		}
@@ -366,7 +366,7 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 
 			for(int32_t i = start; i < end; i++) {
 				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-				if(politics::political_party_is_active(state, pid) &&
+				if(politics::political_party_is_active(state, n, pid) &&
 						(state.world.government_type_get_ideologies_allowed(new_type) &
 								culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 
@@ -686,7 +686,7 @@ void update_elections(sys::state& state) {
 
 				for(int32_t i = start; i < end; i++) {
 					auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-					if(politics::political_party_is_active(state, pid) &&
+					if(politics::political_party_is_active(state, n, pid) &&
 							(n.get_government_type().get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 						party_votes.push_back(party_vote{pid, 0.0f});
 					}

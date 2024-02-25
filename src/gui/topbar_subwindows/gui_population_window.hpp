@@ -1067,7 +1067,7 @@ class pop_distribution_piechart : public piechart<T> {
 				auto end = start + state.world.national_identity_get_political_party_count(tag);
 				for(int32_t i = start; i < end; i++) {
 					auto pid = T(typename T::value_base_t(i));
-					if(politics::political_party_is_active(state, pid)) {
+					if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 						auto support = politics::party_total_support(state, pop_id, pid,
 								state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 						weight_fn(pid, support);
@@ -1219,7 +1219,7 @@ public:
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
 					for(int32_t i = start; i < end; i++) {
 						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, pid)) {
+						if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 							auto support = politics::party_total_support(state, pop_id, pid,
 									state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 							distrib[typename T::value_base_t(pid.index())] += support;

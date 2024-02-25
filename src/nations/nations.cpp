@@ -899,7 +899,7 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(uint16_t(i));
-		if(politics::political_party_is_active(state, pid)) {
+		if(politics::political_party_is_active(state, n, pid)) {
 			parties.push_back(pid);
 		}
 	}
@@ -1194,7 +1194,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
+		if(politics::political_party_is_active(state, n, pid) && state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
 			state.world.nation_set_ruling_party(n, pid);
 			break;
 		}
@@ -1202,7 +1202,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	if(!state.world.nation_get_ruling_party(n)) {
 		for(int32_t i = start; i < end; i++) {
 			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-			if(politics::political_party_is_active(state, pid)) {
+			if(politics::political_party_is_active(state, n, pid)) {
 				state.world.nation_set_ruling_party(n, pid);
 				break;
 			}
