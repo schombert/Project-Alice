@@ -373,7 +373,7 @@ void party::end_date(association_type, sys::year_month_day ymd, error_handler& e
 }
 
 void party::finish(party_context& context) {
-	context.outer_context.state.world.political_party_set_trigger(context.id, context.trigger);
+	context.outer_context.state.world.political_party_set_trigger(context.id, trigger);
 }
 
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line,
