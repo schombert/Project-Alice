@@ -124,6 +124,8 @@ struct global_national_state {
 	std::vector<fixed_event> on_civilize;
 	std::vector<fixed_event> on_my_factories_nationalized;
 	std::vector<fixed_event> on_crisis_declare_interest;
+	std::vector<fixed_event> on_election_started;
+	std::vector<fixed_event> on_election_finished;
 
 	bool gc_pending = false;
 

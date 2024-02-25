@@ -1753,6 +1753,12 @@ s_on_my_factories_nationalized
 s_on_crisis_declare_interest
 	#any                  value      int                    member_fn
 
+s_on_election_started
+	#any                  value      int                    member_fn
+
+s_on_election_finished
+	#any                  value      int                    member_fn
+
 on_action_file
 	on_yearly_pulse                 group      s_on_yearly_pulse                 member
 	on_quarterly_pulse              group      s_on_quarterly_pulse              member
@@ -1771,6 +1777,8 @@ on_action_file
 	on_civilize                     group      s_on_civilize                     member
 	on_my_factories_nationalized    group      s_on_my_factories_nationalized    member
 	on_crisis_declare_interest      group      s_on_crisis_declare_interest      member
+	on_election_started             group      s_on_election_started             member
+	on_election_finished            group      s_on_election_finished            member
 
 rebel_gov_list
 	#any                            value      text                              member_fn
