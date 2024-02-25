@@ -237,6 +237,10 @@ float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
 bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
 	auto start_date = state.world.political_party_get_start_date(p);
 	auto end_date = state.world.political_party_get_end_date(p);
+	bool b = true;
+	if(auto k = state.world.political_party_get_trigger(p); k) {
+		b = trigger::evaluate(state, k, -1, -1, -1);
+	}
 	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
 }
 

@@ -1429,12 +1429,13 @@ struct unit_names_context {
 };
 
 struct party {
+	dcon::trigger_key trigger;
 	void ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
 	void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
 	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
 	void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context);
-	void finish(party_context&) { }
+	void finish(party_context& context);
 };
 struct unit_names_list {
 	void free_value(std::string_view text, error_handler& err, int32_t line, unit_names_context& context);
@@ -1722,6 +1723,7 @@ struct crime_modifier : public modifier_base {
 	dcon::trigger_key trigger;
 };
 
+dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
 dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
 void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
