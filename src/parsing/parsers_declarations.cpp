@@ -2017,6 +2017,36 @@ void s_on_crisis_declare_interest::any_value(std::string_view chance, associatio
 	}
 }
 
+void s_on_election_started::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
+		int32_t line, scenario_building_context& context) {
+	int32_t value = parse_int(chance, line, err);
+	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+		context.state.national_definitions.on_election_started.push_back(
+				nations::fixed_event{ int16_t(value), it->second.id, dcon::trigger_key{} });
+	} else {
+		auto id = context.state.world.create_national_event();
+		context.map_of_national_events.insert_or_assign(event,
+				pending_nat_event {id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
+		context.state.national_definitions.on_election_started.push_back(
+				nations::fixed_event{ int16_t(value), id, dcon::trigger_key{} });
+	}
+}
+
+void s_on_election_finished::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
+		int32_t line, scenario_building_context& context) {
+	int32_t value = parse_int(chance, line, err);
+	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+		context.state.national_definitions.on_election_finished.push_back(
+				nations::fixed_event{ int16_t(value), it->second.id, dcon::trigger_key{} });
+	} else {
+		auto id = context.state.world.create_national_event();
+		context.map_of_national_events.insert_or_assign(event,
+				pending_nat_event {id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
+		context.state.national_definitions.on_election_finished.push_back(
+				nations::fixed_event{ int16_t(value), id, dcon::trigger_key{} });
+	}
+}
+
 void s_on_my_factories_nationalized::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
 		int32_t line, scenario_building_context& context) {
 	int32_t value = parse_int(chance, line, err);

@@ -2096,6 +2096,16 @@ struct s_on_crisis_declare_interest {
 	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
 			scenario_building_context& context);
 };
+struct s_on_election_started {
+	void finish(scenario_building_context&) { }
+	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
+			scenario_building_context& context);
+};
+struct s_on_election_finished {
+	void finish(scenario_building_context&) { }
+	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
+			scenario_building_context& context);
+};
 
 struct s_on_my_factories_nationalized {
 	void finish(scenario_building_context&) { }
@@ -2121,6 +2131,8 @@ struct on_action_file {
 	s_on_civilize on_civilize;
 	s_on_my_factories_nationalized on_my_factories_nationalized;
 	s_on_crisis_declare_interest on_crisis_declare_interest;
+	s_on_election_started on_election_started;
+	s_on_election_finished on_election_finished;
 };
 
 struct rebel_context {

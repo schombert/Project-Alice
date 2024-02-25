@@ -655,6 +655,8 @@ void start_election(sys::state& state, dcon::nation_id n) {
 			sys::message_base_type::electionstart
 			});
 		}
+		event::fire_fixed_event(state, state.national_definitions.on_election_started, trigger::to_generic(n),
+			event::slot_type::nation, n, -1, event::slot_type::none);
 	}
 }
 
@@ -836,6 +838,8 @@ void update_elections(sys::state& state) {
 						n, dcon::nation_id{}, dcon::nation_id{},
 						sys::message_base_type::electiondone
 					});
+					event::fire_fixed_event(state, state.national_definitions.on_election_finished, trigger::to_generic(n),
+						event::slot_type::nation, n, -1, event::slot_type::none);
 				} else {
 					uint32_t winner = 0;
 					float winner_amount = party_votes[0].vote;
@@ -858,6 +862,8 @@ void update_elections(sys::state& state) {
 						n, dcon::nation_id{}, dcon::nation_id{},
 						sys::message_base_type::electiondone
 					});
+					event::fire_fixed_event(state, state.national_definitions.on_election_finished, trigger::to_generic(n),
+						event::slot_type::nation, n, -1, event::slot_type::none);
 				}
 
 			} else if(next_election_date(state, n) <= state.current_date) {
