@@ -4,6 +4,7 @@
 
 #include "gui_element_types.hpp"
 #include "triggers.hpp"
+#include "text.hpp"
 
 namespace ui {
 
@@ -90,8 +91,11 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
 	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
-	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
 	text::add_to_substitution_map(m, text::variable_type::continentname, state.world.nation_get_capital(n).get_continent().get_name());
+	// Date
+	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
+	//text::add_to_substitution_map(m, text::variable_type::month, text::localize_month(state, state.current_date.to_ymd(state.start_date).month));
+	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
 
 	// Non-vanilla
 	text::add_to_substitution_map(m, text::variable_type::government, state.world.nation_get_government_type(n).get_name());
@@ -135,6 +139,13 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 			text::add_to_substitution_map(m, text::variable_type::culture_first_name, state.to_string_view(first_name));
 			text::add_to_substitution_map(m, text::variable_type::culture_last_name, state.to_string_view(last_name));
 		}
+	}
+	text::add_to_substitution_map(m, text::variable_type::tech, state.world.nation_get_current_research(n).get_name());
+	text::add_to_substitution_map(m, text::variable_type::now, state.current_date);
+	if(auto plist = state.world.nation_get_province_ownership(n); plist.begin() != plist.end()) {
+		auto plist_size = uint32_t(plist.end() - plist.begin());
+		uint32_t index = rng::reduce(uint32_t(names_pair.high), plist_size);
+		text::add_to_substitution_map(m, text::variable_type::anyprovince, (*(plist.begin() + index)).get_province());
 	}
 }
 
