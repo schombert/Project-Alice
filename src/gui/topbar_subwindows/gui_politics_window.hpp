@@ -253,6 +253,15 @@ public:
 			reform_description(state, contents, state.world.political_party_get_party_issues(party, pi));
 			text::add_line_break_to_layout(state, contents);
 		}
+
+		if(state.world.political_party_get_trigger(party)) {
+			text::add_line(state, contents, "alice_political_party_trigger", text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
+				text::variable_type::date_long_1, state.world.political_party_get_end_date(party));
+			ui::trigger_description(state, contents, state.world.political_party_get_trigger(party), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		} else {
+			text::add_line(state, contents, "alice_political_party_no_trigger", text::variable_type::date_long_0, state.world.political_party_get_start_date(party),
+				text::variable_type::date_long_1, state.world.political_party_get_end_date(party));
+		}
 	}
 };
 

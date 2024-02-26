@@ -718,6 +718,7 @@ party
 	end_date       value      date                      member_fn
 	ideology       value      text                      member_fn
 	#any           value      text                      member_fn
+	trigger        extern     make_party_trigger		member
 
 country_file
 	color          group      color_from_3i             member_fn
