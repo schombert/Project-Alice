@@ -1537,6 +1537,7 @@ struct pop_history_file {
 };
 
 void parse_csv_pop_history_file(sys::state& state, const char *start, const char *end, error_handler& err, scenario_building_context& context);
+void parse_csv_province_history_file(sys::state& state, const char* start, const char* end, error_handler& err, scenario_building_context& context);
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 

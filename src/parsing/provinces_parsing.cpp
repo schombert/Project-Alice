@@ -425,4 +425,40 @@ void parse_csv_pop_history_file(sys::state& state, const char* start, const char
 	}
 }
 
+void parse_csv_province_history_file(sys::state& state, const char* start, const char* end, error_handler& err, scenario_building_context& context) {
+	province_history_file f;
+
+	auto cpos = start;
+	while(cpos < end) {
+		// province-id;owner;controller;core;trade_goods;life_rating;colonial;slave
+		cpos = parsers::parse_fixed_amount_csv_values<8>(cpos, end, ';', [&](std::string_view const* values) {
+			auto provid_text = parsers::remove_surrounding_whitespace(values[0]);
+			auto owner_text = parsers::remove_surrounding_whitespace(values[1]);
+			auto controller_text = parsers::remove_surrounding_whitespace(values[2]);
+			auto core_text = parsers::remove_surrounding_whitespace(values[3]);
+			auto trade_goods_text = parsers::remove_surrounding_whitespace(values[4]);
+			auto life_rating_text = parsers::remove_surrounding_whitespace(values[5]);
+			auto is_colonial_text = parsers::remove_surrounding_whitespace(values[6]);
+			auto is_slave_text = parsers::remove_surrounding_whitespace(values[7]);
+			if(provid_text.empty()) {
+				err.accumulated_errors += "Unspecified province id (" + err.file_name + ")\n";
+				return;
+			}
+			if(trade_goods_text.empty()) {
+				err.accumulated_errors += "Unspecified trade_goods (" + err.file_name + ")\n";
+				return;
+			}
+			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
+			province_file_context province_context{ context, p };
+			f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
+			f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
+			f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			f.trade_goods(parsers::association_type::eq_default, trade_goods_text, err, 0, province_context);
+			f.life_rating(parsers::association_type::eq_default, parsers::parse_int(life_rating_text, 0, err), err, 0, province_context);
+			f.colony(parsers::association_type::eq_default, parsers::parse_int(is_colonial_text, 0, err), err, 0, province_context);
+			f.is_slave(parsers::association_type::eq_default, parsers::parse_int(is_slave_text, 0, err), err, 0, province_context);
+		});
+	}
+}
+
 } // namespace parsers
