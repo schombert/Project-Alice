@@ -2831,6 +2831,16 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
 		for(auto subdir : list_subdirectories(prov_history)) {
+			// Modding extension:
+			for(auto province_file : list_files(subdir, NATIVE(".csv"))) {
+				auto opened_file = open_file(province_file);
+				if(opened_file) {
+					err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+					auto content = view_contents(*opened_file);
+					parsers::parse_csv_province_history_file(*this, content.data, content.data + content.file_size, err, context);
+				}
+			}
+
 			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto name_begin = file_name.c_str();

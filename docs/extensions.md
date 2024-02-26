@@ -154,6 +154,19 @@ This allows for higher volume of data, while keeping it readable, editable and m
 
 Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
 
+### Dense CSV province history
+
+Sometimes having too many history text files for provinces can make handling files a pain, or mess up compression algorithms with having too many province files.
+
+Redundant data is the enemy of file size, and, while most province history files don't take much space, it is still good to load them:
+
+```
+province-id;owner;controller;core;trade_goods;life_rating;colonial;slave;
+142;RPL;RPL;RPL;coal;31;1;0;
+```
+
+Similar to POP CSV format. The CSV files will be loaded **first** in the history folder, this means you can mix both CSV and text files to make greater granularity. For example when multiple cores are involved.
+
 ### Country templates
 
 This allows to remove a lot of copy-pasting for countries, and other common files.
