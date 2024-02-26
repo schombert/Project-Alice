@@ -1723,7 +1723,7 @@ struct crime_modifier : public modifier_base {
 	dcon::trigger_key trigger;
 };
 
-dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
+dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, party_context& context);
 dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
 void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
