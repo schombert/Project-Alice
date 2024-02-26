@@ -419,7 +419,7 @@ dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler&
 }
 
 dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, party_context& context) {
-	trigger_building_context t_context{ context, trigger::slot_contents::empty, trigger::slot_contents::empty,
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty };
 	return make_trigger(gen, err, t_context);
 }
