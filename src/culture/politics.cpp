@@ -241,7 +241,7 @@ bool political_party_is_active(sys::state& state, dcon::nation_id n, dcon::polit
 	if(auto k = state.world.political_party_get_trigger(p); k) {
 		b = trigger::evaluate(state, k, trigger::to_generic(n), trigger::to_generic(n), - 1);
 	}
-	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
+	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date) && b;
 }
 
 void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
