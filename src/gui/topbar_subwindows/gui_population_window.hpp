@@ -701,7 +701,7 @@ public:
 		auto need = text::produce_simple_string(state, "life_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction() * 100});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_life_needs_satisfaction() * 100.f});
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -726,7 +726,7 @@ public:
 		auto need = text::produce_simple_string(state, "everyday_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction() * 100});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_everyday_needs_satisfaction() * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -751,7 +751,7 @@ public:
 		auto need = text::produce_simple_string(state, "luxury_needs");
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::need, std::string_view(need));
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction() * 100});
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_one_place{fat_id.get_luxury_needs_satisfaction() * 100.f });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("getting_needs"), sub);
 		text::close_layout_box(contents, box);
@@ -919,6 +919,7 @@ public:
 		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 			modifier_description(state, contents, mid, 15);
 		}
+		text::add_line(state, contents, "alice_nf_controls");
 	}
 };
 
@@ -1066,7 +1067,7 @@ class pop_distribution_piechart : public piechart<T> {
 				auto end = start + state.world.national_identity_get_political_party_count(tag);
 				for(int32_t i = start; i < end; i++) {
 					auto pid = T(typename T::value_base_t(i));
-					if(politics::political_party_is_active(state, pid)) {
+					if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 						auto support = politics::party_total_support(state, pop_id, pid,
 								state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 						weight_fn(pid, support);
@@ -1218,7 +1219,7 @@ public:
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
 					for(int32_t i = start; i < end; i++) {
 						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, pid)) {
+						if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 							auto support = politics::party_total_support(state, pop_id, pid,
 									state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 							distrib[typename T::value_base_t(pid.index())] += support;

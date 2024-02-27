@@ -713,7 +713,7 @@ void make_party(token_generator& gen, error_handler& err, country_file_context& 
 		context.outer_context.state.world.national_identity_get_political_party_count(context.id) += uint8_t(1);
 	}
 
-	party_context new_context{context.outer_context, party_id};
+	party_context new_context{ context.outer_context, party_id };
 	parse_party(gen, err, new_context);
 }
 

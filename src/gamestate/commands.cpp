@@ -1480,7 +1480,7 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 	if(!rel)
 		return false;
 
-	if(state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
+	if(source != affected_gp && state.world.gp_relationship_get_influence(rel) < state.defines.removefromsphere_influence_cost)
 		return false;
 
 	if((state.world.gp_relationship_get_status(rel) & nations::influence::is_banned) != 0)
@@ -1504,17 +1504,16 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
 
-	state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
-
 	state.world.nation_set_in_sphere_of(influence_target, dcon::nation_id{});
 
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	auto& l = state.world.gp_relationship_get_status(orel);
 	l = nations::influence::decrease_level(l);
 
-	if(source != affected_gp)
+	if(source != affected_gp) {
+		state.world.gp_relationship_get_influence(rel) -= state.defines.removefromsphere_influence_cost;
 		nations::adjust_relationship(state, source, affected_gp, state.defines.removefromsphere_relation_on_accept);
-	else {
+	} else {
 		state.world.nation_get_infamy(source) += state.defines.removefromsphere_infamy_cost;
 		nations::adjust_prestige(state, source, -state.defines.removefromsphere_prestige_cost);
 	}
@@ -1524,7 +1523,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 			if(source == affected_gp)
 				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target);
 			else
-				text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
+				text::add_line(state, contents, "msg_rem_sphere_2", text::variable_type::x, source, text::variable_type::y, influence_target, text::variable_type::val, affected_gp);
 		},
 		"msg_rem_sphere_title",
 		source, affected_gp, influence_target,
@@ -1823,7 +1822,7 @@ bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::p
 	*/
 	if(state.world.nation_get_ruling_party(source) == p)
 		return false;
-	if(!politics::political_party_is_active(state, p))
+	if(!politics::political_party_is_active(state, source, p))
 		return false;
 	if(!politics::can_appoint_ruling_party(state, source))
 		return false;
@@ -4221,6 +4220,45 @@ void execute_enable_debt(sys::state& state, dcon::nation_id source, bool debt_is
 	state.world.nation_set_is_debt_spending(source, debt_is_enabled);
 }
 
+void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::move_capital;
+	p.source = source;
+	p.data.generic_location.prov = prov;
+	add_to_command_queue(state, p);
+}
+
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(state.current_crisis != sys::crisis_type::none)
+		return false;
+	if(state.world.nation_get_is_at_war(source))
+		return false;
+	if(state.world.nation_get_capital(source) == p)
+		return false;
+	if(state.world.province_get_is_colonial(p))
+		return false;
+	if(state.world.province_get_continent(state.world.nation_get_capital(source)) != state.world.province_get_continent(p))
+		return false;
+	if(nations::nation_accepts_culture(state, source, state.world.province_get_dominant_culture(p)) == false)
+		return false;
+	if(state.world.province_get_siege_progress(p) > 0.f)
+		return false;
+	if(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f)
+		return false;
+	if(state.world.province_get_nation_from_province_ownership(p) != source)
+		return false;
+	if(state.world.province_get_nation_from_province_control(p) != source)
+		return false;
+	if(state.world.province_get_is_owner_core(p) == false)
+		return false;
+	return true;
+}
+
+void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	state.world.nation_set_capital(source, p);
+}
+
 static void post_chat_message(sys::state& state, ui::chat_message& m) {
 	// Private message
 	bool can_see = true;
@@ -4286,19 +4324,21 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 		ai::remove_ai_data(state, source);
 }
 
-void notify_player_leaves(sys::state& state, dcon::nation_id source) {
+void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::notify_player_leaves;
 	p.source = source;
+	p.data.notify_leave.make_ai = make_ai;
 	add_to_command_queue(state, p);
 }
-bool can_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	// TODO: bans, kicks, mutes?
-	return true;
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
+	return state.world.nation_get_is_player_controlled(source);
 }
-void execute_notify_player_leaves(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_is_player_controlled(source, false);
+void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai) {
+	if(make_ai) {
+		state.world.nation_set_is_player_controlled(source, false);
+	}
 
 	ui::chat_message m{};
 	m.source = source;
@@ -4415,6 +4455,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source) {
+	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
 	ui::chat_message m{};
@@ -4856,6 +4897,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::enable_debt:
 		return true;
 
+	case command_type::move_capital:
+		return can_move_capital(state, c.source, c.data.generic_location.prov);
+		
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -4877,7 +4921,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_notify_player_joins(state, c.source, c.data.player_name);
 
 	case command_type::notify_player_leaves:
-		return can_notify_player_leaves(state, c.source);
+		return can_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
 
 	case command_type::notify_player_picks_nation:
 		return can_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
@@ -4925,6 +4969,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
+	case command_type::c_innovate:
 		return true;
 	}
 	return false;
@@ -5225,7 +5270,10 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::enable_debt:
 		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
 		break;
-
+	case command_type::move_capital:
+		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+		
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5247,7 +5295,7 @@ void execute_command(sys::state& state, payload& c) {
 		execute_notify_player_joins(state, c.source, c.data.player_name);
 		break;
 	case command_type::notify_player_leaves:
-		execute_notify_player_leaves(state, c.source);
+		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai);
 		break;
 	case command_type::notify_player_picks_nation:
 		execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target);
@@ -5344,6 +5392,8 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
+	case command_type::c_innovate:
+		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
 	}
 }
 

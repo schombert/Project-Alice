@@ -371,6 +371,7 @@ void update_military_scores(sys::state& state) {
 
 	And then we add one point either per leader or per regiment, whichever is greater.
 	*/
+	float lp_factor = state.defines.alice_military_score_leadership_factor;
 	state.world.execute_serial_over_nation([&, disarm = state.defines.disarmament_army_hit](auto n) {
 		auto recruitable = ve::to_float(state.world.nation_get_recruitable_regiments(n));
 		auto active_regs = ve::to_float(state.world.nation_get_active_regiments(n));
@@ -382,7 +383,7 @@ void update_military_scores(sys::state& state) {
 		auto num_leaders = ve::apply(
 				[&](dcon::nation_id i) {
 					auto gen_range = state.world.nation_get_leader_loyalty(i);
-					return float((gen_range.end() - gen_range.begin()));
+					return float((gen_range.end() - gen_range.begin())) * lp_factor;
 				},
 				n);
 		state.world.nation_set_military_score(n,
@@ -898,7 +899,7 @@ std::vector<dcon::political_party_id> get_active_political_parties(sys::state& s
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(uint16_t(i));
-		if(politics::political_party_is_active(state, pid)) {
+		if(politics::political_party_is_active(state, n, pid)) {
 			parties.push_back(pid);
 		}
 	}
@@ -1193,7 +1194,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
+		if(politics::political_party_is_active(state, n, pid) && state.world.political_party_get_ideology(pid) == base_ruling_ideology) {
 			state.world.nation_set_ruling_party(n, pid);
 			break;
 		}
@@ -1201,7 +1202,7 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	if(!state.world.nation_get_ruling_party(n)) {
 		for(int32_t i = start; i < end; i++) {
 			auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-			if(politics::political_party_is_active(state, pid)) {
+			if(politics::political_party_is_active(state, n, pid)) {
 				state.world.nation_set_ruling_party(n, pid);
 				break;
 			}

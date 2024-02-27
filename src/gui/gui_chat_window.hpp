@@ -173,6 +173,11 @@ public:
 
 class chat_player_entry : public listbox_row_element_base<dcon::nation_id> {
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<dcon::nation_id>::on_create(state);
+		base_data.size.y -= 6; //nudge
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
 			return make_element_by_type<flag_button>(state, id);

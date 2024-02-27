@@ -560,6 +560,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_2_adj)
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
+		CT_STRING_ENUM(fromcapital)
 	} else if(v.length() == 12) {
 		if(false) { }
 		CT_STRING_ENUM(construction)
@@ -590,6 +591,8 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(value_int_0_2)
 		CT_STRING_ENUM(value_int_0_3)
 		CT_STRING_ENUM(value_int_0_4)
+		CT_STRING_ENUM(fromcontinent)
+		CT_STRING_ENUM(fromstatename)
 	} else if(v.length() == 14) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name)
@@ -612,14 +615,36 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
+	} else if(v.length() == 17) {
+		if(false) { }
+		CT_STRING_ENUM(culture_last_name)
 	} else if(v.length() == 18) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name_adj)
 		CT_STRING_ENUM(head_of_government)
+		CT_STRING_ENUM(crisisattacker_adj)
+		CT_STRING_ENUM(crisisdefender_adj)
+		CT_STRING_ENUM(culture_first_name)
 	} else if(v.length() == 19) {
 		if(false) { }
 		CT_STRING_ENUM(culture_group_union)
 		CT_STRING_ENUM(numspecialfactories)
+		CT_STRING_ENUM(crisistaker_capital)
+	} else if(v.length() == 20) {
+		if(false) { }
+	} else if(v.length() == 21) {
+		if(false) { }
+		CT_STRING_ENUM(crisistaker_continent)
+	} else if(v.length() == 22) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_capital)
+		CT_STRING_ENUM(crisisdefender_capital)
+	} else if(v.length() == 23) {
+		if(false) { }
+	} else if(v.length() == 24) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_continent)
+		CT_STRING_ENUM(crisisdefender_continent)
 	} else if(is_fixed_token_ci(v, "invested_in_us_message")) {
 		return variable_type::invested_in_us_message;
 	}
@@ -686,17 +711,24 @@ std::string produce_simple_string(sys::state const& state, std::string_view txt)
 	}
 }
 
-dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
+dcon::text_sequence_id find_key(sys::state& state, std::string_view txt) {
 	auto it = state.key_to_text_sequence.find(lowercase_str(txt));
 	if(it != state.key_to_text_sequence.end()) {
 		return it->second;
-	} else {
+	}
+	return dcon::text_sequence_id{};
+}
+
+dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) {
+	auto key = text::find_key(state, txt);
+	if(!key) {
 		auto new_key = state.add_to_pool_lowercase(txt);
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
 		return create_text_entry(state, local_key_copy, txt, err);
 	}
+	return key;
 }
 
 
@@ -821,6 +853,22 @@ std::string prettify(int64_t num) {
 	}
 
 	return std::string("#inf");
+}
+
+std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+	auto fat_id = dcon::fatten(state.world, state_id);
+	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
+		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
+			if(!fat_id.get_definition().get_name()) {
+				return get_name_as_string(state, fat_id.get_capital());
+			} else {
+				return get_name_as_string(state, fat_id.get_definition());
+			}
+		}
+	}
+	if(!fat_id.get_definition().get_name())
+		return get_name_as_string(state, fat_id.get_capital());
+	return get_name_as_string(state, fat_id.get_definition());
 }
 
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
@@ -970,18 +1018,24 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 	mp.insert_or_assign(uint32_t(key), value);
 }
 
-std::string localize_month(sys::state const& state, uint16_t month) {
+dcon::text_sequence_id localize_month(sys::state const& state, uint16_t month) {
 	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may_month_name", "june", "july", "august",
-			"september", "october", "november", "december"};
+		"september", "october", "november", "december"};
+	auto it = state.key_to_text_sequence.find(lowercase_str("january"));
 	if(month == 0 || month > 12) {
-		return text::produce_simple_string(state, "january");
+		return it->second;
 	}
-	return text::produce_simple_string(state, month_names[month - 1]);
+	it = state.key_to_text_sequence.find(lowercase_str(month_names[month - 1]));
+	if(it != state.key_to_text_sequence.end()) {
+		return it->second;
+	} else {
+		return dcon::text_sequence_id{};
+	}
 }
 
 std::string date_to_string(sys::state const& state, sys::date date) {
 	sys::year_month_day ymd = date.to_ymd(state.start_date);
-	return localize_month(state, ymd.month) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	return text::produce_simple_string(state, localize_month(state, ymd.month)) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
 }
 
 text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {
@@ -1005,12 +1059,12 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 	if(dest.fixed_parameters.align == alignment::center) {
 		auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].x += gap;
+			dest.base_layout.contents.at(i).x += gap;
 		}
 	} else if(dest.fixed_parameters.align == alignment::right) {
 		auto gap = float(dest.fixed_parameters.right) - box.x_position;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents[i].x += gap;
+			dest.base_layout.contents.at(i).x += gap;
 		}
 	}
 
@@ -1025,6 +1079,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1034,6 +1089,7 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1043,6 +1099,7 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1076,7 +1133,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		auto next_wb = txt.find_first_of(" \r\n\t", end_position);
 		auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
 
-		if(txt.data()[end_position] == '\x97' && end_position + 2 < txt.length()) {
+		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
 			next_word = next_wb + 1;
 		}
@@ -1224,6 +1281,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto current_color = dest.fixed_parameters.color;
 	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;

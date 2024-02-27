@@ -114,7 +114,33 @@ constexpr inline dcon::commodity_id money(0);
 // to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
 // if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
 // 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
-constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+//constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
+constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
+
+inline constexpr float production_scale_delta = 0.001f;
+inline constexpr uint32_t price_history_length = 256;
+
+//
+inline constexpr float domestic_investment_multiplier = 2.0f;
+
+// rgo
+inline constexpr float rgo_overhire_multiplier = 10.f;
+inline constexpr float rgo_production_scale_neg_delta = 0.001f;
+
+// artisans
+inline constexpr float inputs_base_factor_artisans = 1.1f;
+inline constexpr float output_base_factor_artisans = 0.6f;
+// factories
+inline constexpr float inputs_base_factor = 1.0f;
+
+// farmers should be able to produce enough to feed themselves
+inline constexpr float rgo_boost = 1.0f;
+
+//demand modifiers
+inline constexpr float lx_extra_factor = 10.0f;
+inline constexpr float en_extra_factor = 10.0f;
+
+void presimulate(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
@@ -141,10 +167,23 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
 
+float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
+float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+
+std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
+float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n);
+
+
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
 void daily_update(sys::state& state);
 void resolve_constructions(sys::state& state);
+
+float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+float artisan_scale_limit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 float stockpile_commodity_daily_increase(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float global_market_commodity_daily_increase(sys::state& state, dcon::commodity_id c);
@@ -218,4 +257,5 @@ float interest_payment(sys::state& state, dcon::nation_id n);
 float max_loan(sys::state& state, dcon::nation_id n);
 
 commodity_production_type get_commodity_production_type(sys::state& state, dcon::commodity_id c);
+
 } // namespace economy

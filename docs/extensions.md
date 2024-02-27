@@ -119,3 +119,122 @@ These `else_if` statments are chained together, if the first runs, the second wi
  
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
+
+### New defines
+
+Alice adds a handful of new defines:
+
+- `factories_per_state`: Factories allowed per state, default 8
+- `alice_speed_1`: Speed 1 in miliseconds
+- `alice_speed_2`: Same as above but with speed 2
+- `alice_speed_3`: Same as above but with speed 3
+- `alice_speed_4`: Same as above but with speed 4
+- `alice_speed_5`: Same as above but with speed 5
+- `alice_ai_gather_radius`: Radius AI will use to gather nearby armies to make deathstacks
+- `alice_ai_threat_radius`: Radius AI will scan for threats
+- `alice_ai_threat_overestimate`: Overestimate AI opponents (higher values leads to camping)
+- `alice_ai_attack_target_radius`: Radius AI will perform attacks
+- `alice_full_reinforce`: 1 = Normal vanilla behaviour, 0 = Understaffed armies are allowed
+- `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive oppontent (makes AI less aggressive)
+
+### Dense CSV pop listing
+
+This is an extension that allows you to use CSV files instead of scripting pops manually, this allowing you to edit the pop files on a spreadsheet program, for example:
+
+```
+province-id;size;culture;religion;pop-type;rebel-faction(optional)
+825;100;albanian;orthodox;clergymen;jacobin
+825;150;albanian;orthodox;aristocrats;jacobin
+825;744;albanian;orthodox;capitalists;jacobin
+825;4019578;albanian;orthodox;farmers;jacobin
+...
+```
+
+This allows for higher volume of data, while keeping it readable, editable and most importantly: able to be edited on your favourite office spreadsheet program.
+
+Using this in your mod is simple, create a file ending with `.csv`, like, `Africa.csv`, Alice will load it *alongside* other files, even `.txt` files, if you want to mix them you absolutely can, just bear in mind that every file in the `history/pops/yyyy.mm.dd` is loaded, so be aware of that.
+
+### Dense CSV province history
+
+Sometimes having too many history text files for provinces can make handling files a pain, or mess up compression algorithms with having too many province files.
+
+Redundant data is the enemy of file size, and, while most province history files don't take much space, it is still good to load them:
+
+```
+province-id;owner;controller;core;trade_goods;life_rating;colonial;slave;
+142;RPL;RPL;RPL;coal;31;1;0;
+```
+
+Similar to POP CSV format. The CSV files will be loaded **first** in the history folder, this means you can mix both CSV and text files to make greater granularity. For example when multiple cores are involved.
+
+### Country templates
+
+This allows to remove a lot of copy-pasting for countries, and other common files.
+
+```
+template = "test.txt"
+```
+
+Where `test.txt` would be in `common/templates/test.txt`.
+
+### New event substitutions
+
+**Events-only:**
+
+- `$POP$`: Total population of `THIS`.
+- `$FROMCONTINENT$`: Continent of `FROM`.
+- `$FROMCAPITAL$`: Capital of `FROM`.
+- `$GOOD$`, `$RESOURCE$`: Good produced by province `THIS`.
+- `$NUMFACTORIES$`: Factories in state `THIS`.
+- `$FROMRULER$`: Equivalent to `$MONARCHTITLE$` but for `FROM`
+- `$FOCUS$`, `$NF$`: National focus of state `THIS`.
+- `$TEMPERATURE$`: Current temperature of crisis.
+- `$TERRAIN$`: Name of the terrain of province `THIS`.
+- `$FROMSTATENAME$`: State name of `FROM`.
+- `$FACTORY$`: Name of the factory of `THIS` province.
+- `$DATE$`: Date that the event fired on.
+- `$CONTROL$`: Nation that is currently controlling `THIS` province.
+- `$OWNER$`: Nation that has ownership over `THIS` province.
+
+**Decision and events:**
+
+- `$GOVERNMENT$`: Name of the government of `THIS`.
+- `$IDEOLOGY$`: Name of the ideology of the ruling party of `THIS`.
+- `$PARTY$`: Name of the party of `THIS`.
+- `$INFAMY$`, `$BADBOY$`: Current infamy.
+- `$SPHEREMASTER$`: Sphere master of `THIS`.
+- `$OVERLORD$`: Overlord of `THIS`.
+- `$NATIONALVALUE$`: Name of the national value of `THIS`.
+- `$CULTURE_FIRST_NAME$`: Randomly generated first-name, of primary culture of `THIS`.
+- `$CULTURE_LAST_NAME$`: Randomly generated last-name, of primary culture of `THIS`.
+- `$TECH$`: Currently researched tech.
+- `$NOW$`: Current date.
+- `$ANYPROVINCE$`: Any (random) province owned by this nation.
+
+Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`, `$CRISISATTACKER$`, `$CRISISDEFENDER$`, `$CRISISTARGET$`, `$CRISISTARGET_ADJ$` and `$CRISISAREA$` - additionally, they can use `$CULTURE$`, `$CULTURE_GROUP_UNION$`, `$UNION_ADJ$` and `$COUNTRYCULTURE$`, working in the same fashion as their event counterparts.
+
+**New crisis substitutions:**
+
+- `$CRISISTAKER_CAPITAL$`: Capital of liberation tag.
+- `$CRISISTAKER_CONTINENT$`: Continent of liberation tag, based from capital.
+- `$CRISISATTACKER_CAPITAL$`: Capital of attacker.
+- `$CRISISATTACKER_CONTINENT$`: Continent of attacker, based from capital.
+- `$CRISISDEFENDER_CAPITAL$`: Capital of defender.
+- `$CRISISDEFENDER_CONTINENT$`: Continent of attacker, based from capital.
+
+### New triggers
+
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
+
+### New effects
+
+- `increment_variable = ...`: Shorthand to increment by 1
+- `decrement_variable = ...`: Shorthand to decrement by 1
+- `set_variable_to_zero = ...`: Shorthand to set a variable to 0
+- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
+- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
+
+### Political party triggers
+
+Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.

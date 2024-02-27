@@ -366,4 +366,17 @@ void execute_c_instant_industry(sys::state& state, dcon::nation_id source) {
 	state.cheat_data.instant_industry = !state.cheat_data.instant_industry;
 }
 
+void c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_innovate;
+	p.source = source;
+	p.data.cheat_invention_data.invention = invention;
+	add_to_command_queue(state, p);
+}
+
+void execute_c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention) {
+	culture::apply_invention(state, source, invention);
+}
+
 }

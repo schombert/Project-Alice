@@ -1429,12 +1429,13 @@ struct unit_names_context {
 };
 
 struct party {
+	dcon::trigger_key trigger;
 	void ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
 	void name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context);
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
 	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, party_context& context);
 	void any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line, party_context& context);
-	void finish(party_context&) { }
+	void finish(party_context& context);
 };
 struct unit_names_list {
 	void free_value(std::string_view text, error_handler& err, int32_t line, unit_names_context& context);
@@ -1444,8 +1445,9 @@ struct unit_names_collection {
 	void finish(country_file_context&) { }
 };
 struct country_file {
-	void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
 	unit_names_collection unit_names;
+	void color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context);
+	void template_(association_type, std::string_view value, error_handler& err, int32_t line, country_file_context& context);
 	void any_group(std::string_view name, color_from_3i, error_handler& err, int32_t line, country_file_context& context);
 	void finish(country_file_context&) { }
 };
@@ -1534,6 +1536,9 @@ struct pop_province_list {
 struct pop_history_file {
 	void finish(scenario_building_context&) { }
 };
+
+void parse_csv_pop_history_file(sys::state& state, const char *start, const char *end, error_handler& err, scenario_building_context& context);
+void parse_csv_province_history_file(sys::state& state, const char* start, const char* end, error_handler& err, scenario_building_context& context);
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
@@ -1719,6 +1724,7 @@ struct crime_modifier : public modifier_base {
 	dcon::trigger_key trigger;
 };
 
+dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, party_context& context);
 dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context);
 void read_pending_crime(dcon::crime_id id, token_generator& gen, error_handler& err, scenario_building_context& context);
 
@@ -2093,6 +2099,16 @@ struct s_on_crisis_declare_interest {
 	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
 			scenario_building_context& context);
 };
+struct s_on_election_started {
+	void finish(scenario_building_context&) { }
+	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
+			scenario_building_context& context);
+};
+struct s_on_election_finished {
+	void finish(scenario_building_context&) { }
+	void any_value(std::string_view chance, association_type, int32_t event, error_handler& err, int32_t line,
+			scenario_building_context& context);
+};
 
 struct s_on_my_factories_nationalized {
 	void finish(scenario_building_context&) { }
@@ -2118,6 +2134,8 @@ struct on_action_file {
 	s_on_civilize on_civilize;
 	s_on_my_factories_nationalized on_my_factories_nationalized;
 	s_on_crisis_declare_interest on_crisis_declare_interest;
+	s_on_election_started on_election_started;
+	s_on_election_finished on_election_finished;
 };
 
 struct rebel_context {

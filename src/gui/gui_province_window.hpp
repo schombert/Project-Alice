@@ -12,6 +12,7 @@
 #include "text.hpp"
 #include "gui_production_window.hpp"
 #include "province_templates.hpp"
+#include "nations_templates.hpp"
 
 namespace ui {
 
@@ -232,7 +233,6 @@ public:
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
-
 		return bool(state.world.state_instance_get_owner_focus(content).id)
 							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
 							 : 0;
@@ -246,7 +246,6 @@ public:
 		}
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			disabled = false;
-
 		frame = get_icon_frame(state);
 	}
 
@@ -260,13 +259,38 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto content = retrieve<dcon::state_instance_id>(state, parent);
-		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation) {
-			text::add_line(state, contents, state.world.national_focus_get_name(state.national_definitions.flashpoint_focus));
-		} else {
-			dcon::national_focus_fat_id focus = state.world.state_instance_get_owner_focus(content);
-			text::add_line(state, contents, focus.get_name());
+		auto box = text::open_layout_box(contents, 0);
+
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto fat_si = dcon::fatten(state.world, sid);
+		text::add_to_layout_box(state, contents, box, sid);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto content = state.world.state_instance_get_owner_focus(sid);
+		if(bool(content)) {
+			auto fat_nf = dcon::fatten(state.world, content);
+			text::add_to_layout_box(state, contents, box, state.world.national_focus_get_name(content), text::substitution_map{});
+			text::add_line_break_to_layout_box(state, contents, box);
+			auto color = text::text_color::white;
+			if(fat_nf.get_promotion_type()) {
+				//Is the NF not optimal? Recolor it
+				if(fat_nf.get_promotion_type() == state.culture_definitions.clergy) {
+					if((fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total)) > state.defines.max_clergy_for_literacy) {
+						color = text::text_color::red;
+					}
+				} else if(fat_nf.get_promotion_type() == state.culture_definitions.bureaucrat) {
+					if(province::state_admin_efficiency(state, fat_si.id) > state.defines.max_bureaucracy_percentage) {
+						color = text::text_color::red;
+					}
+				}
+				auto full_str = text::format_percentage(fat_si.get_demographics(demographics::to_key(state, fat_nf.get_promotion_type())) / fat_si.get_demographics(demographics::total));
+				text::add_to_layout_box(state, contents, box, std::string_view(full_str), color);
+			}
 		}
+		text::close_layout_box(contents, box);
+		if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
+			modifier_description(state, contents, mid, 15);
+		}
+		text::add_line(state, contents, "alice_nf_controls");
 	}
 };
 
@@ -339,6 +363,40 @@ public:
 	}
 };
 
+class province_move_capital_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_move_capital(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::move_capital(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		text::add_line(state, contents, "alice_mvcap_1");
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis != sys::crisis_type::none));
+		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_4", !(state.world.nation_get_capital(source) == p));
+		text::add_line_with_condition(state, contents, "alice_mvcap_5", !(state.world.province_get_is_colonial(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_6", !(state.world.province_get_continent(state.world.nation_get_capital(source)) != state.world.province_get_continent(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_7", !(nations::nation_accepts_culture(state, source, state.world.province_get_dominant_culture(p)) == false));
+		text::add_line_with_condition(state, contents, "alice_mvcap_8", !(state.world.province_get_siege_progress(p) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_9", !(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_10", !(state.world.province_get_nation_from_province_ownership(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_11", !(state.world.province_get_nation_from_province_control(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_12", !(state.world.province_get_is_owner_core(p) == false));
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -378,6 +436,9 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
+			auto btn = make_element_by_type<province_move_capital_button>(state, id);
+			btn->base_data.position.x -= btn->base_data.size.x;
+			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
 			return ptr;
@@ -513,9 +574,9 @@ public:
 			} else if constexpr(Value == economy::province_building_type::university) {
 				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
 			}
-
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(Value)].province_modifier);
 		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
@@ -1026,6 +1087,9 @@ public:
 			return make_element_by_type<province_core_flags>(state, id);
 		} else if(name == "supply_limit") {
 			return make_element_by_type<province_supply_limit_text>(state, id);
+		} else if (name == "selected_military_icon") {
+			auto ptr = make_element_by_type<military_score_icon>(state, id);
+			return ptr;
 		} else if(name == "rally_land_icon"
 			|| name == "rallypoint_merge_icon"
 			|| name == "rally_naval_icon"
@@ -1104,10 +1168,29 @@ public:
 		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
+		float const min_wage_factor = economy::pop_min_wage_factor(state, owner);
+		float farmer_min_wage = economy::pop_farmer_min_wage(state, owner, min_wage_factor);
+		float laborer_min_wage = economy::pop_laborer_min_wage(state, owner, min_wage_factor);
+		float expected_min_wage = is_mine ? laborer_min_wage : farmer_min_wage;
+
+		auto [non_slaves, slaves, total_relevant] = economy::rgo_relevant_population(state, prov_id, owner);
+		//float expected_profit = economy::rgo_expected_profit(state, prov_id, owner, total_relevant);
+		//float desired_profit = economy::rgo_desired_profit(state, prov_id, owner, expected_min_wage, total_relevant);
+
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
+		
+
+		//text::add_to_layout_box(state, contents, box, std::string_view{ " / desired profit: " });
+		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(desired_profit * 100.f)));
+		//text::add_to_layout_box(state, contents, box, std::string_view{ " / expected profit: " });
+		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_profit * 100.f)));
+		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
+
 		text::close_layout_box(contents, box);
 	}
 };
