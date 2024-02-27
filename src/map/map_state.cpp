@@ -11,6 +11,8 @@
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
 
+#include <set>
+
 namespace map {
 
 dcon::province_id map_state::get_selected_province() {
@@ -157,11 +159,12 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 	std::vector<bool> visited(65536, false);
 	std::vector<uint16_t> group_of_regions;
 
-	int samples_N = 250;
+	std::unordered_map<uint16_t, std::set<uint16_t>> regions_graph;
 
-	
+	int samples_N = 100;
+
+	// generate additional points
 	std::vector<uint16_t> samples_regions;
-
 	for(int i = 0; i < samples_N; i++)
 		for(int j = 0; j < samples_N; j++) {
 			float x = float(i) / float(samples_N) * float(map_data.size_x);
@@ -177,6 +180,36 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 
+	// generate graph of regions:
+	for(auto candidate : state.world.in_province) {
+		auto rid = candidate.get_connected_region_id();
+
+		auto nation = get_top_overlord(state, state.world.province_get_nation_from_province_ownership(candidate));
+
+		for(auto adj : candidate.get_province_adjacency()) {
+			auto indx = adj.get_connected_provinces(0) != candidate.id ? 0 : 1;
+			auto neighbor = adj.get_connected_provinces(indx);
+
+			// if sea, try to jump to the next province
+			if(neighbor.id.index() >= state.province_definitions.first_sea_province.index()) {
+				for(auto adj_of_neighbor : neighbor.get_province_adjacency()) {
+					auto indx2 = adj_of_neighbor.get_connected_provinces(0) != neighbor.id ? 0 : 1;
+					auto neighbor_of_neighbor = adj_of_neighbor.get_connected_provinces(indx2);
+
+					if(neighbor_of_neighbor.id.index() < state.province_definitions.first_sea_province.index()) {
+						auto nation_2 = get_top_overlord(state, state.world.province_get_nation_from_province_ownership(neighbor_of_neighbor));
+						if(nation == nation_2)
+							regions_graph[rid].insert(neighbor_of_neighbor.get_connected_region_id());
+					}
+				}
+			} else {
+				auto nation_2 = get_top_overlord(state, state.world.province_get_nation_from_province_ownership(neighbor));
+				if(nation == nation_2)
+					regions_graph[rid].insert(neighbor.get_connected_region_id());
+			}
+		}
+	}
+
 	for(auto p : state.world.in_province) {
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
@@ -189,49 +222,21 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				
 		n = get_top_overlord(state, n.id);
 
+		// flood fill regions
 		group_of_regions.clear();
 		group_of_regions.push_back(rid);
+		int first_index = 0;
+		int vacant_index = 1;
+		while(first_index < vacant_index) {
+			auto current_region = group_of_regions[first_index];
+			visited[current_region] = true;
+			first_index++;
 
-		// flood fill for several iterations:
-		
-		for(int i = 0; i < 5; i++) {
-			for(auto candidate : state.world.in_province) {
-				if(visited[uint16_t(candidate.get_connected_region_id())])
-					continue;
-
-				auto n2 = state.world.province_get_nation_from_province_ownership(candidate);
-				if(!n2)
-					continue;
-				n2 = get_top_overlord(state, n2);
-				if(n2 != n)
-					continue;
-
-				for(auto adj : candidate.get_province_adjacency()) {
-					auto indx = adj.get_connected_provinces(0) != candidate.id ? 0 : 1;
-					auto neighbor = adj.get_connected_provinces(indx);
-					for(auto visited_region : group_of_regions) {
-						if(neighbor.get_connected_region_id() == visited_region) {
-							group_of_regions.push_back(candidate.get_connected_region_id());
-							visited[uint16_t(candidate.get_connected_region_id())] = true;
-							goto next_candidate;
-						}
-
-						if(neighbor.id.index() >= state.province_definitions.first_sea_province.index()) {
-							for(auto adj2 : neighbor.get_province_adjacency()) {
-								auto indx2 = adj2.get_connected_provinces(0) != neighbor.id ? 0 : 1;
-								auto neighbor2 = adj2.get_connected_provinces(indx2);
-
-								if(neighbor2.get_connected_region_id() == visited_region) {
-									group_of_regions.push_back(candidate.get_connected_region_id());
-									visited[uint16_t(candidate.get_connected_region_id())] = true;
-									goto next_candidate;
-								}
-							}
-						}
-					}
+			for(auto neighbour_region : regions_graph[current_region]) {
+				if(!visited[neighbour_region]) {
+					group_of_regions.push_back(neighbour_region);
+					vacant_index++;
 				}
-
-				next_candidate: continue;
 			}
 		}
 
@@ -319,67 +324,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float sigma_1 = radius_1 * 0.9f;
 		float sigma_2 = radius_2 * 0.9f;
 
-		//lets fit it with a very basic gradient descent
-		float learning_rate_value = 1.f;
-		float learning_rate_center = 0.001f;
-		float decay = 0.99999f;
-		float epoch_decay = 0.9f;
-
-		for(int epoch = 0; epoch < 0; epoch++) {
-			float derivative_sigma_1 = 0.f;
-			float derivative_sigma_2 = 0.f;
-			glm::vec2 derivative_center = { 0.f, 0.f };
-
-			for(glm::length_t r = 0; r < glm::length_t(points.size()); r++) {
-				glm::vec2 w = points[r] - center;
-
-				float form_value = w.x * w.x / sigma_1 / sigma_1 + w.y * w.y / sigma_2 / sigma_2;
-				float exp_form = exp(-form_value);
-				float inversed_variance = 1.f / sigma_1 / sigma_2;
-
-				float derivative_eigenvalue_1 =
-					(0.03f * w.x * w.x / sigma_1 / sigma_1 / sigma_1 - 1 / sigma_1 / sigma_1 / sigma_2) * exp_form;
-				float derivative_eigenvalue_2 =
-					(0.03f * w.y * w.y / sigma_2 / sigma_2 / sigma_2 - 1 / sigma_2 / sigma_2 / sigma_1) * exp_form;
-
-				float derivative_center_x =
-					sigma_1 / sigma_2 * exp_form * 2 * w.x;
-				float derivative_center_y =
-					sigma_2 / sigma_1 * exp_form * 2 * w.y;
-
-				derivative_sigma_1 += derivative_eigenvalue_1 * learning_rate_value;
-				derivative_sigma_2 += derivative_eigenvalue_2 * learning_rate_value;
-				derivative_center.x += derivative_center_x * learning_rate_center;
-				derivative_center.y += derivative_center_y * learning_rate_center;
-			}
-
-			for(glm::length_t r = 0; r < glm::length_t(bad_points.size()); r++) {
-				glm::vec2 w = bad_points[r] - center;
-
-				float form_value = w.x * w.x / sigma_1 / sigma_1 + w.y * w.y / sigma_2 / sigma_2;
-				float exp_form = exp(-form_value);
-				float inversed_variance = 1.f / sigma_1 / sigma_2;
-
-				float derivative_eigenvalue_1 =
-					(0.03f * w.x * w.x / sigma_1 / sigma_1 / sigma_1 - 1 / sigma_1 / sigma_1 / sigma_2) * exp_form;
-				float derivative_eigenvalue_2 =
-					(0.03f * w.y * w.y / sigma_2 / sigma_2 / sigma_2 - 1 / sigma_2 / sigma_2 / sigma_1) * exp_form;
-
-				float derivative_center_x =
-					sigma_1 / sigma_2 * exp_form * 2 * w.x;
-				float derivative_center_y =
-					sigma_2 / sigma_1 * exp_form * 2 * w.y;
-
-				derivative_sigma_1 -= derivative_eigenvalue_1 * learning_rate_value * 100.f;
-				derivative_sigma_2 -= derivative_eigenvalue_2 * learning_rate_value * 100.f;
-				derivative_center.x -= derivative_center_x * learning_rate_center * 2.f;
-				derivative_center.y -= derivative_center_y * learning_rate_center * 2.f;
-			}
-
-			sigma_1 += derivative_sigma_1;
-			sigma_2 += derivative_sigma_2;
-			center += derivative_center;
-		}
 
 		//now we turn the ellipse into a box
 
@@ -391,10 +335,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float r_1 = sigma_1;
 		float r_2 = sigma_2;
 
-		key_points.push_back(center - eigenvector_1 * r_1 * 0.8f);
-		key_points.push_back(center + eigenvector_1 * r_1 * 0.8f);
-		key_points.push_back(center - eigenvector_2 * r_2 * 0.8f);
-		key_points.push_back(center + eigenvector_2 * r_2 * 0.8f);
+		key_points.push_back(center - eigenvector_1 * r_1 * 0.95f);
+		key_points.push_back(center + eigenvector_1 * r_1 * 0.95f);
+		key_points.push_back(center - eigenvector_2 * r_2 * 0.95f);
+		key_points.push_back(center + eigenvector_2 * r_2 * 0.95f);
 
 		std::array<glm::vec2, 5> key_provs{
 			center, //capital
@@ -408,39 +352,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			//if (glm::length(key_point - center) < 100.f * glm::length(eigenvector_1)) 
 			update_bbox(key_provs, key_point);
 		}
-
-		/*
-
-		//expand the box slightly
-		for(auto visited_region : group_of_regions) {
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == visited_region) {
-					for(auto adj : p2.get_province_adjacency()) {
-						auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
-						auto prov = adj.get_connected_provinces(indx);
-
-						// check if it's a sea province and expand the box 
-						// if(prov.id.index() >= state.province_definitions.first_sea_province.index())
-						// actually just expand it anyway
-						{
-							if(prov.get_mid_point().x <= key_provs[1].x) {
-								key_provs[1] = key_provs[1] * 0.99f + prov.get_mid_point() * 0.01f;
-							}
-							if(prov.get_mid_point().y <= key_provs[2].y) {
-								key_provs[2] = key_provs[2] * 0.99f + prov.get_mid_point() * 0.01f;
-							}
-							if(prov.get_mid_point().x >= key_provs[3].x) {
-								key_provs[3] = key_provs[3] * 0.99f + prov.get_mid_point() * 0.01f;
-							}
-							if(prov.get_mid_point().y >= key_provs[4].y) {
-								key_provs[4] = key_provs[4] * 0.99f + prov.get_mid_point() * 0.01f;
-							}
-						}
-					}
-				}
-			}
-		}
-		*/
 
 
 		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
@@ -465,56 +376,20 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<std::array<float, 4>> in_x;
 		std::vector<std::array<float, 4>> in_y;
 
-		//for(auto visited_region : group_of_regions) {
-			//for(auto p2 : state.world.in_province) {
-			for (auto point : points) {
-				if(/*p2.get_connected_region_id() == visited_region*/true) {
-					//auto e = p2.get_mid_point();
-					auto e = point;
-					w.push_back(1 / glm::length(e - center));
+		for (auto point : points) {
+			auto e = point;
+			w.push_back(1);
 
-					//if(!is_inside_bbox(key_provs, e))
-					//	continue;
-
-					e -= basis;
-					e /= ratio;
-					out_y.push_back(e.y);
-					out_x.push_back(e.x);
-					//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
+			e -= basis;
+			e /= ratio;
+			out_y.push_back(e.y);
+			out_x.push_back(e.x);
+			//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
 					
-					in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
-					in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
-					total++;
-
-					/*
-					for(auto adj : p2.get_province_adjacency()) {
-						auto indx = adj.get_connected_provinces(0) != p2.id ? 0 : 1;
-						auto prov = adj.get_connected_provinces(indx);
-
-						// check if it's a sea province and add it to the list with lower weight
-						if(prov.id.index() > state.province_definitions.first_sea_province.index())
-							continue;
-
-						auto e2 = prov.get_mid_point();
-						e2 -= basis;
-						e2 /= ratio;
-
-						auto new_point = e2 * 0.3333f + e * 0.6667f;
-
-						out_y.push_back(e2.y);
-						out_x.push_back(e2.x);
-						w.push_back(0.01f * float(map_data.province_area[province::to_map_id(prov)]));
-						in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.x, l_1* e2.x* e2.x, l_3* e2.x* e2.x* e2.x});
-						in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e2.y, l_1* e2.y* e2.y, l_3* e2.y* e2.y* e2.y});
-					}
-					*/
-				}
-			}
-		//}
-
-
-
-
+			in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
+			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
+			total++;
+		}
 
 		// Adjective + " " + Continent
 		std::string name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
