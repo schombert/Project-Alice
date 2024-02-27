@@ -53,10 +53,15 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 	{
 		// first, load in special mod gui
 		// TODO put this in a better location
-		auto alice_gui = open_file(rt, NATIVE("assets/alice.gui"));
-		if(alice_gui) {
+		if(auto alice_gui = open_file(rt, NATIVE("assets/alice.gui")); alice_gui) {
 			auto content = view_contents(*alice_gui);
 			err.file_name = "assets/alice.gui";
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gui_files(gen, err, context);
+		}
+		if(auto alice_mm_gui = open_file(rt, NATIVE("assets/alice_menubar.gui")); alice_mm_gui) {
+			auto content = view_contents(*alice_mm_gui);
+			err.file_name = "assets/alice_menubar.gui";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_gui_files(gen, err, context);
 		}
