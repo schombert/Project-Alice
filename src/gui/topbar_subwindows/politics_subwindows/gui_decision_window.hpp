@@ -128,7 +128,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::culture_group_union, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_nation_from_identity_holder());
 	text::add_to_substitution_map(m, text::variable_type::union_adj, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 	text::add_to_substitution_map(m, text::variable_type::countryculture, state.world.culture_get_name(pc));
-	auto names_pair = rng::get_random_pair(state, uint32_t(n.index()) << 6, uint32_t(state.current_date.to_ymd(state.start_date).year));
+	auto names_pair = rng::get_random_pair(state, uint32_t(n.index()) << 6, uint32_t(pc.id.index()));
 	auto first_names = state.world.culture_get_first_names(state.world.nation_get_primary_culture(n));
 	if(first_names.size() > 0) {
 		auto first_name = first_names.at(rng::reduce(uint32_t(names_pair.high), first_names.size()));
