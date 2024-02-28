@@ -295,8 +295,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(from_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::focus, state.world.state_instance_get_owner_focus(target_state).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::nf, state.world.state_instance_get_owner_focus(target_state).get_name());
-	uint32_t seed_base = (uint32_t(target_nation.index()) << 6) ^ uint32_t(event_date.value);
-	auto names_pair = rng::get_random_pair(state, seed_base + 1);
+	auto names_pair = rng::get_random_pair(state, uint32_t(target_nation.index()) << 6, uint32_t(event_date.value));
 	auto first_names = state.world.culture_get_first_names(state.world.nation_get_primary_culture(target_nation));
 	if(first_names.size() > 0) {
 		auto first_name = first_names.at(rng::reduce(uint32_t(names_pair.high), first_names.size()));
