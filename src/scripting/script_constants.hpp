@@ -446,9 +446,15 @@ constexpr inline uint16_t add_truce_this_pop = 0x01A0;
 constexpr inline uint16_t add_truce_from_nation = 0x01A1;
 constexpr inline uint16_t add_truce_from_province = 0x01A2;
 constexpr inline uint16_t call_allies = 0x01A3;
+constexpr inline uint16_t ruling_party_this = 0x01A4;
+constexpr inline uint16_t ruling_party_from = 0x01A5;
+constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
+constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
+constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
+constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01A4;
+constexpr inline uint16_t first_scope_code = 0x01AA;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -939,6 +945,12 @@ inline constexpr int8_t data_sizes[] = {
 		1, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
 		1, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
 		0, //constexpr inline uint16_t call_allies = 0x01A3;
+		0, //constexpr inline uint16_t ruling_party_this = 0x01A4;
+		0, //constexpr inline uint16_t ruling_party_from = 0x01A5;
+		0, //constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
+		0, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
+		0, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
+		0, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {

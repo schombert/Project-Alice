@@ -1,0 +1,410 @@
+	windowType = {
+		name = "alice_menubar"
+		backGround = ""
+		position = { 0 0 }	
+		size = { 100 100 }
+		moveable = 0
+		horizontalBorder = ""
+		verticalBorder = ""
+		fullScreen = yes
+		windowType = {
+			name = "messagelog_window"
+			backGround = ""
+			position = { -874 -156 }	
+			size = { 720 100 }	
+			moveable = 0
+			horizontalBorder = ""
+			verticalBorder = ""
+			fullScreen = no
+			Orientation = "LOWER_RIGHT"
+			iconType = {
+				name = "log_bg"
+				spriteType = "GFX_log_bg"
+				position = { 0 -3 }
+				Orientation = "UPPER_LEFT"
+			}
+			listboxType = {
+				name = "messagelog"
+				position = { 0 11 }
+				backGround = ""
+				size = { 422 115}
+				#Orientation = "LOWER_RIGHT"
+				Orientation = "UPPER_LEFT"
+				spacing = 1
+				scrollbartype = "standardlistbox_slider"
+				borderSize = { 0 0}
+			}
+			guiButtonType = {
+				name = "closebutton"
+				position = { -293 27 }
+				quadTextureSprite = "GFX_closelog_button"
+				tooltip = ""
+				tooltipText = ""
+				buttonText = "  "
+				buttonFont = "Main_14_black"
+				Orientation = "LOWER_RIGHT"
+				shortcut = "<"
+			}
+			checkboxType = {
+				name = "messagecat_combat"
+				position = { -705 25 }
+				quadTextureSprite = "GFX_messagecat_combat"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_diplomacy"
+				position = { -665 25 }
+				quadTextureSprite = "GFX_messagecat_diplo"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_units"
+				position = { -625 25 }
+				quadTextureSprite = "GFX_messagecat_units"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_provinces"
+				position = { -585 25 }
+				quadTextureSprite = "GFX_messagecat_provinces"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_events"
+				position = { -545 25 }
+				quadTextureSprite = "GFX_messagecat_events"
+				Orientation = "LOWER_RIGHT"
+			}
+			checkboxType = {
+				name = "messagecat_others"
+				position = { -505 25 }
+				quadTextureSprite = "GFX_messagecat_other"
+				Orientation = "LOWER_RIGHT"
+			}
+		}
+		guiButtonType = {
+			name = "openbutton"
+			position = { -447 -29 }
+			quadTextureSprite = "GFX_openlog_button"
+			tooltip = ""
+			tooltipText = ""
+			buttonText = " "
+			buttonFont = "Main_14_black"
+			shortcut = "<"
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "minimap_bg"
+			spriteType = "GFX_minimap_bg"
+			position = { -374 -172 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "minimap_bg-patch"
+			spriteType = "GFX_new_minimap_bg"
+			position = { -374 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		iconType = {
+			name = "menubar_bg"
+			spriteType = "GFX_menubar_bg"
+			position = { -64 -200 }
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "menu_button"
+			position = { -49 -155 }
+			quadTextureSprite = "GFX_menu_button"
+			Orientation = "LOWER_RIGHT"
+			clicksound = click
+		}
+		guiButtonType = {
+			name = "ledger_button"
+			position = { -49 -125 }
+			quadTextureSprite = "GFX_ledger_button"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "l"
+		}
+		guiButtonType = {
+			name = "button_goto"
+			position = { -49 -90 }
+			quadTextureSprite ="GFX_button_goto"
+			tooltip = ""
+			tooltipText = ""
+			delayedTooltipText = ""
+			buttonText = ""
+			buttonFont = "Main_14_black"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "map_zoom_in"
+			position = { -45 -35 }
+			quadTextureSprite ="GFX_map_zoom_in"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "map_zoom_out"
+			position = { -24 -35 }
+			quadTextureSprite = "GFX_map_zoom_out"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_1"
+			tooltipText = "mapmode_1"
+			position = { -348 -157 }
+			size = { 26 21 }
+			quadTextureSprite ="GFX_mapmode_terrain.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "q"
+		}
+		guiButtonType = {
+			name = "mapmode_11"
+			tooltipText = "mapmode_11"
+			position = { -348 -136 }
+			quadTextureSprite ="GFX_mapmode_rgooutput.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "a"
+		}
+		guiButtonType = {
+			name = "mapmode_12"
+			tooltipText = "mapmode_12"
+			position = { -322 -136 }
+			quadTextureSprite ="GFX_mapmode_popdensity.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "s"
+		}
+		guiButtonType = {
+			name = "mapmode_2"
+			tooltipText = "mapmode_2"
+			position = { -322 -157 }
+			quadTextureSprite ="GFX_mapmode_political.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "w"
+		}
+		guiButtonType = {
+			name = "mapmode_13"
+			tooltipText = "mapmode_13"
+			position = { -296 -136 }
+			quadTextureSprite = "GFX_mapmode_nationality.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "d"
+		}
+		guiButtonType = {
+			name = "mapmode_6"
+			tooltipText = "mapmode_6"
+			position = { -296 -157 }
+			quadTextureSprite = "GFX_mapmode_infra.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "e"
+		}
+		guiButtonType = {
+			name = "mapmode_14"
+			tooltipText = "mapmode_14"
+			position = { -270 -136 }
+			quadTextureSprite = "GFX_mapmode_soi.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "f"
+		}
+		guiButtonType = {
+			name = "mapmode_4"
+			tooltipText = "mapmode_4"
+			position = { -270 -157 }
+			quadTextureSprite = "GFX_mapmode_diplomatic.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "r"
+		}
+		guiButtonType = {
+			name = "mapmode_15"
+			tooltipText = "mapmode_15"
+			position = { -244 -136 }
+			quadTextureSprite = "GFX_mapmode_supplylimit.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "g"
+		}
+		guiButtonType = {
+			name = "mapmode_5"
+			tooltipText = "mapmode_5"
+			position = { -244 -157 }
+			quadTextureSprite = "GFX_mapmode_region.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "t"
+		}
+		guiButtonType = {
+			name = "mapmode_3"
+			tooltipText = "mapmode_3"
+			position = { -218 -157 }
+			quadTextureSprite = "GFX_mapmode_revolt.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "y"
+		}
+		guiButtonType = {
+			name = "mapmode_16"
+			tooltipText = "mapmode_16"
+			position = { -218 -136 }
+			quadTextureSprite ="GFX_mapmode_partyloyalty.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "h"
+		}
+		guiButtonType = {
+			name = "mapmode_8"
+			tooltipText = "mapmode_8"
+			position = { -192 -157 }
+			quadTextureSprite ="GFX_mapmode_admin.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "u"
+		}
+		guiButtonType = {
+			name = "mapmode_17"
+			tooltipText = "mapmode_17"
+			position = { -192 -136 }
+			quadTextureSprite = "GFX_mapmode_rank.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "j"
+		}
+		guiButtonType = {
+			name = "mapmode_7"
+			tooltipText = "mapmode_7"
+			position = { -166 -157 }
+			quadTextureSprite = "GFX_mapmode_colonial.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "i"
+		}
+		guiButtonType = {
+			name = "mapmode_18"
+			tooltipText = "mapmode_18"
+			position = { -166 -136 }
+			quadTextureSprite = "GFX_mapmode_migration.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "k"
+		}
+		guiButtonType = {
+			name = "mapmode_9"
+			tooltipText = "mapmode_9"
+			position = { -140 -157 }
+			quadTextureSprite = "GFX_mapmode_recruit.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "o"
+		}
+		guiButtonType = {
+			name = "mapmode_19"
+			tooltipText = "mapmode_19"
+			position = { -140 -136 }
+			quadTextureSprite = "GFX_mapmode_civ_level.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "l"
+		}
+		guiButtonType = {
+			name = "mapmode_10"
+			tooltipText = "mapmode_10"
+			position = { -114 -157 }
+			quadTextureSprite = "GFX_mapmode_natfocus.n"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "p"
+		}
+		guiButtonType = {
+			name = "mapmode_20"
+			tooltipText = "mapmode_20"
+			position = { -114 -136 }
+			quadTextureSprite = "GFX_mapmode_relation.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_21"
+			tooltipText = "mapmode_21"
+			position = { -88 -136 }
+			quadTextureSprite = "GFX_mapmode_crises.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_22"
+			tooltipText = "mapmode_22"
+			position = { -88 -157 }
+			quadTextureSprite = "GFX_mapmode_naval.n"
+			Orientation = "LOWER_RIGHT"
+		}
+		# New Alice mapmodes!
+		guiButtonType = {
+			name = "mapmode_23"
+			tooltipText = "mapmode_23"
+			position = { -348 -178 }
+			quadTextureSprite = "GFX_mapmode_religion"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_24"
+			tooltipText = "mapmode_24"
+			position = { -322 -178 }
+			quadTextureSprite = "GFX_mapmode_fort"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_25"
+			tooltipText = "mapmode_25"
+			position = { -296 -178 }
+			quadTextureSprite = "GFX_mapmode_ideology"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_26"
+			tooltipText = "mapmode_26"
+			position = { -270 -178 }
+			quadTextureSprite = "GFX_mapmode_income"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_27"
+			tooltipText = "mapmode_27"
+			position = { -244 -178 }
+			quadTextureSprite = "GFX_mapmode_con"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_28"
+			tooltipText = "mapmode_28"
+			position = { -218 -178 }
+			quadTextureSprite = "GFX_mapmode_militancy"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_29"
+			tooltipText = "mapmode_29"
+			position = { -192 -178 }
+			quadTextureSprite = "GFX_mapmode_literacy"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_30"
+			tooltipText = "mapmode_30"
+			position = { -166 -178 }
+			quadTextureSprite = "GFX_mapmode_employment"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_31"
+			tooltipText = "mapmode_31"
+			position = { -140 -178 }
+			quadTextureSprite = "GFX_mapmode_factories"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_32"
+			tooltipText = "mapmode_32"
+			position = { -114 -178 }
+			quadTextureSprite = "GFX_mapmode_issues"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "mapmode_33"
+			tooltipText = "mapmode_33"
+			position = { -88 -178 }
+			quadTextureSprite = "GFX_mapmode_growth"
+			Orientation = "LOWER_RIGHT"
+		}
+	}
+	iconType = {
+		name = "minimap_pic"
+		spriteType = "GFX_minimap"
+		position = { -328 -110 }
+		Orientation = "LOWER_RIGHT"
+	}
+}

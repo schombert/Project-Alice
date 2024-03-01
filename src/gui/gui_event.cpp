@@ -130,6 +130,8 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	dcon::state_instance_id target_state{};
 	dcon::state_instance_id from_state{};
 	dcon::province_id target_capital{};
+	dcon::province_id from_capital{};
+	int32_t target_pop = 0;
 
 	event::slot_type ft = event::slot_type::none;
 	int32_t from_slot = -1;
@@ -141,6 +143,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	if(std::holds_alternative<event::pending_human_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_n_event>(phe);
 		target_nation = e.n;
+		target_pop = int32_t(state.world.nation_get_demographics(target_nation, demographics::total));
 		target_capital = state.world.nation_get_capital(target_nation);
 		target_province = target_capital;
 		if(e.pt != event::slot_type::state)
@@ -156,6 +159,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(phe)) {
 		auto const& e = std::get<event::pending_human_f_n_event>(phe);
 		target_nation = e.n;
+		target_pop = int32_t(state.world.nation_get_demographics(target_nation, demographics::total));
 		target_capital = state.world.nation_get_capital(target_nation);
 		target_province = target_capital;
 		target_state = state.world.province_get_state_membership(target_province);
@@ -167,6 +171,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
 		target_province = e.p;
+		target_pop = int32_t(state.world.province_get_demographics(target_province, demographics::total));
 
 		from_slot = e.from_slot;
 		ft = e.ft;
@@ -177,12 +182,14 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		target_state = state.world.province_get_state_membership(e.p);
 		target_capital = state.world.state_instance_get_capital(target_state);
 		target_province = e.p;
+		target_pop = int32_t(state.world.province_get_demographics(target_province, demographics::total));
 		event_date = e.date;
 	}
 
 	switch(ft) {
 	case event::slot_type::nation:
 		from_nation = trigger::to_nation(from_slot);
+		from_capital = state.world.nation_get_capital(from_nation);
 		switch(pt) {
 		case event::slot_type::state:
 			from_state = trigger::to_state(primary_slot);
@@ -201,6 +208,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	case event::slot_type::state:
 		from_state = trigger::to_state(from_slot);
 		from_nation = state.world.state_instance_get_nation_from_state_ownership(from_state);
+		from_capital = state.world.state_instance_get_capital(from_state);
 		switch(pt) {
 		case event::slot_type::province:
 			from_province = trigger::to_prov(primary_slot);
@@ -212,6 +220,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 		break;
 	case event::slot_type::province:
 		from_province = trigger::to_prov(from_slot);
+		from_capital = from_province;
 		from_state = state.world.province_get_state_membership(from_province);
 		from_nation = state.world.province_get_nation_from_province_ownership(from_province);
 		break;
@@ -230,18 +239,15 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::countryname, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
-	text::add_to_substitution_map(sub, text::variable_type::cb_target_name,
-			state.world.nation_get_constructing_cb_target(target_nation));
-	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj,
-			state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
+	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(target_nation)));
 	// TODO: Is this correct? I remember in vanilla it could vary
-	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
-	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, state.world.culture_get_name(state.world.nation_get_primary_culture(target_nation)));
 	auto pc = state.world.nation_get_primary_culture(target_nation);
-	auto pcg_adj = pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective();
-	text::add_to_substitution_map(sub, text::variable_type::union_adj, pcg_adj);
+	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(pc));
+	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_nation_from_identity_holder());
+	text::add_to_substitution_map(sub, text::variable_type::union_adj, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 	text::add_to_substitution_map(sub, text::variable_type::countryculture, state.world.culture_get_name(pc));
 
 	// From
@@ -250,21 +256,75 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
 
 	// Global crisis stuff
-	// TODO: crisisarea
-	// text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_colony);
 	text::add_to_substitution_map(sub, text::variable_type::crisistaker, state.crisis_liberation_tag);
-	text::add_to_substitution_map(sub, text::variable_type::crisistaker_adj,
-			state.world.national_identity_get_adjective(state.crisis_liberation_tag));
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_adj, state.world.national_identity_get_adjective(state.crisis_liberation_tag));
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_capital, state.world.national_identity_get_capital(state.crisis_liberation_tag));
+	text::add_to_substitution_map(sub, text::variable_type::crisistaker_continent, state.world.national_identity_get_capital(state.crisis_liberation_tag).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisisattacker, state.primary_crisis_attacker);
+	text::add_to_substitution_map(sub, text::variable_type::crisisattacker_capital, state.world.nation_get_capital(state.primary_crisis_attacker));
+	text::add_to_substitution_map(sub, text::variable_type::crisisattacker_continent, state.world.nation_get_capital(state.primary_crisis_attacker).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender, state.primary_crisis_defender);
+	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
+	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj,
-			state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
+	text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// Dates
 	text::add_to_substitution_map(sub, text::variable_type::year, int32_t(event_date.to_ymd(state.start_date).year));
 	//text::add_to_substitution_map(sub, text::variable_type::month, text::localize_month(state, event_date.to_ymd(state.start_date).month));
 	text::add_to_substitution_map(sub, text::variable_type::day, int32_t(event_date.to_ymd(state.start_date).day));
+
+	// Non-vanilla
+	text::add_to_substitution_map(sub, text::variable_type::government, state.world.nation_get_government_type(target_nation).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::ideology, state.world.nation_get_ruling_party(target_nation).get_ideology().get_name());
+	text::add_to_substitution_map(sub, text::variable_type::party, state.world.nation_get_ruling_party(target_nation).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::pop, text::pretty_integer{ target_pop });
+	text::add_to_substitution_map(sub, text::variable_type::fromcontinent, state.world.province_get_continent(from_province).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::fromcapital, state.world.province_get_name(from_capital));
+	text::add_to_substitution_map(sub, text::variable_type::religion, state.world.religion_get_name(state.world.nation_get_religion(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::infamy, text::fp_two_places{ state.world.nation_get_infamy(target_nation) });
+	text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_two_places{ state.world.nation_get_infamy(target_nation) });
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster, state.world.nation_get_in_sphere_of(target_nation));
+	text::add_to_substitution_map(sub, text::variable_type::overlord, state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::nationalvalue, state.world.nation_get_national_value(target_nation).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::good, state.world.province_get_rgo(target_province).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::resource, state.world.province_get_rgo(target_province).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::terrain, state.world.province_get_terrain(target_province).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::numfactories, text::pretty_integer{ economy::state_factory_count(state, target_state, target_nation) });
+	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(from_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::focus, state.world.state_instance_get_owner_focus(target_state).get_name());
+	text::add_to_substitution_map(sub, text::variable_type::nf, state.world.state_instance_get_owner_focus(target_state).get_name());
+	auto names_pair = rng::get_random_pair(state, uint32_t(target_nation.index()) << 6, uint32_t(event_date.value));
+	auto first_names = state.world.culture_get_first_names(state.world.nation_get_primary_culture(target_nation));
+	if(first_names.size() > 0) {
+		auto first_name = first_names.at(rng::reduce(uint32_t(names_pair.high), first_names.size()));
+		auto last_names = state.world.culture_get_last_names(state.world.nation_get_primary_culture(target_nation));
+		if(last_names.size() > 0) {
+			auto last_name = last_names.at(rng::reduce(uint32_t(names_pair.high), last_names.size()));
+			text::add_to_substitution_map(sub, text::variable_type::culture_first_name, state.to_string_view(first_name));
+			text::add_to_substitution_map(sub, text::variable_type::culture_last_name, state.to_string_view(last_name));
+		}
+	}
+	text::add_to_substitution_map(sub, text::variable_type::fromstatename, from_state);
+	if(auto fl = state.world.province_get_factory_location_as_province(target_province); fl.begin() != fl.end()) {
+		text::add_to_substitution_map(sub, text::variable_type::factory, (*fl.begin()).get_factory().get_building_type().get_name());
+	}
+	text::add_to_substitution_map(sub, text::variable_type::tech, state.world.nation_get_current_research(target_nation).get_name());
+	//std::string list_provinces = "";
+	//for(const auto p : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(target_state))) {
+	//	list_provinces += text::produce_simple_string(state, p.get_province().get_name()) + ", ";
+	//}
+	//text::add_to_substitution_map(sub, text::variable_type::provinces, list_provinces);
+	text::add_to_substitution_map(sub, text::variable_type::date, event_date);
+	text::add_to_substitution_map(sub, text::variable_type::now, state.current_date);
+	text::add_to_substitution_map(sub, text::variable_type::control, state.world.province_get_nation_from_province_control(target_province));
+	text::add_to_substitution_map(sub, text::variable_type::owner, state.world.province_get_nation_from_province_ownership(target_province));
+	if(auto plist = state.world.nation_get_province_ownership(target_nation); plist.begin() != plist.end()) {
+		auto plist_size = uint32_t(plist.end() - plist.begin());
+		uint32_t index = rng::reduce(uint32_t(names_pair.high), plist_size);
+		text::add_to_substitution_map(sub, text::variable_type::anyprovince, (*(plist.begin() + index)).get_province());
+	}
 }
 
 void event_option_button::on_update(sys::state& state) noexcept {

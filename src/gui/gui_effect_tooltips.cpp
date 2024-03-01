@@ -1800,6 +1800,28 @@ uint32_t ef_add_accepted_culture_union(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+
+uint32_t ef_add_accepted_culture_this(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)).get_name());
+		text::localised_format_box(ws, layout, box, "make_accepted_culture", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_add_accepted_culture_from(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.nation_get_primary_culture(trigger::to_nation(from_slot)).get_name());
+		text::localised_format_box(ws, layout, box, "make_accepted_culture", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
 uint32_t ef_primary_culture(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -4331,6 +4353,22 @@ uint32_t ef_call_allies(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
+uint32_t ef_ruling_party_this(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.nation_get_ruling_party(trigger::to_nation(this_slot)).get_ideology().get_name());
+	text::localised_format_box(ws, layout, box, "change_ruling_party", m);
+	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_ruling_party_from(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.nation_get_ruling_party(trigger::to_nation(from_slot)).get_ideology().get_name());
+	text::localised_format_box(ws, layout, box, "change_ruling_party", m);
+	text::close_layout_box(layout, box);
+	return 0;
+}
 
 uint32_t ef_war_tag(EFFECT_DISPLAY_PARAMS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
@@ -6865,6 +6903,12 @@ ef_add_truce_this_pop, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
 ef_add_truce_from_nation, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
 ef_add_truce_from_province, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
 ef_call_allies, //constexpr inline uint16_t call_allies = 0x01A3;
+ef_ruling_party_this, //constexpr inline uint16_t ruling_party_this = 0x01A4;
+ef_ruling_party_from, //constexpr inline uint16_t ruling_party_from = 0x01A5;
+ef_add_accepted_culture_this, //constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
+ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
+ef_add_accepted_culture_from, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
+ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
 
 //
 // SCOPES

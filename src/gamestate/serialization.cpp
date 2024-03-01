@@ -275,6 +275,8 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_civilize);
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_my_factories_nationalized);
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_crisis_declare_interest);
+		ptr_in = deserialize(ptr_in, state.national_definitions.on_election_started);
+		ptr_in = deserialize(ptr_in, state.national_definitions.on_election_finished);
 	}
 	{ // provincial definitions
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
@@ -456,6 +458,8 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.national_definitions.on_civilize);
 		ptr_in = serialize(ptr_in, state.national_definitions.on_my_factories_nationalized);
 		ptr_in = serialize(ptr_in, state.national_definitions.on_crisis_declare_interest);
+		ptr_in = serialize(ptr_in, state.national_definitions.on_election_started);
+		ptr_in = serialize(ptr_in, state.national_definitions.on_election_finished);
 	}
 	{ // provincial definitions
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
@@ -631,6 +635,8 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.national_definitions.on_civilize);
 		sz += serialize_size(state.national_definitions.on_my_factories_nationalized);
 		sz += serialize_size(state.national_definitions.on_crisis_declare_interest);
+		sz += serialize_size(state.national_definitions.on_election_started);
+		sz += serialize_size(state.national_definitions.on_election_finished);
 	}
 	{ // provincial definitions
 		sz += serialize_size(state.province_definitions.canals);

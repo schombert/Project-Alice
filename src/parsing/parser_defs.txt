@@ -718,12 +718,14 @@ party
 	end_date       value      date                      member_fn
 	ideology       value      text                      member_fn
 	#any           value      text                      member_fn
+	trigger        extern     make_party_trigger		member
 
 country_file
 	color          group      color_from_3i             member_fn
 	graphical_culture   value     none                  discard
 	party          extern     make_party                discard
 	unit_names     group      unit_names_collection     member
+	template       value      text                      member_fn (template_)
 	#any           group      color_from_3i             member_fn
 
 pv_party_loyalty
@@ -1065,7 +1067,8 @@ trigger_body
 	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
-	any_country                     extern      tr_scope_any_country        discard
+	any_country                  extern tr_scope_any_country            discard
+	every_country                extern tr_scope_every_country          discard
 	#any                         extern tr_scope_variable               discard
 
 pop_history_definition
@@ -1473,6 +1476,9 @@ effect_body
 	state_scope                     extern      ef_state_scope              discard
 	random                          extern      ef_scope_random             discard
 	random_list                     extern      ef_scope_random_list        discard
+	increment_variable              value       text                        member_fn
+	decrement_variable              value       text                        member_fn
+	set_variable_to_zero            value       text                        member_fn
 	#any                            extern      ef_scope_variable           discard
 
 cb_body
@@ -1748,6 +1754,12 @@ s_on_my_factories_nationalized
 s_on_crisis_declare_interest
 	#any                  value      int                    member_fn
 
+s_on_election_started
+	#any                  value      int                    member_fn
+
+s_on_election_finished
+	#any                  value      int                    member_fn
+
 on_action_file
 	on_yearly_pulse                 group      s_on_yearly_pulse                 member
 	on_quarterly_pulse              group      s_on_quarterly_pulse              member
@@ -1766,6 +1778,8 @@ on_action_file
 	on_civilize                     group      s_on_civilize                     member
 	on_my_factories_nationalized    group      s_on_my_factories_nationalized    member
 	on_crisis_declare_interest      group      s_on_crisis_declare_interest      member
+	on_election_started             group      s_on_election_started             member
+	on_election_finished            group      s_on_election_finished            member
 
 rebel_gov_list
 	#any                            value      text                              member_fn

@@ -51,6 +51,17 @@ mapmode_30;Employment Mapmode
 mapmode_31;Factories Mapmode
 mapmode_32;Issues Mapmode
 mapmode_33;Growth Mapmode
+mapmode_34;Players Mapmode
+mapmode_35;Life Needs Mapmode
+mapmode_36;Everyday Needs Mapmode
+mapmode_37;Luxury Needs Mapmode
+mapmode_38;Officers Mapmode
+mapmode_39;Clerk-to-Craftsmen Ratio Mapmode
+mapmode_40;Life Rating Mapmode
+mapmode_41;Crime Mapmode
+mapmode_42;Rally Mapmode
+mapmode_43;Workforce Mapmode
+mapmode_44;Mobilization Mapmode
 lg_min_mapmode_8;Low admin
 lg_min_mapmode_19;Uncivilized
 lg_min_mapmode_7;Uncolonized
@@ -68,6 +79,13 @@ lg_min_mapmode_28;Low militancy
 lg_min_mapmode_29;Low literacy
 lg_min_mapmode_30;Low employment
 lg_min_mapmode_33;Low growth
+lg_min_mapmode_35;Low satisfaction
+lg_min_mapmode_36;Low satisfaction
+lg_min_mapmode_37;Low satisfaction
+lg_min_mapmode_38;Low amount
+lg_min_mapmode_39;Poor CTC ratio
+lg_min_mapmode_40;Low life rating
+lg_min_mapmode_44;Low regiment count
 lg_max_mapmode_8;High admin
 lg_max_mapmode_19;Civilized
 lg_max_mapmode_7;Colonizable
@@ -85,6 +103,25 @@ lg_max_mapmode_28;High militancy
 lg_max_mapmode_29;High literacy
 lg_max_mapmode_30;High employment
 lg_max_mapmode_33;High growth
+lg_max_mapmode_35;High satisfaction
+lg_max_mapmode_36;High satisfaction
+lg_max_mapmode_37;High satisfaction
+lg_max_mapmode_38;High amount
+lg_max_mapmode_39;Rich CTC ratio
+lg_max_mapmode_40;High life rating
+lg_max_mapmode_44;High regiment count
+alice_mmtt_34;Player: $x$
+alice_mmtt_35;Life needs satisfied: $x$
+alice_mmtt_36;Everyday needs satisfied: $x$
+alice_mmtt_37;Luxury needs satisfied: $x$
+alice_mmtt_38;Total officers: $x$ ($y$ of population, $value$ is optimal)
+alice_mmtt_39;Clerks-to-craftsmen-ratio: $fraction$ ($x$/$y$), $value$ is optimal
+alice_mmtt_40;Life rating: $x$
+alice_mmtt_41;Crime: $x$
+alice_mmtt_42_1;Has land rally point?
+alice_mmtt_42_2;Has naval rally point?
+alice_mmtt_43;Workforce distrobution:
+alice_mmtt_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -1575,6 +1612,8 @@ current_supply_text2;The amount we could get of our current supply consumption w
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_political_party_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W, and satisfying the following trigger:
+alice_political_party_no_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
 alice_mvcap_3;At peace

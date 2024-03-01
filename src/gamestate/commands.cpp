@@ -1822,7 +1822,7 @@ bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::p
 	*/
 	if(state.world.nation_get_ruling_party(source) == p)
 		return false;
-	if(!politics::political_party_is_active(state, p))
+	if(!politics::political_party_is_active(state, source, p))
 		return false;
 	if(!politics::can_appoint_ruling_party(state, source))
 		return false;

@@ -141,6 +141,11 @@ object {
 		type{array{issue_id}{issue_option_id}}
 		tag{ scenario }
 	}
+	property{
+		name{ trigger }
+		type{ dcon::trigger_key }
+		tag{ scenario }
+	}
 }
 
 object{
@@ -4652,6 +4657,7 @@ object {
 		tag{ scenario }
 	}
 }
+
 
 object {
 	name{ stored_trigger }

@@ -1548,6 +1548,10 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto amount = state.world.province_get_rgo_actual_production(p);
 	auto c = state.world.province_get_rgo(p);
+	assert(c);
+	if(!c)
+		return;
+
 	state.world.nation_get_domestic_market_pool(n, c) += amount;
 	assert(amount >= 0);
 	assert(state.world.commodity_get_current_price(c) >= 0);
