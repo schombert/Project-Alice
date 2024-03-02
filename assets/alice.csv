@@ -1614,6 +1614,14 @@ current_supply_text_commodity_orange_satisfaction;$what$: 即$val$劬/即$value$劬 
 current_supply_text_commodity_red_satisfaction;$what$: 即$val$劬/即$value$劬 吸(劬刪$total$%劬吸 demand satisfaction)劬
 alice_political_party_trigger;Only available from 即$date_long_0$劬 to 即$date_long_1$劬, and satisfying the following trigger:
 alice_political_party_no_trigger;Only available from 即$date_long_0$劬 to 即$date_long_1$劬
+alice_wg_condition_1;Does not have status quo as a defender
+alice_wg_condition_2;Is in a war with us
+alice_wg_condition_3;Unique wargoal (isn't a duplicate of another wargoal)
+alice_wg_condition_4;Not on the same side as us
+alice_wg_condition_5;Satisfies triggers for wargoal
+alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
+alice_wg_condition_7;Is constructable wargoal
+alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
 alice_mvcap_3;At peace
