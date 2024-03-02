@@ -101,13 +101,15 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 	auto reform = fatten(state.world, ref);
 
 	text::add_line(state, contents, reform.get_name());
-	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
-	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(state.local_player_nation));
-	text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(state.local_player_nation));
-	auto box = text::open_layout_box(contents);
-	text::add_to_layout_box(state, contents, box, reform.get_desc(), sub);
-	text::close_layout_box(contents, box);
+	if(reform.get_desc()) {
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(state.local_player_nation));
+		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(state.local_player_nation));
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, reform.get_desc(), sub);
+		text::close_layout_box(contents, box);
+	}
 
 	auto total = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
 	auto support = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, ref));
