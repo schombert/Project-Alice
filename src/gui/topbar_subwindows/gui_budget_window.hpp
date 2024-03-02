@@ -518,11 +518,11 @@ public:
 			max_tariff = std::max(min_tariff, max_tariff);
 
 			mutable_scrollbar_settings new_settings;
-			new_settings.lower_value = -100;
+			new_settings.lower_value = 0;
 			new_settings.upper_value = 100;
 			new_settings.using_limits = true;
-			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
-			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
+			new_settings.lower_limit = std::clamp(min_tariff, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tariff, 0, 100);
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::domestic_investment:
@@ -1674,6 +1674,10 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "tariff_mid") {
+			return make_element_by_type<invisible_element>(state, id);
+		}
+
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
