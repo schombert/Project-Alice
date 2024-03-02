@@ -642,6 +642,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<issue_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -670,6 +675,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ desc }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -739,6 +749,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<reform_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -765,7 +780,11 @@ object {
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
-
+	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
 	property{
 		name{ rules }
 		type{ uint32_t }
