@@ -637,7 +637,7 @@ public:
 			bool target_in_war = false;
 			for(auto par : state.world.war_get_war_participant(w)) {
 				if(par.get_nation() == n) {
-					text::add_line_with_condition(state, contents, "alice_wg_condition_4", !(par.get_is_attacker() == is_attacker);
+					text::add_line_with_condition(state, contents, "alice_wg_condition_4", !(par.get_is_attacker() == is_attacker));
 					target_in_war = true;
 					break;
 				}
