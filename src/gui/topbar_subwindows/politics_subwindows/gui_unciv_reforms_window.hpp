@@ -14,6 +14,15 @@ namespace ui {
 void reform_description(sys::state& state, text::columnar_layout& contents, dcon::reform_option_id ref) {
 	auto reform = fatten(state.world, ref);
 
+	text::add_line(state, contents, reform.get_name());
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(state.local_player_nation));
+	text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(state.local_player_nation));
+	auto box = text::open_layout_box(contents);
+	text::add_to_layout_box(state, contents, box, reform.get_desc(), sub);
+	text::close_layout_box(contents, box);
+
 	float cost = 0.0f;
 	if(state.world.reform_get_reform_type(state.world.reform_option_get_parent_reform(ref)) == uint8_t(culture::issue_type::military)) {
 		float base_cost = float(state.world.reform_option_get_technology_cost(ref));
