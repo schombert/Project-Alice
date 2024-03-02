@@ -3376,6 +3376,14 @@ object {
 		type{ float }
 	}
 	property {
+		name{ private_investment_education }
+		type{ float }
+	}
+	property {
+		name{ private_investment_administration }
+		type{ float }
+	}
+	property {
 		name{ total_rich_income }
 		type{ float }
 		tag{ save }

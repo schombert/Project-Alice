@@ -3273,6 +3273,80 @@ void daily_update(sys::state& state) {
 		advance_construction(state, n);
 
 		/*
+		collect and distribute money for private education
+		*/
+
+		float total_edu_adm_base = 0.f;
+		auto edu_money = 0.f;
+		auto adm_money = 0.f;
+
+		auto const edu_adm_spending = 0.1f;
+		auto const edu_adm_effect = 1.f - edu_adm_spending;
+		auto const education_ratio = 0.8f;
+
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			auto province = p.get_province();
+			if(state.world.province_get_nation_from_province_ownership(province) == state.world.province_get_nation_from_province_control(province)) {
+				float current = 0;
+
+
+				float local_teachers = 0.f;
+				float local_managers = 0.f;
+
+				for(auto pl : province.get_pop_location()) {
+					auto pop = pl.get_pop();
+					auto pt = pop.get_poptype();
+
+					auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
+
+					if(ln_type == culture::income_type::administration)
+						local_managers += pop.get_size();
+
+					if(ln_type == culture::income_type::education)
+						local_teachers += pop.get_size();
+				}
+
+				if(local_teachers + local_managers > 0)
+					for(auto pl : province.get_pop_location()) {
+						auto& pop_money = pl.get_pop().get_savings();
+						current += pop_money;
+						pop_money *= edu_adm_effect;
+					}
+
+				float local_education_ratio = education_ratio;
+				if(local_managers == 0) {
+					local_education_ratio = 1.f;
+				}
+
+				for(auto pl : province.get_pop_location()) {
+					auto pop = pl.get_pop();
+					auto pt = pop.get_poptype();
+
+					auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
+
+					if(ln_type == culture::income_type::administration) {
+						float ratio = pop.get_size() / local_managers;
+						pop.set_savings(pop.get_savings() + current * (1.f - local_education_ratio) * ratio);
+
+						adm_money += current * (1.f - local_education_ratio) * ratio;
+					}
+
+					if(ln_type == culture::income_type::education) {
+						float ratio = pop.get_size() / local_teachers;
+						pop.set_savings(pop.get_savings() + current * local_education_ratio * ratio);
+
+						edu_money += current * local_education_ratio * ratio;
+					}
+				}
+
+				total_edu_adm_base += current;
+			}
+		}
+
+		state.world.nation_set_private_investment_education(n, edu_money);
+		state.world.nation_set_private_investment_administration(n, adm_money);
+
+		/*
 		collect taxes
 		*/
 
