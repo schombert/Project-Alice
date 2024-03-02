@@ -629,7 +629,7 @@ std::vector<uint32_t> rally_map_from(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = state.world.province_get_land_rally_point(prov_id) ? sys::pack_color(46, 247, 15) : 0;
-		prov_color[i] = state.world.province_get_naval_rally_point(prov_id) ? sys::pack_color(46, 15, 247) : 0;
+		prov_color[i + texture_size] = state.world.province_get_naval_rally_point(prov_id) ? sys::pack_color(46, 15, 247) : 0;
 	});
 	return prov_color;
 }
