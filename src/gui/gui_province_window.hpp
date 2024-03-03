@@ -312,7 +312,7 @@ public:
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
 			auto p = retrieve<dcon::province_id>(state, parent);
-			auto n = state.world.province_control_get_nation(p);
+			auto n = state.world.province_get_nation_from_province_ownership(p);
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
 			if(state.world.modifier_get_desc(mod.mod_id)) {
