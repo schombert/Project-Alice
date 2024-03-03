@@ -238,3 +238,12 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 ### Political party triggers
 
 Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
+
+## Government ruler-names
+
+Now you can define ruler names for a specific nation with a specific government type, for example:
+
+``
+RUS_absolute_monarchy;The Russian Empire
+RUS_absolute_monarchy_ruler;Tsar
+``
