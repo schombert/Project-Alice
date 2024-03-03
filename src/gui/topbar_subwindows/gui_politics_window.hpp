@@ -93,6 +93,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "revanchism");
+		text::add_line(state, contents, "revanchism_explanation");
 		text::add_line(state, contents, "revanchism_reason");
 	}
 };
