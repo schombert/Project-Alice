@@ -67,6 +67,8 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "plurality");
+		text::localised_format_box(state, contents, box, "plurality_explanation");
 		text::localised_format_box(state, contents, box, "plurality_change");
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
