@@ -747,9 +747,25 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
-
 		auto gov_name_seq = state.world.government_type_get_name(gov_type_id);
 		return text::produce_simple_string(state, gov_name_seq);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, n);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::country, n);
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+		text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+		text::add_to_layout_box(state, contents, box, fat_id.get_government_type().get_desc(), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 

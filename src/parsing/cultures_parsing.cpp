@@ -221,8 +221,8 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	context.state.world.government_type_set_name(new_id, name_id);
-	context.state.world.government_type_set_ruler_name(new_id,
-			text::find_or_add_key(context.state, std::string(name) + "_ruler"));
+	context.state.world.government_type_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.government_type_set_ruler_name(new_id, text::find_or_add_key(context.state, std::string(name) + "_ruler"));
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};
