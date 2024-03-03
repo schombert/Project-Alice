@@ -414,7 +414,10 @@ bool will_recieve_attrition(sys::state& state, dcon::navy_id a);
 bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
-float relative_attrition_amount(sys::state& state, dcon::nation_id n, std::vector<dcon::army_id>& a, dcon::province_id prov);
+float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov);
+float attrition_amount(sys::state& state, dcon::navy_id a);
+float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
 float reinforce_amount(sys::state& state, dcon::army_id a);
 
