@@ -242,7 +242,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
-	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation), state.world.nation_get_government_type(n)));
 	// TODO: Is this correct? I remember in vanilla it could vary
 	auto pc = state.world.nation_get_primary_culture(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(pc));
