@@ -46,7 +46,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ military::relative_attrition_amount(state, a, prov) });
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ military::relative_attrition_amount(state, state.local_player_nation, state.selected_armies, prov) });
 			box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "alice_unit_relative_attrition", sub);
 			text::close_layout_box(contents, box);
