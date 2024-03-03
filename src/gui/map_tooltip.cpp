@@ -24,14 +24,14 @@ float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, s
 	}
 	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
 	auto army_controller = dcon::fatten(state.world, n);
-	auto supply_limit = supply_limit_in_province(state, army_controller, prov);
+	auto supply_limit = military::supply_limit_in_province(state, army_controller, prov);
 	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
 	float greatest_hostile_fort = 0.0f;
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
 		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
 			if(other.get_building_level(economy::province_building_type::fort) > 0) {
-				if(are_at_war(state, army_controller, other.get_nation_from_province_control())) {
+				if(military::are_at_war(state, army_controller, other.get_nation_from_province_control())) {
 					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(economy::province_building_type::fort)));
 				}
 			}
