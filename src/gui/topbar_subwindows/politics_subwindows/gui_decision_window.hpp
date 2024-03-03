@@ -13,7 +13,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
-	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(n)));
+	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(n), state.world.nation_get_government_type(n)));
 	text::add_to_substitution_map(m, text::variable_type::continentname, state.world.nation_get_capital(n).get_continent().get_name());
 	// Date
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
