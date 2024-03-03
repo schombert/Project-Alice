@@ -44,6 +44,18 @@ public:
 		Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
 		parent->impl_get(state, newpayload);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, n, c));
+		text::add_line(state, contents, "alice_wg_usage_trigger");
+		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(c), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+	}
 };
 
 class diplomacy_make_cb_type : public listbox_row_element_base<dcon::cb_type_id> {
@@ -96,21 +108,22 @@ public:
 class diplomacy_make_cb_desc : public simple_multiline_body_text {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
-
 		auto fat_cb = dcon::fatten(state.world, retrieve<dcon::cb_type_id>(state, parent));
-
 		auto box = text::open_layout_box(contents);
-
 		auto fab_time = std::ceil(100.0f / (state.defines.cb_generation_base_speed * fat_cb.get_construction_speed() * (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f)));
-
+		auto target_nation = retrieve<dcon::nation_id>(state, parent);
 		if(fat_cb.is_valid()) {
-			text::substitution_map sub;
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
 			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb)});
-			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail"), sub);
+		} else {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
+			text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail_none"), sub);
 		}
-
 		text::close_layout_box(contents, box);
 	}
 };
