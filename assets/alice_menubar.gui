@@ -1,3 +1,4 @@
+guiTypes = {
 	windowType = {
 		name = "alice_menubar"
 		backGround = ""

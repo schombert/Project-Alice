@@ -1,3 +1,7 @@
+#ifndef DCON_TRAP_INVALID_STORE
+#define DCON_TRAP_INVALID_STORE 1
+#endif
+
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL

@@ -1,8 +1,5 @@
 #define ALICE_NO_ENTRY_POINT 1
 
-#ifdef LOCAL_USER_SETTINGS
-#include "local_user_settings.hpp"
-#endif
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
@@ -1470,7 +1467,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		load_global_squares();		// create various squares to drive the shaders with
 
 		simple_fs::file_system fs;
-		add_root(fs, NATIVE_M(GAME_DIR));
 		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
