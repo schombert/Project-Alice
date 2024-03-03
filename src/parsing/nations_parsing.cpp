@@ -53,6 +53,7 @@ void triggered_modifier::finish(triggered_modifier_context& context) {
 
 	context.outer_context.state.world.modifier_set_icon(modifier_id, uint8_t(icon_index));
 	context.outer_context.state.world.modifier_set_name(modifier_id, name_id);
+	context.outer_context.state.world.modifier_set_desc(modifier_id, text::find_key(context.outer_context.state, std::string(context.name) + "_desc"));
 	context.outer_context.state.world.modifier_set_national_values(modifier_id, force_national_mod());
 
 	context.outer_context.map_of_modifiers.insert_or_assign(std::string(context.name), modifier_id);
@@ -83,6 +84,7 @@ void make_national_value(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(context.number_of_national_values_seen));
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.force_national_mod());
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
@@ -697,6 +699,7 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());

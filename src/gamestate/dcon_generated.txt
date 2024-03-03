@@ -425,6 +425,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ province_values }
 		type{ sys::provincial_modifier_definition }
 		tag{ scenario }
