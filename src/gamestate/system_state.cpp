@@ -2781,6 +2781,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	world.national_identity_resize_government_flag_type(world.government_type_size());
 	world.national_identity_resize_government_name(world.government_type_size());
+	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
 	// add special names
@@ -2797,6 +2798,14 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				ident.set_government_name(named_gov.second, it->second);
 			} else {
 				ident.set_government_name(named_gov.second, ident.get_name());
+			}
+		}
+		for(auto& named_gov : context.map_of_governments) {
+			auto special_ident = tag + named_gov.first + "_ruler";
+			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
+				ident.set_government_ruler_name(named_gov.second, it->second);
+			} else {
+				ident.set_government_ruler_name(named_gov.second, world.government_type_get_ruler_name(named_gov.second));
 			}
 		}
 	}
