@@ -299,6 +299,7 @@ void read_school_modifier(std::string_view name, token_generator& gen, error_han
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	auto school = parse_modifier_base(gen, err, context);
 

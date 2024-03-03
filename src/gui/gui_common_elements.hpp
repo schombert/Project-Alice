@@ -1091,10 +1091,19 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = state.local_player_nation;
 		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
 		if(bool(mod_id)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			if(state.world.modifier_get_desc(mod_id)) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::country, n);
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
+			}
 			text::close_layout_box(contents, box);
 
 			modifier_description(state, contents, mod_id);

@@ -311,7 +311,20 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
-			text::add_line(state, contents, state.world.modifier_get_name(mod.mod_id));
+			auto p = retrieve<dcon::province_id>(state, parent);
+			auto n = state.world.province_get_nation_from_province_ownership(p);
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
+			if(state.world.modifier_get_desc(mod.mod_id)) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::country, n);
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+				text::add_to_substitution_map(sub, text::variable_type::provincename, p);
+				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod.mod_id), sub);
+			}
+			text::close_layout_box(contents, box);
 			modifier_description(state, contents, mod.mod_id, 15);
 		}
 		if(mod.expiration) {
