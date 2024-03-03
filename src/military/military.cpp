@@ -4804,7 +4804,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	for(auto ar : state.world.province_get_army_location(prov)) {
 		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
 				!bool(ar.get_army().get_navy_from_army_transport())) {
-
 			for(auto rg : ar.get_army().get_army_membership()) {
 				total_army_weight += 3.0f * rg.get_regiment().get_strength();
 			}
@@ -4812,8 +4811,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	}
 
 	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
-
-
 	auto ar = fatten(state.world, a);
 
 	auto army_controller = ar.get_controller_from_army_control();
@@ -4821,7 +4818,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
 
 	float greatest_hostile_fort = 0.0f;
-
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
 		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
@@ -4832,7 +4828,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 			}
 		}
 	}
-
 	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
 }
 
