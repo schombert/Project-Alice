@@ -820,17 +820,9 @@ void initialize(sys::state& state) {
 		//}
 
 		//auto amount = std::ceil(1.1f * pop_amount / rgo_per_size_employment);
-		auto amount = std::ceil(1'000'000.f / rgo_per_size_employment);
-
+		auto amount = std::ceil(1000.f / rgo_per_size_employment * state.map_state.map_data.province_area[province::to_map_id(p)]);
 		fp.set_rgo_size(std::max(1.0f, amount));
-
 		fp.set_rgo_production_scale(0.f);
-		//fp.set_artisan_production_scale(1.0f);
-
-		std::vector<dcon::commodity_id> artisan_prefs;
-		//generate_national_artisan_prefs(state,state.world.province_get_nation_from_province_ownership(p), artisan_prefs);
-
-		//randomly_assign_artisan_production(state, p, artisan_prefs);
 	});
 
 	state.world.for_each_nation([&](dcon::nation_id n) {
