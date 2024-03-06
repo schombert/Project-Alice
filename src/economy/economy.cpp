@@ -3460,7 +3460,6 @@ void daily_update(sys::state& state) {
 		collect and distribute money for private education
 		*/
 
-		float total_edu_adm_base = 0.f;
 		auto edu_money = 0.f;
 		auto adm_money = 0.f;
 
@@ -3513,17 +3512,13 @@ void daily_update(sys::state& state) {
 						pop.set_savings(pop.get_savings() + current * (1.f - local_education_ratio) * ratio);
 
 						adm_money += current * (1.f - local_education_ratio) * ratio;
-					}
-
-					if(ln_type == culture::income_type::education) {
+					} else if(ln_type == culture::income_type::education) {
 						float ratio = pop.get_size() / local_teachers;
 						pop.set_savings(pop.get_savings() + current * local_education_ratio * ratio);
 
 						edu_money += current * local_education_ratio * ratio;
 					}
 				}
-
-				total_edu_adm_base += current;
 			}
 		}
 
