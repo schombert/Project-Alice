@@ -606,6 +606,9 @@ factory_stats_3;It produced $val$ units of $x$ in the previous day;;;;;;;;;;;;x
 factory_stats_4;It made a profit of $val$ in the previous day;;;;;;;;;;;;x
 factory_stats_5;Inputs availability:;;;;;;;;;;;;x
 factory_stats_6;Efficiency inputs availability:;;;;;;;;;;;;x
+factory_stats_wage;Wage:;;;;;;;;;;;;x
+factory_stats_expenses;Total expenses;;;;;;;;;;;;x
+factory_stats_desired_income;Desired raw profit;;;;;;;;;;;;x
 speed;$val$ kph;;;;;;;;;;;;x
 shift_to_hold_open;Hold §YSHIFT§W to keep this window open, §YSHIFT-Right-click§W to build this in every state (but not expand);;;;;;;;;;;;x
 alice_expand_factory_controls_1;§YSHIFT-Left-click§W upgrade §Gall§W factories in a state

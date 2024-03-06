@@ -192,6 +192,79 @@ public:
 };
 
 template<culture::pop_strata Strata>
+class satisfaction_graph : public line_graph {
+public:
+	satisfaction_graph() : line_graph(32) { }
+
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.x -= 25;
+		base_data.size.x *= 2;
+		base_data.size.y *= 2;
+
+		is_coloured = true;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent == nullptr)
+			return;
+
+		float min = 0.f;
+
+		float max = 0.f;
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+				auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+
+				max += pop_size;
+			}
+		}
+
+		std::vector<float> datapoints(count);
+
+		float integral = 0.f;
+		float total_area = 0.f;
+
+		for(uint32_t i = 0; i < count; ++i) {
+			float cutoff = (float)i / count + 0.01f;
+			float value = 0.f;
+
+			for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+
+				for(auto pop_loc : prov.get_province().get_pop_location()) {
+					auto pop_id = pop_loc.get_pop();
+					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+
+					float total =
+						pop_id.get_luxury_needs_satisfaction()
+						+ pop_id.get_everyday_needs_satisfaction()
+						+ pop_id.get_life_needs_satisfaction();
+
+					if(total / 3.f >= cutoff)
+						value += pop_size;
+
+					integral += total / 3.f * pop_size;
+					total_area += pop_size;
+				}
+			}
+
+			datapoints[i] = value;
+		}
+
+		float area_ratio = integral / ( total_area + 0.0001f );
+
+		r = 1.f - area_ratio * 0.5f;
+		g = std::sqrt(area_ratio);
+		b = std::sqrt(area_ratio) * 0.8f;
+
+		set_data_points(state, datapoints, min, max);
+	}
+};
+
+template<culture::pop_strata Strata>
 class pop_satisfaction_piechart : public piechart<dcon::pop_satisfaction_wrapper_id> {
 protected:
 	void on_update(sys::state& state) noexcept override {
@@ -518,11 +591,11 @@ public:
 			max_tariff = std::max(min_tariff, max_tariff);
 
 			mutable_scrollbar_settings new_settings;
-			new_settings.lower_value = -100;
+			new_settings.lower_value = 0;
 			new_settings.upper_value = 100;
 			new_settings.using_limits = true;
-			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
-			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
+			new_settings.lower_limit = std::clamp(min_tariff, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tariff, 0, 100);
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::domestic_investment:
@@ -1674,6 +1747,10 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "tariff_mid") {
+			return make_element_by_type<invisible_element>(state, id);
+		}
+
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
@@ -1703,11 +1780,13 @@ public:
 		} else if(name == "debt_listbox") {
 			return make_element_by_type<debt_listbox>(state, id);
 		} else if(name == "chart_0") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::poor>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::poor>>(state, id);
 		} else if(name == "chart_1") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::middle>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::middle>>(state, id);
 		} else if(name == "chart_2") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::rich>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::rich>>(state, id);
+		} else if(name == "overlay_0" || name == "overlay_1" || name == "overlay_2") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "nat_stock_val") {
 			return make_element_by_type<nation_actual_stockpile_spending_text>(state, id);
 		} else if(name == "nat_stock_est") {
