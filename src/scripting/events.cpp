@@ -120,7 +120,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
 						effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
@@ -215,7 +215,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
 						effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
@@ -306,7 +306,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
 						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
@@ -376,7 +376,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
 						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
