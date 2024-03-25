@@ -1127,7 +1127,7 @@ void life_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
@@ -1147,7 +1147,7 @@ void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& content
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
@@ -1167,7 +1167,7 @@ void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents,
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
