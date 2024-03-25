@@ -1404,6 +1404,61 @@ public:
 	}
 };
 
+class province_army_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		progress = 0.f;
+		float amount = 0.f;
+		float total = 0.f;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
+					auto& current_purchased = lc.get_purchased_goods();
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(base_cost.commodity_type[i]) {
+							amount += current_purchased.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i];
+						} else {
+							break;
+						}
+					}
+				}
+			}
+		}
+		if(total > 0.f) {
+			progress = amount / total;
+		}
+	}
+};
+class province_navy_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		progress = 0.f;
+		float amount = 0.f;
+		float total = 0.f;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
+			auto& current_purchased = nc.get_purchased_goods();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					amount += current_purchased.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i];
+				} else {
+					break;
+				}
+			}
+		}
+		if(total > 0.f) {
+			progress = amount / total;
+		}
+	}
+};
+
 class land_rally_point : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1506,17 +1561,17 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "army_size") {
 			return make_element_by_type<province_army_size_text>(state, id);
+		} else if(name == "army_progress") {
+			return make_element_by_type<province_army_progress>(state, id);
+		} else if(name == "navy_progress") {
+			return make_element_by_type<province_navy_progress>(state, id);
 		} else if(name == "rallypoint_checkbox") {
 			return make_element_by_type<land_rally_point>(state, id);
 		} else if(name == "rallypoint_checkbox_naval") {
 			return make_element_by_type<naval_rally_point>(state, id);
 		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
 			return make_element_by_type<merge_rally_point>(state, id);
-		} else if(name == "army_progress"
-			|| name == "army_progress_overlay"
-			|| name == "navy_progress"
-			|| name == "navy_progress_overlay"
-			|| name == "army_text"
+		} else if(name == "army_text"
 			|| name == "navy_text"
 			|| name == "build_army"
 			|| name == "build_navy") {
