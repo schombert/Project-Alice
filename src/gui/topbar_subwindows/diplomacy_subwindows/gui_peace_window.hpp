@@ -282,6 +282,7 @@ public:
 			text::add_line(state, contents, "ai_will_accept_po");
 		} else {
 			text::add_line(state, contents, "ai_will_not_accept_po");
+			text::add_line(state, contents, "alice_ai_behaviour_on_demand_po");
 		}
 	}
 };
