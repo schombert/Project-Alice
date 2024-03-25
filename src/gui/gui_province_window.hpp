@@ -450,7 +450,7 @@ public:
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
 			auto btn = make_element_by_type<province_move_capital_button>(state, id);
-			btn->base_data.position.x -= btn->base_data.size.x;
+			btn->base_data.position.x -= btn->base_data.size.x * 2;
 			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
