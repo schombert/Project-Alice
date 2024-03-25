@@ -1259,7 +1259,7 @@ void workforce_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 				text::add_to_layout_box(state, contents, box, text::pretty_integer{ int32_t(value) }, text::text_color::yellow);
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::yellow);
-				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ total / value }, text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ value / total }, text::text_color::yellow);
 				text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}
