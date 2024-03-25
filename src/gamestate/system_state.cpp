@@ -254,7 +254,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
 		drag_selecting = false;
-	} else  if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
+	} else if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
@@ -465,6 +465,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				keycode = sys::virtual_key::RIGHT;
 		}
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+			uint32_t ctrl_group = 0;
 			if(keycode == virtual_key::ESCAPE) {
 				if(ui_state.console_window->is_visible()) {
 					ui::console_window::show_toggle(*this);
@@ -480,7 +481,61 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
+			} else if(keycode == virtual_key::NUMPAD1 || keycode == virtual_key::NUM_1) {
+				ctrl_group = 1;
+			} else if(keycode == virtual_key::NUMPAD2 || keycode == virtual_key::NUM_2) {
+				ctrl_group = 2;
+			} else if(keycode == virtual_key::NUMPAD3 || keycode == virtual_key::NUM_3) {
+				ctrl_group = 3;
+			} else if(keycode == virtual_key::NUMPAD4 || keycode == virtual_key::NUM_4) {
+				ctrl_group = 4;
+			} else if(keycode == virtual_key::NUMPAD5 || keycode == virtual_key::NUM_5) {
+				ctrl_group = 5;
+			} else if(keycode == virtual_key::NUMPAD6 || keycode == virtual_key::NUM_6) {
+				ctrl_group = 6;
+			} else if(keycode == virtual_key::NUMPAD7 || keycode == virtual_key::NUM_7) {
+				ctrl_group = 7;
+			} else if(keycode == virtual_key::NUMPAD8 || keycode == virtual_key::NUM_8) {
+				ctrl_group = 8;
+			} else if(keycode == virtual_key::NUMPAD9 || keycode == virtual_key::NUM_9) {
+				ctrl_group = 9;
 			}
+			if(ctrl_group != 0) {
+				if(mod == sys::key_modifiers::modifiers_ctrl) {
+					for(const auto a : selected_armies) {
+						auto& v = ctrl_armies[ctrl_group];
+						auto it = std::find(v.begin(), v.end(), a);
+						if(it != v.end()) {
+							*it = v.back();
+							v.pop_back();
+						} else {
+							v.push_back(a);
+						}
+					}
+					for(const auto n : selected_navies) {
+						auto& v = ctrl_navies[ctrl_group];
+						auto it = std::find(v.begin(), v.end(), n);
+						if(it != v.end()) {
+							*it = v.back();
+							v.pop_back();
+						} else {
+							v.push_back(n);
+						}
+					}
+				} else {
+					if(mod != sys::key_modifiers::modifiers_shift) { //shift to append
+						selected_armies.clear();
+						selected_navies.clear();
+					}
+					for(const auto a : ctrl_armies[ctrl_group]) {
+						selected_armies.push_back(a);
+					}
+					for(const auto n : ctrl_navies[ctrl_group]) {
+						selected_navies.push_back(n);
+					}
+				}
+			}
+
 			if(!ui_state.topbar_subwindow->is_visible()) {
 				map_state.on_key_down(keycode, mod);
 			}
@@ -1061,6 +1116,23 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(!world.navy_is_valid(selected_navies[i]) || world.navy_get_controller_from_navy_control(selected_navies[i]) != local_player_nation) {
 			selected_navies[i] = selected_navies.back();
 			selected_navies.pop_back();
+		}
+	}
+	// clear up control groups too
+	for(auto& v : ctrl_armies) {
+		for(auto i = v.size(); i-- > 0; ) {
+			if(!world.army_is_valid(v[i]) || world.army_get_controller_from_army_control(v[i]) != local_player_nation) {
+				v[i] = v.back();
+				v.pop_back();
+			}
+		}
+	}
+	for(auto& v : ctrl_navies) {
+		for(auto i = v.size(); i-- > 0; ) {
+			if(!world.navy_is_valid(v[i]) || world.navy_get_controller_from_navy_control(v[i]) != local_player_nation) {
+				v[i] = v.back();
+				v.pop_back();
+			}
 		}
 	}
 

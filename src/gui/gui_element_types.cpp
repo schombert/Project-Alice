@@ -2196,6 +2196,8 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 	text::add_line(state, contents, "alice_utt_controls_2");
 	if(state.network_mode != sys::network_mode_type::single_player)
 		text::add_line(state, contents, "alice_utt_controls_3");
+
+	text::add_line(state, contents, "alice_ctrl_group");
 }
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {

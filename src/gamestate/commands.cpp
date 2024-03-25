@@ -4563,8 +4563,9 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	state.selected_armies.clear();
-	state.selected_armies.clear();
 	state.selected_navies.clear();
+	for(auto& v : state.ctrl_armies) v.clear();
+	for(auto& v : state.ctrl_navies) v.clear();
 	/* And clear the save stuff */
 	state.network_state.current_save_buffer.reset();
 	state.network_state.current_save_length = 0;

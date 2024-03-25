@@ -340,7 +340,16 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
+			std::string ctrl_str = "";
+			for(uint32_t i = 0; i < uint32_t(state.ctrl_armies.size()); i++) {
+				for(const auto e : state.ctrl_armies[i]) {
+					if(e == army.id) {
+						ctrl_str += "(" + std::to_string(i) + ")";
+						break;
+					}
+				}
+			}
+			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, army.get_location_from_army_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
@@ -357,7 +366,16 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
+			std::string ctrl_str = "";
+			for(uint32_t i = 0; i < uint32_t(state.ctrl_navies.size()); i++) {
+				for(const auto e : state.ctrl_navies[i]) {
+					if(e == navy.id) {
+						ctrl_str += "(" + std::to_string(i) + ")";
+						break;
+					}
+				}
+			}
+			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, navy.get_location_from_navy_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
