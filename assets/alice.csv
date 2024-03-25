@@ -1628,6 +1628,7 @@ alice_wg_condition_5;Satisfies triggers for wargoal
 alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
+alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
 alice_mvcap_3;At peace
