@@ -315,6 +315,7 @@ public:
 			auto n = state.world.province_get_nation_from_province_ownership(p);
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
+			text::add_line_break_to_layout_box(state, contents, box);
 			if(state.world.modifier_get_desc(mod.mod_id)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
