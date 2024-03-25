@@ -450,7 +450,7 @@ public:
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
 			auto btn = make_element_by_type<province_move_capital_button>(state, id);
-			btn->base_data.position.x -= btn->base_data.size.x;
+			btn->base_data.position.x -= btn->base_data.size.x * 2;
 			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
@@ -1330,8 +1330,6 @@ public:
 	}
 };
 
-
-
 class province_view_statistics : public window_element_base {
 private:
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
@@ -1497,6 +1495,19 @@ public:
 	}
 };
 
+class merge_rally_point : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		disabled = true;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_merge_rally_point_why");
+	}
+};
 
 class province_view_buildings : public window_element_base {
 public:
@@ -1555,18 +1566,15 @@ public:
 		} else if(name == "navy_progress") {
 			return make_element_by_type<province_navy_progress>(state, id);
 		} else if(name == "rallypoint_checkbox") {
-			return make_element_by_type< land_rally_point>(state, id);
+			return make_element_by_type<land_rally_point>(state, id);
 		} else if(name == "rallypoint_checkbox_naval") {
-			return make_element_by_type< naval_rally_point>(state, id);
-		} else if(name == "rallypoint_merge_icon"
-			|| name == "rallypoint_merge_icon_naval"
-			|| name == "rallypoint_merge_checkbox"
-			|| name == "rallypoint_merge_checkbox_naval"
-			|| name == "army_text"
+			return make_element_by_type<naval_rally_point>(state, id);
+		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
+			return make_element_by_type<merge_rally_point>(state, id);
+		} else if(name == "army_text"
 			|| name == "navy_text"
 			|| name == "build_army"
-			|| name == "build_navy"
-			|| name == "navy_icon") {
+			|| name == "build_navy") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;

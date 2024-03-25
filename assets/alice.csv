@@ -110,7 +110,10 @@ lg_max_mapmode_38;High amount
 lg_max_mapmode_39;Rich CTC ratio
 lg_max_mapmode_40;High life rating
 lg_max_mapmode_44;High regiment count
-alice_mmtt_34;Player: $x$
+alice_mmtt_34;Player: $x$ 
+alice_mmtt_34_you_sp;This is you! 
+alice_mmtt_34_you;Player: $x$ (This is you!) 
+alice_mmtt_34_ai;AI controlled
 alice_mmtt_35;Life needs satisfied: $x$
 alice_mmtt_36;Everyday needs satisfied: $x$
 alice_mmtt_37;Luxury needs satisfied: $x$
@@ -1628,6 +1631,9 @@ alice_wg_condition_5;Satisfies triggers for wargoal
 alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
+alice_pvid_id;Province Id:
+alice_pvid_tag;Tag:
+alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
 alice_mvcap_3;At peace
