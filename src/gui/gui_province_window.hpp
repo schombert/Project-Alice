@@ -1330,8 +1330,6 @@ public:
 	}
 };
 
-
-
 class province_view_statistics : public window_element_base {
 private:
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
