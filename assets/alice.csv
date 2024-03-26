@@ -1541,6 +1541,7 @@ alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+alice_domestic_investment_button;Investing in individual projects is §Rdeprecated§W, use the §Ydomestic investment§W slider on the budget screen instead
 alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
 alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
 alice_budget_setting_percent;Set at $perc$.
