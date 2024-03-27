@@ -71,4 +71,6 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a);
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a);
 float estimate_rebel_strength(sys::state& state, dcon::province_id p);
 
+void perform_foreign_investments(sys::state& state);
+
 }
