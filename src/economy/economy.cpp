@@ -3116,8 +3116,7 @@ void daily_update(sys::state& state) {
 		ve::vectorizable_buffer<float, dcon::pop_type_id> ln_max = state.world.pop_type_make_vectorizable_float_buffer();
 		ve::vectorizable_buffer<float, dcon::pop_type_id> en_max = state.world.pop_type_make_vectorizable_float_buffer();
 		ve::vectorizable_buffer<float, dcon::pop_type_id> lx_max = state.world.pop_type_make_vectorizable_float_buffer();
-
-		static auto effective_prices = state.world.commodity_make_vectorizable_float_buffer();
+		ve::vectorizable_buffer<float, dcon::commodity_id> effective_prices = state.world.commodity_make_vectorizable_float_buffer();
 		populate_effective_prices(state, n, effective_prices);
 
 		uint32_t total_commodities = state.world.commodity_size();
