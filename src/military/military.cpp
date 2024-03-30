@@ -5069,8 +5069,8 @@ void update_land_battles(sys::state& state) {
 		auto attacker_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
-		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
-		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_attacking_general(b));
+		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_defending_general(b));
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -5553,8 +5553,8 @@ void update_naval_battles(sys::state& state) {
 		auto attacker_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
-		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
