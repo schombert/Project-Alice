@@ -239,6 +239,21 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 
 Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
 
+```
+party = {
+	name = "default_fascist_military_junta"
+	start_date = 1836.1.1 #also part of trigger check
+	end_date = 2000.1.1 #same here
+	ideology = fascist
+	#[...]
+	#Example trigger!
+	trigger = {
+		war = yes
+		nationalism_n_imperialism = 1
+	}
+}
+```
+
 ## Government ruler-names
 
 Now you can define ruler names for a specific nation with a specific government type, for example:

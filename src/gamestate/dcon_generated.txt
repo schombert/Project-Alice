@@ -1592,7 +1592,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 18000 }
+	size{ 20000 }
 	tag{ save }
 
 	property{
@@ -3407,6 +3407,14 @@ object {
 	}
 	property {
 		name{ private_investment_effective_fraction }
+		type{ float }
+	}
+	property {
+		name{ private_investment_education }
+		type{ float }
+	}
+	property {
+		name{ private_investment_administration }
 		type{ float }
 	}
 	property {

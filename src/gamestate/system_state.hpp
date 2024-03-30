@@ -554,6 +554,11 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
+
+	//control groups
+	std::array<std::vector<dcon::army_id>, 9> ctrl_armies;
+	std::array<std::vector<dcon::navy_id>, 9> ctrl_navies;
+
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
 

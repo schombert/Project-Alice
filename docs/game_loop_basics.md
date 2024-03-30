@@ -11,15 +11,15 @@ When displaying whether the game is paused, you should show the speed as paused 
 ### Responding to a change in game state
 
 The game state may change as the result of a new day being processed, which is probably the most common case. However, it may also change while the game is paused as the result of player commands (for example, the player adjusting their budget or selecting an event choice). Fortunately, this difference is largely irrelevant to the ui. Before starting to render a new frame we do the following:
-```
+```c++
 auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
-	if(game_state_was_updated) {
-		ui_state.units_root->impl_on_update(*this);
-		ui_state.rgos_root->impl_on_update(*this);
-		ui_state.root->impl_on_update(*this);
-		// TODO map needs to refresh itself with data
-		// TODO also need to update any tooltips (which probably exist outside the root container)
-	}
+if(game_state_was_updated) {
+	ui_state.units_root->impl_on_update(*this);
+	ui_state.rgos_root->impl_on_update(*this);
+	ui_state.root->impl_on_update(*this);
+	// TODO map needs to refresh itself with data
+	// TODO also need to update any tooltips (which probably exist outside the root container)
+}
 ```
 The part that is currently updated pushes an `update` message through the ui hierarchy, and any properly implemented control will respond to it by updating any data it is storing locally from the game state, recreating its text content if necessary, and so on. Also necessary, but currently unimplemented, the map will have to update the data it is basing the current map mode off of, and tooltips, which are likely stored in a different ui root container, will have to be updated as well.
 
@@ -36,7 +36,7 @@ In addition to just informing the ui that things have changed and that it needs 
 Each of these are passed to the ui via a queue that is a member of `sys::state`. The ui should empty these queues as soon as possible (ideally, whenever a new frame is rendered) and place the information into its own internal storage.
 
 The queues that hold new events are, for events:
-```
+```c++
 rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;
 rigtorp::SPSCQueue<event::pending_human_f_n_event> new_f_n_event;
 rigtorp::SPSCQueue<event::pending_human_p_event> new_p_event;
@@ -44,12 +44,12 @@ rigtorp::SPSCQueue<event::pending_human_f_p_event> new_f_p_event;
 ```
 
 For diplomatic requests:
-```
+```c++
 rigtorp::SPSCQueue<diplomatic_message::message> new_requests;
 ```
 
 For general notification messages:
-```
+```c++
 rigtorp::SPSCQueue<notification::message> new_messages;
 ```
 

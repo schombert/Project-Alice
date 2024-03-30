@@ -46,10 +46,10 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 	auto box = text::open_layout_box(contents);
 
 	if(state.cheat_data.show_province_id_tooltip) {
-		text::add_to_layout_box(state, contents, box, std::string_view{ "PROVID: " });
+		text::localised_format_box(state, contents, box, "alice_pvid_id", text::substitution_map{});
 		text::add_to_layout_box(state, contents, box, prov.index());
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, std::string_view{ "TAG: " });
+		text::localised_format_box(state, contents, box, "alice_pvid_tag", text::substitution_map{});
 		text::add_to_layout_box(state, contents, box, nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int()));
 		text::add_divider_to_layout_box(state, contents, box);
 	}
@@ -1111,7 +1111,18 @@ void players_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, state.network_state.map_of_player_names[n.index()].to_string_view());
-			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_34"), sub);
+			if(n == state.local_player_nation) {
+				if(state.network_mode == sys::network_mode_type::single_player) {
+					text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_34_you_sp"), sub);
+				} else {
+					text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_34_you"), sub);
+				}
+			} else if(state.world.nation_get_is_player_controlled(n)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_34"), sub);
+			}
+			if(!state.world.nation_get_is_player_controlled(n)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_34_ai"), sub);
+			}
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1127,7 +1138,7 @@ void life_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
@@ -1147,7 +1158,7 @@ void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& content
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
@@ -1167,7 +1178,7 @@ void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents,
 			total += 1.f;
 		}
 		if(total > 0.f) {
-			float ratio = total / value;
+			float ratio = value / total;
 			auto box = text::open_layout_box(contents);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
@@ -1259,7 +1270,7 @@ void workforce_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 				text::add_to_layout_box(state, contents, box, text::pretty_integer{ int32_t(value) }, text::text_color::yellow);
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::yellow);
-				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ total / value }, text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ value / total }, text::text_color::yellow);
 				text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
 				text::close_layout_box(contents, box);
 			}

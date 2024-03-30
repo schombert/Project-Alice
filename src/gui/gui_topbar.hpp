@@ -495,7 +495,7 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-		set_text(state, text::format_float(militancy / total_pop));
+		set_text(state, text::format_float(total_pop == 0.f ? 0.f : militancy / total_pop));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -539,7 +539,7 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto militancy = state.world.nation_get_demographics(nation_id, demographics::consciousness);
 		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
-		set_text(state, text::format_float(militancy / total_pop));
+		set_text(state, text::format_float(total_pop == 0.f ? 0.f : militancy / total_pop));
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
