@@ -213,7 +213,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		}
 
 		if(total > 0.0f) {
-			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
+			auto rvalue = float(rng::get_random(state, uint32_t((e.index() << 3) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
 				if(opt[i].ai_chance && opt[i].effect) {
 					rvalue -= odds[i] / total;
