@@ -194,16 +194,14 @@ void initialize_needs_weights(sys::state& state, dcon::nation_id n) {
 float need_weight(
 	sys::state& state,
 	dcon::nation_id n,
-	dcon::commodity_id c,
-	ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices
+	dcon::commodity_id c
 ) {
-	return 1 / math::sqrt(effective_prices.get(c));
+	return 1.0f / math::sqrt(std::max(state.world.commodity_get_current_price(c), 0.001f));
 }
 
 void rebalance_needs_weights(
 	sys::state& state,
-	dcon::nation_id n,
-	ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices
+	dcon::nation_id n
 ) {
 	constexpr float need_drift_speed = 0.1f;
 
@@ -214,7 +212,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_life_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				total_weights += weight;
 				count++;
 			}
@@ -223,7 +221,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_life_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights * count;
 				auto& w = state.world.nation_get_life_needs_weights(n, c);
 				w = ideal_weighting * need_drift_speed + w * (1.0f - need_drift_speed);
@@ -241,7 +239,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_everyday_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				total_weights += weight;
 				count++;
 			}
@@ -250,7 +248,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_everyday_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights * count;
 				auto& w = state.world.nation_get_everyday_needs_weights(n, c);
 				w = ideal_weighting * need_drift_speed + w * (1.0f - need_drift_speed);
@@ -268,7 +266,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_luxury_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				total_weights += weight;
 				count++;
 			}
@@ -277,7 +275,7 @@ void rebalance_needs_weights(
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto kf = state.world.commodity_get_key_factory(c);
 			if(state.world.commodity_get_is_luxury_need(c) && (state.world.commodity_get_is_available_from_start(c) || (kf && state.world.nation_get_active_building(n, kf)))) {
-				auto weight = need_weight(state, n, c, effective_prices);
+				auto weight = need_weight(state, n, c);
 				auto ideal_weighting = weight / total_weights * count;
 				auto& w = state.world.nation_get_luxury_needs_weights(n, c);
 				w = ideal_weighting * need_drift_speed + w * (1.0f - need_drift_speed);
@@ -3116,8 +3114,6 @@ void daily_update(sys::state& state) {
 		ve::vectorizable_buffer<float, dcon::pop_type_id> ln_max = state.world.pop_type_make_vectorizable_float_buffer();
 		ve::vectorizable_buffer<float, dcon::pop_type_id> en_max = state.world.pop_type_make_vectorizable_float_buffer();
 		ve::vectorizable_buffer<float, dcon::pop_type_id> lx_max = state.world.pop_type_make_vectorizable_float_buffer();
-		ve::vectorizable_buffer<float, dcon::commodity_id> effective_prices = state.world.commodity_make_vectorizable_float_buffer();
-		populate_effective_prices(state, n, effective_prices);
 
 		uint32_t total_commodities = state.world.commodity_size();
 
@@ -3588,7 +3584,7 @@ void daily_update(sys::state& state) {
 		}
 
 		// shift needs weights
-		rebalance_needs_weights(state, n, effective_prices);
+		rebalance_needs_weights(state, n);
 
 		adjust_artisan_balance(state, n);
 	});

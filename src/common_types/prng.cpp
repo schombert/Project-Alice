@@ -8,7 +8,7 @@ namespace rng {
 uint64_t get_random(sys::state const& state, uint32_t value_in) { // try to populate as many bits of value_in as you can
 	r123::Philox4x32 rng;
 	r123::Philox4x32::ctr_type c = {state.current_date.value, value_in, 0, 0 };
-	r123::Philox4x32::key_type k = {state.game_seed};
+	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23};
 
 	r123::Philox4x32::ctr_type r = rng(c, k);
 
@@ -17,7 +17,7 @@ uint64_t get_random(sys::state const& state, uint32_t value_in) { // try to popu
 uint64_t get_random(sys::state const& state, uint32_t value_in_hi, uint32_t value_in_lo) {
 	r123::Philox4x32 rng;
 	r123::Philox4x32::ctr_type c = {value_in_hi, value_in_lo, 0, 0};
-	r123::Philox4x32::key_type k = {state.game_seed};
+	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23 };
 
 	r123::Philox4x32::ctr_type r = rng(c, k);
 
@@ -27,7 +27,7 @@ random_pair get_random_pair(sys::state const& state, uint32_t value_in) { // eac
 
 	r123::Philox4x32 rng;
 	r123::Philox4x32::ctr_type c = {state.current_date.value, value_in, 0, 0 };
-	r123::Philox4x32::key_type k = {state.game_seed};
+	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23 };
 
 	r123::Philox4x32::ctr_type r = rng(c, k);
 
@@ -37,7 +37,7 @@ random_pair get_random_pair(sys::state const& state, uint32_t value_in_hi, uint3
 
 	r123::Philox4x32 rng;
 	r123::Philox4x32::ctr_type c = {value_in_hi, value_in_lo, 0, 0 };
-	r123::Philox4x32::key_type k = {state.game_seed};
+	r123::Philox4x32::key_type k = {state.game_seed, 0x3918CA23 };
 
 	r123::Philox4x32::ctr_type r = rng(c, k);
 
