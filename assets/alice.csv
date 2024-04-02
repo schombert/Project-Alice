@@ -1633,6 +1633,7 @@ alice_wg_condition_5;Satisfies triggers for wargoal
 alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
+mouse_invert_y_axis_label;Invert Y axis
 alice_pvid_id;Province Id:
 alice_pvid_tag;Tag:
 alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge

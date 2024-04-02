@@ -492,7 +492,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "mouse_edge_scrolling_checkbox"
-				position = {200 115}
+				position = { 204 115}
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Spoilers checkbox
@@ -509,6 +509,22 @@ guiTypes = {
 			guiButtonType = {
 				name = "spoilers_checkbox"
 				position = { 51 260 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Invert Y axis checkbox
+			instantTextBoxType = {
+				name = "mouse_invert_y_axis_label"
+				position = { 220 260 }
+				text = "mouse_invert_y_axis_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mouse_invert_y_axis_checkbox"
+				position = { 204 260 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style

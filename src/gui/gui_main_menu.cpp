@@ -148,6 +148,16 @@ void map_mouse_edge_scrolling::button_action(sys::state& state) noexcept {
 bool map_mouse_edge_scrolling::is_active(sys::state& state) noexcept {
 	return state.user_settings.mouse_edge_scrolling;
 }
+void mouse_invert_y_axis::button_action(sys::state& state) noexcept {
+	state.user_settings.mouse_invert_y_axis = !state.user_settings.mouse_invert_y_axis;
+	send(state, parent, notify_setting_update{});
+}
+bool mouse_invert_y_axis::is_active(sys::state& state) noexcept {
+	return state.user_settings.mouse_invert_y_axis;
+}
+void mouse_invert_y_axis::on_update(sys::state& state) noexcept {
+	disabled = !state.user_settings.mouse_edge_scrolling;
+}
 void tooltip_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.bind_tooltip_mouse = !state.user_settings.bind_tooltip_mouse;
 	send(state, parent, notify_setting_update{});

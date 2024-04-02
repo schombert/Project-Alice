@@ -343,6 +343,10 @@ void map_state::update(sys::state& state) {
 		} else if(mouse_pos_percent.y > 0.98f) {
 			cursor_velocity_vector.y += 1.f;
 		}
+
+		if(state.user_settings.mouse_invert_y_axis) {
+			cursor_velocity_vector.y *= -1.f;
+		}
 	
 		// check if the vector length is not zero before normalizing
 		if(glm::length(cursor_velocity_vector) != 0.0f) {
@@ -352,7 +356,7 @@ void map_state::update(sys::state& state) {
 		}
 	}
 
-	pos_velocity /= 1.125;
+	pos_velocity /= 1.125f;
 
 	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
@@ -409,7 +413,6 @@ void map_state::update(sys::state& state) {
 		pos += pos_before_keyboard_zoom - pos_after_keyboard_zoom;
 	}
 
-
 	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
 	// Rotation axis
 	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
@@ -417,7 +420,6 @@ void map_state::update(sys::state& state) {
 	axis = glm::normalize(axis);
 	axis.y *= -1;
 	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
-
 
 	if(unhandled_province_selection) {
 		map_mode::update_map_mode(state);

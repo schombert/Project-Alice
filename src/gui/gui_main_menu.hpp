@@ -114,6 +114,12 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+class mouse_invert_y_axis : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 
 class tooltip_mode_checkbox : public checkbox_button {
 public:
@@ -262,6 +268,8 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<spoilers_checkbox>(state, id);
 		} else if(name == "mouse_edge_scrolling_checkbox") {
 			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
+		} else if(name == "mouse_invert_y_axis_checkbox") {
+			return make_element_by_type<mouse_invert_y_axis>(state, id);
 		} else {
 			return nullptr;
 		}
