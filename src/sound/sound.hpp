@@ -33,6 +33,8 @@ void start_music(sys::state& state, float v);
 // recieving a notification via a windows event that the current track could be complete
 void update_music_track(sys::state& state);
 void play_new_track(sys::state& state);
+void play_next_track(sys::state& state);
+void play_previous_track(sys::state& state);
 native_string get_current_track_name(sys::state& state);
 
 // returns the default click sound -- expect this list of functions to expand as

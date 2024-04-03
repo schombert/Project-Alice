@@ -179,6 +179,18 @@ void sound_impl::play_new_track(sys::state& ws) {
 		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
 	}
 }
+void sound_impl::play_next_track(sys::state& ws) {
+	if(music_list.size() > 0) {
+		int32_t result = int32_t((last_music + 1) % music_list.size());
+		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
+	}
+}
+void sound_impl::play_previous_track(sys::state& ws) {
+	if(music_list.size() > 0) {
+		int32_t result = int32_t((last_music - 1) % music_list.size());
+		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
+	}
+}
 
 bool sound_impl::music_finished() const {
 	auto const lm = last_music;
@@ -527,6 +539,12 @@ audio_instance& get_random_naval_battle_sound(sys::state& state) {
 
 void play_new_track(sys::state& state) {
 	state.sound_ptr->play_new_track(state);
+}
+void play_next_track(sys::state& state) {
+	state.sound_ptr->play_next_track(state);
+}
+void play_previous_track(sys::state& state) {
+	state.sound_ptr->play_previous_track(state);
 }
 
 native_string get_current_track_name(sys::state& state) {

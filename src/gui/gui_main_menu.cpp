@@ -515,11 +515,11 @@ void interface_volume::on_update(sys::state& state) noexcept {
 
 
 void music_player_left::button_action(sys::state& state) noexcept {
-	sound::play_new_track(state);
+	sound::play_next_track(state);
 	send(state, parent, notify_setting_update{});
 }
 void music_player_right::button_action(sys::state& state) noexcept {
-	sound::play_new_track(state);
+	sound::play_previous_track(state);
 	send(state, parent, notify_setting_update{});
 }
 void music_player_display::on_update(sys::state& state) noexcept {

@@ -64,7 +64,9 @@ public:
 	void set_volume(std::optional<ma_sound>& sound, float volume);
 	void override_sound(std::optional<ma_sound>& sound, audio_instance& s, float volume);
 	void play_music(int32_t track, float volume);
-	void play_new_track(sys::state& s, float v);
+	void play_new_track(sys::state& ws);
+	void play_next_track(sys::state& ws);
+	void play_previous_track(sys::state& ws);
 	bool music_finished();
 };
 
