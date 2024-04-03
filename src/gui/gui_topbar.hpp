@@ -645,7 +645,7 @@ public:
 		for(const auto nv : state.world.nation_get_navy_control_as_controller(n)) {
 			float total = 0.f;
 			for(const auto memb : nv.get_navy().get_navy_membership()) {
-				state.military_definitions.unit_base_definitions[memb.get_ship().get_type()].supply_consumption_score;
+				total += state.military_definitions.unit_base_definitions[memb.get_ship().get_type()].supply_consumption_score;
 			}
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
