@@ -723,6 +723,10 @@ class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_poor_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -738,6 +742,10 @@ class budget_middle_tax_slider : public budget_slider<budget_slider_target::midd
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_middle_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -753,6 +761,10 @@ class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_rich_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -1019,6 +1031,8 @@ class budget_social_spending_slider : public budget_slider<budget_slider_target:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_social_spending(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_social_spending, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_social_spending, true);
 	}
 };
 
@@ -1034,6 +1048,8 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_military_spending(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_military_spending, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_military_spending, true);
 	}
 };
 
@@ -1049,6 +1065,9 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs,
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tariff_efficiency_modifier, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tariff, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tariff, true);
 	}
 };
 
