@@ -843,12 +843,10 @@ void initialize(sys::state& state) {
 	populate_navy_consumption(state);
 	populate_construction_consumption(state);
 
-	auto base_prices = state.world.commodity_make_vectorizable_float_buffer();
-	state.world.for_each_commodity([&](auto id) { base_prices.set(id, state.world.commodity_get_cost(id)); });
-	state.world.for_each_nation([&](dcon::nation_id n) {
-		state.world.nation_set_stockpiles(n, money, 2.0f * full_spending_cost(state, n, base_prices));
-	});
 	state.world.for_each_nation([&](dcon::nation_id n) { populate_effective_prices(state, n); });
+	state.world.for_each_nation([&](dcon::nation_id n) {
+		state.world.nation_set_stockpiles(n, money, 2.0f * full_spending_cost(state, n));
+	});
 }
 
 float sphere_leader_share_factor(sys::state const& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
