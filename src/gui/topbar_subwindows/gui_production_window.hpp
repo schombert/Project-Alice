@@ -741,7 +741,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -785,7 +785,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -839,7 +839,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float output_cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* output_amount;
 
 			text::add_to_layout_box(state, contents, amount, text::fp_two_places{ output_amount });
