@@ -25,12 +25,39 @@ public:
 			if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != category)
 				return;
 			bool discovered = state.world.nation_get_active_technologies(state.local_player_nation, id);
-			auto color = discovered ? text::text_color::green : text::text_color::red;
+			bool can_research = command::can_start_research(state, state.local_player_nation, id);
+			bool is_current = state.world.nation_get_current_research(state.local_player_nation) == id;
+			auto color = discovered
+				? text::text_color::green
+				: (can_research
+					? (is_current
+						? text::text_color::light_blue
+						: text::text_color::red)
+					: text::text_color::light_grey);
 			auto name = fat_id.get_name();
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), color);
 			text::close_layout_box(contents, box);
 		});
+		switch(category) {
+		case culture::tech_category::army:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::army_tech_research_bonus, true);
+			break;
+		case culture::tech_category::commerce:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::commerce_tech_research_bonus, true);
+			break;
+		case culture::tech_category::culture:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::culture_tech_research_bonus, true);
+			break;
+		case culture::tech_category::industry:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
+			break;
+		case culture::tech_category::navy:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
+			break;
+		case culture::tech_category::unknown:
+			break;
+		}
 	}
 };
 
