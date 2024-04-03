@@ -2997,10 +2997,7 @@ void daily_update(sys::state& state) {
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_a);
 	});
 
-	/*
-	add up production, collect taxes and tariffs, other updates purely internal to each nation
-	*/
-#if 0
+	/* add up production, collect taxes and tariffs, other updates purely internal to each nation */
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		auto n = dcon::nation_id{dcon::nation_id::value_base_t(i)};
 
@@ -3446,11 +3443,9 @@ void daily_update(sys::state& state) {
 		}
 
 		// shift needs weights
-		//rebalance_needs_weights(state, n);
-
+		rebalance_needs_weights(state, n);
 		adjust_artisan_balance(state, n);
 	});
-#endif
 
 	/*
 	adjust prices based on global production & consumption
