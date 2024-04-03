@@ -156,66 +156,16 @@ bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-void populate_effective_prices(
-	sys::state& state,
-	dcon::nation_id n,
-	ve::vectorizable_buffer<float, dcon::commodity_id>& effective_prices
-);
-
-
-float factory_min_input_available(
-	sys::state& state,
-	dcon::nation_id n,
-	dcon::factory_type_fat_id fac_type
-);
-float factory_input_total_cost(
-	sys::state& state,
-	dcon::nation_id n,
-	dcon::factory_type_fat_id fac_type,
-	ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices
-);
-float factory_min_e_input_available(
-	sys::state& state,
-	dcon::nation_id n,
-	dcon::factory_type_fat_id fac_type
-);
-float factory_e_input_total_cost(
-	sys::state& state,
-	dcon::nation_id n,
-	dcon::factory_type_fat_id fac_type,
-	ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices
-);
-float factory_input_multiplier(
-	sys::state& state,
-	dcon::factory_fat_id fac,
-	dcon::nation_id n,
-	dcon::province_id p,
-	dcon::state_instance_id s
-);
-float factory_throughput_multiplier(
-	sys::state& state,
-	dcon::factory_type_fat_id fac_type,
-	dcon::nation_id n,
-	dcon::province_id p,
-	dcon::state_instance_id s
-);
-float factory_output_multiplier(
-	sys::state& state,
-	dcon::factory_fat_id fac,
-	dcon::nation_id n,
-	dcon::province_id p
-);
-float factory_max_production_scale(
-	sys::state& state,
-	dcon::factory_fat_id fac,
-	float mobilization_impact,
-	bool occupied,
-	bool overseas
-);
-float factory_desired_raw_profit(
-	dcon::factory_fat_id fac,
-	float spendings
-);
+void populate_effective_prices(sys::state& state, dcon::nation_id n);
+float factory_min_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_min_e_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_e_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_input_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p);
+float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied, bool overseas);
+float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);

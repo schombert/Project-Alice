@@ -659,15 +659,13 @@ class normal_factory_background : public opaque_element_base {
 
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
-
-		static auto effective_prices = state.world.commodity_make_vectorizable_float_buffer();
-		economy::populate_effective_prices(state, n, effective_prices);
+		economy::populate_effective_prices(state, n);
 
 		//inputs
 
-		float input_total = economy::factory_input_total_cost(state, n, type, effective_prices);
+		float input_total = economy::factory_input_total_cost(state, n, type);
 		float min_input_available = economy::factory_min_input_available(state, n, type);
-		float e_input_total = economy::factory_e_input_total_cost(state, n, type, effective_prices);
+		float e_input_total = economy::factory_e_input_total_cost(state, n, type);
 		float min_e_input_available = economy::factory_min_e_input_available(state, n, type);
 
 		//modifiers
@@ -743,7 +741,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -787,7 +785,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -841,7 +839,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float output_cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* output_amount;
 
 			text::add_to_layout_box(state, contents, amount, text::fp_two_places{ output_amount });

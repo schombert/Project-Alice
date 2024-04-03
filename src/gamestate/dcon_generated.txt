@@ -3517,6 +3517,11 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ effective_prices }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ stockpiles }
 		type{ array{commodity_id}{float} }
 		tag{ save }
