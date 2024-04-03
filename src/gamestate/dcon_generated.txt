@@ -3519,6 +3519,7 @@ object {
 	property {
 		name{ effective_prices }
 		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ stockpiles }
