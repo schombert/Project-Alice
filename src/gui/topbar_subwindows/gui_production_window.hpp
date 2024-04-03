@@ -659,8 +659,6 @@ class normal_factory_background : public opaque_element_base {
 
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
-
-		static auto effective_prices = state.world.commodity_make_vectorizable_float_buffer();
 		economy::populate_effective_prices(state, n);
 
 		//inputs

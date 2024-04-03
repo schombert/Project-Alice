@@ -89,8 +89,7 @@ int32_t previous_price_record_index(sys::state& state) {
 	return ((state.current_date.value >> 4) + price_history_length - 1) % price_history_length;
 }
 
-float full_spending_cost(sys::state& state, dcon::nation_id n,
-		ve::vectorizable_buffer<float, dcon::commodity_id> const& effective_prices);
+float full_spending_cost(sys::state& state, dcon::nation_id n);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
 void populate_construction_consumption(sys::state& state);
@@ -2032,15 +2031,12 @@ void populate_private_construction_consumption(sys::state& state) {
 }
 
 float full_spending_cost(sys::state& state, dcon::nation_id n) {
-
 	float total = 0.0f;
-	float military_total = 0;
-
+	float military_total = 0.f;
 	uint32_t total_commodities = state.world.commodity_size();
 	float l_spending = float(state.world.nation_get_land_spending(n)) / 100.0f;
 	float n_spending = float(state.world.nation_get_naval_spending(n)) / 100.0f;
 	float c_spending = float(state.world.nation_get_construction_spending(n)) / 100.0f;
-
 	for(uint32_t i = 1; i < total_commodities; ++i) {
 		dcon::commodity_id cid{dcon::commodity_id::value_base_t(i)};
 		auto v = state.world.nation_get_army_demand(n, cid) * l_spending * state.world.nation_get_effective_prices(n, cid);
