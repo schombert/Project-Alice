@@ -1560,7 +1560,8 @@ alice_factory_inputs;Inputs required:
 alice_factory_input_item;刪$cost$劬 - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce 即$x$劬
 alice_factory_total_bonus;This sums to about 即$x$劬
-alice_slider_controls;即Left-Click劬 to increment by 1, 即SHIFT-Left-Click劬 to increment by 10, 即SHIFT-Right-Click劬 to increment to max
+alice_slider_controls;即Left-Click劬 to increment by 即$value$劬\n即SHIFT-Left-Click劬 to increment by 即$x$劬\n即SHIFT-Right-Click劬 to increment to maximum
+alice_slider_controls_2;即Left-Click劬 to decrement by 即$value$劬\n即SHIFT-Left-Click劬 to decrement by 即$x$劬\n即SHIFT-Right-Click劬 to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
@@ -1625,6 +1626,8 @@ alice_political_party_trigger;Only available from 即$date_long_0$劬 to 即$date_l
 alice_political_party_no_trigger;Only available from 即$date_long_0$劬 to 即$date_long_1$劬
 alice_ai_decision;AI's chance of choosing this decision will depend on:
 alice_ctrl_group;Press 即CTRL-1劬 thru 即CTRL-9劬 to assign/unassign this unit to a control group, which you can then press 即1劬 thru 即9劬 to select
+alice_navy_allocation_tt;With 即$curr$劬 ships, we accumulate a total supply throughput of 即$tot$劬, requiring 即$req$劬 for our fleets. A detailed summary of the consumption of each naval fleet:
+alice_navy_allocation_2;$name$: 即$value$劬 (即$perc$劬)
 alice_wg_condition_1;Does not have status quo as a defender
 alice_wg_condition_2;Is in a war with us
 alice_wg_condition_3;Unique wargoal (isn't a duplicate of another wargoal)

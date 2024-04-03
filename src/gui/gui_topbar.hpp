@@ -550,8 +550,8 @@ public:
 		auto con_change = demographics::get_estimated_con_change(state, nation_id);
 		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
 		text::add_to_substitution_map(sub, text::variable_type::avg,
-				text::fp_two_places{total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f});
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{con_change});
+				text::fp_two_places{ total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::consciousness) / total) : 0.f });
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{ con_change });
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_con"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -586,16 +586,16 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::curr,
-				text::fp_one_place{nations::diplomatic_points(state, nation_id)});
+			text::fp_one_place{ nations::diplomatic_points(state, nation_id) });
 
 		// Monthly gain
 		text::add_to_substitution_map(sub, text::variable_type::value,
-				text::fp_one_place{nations::monthly_diplomatic_points(state, nation_id)});
+			text::fp_one_place{ nations::monthly_diplomatic_points(state, nation_id) });
 
 		text::substitution_map sub_base;
 		// Base gain
 		text::add_to_substitution_map(sub_base, text::variable_type::value,
-				text::fp_one_place{state.defines.base_monthly_diplopoints});
+			text::fp_one_place{ state.defines.base_monthly_diplopoints });
 
 		text::localised_format_box(state, contents, box, std::string_view("topbar_diplopoints"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
@@ -632,26 +632,30 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
-
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		{
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, nation_id));
-			text::localised_format_box(state, contents, box, std::string_view("topbar_ship_tooltip"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::add_to_substitution_map(sub, text::variable_type::tot,
-					text::pretty_integer{military::naval_supply_points(state, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::req,
-					text::pretty_integer{military::naval_supply_points_used(state, nation_id)});
-			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_basic"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("supply_load_status_desc_detailed_list"), sub);
+			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, n));
+			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{ military::naval_supply_points(state, n) });
+			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{ military::naval_supply_points_used(state, n) });
+			text::localised_format_box(state, contents, box, std::string_view("alice_navy_allocation_tt"), sub);
 			text::close_layout_box(contents, box);
 		}
+		for(const auto nv : state.world.nation_get_navy_control_as_controller(n)) {
+			float total = 0.f;
+			for(const auto memb : nv.get_navy().get_navy_membership()) {
+				total += state.military_definitions.unit_base_definitions[memb.get_ship().get_type()].supply_consumption_score;
+			}
+			auto box = text::open_layout_box(contents, 0);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(nv.get_navy().get_name()));
+			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{ total });
+			text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage{ military::naval_supply_points(state, n) / total });
+			text::localised_format_box(state, contents, box, std::string_view("alice_navy_allocation_2"), sub);
+			text::close_layout_box(contents, box);
+		}
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_range, true);
 	}
 };
 
@@ -662,43 +666,37 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			auto issue_id = politics::get_issue_by_name(state, std::string_view("war_policy"));
-			int32_t possible_sum = 0;
-			int32_t raised_sum = 0;
-			auto fat_id = dcon::fatten(state.world, nation_id);
-			for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
-				auto prov = prov_own.get_province();
-				possible_sum += military::mobilized_regiments_possible_from_province(state, prov.id);
-			}
-			for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
-				auto prov = prov_own.get_province();
-				raised_sum += military::mobilized_regiments_created_from_province(state, prov.id);
-			}
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub2;
-			text::add_to_substitution_map(sub2, text::variable_type::curr, raised_sum);
-			// TODO - we (might) want to give the value the current war policy provides, though its more transparent perhaps to
-			// just give the NV + Mob. Impact Modifier?
-			text::add_to_substitution_map(sub2, text::variable_type::impact,
-					text::fp_percentage{
-							(state.world.nation_get_modifier_values(nation_id, sys::national_mod_offsets::mobilization_impact))});
-			text::add_to_substitution_map(sub2, text::variable_type::policy, fat_id.get_issues(issue_id).get_name());
-			text::add_to_substitution_map(sub2, text::variable_type::units, possible_sum);
-
-			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_mobilize_tooltip"), text::variable_type::curr,
-					possible_sum);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"), sub2);
-			text::add_line_break_to_layout_box(state, contents, box);
-			text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"), sub2);
-
-			text::close_layout_box(contents, box);
+		auto issue_id = politics::get_issue_by_name(state, std::string_view("war_policy"));
+		int32_t possible_sum = 0;
+		int32_t raised_sum = 0;
+		auto fat_id = dcon::fatten(state.world, n);
+		for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
+			auto prov = prov_own.get_province();
+			possible_sum += military::mobilized_regiments_possible_from_province(state, prov.id);
 		}
+		for(auto prov_own : fat_id.get_province_ownership_as_nation()) {
+			auto prov = prov_own.get_province();
+			raised_sum += military::mobilized_regiments_created_from_province(state, prov.id);
+		}
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub2;
+		text::add_to_substitution_map(sub2, text::variable_type::curr, raised_sum);
+		// TODO - we (might) want to give the value the current war policy provides, though its more transparent perhaps to
+		// just give the NV + Mob. Impact Modifier?
+		text::add_to_substitution_map(sub2, text::variable_type::impact, text::fp_percentage{ (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::mobilization_impact))});
+		text::add_to_substitution_map(sub2, text::variable_type::policy, fat_id.get_issues(issue_id).get_name());
+		text::add_to_substitution_map(sub2, text::variable_type::units, possible_sum);
+		text::localised_single_sub_box(state, contents, box, std::string_view("topbar_mobilize_tooltip"), text::variable_type::curr, possible_sum);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc"), sub2);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, std::string_view("mobilization_impact_limit_desc2"), sub2);
+		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_impact, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mobilization_size, true);
 	}
 };
 
@@ -713,9 +711,8 @@ private:
 		// auto sum =  (fat_pop.get_research_points() * ((state.world.nation_get_demographics(n, demographics::to_key(state,
 		// fat_pop)) / state.world.nation_get_demographics(n, demographics::total)) / fat_pop.get_research_optimum() ));
 		auto sum = ((state.world.nation_get_demographics(n, demographics::to_key(state, pop)) /
-										state.world.nation_get_demographics(n, demographics::total)) /
-								state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
-
+			state.world.nation_get_demographics(n, demographics::total)) /
+			state.world.pop_type_get_research_optimum(state.culture_definitions.officers));
 		return sum;
 	}
 
@@ -725,35 +722,25 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::nation_id{};
-			parent->impl_get(state, payload);
-			auto nation_id = any_cast<dcon::nation_id>(payload);
+		auto n = retrieve<dcon::nation_id>(state, parent);
 
-			auto box = text::open_layout_box(contents, 0);
-			text::substitution_map sub;
-			// text::add_to_substitution_map(sub, text::variable_type::curr, text::fp_one_place{nations::leadership_points(state,
-			// nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::poptype,
-					state.world.pop_type_get_name(state.culture_definitions.officers));
-			text::add_to_substitution_map(sub, text::variable_type::value,
-					text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.officers, nation_id)});
-			text::add_to_substitution_map(sub, text::variable_type::fraction,
-					text::fp_two_places{
-							(state.world.nation_get_demographics(nation_id, demographics::to_key(state, state.culture_definitions.officers)) /
-									state.world.nation_get_demographics(nation_id, demographics::total)) *
-							100});
-			text::add_to_substitution_map(sub, text::variable_type::optimal,
-					text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
-			text::localised_format_box(state, contents, box, std::string_view("tech_daily_leadership_tooltip"),
-					sub); // Hey, dont fucking change CSV values into completely invalid
-								// ones, the previously commented out CSV key was commented out
-								// for good reason
-			text::close_layout_box(contents, box);
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::poptype,
+			state.world.pop_type_get_name(state.culture_definitions.officers));
+		text::add_to_substitution_map(sub, text::variable_type::value,
+			text::fp_two_places{getResearchPointsFromPop(state, state.culture_definitions.officers, n)});
+		text::add_to_substitution_map(sub, text::variable_type::fraction,
+			text::fp_percentage{
+				state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.officers)) /
+				state.world.nation_get_demographics(n, demographics::total) });
+		text::add_to_substitution_map(sub, text::variable_type::optimal,
+			text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
+		text::localised_format_box(state, contents, box, std::string_view("tech_daily_leadership_tooltip"), sub);
+		text::close_layout_box(contents, box);
 
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership, false);
-			active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::leadership_modifier, false);
-		}
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::leadership, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::leadership_modifier, true);
 	}
 };
 

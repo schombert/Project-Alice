@@ -849,7 +849,12 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "alice_slider_controls");
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::value, step_size);
+		text::add_to_substitution_map(sub, text::variable_type::x, step_size * 5);
+		text::localised_format_box(state, contents, box, std::string_view("alice_slider_controls"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -865,7 +870,12 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "alice_slider_controls");
+		auto box = text::open_layout_box(contents, 0);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::value, step_size);
+		text::add_to_substitution_map(sub, text::variable_type::x, step_size * 5);
+		text::localised_format_box(state, contents, box, std::string_view("alice_slider_controls_2"), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
