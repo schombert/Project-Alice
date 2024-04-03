@@ -16,6 +16,15 @@ public:
 	}
 };
 
+class commodity_effective_price_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto c = retrieve<dcon::commodity_id>(state, parent);
+		set_text(state, text::format_money(state.world.nation_get_effective_prices(n, c)));
+	}
+};
+
 class commodity_player_availability_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -338,12 +347,14 @@ public:
 		} else if(sat >= 1.f) {
 			text::add_line(state, contents, "alice_commodity_surplus");
 		}
+		text::add_line(state, contents, "alice_commodity_cprice", text::variable_type::x, text::format_money(state.world.commodity_get_current_price(com)));
+		text::add_line(state, contents, "alice_commodity_cost", text::variable_type::x, text::format_money(state.world.commodity_get_cost(com)));
+		text::add_line(state, contents, "alice_commodity_eprice", text::variable_type::x, text::format_money(state.world.nation_get_effective_prices(state.local_player_nation, com)));
 
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_real_demand(com) });
 		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
 		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_global_market_pool(com) });
-
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "trade_top_producers");
 
@@ -351,15 +362,23 @@ public:
 			float v = 0.0f;
 			dcon::nation_id n;
 		};
-
 		static std::vector<tagged_value> producers;
 		producers.clear();
 		for(auto n : state.world.in_nation) {
-			producers.push_back(tagged_value{ n.get_domestic_market_pool(com), n.id });
+			if(n.get_domestic_market_pool(com) >= 0.05f) {
+				producers.push_back(tagged_value{ n.get_domestic_market_pool(com), n.id });
+			}
 		}
-		std::sort(producers.begin(), producers.end(), [](auto const& a, auto const& b) { return a.v > b.v; });
-		for(uint32_t i = 0; i < producers.size() && i < 5; ++i) {
-			if(producers[i].v >= 0.05f) {
+		if(producers.size() > 0) {
+			std::sort(producers.begin(), producers.end(), [](auto const& a, auto const& b) { return a.v > b.v; });
+			{
+				auto box = text::open_layout_box(contents, 0);
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::value, int32_t(producers.size()));
+				text::localised_format_box(state, contents, box, "alice_trade_top_producers", sub);
+				text::close_layout_box(contents, box);
+			}
+			for(uint32_t i = 0; i < producers.size() && i < state.defines.great_nations_count; ++i) {
 				auto box = text::open_layout_box(contents, 15);
 				std::string tag_str = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(producers[i].n)));
 				text::add_to_layout_box(state, contents, box, tag_str);
@@ -369,34 +388,36 @@ public:
 				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
 				text::close_layout_box(contents, box);
 			}
-		}
 
-		text::add_line_break_to_layout(state, contents);
-		{
-			float a_total = 0.0f;
-			float r_total = 0.0f;
-			float f_total = 0.0f;
-			for(auto p : state.world.in_province) {
-				if(p.get_nation_from_province_ownership()) {
-					if(p.get_rgo() == com)
-						r_total += p.get_rgo_actual_production();
+			text::add_line_break_to_layout(state, contents);
+			{
+				float a_total = 0.0f;
+				float r_total = 0.0f;
+				float f_total = 0.0f;
+				for(auto p : state.world.in_province) {
+					if(p.get_nation_from_province_ownership()) {
+						if(p.get_rgo() == com)
+							r_total += p.get_rgo_actual_production();
+					}
 				}
-			}
-			for(auto n : state.world.in_nation) {
-				a_total += state.world.nation_get_artisan_actual_production(n, com);
-			}
-			for(auto f : state.world.in_factory) {
-				if(f.get_building_type().get_output() == com)
-					f_total += f.get_actual_production();
+				for(auto n : state.world.in_nation) {
+					a_total += state.world.nation_get_artisan_actual_production(n, com);
+				}
+				for(auto f : state.world.in_factory) {
+					if(f.get_building_type().get_output() == com)
+						f_total += f.get_actual_production();
+				}
+
+				text::add_line(state, contents, "w_rgo_prod", text::variable_type::x, text::fp_one_place{ r_total });
+				text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
+				text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 			}
 
-			text::add_line(state, contents, "w_rgo_prod", text::variable_type::x, text::fp_one_place{r_total});
-			text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
-			text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
+			text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
+			text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+		} else {
+			text::add_line(state, contents, "alice_trade_no_producers");
 		}
-
-		text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-		text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
 	}
 };
 
@@ -466,6 +487,9 @@ public:
 		} else if(name == "goods_type") {
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "price") {
+			auto ptr = make_element_by_type<commodity_effective_price_text>(state, id);
+			ptr->base_data.position.y += ptr->base_data.size.y;
+			add_child_to_front(std::move(ptr));
 			return make_element_by_type<commodity_price_text>(state, id);
 		} else if(name == "trend_indicator") {
 			return make_element_by_type<commodity_price_trend>(state, id);

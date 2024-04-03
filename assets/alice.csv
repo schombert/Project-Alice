@@ -1621,6 +1621,11 @@ current_supply_text2;The amount we could get of our current supply consumption w
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_commodity_cprice;Current price: $x$
+alice_commodity_cost;Cost: $x$
+alice_commodity_eprice;Effective price: $x$
+alice_trade_top_producers;Top §Y$value$§W producers:
+alice_trade_no_producers;§RNobody is producing this commodity§W
 alice_political_party_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W, and satisfying the following trigger:
 alice_political_party_no_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W
 alice_ai_decision;AI's chance of choosing this decision will depend on:
