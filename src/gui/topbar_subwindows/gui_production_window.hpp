@@ -1215,9 +1215,9 @@ public:
 		for(int16_t factory_index = 0; factory_index < int16_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state,
 					state.ui_state.defs_by_name.find("factory_info")->second.definition);
-			ptr->index = factory_index;
+			ptr->index = uint8_t(factory_index);
 			ptr->base_data.position.x = (factory_index % num_cols) * ptr->base_data.size.x;
-			ptr->base_data.position.y += std::max(0, (((factory_index + num_cols - 1) / num_cols) * (ptr->base_data.size.y - 26)) - 1);
+			ptr->base_data.position.y += std::max<int16_t>(0, (((factory_index + num_cols - 1) / num_cols) * (ptr->base_data.size.y - 26)) - 1);
 			infos.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
