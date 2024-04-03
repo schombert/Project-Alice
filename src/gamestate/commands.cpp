@@ -4292,6 +4292,9 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	m.target = target;
 	m.body = std::string(body);
 	post_chat_message(state, m);
+
+	// TODO: Perhaps move it to another place in the code? -- Doesn't seem fitting here!
+	sound::play_interface_sound(state, sound::get_chat_message_sound(state), state.user_settings.interface_volume);
 }
 
 void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {

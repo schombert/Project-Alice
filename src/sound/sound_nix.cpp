@@ -324,6 +324,9 @@ audio_instance& get_accept_sound(sys::state& state) {
 audio_instance& get_diplomatic_request_sound(sys::state& state) {
 	return state.sound_ptr->diplomatic_request_sound;
 }
+audio_instance& get_chat_message_sound(sys::state& state) {
+	return state.sound_ptr->chat_message_sound;
+}
 
 audio_instance& get_random_land_battle_sound(sys::state& state) {
 	return state.sound_ptr->land_battle_sounds[int32_t(std::rand() % 6)];
