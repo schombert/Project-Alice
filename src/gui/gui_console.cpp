@@ -57,6 +57,7 @@ struct command_info {
 		instant_army,
 		instant_industry,
 		innovate,
+		daily_oos_check,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -197,6 +198,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "doos", command_info::type::daily_oos_check, "Toggles daily OOS check ON/OFF",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "addpop", command_info::type::add_population, "Add a certain ammount of population to your nation",
@@ -1557,6 +1561,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::next_song:
 	{
 		sound::play_new_track(state);
+		break;
+	}
+	case command_info::type::daily_oos_check:
+	{
+		state.user_settings.daily_oos_check = not state.user_settings.daily_oos_check;
+		log_to_console(state, parent, state.user_settings.daily_oos_check ? "Enabled" : "Disabled");
 		break;
 	}
 	case command_info::type::add_population:
