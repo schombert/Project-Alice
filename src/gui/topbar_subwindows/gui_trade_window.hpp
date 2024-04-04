@@ -381,33 +381,52 @@ public:
 				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
 				text::close_layout_box(contents, box);
 			}
-
 			text::add_line_break_to_layout(state, contents);
-			{
-				float a_total = 0.0f;
-				float r_total = 0.0f;
-				float f_total = 0.0f;
-				for(auto p : state.world.in_province) {
-					if(p.get_nation_from_province_ownership()) {
-						if(p.get_rgo() == com)
-							r_total += p.get_rgo_actual_production();
-					}
+			float r_total = 0.0f;
+			for(auto p : state.world.in_province) {
+				if(p.get_nation_from_province_ownership()) {
+					if(p.get_rgo() == com)
+						r_total += p.get_rgo_actual_production();
 				}
-				for(auto n : state.world.in_nation) {
-					a_total += state.world.nation_get_artisan_actual_production(n, com);
-				}
-				for(auto f : state.world.in_factory) {
-					if(f.get_building_type().get_output() == com)
-						f_total += f.get_actual_production();
-				}
-
-				text::add_line(state, contents, "w_rgo_prod", text::variable_type::x, text::fp_one_place{ r_total });
-				text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
-				text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 			}
-
-			text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-			text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+			float a_total = 0.0f;
+			for(auto n : state.world.in_nation) {
+				a_total += state.world.nation_get_artisan_actual_production(n, com);
+			}
+			float f_total = 0.0f;
+			for(auto f : state.world.in_factory) {
+				if(f.get_building_type().get_output() == com)
+					f_total += f.get_actual_production();
+			}
+			float total = r_total + a_total + f_total;
+			if(r_total > 0.f) {
+				if(com == economy::money) {
+					text::add_line(state, contents, "alice_rgo_trade_prod_3",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ total / r_total });
+				} else if(state.world.commodity_get_is_mine(com)) {
+					text::add_line(state, contents, "alice_rgo_trade_prod_2",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ total / r_total });
+				} else {
+					text::add_line(state, contents, "alice_rgo_trade_prod_1",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ total / r_total });
+				}
+			}
+			if(a_total > 0.f) {
+				text::add_line(state, contents, "alice_artisan_trade_prod",
+					text::variable_type::x, text::fp_one_place{ a_total },
+					text::variable_type::y, text::fp_percentage{ total / a_total });
+				text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
+				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+			}
+			if(f_total > 0.f) {
+				text::add_line(state, contents, "alice_factory_trade_prod",
+					text::variable_type::x, text::fp_one_place{ f_total },
+					text::variable_type::y, text::fp_percentage{ total / f_total });
+			}
+			text::add_line(state, contents, "alice_all_trade_prod", text::variable_type::x, text::fp_one_place{ total });
 		} else {
 			text::add_line(state, contents, "alice_trade_no_producers");
 		}
