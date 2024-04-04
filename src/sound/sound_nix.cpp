@@ -59,7 +59,7 @@ void sound_impl::play_new_track(sys::state& ws) {
 		for(uint32_t i = 0; i < 16 && result == last_music; i++) {
 			result = int32_t(rand() % music_list.size());
 		}
-		play_music(result, v);
+		play_music(result, ws.user_settings.master_volume * ws.user_settings.music_volume);
 	}
 }
 void sound_impl::play_next_track(sys::state& ws) {
