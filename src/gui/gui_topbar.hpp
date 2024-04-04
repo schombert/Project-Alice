@@ -636,22 +636,25 @@ public:
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::curr, military::naval_supply_points_used(state, n));
+			int32_t num_ships = 0;
+			for(auto nv : state.world.nation_get_navy_control(n)) {
+				num_ships += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
+			text::add_to_substitution_map(sub, text::variable_type::curr, num_ships);
 			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{ military::naval_supply_points(state, n) });
 			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{ military::naval_supply_points_used(state, n) });
 			text::localised_format_box(state, contents, box, std::string_view("alice_navy_allocation_tt"), sub);
 			text::close_layout_box(contents, box);
 		}
 		for(const auto nv : state.world.nation_get_navy_control_as_controller(n)) {
-			float total = 0.f;
+			int32_t total = 0;
 			for(const auto memb : nv.get_navy().get_navy_membership()) {
 				total += state.military_definitions.unit_base_definitions[memb.get_ship().get_type()].supply_consumption_score;
 			}
 			auto box = text::open_layout_box(contents, 0);
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::name, state.to_string_view(nv.get_navy().get_name()));
-			text::add_to_substitution_map(sub, text::variable_type::value, text::fp_two_places{ total });
-			text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage{ military::naval_supply_points(state, n) / total });
+			text::add_to_substitution_map(sub, text::variable_type::value, total);
+			text::add_to_substitution_map(sub, text::variable_type::perc, text::fp_percentage{ float(total) / military::naval_supply_points(state, n) });
 			text::localised_format_box(state, contents, box, std::string_view("alice_navy_allocation_2"), sub);
 			text::close_layout_box(contents, box);
 		}
