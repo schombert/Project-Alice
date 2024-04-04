@@ -4269,6 +4269,8 @@ static void post_chat_message(sys::state& state, ui::chat_message& m) {
 		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
 		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
 			state.ui_state.chat_messages_index = 0;
+		// TODO: Perhaps move it to another place in the code? -- Doesn't seem fitting here! Or is it? Or was it?
+		sound::play_interface_sound(state, sound::get_chat_message_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
 	}
 }
 
