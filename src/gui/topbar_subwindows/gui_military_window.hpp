@@ -44,38 +44,60 @@ public:
 class military_mob_progress_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+		auto n = state.local_player_nation;
+		if(state.world.nation_get_is_mobilized(n) == false) {
 			progress = 0.0f;
 			return;
 		}
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-		if(mob_size <= 0.0f) {
-			progress = 1.0f;
+
+		int32_t total_provinces = 0;
+		for(auto pr : state.world.nation_get_province_ownership(n)) {
+			if(pr.get_province().get_is_colonial())
+				continue;
+			if(pr.get_province().get_nation_from_province_control() != n)
+				continue;
+			if(military::mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
+				continue;
+			total_provinces++;
+		}
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		int32_t rem_provinces = int32_t(schedule_array.size());
+
+		if(total_provinces == 0) {
+			progress = 1.f;
 			return;
 		}
-		progress = std::min(1.0f, mob_rem / mob_size);
+		progress = float(total_provinces - rem_provinces) / float(total_provinces);
 	}
 };
 
 class military_mob_progress_bar_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+		auto n = state.local_player_nation;
+		if(state.world.nation_get_is_mobilized(n) == false) {
 			set_text(state, "0%");
 			return;
 		}
 
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
+		int32_t total_provinces = 0;
+		for(auto pr : state.world.nation_get_province_ownership(n)) {
+			if(pr.get_province().get_is_colonial())
+				continue;
+			if(pr.get_province().get_nation_from_province_control() != n)
+				continue;
+			if(military::mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
+				continue;
+			total_provinces++;
+		}
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		int32_t rem_provinces = int32_t(schedule_array.size());
 
-		if(mob_size <= 0.0f) {
+		if(total_provinces == 0) {
 			set_text(state, "100%");
 			return;
 		}
-		set_text(state, text::format_percentage(std::min(mob_rem / mob_size, 1.0f), 0));
+		set_text(state, text::format_percentage(float(total_provinces - rem_provinces) / float(total_provinces), 0));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
