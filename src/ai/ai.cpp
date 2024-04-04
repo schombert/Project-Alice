@@ -1536,7 +1536,7 @@ bool will_join_crisis_with_offer(sys::state& state, dcon::nation_id n, sys::cris
 	if(offer.target == state.world.nation_get_ai_rival(n))
 		return true;
 	auto offer_bits = state.world.cb_type_get_type_bits(offer.wargoal_type);
-	if((offer_bits & (military::cb_flag::po_colony | military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
+	if((offer_bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex)) != 0)
 		return true;
 	return false;
 }
