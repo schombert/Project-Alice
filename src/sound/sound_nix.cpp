@@ -17,7 +17,7 @@ namespace sound {
 
 sound_impl::sound_impl() {
 	if(ma_engine_init(NULL, &engine) != MA_SUCCESS) {
-		std::abort();
+		std::abort(); //TODO: This shouldn't be a cause for abort
 	}
 }
 
