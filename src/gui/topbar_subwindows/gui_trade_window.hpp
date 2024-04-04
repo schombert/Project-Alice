@@ -203,7 +203,6 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "common_market_entry";
 	}
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -231,13 +230,11 @@ public:
 	}
 };
 
-class trade_government_needs_listbox
-		: public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
+class trade_government_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_government_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "goods_needs_entry";
 	}
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -254,8 +251,7 @@ public:
 	}
 };
 
-class trade_factory_needs_listbox
-		: public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
+class trade_factory_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_factory_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "goods_needs_entry";
@@ -277,13 +273,11 @@ public:
 	}
 };
 
-class trade_pop_needs_listbox
-		: public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
+class trade_pop_needs_listbox : public listbox_element_base<trade_goods_needs_entry<commodity_player_pop_needs_text>, dcon::commodity_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "goods_needs_entry";
 	}
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
@@ -340,18 +334,18 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto com = retrieve<dcon::commodity_id>(state, parent);
 		text::add_line(state, contents, state.world.commodity_get_name(com));
-
-		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
-		if(sat < 0.5f) {
-			text::add_line(state, contents, "alice_commodity_shortage");
-		} else if(sat >= 1.f) {
-			text::add_line(state, contents, "alice_commodity_surplus");
+		if(com != economy::money) {
+			auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
+			if(sat < 0.5f) {
+				text::add_line(state, contents, "alice_commodity_shortage");
+			} else if(sat >= 1.f) {
+				text::add_line(state, contents, "alice_commodity_surplus");
+			}
+			text::add_line(state, contents, "alice_commodity_cprice", text::variable_type::x, text::format_money(state.world.commodity_get_current_price(com)));
+			text::add_line(state, contents, "alice_commodity_cost", text::variable_type::x, text::format_money(state.world.commodity_get_cost(com)));
+			text::add_line(state, contents, "alice_commodity_eprice", text::variable_type::x, text::format_money(state.world.nation_get_effective_prices(state.local_player_nation, com)));
+			text::add_line_break_to_layout(state, contents);
 		}
-		text::add_line(state, contents, "alice_commodity_cprice", text::variable_type::x, text::format_money(state.world.commodity_get_current_price(com)));
-		text::add_line(state, contents, "alice_commodity_cost", text::variable_type::x, text::format_money(state.world.commodity_get_cost(com)));
-		text::add_line(state, contents, "alice_commodity_eprice", text::variable_type::x, text::format_money(state.world.nation_get_effective_prices(state.local_player_nation, com)));
-
-		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "trade_commodity_report_1", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_real_demand(com) });
 		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
 		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_global_market_pool(com) });
@@ -387,33 +381,52 @@ public:
 				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
 				text::close_layout_box(contents, box);
 			}
-
 			text::add_line_break_to_layout(state, contents);
-			{
-				float a_total = 0.0f;
-				float r_total = 0.0f;
-				float f_total = 0.0f;
-				for(auto p : state.world.in_province) {
-					if(p.get_nation_from_province_ownership()) {
-						if(p.get_rgo() == com)
-							r_total += p.get_rgo_actual_production();
-					}
+			float r_total = 0.0f;
+			for(auto p : state.world.in_province) {
+				if(p.get_nation_from_province_ownership()) {
+					if(p.get_rgo() == com)
+						r_total += p.get_rgo_actual_production();
 				}
-				for(auto n : state.world.in_nation) {
-					a_total += state.world.nation_get_artisan_actual_production(n, com);
-				}
-				for(auto f : state.world.in_factory) {
-					if(f.get_building_type().get_output() == com)
-						f_total += f.get_actual_production();
-				}
-
-				text::add_line(state, contents, "w_rgo_prod", text::variable_type::x, text::fp_one_place{ r_total });
-				text::add_line(state, contents, "w_artisan_prod", text::variable_type::x, text::fp_one_place{ a_total });
-				text::add_line(state, contents, "w_fac_prod", text::variable_type::x, text::fp_one_place{ f_total });
 			}
-
-			text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-			text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+			float a_total = 0.0f;
+			for(auto n : state.world.in_nation) {
+				a_total += state.world.nation_get_artisan_actual_production(n, com);
+			}
+			float f_total = 0.0f;
+			for(auto f : state.world.in_factory) {
+				if(f.get_building_type().get_output() == com)
+					f_total += f.get_actual_production();
+			}
+			float total = r_total + a_total + f_total;
+			if(r_total > 0.f) {
+				if(com == economy::money) {
+					text::add_line(state, contents, "alice_rgo_trade_prod_3",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ r_total / total });
+				} else if(state.world.commodity_get_is_mine(com)) {
+					text::add_line(state, contents, "alice_rgo_trade_prod_2",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ r_total / total });
+				} else {
+					text::add_line(state, contents, "alice_rgo_trade_prod_1",
+						text::variable_type::x, text::fp_one_place{ r_total },
+						text::variable_type::y, text::fp_percentage{ r_total / total });
+				}
+			}
+			if(a_total > 0.f) {
+				text::add_line(state, contents, "alice_artisan_trade_prod",
+					text::variable_type::x, text::fp_one_place{ a_total },
+					text::variable_type::y, text::fp_percentage{ a_total / total });
+				text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
+				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+			}
+			if(f_total > 0.f) {
+				text::add_line(state, contents, "alice_factory_trade_prod",
+					text::variable_type::x, text::fp_one_place{ f_total },
+					text::variable_type::y, text::fp_percentage{ f_total / total });
+			}
+			text::add_line(state, contents, "alice_all_trade_prod", text::variable_type::x, text::fp_one_place{ total });
 		} else {
 			text::add_line(state, contents, "alice_trade_no_producers");
 		}
@@ -970,10 +983,9 @@ public:
 		xy_pair cell_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("goods_entry_offset")->second.definition].position;
 		xy_pair offset{0, 0};
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group || id == economy::money)
+			if(sys::commodity_group(state.world.commodity_get_commodity_group(id)) != Group)
 				return;
-			auto ptr =
-					make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
+			auto ptr = make_element_by_type<trade_commodity_entry>(state, state.ui_state.defs_by_name.find("goods_entry")->second.definition);
 			ptr->commodity_id = id;
 			ptr->base_data.position = offset;
 			offset.x += cell_size.x;

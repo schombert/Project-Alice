@@ -1643,6 +1643,12 @@ alice_wg_condition_7;Is constructable wargoal
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
 alice_pvid_id;Province Id:
 alice_pvid_tag;Tag:
+alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
+alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
+alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)
+alice_artisan_trade_prod;Artisan Production: $x$ ($y$)
+alice_factory_trade_prod;Factory Production: $x$ ($y$)
+alice_all_trade_prod;Total Production: $x$
 alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
