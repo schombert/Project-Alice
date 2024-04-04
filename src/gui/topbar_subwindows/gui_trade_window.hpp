@@ -350,7 +350,6 @@ public:
 		text::add_line(state, contents, "trade_commodity_report_2", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_total_production(com) });
 		text::add_line(state, contents, "trade_commodity_report_4", text::variable_type::x, text::fp_one_place{ state.world.commodity_get_global_market_pool(com) });
 		text::add_line_break_to_layout(state, contents);
-		text::add_line(state, contents, "trade_top_producers");
 
 		struct tagged_value {
 			float v = 0.0f;
@@ -368,7 +367,7 @@ public:
 			{
 				auto box = text::open_layout_box(contents, 0);
 				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::value, int32_t(producers.size()));
+				text::add_to_substitution_map(sub, text::variable_type::value, std::min(int32_t(state.defines.great_nations_count), int32_t(producers.size())));
 				text::localised_format_box(state, contents, box, "alice_trade_top_producers", sub);
 				text::close_layout_box(contents, box);
 			}
@@ -482,7 +481,7 @@ public:
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "price") {
 			auto ptr = make_element_by_type<commodity_effective_price_text>(state, id);
-			ptr->base_data.position.y += ptr->base_data.size.y;
+			ptr->base_data.position.y += ptr->base_data.size.y / 2;
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<commodity_price_text>(state, id);
 		} else if(name == "trend_indicator") {
