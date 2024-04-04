@@ -57,6 +57,7 @@ struct command_info {
 		instant_army,
 		instant_industry,
 		innovate,
+		daily_oos_check,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -206,6 +207,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
@@ -1582,6 +1586,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		command::c_instant_industry(state, state.local_player_nation);
 		log_to_console(state, parent, state.cheat_data.instant_industry ? "\xA7GEnabled" : "\xA7RDisabled");
+		break;
+	}
+	case command_info::type::daily_oos_check:
+	{
+		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
+		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\xA7GEnabled" : "\xA7RDisabled");
 		break;
 	}
 	case command_info::type::innovate:
