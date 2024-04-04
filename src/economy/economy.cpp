@@ -3872,9 +3872,8 @@ float pop_income(sys::state& state, dcon::pop_id p) {
 		return 0.0f;
 
 	auto owner = nations::owner_of_pop(state, p);
-	auto const tax_eff = nations::tax_efficiency(state, n);
+	auto const tax_eff = nations::tax_efficiency(state, owner);
 	auto strata = culture::pop_strata(state.world.pop_type_get_strata(state.world.pop_get_poptype(p)));
-
 	switch(strata) {
 	default:
 	case culture::pop_strata::poor:
