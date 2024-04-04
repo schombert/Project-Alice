@@ -403,28 +403,28 @@ public:
 				if(com == economy::money) {
 					text::add_line(state, contents, "alice_rgo_trade_prod_3",
 						text::variable_type::x, text::fp_one_place{ r_total },
-						text::variable_type::y, text::fp_percentage{ total / r_total });
+						text::variable_type::y, text::fp_percentage{ r_total / total });
 				} else if(state.world.commodity_get_is_mine(com)) {
 					text::add_line(state, contents, "alice_rgo_trade_prod_2",
 						text::variable_type::x, text::fp_one_place{ r_total },
-						text::variable_type::y, text::fp_percentage{ total / r_total });
+						text::variable_type::y, text::fp_percentage{ r_total / total });
 				} else {
 					text::add_line(state, contents, "alice_rgo_trade_prod_1",
 						text::variable_type::x, text::fp_one_place{ r_total },
-						text::variable_type::y, text::fp_percentage{ total / r_total });
+						text::variable_type::y, text::fp_percentage{ r_total / total });
 				}
 			}
 			if(a_total > 0.f) {
 				text::add_line(state, contents, "alice_artisan_trade_prod",
 					text::variable_type::x, text::fp_one_place{ a_total },
-					text::variable_type::y, text::fp_percentage{ total / a_total });
+					text::variable_type::y, text::fp_percentage{ a_total / total });
 				text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
 				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
 			}
 			if(f_total > 0.f) {
 				text::add_line(state, contents, "alice_factory_trade_prod",
 					text::variable_type::x, text::fp_one_place{ f_total },
-					text::variable_type::y, text::fp_percentage{ total / f_total });
+					text::variable_type::y, text::fp_percentage{ f_total / total });
 			}
 			text::add_line(state, contents, "alice_all_trade_prod", text::variable_type::x, text::fp_one_place{ total });
 		} else {
