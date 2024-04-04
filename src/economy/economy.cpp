@@ -3377,7 +3377,7 @@ void daily_update(sys::state& state) {
 		collect taxes
 		*/
 
-		auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+		auto const tax_eff = nations::tax_efficiency(state, n);
 
 		float total_poor_tax_base = 0.0f;
 		float total_mid_tax_base = 0.0f;
@@ -3535,7 +3535,7 @@ void daily_update(sys::state& state) {
 				}
 			}
 			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {
-				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + n.get_modifier_values(sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+				auto const tax_eff = nations::tax_efficiency(state, n);
 				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
@@ -3867,14 +3867,12 @@ float nation_total_imports(sys::state& state, dcon::nation_id n) {
 }
 
 float pop_income(sys::state& state, dcon::pop_id p) {
-
 	auto saved = state.world.pop_get_savings(p);
-
 	if(saved <= 0.0f)
 		return 0.0f;
 
 	auto owner = nations::owner_of_pop(state, p);
-	auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+	auto const tax_eff = nations::tax_efficiency(state, n);
 	auto strata = culture::pop_strata(state.world.pop_type_get_strata(state.world.pop_get_poptype(p)));
 
 	switch(strata) {
@@ -3957,16 +3955,14 @@ float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, 
 }
 
 float estimate_tax_income_by_strata(sys::state& state, dcon::nation_id n, culture::pop_strata ps) {
-	auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
-
 	switch(ps) {
 	default:
 	case culture::pop_strata::poor:
-		return state.world.nation_get_total_poor_income(n) * tax_eff;
+		return state.world.nation_get_total_poor_income(n) * nations::tax_efficiency(state, n);
 	case culture::pop_strata::middle:
-		return state.world.nation_get_total_middle_income(n) * tax_eff;
+		return state.world.nation_get_total_middle_income(n) * nations::tax_efficiency(state, n);
 	case culture::pop_strata::rich:
-		return state.world.nation_get_total_rich_income(n) * tax_eff;
+		return state.world.nation_get_total_rich_income(n) * nations::tax_efficiency(state, n);
 	}
 }
 
@@ -3986,25 +3982,19 @@ float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n) {
 }
 float estimate_reparations_income(sys::state& state, dcon::nation_id n) {
 	float total = 0.0f;
-
 	if(state.current_date < state.world.nation_get_reparations_until(n)) {
 		for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
 			if(uni.get_reparations()) {
 				auto source = uni.get_source();
-				auto const tax_eff =
-					std::clamp(
-					state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(source, sys::national_mod_offsets::tax_efficiency),
-					0.1f, 1.0f);
+				auto const tax_eff = nations::tax_efficiency(state, n);
 				auto total_tax_base = state.world.nation_get_total_rich_income(source) +
 					state.world.nation_get_total_middle_income(source) +
 					state.world.nation_get_total_poor_income(source);
-
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
 				total += payout;
 			}
 		}
 	}
-
 	return total;
 }
 
@@ -4022,19 +4012,16 @@ float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n) {
 
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 	float total = 0.0f;
-
 	if(state.current_date < state.world.nation_get_reparations_until(n)) {
 		for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
 			if(uni.get_reparations()) {
-				auto const tax_eff = std::clamp(state.defines.base_country_tax_efficiency + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f);
+				auto const tax_eff = nations::tax_efficiency(state, n);
 				auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
-
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
 				total += payout;
 			}
 		}
 	}
-
 	return total;
 }
 
@@ -4573,11 +4560,7 @@ void resolve_constructions(sys::state& state) {
  * return value is passed directly into text::fp_currency{} without adulteration.
  */
 float estimate_daily_income(sys::state& state, dcon::nation_id n) {
-	auto const tax_eff = std::clamp(
-		state.defines.base_country_tax_efficiency
-		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency), 0.1f, 1.0f
-	);
-
+	auto const tax_eff = nations::tax_efficiency(state, n);
 	return (
 		state.world.nation_get_total_poor_income(n) * state.world.nation_get_poor_tax(n) / 100.f
 		+ state.world.nation_get_total_middle_income(n) * state.world.nation_get_middle_tax(n) / 100.f
