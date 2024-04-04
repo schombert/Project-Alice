@@ -639,6 +639,7 @@ public:
 			int32_t num_ships = 0;
 			for(auto nv : state.world.nation_get_navy_control(n)) {
 				num_ships += int32_t(nv.get_navy().get_navy_membership().end() - nv.get_navy().get_navy_membership().begin());
+			}
 			text::add_to_substitution_map(sub, text::variable_type::curr, num_ships);
 			text::add_to_substitution_map(sub, text::variable_type::tot, text::pretty_integer{ military::naval_supply_points(state, n) });
 			text::add_to_substitution_map(sub, text::variable_type::req, text::pretty_integer{ military::naval_supply_points_used(state, n) });
