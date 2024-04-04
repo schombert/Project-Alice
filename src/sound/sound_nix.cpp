@@ -248,10 +248,7 @@ void stop_music(sys::state& state) {
 void start_music(sys::state& state, float v) {
 	if(v > 0.0f && state.sound_ptr->music_list.size() != 0) {
 		if(state.sound_ptr->first_music != -1) {
-			state.sound_ptr->music_played[first_music] = true;
-			audio_instance audio{};
-			audio.filename = music_list[first_music].filename.c_str();
-			state.sound_ptr->override_sound(state.sound_ptr->music, audio, v);
+			state.sound_ptr->play_music(first_music, v);
 		} else {
 			if(state.sound_ptr->music.has_value()) {
 				ma_sound_start(&*state.sound_ptr->music);
