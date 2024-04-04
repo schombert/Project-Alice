@@ -1066,7 +1066,7 @@ float tariff_efficiency(sys::state& state, dcon::nation_id n) {
 
 float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
-	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.01f, 1.f);
+	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.1f, 1.f);
 }
 
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
