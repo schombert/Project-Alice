@@ -513,7 +513,7 @@ void interface_volume::on_update(sys::state& state) noexcept {
 	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
 }
 
-
+ //TODO: Perhaps add a tooltip of which next song is going to be played, or the queue of songs
 void music_player_left::button_action(sys::state& state) noexcept {
 	sound::play_next_track(state);
 	send(state, parent, notify_setting_update{});
