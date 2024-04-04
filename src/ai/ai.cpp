@@ -1636,7 +1636,7 @@ void update_crisis_leaders(sys::state& state) {
 			for(auto& par : state.crisis_participants) {
 				if(!par.id)
 					break;
-				bool side_ood = defender_victory ? !par.supports_attacker : par.supports_attacker;
+				bool side_ood = !defender_victory ? !par.supports_attacker : par.supports_attacker;
 				if(!par.merely_interested && side_ood && par.joined_with_offer.wargoal_type) {
 					auto wg = fatten(state.world, state.world.create_wargoal());
 					wg.set_peace_offer_from_peace_offer_item(pending);
