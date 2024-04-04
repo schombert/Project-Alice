@@ -325,8 +325,18 @@ static dcon::nation_id get_temp_nation(sys::state& state) {
 	// give the client a "joining" nation, basically a temporal nation choosen
 	// "randomly" that is tied to the client iself
 	for(auto n : state.nations_by_rank)
-		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0)
-			return n;
+		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
+			bool is_taken = false;
+			for(auto& client : state.network_state.clients) {
+				if(client.playing_as == n) {
+					is_taken = true;
+					break;
+				}
+			}
+			if(!is_taken) {
+				return n;
+			}
+		}
 	return dcon::nation_id{ };
 }
 
