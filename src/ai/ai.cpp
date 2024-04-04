@@ -1406,6 +1406,9 @@ void take_reforms(sys::state& state) {
 }
 
 bool will_be_crisis_primary_attacker(sys::state& state, dcon::nation_id n) {
+	if(state.primary_crisis_defender && state.world.nation_get_ai_rival(n) == state.primary_crisis_defender)
+		return true;
+
 	if(state.current_crisis == sys::crisis_type::colonial) {
 		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
 		if(colonizers.end() - colonizers.begin() < 2)
@@ -1424,6 +1427,10 @@ bool will_be_crisis_primary_attacker(sys::state& state, dcon::nation_id n) {
 		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
 		auto liberated = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
 
+		if(state_owner == n) //don't shoot ourselves
+			return false;
+		if(liberated == n) //except when we are shooting someone else
+			return true;
 		if(state.world.nation_get_in_sphere_of(state_owner) == n || nations::are_allied(state, n, state_owner))
 			return false;
 		if(state.world.nation_get_ai_rival(n) == state_owner)
@@ -1439,6 +1446,9 @@ bool will_be_crisis_primary_attacker(sys::state& state, dcon::nation_id n) {
 	}
 }
 bool will_be_crisis_primary_defender(sys::state& state, dcon::nation_id n) {
+	if(state.primary_crisis_attacker && state.world.nation_get_ai_rival(n) == state.primary_crisis_attacker)
+		return true;
+
 	if(state.current_crisis == sys::crisis_type::colonial) {
 		auto colonizers = state.world.state_definition_get_colonization(state.crisis_colony);
 		if(colonizers.end() - colonizers.begin() < 2)
@@ -1460,6 +1470,10 @@ bool will_be_crisis_primary_defender(sys::state& state, dcon::nation_id n) {
 		auto state_owner = state.world.state_instance_get_nation_from_state_ownership(state.crisis_state);
 		auto liberated = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
 
+		if(state_owner == n) //don't shoot ourselves
+			return false;
+		if(liberated == n) //except when we are shooting someone else
+			return true;
 		if(state.world.nation_get_in_sphere_of(liberated) == n || nations::are_allied(state, n, liberated))
 			return false;
 		if(state.world.nation_get_ai_rival(n) == liberated)
