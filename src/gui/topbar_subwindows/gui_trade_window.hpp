@@ -116,6 +116,49 @@ public:
 	}
 };
 
+enum class trade_sort : uint8_t {
+	commodity,
+	stockpile,
+	stockpile_change,
+	price,
+	demand_satisfaction,
+	needs,
+	market,
+	real_demand,
+	domestic_market,
+	global_market_pool,
+};
+enum class trade_sort_assoc : uint8_t {
+	market_activity,
+	stockpile,
+	common_market,
+	needs_government,
+	needs_factories,
+	needs_pops
+};
+struct trade_sort_data {
+	trade_sort sort;
+	trade_sort_assoc assoc;
+};
+
+template<trade_sort Sort, trade_sort_assoc Assoc>
+class trade_sort_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, trade_sort_data{ Sort, Assoc });
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		/*auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "sort_by");
+		text::add_space_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "trait_speed");
+		text::close_layout_box(contents, box);*/
+	}
+};
+
 class trade_market_activity_entry : public listbox_row_element_base<dcon::commodity_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -137,14 +180,51 @@ protected:
 	}
 
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(id != economy::money) {
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::price:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.commodity_get_current_price(a);
+				auto bv = state.world.commodity_get_current_price(b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		case trade_sort::demand_satisfaction:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.nation_get_demand_satisfaction(state.local_player_nation, a);
+				auto bv = state.world.nation_get_demand_satisfaction(state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -170,14 +250,51 @@ protected:
 	}
 
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
-			if(id != economy::money) {
+			if(id != economy::money && state.world.nation_get_stockpiles(state.local_player_nation, id) > 0.0f) {
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::stockpile:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.nation_get_stockpiles(state.local_player_nation, a);
+				auto bv = state.world.nation_get_stockpiles(state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		case trade_sort::stockpile_change:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = economy::stockpile_commodity_daily_increase(state, a, state.local_player_nation);
+				auto bv = economy::stockpile_commodity_daily_increase(state, b, state.local_player_nation);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -204,14 +321,61 @@ protected:
 		return "common_market_entry";
 	}
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
+		on_update(state);
+	}
+	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		state.world.for_each_commodity([&](dcon::commodity_id id) {
 			if(id != economy::money) {
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::global_market_pool:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.commodity_get_global_market_pool(a);
+				auto bv = state.world.commodity_get_global_market_pool(b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		case trade_sort::real_demand:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.nation_get_real_demand(state.local_player_nation, a);
+				auto bv = state.world.nation_get_real_demand(state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		case trade_sort::domestic_market:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = state.world.nation_get_domestic_market_pool(state.local_player_nation, a);
+				auto bv = state.world.nation_get_domestic_market_pool(state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -236,6 +400,8 @@ protected:
 		return "goods_needs_entry";
 	}
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
 		on_update(state);
@@ -247,6 +413,28 @@ public:
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::needs:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = economy::government_consumption(state, state.local_player_nation, a);
+				auto bv = economy::government_consumption(state, state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -256,8 +444,9 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "goods_needs_entry";
 	}
-
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
 		on_update(state);
@@ -269,6 +458,28 @@ public:
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::needs:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = economy::nation_factory_consumption(state, state.local_player_nation, a);
+				auto bv = economy::nation_factory_consumption(state, state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -279,6 +490,8 @@ protected:
 		return "goods_needs_entry";
 	}
 public:
+	trade_sort sort = trade_sort::commodity;
+	bool sort_ascend = false;
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base::on_create(state);
 		on_update(state);
@@ -290,6 +503,28 @@ public:
 				row_contents.push_back(id);
 			}
 		});
+		switch(sort) {
+		case trade_sort::commodity:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				return a.index() < b.index();
+			});
+			break;
+		case trade_sort::needs:
+			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::commodity_id a, dcon::commodity_id b) {
+				auto av = economy::nation_pop_consumption(state, state.local_player_nation, a);
+				auto bv = economy::nation_pop_consumption(state, state.local_player_nation, b);
+				if(av != bv)
+					return av > bv;
+				else
+					return a.index() < b.index();
+			});
+			break;
+		default:
+			break;
+		}
+		if(!sort_ascend) {
+			std::reverse(row_contents.begin(), row_contents.end());
+		}
 		update(state);
 	}
 };
@@ -1319,6 +1554,13 @@ class trade_window : public window_element_base {
 	trade_details_window* details_win = nullptr;
 	dcon::commodity_id commodity_id{1};
 
+	trade_market_activity_listbox* list_ma = nullptr;
+	trade_stockpile_listbox* list_sp = nullptr;
+	trade_common_market_listbox* list_cm = nullptr;
+	trade_government_needs_listbox* list_gn = nullptr;
+	trade_factory_needs_listbox* list_fn = nullptr;
+	trade_pop_needs_listbox* list_pn = nullptr;
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
@@ -1337,11 +1579,17 @@ public:
 		if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "market_activity_list") {
-			return make_element_by_type<trade_market_activity_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_market_activity_listbox>(state, id);
+			list_ma = ptr.get();
+			return ptr;
 		} else if(name == "common_market_list") {
-			return make_element_by_type<trade_common_market_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_common_market_listbox>(state, id);
+			list_cm = ptr.get();
+			return ptr;
 		} else if(name == "stockpile_list") {
-			return make_element_by_type<trade_stockpile_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_stockpile_listbox>(state, id);
+			list_sp = ptr.get();
+			return ptr;
 		} else if(name == "group_raw_material_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::raw_material_goods>>(state, id);
 		} else if(name == "group_industrial_goods") {
@@ -1351,16 +1599,54 @@ public:
 		} else if(name == "group_military_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::military_goods>>(state, id);
 		} else if(name == "government_needs_list") {
-			return make_element_by_type<trade_government_needs_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_government_needs_listbox>(state, id);
+			list_gn = ptr.get();
+			return ptr;
 		} else if(name == "factory_needs_list") {
-			return make_element_by_type<trade_factory_needs_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_factory_needs_listbox>(state, id);
+			list_fn = ptr.get();
+			return ptr;
 		} else if(name == "pop_needs_list") {
-			return make_element_by_type<trade_pop_needs_listbox>(state, id);
+			auto ptr = make_element_by_type<trade_pop_needs_listbox>(state, id);
+			list_pn = ptr.get();
+			return ptr;
 		} else if(name == "trade_details") {
 			auto ptr = make_element_by_type<trade_details_window>(state, id);
 			details_win = ptr.get();
 			return ptr;
-			// Non-vanila
+		} else if(name == "market_activity_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::market_activity>>(state, id);
+		} else if(name == "market_activity_sort_by_activity") {
+			return make_element_by_type<trade_sort_button<trade_sort::demand_satisfaction, trade_sort_assoc::market_activity>>(state, id);
+		} else if(name == "market_activity_sort_by_cost") {
+			return make_element_by_type<trade_sort_button<trade_sort::price, trade_sort_assoc::market_activity>>(state, id);
+		} else if(name == "stockpile_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::stockpile>>(state, id);
+		} else if(name == "stockpile_sort_by_value") {
+			return make_element_by_type<trade_sort_button<trade_sort::stockpile, trade_sort_assoc::stockpile>>(state, id);
+		} else if(name == "stockpile_sort_by_change") {
+			return make_element_by_type<trade_sort_button<trade_sort::stockpile_change, trade_sort_assoc::stockpile>>(state, id);
+		} else if(name == "common_market_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::common_market>>(state, id);
+		} else if(name == "common_market_sort_by_produced") {
+			return make_element_by_type<trade_sort_button<trade_sort::global_market_pool, trade_sort_assoc::common_market>>(state, id);
+		} else if(name == "common_market_sort_by_diff") {
+			return make_element_by_type<trade_sort_button<trade_sort::real_demand, trade_sort_assoc::common_market>>(state, id);
+		} else if(name == "common_market_sort_by_exported") {
+			return make_element_by_type<trade_sort_button<trade_sort::domestic_market, trade_sort_assoc::common_market>>(state, id);
+		} else if(name == "needs_government_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_government>>(state, id);
+		} else if(name == "needs_government_sort_by_value") {
+			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_government>>(state, id);
+		} else if(name == "needs_factories_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_factories>>(state, id);
+		} else if(name == "needs_factories_sort_by_value") {
+			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_factories>>(state, id);
+		} else if(name == "needs_pops_sort_by_goods") {
+			return make_element_by_type<trade_sort_button<trade_sort::commodity, trade_sort_assoc::needs_pops>>(state, id);
+		} else if(name == "needs_pops_sort_by_value") {
+			return make_element_by_type<trade_sort_button<trade_sort::needs, trade_sort_assoc::needs_pops>>(state, id);
+		// Non-vanila
 		} else if(name == "group_industrial_and_consumer_goods") {
 			return make_element_by_type<trade_commodity_group_window<sys::commodity_group::industrial_and_consumer_goods>>(state, id);
 		} else {
@@ -1386,6 +1672,61 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::nation_id>()) {
 			payload.emplace<dcon::nation_id>(state.local_player_nation);
+			return message_result::consumed;
+		} else if(payload.holds_type<trade_sort_data>()) {
+			auto d = any_cast<trade_sort_data>(payload);
+			switch(d.assoc) {
+			case trade_sort_assoc::market_activity:
+				if(list_ma->sort == d.sort)
+					list_ma->sort_ascend = !list_ma->sort_ascend;
+				else
+					list_ma->sort_ascend = false;
+				list_ma->sort = d.sort;
+				list_ma->impl_on_update(state);
+				break;
+			case trade_sort_assoc::stockpile:
+				if(list_sp->sort == d.sort)
+					list_sp->sort_ascend = !list_sp->sort_ascend;
+				else
+					list_sp->sort_ascend = false;
+				list_sp->sort = d.sort;
+				list_sp->impl_on_update(state);
+				break;
+			case trade_sort_assoc::common_market:
+				if(list_cm->sort == d.sort)
+					list_cm->sort_ascend = !list_cm->sort_ascend;
+				else
+					list_cm->sort_ascend = false;
+				list_cm->sort = d.sort;
+				list_cm->impl_on_update(state);
+				break;
+			case trade_sort_assoc::needs_government:
+				if(list_gn->sort == d.sort)
+					list_gn->sort_ascend = !list_gn->sort_ascend;
+				else
+					list_gn->sort_ascend = false;
+				list_gn->sort = d.sort;
+				list_gn->impl_on_update(state);
+				break;
+			case trade_sort_assoc::needs_factories:
+				if(list_fn->sort == d.sort)
+					list_fn->sort_ascend = !list_fn->sort_ascend;
+				else
+					list_fn->sort_ascend = false;
+				list_fn->sort = d.sort;
+				list_fn->impl_on_update(state);
+				break;
+			case trade_sort_assoc::needs_pops:
+				if(list_pn->sort == d.sort)
+					list_pn->sort_ascend = !list_pn->sort_ascend;
+				else
+					list_pn->sort_ascend = false;
+				list_pn->sort = d.sort;
+				list_pn->impl_on_update(state);
+				break;
+			default:
+				break;
+			}
 			return message_result::consumed;
 		}
 		return message_result::unseen;
