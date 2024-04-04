@@ -17,7 +17,7 @@ namespace sound {
 
 sound_impl::sound_impl() {
 	if(ma_engine_init(NULL, &engine) != MA_SUCCESS) {
-		std::abort();
+		std::abort(); //TODO: This shouldn't be a cause for abort
 	}
 }
 
@@ -247,8 +247,14 @@ void stop_music(sys::state& state) {
 	}
 }
 void start_music(sys::state& state, float v) {
-	if(state.sound_ptr->music.has_value()) {
-		ma_sound_start(&*state.sound_ptr->music);
+	if(v > 0.0f && state.sound_ptr->music_list.size() != 0) {
+		if(state.sound_ptr->first_music != -1) {
+			state.sound_ptr->play_music(state.sound_ptr->first_music, v);
+		} else {
+			if(state.sound_ptr->music.has_value()) {
+				ma_sound_start(&*state.sound_ptr->music);
+			}
+		}
 	}
 }
 void update_music_track(sys::state& state) {
