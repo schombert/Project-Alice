@@ -1819,14 +1819,11 @@ public:
 		} else if(name == "gold_inc") {
 			return make_element_by_type<nation_gold_income_text>(state, id);
 		} else if(name == "tax_0_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(
-					state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>( state, id);
 		} else if(name == "tax_1_inc") {
-			return make_element_by_type<
-					budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
 		} else if(name == "tax_2_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(
-					state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>( state, id);
 		} else if(name == "exp_val_0") {
 			return make_element_by_type< budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(
 					state, id);
