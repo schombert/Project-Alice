@@ -1630,13 +1630,13 @@ void update_crisis_leaders(sys::state& state) {
 
 		bool defender_victory = str_est.attacker < str_est.defender * 0.66f;
 		if(state.world.nation_get_is_player_controlled(state.primary_crisis_attacker) == false) {
-			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, true));
-			command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, true);
+			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory));
+			command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_attacker);
 			for(auto& par : state.crisis_participants) {
 				if(!par.id)
 					break;
-				bool side_ood = !defender_victory ? !par.supports_attacker : par.supports_attacker;
+				bool side_ood = defender_victory ? !par.supports_attacker : par.supports_attacker;
 				if(!par.merely_interested && side_ood && par.joined_with_offer.wargoal_type) {
 					auto wg = fatten(state.world, state.world.create_wargoal());
 					wg.set_peace_offer_from_peace_offer_item(pending);
@@ -1652,8 +1652,8 @@ void update_crisis_leaders(sys::state& state) {
 			assert(command::can_send_crisis_peace_offer(state, state.primary_crisis_attacker));
 			command::execute_send_crisis_peace_offer(state, state.primary_crisis_attacker);
 		} else if(state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false) {
-			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_defender, true));
-			command::execute_start_crisis_peace_offer(state, state.primary_crisis_defender, true);
+			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_defender, !defender_victory));
+			command::execute_start_crisis_peace_offer(state, state.primary_crisis_defender, !defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_defender);
 			for(auto& par : state.crisis_participants) {
 				if(!par.id)
