@@ -96,6 +96,8 @@ public:
 	bool music_finished() const;
 
 	void play_new_track(sys::state& ws);
+	void play_next_track(sys::state& ws);
+	void play_previous_track(sys::state& ws);
 };
 
 } // namespace sound
