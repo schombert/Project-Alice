@@ -56,8 +56,9 @@ void sound_impl::play_music(int32_t track, float volume) {
 void sound_impl::play_new_track(sys::state& s, float v) {
 	if(music_list.size() > 0) {
 		int32_t result = int32_t(rand() % music_list.size()); // well aware that using rand is terrible, thanks
-		while(result == last_music)
+		for(uint32_t i = 0; i < 16 && result == last_music; i++) {
 			result = int32_t(rand() % music_list.size());
+		}
 		play_music(result, v);
 	}
 }
