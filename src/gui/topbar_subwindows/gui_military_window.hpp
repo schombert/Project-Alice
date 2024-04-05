@@ -44,38 +44,78 @@ public:
 class military_mob_progress_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+		auto n = state.local_player_nation;
+		if(state.world.nation_get_is_mobilized(n) == false) {
 			progress = 0.0f;
 			return;
 		}
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-		if(mob_size <= 0.0f) {
-			progress = 1.0f;
+		int32_t cur_mobilization = 0;
+		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
+			for(const auto am : ac.get_army().get_army_membership()) {
+				auto pop = am.get_regiment().get_pop_from_regiment_source();
+				if(pop.get_poptype() != state.culture_definitions.soldiers
+					&& pop.get_poptype() != state.culture_definitions.slaves
+					&& pop.get_is_primary_or_accepted_culture()
+					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t rem_mobilization = 0;
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		for(const auto s : schedule_array) {
+			for(const auto pl : state.world.province_get_pop_location(s.where)) {
+				auto pop = pl.get_pop();
+				if(pop.get_poptype() != state.culture_definitions.soldiers
+					&& pop.get_poptype() != state.culture_definitions.slaves
+					&& pop.get_is_primary_or_accepted_culture()
+					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					rem_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t total_mobilization = cur_mobilization + rem_mobilization;
+		if(total_mobilization == 0) {
+			progress = 1.f;
 			return;
 		}
-		progress = std::min(1.0f, mob_rem / mob_size);
+		progress = float(cur_mobilization) / float(total_mobilization);
 	}
 };
 
 class military_mob_progress_bar_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(state.world.nation_get_is_mobilized(state.local_player_nation) == false) {
+		auto n = state.local_player_nation;
+		if(state.world.nation_get_is_mobilized(n) == false) {
 			set_text(state, "0%");
 			return;
 		}
-
-		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
-		auto mob_size = std::min(float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), float(military::mobilized_regiments_pop_limit(state, state.local_player_nation)));
-		auto mob_rem = float(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact) - state.world.nation_get_mobilization_remaining(state.local_player_nation));
-
-		if(mob_size <= 0.0f) {
+		int32_t cur_mobilization = 0;
+		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
+			for(const auto am : ac.get_army().get_army_membership()) {
+				auto pop = am.get_regiment().get_pop_from_regiment_source();
+				if(military::pop_eligible_for_mobilization(state, pop)) {
+					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t rem_mobilization = 0;
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		for(const auto s : schedule_array) {
+			for(const auto pl : state.world.province_get_pop_location(s.where)) {
+				auto pop = pl.get_pop();
+				if(military::pop_eligible_for_mobilization(state, pop)) {
+					rem_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t total_mobilization = cur_mobilization + rem_mobilization;
+		if(total_mobilization == 0) {
 			set_text(state, "100%");
 			return;
 		}
-		set_text(state, text::format_percentage(std::min(mob_rem / mob_size, 1.0f), 0));
+		set_text(state, text::format_percentage(float(cur_mobilization) / float(total_mobilization), 0));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

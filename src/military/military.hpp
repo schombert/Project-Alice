@@ -464,5 +464,6 @@ dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest);
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
+bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 } // namespace military
