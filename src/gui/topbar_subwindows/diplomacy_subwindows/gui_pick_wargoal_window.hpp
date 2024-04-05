@@ -33,7 +33,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
 		color = sys::pack_color(255, 255, 255);
-		if(state.world.nation_get_infamy(state.local_player_nation) + military::cb_infamy(state, content) > state.defines.badboy_limit) {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = !war ? military::cb_infamy(state, content) : military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy > state.defines.badboy_limit) {
 			color = sys::pack_color(255, 196, 196);
 		}
 
@@ -46,7 +48,9 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
-		if(state.world.nation_get_infamy(state.local_player_nation) + military::cb_infamy(state, content) > state.defines.badboy_limit) {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = !war ? military::cb_infamy(state, content) : military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, retrieve<dcon::nation_id>(state, parent));
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy > state.defines.badboy_limit) {
 			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
 		}
 
