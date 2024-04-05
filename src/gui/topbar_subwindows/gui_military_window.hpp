@@ -49,7 +49,6 @@ public:
 			progress = 0.0f;
 			return;
 		}
-		int32_t rem_mobilization = state.world.nation_get_mobilization_remaining(n);
 		int32_t cur_mobilization = 0;
 		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
 			for(const auto am : ac.get_army().get_army_membership()) {
@@ -59,6 +58,19 @@ public:
 					&& pop.get_is_primary_or_accepted_culture()
 					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
 					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t rem_mobilization = 0;
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		for(const auto s : schedule_array) {
+			for(const auto pl : state.world.province_get_pop_location(s.where)) {
+				auto pop = pl.get_pop();
+				if(pop.get_poptype() != state.culture_definitions.soldiers
+					&& pop.get_poptype() != state.culture_definitions.slaves
+					&& pop.get_is_primary_or_accepted_culture()
+					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					rem_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 				}
 			}
 		}
@@ -79,16 +91,22 @@ public:
 			set_text(state, "0%");
 			return;
 		}
-		int32_t rem_mobilization = state.world.nation_get_mobilization_remaining(n);
 		int32_t cur_mobilization = 0;
 		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
 			for(const auto am : ac.get_army().get_army_membership()) {
 				auto pop = am.get_regiment().get_pop_from_regiment_source();
-				if(pop.get_poptype() != state.culture_definitions.soldiers
-					&& pop.get_poptype() != state.culture_definitions.slaves
-					&& pop.get_is_primary_or_accepted_culture()
-					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+				if(military::pop_eligible_for_mobilization(state, pop)) {
 					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
+		}
+		int32_t rem_mobilization = 0;
+		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
+		for(const auto s : schedule_array) {
+			for(const auto pl : state.world.province_get_pop_location(s.where)) {
+				auto pop = pl.get_pop();
+				if(military::pop_eligible_for_mobilization(state, pop)) {
+					rem_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 				}
 			}
 		}
