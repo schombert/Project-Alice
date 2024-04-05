@@ -2267,15 +2267,28 @@ void state::load_user_settings() {
 #undef US_LOAD
 		} while(false);
 
+		//NaN will not get clamped, so use special std::isfinite test to set to reasonable values
+		if(!std::isfinite(user_settings.interface_volume)) user_settings.zoom_speed = 0.0f;
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.music_volume)) user_settings.zoom_speed = 0.0f;
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.effects_volume)) user_settings.zoom_speed = 0.0f;
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.master_volume)) user_settings.zoom_speed = 0.0f;
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
-		if(user_settings.antialias_level > 16)
-			user_settings.antialias_level = 0;
-		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
+		
+		if(user_settings.antialias_level > 16) user_settings.antialias_level = 0;
+		
+		if(!std::isfinite(user_settings.gaussianblur_level)) user_settings.zoom_speed = 1.0f;
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
+		
+		if(!std::isfinite(user_settings.gamma)) user_settings.zoom_speed = 0.5f;
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
+		
+		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
 		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
 	}
 
