@@ -498,7 +498,7 @@ guiTypes = {
 			# Spoilers checkbox
 			instantTextBoxType = {
 				name = "spoilers_label"
-				position = { 78 260 }
+				position = { 78 280 }
 				text = "spoilers_label"
 				font = "Arial16"
 				borderSize = { 0 0 }
@@ -508,7 +508,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "spoilers_checkbox"
-				position = { 51 260 }
+				position = { 51 280 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style
@@ -571,6 +571,51 @@ guiTypes = {
 				name = "auto_save_right"
 				position = { 269 202 }
 				quadTextureSprite = "option_next"
+			}
+			# Zoom speed
+			instantTextBoxType = {
+				name = "zoom_speed_label"
+				position = { 58 228 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "zoom_speed_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			scrollbarType = {
+				name = "zoom_speed_scrollbar"
+				slider = "slider"
+				track= "track"
+				leftbutton = "up"
+				rightbutton = "down"
+				size = { 236 16 }
+				position = { 58 248 }
+				minValue = 0
+				maxValue = 100
+				stepSize = 1
+				startValue = 20
+				horizontal = 1
+				guiButtonType = {
+					name = "slider"
+					quadTextureSprite = "GFX_slider_circle"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "track"
+					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "up"
+					quadTextureSprite = "GFX_slider_left"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "down"
+					quadTextureSprite = "GFX_slider_right"
+					position = { 0 236}
+				}
 			}
 		}
 

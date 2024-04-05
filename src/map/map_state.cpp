@@ -370,7 +370,7 @@ void map_state::update(sys::state& state) {
 
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += zoom_diff;
-	zoom_change *= std::exp(-seconds_since_last_update * 20);
+	zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
 	glm::vec2 pos_after_zoom;
@@ -401,7 +401,7 @@ void map_state::update(sys::state& state) {
 
 	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += keyboard_zoom_diff;
-	keyboard_zoom_change *= std::exp(-seconds_since_last_update * 20);
+	keyboard_zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
 	glm::vec2 pos_after_keyboard_zoom;
