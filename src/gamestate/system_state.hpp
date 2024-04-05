@@ -375,6 +375,7 @@ struct user_settings_s {
 	bool mouse_edge_scrolling = false;
 	bool black_map_font = true;
 	bool spoilers = true;
+	float zoom_speed = 20.f;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

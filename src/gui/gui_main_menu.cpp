@@ -162,6 +162,13 @@ void spoilers_checkbox::button_action(sys::state& state) noexcept {
 bool spoilers_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.spoilers;
 }
+void zoom_speed_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
+	state.user_settings.zoom_speed = float(v);
+	send(state, parent, notify_setting_update{});
+}
+void zoom_speed_scrollbar::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.zoom_speed));
+}
 
 void fow_checkbox::on_create(sys::state& state) noexcept {
 	checkbox_button::on_create(state);

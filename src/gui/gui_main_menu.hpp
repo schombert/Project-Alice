@@ -125,6 +125,10 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+class zoom_speed_scrollbar : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
 
 class fow_checkbox : public checkbox_button {
 public:
@@ -260,6 +264,8 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
 		} else if(name == "spoilers_checkbox") {
 			return make_element_by_type<spoilers_checkbox>(state, id);
+		} else if(name == "zoom_speed_scrollbar") {
+			return make_element_by_type<zoom_speed_scrollbar>(state, id);
 		} else if(name == "mouse_edge_scrolling_checkbox") {
 			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
 		} else {
