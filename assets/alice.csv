@@ -1536,6 +1536,8 @@ alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will
 alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
 alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
+alice_ca_cant_influence;We currently are unable to increase or decrease the opinion of other nations at the moment
+alice_gp_status_regain_expiration;If we don't become rank §Y$x$§W or higher, we will lose §Ygreat power§W status by §Y$date§W!
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
