@@ -162,6 +162,13 @@ void spoilers_checkbox::button_action(sys::state& state) noexcept {
 bool spoilers_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.spoilers;
 }
+void deafen_on_focus_lost_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.deafen_on_focus_lost = !state.user_settings.deafen_on_focus_lost;
+	send(state, parent, notify_setting_update{});
+}
+bool deafen_on_focus_lost_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.deafen_on_focus_lost;
+}
 void zoom_speed_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
 	state.user_settings.zoom_speed = float(v);
 	send(state, parent, notify_setting_update{});

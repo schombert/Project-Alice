@@ -269,6 +269,34 @@ void start_music(sys::state& state, float v) {
 		}
 	}
 }
+
+void pause_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		if(state.sound_ptr->effect_sound.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->effect_sound);
+		}
+		if(state.sound_ptr->interface_sound.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->interface_sound);
+		}
+		if(state.sound_ptr->music.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->music);
+		}
+	}
+}
+void resume_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		if(state.sound_ptr->effect_sound.has_value()) {
+			ma_sound_start(&*state.sound_ptr->effect_sound);
+		}
+		if(state.sound_ptr->interface_sound.has_value()) {
+			ma_sound_start(&*state.sound_ptr->interface_sound);
+		}
+		if(state.sound_ptr->music.has_value()) {
+			ma_sound_start(&*state.sound_ptr->music);
+		}
+	}
+}
+
 void update_music_track(sys::state& state) {
 	if(state.sound_ptr->music_finished()) {
 		state.sound_ptr->play_new_track(state);

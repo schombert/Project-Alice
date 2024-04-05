@@ -29,6 +29,8 @@ void play_interface_sound(sys::state& state, audio_instance& s, float volume);
 // controls autoplaying music (start music should start with the main theme)
 void stop_music(sys::state& state);
 void start_music(sys::state& state, float v);
+void pause_all(sys::state& state);
+void resume_all(sys::state& state);
 // linux may not need this function, but I needed to expose a way to switch to the next track upon
 // recieving a notification via a windows event that the current track could be complete
 void update_music_track(sys::state& state);

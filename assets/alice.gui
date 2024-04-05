@@ -849,6 +849,22 @@ guiTypes = {
 				position = { 269 326 }
 				quadTextureSprite = "option_next"
 			}
+			# Deafen on focus checkbox
+			instantTextBoxType = {
+				name = "deafen_on_focus_lost_label"
+				position = { 78 360 }
+				text = "deafen_on_focus_lost_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "deafen_on_focus_lost_checkbox"
+				position = { 51 360 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 	}
 
