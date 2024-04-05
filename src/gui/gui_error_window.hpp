@@ -7,7 +7,7 @@ namespace ui {
 class error_body_text : public scrollable_text {
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, msg, text::text_color::white);
+		text::add_to_layout_box(state, contents, box, msg);
 		text::close_layout_box(contents, box);
 	}
 public:
@@ -36,7 +36,7 @@ public:
 			body = ptr.get();
 			return ptr;
 		} else if(name == "agreebutton") {
-			return make_element_by_type<button_element_base>(state, id);
+			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "background") {
 			auto ptr = make_element_by_type<draggable_target>(state, id);
 			ptr->base_data.size = base_data.size;
@@ -46,5 +46,5 @@ public:
 		}
 	}
 };
-void popup_error_window(sys::state& state, std::string_view title, std::string_view body);
+void popup_error_window(sys::state& state, std::string const& title, std::string const& body);
 } // namespace ui

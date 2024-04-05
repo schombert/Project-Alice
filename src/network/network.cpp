@@ -837,7 +837,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.handshake = false;
 			});
 			if(r != 0) { // error
-				ui::popup_error_window(state, "Network Error", ("Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				ui::popup_error_window(state, "Network Error", "Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError()));
 				network::finish(state, false);
 				return;
 			}
@@ -871,7 +871,7 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 			});
 			if(r != 0) { // error
-				ui::popup_error_window(state, "Network Error", ("Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError()));
 				network::finish(state, false);
 				return;
 			}
@@ -886,7 +886,7 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_stream = true;
 					assert(save_size > 0);
 					if(save_size >= 32 * 1000 * 1000) { // 32 MB
-						ui::popup_error_window(state, "Network Error", ("Network client save stream too big: " + get_wsa_error_text(WSAGetLastError())).c_str());
+						ui::popup_error_window(state, "Network Error", "Network client save stream too big: " + get_wsa_error_text(WSAGetLastError()));
 						network::finish(state, false);
 						return;
 					}
@@ -897,7 +897,7 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 			});
 			if(r != 0) { // error
-				ui::popup_error_window(state, "Network Error", ("Network client command receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				ui::popup_error_window(state, "Network Error", "Network client command receive error: " + get_wsa_error_text(WSAGetLastError()));
 				network::finish(state, false);
 				return;
 			}
@@ -920,7 +920,7 @@ void send_and_receive_commands(sys::state& state) {
 		/* Do not send commands while we're on save stream mode! */
 		if(!state.network_state.save_stream) {
 			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-				ui::popup_error_window(state, "Network Error", ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_wsa_error_text(WSAGetLastError()));
 				network::finish(state, false);
 				return;
 			}
@@ -965,7 +965,7 @@ void finish(sys::state& state, bool notify_host) {
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 			while(state.network_state.send_buffer.size() > 0) {
 				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-					//ui::popup_error_window(state, "Network Error", ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+					//ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_wsa_error_text(WSAGetLastError()));
 					break;
 				}
 			}
