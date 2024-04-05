@@ -522,17 +522,15 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 							v.push_back(n);
 						}
 					}
-				} else {
-					if(mod != sys::key_modifiers::modifiers_shift) { //shift to append
-						selected_armies.clear();
-						selected_navies.clear();
-					}
+					game_state_updated.store(true, std::memory_order_release);
+				} else { //shift to append
 					for(const auto a : ctrl_armies[ctrl_group]) {
-						selected_armies.push_back(a);
+						select(a);
 					}
 					for(const auto n : ctrl_navies[ctrl_group]) {
-						selected_navies.push_back(n);
+						select(n);
 					}
+					game_state_updated.store(true, std::memory_order_release);
 				}
 			}
 
