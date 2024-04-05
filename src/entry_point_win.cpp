@@ -218,7 +218,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					}
 					//Reload savefile
-					network::finish(game_state);
+					network::finish(game_state, true);
 					game_state.actual_game_speed = 0;
 					//
 					if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
@@ -246,7 +246,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			update_thread.join();
 		}
 
-		network::finish(game_state);
+		network::finish(game_state, true);
 		CoUninitialize();
 	}
 	return 0;

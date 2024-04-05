@@ -22,6 +22,7 @@
 #include "SPSCQueue.h"
 #include "network.hpp"
 #include "serialization.hpp"
+#include "gui_error_window.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -344,6 +345,7 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
+	state.network_state.finished = false;
 #ifdef _WIN64
     WSADATA data;
 	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
@@ -719,6 +721,9 @@ void send_and_receive_commands(sys::state& state) {
 	if(state.network_state.save_slock.load(std::memory_order::acquire) == true)
 		return;
 
+	if(state.network_state.finished)
+		return;
+
 	bool command_executed = false;
 	if(state.network_mode == sys::network_mode_type::host) {
 		accept_new_clients(state); // accept new connections
@@ -832,10 +837,9 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.handshake = false;
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", ("Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				network::finish(state, false);
+				return;
 			}
 		} else if(state.network_state.save_stream) {
 			int r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
@@ -867,10 +871,9 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", ("Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				network::finish(state, false);
+				return;
 			}
 		} else {
 			// receive commands from the server and immediately execute them
@@ -883,10 +886,9 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_stream = true;
 					assert(save_size > 0);
 					if(save_size >= 32 * 1000 * 1000) { // 32 MB
-#ifdef _WIN64
-						MessageBoxA(NULL, "Network client save stream too big", "Network error", MB_OK);
-#endif
-						std::abort();
+						ui::popup_error_window(state, "Network Error", ("Network client save stream too big: " + get_wsa_error_text(WSAGetLastError())).c_str());
+						network::finish(state, false);
+						return;
 					}
 					state.network_state.save_data.resize(static_cast<size_t>(save_size));
 				}
@@ -895,10 +897,9 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client command receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", ("Network client command receive error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				network::finish(state, false);
+				return;
 			}
 			// send the outgoing commands to the server and flush the entire queue
 			auto* c = state.network_state.outgoing_commands.front();
@@ -919,10 +920,9 @@ void send_and_receive_commands(sys::state& state) {
 		/* Do not send commands while we're on save stream mode! */
 		if(!state.network_state.save_stream) {
 			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+				network::finish(state, false);
+				return;
 			}
 		}
 		assert(state.network_state.early_send_buffer.empty()); //do not use the early send buffer
@@ -937,11 +937,12 @@ void send_and_receive_commands(sys::state& state) {
 	}
 }
 
-void finish(sys::state& state) {
+void finish(sys::state& state, bool notify_host) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
-	if(state.network_mode == sys::network_mode_type::client) {
+	state.network_state.finished = true;
+	if(notify_host && state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.save_stream) {
 			// send the outgoing commands to the server and flush the entire queue
 			{
@@ -964,10 +965,8 @@ void finish(sys::state& state) {
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 			while(state.network_state.send_buffer.size() > 0) {
 				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-#ifdef _WIN64
-					MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-					std::abort();
+					//ui::popup_error_window(state, "Network Error", ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str());
+					break;
 				}
 			}
 		}
