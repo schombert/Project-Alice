@@ -49,25 +49,25 @@ public:
 			progress = 0.0f;
 			return;
 		}
-
-		int32_t total_provinces = 0;
-		for(auto pr : state.world.nation_get_province_ownership(n)) {
-			if(pr.get_province().get_is_colonial())
-				continue;
-			if(pr.get_province().get_nation_from_province_control() != n)
-				continue;
-			if(military::mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
-				continue;
-			total_provinces++;
+		int32_t rem_mobilization = state.world.nation_get_mobilization_remaining(n);
+		int32_t cur_mobilization = 0;
+		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
+			for(const auto am : ac.get_army().get_army_membership()) {
+				auto pop = am.get_regiment().get_pop_from_regiment_source();
+				if(pop.get_poptype() != state.culture_definitions.soldiers
+					&& pop.get_poptype() != state.culture_definitions.slaves
+					&& pop.get_is_primary_or_accepted_culture()
+					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
 		}
-		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
-		int32_t rem_provinces = int32_t(schedule_array.size());
-
-		if(total_provinces == 0) {
+		int32_t total_mobilization = cur_mobilization + rem_mobilization;
+		if(total_mobilization == 0) {
 			progress = 1.f;
 			return;
 		}
-		progress = float(total_provinces - rem_provinces) / float(total_provinces);
+		progress = float(cur_mobilization) / float(total_mobilization);
 	}
 };
 
@@ -79,25 +79,25 @@ public:
 			set_text(state, "0%");
 			return;
 		}
-
-		int32_t total_provinces = 0;
-		for(auto pr : state.world.nation_get_province_ownership(n)) {
-			if(pr.get_province().get_is_colonial())
-				continue;
-			if(pr.get_province().get_nation_from_province_control() != n)
-				continue;
-			if(military::mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
-				continue;
-			total_provinces++;
+		int32_t rem_mobilization = state.world.nation_get_mobilization_remaining(n);
+		int32_t cur_mobilization = 0;
+		for(const auto ac : state.world.nation_get_army_control_as_controller(n)) {
+			for(const auto am : ac.get_army().get_army_membership()) {
+				auto pop = am.get_regiment().get_pop_from_regiment_source();
+				if(pop.get_poptype() != state.culture_definitions.soldiers
+					&& pop.get_poptype() != state.culture_definitions.slaves
+					&& pop.get_is_primary_or_accepted_culture()
+					&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					cur_mobilization += int32_t(pop.get_size() * military::mobilization_size(state, n) / state.defines.pop_size_per_regiment);
+				}
+			}
 		}
-		auto schedule_array = state.world.nation_get_mobilization_schedule(n);
-		int32_t rem_provinces = int32_t(schedule_array.size());
-
-		if(total_provinces == 0) {
+		int32_t total_mobilization = cur_mobilization + rem_mobilization;
+		if(total_mobilization == 0) {
 			set_text(state, "100%");
 			return;
 		}
-		set_text(state, text::format_percentage(float(total_provinces - rem_provinces) / float(total_provinces), 0));
+		set_text(state, text::format_percentage(float(cur_mobilization) / float(total_mobilization), 0));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
