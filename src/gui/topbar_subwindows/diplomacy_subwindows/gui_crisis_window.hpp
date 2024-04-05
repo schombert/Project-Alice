@@ -518,7 +518,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.current_crisis_mode != sys::crisis_mode::heating_up)
 			return;
-		text::add_line(state, contents, "crisis_temperature", text::variable_type::value, int64_t(state.crisis_temperature));
+		text::add_line(state, contents, "crisis_temperature_ex", text::variable_type::value, int64_t(state.crisis_temperature));
 	}
 };
 
@@ -527,17 +527,16 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		switch(state.current_crisis_mode) {
 		case sys::crisis_mode::inactive:
-			set_text(state, text::produce_simple_string(state, "has_no_crisis"));
+			set_text(state, text::produce_simple_string(state, "crisis_mode_no_crisis"));
 			break;
 		case sys::crisis_mode::finding_attacker:
-			set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
+			set_text(state, text::produce_simple_string(state, "crisis_mode_finding_attacker"));
 			break;
 		case sys::crisis_mode::finding_defender:
-			set_text(state, text::produce_simple_string(state, "crisis_waiting_on_backer"));
+			set_text(state, text::produce_simple_string(state, "crisis_mode_finding_defender"));
 			break;
 		case sys::crisis_mode::heating_up:
-			set_text(state, text::produce_simple_string(state, "")); // TODO - find the correct CSV Key for this...
-			break;
+			set_text(state, text::produce_simple_string(state, "crisis_mode_heating_up"));
 		}
 	}
 };
