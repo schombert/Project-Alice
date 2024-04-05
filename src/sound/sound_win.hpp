@@ -40,6 +40,8 @@ public:
 		filename = file;
 	}
 	void play(float volume, bool as_music, void* window_handle);
+	void pause() const;
+	void resume() const;
 	void stop() const;
 	bool is_playing() const;
 	void change_volume(float new_volume) const;
@@ -88,6 +90,14 @@ public:
 	void play_effect(audio_instance& s, float volume);
 	void play_interface_sound(audio_instance& s, float volume);
 	void play_music(int32_t track, float volume);
+
+	void pause_effect() const;
+	void pause_interface_sound() const;
+	void pause_music() const;
+
+	void resume_effect() const;
+	void resume_interface_sound() const;
+	void resume_music() const;
 
 	void change_effect_volume(float v) const;
 	void change_interface_volume(float v) const;

@@ -144,6 +144,14 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 	}
 }
 
+void audio_instance::pause() const {
+	if(control_interface)
+		control_interface->Pause();
+}
+void audio_instance::resume() const {
+	if(control_interface)
+		control_interface->Run();
+}
 void audio_instance::stop() const {
 	if(control_interface)
 		control_interface->Pause();
@@ -255,6 +263,36 @@ void sound_impl::change_music_volume(float v) const {
 	auto const lm = last_music;
 	if(lm != -1) {
 		music_list[lm].change_volume(v);
+	}
+}
+
+void sound_impl::pause_effect() const {
+	if(current_effect)
+		current_effect->pause();
+}
+void sound_impl::pause_interface_sound() const {
+	if(current_interface_sound)
+		current_interface_sound->pause();
+}
+void sound_impl::pause_music() const {
+	auto const lm = last_music;
+	if(lm != -1) {
+		music_list[lm].pause();
+	}
+}
+
+void sound_impl::resume_effect() const {
+	if(current_effect)
+		current_effect->resume();
+}
+void sound_impl::resume_interface_sound() const {
+	if(current_interface_sound)
+		current_interface_sound->resume();
+}
+void sound_impl::resume_music() const {
+	auto const lm = last_music;
+	if(lm != -1) {
+		music_list[lm].resume();
 	}
 }
 
@@ -454,6 +492,21 @@ void start_music(sys::state& state, float v) {
 			state.sound_ptr->play_music(state.sound_ptr->first_music, v);
 		else
 			state.sound_ptr->play_music(int32_t(rand() % state.sound_ptr->music_list.size()), v);
+	}
+}
+
+void pause_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		state.sound_ptr->pause_effect();
+		state.sound_ptr->pause_interface_sound();
+		state.sound_ptr->pause_music();
+	}
+}
+void resume_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		state.sound_ptr->resume_effect();
+		state.sound_ptr->resume_interface_sound();
+		state.sound_ptr->resume_music();
 	}
 }
 

@@ -849,6 +849,22 @@ guiTypes = {
 				position = { 269 326 }
 				quadTextureSprite = "option_next"
 			}
+			# Mute on focus checkbox
+			instantTextBoxType = {
+				name = "mute_on_focus_lost_label"
+				position = { 78 360 }
+				text = "mute_on_focus_lost_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mute_on_focus_lost_checkbox"
+				position = { 51 360 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 		}
 	}
 
