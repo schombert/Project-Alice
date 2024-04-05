@@ -153,12 +153,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_SETFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
-		sound::resume_all(*state);
+		if(state->user_settings.deafen_on_focus_lost) {
+			sound::resume_all(*state);
+		}
 		return 0;
 	case WM_KILLFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-		sound::pause_all(*state);
+		if(state->user_settings.deafen_on_focus_lost) {
+			sound::pause_all(*state);
+		}
 		return 0;
 	case WM_LBUTTONDOWN: {
 		SetCapture(hwnd);
