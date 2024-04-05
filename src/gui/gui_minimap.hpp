@@ -938,10 +938,9 @@ public:
 			return ptr;
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
+		} else if(name == "button_macro") {
+			return make_element_by_type<minimap_macro_builder_button>(state, id);
 		} else if(name == "button_goto") {
-			auto ptr = make_element_by_type<minimap_macro_builder_button>(state, id);
-			ptr->base_data.position.y += ptr->base_data.size.y;
-			add_child_to_front(std::move(ptr));
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);
