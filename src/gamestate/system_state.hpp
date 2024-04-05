@@ -376,7 +376,7 @@ struct user_settings_s {
 	bool black_map_font = true;
 	bool spoilers = true;
 	float zoom_speed = 20.f;
-	bool deafen_on_focus_lost = true;
+	bool mute_on_focus_lost = true;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
