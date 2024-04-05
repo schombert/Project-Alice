@@ -12,14 +12,37 @@ class error_body_text : public scrollable_text {
 	}
 public:
 	std::string msg = "";
+	void on_create(sys::state& state) noexcept override {
+		base_data.size.y = int16_t(150);
+		scrollable_text::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
-		auto container = text::create_endless_layout(delegate->internal_layout,
-			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
-				base_data.data.text.font_handle, 0, text::alignment::left,
-				text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white,
+		text::alignment align = text::alignment::left;
+		switch(base_data.data.text.get_alignment()) {
+		case ui::alignment::right:
+			align = text::alignment::right;
+			break;
+		case ui::alignment::centered:
+			align = text::alignment::center;
+			break;
+		default:
+			break;
+		}
+		auto border = base_data.data.text.border_size;
+		auto color = delegate->black_text ? text::text_color::black : text::text_color::white;
+		auto container = text::create_endless_layout(
+			delegate->internal_layout,
+			text::layout_parameters{
+				border.x,
+				border.y,
+				int16_t(base_data.size.x - border.x * 2),
+				int16_t(base_data.size.y - border.y * 2),
+				base_data.data.text.font_handle,
+				0,
+				align,
+				color,
 				false });
 		populate_layout(state, container);
-		calibrate_scrollbar(state);
 	}
 };
 class error_dialog_window : public window_element_base {
