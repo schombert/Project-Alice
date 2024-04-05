@@ -28,10 +28,21 @@ public:
 	}
 };
 
-class cb_wargoal_button : public button_element_base {
+class cb_wargoal_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
+			? military::truce_break_cb_infamy(state, content)
+			: military::cb_infamy(state, content);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			color = sys::pack_color(255, 196, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
+
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		if(parent) {
 			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
@@ -50,8 +61,14 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
+			? military::truce_break_cb_infamy(state, content)
+			: military::cb_infamy(state, content);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
+		}
 		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, n, c));
 		text::add_line(state, contents, "alice_wg_usage_trigger");
 		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(c), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));

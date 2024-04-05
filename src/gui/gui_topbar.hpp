@@ -1569,6 +1569,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_heating_up"), sub);
 		}
 		if(state.last_crisis_end_date) {
+			text::add_line_break_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, std::string_view("alice_last_crisis"), sub);
 		}
 		if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
