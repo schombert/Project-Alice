@@ -400,19 +400,9 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	sound::initialize_sound_system(game_state);
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
+	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-
-	{
-		auto root = simple_fs::get_root(game_state.common_fs);
-		auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
-		auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
-		if(auto f = simple_fs::peek_file(cursors_dir, NATIVE("normal.cur")); f) {
-			auto path = simple_fs::get_full_name(*f);
-			HCURSOR h_cursor = LoadCursorFromFileW(path.c_str()); //.cur or .ani
-			SetCursor(h_cursor);
-			SetClassLongPtr(game_state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(h_cursor));
-		}
-	}
+	change_cursor(game_state, cursor_type::normal);
 
 	MSG msg;
 	// pump message loop
@@ -431,6 +421,50 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
 		}
 	}
+}
+
+void change_cursor(sys::state const& state, cursor_type type) {
+	auto root = simple_fs::get_root(state.common_fs);
+	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+	auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
+
+	if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
+		native_string_view fname = NATIVE("normal.cur");
+		switch(type) {
+		case cursor_type::normal:
+			fname = NATIVE("normal.cur");
+			break;
+		case cursor_type::busy:
+			fname = NATIVE("busy.ani");
+			break;
+		case cursor_type::drag_select:
+			fname = NATIVE("dragselect.ani");
+			break;
+		case cursor_type::hostile_move:
+			fname = NATIVE("attack_move.ani");
+			break;
+		case cursor_type::friendly_move:
+			fname = NATIVE("friendly_move.ani");
+			break;
+		case cursor_type::no_move:
+			fname = NATIVE("no_move.ani");
+			break;
+		default:
+			fname = NATIVE("normal.cur");
+			break;
+		}
+		if(auto f = simple_fs::peek_file(cursors_dir, fname); f) {
+			auto path = simple_fs::get_full_name(*f);
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
+				state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+			}
+		} else {
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+		}
+	}
+	SetCursor(state.win_ptr->cursors[uint8_t(type)]);
+	SetClassLongPtr(state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(state.win_ptr->cursors[uint8_t(type)]));
 }
 
 void emit_error_message(std::string const& content, bool fatal) {

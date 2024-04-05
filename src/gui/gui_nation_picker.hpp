@@ -168,6 +168,8 @@ public:
 		if(i->file_name == state.loaded_save_file)\
 			return;
 
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
@@ -222,6 +224,8 @@ public:
 		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
+
+		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
