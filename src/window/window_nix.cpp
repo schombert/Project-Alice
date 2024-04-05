@@ -250,11 +250,11 @@ void window_maximize_callback(GLFWwindow* window, int maximized) {
 void focus_callback(GLFWwindow* window, int focused) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 	if(focused) {
-		if(state->user_settings.deafen_on_focus_lost) {
+		if(state->user_settings.mute_on_focus_lost) {
 			sound::resume_all(*state);
 		}
 	} else {
-		if(state->user_settings.deafen_on_focus_lost) {
+		if(state->user_settings.mute_on_focus_lost) {
 			sound::pause_all(*state);
 		}
 	}

@@ -17,7 +17,7 @@ zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
 zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
 zoom_speed_label;Zoom Acceleration
 river_label;Rivers;;;Rios;;;;;;;;;x
-deafen_on_focus_lost_label;Deafen On Focus Lost
+mute_on_focus_lost_label;Mute On Focus Lost
 vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same

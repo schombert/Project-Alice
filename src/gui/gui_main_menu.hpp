@@ -125,7 +125,7 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
-class deafen_on_focus_lost_checkbox : public checkbox_button {
+class mute_on_focus_lost_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
@@ -393,8 +393,8 @@ class audio_menu_window : public window_element_base {
 			return make_element_by_type<music_player_left>(state, id);
 		else if(name == "music_player_right")
 			return make_element_by_type<music_player_right>(state, id);
-		else if(name == "deafen_on_focus_lost_checkbox")
-			return make_element_by_type<deafen_on_focus_lost_checkbox>(state, id);
+		else if(name == "mute_on_focus_lost_checkbox")
+			return make_element_by_type<mute_on_focus_lost_checkbox>(state, id);
 		else
 			return nullptr;
 	}
