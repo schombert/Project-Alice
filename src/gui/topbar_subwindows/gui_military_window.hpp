@@ -91,7 +91,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto real_regs = std::max(int32_t(state.world.nation_get_recruitable_regiments(state.local_player_nation)), int32_t(state.defines.min_mobilize_limit));
 		auto mob_size = std::min(int32_t(real_regs * state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::mobilization_impact)), military::mobilized_regiments_pop_limit(state, state.local_player_nation));
-
 		set_text(state, std::to_string(mob_size));
 	}
 
@@ -109,7 +108,6 @@ class military_mob_impact_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto v = 1.0f - military::mobilization_impact(state, state.local_player_nation);
-
 		set_text(state, text::format_percentage(v, 0));
 	}
 
@@ -128,20 +126,20 @@ public:
 
 		// Unit information comes first
 		auto win1 = make_element_by_type<military_units_window<dcon::army_id>>(state,
-				state.ui_state.defs_by_name.find("unit_window")->second.definition);
+			state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win1->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("army_pos")->second.definition].position;
 		state.ui_state.unit_window_army = win1.get();
 		add_child_to_front(std::move(win1));
 
 		// Navy information is right next to the army information
 		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state,
-				state.ui_state.defs_by_name.find("unit_window")->second.definition);
+			state.ui_state.defs_by_name.find("unit_window")->second.definition);
 		win2->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("navy_pos")->second.definition].position;
 		state.ui_state.unit_window_navy = win2.get();
 		add_child_to_front(std::move(win2));
 
 		auto build_units_window = make_element_by_type<build_unit_large_window>(state,
-				state.ui_state.defs_by_name.find("build_unit_view_large")->second.definition);
+			state.ui_state.defs_by_name.find("build_unit_view_large")->second.definition);
 		build_units_window->base_data.position.y -= 63;
 		build_units_window->base_data.position.x += 1;
 		state.ui_state.build_unit_window = build_units_window.get();
@@ -154,55 +152,38 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "main_bg") {
 			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "bg_military") {
 			return make_element_by_type<opaque_element_base>(state, id);
-
 		} else if(name == "headline_military") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
-
 		} else if(name == "icon_army") {
 			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "icon_navy") {
 			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "mobilize") {
 			return make_element_by_type<military_mob_button>(state, id);
-
 		} else if(name == "demobilize") {
 			return make_element_by_type<invisible_element>(state, id);
-
 		} else if(name == "mobilize_progress") {
 			return make_element_by_type<military_mob_progress_bar>(state, id);
-
 		} else if(name == "mobilize_progress_frame") {
 			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "mobilize_progress_text") {
 			return make_element_by_type<military_mob_progress_bar_text>(state, id);
-
 		} else if(name == "mob_size_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "mob_size") {
 			return make_element_by_type<military_mob_size_text>(state, id);
-
 		} else if(name == "mob_impact_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "mob_impact") {
 			return make_element_by_type<military_mob_impact_text>(state, id);
-
 		} else if(name == "leaders") {
 			return make_element_by_type<leaders_window>(state, id);
-
 		} else if(name == "stats") {
 			return make_element_by_type<stats_window>(state, id);
-
 		} else {
 			return nullptr;
 		}
