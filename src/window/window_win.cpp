@@ -450,8 +450,11 @@ void change_cursor(sys::state const& state, cursor_type type) {
 		if(auto f = simple_fs::peek_file(cursors_dir, fname); f) {
 			auto path = simple_fs::get_full_name(*f);
 			state.win_ptr->cursors[uint8_t(type)] = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			if(state->win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
+				state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+			}
 		} else {
-			return; //can't load
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
 		}
 	}
 	SetCursor(state.win_ptr->cursors[uint8_t(type)]);
