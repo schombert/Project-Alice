@@ -17,4 +17,5 @@ void ui::popup_error_window(sys::state& state, std::string const& title, std::st
 	win->title->set_text(state, title);
 	win->body->msg = body;
 	win->set_visible(state, true);
+	win->impl_on_update(state);
 }
