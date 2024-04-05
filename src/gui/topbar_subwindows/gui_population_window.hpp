@@ -17,6 +17,7 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_emigration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
@@ -1863,6 +1864,8 @@ class pop_details_window : public generic_settable_element<main_window_element_b
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
+	simple_text_element_base* income_text = nullptr;
+	simple_text_element_base* expenses_text = nullptr;
 	simple_text_element_base* savings_text = nullptr;
 	std::vector<element_base*> promotion_windows;
 	std::vector<element_base*> dist_windows;
@@ -1962,6 +1965,14 @@ public:
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
 			return make_element_by_type<popwin_religion_type>(state, id);
+		} else if(name == "income_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			income_text = ptr.get();
+			return ptr;
+		} else if(name == "expenses_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			expenses_text = ptr.get();
+			return ptr;
 		} else if(name == "bank_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			savings_text = ptr.get();
@@ -1998,16 +2009,23 @@ public:
 			return;
 
 		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
+		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
+		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+
 		// updated below ...
-		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
+		float expenses = 0.f;
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_life_needs(c);
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_everyday_needs(c);
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_luxury_needs(c);
+		});
+		expenses_text->set_text(state, text::format_money(expenses));
+		savings_text->set_text(state, text::format_money(state.world.pop_get_savings(fat_id.id)));
 		Cyto::Any payload = fat_id.id;
 		for(auto& c : children) {
 			c->impl_set(state, payload);
 			c->impl_on_update(state);
 		}
-
-		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
-		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
 
 		// Hide all promotion windows...
 		for(std::size_t i = 0; i < promotion_windows.size(); ++i)

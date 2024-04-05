@@ -15,6 +15,7 @@ zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
 zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
 zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
+zoom_speed_label;Zoom Acceleration
 river_label;Rivers;;;Rios;;;;;;;;;x
 vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
@@ -38,6 +39,7 @@ map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+mm_settings_pc_tt;Set at $perc$
 spoilers_label;Spoilers
 spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
