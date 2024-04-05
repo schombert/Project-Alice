@@ -5,13 +5,13 @@
 
 namespace ui {
 class error_body_text : public scrollable_text {
-public:
-	std::string msg = "";
-	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
+	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, msg, text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
+public:
+	std::string msg = "";
 	void on_update(sys::state& state) noexcept override {
 		auto container = text::create_endless_layout(delegate->internal_layout,
 			text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
