@@ -19,7 +19,7 @@ public:
 	}
 };
 
-class wargoal_type_item_button : public button_element_base {
+class wargoal_type_item_button : public tinted_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
@@ -32,6 +32,11 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		color = sys::pack_color(255, 255, 255);
+		if(state.world.nation_get_infamy(state.local_player_nation) + military::cb_infamy(state, content) > state.defines.badboy_limit) {
+			color = sys::pack_color(255, 196, 196);
+		}
+
 		auto fat_id = dcon::fatten(state.world, content);
 		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
 	}
@@ -41,6 +46,10 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		if(state.world.nation_get_infamy(state.local_player_nation) + military::cb_infamy(state, content) > state.defines.badboy_limit) {
+			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
+		}
+
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, content);
 		text::add_line(state, contents, "tt_can_use_nation");

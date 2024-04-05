@@ -1640,6 +1640,7 @@ alice_wg_condition_4;Not on the same side as us
 alice_wg_condition_5;Satisfies triggers for wargoal
 alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
+alice_tt_wg_infamy_limit;§RThis wargoal could probably exceed the infamy limit§W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
 alice_pvid_id;Province Id:
 alice_pvid_tag;Tag:
