@@ -1622,6 +1622,14 @@ current_supply_text2;The amount we could get of our current supply consumption w
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_crisis_inactive;No current active crisis
+alice_crisis_finding_attacker;Finding an attacker for the current crisis
+alice_crisis_finding_defender;Finding a defender for the current crisis
+alice_crisis_heating_up;Crisis is heating up in temperature, currently at §R$temperature$§W
+alice_last_crisis;Last crisis ocurred in $date$ (there is a $time$ month cooldown between crisis)
+alice_crisis_par_1;§RAttackers§W:
+alice_crisis_par_2;§BDefenders§W:
+alice_crisis_par_3;§YMerely interested (no side)§W:
 alice_commodity_cprice;Current price: $x$
 alice_commodity_cost;Cost: $x$
 alice_commodity_eprice;Effective price: $x$
