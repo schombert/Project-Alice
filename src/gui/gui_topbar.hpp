@@ -958,6 +958,17 @@ public:
 			text::add_line(state, contents, "countryalert_no_gpstatus");
 		} else if(state.world.nation_get_rank(state.local_player_nation) > uint16_t(state.defines.great_nations_count)) {
 			text::add_line(state, contents, "alice_lose_gp");
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, int32_t(state.defines.great_nations_count));
+			for(const auto gp : state.great_nations) {
+				if(gp.nation == state.local_player_nation) {
+					text::add_to_substitution_map(sub, text::variable_type::date, gp.last_greatness + int32_t(state.defines.greatness_days));
+					break;
+				}
+			}
+			text::localised_format_box(state, contents, box, "alice_gp_status_regain_expiration", sub);
+			text::close_layout_box(contents, box);
 		} else if(state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.great_nations_count)) {
 			text::add_line(state, contents, "countryalert_no_loosinggpstatus");
 		}
@@ -1662,7 +1673,7 @@ public:
 			}
 
 			if(!added_increase_header && !added_reb_header)
-				text::add_line(state, contents, std::string_view("remove_countryalert_no_canincreaseopinion"));
+				text::add_line(state, contents, std::string_view("alice_ca_cant_influence"));
 		}
 	}
 };
