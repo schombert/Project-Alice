@@ -205,6 +205,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			window::change_cursor(*this, window::cursor_type::drag_select);
 		}
 	}
 }
@@ -254,16 +255,19 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 	} else if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 		selected_armies.clear();
 		selected_navies.clear();
 		game_state_updated.store(true, std::memory_order_release);
 	} else {
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 		if(x < x_drag_start)
 			std::swap(x, x_drag_start);
 		if(y < y_drag_start)
@@ -370,11 +374,11 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 }
 void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 	is_dragging = true;
-
-	if(ui_state.drag_target)
+	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 				int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
 				int32_t(y / user_settings.ui_scale), mod);
+	}
 }
 void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	if(ui_state.drag_target) {
@@ -1589,6 +1593,29 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
 			// ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
 
+			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
+				bool fail = false;
+				for(auto a : selected_armies) {
+					if(command::can_move_army(*this, local_player_nation, a, prov).empty()) {
+						fail = true;
+					}
+				}
+				for(auto a : selected_navies) {
+					if(command::can_move_navy(*this, local_player_nation, a, prov).empty()) {
+						fail = true;
+					}
+				}
+				if(!fail) {
+					auto c = world.province_get_nation_from_province_control(prov);
+					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
+						window::change_cursor(*this, window::cursor_type::hostile_move);
+					} else {
+						window::change_cursor(*this, window::cursor_type::friendly_move);
+					}
+				} else {
+					window::change_cursor(*this, window::cursor_type::no_move);
+				}
+			}
 
 			ui::populate_map_tooltip(*this, container, prov);
 

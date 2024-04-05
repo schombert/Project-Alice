@@ -292,7 +292,9 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	on_window_change(window); // Init the window size
 
+	change_cursor(state, cursor_type::busy);
 	game_state.on_create();
+	change_cursor(state, cursor_type::normal);
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -306,6 +308,10 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+void change_cursor(sys::state const& state, cursor_type type) {
+	//TODO: Implement on linux
 }
 
 void emit_error_message(std::string const& content, bool fatal) {
