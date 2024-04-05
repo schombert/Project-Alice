@@ -788,6 +788,13 @@ public:
 		return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible();
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_topbar_tab_1");
+	}
+
 	element_base* topbar_subwindow = nullptr;
 };
 
@@ -813,6 +820,13 @@ public:
 		} else {
 			override_and_show_tab();
 		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_topbar_tab_2");
 	}
 };
 
@@ -848,6 +862,9 @@ public:
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -878,7 +895,6 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -909,7 +925,6 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {

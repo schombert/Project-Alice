@@ -1579,6 +1579,8 @@ alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
 alice_lobby_close;Close
 alice_lobby_close_tt;You can reopen this window with §YTAB§W
+alice_topbar_tab_1;Open or close this tab
+alice_topbar_tab_2;Open or close the population tab
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
