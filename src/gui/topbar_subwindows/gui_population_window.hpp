@@ -17,7 +17,6 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_emigration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
-void describe_promotion_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
