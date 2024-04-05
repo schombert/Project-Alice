@@ -69,9 +69,9 @@ public:
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
 			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
 		}
-		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, n, c));
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, target, content));
 		text::add_line(state, contents, "alice_wg_usage_trigger");
-		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(c), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(c), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
 	}
 };
 
