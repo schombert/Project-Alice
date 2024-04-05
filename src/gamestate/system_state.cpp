@@ -2276,6 +2276,7 @@ void state::load_user_settings() {
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
+		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
 	}
 
 	// find most recent autosave
