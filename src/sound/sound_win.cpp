@@ -227,6 +227,9 @@ bool sound_impl::music_finished() const {
 }
 
 void sound_impl::play_effect(audio_instance& s, float volume) {
+	if(global_pause)
+		return;
+
 	if(!current_effect || current_effect->is_playing() == false) {
 		s.play(volume, false, window_handle);
 		current_effect = &s;
@@ -234,6 +237,9 @@ void sound_impl::play_effect(audio_instance& s, float volume) {
 }
 
 void sound_impl::play_interface_sound(audio_instance& s, float volume) {
+	if(global_pause)
+		return;
+
 	if(current_interface_sound)
 		current_interface_sound->stop();
 	current_interface_sound = &s;
@@ -241,6 +247,9 @@ void sound_impl::play_interface_sound(audio_instance& s, float volume) {
 }
 
 void sound_impl::play_music(int32_t track, float volume) {
+	if(global_pause)
+		return;
+
 	auto const lm = last_music;
 	if(lm != -1)
 		music_list[lm].stop();
@@ -506,18 +515,22 @@ void start_music(sys::state& state, float v) {
 }
 
 void pause_all(sys::state& state) {
-	if(state.sound_ptr.get()) {
-		state.sound_ptr->pause_effect();
-		state.sound_ptr->pause_interface_sound();
-		state.sound_ptr->pause_music();
-	}
+	if(!state.sound_ptr.get())
+		return;
+
+	state.sound_ptr->global_pause = true;
+	state.sound_ptr->pause_effect();
+	state.sound_ptr->pause_interface_sound();
+	state.sound_ptr->pause_music();
 }
 void resume_all(sys::state& state) {
-	if(state.sound_ptr.get()) {
-		state.sound_ptr->resume_effect();
-		state.sound_ptr->resume_interface_sound();
-		state.sound_ptr->resume_music();
-	}
+	if(!state.sound_ptr.get())
+		return;
+
+	state.sound_ptr->global_pause = false;
+	state.sound_ptr->resume_effect();
+	state.sound_ptr->resume_interface_sound();
+	state.sound_ptr->resume_music();
 }
 
 void update_music_track(sys::state& state) {

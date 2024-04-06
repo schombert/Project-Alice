@@ -58,6 +58,7 @@ public:
 	HWND window_handle = nullptr;
 	int32_t last_music = -1;
 	int32_t first_music = -1;
+	bool global_pause = false;
 
 	audio_instance click_sound;
 	audio_instance technology_finished_sound;
