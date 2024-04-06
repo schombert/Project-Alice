@@ -118,11 +118,8 @@ void update_ai_general_status(sys::state& state) {
 static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::nation_id n, dcon::nation_id adj, std::vector<dcon::nation_id>& alliance_targets) {
 	for(auto nb : state.world.nation_get_nation_adjacency(adj)) {
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
-		if(other != n && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n)) {
-			if((!other.get_is_player_controlled() && ai_will_accept_alliance(state, other, n)) || other.get_is_player_controlled()) {
-				alliance_targets.push_back(other.id);
-			}
-		}
+		if(other != n && other.get_is_player_controlled() == false && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && ai_will_accept_alliance(state, other, n))
+			alliance_targets.push_back(other.id);
 	}
 }
 static void internal_get_alliance_targets(sys::state& state, dcon::nation_id n, std::vector<dcon::nation_id>& alliance_targets) {
@@ -163,11 +160,7 @@ void form_alliances(sys::state& state) {
 					else
 						return a.index() > b.index();
 				});
-				if(state.world.nation_get_is_player_controlled(alliance_targets[0])) {
-					command::execute_ask_for_alliance(state, n, alliance_targets[0]);
-				} else {
-					nations::make_alliance(state, n, alliance_targets[0]);
-				}
+				nations::make_alliance(state, n, alliance_targets[0]);
 				// Call our new allies into wars.... they may not accept but they may just may join!
 				//for(auto wp : state.world.nation_get_war_participant(n))
 				//	if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))
