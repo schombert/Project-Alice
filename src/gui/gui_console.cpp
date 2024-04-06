@@ -1467,7 +1467,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 		state.map_state.map_data.update_fog_of_war(state);
-		log_to_console(state, parent, state.user_settings.fow_enabled ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.user_settings.fow_enabled ? "\x02" : "\x01");
 		break;
 	case command_info::type::win_wars:
 		break;
@@ -1477,11 +1477,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::always_allow_wargoals:
 		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
-		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
 		break;
 	case command_info::type::always_allow_reforms:
 		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
-		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
 		break;
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
@@ -1493,13 +1493,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				has_us = true;
 				break;
 			}
-		log_to_console(state, parent, !has_us ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, !has_us ? "\x02" : "\x01");
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
-		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\x02" : "\x01");
 		break;
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
@@ -1564,13 +1564,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_id_tooltip:
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
-		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::wasd:
 	{
 		state.cheat_data.wasd_move_cam = not state.cheat_data.wasd_move_cam;
-		log_to_console(state, parent, state.cheat_data.wasd_move_cam ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.wasd_move_cam ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::next_song:
@@ -1586,20 +1586,20 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::instant_army:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_army ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, !state.cheat_data.instant_army ? "\x02" : "\x01");
 		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_industry:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\x02" : "\x01");
 		command::c_instant_industry(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::daily_oos_check:
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
-		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\xA7GEnabled" : "\xA7RDisabled");
+		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::innovate:
