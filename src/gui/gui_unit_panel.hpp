@@ -1941,6 +1941,7 @@ public:
 };
 
 class mulit_unit_selection_panel : public main_window_element_base {
+public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
