@@ -341,7 +341,6 @@ public:
 			return m.when + diplomatic_message::expiration_in_days <= state.current_date
 				|| !diplomatic_message::can_accept(state, m);
 		});
-		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 
 		if(messages.empty()) {
