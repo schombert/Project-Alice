@@ -51,6 +51,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_modifier_tooltips.cpp"
 	"src/gui/gui_province_window.cpp"
 	"src/gui/gui_trigger_tooltips.cpp"
+	"src/gui/gui_error_window.cpp"
 	"src/gui/map_tooltip.cpp"
 	"src/gui/topbar_subwindows/gui_population_window.cpp"
 	"src/gui/topbar_subwindows/gui_production_window.cpp"
