@@ -1004,10 +1004,6 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		// Rebel control needs to be turned off
-		if(state.world.army_get_is_rebel_hunter(a)) {
-			command::toggle_rebel_hunting(state, state.local_player_nation, a);
-		}
 		command::toggle_unit_ai_control(state, state.local_player_nation, a);
 	}
 };
@@ -1935,10 +1931,6 @@ public:
 				command::toggle_unit_ai_control(state, state.local_player_nation, a);
 			} else { //some on -> turn all that are off into on, all off -> turn all on
 				if(!state.world.army_get_is_ai_controlled(a)) {
-					// Rebel control needs to be turned off
-					if(state.world.army_get_is_rebel_hunter(a)) {
-						command::toggle_rebel_hunting(state, state.local_player_nation, a);
-					}
 					command::toggle_unit_ai_control(state, state.local_player_nation, a);
 				}
 			}

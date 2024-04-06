@@ -3681,11 +3681,13 @@ void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, d
 	auto owner = state.world.army_get_controller_from_army_control(a);
 	if(owner != source)
 		return;
-	auto current_state = state.world.army_get_is_rebel_hunter(a);
+	auto current_state = state.world.army_get_is_ai_controlled(a);
 	if(current_state) {
 		state.world.army_set_ai_activity(a, 0);
 		state.world.army_set_is_ai_controlled(a, false);
 	} else {
+		//turn off rebel control
+		state.world.army_set_is_rebel_hunter(a, false);
 		auto path = state.world.army_get_path(a);
 		if(path.size() > 0) {
 			state.world.army_set_ai_province(a, path.at(0));
