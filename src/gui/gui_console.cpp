@@ -1654,6 +1654,13 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	}
 }
 
+void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+
 void ui::console_window::show_toggle(sys::state& state) {
 	assert(state.ui_state.console_window);
 	if(state.ui_state.console_window->is_visible()) { //close
