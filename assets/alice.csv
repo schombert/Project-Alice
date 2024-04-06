@@ -43,6 +43,8 @@ antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
 mm_settings_pc_tt;Set at $perc$
 spoilers_label;Spoilers
 spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
+message_settings_reset;Reset
+message_settings_spectator;Preset: Spectate only
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
 mapmode_24;Fort Mapmode
 mapmode_25;Ideology Mapmode

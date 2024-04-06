@@ -279,6 +279,27 @@ public:
 };
 
 
+class message_preset_reset : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		sys::user_settings_s d{};
+		std::memcpy(state.user_settings.self_message_settings, d.self_message_settings, sizeof(d.self_message_settings));
+		std::memcpy(state.user_settings.other_message_settings, d.other_message_settings, sizeof(d.other_message_settings));
+		std::memcpy(state.user_settings.interesting_message_settings, d.interesting_message_settings, sizeof(d.interesting_message_settings));
+	}
+};
+
+class message_preset_ai_only : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		for(uint32_t i = 0; i < uint32_t(sys::message_setting_type::count); i++) {
+			state.user_settings.self_message_settings[i] = sys::message_response::log;
+			state.user_settings.other_message_settings[i] = sys::message_response::ignore;
+			state.user_settings.interesting_message_settings[i] = sys::message_response::ignore;
+		}
+	}
+};
+
 class message_settings_window : public window_element_base {
 public:
 	bool settings_changed = false;
@@ -302,6 +323,10 @@ public:
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "message_settings_items") {
 			return make_element_by_type<message_settings_listbox>(state, id);
+		} else if(name == "message_reset") {
+			return make_element_by_type<message_preset_reset>(state, id);
+		} else if(name == "message_spectator") {
+			return make_element_by_type<message_preset_ai_only>(state, id);
 		} else {
 			return nullptr;
 		}
