@@ -2234,6 +2234,7 @@ void state::save_user_settings() const {
 	US_SAVE(spoilers);
 	US_SAVE(zoom_speed);
 	US_SAVE(mute_on_focus_lost);
+	US_SAVE(diplomatic_message_popup);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2296,6 +2297,7 @@ void state::load_user_settings() {
 			US_LOAD(spoilers);
 			US_LOAD(zoom_speed);
 			US_LOAD(mute_on_focus_lost);
+			US_LOAD(diplomatic_message_popup);
 #undef US_LOAD
 		} while(false);
 
