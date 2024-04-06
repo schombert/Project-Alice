@@ -840,7 +840,7 @@ std::string prettify(int64_t num) {
 
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
+			auto reduced = std::abs(num) / mag[i];
 			if(reduced < 10.0) {
 				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
 			} else if(reduced < 100.0) {
