@@ -2720,9 +2720,8 @@ guiTypes = {
 
 		listboxType = {
 			name = "message_settings_items"
-			position = {  30 89}
-
-			backGround=""
+			position = { 30 89 }
+			backGround = ""
 			size = { 725  321 }
 			spacing = 1
 			scrollbartype = "standardlistbox_slider"
@@ -2730,6 +2729,21 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 
+		# 236 + 4 x step
+		guiButtonType = {
+			name = "message_reset"
+			position = { 30 410 }
+			quadTextureSprite ="GFX_frontend_button_236"
+			buttonText = "message_settings_reset"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "message_spectator"
+			position = { 270 410 }
+			quadTextureSprite ="GFX_frontend_button_236"
+			buttonText = "message_settings_spectator"
+			buttonFont = "vic_22_black"
+		}
 	}
 
 	windowType = {

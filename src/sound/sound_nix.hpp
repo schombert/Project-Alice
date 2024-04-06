@@ -51,6 +51,8 @@ public:
 	audio_instance decline_sound;
 	audio_instance accept_sound;
 	audio_instance diplomatic_request_sound;
+	audio_instance console_open_sound;
+	audio_instance console_close_sound;
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
 
