@@ -162,6 +162,13 @@ void spoilers_checkbox::button_action(sys::state& state) noexcept {
 bool spoilers_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.spoilers;
 }
+void dm_popup_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.diplomatic_message_popup = !state.user_settings.diplomatic_message_popup;
+	send(state, parent, notify_setting_update{});
+}
+bool dm_popup_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.diplomatic_message_popup;
+}
 void mute_on_focus_lost_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.mute_on_focus_lost = !state.user_settings.mute_on_focus_lost;
 	send(state, parent, notify_setting_update{});

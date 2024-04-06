@@ -377,6 +377,7 @@ struct user_settings_s {
 	bool spoilers = true;
 	float zoom_speed = 20.f;
 	bool mute_on_focus_lost = true;
+	bool diplomatic_message_popup = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
