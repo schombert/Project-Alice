@@ -3973,7 +3973,7 @@ guiTypes = {
 		iconType = {
 			name = "flag"
 			spriteType = "GFX_flag_new"
-			position = { 8 24 }
+			position = { 8 22 }
 			Orientation = "UPPER_LEFT"			
 		}
 	}
