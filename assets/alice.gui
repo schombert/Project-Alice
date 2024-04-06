@@ -3990,12 +3990,6 @@ guiTypes = {
 		Orientation = "CENTER_DOWN"
 	}
 
-	guiButtonType = {
-		name = "alice_enable_ai_controlled"
-		position = { 180 312 }
-		quadTextureSprite = "GFX_checkbox_default"	
-	}
-
 	windowType = {
 		name = "alice_diplomessageicon_entry_window"
 		position = { 0 0 }	
@@ -4020,5 +4014,16 @@ guiTypes = {
 		Orientation = "UPPER_LEFT"
 		format = centre
 		spacing = 1.0
+	}
+
+	guiButtonType = {
+		name = "alice_enable_ai_controlled"
+		position = { 180 312 }
+		quadTextureSprite = "GFX_checkbox_default"	
+	}
+	guiButtonType = {
+		name = "alice_enable_ai_controlled_multi"
+		position = { 239 4 }
+		quadTextureSprite = "GFX_checkbox_default"	
 	}
 }
