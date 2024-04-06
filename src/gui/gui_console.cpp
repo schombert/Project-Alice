@@ -1486,9 +1486,17 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
-	case command_info::type::instant_research:
+	case command_info::type::instant_research: {
+		auto has_us = false;
+		for(const auto n : state.cheat_data.instant_research_nations)
+			if(n == state.local_player_nation) {
+				has_us = true;
+				break;
+			}
+		log_to_console(state, parent, !has_us ? "\xA7GEnabled" : "\xA7RDisabled");
 		command::c_instant_research(state, state.local_player_nation);
 		break;
+	}
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
 		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\xA7GEnabled" : "\xA7RDisabled");
@@ -1578,14 +1586,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::instant_army:
 	{
+		log_to_console(state, parent, !state.cheat_data.instant_army ? "\xA7GEnabled" : "\xA7RDisabled");
 		command::c_instant_army(state, state.local_player_nation);
-		log_to_console(state, parent, state.cheat_data.instant_army ? "\xA7GEnabled" : "\xA7RDisabled");
 		break;
 	}
 	case command_info::type::instant_industry:
 	{
+		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\xA7GEnabled" : "\xA7RDisabled");
 		command::c_instant_industry(state, state.local_player_nation);
-		log_to_console(state, parent, state.cheat_data.instant_industry ? "\xA7GEnabled" : "\xA7RDisabled");
 		break;
 	}
 	case command_info::type::daily_oos_check:
