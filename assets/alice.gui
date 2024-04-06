@@ -498,7 +498,7 @@ guiTypes = {
 			# Spoilers checkbox
 			instantTextBoxType = {
 				name = "spoilers_label"
-				position = { 78 260 }
+				position = { 78 280 }
 				text = "spoilers_label"
 				font = "Arial16"
 				borderSize = { 0 0 }
@@ -508,7 +508,23 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "spoilers_checkbox"
-				position = { 51 260 }
+				position = { 51 280 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
+			# Diplo Messages Popup checkbox
+			instantTextBoxType = {
+				name = "dm_popup_label"
+				position = { 78 300 }
+				text = "dm_popup_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "dm_popup_checkbox"
+				position = { 51 300 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style
@@ -571,6 +587,51 @@ guiTypes = {
 				name = "auto_save_right"
 				position = { 269 202 }
 				quadTextureSprite = "option_next"
+			}
+			# Zoom speed
+			instantTextBoxType = {
+				name = "zoom_speed_label"
+				position = { 58 228 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "zoom_speed_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			scrollbarType = {
+				name = "zoom_speed_scrollbar"
+				slider = "slider"
+				track= "track"
+				leftbutton = "up"
+				rightbutton = "down"
+				size = { 236 16 }
+				position = { 58 248 }
+				minValue = 15
+				maxValue = 25
+				stepSize = 1
+				startValue = 20
+				horizontal = 1
+				guiButtonType = {
+					name = "slider"
+					quadTextureSprite = "GFX_slider_circle"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "track"
+					quadTextureSprite = "GFX_bg_horizontal_slider_220wide"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "up"
+					quadTextureSprite = "GFX_slider_left"
+					position = { 0 0}
+				}
+				guiButtonType = {
+					name = "down"
+					quadTextureSprite = "GFX_slider_right"
+					position = { 0 236}
+				}
 			}
 		}
 
@@ -803,6 +864,22 @@ guiTypes = {
 				name = "music_player_right"
 				position = { 269 326 }
 				quadTextureSprite = "option_next"
+			}
+			# Mute on focus checkbox
+			instantTextBoxType = {
+				name = "mute_on_focus_lost_label"
+				position = { 78 360 }
+				text = "mute_on_focus_lost_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "mute_on_focus_lost_checkbox"
+				position = { 51 360 }
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}
 	}
@@ -2659,9 +2736,8 @@ guiTypes = {
 
 		listboxType = {
 			name = "message_settings_items"
-			position = {  30 89}
-
-			backGround=""
+			position = { 30 89 }
+			backGround = ""
 			size = { 725  321 }
 			spacing = 1
 			scrollbartype = "standardlistbox_slider"
@@ -2669,6 +2745,21 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 
+		# 236 + 4 x step
+		guiButtonType = {
+			name = "message_reset"
+			position = { 30 410 }
+			quadTextureSprite ="GFX_frontend_button_236"
+			buttonText = "message_settings_reset"
+			buttonFont = "vic_22_black"
+		}
+		guiButtonType = {
+			name = "message_spectator"
+			position = { 270 410 }
+			quadTextureSprite ="GFX_frontend_button_236"
+			buttonText = "message_settings_spectator"
+			buttonFont = "vic_22_black"
+		}
 	}
 
 	windowType = {
@@ -3897,5 +3988,31 @@ guiTypes = {
 		fixedsize = yes
 		font = "Arial14"
 		Orientation = "CENTER_DOWN"
+	}
+
+	windowType = {
+		name = "alice_diplomessageicon_entry_window"
+		position = { 0 0 }	
+		size = { 48 48 }
+		guiButtonType = {
+			name = "diplomessageicon_button"
+			position = { 0 0 }
+			quadTextureSprite ="GFX_diplo_message_icons"	
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "flag"
+			spriteType = "GFX_flag_new"
+			position = { 8 22 }
+			Orientation = "UPPER_LEFT"			
+		}
+	}
+	OverlappingElementsBoxType = {
+		name = "alice_diplomessageicons_window"
+		position = { 435 90 }	
+		size = { 576 48 }
+		Orientation = "UPPER_LEFT"
+		format = centre
+		spacing = 1.0
 	}
 }

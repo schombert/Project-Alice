@@ -214,8 +214,10 @@ public:
 		row_contents.clear();
 		bool is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land) {
-				row_contents.push_back(dcon::unit_type_id(i));
+			auto const utid = dcon::unit_type_id(i);
+			auto const& ut = state.military_definitions.unit_base_definitions[utid];
+			if(ut.is_land == is_land && (ut.active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
+				row_contents.push_back(utid);
 			}
 		}
 		update(state);
@@ -938,10 +940,9 @@ public:
 			return ptr;
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
+		} else if(name == "button_macro") {
+			return make_element_by_type<minimap_macro_builder_button>(state, id);
 		} else if(name == "button_goto") {
-			auto ptr = make_element_by_type<minimap_macro_builder_button>(state, id);
-			ptr->base_data.position.y += ptr->base_data.size.y;
-			add_child_to_front(std::move(ptr));
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);

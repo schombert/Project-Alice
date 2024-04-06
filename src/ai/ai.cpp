@@ -161,7 +161,6 @@ void form_alliances(sys::state& state) {
 						return a.index() > b.index();
 				});
 				nations::make_alliance(state, n, alliance_targets[0]);
-
 				// Call our new allies into wars.... they may not accept but they may just may join!
 				//for(auto wp : state.world.nation_get_war_participant(n))
 				//	if(!military::are_allied_in_war(state, n, alliance_targets[0]) && will_join_war(state, alliance_targets[0], wp.get_war(), wp.get_is_attacker()))

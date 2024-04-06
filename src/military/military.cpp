@@ -964,11 +964,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 		In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either
 		the primary culture of the nation or an accepted culture.
 		*/
-
-		if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
-				pop.get_pop().get_poptype() != state.culture_definitions.slaves && pop.get_pop().get_is_primary_or_accepted_culture() &&
-				pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
-
+		if(pop_eligible_for_mobilization(state, pop.get_pop())) {
 			/*
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
@@ -6844,23 +6840,17 @@ void advance_mobilizations(sys::state& state) {
 					// mobilize the province
 
 					if(state.world.province_get_nation_from_province_control(back.where) ==
-							state.world.province_get_nation_from_province_ownership(back.where)) { // only if un occupied
+						state.world.province_get_nation_from_province_ownership(back.where)) { // only if un occupied
 						/*
 						In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is
 						either the primary culture of the nation or an accepted culture.
 						*/
 						for(auto pop : state.world.province_get_pop_location(back.where)) {
-
-							if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
-									pop.get_pop().get_poptype() != state.culture_definitions.slaves &&
-									pop.get_pop().get_is_primary_or_accepted_culture() &&
-									pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
-
+							if(pop_eligible_for_mobilization(state, pop.get_pop())) {
 								/*
 								The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 								define:POP_SIZE_PER_REGIMENT.
 								*/
-
 								auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 								if(available > 0) {
 
@@ -7144,6 +7134,14 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 		state.world.navy_set_moving_to_merge(a, true);
 	}
+}
+
+bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
+	auto const pop = dcon::fatten(state.world, p);
+	return pop.get_poptype() != state.culture_definitions.soldiers
+		&& pop.get_poptype() != state.culture_definitions.slaves
+		&& pop.get_is_primary_or_accepted_culture()
+		&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor);
 }
 
 } // namespace military

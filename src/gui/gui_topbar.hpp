@@ -12,6 +12,7 @@
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
+#include "gui_diplomacy_request_topbar.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "rebels.hpp"
@@ -788,6 +789,13 @@ public:
 		return state.ui_state.topbar_subwindow == topbar_subwindow && state.ui_state.topbar_subwindow->is_visible();
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_topbar_tab_1");
+	}
+
 	element_base* topbar_subwindow = nullptr;
 };
 
@@ -814,6 +822,13 @@ public:
 			override_and_show_tab();
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_topbar_tab_2");
+	}
 };
 
 class topbar_date_text : public simple_text_element_base {
@@ -825,6 +840,11 @@ public:
 
 class topbar_pause_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		base_data.data.button.shortcut = sys::virtual_key::SPACE;
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(state.actual_game_speed <= 0) {
 			state.actual_game_speed = state.ui_state.held_game_speed;
@@ -848,6 +868,9 @@ public:
 		}
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -878,7 +901,6 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -909,7 +931,6 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
@@ -923,11 +944,6 @@ public:
 
 class topbar_speed_indicator : public topbar_pause_button {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		base_data.data.button.shortcut = sys::virtual_key::SPACE;
-	}
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.network_mode == sys::network_mode_type::single_player || state.network_mode == sys::network_mode_type::host) {
 			if(state.internally_paused || state.ui_pause.load(std::memory_order::acquire)) {
@@ -958,6 +974,17 @@ public:
 			text::add_line(state, contents, "countryalert_no_gpstatus");
 		} else if(state.world.nation_get_rank(state.local_player_nation) > uint16_t(state.defines.great_nations_count)) {
 			text::add_line(state, contents, "alice_lose_gp");
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, int32_t(state.defines.great_nations_count));
+			for(const auto gp : state.great_nations) {
+				if(gp.nation == state.local_player_nation) {
+					text::add_to_substitution_map(sub, text::variable_type::date, gp.last_greatness + int32_t(state.defines.greatness_days));
+					break;
+				}
+			}
+			text::localised_format_box(state, contents, box, "alice_gp_status_regain_expiration", sub);
+			text::close_layout_box(contents, box);
 		} else if(state.world.nation_get_rank(state.local_player_nation) <= uint16_t(state.defines.great_nations_count)) {
 			text::add_line(state, contents, "countryalert_no_loosinggpstatus");
 		}
@@ -1544,14 +1571,52 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
-		if(state.current_crisis == sys::crisis_type::none) {
-			text::localised_format_box(state, contents, box, std::string_view("countryalert_no_crisis"), sub);
-		} else if(state.crisis_temperature > 0.8f) {
-			text::localised_format_box(state, contents, box, std::string_view("countryalert_crisis"), sub);
-		} else {
-#define STRINGIFY(x) #x
-			text::add_to_layout_box(state, contents, box, std::string_view(__FILE__ ":" STRINGIFY(__LINE__)));
-#undef STRINGIFY
+		text::add_to_substitution_map(sub, text::variable_type::attacker, state.primary_crisis_attacker);
+		text::add_to_substitution_map(sub, text::variable_type::defender, state.primary_crisis_defender);
+		text::add_to_substitution_map(sub, text::variable_type::date, state.last_crisis_end_date);
+		text::add_to_substitution_map(sub, text::variable_type::time, int32_t(state.defines.crisis_cooldown_months));
+		if(state.current_crisis_mode == sys::crisis_mode::inactive) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_inactive"), sub);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_attacker"), sub);
+		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_defender"), sub);
+		} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_heating_up"), sub);
+		}
+		if(state.last_crisis_end_date) {
+			text::add_line_break_to_layout_box(state, contents, box);
+			text::localised_format_box(state, contents, box, std::string_view("alice_last_crisis"), sub);
+		}
+		if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+			text::add_line_break_to_layout_box(state, contents, box);
+			//atackers
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_1"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(const auto par : state.crisis_participants) {
+				if(!par.merely_interested && par.supports_attacker) {
+					text::add_to_layout_box(state, contents, box, par.id);
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+			//defenders
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_2"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(const auto par : state.crisis_participants) {
+				if(!par.merely_interested && !par.supports_attacker) {
+					text::add_to_layout_box(state, contents, box, par.id);
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+			//merely interested
+			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_3"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(const auto par : state.crisis_participants) {
+				if(par.merely_interested) {
+					text::add_to_layout_box(state, contents, box, par.id);
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
 		}
 		text::close_layout_box(contents, box);
 	}
@@ -1625,7 +1690,7 @@ public:
 			}
 
 			if(!added_increase_header && !added_reb_header)
-				text::add_line(state, contents, std::string_view("remove_countryalert_no_canincreaseopinion"));
+				text::add_line(state, contents, std::string_view("alice_ca_cant_influence"));
 		}
 	}
 };
@@ -1725,6 +1790,10 @@ public:
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
+
+		auto dpi_win = make_element_by_type<ui::diplomatic_message_topbar_listbox>(state, "alice_diplomessageicons_window");
+		state.ui_state.request_topbar_listbox = dpi_win.get();
+		add_child_to_front(std::move(dpi_win));
 
 		state.ui_state.topbar_window = this;
 		on_update(state);

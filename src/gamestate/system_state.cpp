@@ -23,6 +23,7 @@
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
 #include "gui_error_window.hpp"
+#include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
@@ -206,6 +207,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		} else if(mode != sys::game_mode_type::end_screen) {
 			drag_selecting = true;
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+			window::change_cursor(*this, window::cursor_type::drag_select);
 		}
 	}
 }
@@ -255,16 +257,19 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 	} else if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 		selected_armies.clear();
 		selected_navies.clear();
 		game_state_updated.store(true, std::memory_order_release);
 	} else {
 		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 		if(x < x_drag_start)
 			std::swap(x, x_drag_start);
 		if(y < y_drag_start)
@@ -371,11 +376,11 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 }
 void state::on_mouse_drag(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is held down
 	is_dragging = true;
-
-	if(ui_state.drag_target)
+	if(ui_state.drag_target) {
 		ui_state.drag_target->on_drag(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 				int32_t(mouse_y_position / user_settings.ui_scale), int32_t(x / user_settings.ui_scale),
 				int32_t(y / user_settings.ui_scale), mod);
+	}
 }
 void state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod) { // called when the left button is released after one or more drag events
 	if(ui_state.drag_target) {
@@ -523,17 +528,15 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 							v.push_back(n);
 						}
 					}
-				} else {
-					if(mod != sys::key_modifiers::modifiers_shift) { //shift to append
-						selected_armies.clear();
-						selected_navies.clear();
-					}
+					game_state_updated.store(true, std::memory_order_release);
+				} else { //shift to append
 					for(const auto a : ctrl_armies[ctrl_group]) {
-						selected_armies.push_back(a);
+						select(a);
 					}
 					for(const auto n : ctrl_navies[ctrl_group]) {
-						selected_navies.push_back(n);
+						select(n);
 					}
+					game_state_updated.store(true, std::memory_order_release);
 				}
 			}
 
@@ -1283,7 +1286,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c5 = new_requests.front();
 			bool had_diplo_msg = false;
 			while(c5) {
-				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				if(user_settings.diplomatic_message_popup) {
+					static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				} else {
+					static_cast<ui::diplomatic_message_topbar_listbox*>(ui_state.request_topbar_listbox)->messages.push_back(*c5);
+				}
 				had_diplo_msg = true;
 				new_requests.pop();
 				c5 = new_requests.front();
@@ -1590,6 +1597,29 @@ void state::render() { // called to render the frame may (and should) delay retu
 			// ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
 			// ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
 
+			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
+				bool fail = false;
+				for(auto a : selected_armies) {
+					if(command::can_move_army(*this, local_player_nation, a, prov).empty()) {
+						fail = true;
+					}
+				}
+				for(auto a : selected_navies) {
+					if(command::can_move_navy(*this, local_player_nation, a, prov).empty()) {
+						fail = true;
+					}
+				}
+				if(!fail) {
+					auto c = world.province_get_nation_from_province_control(prov);
+					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
+						window::change_cursor(*this, window::cursor_type::hostile_move);
+					} else {
+						window::change_cursor(*this, window::cursor_type::friendly_move);
+					}
+				} else {
+					window::change_cursor(*this, window::cursor_type::no_move);
+				}
+			}
 
 			ui::populate_map_tooltip(*this, container, prov);
 
@@ -2203,6 +2233,9 @@ void state::save_user_settings() const {
 	US_SAVE(mouse_edge_scrolling);
 	US_SAVE(black_map_font);
 	US_SAVE(spoilers);
+	US_SAVE(zoom_speed);
+	US_SAVE(mute_on_focus_lost);
+	US_SAVE(diplomatic_message_popup);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2263,18 +2296,35 @@ void state::load_user_settings() {
 			US_LOAD(mouse_edge_scrolling);
 			US_LOAD(black_map_font);
 			US_LOAD(spoilers);
+			US_LOAD(zoom_speed);
+			US_LOAD(mute_on_focus_lost);
+			US_LOAD(diplomatic_message_popup);
 #undef US_LOAD
 		} while(false);
 
+		//NaN will not get clamped, so use special std::isfinite test to set to reasonable values
+		if(!std::isfinite(user_settings.interface_volume)) user_settings.interface_volume = 0.0f;
 		user_settings.interface_volume = std::clamp(user_settings.interface_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.music_volume)) user_settings.music_volume = 0.0f;
 		user_settings.music_volume = std::clamp(user_settings.music_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.effects_volume)) user_settings.effects_volume = 0.0f;
 		user_settings.effects_volume = std::clamp(user_settings.effects_volume, 0.0f, 1.0f);
+		
+		if(!std::isfinite(user_settings.master_volume)) user_settings.master_volume = 0.0f;
 		user_settings.master_volume = std::clamp(user_settings.master_volume, 0.0f, 1.0f);
-		if(user_settings.antialias_level > 16)
-			user_settings.antialias_level = 0;
-		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.25f);
+		
+		if(user_settings.antialias_level > 16) user_settings.antialias_level = 0;
+		
+		if(!std::isfinite(user_settings.gaussianblur_level)) user_settings.gaussianblur_level = 1.0f;
 		user_settings.gaussianblur_level = std::clamp(user_settings.gaussianblur_level, 1.0f, 1.5f);
+		
+		if(!std::isfinite(user_settings.gamma)) user_settings.gamma = 0.5f;
 		user_settings.gamma = std::clamp(user_settings.gamma, 0.5f, 2.5f);
+		
+		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
+		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
 	}
 
 	// find most recent autosave

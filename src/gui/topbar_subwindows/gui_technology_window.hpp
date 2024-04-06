@@ -29,11 +29,11 @@ public:
 			bool is_current = state.world.nation_get_current_research(state.local_player_nation) == id;
 			auto color = discovered
 				? text::text_color::green
-				: (can_research
-					? (is_current
-						? text::text_color::light_blue
-						: text::text_color::red)
-					: text::text_color::light_grey);
+				: (is_current
+					? text::text_color::light_blue
+					: (can_research
+						? text::text_color::red
+						: text::text_color::light_grey));
 			auto name = fat_id.get_name();
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), color);

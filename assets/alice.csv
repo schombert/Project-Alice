@@ -10,12 +10,15 @@ map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
 map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 map_projection_globe_perspective;Vertical
+dm_popup_label;Diplomatic message as popups
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
 zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
 zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
+zoom_speed_label;Zoom Acceleration
 river_label;Rivers;;;Rios;;;;;;;;;x
+mute_on_focus_lost_label;Mute On Focus Lost
 vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same
@@ -38,8 +41,11 @@ map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+mm_settings_pc_tt;Set at $perc$
 spoilers_label;Spoilers
 spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
+message_settings_reset;Reset
+message_settings_spectator;Preset: Spectate only
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
 mapmode_24;Fort Mapmode
 mapmode_25;Ideology Mapmode
@@ -946,11 +952,17 @@ wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
 wg_not_ready;You must finish choosing a war goal
+crisis_temperature_ex;The current crisis temperature is §R$value$§W! Reaching §R100§W will trigger a crisis war between the two sides
+crisis_mode_no_crisis;There is no crisis
+crisis_mode_finding_attacker;Finding a backer for the attacker side
+crisis_mode_finding_defender;Finding a backer for the defender side
+crisis_mode_heating_up;Crisis heating up
 crisis_back_explain_1;You are interested in the crisis (on the fence)
 crisis_back_explain_2;The crisis has attracted its initial backers
 crisis_add_interest_button;Take an interest in this crisis
 crisis_add_interest_button_ex_1;You are a great power
 crisis_add_interest_button_ex_2;The crisis has attracted its initial backers
+crisis_add_interest_button_ex_3;You have at least 1 diplomatic point
 crisis_offer_button;Make an offer to this nation to join your side of the crisis
 crisis_offer_button_ex_1;You are the leader of one of the crisis sides
 crisis_offer_button_ex_2;The crisis has attracted its initial backers
@@ -1536,6 +1548,8 @@ alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will
 alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
 alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
+alice_ca_cant_influence;We currently are unable to increase or decrease the opinion of other nations at the moment
+alice_gp_status_regain_expiration;If we don't become rank §Y$x$§W or higher, we will lose §Ygreat power§W status by §Y$date§W!
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
@@ -1568,10 +1582,13 @@ alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
 alice_lobby_close;Close
 alice_lobby_close_tt;You can reopen this window with §YTAB§W
+alice_topbar_tab_1;Open or close this tab
+alice_topbar_tab_2;Open or close the population tab
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
+topbar_pause_speed;Pauses the game, click again to unpause
 att_call_no_allies;You don't have any allies!
 att_truce_with;Truce with $text$ until $y$
 domestic_investment_label;Domestic investment:
@@ -1622,6 +1639,14 @@ current_supply_text2;The amount we could get of our current supply consumption w
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_crisis_inactive;No current active crisis
+alice_crisis_finding_attacker;Finding an attacker for the current crisis
+alice_crisis_finding_defender;Finding a defender for the current crisis
+alice_crisis_heating_up;Crisis is heating up in temperature, currently at §R$temperature$§W
+alice_last_crisis;Last crisis ocurred in $date$ (there is a $time$ month cooldown between crises)
+alice_crisis_par_1;§RAttackers§W:
+alice_crisis_par_2;§BDefenders§W:
+alice_crisis_par_3;§YMerely interested (no side)§W:
 alice_commodity_cprice;Current price: $x$
 alice_commodity_cost;Cost: $x$
 alice_commodity_eprice;Effective price: $x$
@@ -1640,6 +1665,7 @@ alice_wg_condition_4;Not on the same side as us
 alice_wg_condition_5;Satisfies triggers for wargoal
 alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
 alice_wg_condition_7;Is constructable wargoal
+alice_tt_wg_infamy_limit;§RThis wargoal will exceed the infamy limit§W
 alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
 alice_pvid_id;Province Id:
 alice_pvid_tag;Tag:

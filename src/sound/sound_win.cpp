@@ -144,6 +144,14 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 	}
 }
 
+void audio_instance::pause() const {
+	if(control_interface)
+		control_interface->Pause();
+}
+void audio_instance::resume() const {
+	if(control_interface)
+		control_interface->Run();
+}
 void audio_instance::stop() const {
 	if(control_interface)
 		control_interface->Pause();
@@ -258,6 +266,36 @@ void sound_impl::change_music_volume(float v) const {
 	}
 }
 
+void sound_impl::pause_effect() const {
+	if(current_effect)
+		current_effect->pause();
+}
+void sound_impl::pause_interface_sound() const {
+	if(current_interface_sound)
+		current_interface_sound->pause();
+}
+void sound_impl::pause_music() const {
+	auto const lm = last_music;
+	if(lm != -1) {
+		music_list[lm].pause();
+	}
+}
+
+void sound_impl::resume_effect() const {
+	if(current_effect)
+		current_effect->resume();
+}
+void sound_impl::resume_interface_sound() const {
+	if(current_interface_sound)
+		current_interface_sound->resume();
+}
+void sound_impl::resume_music() const {
+	auto const lm = last_music;
+	if(lm != -1) {
+		music_list[lm].resume();
+	}
+}
+
 // called on startup and shutdown -- initialize should also load the list of available music files and load sound effects
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
@@ -369,6 +407,16 @@ void initialize_sound_system(sys::state& state) {
 		state.sound_ptr->election_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
 
+	auto const assets_directory = open_directory(root_dir, NATIVE("\\assets"));
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_OpenConsole.wav"));
+		state.sound_ptr->console_open_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_CloseConsole.wav"));
+		state.sound_ptr->console_close_sound.set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+
 	// Land battles
 	{
 		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_1.wav"));
@@ -457,6 +505,21 @@ void start_music(sys::state& state, float v) {
 	}
 }
 
+void pause_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		state.sound_ptr->pause_effect();
+		state.sound_ptr->pause_interface_sound();
+		state.sound_ptr->pause_music();
+	}
+}
+void resume_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		state.sound_ptr->resume_effect();
+		state.sound_ptr->resume_interface_sound();
+		state.sound_ptr->resume_music();
+	}
+}
+
 void update_music_track(sys::state& state) {
 	if(state.sound_ptr->music_finished())
 		state.sound_ptr->play_new_track(state);
@@ -532,6 +595,12 @@ audio_instance& get_diplomatic_request_sound(sys::state& state) {
 }
 audio_instance& get_chat_message_sound(sys::state& state) {
 	return state.sound_ptr->chat_message_sound;
+}
+audio_instance& get_console_open_sound(sys::state& state) {
+	return state.sound_ptr->console_open_sound;
+}
+audio_instance& get_console_close_sound(sys::state& state) {
+	return state.sound_ptr->console_close_sound;
 }
 
 audio_instance& get_random_land_battle_sound(sys::state& state) {

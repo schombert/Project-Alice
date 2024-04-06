@@ -117,24 +117,26 @@ guiTypes = {
 			position = { -49 -155 }
 			quadTextureSprite = "GFX_menu_button"
 			Orientation = "LOWER_RIGHT"
-			clicksound = click
+			#shortcut = "esc"
 		}
 		guiButtonType = {
 			name = "ledger_button"
-			position = { -49 -125 }
+			position = { -49 -130 }
 			quadTextureSprite = "GFX_ledger_button"
 			Orientation = "LOWER_RIGHT"
-			shortcut = "l"
+			shortcut = "f9"
+		}
+		guiButtonType = {
+			name = "button_macro"
+			position = { -49 -95 }
+			quadTextureSprite = "GFX_button_macro"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "f10"
 		}
 		guiButtonType = {
 			name = "button_goto"
-			position = { -49 -90 }
+			position = { -49 -70 }
 			quadTextureSprite ="GFX_button_goto"
-			tooltip = ""
-			tooltipText = ""
-			delayedTooltipText = ""
-			buttonText = ""
-			buttonFont = "Main_14_black"
 			Orientation = "LOWER_RIGHT"
 		}
 		guiButtonType = {

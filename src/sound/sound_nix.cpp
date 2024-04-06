@@ -186,6 +186,16 @@ void initialize_sound_system(sys::state& state) {
 		state.sound_ptr->election_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
 	}
 
+	auto const assets_directory = open_directory(root, NATIVE("assets"));
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_OpenConsole.wav"));
+		state.sound_ptr->console_open_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	}
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_CloseConsole.wav"));
+		state.sound_ptr->console_close_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	}
+
 	{
 		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_1.wav"));
 		state.sound_ptr->land_battle_sounds[0] = (file_peek ? audio_instance(*file_peek) : audio_instance());
@@ -269,6 +279,34 @@ void start_music(sys::state& state, float v) {
 		}
 	}
 }
+
+void pause_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		if(state.sound_ptr->effect_sound.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->effect_sound);
+		}
+		if(state.sound_ptr->interface_sound.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->interface_sound);
+		}
+		if(state.sound_ptr->music.has_value()) {
+			ma_sound_stop(&*state.sound_ptr->music);
+		}
+	}
+}
+void resume_all(sys::state& state) {
+	if(state.sound_ptr.get()) {
+		if(state.sound_ptr->effect_sound.has_value()) {
+			ma_sound_start(&*state.sound_ptr->effect_sound);
+		}
+		if(state.sound_ptr->interface_sound.has_value()) {
+			ma_sound_start(&*state.sound_ptr->interface_sound);
+		}
+		if(state.sound_ptr->music.has_value()) {
+			ma_sound_start(&*state.sound_ptr->music);
+		}
+	}
+}
+
 void update_music_track(sys::state& state) {
 	if(state.sound_ptr->music_finished()) {
 		state.sound_ptr->play_new_track(state);
@@ -345,6 +383,12 @@ audio_instance& get_diplomatic_request_sound(sys::state& state) {
 }
 audio_instance& get_chat_message_sound(sys::state& state) {
 	return state.sound_ptr->chat_message_sound;
+}
+audio_instance& get_console_open_sound(sys::state& state) {
+	return state.sound_ptr->console_open_sound;
+}
+audio_instance& get_console_close_sound(sys::state& state) {
+	return state.sound_ptr->console_close_sound;
 }
 
 audio_instance& get_random_land_battle_sound(sys::state& state) {
