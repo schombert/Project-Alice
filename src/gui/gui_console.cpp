@@ -1654,8 +1654,21 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	}
 }
 
+void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+
 void ui::console_window::show_toggle(sys::state& state) {
 	assert(state.ui_state.console_window);
+	if(state.ui_state.console_window->is_visible()) { //close
+		sound::play_interface_sound(state, sound::get_console_close_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
+	} else { //open
+		sound::play_interface_sound(state, sound::get_console_open_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
+	}
+
 	state.ui_state.console_window->set_visible(state, !state.ui_state.console_window->is_visible());
 	if(state.ui_state.console_window->is_visible())
 		state.ui_state.root->move_child_to_front(state.ui_state.console_window);
