@@ -22,6 +22,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
+#include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
@@ -1284,7 +1285,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c5 = new_requests.front();
 			bool had_diplo_msg = false;
 			while(c5) {
-				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				//static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				static_cast<ui::diplomatic_message_topbar_listbox*>(ui_state.request_topbar_listbox)->messages.push_back(*c5);
 				had_diplo_msg = true;
 				new_requests.pop();
 				c5 = new_requests.front();
