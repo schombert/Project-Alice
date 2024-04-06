@@ -1923,16 +1923,22 @@ public:
 		text::add_line(state, contents, "alice_ai_controlled_unit");
 	}
 	void button_action(sys::state& state) noexcept override {
-		bool b = is_active(state);
-		for(auto a : state.selected_armies) {
-			// Rebel control needs to be turned off
-			if(state.world.army_get_is_rebel_hunter(a)) {
-				command::toggle_rebel_hunting(state, state.local_player_nation, a);
+		bool all_on = true;
+		for(auto i : state.selected_armies) {
+			if(state.world.army_get_is_ai_controlled(i) == false) {
+				all_on = false;
+				break;
 			}
-			if(b) { //all on -> turn all off
+		}
+		for(auto a : state.selected_armies) {
+			if(all_on) { //all on -> turn all off
 				command::toggle_unit_ai_control(state, state.local_player_nation, a);
 			} else { //some on -> turn all that are off into on, all off -> turn all on
-				if(state.world.army_get_is_ai_controlled(a)) {
+				if(!state.world.army_get_is_ai_controlled(a)) {
+					// Rebel control needs to be turned off
+					if(state.world.army_get_is_rebel_hunter(a)) {
+						command::toggle_rebel_hunting(state, state.local_player_nation, a);
+					}
 					command::toggle_unit_ai_control(state, state.local_player_nation, a);
 				}
 			}
