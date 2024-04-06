@@ -1585,6 +1585,7 @@ colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
+topbar_pause_speed;Pauses the game, click again to unpause
 att_call_no_allies;You don't have any allies!
 att_truce_with;Truce with $text$ until $y$
 domestic_investment_label;Domestic investment:
