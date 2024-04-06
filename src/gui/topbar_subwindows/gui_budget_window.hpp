@@ -66,14 +66,6 @@ inline uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_i
 
 namespace ui {
 
-
-class nation_actual_stockpile_spending_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_stockpile_filling_spending(state, state.local_player_nation)));
-	}
-};
-
 class nation_gold_income_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -348,6 +340,10 @@ enum class budget_slider_target : uint8_t {
 	tariffs,
 	domestic_investment,
 	raw,
+	//
+	overseas,
+	stockpile_filling,
+	//
 	target_count
 };
 
@@ -1077,6 +1073,8 @@ private:
 	std::array<float, size_t(budget_slider_target::target_count)> multipliers;
 
 public:
+	bool expense = false;
+
 	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
 
 	void on_create(sys::state& state) noexcept override {
@@ -1092,6 +1090,9 @@ public:
 		auto total = 0.f;
 		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i)
 			total += values[i] * multipliers[i];
+
+		if(expense)
+			total = -total;
 
 		if(total < 0.0f) {
 			color = text::text_color::dark_red;
@@ -1122,6 +1123,14 @@ public:
 	}
 };
 
+class budget_actual_stockpile_spending_text : public budget_scaled_monetary_value_text {
+public:
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::stockpile_filling)] =
+			economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+	}
+};
+
 class budget_estimated_stockpile_spending_text : public budget_scaled_monetary_value_text {
 public:
 	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
@@ -1140,10 +1149,11 @@ public:
 	}
 };
 
-class budget_overseas_spending_text : public simple_text_element_base {
+class budget_overseas_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_overseas_penalty_spending(state, state.local_player_nation)));
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::overseas)] =
+			economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 	}
 };
 
@@ -1799,13 +1809,21 @@ public:
 		} else if(name == "overlay_0" || name == "overlay_1" || name == "overlay_2") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "nat_stock_val") {
-			return make_element_by_type<nation_actual_stockpile_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_actual_stockpile_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "nat_stock_est") {
-			return make_element_by_type<budget_estimated_stockpile_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_estimated_stockpile_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "mil_cost_val") {
-			return make_element_by_type<budget_military_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_military_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "overseas_cost_val") {
-			return make_element_by_type<budget_overseas_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_overseas_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "tariff_val") {
 			return make_element_by_type<budget_tariff_income_text>(state, id);
 		} else if(name == "gold_inc") {
@@ -1817,16 +1835,21 @@ public:
 		} else if(name == "tax_2_inc") {
 			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>( state, id);
 		} else if(name == "exp_val_0") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(
-					state, id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>( state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_1") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(
-					state, id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_2") {
-			return make_element_by_type<budget_social_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_social_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_3") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state,
-					id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "admin_efficiency") {
 			return make_element_by_type<nation_administrative_efficiency_text>(state, id);
 		} else if(name == "interest_val") {
@@ -1838,7 +1861,9 @@ public:
 		} else if(name == "total_inc") {
 			return make_element_by_type<budget_income_projection_text>(state, id);
 		} else if(name == "total_exp") {
-			return make_element_by_type<budget_expenditure_projection_text>(state, id);
+			auto ptr = make_element_by_type<budget_expenditure_projection_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "balance") {
 			return make_element_by_type<budget_balance_projection_text>(state, id);
 		} else if(name == "tax_0_slider") {
