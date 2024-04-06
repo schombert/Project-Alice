@@ -1,6 +1,6 @@
 #include "gui_error_window.hpp"
 
-void ui::popup_error_window(sys::state& state, std::string const& title, std::string const& body) {
+void ui::popup_error_window(sys::state& state, std::string_view title, std::string_view body) {
 	auto new_elm = ui::make_element_by_type<ui::error_dialog_window>(state, "defaultinfodialog");
 	state.ui_state.error_win = new_elm.get();
 	if(state.mode == sys::game_mode_type::pick_nation) {
@@ -14,8 +14,8 @@ void ui::popup_error_window(sys::state& state, std::string const& title, std::st
 	}
 
 	auto win = static_cast<ui::error_dialog_window*>(state.ui_state.error_win);
-	win->title->set_text(state, title);
-	win->body->msg = body;
+	win->title->set_text(state, std::string(title));
+	win->body->msg = std::string(body);
 	win->set_visible(state, true);
 	win->impl_on_update(state);
 }

@@ -69,5 +69,5 @@ public:
 		}
 	}
 };
-void popup_error_window(sys::state& state, std::string const& title, std::string const& body);
+void popup_error_window(sys::state& state, std::string_view title, std::string_view body);
 } // namespace ui
