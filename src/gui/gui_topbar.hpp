@@ -12,6 +12,7 @@
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
+#include "gui_diplomacy_request_topbar.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "rebels.hpp"
@@ -1789,6 +1790,10 @@ public:
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
 		add_child_to_back(std::move(bg_pic));
+
+		auto dpi_win = make_element_by_type<ui::diplomatic_message_topbar_listbox>(state, "alice_diplomessageicons_window");
+		state.ui_state.request_topbar_listbox = dpi_win.get();
+		add_child_to_front(std::move(dpi_win));
 
 		state.ui_state.topbar_window = this;
 		on_update(state);

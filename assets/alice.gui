@@ -511,6 +511,22 @@ guiTypes = {
 				position = { 51 280 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# Diplo Messages Popup checkbox
+			instantTextBoxType = {
+				name = "dm_popup_label"
+				position = { 78 300 }
+				text = "dm_popup_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "dm_popup_checkbox"
+				position = { 51 300 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"
@@ -3972,5 +3988,31 @@ guiTypes = {
 		fixedsize = yes
 		font = "Arial14"
 		Orientation = "CENTER_DOWN"
+	}
+
+	windowType = {
+		name = "alice_diplomessageicon_entry_window"
+		position = { 0 0 }	
+		size = { 48 48 }
+		guiButtonType = {
+			name = "diplomessageicon_button"
+			position = { 0 0 }
+			quadTextureSprite ="GFX_diplo_message_icons"	
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name = "flag"
+			spriteType = "GFX_flag_new"
+			position = { 8 22 }
+			Orientation = "UPPER_LEFT"			
+		}
+	}
+	OverlappingElementsBoxType = {
+		name = "alice_diplomessageicons_window"
+		position = { 435 90 }	
+		size = { 576 48 }
+		Orientation = "UPPER_LEFT"
+		format = centre
+		spacing = 1.0
 	}
 }

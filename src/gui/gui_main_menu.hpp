@@ -125,6 +125,11 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+class dm_popup_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
 class mute_on_focus_lost_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;

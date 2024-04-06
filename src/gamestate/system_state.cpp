@@ -22,6 +22,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
+#include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
@@ -1284,7 +1285,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 			auto* c5 = new_requests.front();
 			bool had_diplo_msg = false;
 			while(c5) {
-				static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				if(user_settings.diplomatic_message_popup) {
+					static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.push_back(*c5);
+				} else {
+					static_cast<ui::diplomatic_message_topbar_listbox*>(ui_state.request_topbar_listbox)->messages.push_back(*c5);
+				}
 				had_diplo_msg = true;
 				new_requests.pop();
 				c5 = new_requests.front();
@@ -2229,6 +2234,7 @@ void state::save_user_settings() const {
 	US_SAVE(spoilers);
 	US_SAVE(zoom_speed);
 	US_SAVE(mute_on_focus_lost);
+	US_SAVE(diplomatic_message_popup);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2291,6 +2297,7 @@ void state::load_user_settings() {
 			US_LOAD(spoilers);
 			US_LOAD(zoom_speed);
 			US_LOAD(mute_on_focus_lost);
+			US_LOAD(diplomatic_message_popup);
 #undef US_LOAD
 		} while(false);
 
