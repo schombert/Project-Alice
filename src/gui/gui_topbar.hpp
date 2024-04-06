@@ -840,6 +840,11 @@ public:
 
 class topbar_pause_button : public button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		base_data.data.button.shortcut = sys::virtual_key::SPACE;
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(state.actual_game_speed <= 0) {
 			state.actual_game_speed = state.ui_state.held_game_speed;
@@ -939,11 +944,6 @@ public:
 
 class topbar_speed_indicator : public topbar_pause_button {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		base_data.data.button.shortcut = sys::virtual_key::SPACE;
-	}
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.network_mode == sys::network_mode_type::single_player || state.network_mode == sys::network_mode_type::host) {
 			if(state.internally_paused || state.ui_pause.load(std::memory_order::acquire)) {
