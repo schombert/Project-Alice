@@ -77,10 +77,11 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto m = retrieve<diplomatic_message::message>(state, parent);
 		auto box = text::open_layout_box(contents);
+		auto tstr = text::produce_simple_string(state, get_type_key(m.type));
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::nation, m.from);
 		text::add_to_substitution_map(sub, text::variable_type::date, m.when + diplomatic_message::expiration_in_days);
-		text::add_to_substitution_map(sub, text::variable_type::type, get_type_key(m.type));
+		text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(tstr.c_str()));
 		text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"), sub);
 		text::close_layout_box(contents, box);
     }
