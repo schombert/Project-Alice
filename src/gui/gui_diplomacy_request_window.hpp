@@ -337,8 +337,10 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(),
-				[&](auto& m) { return m.when + diplomatic_message::expiration_in_days <= state.current_date; });
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
+			return m.when + diplomatic_message::expiration_in_days <= state.current_date
+				|| !diplomatic_message::can_accept(state, m);
+		});
 		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 

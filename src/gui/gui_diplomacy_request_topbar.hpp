@@ -121,8 +121,10 @@ class diplomatic_message_topbar_listbox : public overlapping_listbox_element_bas
 public:
 	std::vector< diplomatic_message::message> messages;
 	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(),
-				[&](auto& m) { return m.when + diplomatic_message::expiration_in_days <= state.current_date; });
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
+			return m.when + diplomatic_message::expiration_in_days <= state.current_date
+				|| !diplomatic_message::can_accept(state, m);
+		});
 		auto r = std::distance(it, messages.end());
 		messages.erase(it, messages.end());
 
