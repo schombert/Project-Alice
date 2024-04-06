@@ -1714,6 +1714,11 @@ object {
 		type{ province_id }
 		tag{ save }
 	}
+	property{
+		name{ is_ai_controlled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 object {

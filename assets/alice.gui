@@ -3990,6 +3990,12 @@ guiTypes = {
 		Orientation = "CENTER_DOWN"
 	}
 
+	guiButtonType = {
+		name = "alice_enable_ai_controlled"
+		position = { 180 312 }
+		quadTextureSprite = "GFX_checkbox_default"	
+	}
+
 	windowType = {
 		name = "alice_diplomessageicon_entry_window"
 		position = { 0 0 }	
