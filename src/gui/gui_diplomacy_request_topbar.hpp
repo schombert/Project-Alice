@@ -81,7 +81,7 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::nation, m.from);
 		text::add_to_substitution_map(sub, text::variable_type::date, m.when + diplomatic_message::expiration_in_days);
 		text::add_to_substitution_map(sub, text::variable_type::type, get_type_key(m.type));
-		text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"));
+		text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"), sub);
 		text::close_layout_box(contents, box);
     }
 
