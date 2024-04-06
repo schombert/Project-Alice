@@ -8,7 +8,7 @@
 namespace ui {
 
 class diplomatic_message_topbar_button : public button_element_base {
-	std::string_view get_type_key(sys::state& state, diplomatic_message::type_t type) {
+	std::string_view get_type_key(diplomatic_message::type_t type) {
 		switch(type) {
 		case diplomatic_message::type_t::none:
 			return "???";
@@ -80,7 +80,7 @@ public:
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::nation, m.from);
 		text::add_to_substitution_map(sub, text::variable_type::date, m.when + diplomatic_message::expiration_in_days);
-		text::add_to_substitution_map(sub, text::variable_type::type, text::produce_simple_string(state, get_type_key(m.type)));
+		text::add_to_substitution_map(sub, text::variable_type::type, get_type_key(m.type));
 		text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"));
 		text::close_layout_box(contents, box);
     }
