@@ -35,7 +35,7 @@ namespace network {
 //
 
 #ifdef _WIN64
-static std::string get_wsa_error_text(int err) {
+std::string get_wsa_error_text(int err) {
 	LPTSTR err_buf = nullptr;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
@@ -43,11 +43,17 @@ static std::string get_wsa_error_text(int err) {
 	LocalFree(err_buf);
 	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
 }
-static std::string get_last_error_msg() {
-	return get_last_error_msg();
+std::string get_last_error_msg() {
+	auto err = WSAGetLastError();
+	LPTSTR err_buf = nullptr;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
+	native_string err_text = err_buf;
+	LocalFree(err_buf);
+	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
 }
 #else
-static std::string get_last_error_msg() {
+std::string get_last_error_msg() {
 	return std::string("Dummy");
 }
 #endif
