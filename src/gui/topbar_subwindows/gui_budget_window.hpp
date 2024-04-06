@@ -1079,8 +1079,6 @@ private:
 public:
 	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
 
-	bool color_result = false;
-
 	void on_create(sys::state& state) noexcept override {
 		color_text_element::on_create(state);
 		color = text::text_color::black;
@@ -1095,22 +1093,16 @@ public:
 		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i)
 			total += values[i] * multipliers[i];
 
-		if(color_result) {
-			if(total < 0.0f) {
-				color = text::text_color::dark_red;
-				set_text(state, text::format_money(total));
-			} else if(total > 0.0f) {
-				color = text::text_color::dark_green;
-				set_text(state, std::string("+") + text::format_money(total));
-			} else {
-				color = text::text_color::black;
-				set_text(state, text::format_money(total));
-			}
+		if(total < 0.0f) {
+			color = text::text_color::dark_red;
+			set_text(state, std::string("(") + text::format_money(-total) + std::string(")"));
+		} else if(total > 0.0f) {
+			color = text::text_color::dark_green;
+			set_text(state, text::format_money(total));
 		} else {
+			color = text::text_color::black;
 			set_text(state, text::format_money(total));
 		}
-
-
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1848,9 +1840,7 @@ public:
 		} else if(name == "total_exp") {
 			return make_element_by_type<budget_expenditure_projection_text>(state, id);
 		} else if(name == "balance") {
-			auto ptr = make_element_by_type<budget_balance_projection_text>(state, id);
-			ptr->color_result = true;
-			return ptr;
+			return make_element_by_type<budget_balance_projection_text>(state, id);
 		} else if(name == "tax_0_slider") {
 			return make_element_by_type<budget_poor_tax_slider>(state, id);
 		} else if(name == "tax_1_slider") {
