@@ -514,7 +514,7 @@ guiTypes = {
 			# Diplo Messages Popup checkbox
 			instantTextBoxType = {
 				name = "dm_popup_label"
-				position = { 78 280 }
+				position = { 78 300 }
 				text = "dm_popup_label"
 				font = "Arial16"
 				borderSize = { 0 0 }
@@ -524,7 +524,7 @@ guiTypes = {
 			}
 			guiButtonType = {
 				name = "dm_popup_checkbox"
-				position = { 51 280 }
+				position = { 51 300 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Zoom style
