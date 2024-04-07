@@ -397,7 +397,7 @@ void execute_c_toggle_core(sys::state& state, dcon::nation_id source, dcon::prov
 			return; //early exit
 		}
 	}
-	province::add_core(state, p, a.get_identity());
+	province::add_core(state, p, state.world.nation_get_identity_from_identity_holder(n));
 }
 
 }
