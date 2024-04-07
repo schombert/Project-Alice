@@ -109,6 +109,7 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_army_built", // army_built
 		"amsg_navy_built", // navy_built
 		"amsg_bankruptcy", //bankruptcy
+		"amsg_entered_automatic_alliance",//entered_automatic_alliance
 	};
 	return std::string{key_str[type]};
 }

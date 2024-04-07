@@ -2325,6 +2325,28 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	diplomatic_message::post(state, m);
 }
 
+void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_interested_in_alliance;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(asker == target)
+		return false;
+	return true;
+}
+void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!can_toggle_interested_in_alliance(state, asker, target))
+		return;
+	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	if(!rel)
+		rel = state.world.force_create_unilateral_relationship(target, asker);
+	state.world.unilateral_relationship_set_interested_in_alliance(rel, !state.world.unilateral_relationship_get_interested_in_alliance(rel));
+}
+
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4945,6 +4967,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::toggle_mobilized_is_ai_controlled:
 		return true;
+	case command_type::toggle_interested_in_alliance:
+		return can_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5326,7 +5350,10 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::toggle_mobilized_is_ai_controlled:
 		execute_toggle_mobilized_is_ai_controlled(state, c.source);
 		break;
-		
+	case command_type::toggle_interested_in_alliance:
+		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
+		break;
+
 		// common mp commands
 	case command_type::chat_message:
 	{

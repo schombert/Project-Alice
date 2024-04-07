@@ -564,6 +564,19 @@ public:
 	}
 };
 
+class diplomacy_country_interested_in_alliance : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
+		return !state.world.unilateral_relationship_get_interested_in_alliance(rel);
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		command::toggle_interested_in_alliance(state, state.local_player_nation, n);
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -582,7 +595,14 @@ public:
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_prio") {
-			return make_element_by_type<diplomacy_priority_button>(state, id);
+			auto ptr = make_element_by_type<diplomacy_priority_button>(state, id);
+			//
+			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, "alice_interested_in_alliance");
+			btn->base_data.position = ptr->base_data.position;
+			btn->base_data.position.x -= btn->base_data.size.x;
+			add_child_to_front(std::move(btn));
+			//
+			return ptr;
 		} else if(name == "country_boss_flag") {
 			return make_element_by_type<nation_overlord_flag>(state, id);
 		} else if(name == "country_prestige") {
