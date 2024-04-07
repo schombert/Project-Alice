@@ -1096,7 +1096,7 @@ public:
 
 		if(total < 0.0f) {
 			color = text::text_color::dark_red;
-			set_text(state, std::string("-") + text::format_money(total));
+			set_text(state, text::format_money(total)); //automatically adds a - when negative
 		} else if(total > 0.0f) {
 			color = text::text_color::dark_green;
 			set_text(state, text::format_money(total));

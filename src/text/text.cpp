@@ -799,7 +799,7 @@ std::string prettify(int64_t num) {
 		return std::string("0");
 
 	char buffer[200] = {0};
-	double dval = double(num);
+	double dval = double(std::abs(num));
 
 	constexpr static double mag[] = {
 		1.0,
