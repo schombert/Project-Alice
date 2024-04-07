@@ -192,8 +192,8 @@ public:
 				state.save_list_updated.store(true, std::memory_order::release); //update savefile list
 				//try loading save from scenario so we atleast have something to work on
 				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
-					auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-					ui::popup_error_window(state, "Scenario Error", msg);
+					auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+					ui::popup_error_window(state, "Scenario Error", msg2);
 				} else {
 					loaded = true;
 				}
