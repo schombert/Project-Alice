@@ -165,11 +165,7 @@ void form_alliances(sys::state& state) {
 					else
 						return a.index() > b.index();
 				});
-				if(state.world.nation_get_is_player_controlled(alliance_targets[0])) {
-					command::execute_ask_for_alliance(state, n, alliance_targets[0]);
-				} else {
-					nations::make_alliance(state, n, alliance_targets[0]);
-				}
+				nations::make_alliance(state, n, alliance_targets[0]);
 			}
 		}
 	}
