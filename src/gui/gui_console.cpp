@@ -50,6 +50,7 @@ struct command_info {
 		change_owner,
 		change_control,
 		change_control_and_owner,
+		toggle_core,
 		province_id_tooltip,
 		wasd,
 		next_song,
@@ -211,6 +212,9 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "tcore", command_info::type::toggle_core, "Toggle add/remove core",
+				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
 				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
@@ -1526,6 +1530,17 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				}
 			}
 		}
+		break;
+	}
+	case command_info::type::toggle_core:
+	{
+		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
+		auto nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
+		command::c_toggle_core(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::change_control_and_owner:
