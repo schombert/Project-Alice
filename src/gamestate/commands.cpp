@@ -3712,7 +3712,7 @@ void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source
 	add_to_command_queue(state, p);
 }
 void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source) {
-	state.world.nation_set_mobilized_is_ai_controlled(source, state.world.nation_get_mobilized_is_ai_controlled(source));
+	state.world.nation_set_mobilized_is_ai_controlled(source, !state.world.nation_get_mobilized_is_ai_controlled(source));
 }
 
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
