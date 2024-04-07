@@ -88,14 +88,19 @@ public:
 
 	void button_action(sys::state& state) noexcept override;
 };
-
+class diplomatic_message_topbar_flag_button : public flag_button {
+public:
+	void button_action(sys::state& state) noexcept override {
+		//empty
+	}
+};
 class diplomatic_message_topbar_entry_window : public listbox_row_element_base<diplomatic_message::message> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "diplomessageicon_button") {
             return make_element_by_type<diplomatic_message_topbar_button>(state, id);
         } else if(name == "flag") {
-            return make_element_by_type<flag_button>(state, id);
+            return make_element_by_type<diplomatic_message_topbar_flag_button>(state, id);
         } else if(name == "messageicon_bg_overlay") {
             return make_element_by_type<image_element_base>(state, id);
         } else {
