@@ -377,7 +377,7 @@ enum class message_base_type : uint8_t {
 	navy_built = 70, // added
 	bankruptcy = 71,
 	entered_automatic_alliance = 72,
-	count = 72
+	count = 73
 };
 
 struct msg_setting_entry {
