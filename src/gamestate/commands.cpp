@@ -3669,6 +3669,41 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 	}
 }
 
+void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_unit_ai_control;
+	p.source = source;
+	p.data.army_movement.a = a;
+	add_to_command_queue(state, p);
+}
+void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	auto owner = state.world.army_get_controller_from_army_control(a);
+	if(owner != source)
+		return;
+	auto current_state = state.world.army_get_is_ai_controlled(a);
+	if(current_state) {
+		state.world.army_set_ai_activity(a, 0);
+		state.world.army_set_is_ai_controlled(a, false);
+	} else {
+		//turn off rebel control
+		state.world.army_set_is_rebel_hunter(a, false);
+		auto path = state.world.army_get_path(a);
+		if(path.size() > 0) {
+			state.world.army_set_ai_province(a, path.at(0));
+		} else {
+			state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
+			if(!state.world.army_get_battle_from_army_battle_participation(a)
+				&& !state.world.army_get_navy_from_army_transport(a)) {
+
+				military::send_rebel_hunter_to_next_province(state, a, state.world.army_get_location_from_army_location(a));
+			}
+		}
+		state.world.army_set_ai_activity(a, 0);
+		state.world.army_set_is_ai_controlled(a, true);
+	}
+}
+
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4894,7 +4929,10 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::move_capital:
 		return can_move_capital(state, c.source, c.data.generic_location.prov);
-		
+
+	case command_type::toggle_unit_ai_control:
+		return true;
+
 		// common mp commands
 	case command_type::chat_message:
 	{
@@ -5267,6 +5305,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::move_capital:
 		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		break;
+	case command_type::toggle_unit_ai_control:
+		execute_toggle_unit_ai_control(state, c.source, c.data.army_movement.a);
 		break;
 		
 		// common mp commands

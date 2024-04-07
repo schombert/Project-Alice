@@ -988,6 +988,25 @@ public:
 			button_element_base::render(state, x, y);
 	}
 };
+class unit_details_ai_controlled : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		return state.world.army_get_is_ai_controlled(retrieve<dcon::army_id>(state, parent));
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return button_element_base::test_mouse(state, x, y, type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_ai_controlled_unit");
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto a = retrieve<dcon::army_id>(state, parent);
+		command::toggle_unit_ai_control(state, state.local_player_nation, a);
+	}
+};
 
 class unit_supply_bar : public progress_bar {
 public:
@@ -1121,6 +1140,12 @@ class unit_details_buttons : public window_element_base {
 private:
 	simple_text_element_base* navytransport_text = nullptr;
 public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		auto ptr = make_element_by_type<unit_details_ai_controlled>(state, "alice_enable_ai_controlled");
+		add_child_to_front(std::move(ptr));
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
@@ -1875,7 +1900,52 @@ public:
 	}
 };
 
+class multi_unit_details_ai_controlled : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		for(auto i : state.selected_armies) {
+			if(state.world.army_get_is_ai_controlled(i) == false)
+				return false;
+		}
+		return true;
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return button_element_base::test_mouse(state, x, y, type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_ai_controlled_unit");
+	}
+	void button_action(sys::state& state) noexcept override {
+		bool all_on = true;
+		for(auto i : state.selected_armies) {
+			if(state.world.army_get_is_ai_controlled(i) == false) {
+				all_on = false;
+				break;
+			}
+		}
+		for(auto a : state.selected_armies) {
+			if(all_on) { //all on -> turn all off
+				command::toggle_unit_ai_control(state, state.local_player_nation, a);
+			} else { //some on -> turn all that are off into on, all off -> turn all on
+				if(!state.world.army_get_is_ai_controlled(a)) {
+					command::toggle_unit_ai_control(state, state.local_player_nation, a);
+				}
+			}
+		}
+	}
+};
+
 class mulit_unit_selection_panel : public main_window_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
+		add_child_to_front(std::move(ptr));
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "desc") {
 			return make_element_by_type<units_selected_text>(state, id);

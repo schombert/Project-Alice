@@ -3314,6 +3314,19 @@ void remove_ai_data(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
+	auto fat_id = dcon::fatten(state.world, a);
+	return fat_id.get_controller_from_army_control().get_is_player_controlled()
+		? fat_id.get_is_ai_controlled()
+		: true;
+}
+/*bool unit_on_ai_control(sys::state& state, dcon::navy_id a) {
+	auto fat_id = dcon::fatten(state.world, a);
+	return fat_id.get_controller_from_navy_control().get_is_player_controlled()
+		? fat_id.get_is_ai_controlled()
+		: true;
+}*/
+
 void update_ships(sys::state& state) {
 	static std::vector<dcon::ship_id> to_delete;
 	to_delete.clear();
@@ -4125,7 +4138,7 @@ void move_idle_guards(sys::state& state) {
 			&& ar.get_ai_province()
 			&& ar.get_ai_province() != ar.get_location_from_army_location()
 			&& ar.get_controller_from_army_control()
-			&& ar.get_controller_from_army_control().get_is_player_controlled() == false
+			&& unit_on_ai_control(state, ar)
 			&& !ar.get_arrival_time()
 			&& !ar.get_battle_from_army_battle_participation()
 			&& !ar.get_navy_from_army_transport()) {
@@ -4143,7 +4156,9 @@ void move_idle_guards(sys::state& state) {
 				ar.set_arrival_time(military::arrival_time_to(state, ar, path.back()));
 				ar.set_dig_in(0);
 			} else {
-				require_transport.push_back(ar.id);
+				//Units delegated to the AI won't transport themselves on their own
+				if(!ar.get_controller_from_army_control().get_is_player_controlled())
+					require_transport.push_back(ar.id);
 			}
 		}
 	}
@@ -5098,7 +5113,7 @@ void new_units_and_merging(sys::state& state) {
 	for(auto ar : state.world.in_army) {
 		auto controller = ar.get_controller_from_army_control();
 		if(controller
-			&& !controller.get_is_player_controlled()
+			&& unit_on_ai_control(state, ar)
 			&& !ar.get_battle_from_army_battle_participation()
 			&& !ar.get_navy_from_army_transport()
 			&& !ar.get_arrival_time()) {
