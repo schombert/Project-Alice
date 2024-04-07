@@ -736,9 +736,6 @@ std::string prettify_currency(float num) {
 	if(num == 0)
 		return std::string("0  \xA4");
 
-	char buffer[200] = { 0 };
-	double dval = double(num);
-
 	constexpr static double mag[] = {
 		1.0,
 		1'000.0,
@@ -775,7 +772,8 @@ std::string prettify_currency(float num) {
 		"%.0fP \xA4",
 		"%.0fZ \xA4"
 	};
-
+	char buffer[200] = { 0 };
+	double dval = double(num);
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
 			auto reduced = num / mag[i];
@@ -797,9 +795,6 @@ std::string prettify_currency(float num) {
 std::string prettify(int64_t num) {
 	if(num == 0)
 		return std::string("0");
-
-	char buffer[200] = {0};
-	double dval = double(std::abs(num));
 
 	constexpr static double mag[] = {
 		1.0,
@@ -838,20 +833,31 @@ std::string prettify(int64_t num) {
 		"%.0fZ"
 	};
 
+	char buffer[200] = { 0 };
+	double dval = std::abs(double(num));
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
-		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(std::abs(reduced) < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(std::abs(reduced) < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+		if(dval >= mag[i]) {
+			auto reduced = dval / mag[i];
+			if(reduced < 10.0) {
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_two[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
+			} else if(reduced < 100.0) {
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_one[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_zero[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
 			}
+			buffer[0] = '-'; //negative case
 			return std::string(buffer);
 		}
 	}
-
 	return std::string("#inf");
 }
 
@@ -969,14 +975,7 @@ std::string format_float(float num, size_t digits) {
 }
 
 std::string format_money(float num) {
-	std::string amount = "";
-	if(num < 1000.f) {
-		amount = std::to_string(num);
-		amount = amount.substr(0, amount.find_first_of('.') + 3);
-	} else {
-		amount = prettify(int32_t(num));
-	}
-	return amount + "\xA4";	// Currency is postfixed, NOT prefixed
+	return prettify(int32_t(num)) + "\xA4";	// Currency is postfixed, NOT prefixed
 }
 
 std::string format_wholenum(int32_t num) {
