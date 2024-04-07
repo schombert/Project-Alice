@@ -90,9 +90,7 @@ public:
 };
 class diplomatic_message_topbar_flag_button : public flag_button {
 public:
-	void button_action(sys::state& state) noexcept override {
-		//empty
-	}
+	void button_action(sys::state& state) noexcept override;
 };
 class diplomatic_message_topbar_entry_window : public listbox_row_element_base<diplomatic_message::message> {
 public:
