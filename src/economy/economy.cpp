@@ -3981,17 +3981,15 @@ float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n) {
 }
 float estimate_reparations_income(sys::state& state, dcon::nation_id n) {
 	float total = 0.0f;
-	if(state.current_date < state.world.nation_get_reparations_until(n)) {
-		for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
-			if(uni.get_reparations()) {
-				auto source = uni.get_source();
-				auto const tax_eff = nations::tax_efficiency(state, n);
-				auto total_tax_base = state.world.nation_get_total_rich_income(source) +
-					state.world.nation_get_total_middle_income(source) +
-					state.world.nation_get_total_poor_income(source);
-				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
-				total += payout;
-			}
+	for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
+		if(uni.get_reparations() && state.current_date < uni.get_source().get_reparations_until()) {
+			auto source = uni.get_source();
+			auto const tax_eff = nations::tax_efficiency(state, n);
+			auto total_tax_base = state.world.nation_get_total_rich_income(source) +
+				state.world.nation_get_total_middle_income(source) +
+				state.world.nation_get_total_poor_income(source);
+			auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
+			total += payout;
 		}
 	}
 	return total;
@@ -4015,7 +4013,9 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 		for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
 			if(uni.get_reparations()) {
 				auto const tax_eff = nations::tax_efficiency(state, n);
-				auto total_tax_base = state.world.nation_get_total_rich_income(n) + state.world.nation_get_total_middle_income(n) + state.world.nation_get_total_poor_income(n);
+				auto total_tax_base = state.world.nation_get_total_rich_income(n) +
+					state.world.nation_get_total_middle_income(n) +
+					state.world.nation_get_total_poor_income(n);
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
 				total += payout;
 			}
@@ -4025,8 +4025,9 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
-	return estimate_war_subsidies_income(state, n) + estimate_reparations_income(state, n) - estimate_war_subsidies_spending(state, n) -
-		estimate_reparations_spending(state, n);
+	float w_sub = estimate_war_subsidies_income(state, n) - estimate_war_subsidies_spending(state, n);
+	float w_reps = estimate_reparations_income(state, n) - estimate_reparations_spending(state, n);
+	return w_sub + w_reps;
 }
 
 float estimate_domestic_investment(sys::state& state, dcon::nation_id n) {
