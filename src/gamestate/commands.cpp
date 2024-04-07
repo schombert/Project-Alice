@@ -4967,6 +4967,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::toggle_mobilized_is_ai_controlled:
 		return true;
+	case command_type::toggle_interested_in_alliance:
+		return can_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5348,7 +5350,10 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::toggle_mobilized_is_ai_controlled:
 		execute_toggle_mobilized_is_ai_controlled(state, c.source);
 		break;
-		
+	case command_type::toggle_interested_in_alliance:
+		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
+		break;
+
 		// common mp commands
 	case command_type::chat_message:
 	{

@@ -568,8 +568,8 @@ class diplomacy_country_interested_in_alliance : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
-		auto const ur = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
-		return state.world.unilateral_relationship_get_interested_in_alliance(ur);
+		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
+		return !state.world.unilateral_relationship_get_interested_in_alliance(rel);
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
