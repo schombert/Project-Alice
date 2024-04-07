@@ -839,17 +839,17 @@ std::string prettify(int64_t num) {
 		if(dval >= mag[i]) {
 			auto reduced = dval / mag[i];
 			if(reduced < 10.0) {
-				snprintf(buffer + 1, sizeof(buffer), sufx_two[i], reduced);
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_two[i], reduced);
 				if(num >= 0) {
 					return std::string(buffer + 1);
 				}
 			} else if(reduced < 100.0) {
-				snprintf(buffer + 1, sizeof(buffer), sufx_one[i], reduced);
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_one[i], reduced);
 				if(num >= 0) {
 					return std::string(buffer + 1);
 				}
 			} else {
-				snprintf(buffer + 1, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_zero[i], reduced);
 				if(num >= 0) {
 					return std::string(buffer + 1);
 				}
