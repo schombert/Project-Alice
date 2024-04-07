@@ -304,6 +304,16 @@ public:
 	}
 };
 
+class message_notify_rebels_defeat : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		return state.user_settings.notify_rebels_defeat;
+	}
+	void button_action(sys::state& state) noexcept override {
+		state.user_settings.notify_rebels_defeat = !state.user_settings.notify_rebels_defeat;
+	}
+};
+
 class message_settings_window : public window_element_base {
 public:
 	bool settings_changed = false;
@@ -331,6 +341,8 @@ public:
 			return make_element_by_type<message_preset_reset>(state, id);
 		} else if(name == "message_spectator") {
 			return make_element_by_type<message_preset_ai_only>(state, id);
+		} else if(name == "message_notify_rebels_defeat_checkbox") {
+			return make_element_by_type<message_notify_rebels_defeat>(state, id);
 		} else {
 			return nullptr;
 		}

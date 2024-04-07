@@ -41,6 +41,7 @@ map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
+message_notify_rebels_defeat_label;Notify when defeating rebels?
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
 mm_settings_pc_tt;Set at $perc$
 spoilers_label;Spoilers
