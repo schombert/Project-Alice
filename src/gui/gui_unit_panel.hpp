@@ -816,7 +816,7 @@ public:
 				//
 				data[i] = reg.get_regiment();
 				++i;
-				if(i >= command::num_packed_units) { //reached max allowed
+				if(i >= int32_t(command::num_packed_units)) { //reached max allowed
 					command::mark_regiments_to_split(state, state.local_player_nation, data);
 					data.fill(dcon::regiment_id{});
 					i = 0;
