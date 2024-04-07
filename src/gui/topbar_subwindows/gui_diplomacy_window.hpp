@@ -591,8 +591,11 @@ public:
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.y -= 2; // Nudge
-			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, id);
+			//
+			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, "alice_interested_in_alliance");
 			btn->base_data.position = ptr->base_data.position;
+			btn->base_data.position.y += ptr->base_data.size.y;
+			btn->base_data.position.y -= btn->base_data.size.y;
 			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "country_name") {
