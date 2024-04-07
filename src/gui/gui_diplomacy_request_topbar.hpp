@@ -94,9 +94,12 @@ public:
 };
 class diplomatic_message_topbar_entry_window : public listbox_row_element_base<diplomatic_message::message> {
 public:
+	diplomatic_message_topbar_button* btn = nullptr;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
         if(name == "diplomessageicon_button") {
-            return make_element_by_type<diplomatic_message_topbar_button>(state, id);
+            auto ptr = make_element_by_type<diplomatic_message_topbar_button>(state, id);
+	    btn = ptr.get();
+	    return ptr;
         } else if(name == "flag") {
             return make_element_by_type<diplomatic_message_topbar_flag_button>(state, id);
         } else if(name == "messageicon_bg_overlay") {
@@ -155,8 +158,11 @@ void diplomatic_message_topbar_button::button_action(sys::state& state) noexcept
 }
 
 void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept {
-	if(parent)
-		static_cast<diplomatic_message_topbar_entry_window*>(parent)->button_action(state);
+	if(parent) {
+		auto win = static_cast<diplomatic_message_topbar_entry_window*>(parent);
+		if(win->btn)
+			win->btn->button_action(state);
+	}
 }
 
 }
