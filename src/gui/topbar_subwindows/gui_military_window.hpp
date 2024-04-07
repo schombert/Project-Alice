@@ -181,7 +181,6 @@ class military_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-
 		state.ui_state.military_subwindow = this;
 
 		// Unit information comes first
@@ -198,6 +197,9 @@ public:
 		state.ui_state.unit_window_navy = win2.get();
 		add_child_to_front(std::move(win2));
 
+		auto miac_btn = make_element_by_type<military_mobilized_is_ai_controlled>(state, state.ui_state.defs_by_name.find("alice_military_mobilized_is_ai_controlled")->second.definition);
+		add_child_to_front(std::move(miac_btn));
+
 		auto build_units_window = make_element_by_type<build_unit_large_window>(state,
 			state.ui_state.defs_by_name.find("build_unit_view_large")->second.definition);
 		build_units_window->base_data.position.y -= 63;
@@ -205,9 +207,6 @@ public:
 		state.ui_state.build_unit_window = build_units_window.get();
 		build_units_window->set_visible(state, false);
 		add_child_to_front(std::move(build_units_window));
-
-		auto miac_btn = make_element_by_type<military_mobilized_is_ai_controlled>(state, state.ui_state.defs_by_name.find("alice_military_mobilized_is_ai_controlled")->second.definition);
-		add_child_to_front(std::move(miac_btn));
 
 		set_visible(state, false);
 	}
