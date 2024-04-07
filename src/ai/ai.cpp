@@ -165,6 +165,16 @@ void form_alliances(sys::state& state) {
 					else
 						return a.index() > b.index();
 				});
+				if(state.world.nation_get_is_player_controlled(alliance_targets[0])) {
+					notification::post(state, notification::message{
+						[source = n](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "msg_entered_automatic_alliance_1", text::variable_type::x, source);
+						},
+						"msg_entered_automatic_alliance_title",
+						n, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::crisis_voluntary_join
+					});
+				}
 				nations::make_alliance(state, n, alliance_targets[0]);
 			}
 		}
