@@ -27,6 +27,7 @@ public:
 	std::optional<ma_sound> music;
 
 	ma_engine engine;
+	bool global_pause = false;
 
 	audio_instance click_sound;
 	audio_instance technology_finished_sound;

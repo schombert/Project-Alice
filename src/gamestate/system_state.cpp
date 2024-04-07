@@ -22,6 +22,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
+#include "gui_error_window.hpp"
 #include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"

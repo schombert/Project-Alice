@@ -22,6 +22,7 @@
 #include "SPSCQueue.h"
 #include "network.hpp"
 #include "serialization.hpp"
+#include "gui_error_window.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -34,13 +35,26 @@ namespace network {
 //
 
 #ifdef _WIN64
-static std::string get_wsa_error_text(int err) {
+std::string get_wsa_error_text(int err) {
 	LPTSTR err_buf = nullptr;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
 	native_string err_text = err_buf;
 	LocalFree(err_buf);
 	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
+}
+std::string get_last_error_msg() {
+	auto err = WSAGetLastError();
+	LPTSTR err_buf = nullptr;
+	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
+	native_string err_text = err_buf;
+	LocalFree(err_buf);
+	return std::to_string(err) + " = " + simple_fs::native_to_utf8(err_text);
+}
+#else
+std::string get_last_error_msg() {
+	return std::string("Dummy");
 }
 #endif
 
@@ -149,15 +163,15 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
-		MessageBoxA(NULL, ("Network setsockopt error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockopt error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 #else
@@ -176,13 +190,13 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 	server_address.sin_port = htons(default_server_port);
 	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network bind error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network bind error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
 	if(listen(socket_fd, 3) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network listen error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network listen error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
@@ -210,15 +224,15 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
-		MessageBoxA(NULL, ("Network setsockpt error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockpt error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 #else
@@ -237,13 +251,13 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 	server_address.sin6_port = htons(default_server_port);
 	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network bind error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network bind error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
 	if(listen(socket_fd, 3) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network listen error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network listen error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
@@ -259,7 +273,7 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 
 #ifdef _WIN64
 	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
-		MessageBoxA(NULL, ("Network socket error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network socket error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 	}
 #else
 	if(socket_fd < 0) {
@@ -273,13 +287,13 @@ static socket_t socket_init_client(struct sockaddr_in& client_address, const cha
 
 	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network inet_pton error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network inet_pton error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
 	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network connect error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network connect error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
@@ -291,7 +305,7 @@ static socket_t socket_init_client(struct sockaddr_in6& client_address, const ch
 
 #ifdef _WIN64
 	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
-		MessageBoxA(NULL, ("Network socket error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network socket error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 	}
 #else
 	if(socket_fd < 0) {
@@ -304,13 +318,13 @@ static socket_t socket_init_client(struct sockaddr_in6& client_address, const ch
 	client_address.sin6_port = htons(default_server_port);
 	if(inet_pton(AF_INET6, ip_address, &client_address.sin6_addr) <= 0) { //ipv4 fallback
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network inet_pton error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network inet_pton error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
 	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
 #ifdef _WIN64
-		MessageBoxA(NULL, ("Network connect error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("Network connect error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 #endif
 		std::abort();
 	}
@@ -344,10 +358,11 @@ void init(sys::state& state) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
+	state.network_state.finished = false;
 #ifdef _WIN64
     WSADATA data;
 	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		MessageBoxA(NULL, ("WSA startup error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
+		MessageBoxA(NULL, ("WSA startup error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
 		std::abort();
 	}
 #endif
@@ -602,7 +617,7 @@ static void receive_from_clients(sys::state& state) {
 		}
 		if(r != 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
-			state.console_log("host:disconnect: in-receive err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
+			state.console_log("host:disconnect: in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
 			network::disconnect_client(state, client, false);
 		}
@@ -719,6 +734,9 @@ void send_and_receive_commands(sys::state& state) {
 	if(state.network_state.save_slock.load(std::memory_order::acquire) == true)
 		return;
 
+	if(state.network_state.finished)
+		return;
+
 	bool command_executed = false;
 	if(state.network_mode == sys::network_mode_type::host) {
 		accept_new_clients(state); // accept new connections
@@ -753,7 +771,7 @@ void send_and_receive_commands(sys::state& state) {
 					int r = socket_send(client.socket_fd, client.early_send_buffer);
 					if(r != 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
-						state.console_log("host:disconnect: in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
+						state.console_log("host:disconnect: in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
 						disconnect_client(state, client, false);
 						continue;
@@ -770,7 +788,7 @@ void send_and_receive_commands(sys::state& state) {
 					int r = socket_send(client.socket_fd, client.send_buffer);
 					if(r != 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
-						state.console_log("host:disconnect: in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_wsa_error_text(WSAGetLastError()));
+						state.console_log("host:disconnect: in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
 						disconnect_client(state, client, false);
 						continue;
@@ -832,10 +850,9 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.handshake = false;
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client handshake receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", "Network client handshake receive error: " + get_last_error_msg());
+				network::finish(state, false);
+				return;
 			}
 		} else if(state.network_state.save_stream) {
 			int r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(), &state.network_state.recv_count, [&]() {
@@ -867,10 +884,9 @@ void send_and_receive_commands(sys::state& state) {
 				state.network_state.save_stream = false; // go back to normal command loop stuff
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client save stream receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());
+				network::finish(state, false);
+				return;
 			}
 		} else {
 			// receive commands from the server and immediately execute them
@@ -883,10 +899,9 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.save_stream = true;
 					assert(save_size > 0);
 					if(save_size >= 32 * 1000 * 1000) { // 32 MB
-#ifdef _WIN64
-						MessageBoxA(NULL, "Network client save stream too big", "Network error", MB_OK);
-#endif
-						std::abort();
+						ui::popup_error_window(state, "Network Error", "Network client save stream too big: " + get_last_error_msg());
+						network::finish(state, false);
+						return;
 					}
 					state.network_state.save_data.resize(static_cast<size_t>(save_size));
 				}
@@ -895,10 +910,9 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 			});
 			if(r != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client command receive error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", "Network client command receive error: " + get_last_error_msg());
+				network::finish(state, false);
+				return;
 			}
 			// send the outgoing commands to the server and flush the entire queue
 			auto* c = state.network_state.outgoing_commands.front();
@@ -919,10 +933,9 @@ void send_and_receive_commands(sys::state& state) {
 		/* Do not send commands while we're on save stream mode! */
 		if(!state.network_state.save_stream) {
 			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-#ifdef _WIN64
-				MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-				std::abort();
+				ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_last_error_msg());
+				network::finish(state, false);
+				return;
 			}
 		}
 		assert(state.network_state.early_send_buffer.empty()); //do not use the early send buffer
@@ -937,11 +950,12 @@ void send_and_receive_commands(sys::state& state) {
 	}
 }
 
-void finish(sys::state& state) {
+void finish(sys::state& state, bool notify_host) {
 	if(state.network_mode == sys::network_mode_type::single_player)
 		return; // Do nothing in singleplayer
 
-	if(state.network_mode == sys::network_mode_type::client) {
+	state.network_state.finished = true;
+	if(notify_host && state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.save_stream) {
 			// send the outgoing commands to the server and flush the entire queue
 			{
@@ -964,10 +978,8 @@ void finish(sys::state& state) {
 			socket_add_to_send_queue(state.network_state.send_buffer, &c, sizeof(c));
 			while(state.network_state.send_buffer.size() > 0) {
 				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-#ifdef _WIN64
-					MessageBoxA(NULL, ("Network client command send error: " + get_wsa_error_text(WSAGetLastError())).c_str(), "Network error", MB_OK);
-#endif
-					std::abort();
+					//ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_last_error_msg());
+					break;
 				}
 			}
 		}

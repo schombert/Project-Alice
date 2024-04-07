@@ -257,9 +257,13 @@ void change_music_volume(sys::state& state, float v) {
 }
 
 void play_effect(sys::state& state, audio_instance& s, float volume) {
+	if(state.sound_ptr->global_pause)
+		return;
 	state.sound_ptr->override_sound(state.sound_ptr->effect_sound, s, volume);
 }
 void play_interface_sound(sys::state& state, audio_instance& s, float volume) {
+	if(state.sound_ptr->global_pause)
+		return;
 	state.sound_ptr->override_sound(state.sound_ptr->interface_sound, s, volume);
 }
 
@@ -282,6 +286,7 @@ void start_music(sys::state& state, float v) {
 
 void pause_all(sys::state& state) {
 	if(state.sound_ptr.get()) {
+		state.sound_ptr->global_pause = true;
 		if(state.sound_ptr->effect_sound.has_value()) {
 			ma_sound_stop(&*state.sound_ptr->effect_sound);
 		}
@@ -295,6 +300,7 @@ void pause_all(sys::state& state) {
 }
 void resume_all(sys::state& state) {
 	if(state.sound_ptr.get()) {
+		state.sound_ptr->global_pause = false;
 		if(state.sound_ptr->effect_sound.has_value()) {
 			ma_sound_start(&*state.sound_ptr->effect_sound);
 		}
