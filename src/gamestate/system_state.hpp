@@ -379,6 +379,7 @@ struct user_settings_s {
 	bool mute_on_focus_lost = true;
 	bool diplomatic_message_popup = false;
 	bool wasd_for_map_movement = false;
+	bool notify_rebels_defeat = true;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

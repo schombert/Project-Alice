@@ -2776,6 +2776,21 @@ guiTypes = {
 			buttonText = "message_settings_spectator"
 			buttonFont = "vic_22_black"
 		}
+		instantTextBoxType = {
+			position = { 530 0 }
+			name = "message_notify_rebels_defeat_label"
+			font = "vic_18_black"
+			borderSize = { 0 0}
+			maxsize = { 240 18 }
+			text = "message_notify_rebels_defeat_label"
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		guiButtonType = {
+			name = "message_notify_rebels_defeat_checkbox"
+			position = { 700 410 }
+			quadTextureSprite = "GFX_checkbox_default"
+		}
 	}
 
 	windowType = {

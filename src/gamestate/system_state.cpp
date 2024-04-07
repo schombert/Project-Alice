@@ -1262,7 +1262,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 			{
 				auto* lr = land_battle_reports.front();
 				while(lr) {
-					ui::land_combat_end_popup::make_new_report(*this, *lr);
+					if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
+						if(user_settings.notify_rebels_defeat) {
+							ui::land_combat_end_popup::make_new_report(*this, *lr);
+						} else {
+							//do not pester user with defeat of rebels
+						}
+					} else {
+						ui::land_combat_end_popup::make_new_report(*this, *lr);
+					}
 					land_battle_reports.pop();
 					lr = land_battle_reports.front();
 				}
@@ -2231,6 +2239,7 @@ void state::save_user_settings() const {
 	US_SAVE(mute_on_focus_lost);
 	US_SAVE(diplomatic_message_popup);
 	US_SAVE(wasd_for_map_movement);
+	US_SAVE(notify_rebels_defeat);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2295,6 +2304,7 @@ void state::load_user_settings() {
 			US_LOAD(mute_on_focus_lost);
 			US_LOAD(diplomatic_message_popup);
 			US_LOAD(wasd_for_map_movement);
+			US_LOAD(notify_rebels_defeat);
 #undef US_LOAD
 		} while(false);
 
