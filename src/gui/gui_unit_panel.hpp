@@ -1150,8 +1150,10 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		auto ptr = make_element_by_type<unit_details_ai_controlled>(state, "alice_enable_ai_controlled");
-		add_child_to_front(std::move(ptr));
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto ptr = make_element_by_type<unit_details_ai_controlled>(state, "alice_enable_ai_controlled");
+			add_child_to_front(std::move(ptr));
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1909,6 +1911,7 @@ public:
 };
 
 class multi_unit_details_ai_controlled : public checkbox_button {
+	bool visible = true;
 public:
 	bool is_active(sys::state& state) noexcept override {
 		for(auto i : state.selected_armies) {
@@ -1916,6 +1919,10 @@ public:
 				return false;
 		}
 		return true;
+	}
+	void on_update(sys::state& state) noexcept override {
+		checkbox_button::on_update(state);
+		visible = state.selected_navies.empty();
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return button_element_base::test_mouse(state, x, y, type);
@@ -1943,6 +1950,10 @@ public:
 				}
 			}
 		}
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			checkbox_button::render(state, x, y);
 	}
 };
 
