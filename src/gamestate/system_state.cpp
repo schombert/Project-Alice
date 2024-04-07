@@ -457,17 +457,14 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			keycode = sys::virtual_key::SUBTRACT;
 		else if(keycode == sys::virtual_key::PLUS)
 			keycode = sys::virtual_key::ADD;
-		if(cheat_data.wasd_move_cam) {
+		if(user_settings.wasd_for_map_movement) {
 			if(keycode == sys::virtual_key::W)
 				keycode = sys::virtual_key::UP;
-			else
-			if(keycode == sys::virtual_key::A)
+			else if(keycode == sys::virtual_key::A)
 				keycode = sys::virtual_key::LEFT;
-			else
-			if(keycode == sys::virtual_key::S)
+			else if(keycode == sys::virtual_key::S)
 				keycode = sys::virtual_key::DOWN;
-			else
-			if(keycode == sys::virtual_key::D)
+			else if(keycode == sys::virtual_key::D)
 				keycode = sys::virtual_key::RIGHT;
 		}
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
@@ -558,17 +555,14 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = false;
 
-	if(cheat_data.wasd_move_cam) {
+	if(user_settings.wasd_for_map_movement) {
 		if(keycode == sys::virtual_key::W)
 			keycode = sys::virtual_key::UP;
-		else
-		if(keycode == sys::virtual_key::A)
+		else if(keycode == sys::virtual_key::A)
 			keycode = sys::virtual_key::LEFT;
-		else
-		if(keycode == sys::virtual_key::S)
+		else if(keycode == sys::virtual_key::S)
 			keycode = sys::virtual_key::DOWN;
-		else
-		if(keycode == sys::virtual_key::D)
+		else if(keycode == sys::virtual_key::D)
 			keycode = sys::virtual_key::RIGHT;
 	}
 
@@ -2236,6 +2230,7 @@ void state::save_user_settings() const {
 	US_SAVE(zoom_speed);
 	US_SAVE(mute_on_focus_lost);
 	US_SAVE(diplomatic_message_popup);
+	US_SAVE(wasd_for_map_movement);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2299,6 +2294,7 @@ void state::load_user_settings() {
 			US_LOAD(zoom_speed);
 			US_LOAD(mute_on_focus_lost);
 			US_LOAD(diplomatic_message_popup);
+			US_LOAD(wasd_for_map_movement);
 #undef US_LOAD
 		} while(false);
 
