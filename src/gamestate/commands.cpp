@@ -2344,7 +2344,7 @@ void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id as
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
 	if(!rel)
 		rel = state.world.force_create_unilateral_relationship(target, asker);
-	state.world.unilateral_relationship_set_interested_in_alliance(rel, state.world.unilateral_relationship_get_interested_in_alliance(rel));
+	state.world.unilateral_relationship_set_interested_in_alliance(rel, !state.world.unilateral_relationship_get_interested_in_alliance(rel));
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
