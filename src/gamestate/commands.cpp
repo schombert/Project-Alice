@@ -2325,6 +2325,28 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 	diplomatic_message::post(state, m);
 }
 
+void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_interested_in_alliance;
+	p.source = asker;
+	p.data.diplo_action.target = target;
+	add_to_command_queue(state, p);
+}
+bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(asker == target)
+		return false;
+	return true;
+}
+void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!can_toggle_interested_in_alliance(state, asker, target))
+		return;
+	auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+	if(!rel)
+		rel = state.world.force_create_unilateral_relationship(target, source);
+	state.world.unilateral_relationship_set_interested_in_alliance(rel, state.world.unilateral_relationship_get_interested_in_alliance(rel));
+}
+
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
 	payload p;
 	memset(&p, 0, sizeof(payload));

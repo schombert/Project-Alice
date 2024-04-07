@@ -564,6 +564,19 @@ public:
 	}
 };
 
+class diplomacy_country_interested_in_alliance : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		auto const ur = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
+		return state.world.unilateral_relationship_get_interested_in_alliance(ur);
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		command::toggle_interested_in_alliance(state, state.local_player_nation, n);
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -578,6 +591,9 @@ public:
 		} else if(name == "country_flag") {
 			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.y -= 2; // Nudge
+			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, id);
+			btn->base_data.position = ptr->base_data.position;
+			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);

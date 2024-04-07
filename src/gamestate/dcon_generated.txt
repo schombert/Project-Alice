@@ -3871,6 +3871,11 @@ relationship{
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ interested_in_alliance }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 relationship{

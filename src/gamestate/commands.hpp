@@ -103,6 +103,7 @@ enum class command_type : uint8_t {
 	move_capital = 94,
 	toggle_unit_ai_control = 95,
 	toggle_mobilized_is_ai_controlled = 96,
+	toggle_interested_in_alliance = 97,
 
 	// network
 	notify_player_ban = 106,
@@ -699,6 +700,9 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
 void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
