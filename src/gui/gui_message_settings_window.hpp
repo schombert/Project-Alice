@@ -286,6 +286,8 @@ public:
 		std::memcpy(state.user_settings.self_message_settings, d.self_message_settings, sizeof(d.self_message_settings));
 		std::memcpy(state.user_settings.other_message_settings, d.other_message_settings, sizeof(d.other_message_settings));
 		std::memcpy(state.user_settings.interesting_message_settings, d.interesting_message_settings, sizeof(d.interesting_message_settings));
+		send(state, parent, message_setting_changed_notification{});
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 };
 
@@ -297,6 +299,8 @@ public:
 			state.user_settings.other_message_settings[i] = sys::message_response::ignore;
 			state.user_settings.interesting_message_settings[i] = sys::message_response::ignore;
 		}
+		send(state, parent, message_setting_changed_notification{});
+		state.game_state_updated.store(true, std::memory_order::release);
 	}
 };
 
