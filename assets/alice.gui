@@ -2777,7 +2777,7 @@ guiTypes = {
 			buttonFont = "vic_22_black"
 		}
 		instantTextBoxType = {
-			position = { 530 0 }
+			position = { 530 413 }
 			name = "message_notify_rebels_defeat_label"
 			font = "vic_18_black"
 			borderSize = { 0 0}
@@ -2788,7 +2788,7 @@ guiTypes = {
 		}
 		guiButtonType = {
 			name = "message_notify_rebels_defeat_checkbox"
-			position = { 700 410 }
+			position = { 700 415 }
 			quadTextureSprite = "GFX_checkbox_default"
 		}
 	}
