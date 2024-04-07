@@ -1569,8 +1569,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::wasd:
 	{
-		state.cheat_data.wasd_move_cam = not state.cheat_data.wasd_move_cam;
-		log_to_console(state, parent, state.cheat_data.wasd_move_cam ? "\x02" : "\x01");
+		state.user_settings.wasd_for_map_movement = not state.user_settings.wasd_for_map_movement;
+		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "\x02" : "\x01");
+		state.save_user_settings();
 		break;
 	}
 	case command_info::type::next_song:

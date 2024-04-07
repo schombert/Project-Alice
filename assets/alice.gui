@@ -527,6 +527,22 @@ guiTypes = {
 				position = { 51 300 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+			# WASD for map movement
+			instantTextBoxType = {
+				name = "wasd_for_map_movement_label"
+				position = { 78 320 }
+				text = "wasd_for_map_movement_label"
+				font = "Arial16"
+				borderSize = { 0 0 }
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "wasd_for_map_movement_checkbox"
+				position = { 51 320 }
+				quadTextureSprite = "GFX_checkbox_default"
+			}
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"

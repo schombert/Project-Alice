@@ -378,6 +378,7 @@ struct user_settings_s {
 	float zoom_speed = 20.f;
 	bool mute_on_focus_lost = true;
 	bool diplomatic_message_popup = false;
+	bool wasd_for_map_movement = false;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -388,7 +389,6 @@ struct cheat_data_s {
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
 	bool show_province_id_tooltip = false;
-	bool wasd_move_cam = false;
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;

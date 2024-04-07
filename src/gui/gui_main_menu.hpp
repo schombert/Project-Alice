@@ -125,6 +125,11 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+class wasd_for_map_movement_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
 class dm_popup_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -278,6 +283,8 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<zoom_speed_scrollbar>(state, id);
 		} else if(name == "mouse_edge_scrolling_checkbox") {
 			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
+		} else if(name == "wasd_for_map_movement_checkbox") {
+			return make_element_by_type<wasd_for_map_movement_checkbox>(state, id);
 		} else {
 			return nullptr;
 		}
