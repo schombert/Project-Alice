@@ -1635,6 +1635,7 @@ alice_mw_create_lpb;§YLeadership points§W will automatically be used to create g
 alice_mw_create_lp;We need §R$x$§W §Yleadership points§W to add
 alice_mw_controls_1;§YRight-click§W create §Gall§W possible as generals
 alice_mw_controls_2;§YRight-click§W create §Gall§W possible as admirals
+alice_daily_leadership_tt;$poptype$ provides §G$value$§W leadership points (§Y$fraction$§W of the population, §Y$optimal$§W is optimal). Extra leadership points will automatically be spent on creating new generals.
 current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
 current_supply_text2;The amount we could get of our current supply consumption was:
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W

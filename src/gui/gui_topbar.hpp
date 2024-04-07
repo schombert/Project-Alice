@@ -741,7 +741,7 @@ public:
 				state.world.nation_get_demographics(n, demographics::total) });
 		text::add_to_substitution_map(sub, text::variable_type::optimal,
 			text::fp_two_places{(state.world.pop_type_get_research_optimum(state.culture_definitions.officers) * 100)});
-		text::localised_format_box(state, contents, box, std::string_view("tech_daily_leadership_tooltip"), sub);
+		text::localised_format_box(state, contents, box, std::string_view("alice_daily_leadership_tt"), sub);
 		text::close_layout_box(contents, box);
 
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::leadership, true);
