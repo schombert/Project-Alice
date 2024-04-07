@@ -793,34 +793,35 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		auto n = state.world.army_get_navy_from_army_transport(a);
-		auto from = state.world.army_get_location_from_army_location(a);
-
+		auto p = state.world.army_get_location_from_army_location(a);
 		int32_t max_cap = 0;
 		for(auto n : state.world.province_get_navy_location(p)) {
-			if(n.get_navy().get_controller_from_navy_control() == from &&
+			if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
 				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 				max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 			}
 		}
-		disabled = max_cap <= 0;
-		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, from, a)
+		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
 			&& max_cap > 0) { //require splitting
 			auto regs = state.world.army_get_army_membership(a);
 			int32_t army_cap = int32_t(regs.end() - regs.begin());
 			int32_t to_split = army_cap - max_cap;
 			//can mark 10 regiments to be split at a time
-			std::array<dcon::regiment_id, 10U> data;
+			std::array<dcon::regiment_id, command::num_packed_units> data;
 			int32_t i = 0;
 			data.fill(dcon::regiment_id{});
 			for(auto reg : state.world.army_get_army_membership(a)) {
 				if(to_split == 0)
 					break;
+				//
 				data[i] = reg.get_regiment();
-				if(i >= int32_t(data.size())) { //reached max allowed
+				++i;
+				if(i >= command::num_packed_units) { //reached max allowed
 					command::mark_regiments_to_split(state, state.local_player_nation, data);
 					data.fill(dcon::regiment_id{});
+					i = 0;
 				}
+				//
 				--to_split;
 			}
 			if(i > 0) { //leftovers
@@ -834,21 +835,21 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
-		auto n = state.world.army_get_navy_from_army_transport(a);
-		auto from = state.world.army_get_location_from_army_location(a);
-		visible = !bool(n);
+		auto p = state.world.army_get_location_from_army_location(a);
+		visible = !bool(state.world.army_get_navy_from_army_transport(a)); //not already in ship
 		disabled = true;
+		frame = 0;
 		if(visible) {
 			int32_t max_cap = 0;
 			for(auto n : state.world.province_get_navy_location(p)) {
-				if(n.get_navy().get_controller_from_navy_control() == from &&
+				if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
 					!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 					max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 				}
 			}
 			disabled = max_cap <= 0;
 			//require splitting
-			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, from, a)
+			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
 				&& max_cap > 0) {
 				frame = 1;
 			}
