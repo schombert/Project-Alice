@@ -5016,6 +5016,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_instant_army:
 	case command_type::c_instant_industry:
 	case command_type::c_innovate:
+	case command_type::c_toggle_core:
 		return true;
 	}
 	return false;
@@ -5446,6 +5447,10 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_innovate:
 		execute_c_innovate(state, c.source, c.data.cheat_invention_data.invention);
+		break;
+	case command_type::c_toggle_core:
+		execute_c_toggle_core(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
+		break;
 	}
 }
 
