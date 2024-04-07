@@ -102,6 +102,7 @@ enum class command_type : uint8_t {
 	enable_debt = 93,
 	move_capital = 94,
 	toggle_unit_ai_control = 95,
+	toggle_mobilized_is_ai_controlled = 96,
 
 	// network
 	notify_player_ban = 106,
@@ -758,6 +759,7 @@ bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a);
 void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a);
+void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source);
 
 void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);

@@ -4026,4 +4026,9 @@ guiTypes = {
 		position = { 239 4 }
 		quadTextureSprite = "GFX_checkbox_default"	
 	}
+	guiButtonType = {
+		name = "alice_military_mobilized_is_ai_controlled"
+		position = { 379 559 }
+		quadTextureSprite = "GFX_checkbox_default"
+	}
 }

@@ -3777,6 +3777,11 @@ object {
 		name{ ai_home_port }
 		type{ province_id }
 	}
+	property{
+		name{ mobilized_is_ai_controlled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 
