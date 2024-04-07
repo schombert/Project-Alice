@@ -154,7 +154,7 @@ void diplomatic_message_topbar_button::button_action(sys::state& state) noexcept
 	dmtl->impl_on_update(state);
 }
 
-void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept override {
+void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept {
 	if(parent)
 		static_cast<diplomatic_message_topbar_entry_window*>(parent)->button_action(state);
 }
