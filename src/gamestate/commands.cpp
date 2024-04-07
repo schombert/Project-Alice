@@ -2343,7 +2343,7 @@ void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id as
 		return;
 	auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
 	if(!rel)
-		rel = state.world.force_create_unilateral_relationship(target, source);
+		rel = state.world.force_create_unilateral_relationship(target, asker);
 	state.world.unilateral_relationship_set_interested_in_alliance(rel, state.world.unilateral_relationship_get_interested_in_alliance(rel));
 }
 
