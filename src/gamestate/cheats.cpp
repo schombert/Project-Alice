@@ -391,13 +391,14 @@ void c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id 
 	add_to_command_queue(state, p);
 }
 void execute_c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id n) {
+	auto const nid = state.world.nation_get_identity_from_identity_holder(n);
 	for(const auto a : state.world.province_get_core(p)) {
-		if(a.get_identity().get_nation_from_identity_holder() == n) {
-			province::remove_core(state, p, a.get_identity());
+		if(a.get_identity() == nid) {
+			province::remove_core(state, p, nid);
 			return; //early exit
 		}
 	}
-	province::add_core(state, p, state.world.nation_get_identity_from_identity_holder(n));
+	province::add_core(state, p, nid);
 }
 
 }
