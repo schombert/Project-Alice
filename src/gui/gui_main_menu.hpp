@@ -274,6 +274,8 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
 		} else if(name == "spoilers_checkbox") {
 			return make_element_by_type<spoilers_checkbox>(state, id);
+		} else if(name == "dm_popup_checkbox") {
+			return make_element_by_type<dm_popup_checkbox>(state, id);
 		} else if(name == "zoom_speed_scrollbar") {
 			return make_element_by_type<zoom_speed_scrollbar>(state, id);
 		} else if(name == "mouse_edge_scrolling_checkbox") {
