@@ -773,12 +773,13 @@ std::string prettify_currency(float num) {
 		"%.0fZ \xA4"
 	};
 	char buffer[200] = { 0 };
+	double dval = double(num);
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
-		if(std::abs(double(num)) >= mag[i]) {
+		if(std::abs(dval) >= mag[i]) {
 			auto reduced = num / mag[i];
-			if(std::abs(reduced) < 10.0) {
+			if(reduced < 10.0) {
 				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(std::abs(reduced) < 100.0) {
+			} else if(reduced < 100.0) {
 				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
 			} else {
 				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
@@ -786,7 +787,7 @@ std::string prettify_currency(float num) {
 			return std::string(buffer);
 		}
 	}
-	snprintf(buffer, sizeof(buffer), "%.2f \xA4", double(num));
+	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
 	return std::string(buffer);
 }
 
@@ -833,16 +834,27 @@ std::string prettify(int64_t num) {
 	};
 
 	char buffer[200] = { 0 };
+	double dval = std::abs(double(num));
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
-		if(std::abs(double(num)) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(std::abs(reduced) < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(std::abs(reduced) < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+		if(dval >= mag[i]) {
+			auto reduced = dval / mag[i];
+			if(reduced < 10.0) {
+				snprintf(buffer + 1, sizeof(buffer), sufx_two[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
+			} else if(reduced < 100.0) {
+				snprintf(buffer + 1, sizeof(buffer), sufx_one[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer + 1, sizeof(buffer), sufx_zero[i], reduced);
+				if(num >= 0) {
+					return std::string(buffer + 1);
+				}
 			}
+			buffer[0] = '-'; //negative case
 			return std::string(buffer);
 		}
 	}
