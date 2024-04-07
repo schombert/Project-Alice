@@ -3704,6 +3704,17 @@ void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, d
 	}
 }
 
+void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::toggle_mobilized_is_ai_controlled;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source) {
+	state.world.nation_set_mobilized_is_ai_controlled(state, state.world.nation_get_mobilized_is_ai_controlled(source));
+}
+
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -4932,6 +4943,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 
 	case command_type::toggle_unit_ai_control:
 		return true;
+	case command_type::toggle_mobilized_is_ai_controlled:
+		return true;
 
 		// common mp commands
 	case command_type::chat_message:
@@ -5308,6 +5321,9 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::toggle_unit_ai_control:
 		execute_toggle_unit_ai_control(state, c.source, c.data.army_movement.a);
+		break;
+	case command_type::toggle_mobilized_is_ai_controlled:
+		execute_toggle_mobilized_is_ai_controlled(state, c.source);
 		break;
 		
 		// common mp commands

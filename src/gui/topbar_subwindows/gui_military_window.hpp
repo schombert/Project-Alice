@@ -157,6 +157,26 @@ public:
 	}
 };
 
+class military_mobilized_is_ai_controlled : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		return state.world.nation_get_mobilized_is_ai_controlled(state.local_player_nation);
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return button_element_base::test_mouse(state, x, y, type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_mobilized_is_ai_controlled");
+		text::add_line(state, contents, "alice_ai_controlled_unit");
+	}
+	void button_action(sys::state& state) noexcept override {
+		command::toggle_mobilized_is_ai_controlled(state, state.local_player_nation);
+	}
+};
+
 class military_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -185,6 +205,9 @@ public:
 		state.ui_state.build_unit_window = build_units_window.get();
 		build_units_window->set_visible(state, false);
 		add_child_to_front(std::move(build_units_window));
+
+		auto miac_btn = make_element_by_type<military_mobilized_is_ai_controlled>(state, state.ui_state.defs_by_name.find("alice_military_mobilized_is_ai_controlled")->second.definition);
+		add_child_to_front(std::move(miac_btn));
 
 		set_visible(state, false);
 	}

@@ -6863,6 +6863,8 @@ void advance_mobilizations(sys::state& state) {
 										}
 										auto new_army = fatten(state.world, state.world.create_army());
 										new_army.set_controller_from_army_control(n);
+										new_army.set_is_ai_controlled(n.get_mobilized_is_ai_controlled()); //toggle
+
 										army_is_new = true;
 										return new_army.id;
 									}();

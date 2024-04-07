@@ -1656,6 +1656,7 @@ alice_political_party_trigger;Only available from 即$date_long_0$劬 to 即$date_l
 alice_political_party_no_trigger;Only available from 即$date_long_0$劬 to 即$date_long_1$劬
 alice_ai_decision;AI's chance of choosing this decision will depend on:
 alice_ctrl_group;Press 即CTRL-1劬 thru 即CTRL-9劬 to assign/unassign this unit to a control group, which you can then press 即1劬 thru 即9劬 to select
+alice_mobilized_is_ai_controlled;Whetever mobilized units will automatically become AI controlled
 alice_ai_controlled_unit;Enable/Disable AI control of this unit, the unit will:\n- Automatically reinforce frontlines\n- Automatically siege when it's safe to do so\n- Hunt rebels\n- Form a defensive position against nations we're likely to attack (this is at the AI's discretion, and only at peace time)\nIf you want to make this unit target a specific nation or region, first move it close to that region or nation, then turn on AI control - because the AI will override all of your commands until you turn it off again
 alice_navy_allocation_tt;With 即$curr$劬 ships, we accumulate a total supply throughput of 即$tot$劬, requiring 即$req$劬 for our fleets. A detailed summary of the consumption of each naval fleet:
 alice_navy_allocation_2;$name$: 即$value$劬 (即$perc$劬)
