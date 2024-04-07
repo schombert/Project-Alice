@@ -747,16 +747,20 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::army_id>(state, parent);
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::army_id>(payload);
-			state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
-				auto rid = state.world.army_membership_get_regiment(amid);
-				row_contents.push_back(rid);
-			});
-		}
+		state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
+			auto rid = state.world.army_membership_get_regiment(amid);
+			row_contents.push_back(rid);
+		});
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+			auto av = state.world.regiment_get_type(a).index();
+			auto bv = state.world.regiment_get_type(b).index();
+			if(av != bv)
+				return av > bv;
+			else
+				return a.index() < b.index();
+		});
 		update(state);
 	}
 };
@@ -773,16 +777,20 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::navy_id>(state, parent);
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::navy_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::navy_id>(payload);
-			state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
-				auto sid = state.world.navy_membership_get_ship(nmid);
-				row_contents.push_back(sid);
-			});
-		}
+		state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
+			auto sid = state.world.navy_membership_get_ship(nmid);
+			row_contents.push_back(sid);
+		});
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+			auto av = state.world.ship_get_type(a).index();
+			auto bv = state.world.ship_get_type(b).index();
+			if(av != bv)
+				return av > bv;
+			else
+				return a.index() < b.index();
+		});
 		update(state);
 	}
 };
