@@ -3704,7 +3704,7 @@ void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, d
 	}
 }
 
-void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::toggle_mobilized_is_ai_controlled;
