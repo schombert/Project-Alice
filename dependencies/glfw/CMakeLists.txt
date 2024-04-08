@@ -8,7 +8,7 @@ set(GLFW_INSTALL OFF)
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw
-    GIT_TAG 3.4
+    GIT_TAG 7b6aead9fb88b3623e3b3725ebb42670cbe4c579
     GIT_SHALLOW 1
     GIT_PROGRESS TRUE
 )
