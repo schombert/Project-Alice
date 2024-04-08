@@ -846,7 +846,7 @@ object {
 object {
 	name{cb_type}
 	storage_type{ contiguous }
-	size{ 120 }
+	size{ 125 }
 	tag{ scenario }
 
 	property{
