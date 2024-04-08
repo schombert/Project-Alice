@@ -120,7 +120,7 @@ static void internal_get_alliance_targets_by_adjacency(sys::state& state, dcon::
 		auto other = nb.get_connected_nations(0) != adj ? nb.get_connected_nations(0) : nb.get_connected_nations(1);
 
 		bool b = other.get_is_player_controlled()
-			? !state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
+			? state.world.unilateral_relationship_get_interested_in_alliance(state.world.get_unilateral_relationship_by_unilateral_pair(n, other))
 			: ai_will_accept_alliance(state, other, n);
 		if(other != n && !(other.get_overlord_as_subject().get_ruler()) && !nations::are_allied(state, n, other) && !military::are_at_war(state, other, n) && b) {
 			alliance_targets.push_back(other.id);

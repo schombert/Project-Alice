@@ -569,11 +569,17 @@ public:
 	bool is_active(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
 		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
-		return !state.world.unilateral_relationship_get_interested_in_alliance(rel);
+		return state.world.unilateral_relationship_get_interested_in_alliance(rel);
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
 		command::toggle_interested_in_alliance(state, state.local_player_nation, n);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_interested_in_alliance");
 	}
 };
 

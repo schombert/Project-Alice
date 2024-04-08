@@ -1683,6 +1683,7 @@ alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)
 alice_artisan_trade_prod;Artisan Production: $x$ ($y$)
 alice_factory_trade_prod;Factory Production: $x$ ($y$)
 alice_all_trade_prod;Total Production: $x$
+alice_interested_in_alliance;(Only applies to AI nations) Mark that we're interested in an alliance with this country, and will immediately accept alliance offers
 alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
