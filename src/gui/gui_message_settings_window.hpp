@@ -273,7 +273,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i = 0; i <= 100; ++i)
+		for(uint32_t i = 0; i <= 101; ++i)
 			row_contents.push_back(i);
 		update(state);
 	}
