@@ -975,7 +975,7 @@ std::string format_float(float num, size_t digits) {
 }
 
 std::string format_money(float num) {
-	return prettify(int32_t(num)) + "\xA4";	// Currency is postfixed, NOT prefixed
+	return prettify_currency(num); // Currency is postfixed, NOT prefixed
 }
 
 std::string format_wholenum(int32_t num) {
