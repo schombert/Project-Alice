@@ -975,15 +975,7 @@ std::string format_float(float num, size_t digits) {
 }
 
 std::string format_money(float num) {
-	std::string amount = "";
-	if(std::abs(num) < 1000.f) {
-		amount = std::to_string(num);
-		amount = amount.substr(0, amount.find_first_of('.') + 3);
-	} else {
-		amount = prettify(int32_t(num));
-	}
-	return amount + "\xA4";	// Currency is postfixed, NOT prefixed
-	//return prettify(int32_t(num)) + "\xA4";	// Currency is postfixed, NOT prefixed
+	return prettify_currency(num); // Currency is postfixed, NOT prefixed
 }
 
 std::string format_wholenum(int32_t num) {
