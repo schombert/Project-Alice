@@ -258,7 +258,7 @@ party = {
 
 Now you can define ruler names for a specific nation with a specific government type, for example:
 
-``
+```
 RUS_absolute_monarchy;The Russian Empire
 RUS_absolute_monarchy_ruler;Tsar
-``
+```
