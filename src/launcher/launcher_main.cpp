@@ -1647,7 +1647,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						if(turned_into == '\b') {
 							if(!ip_addr.empty())
 								ip_addr.pop_back();
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+						} else if(turned_into >= 24 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
 							ip_addr.push_back(turned_into);
 						}
 					} else if(obj_under_mouse == ui_obj_player_name) {
@@ -1656,7 +1656,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 								player_name.pop_back();
 								save_playername();
 							}
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+						} else if(turned_into >= 24 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
 							player_name.push_back(turned_into);
 							save_playername();
 						}
