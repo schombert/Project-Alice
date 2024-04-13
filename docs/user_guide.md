@@ -40,6 +40,11 @@ Now click on the + “Manually add a game” icon in the main menu's top left co
 
 Now, the game should be ready to play from the Lutris main menu.
 
+## Installation troubleshooting guide
+
+Please refer to this before opening a tech support ticket.
+
+**Missing audio/music**: You may lack the proper MP3 decoders to playback the MP3 files, consider using [The Codec Guide](https://codecguide.com/download_kl.htm) or, if that fails, [LAV Filters](https://github.com/Nevcairiel/LAVFilters/releases/download/0.79.2/LAVFilters-0.79.2-Installer.exe)
 
 ## Multiplayer Instructions
 
