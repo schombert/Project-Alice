@@ -23,6 +23,8 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -40,6 +42,8 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -60,6 +64,8 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_n
 		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -77,6 +83,8 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_f
 		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -97,6 +105,8 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -114,6 +124,8 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
