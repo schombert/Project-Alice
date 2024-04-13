@@ -263,7 +263,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			case 2:
 			{
 				dds_dest_data.reset();
-				dds_dest_data = std::unique_ptr<uint8_t[]>(new uint8_t[width * height * 4]);
+				dds_dest_data = std::unique_ptr<uint8_t[]>(new uint8_t[dds_full_size * 2]);
 				uint16_t mr1 = uint16_t(header.sPixelFormat.dwRBitMask >> std::countr_zero(header.sPixelFormat.dwRBitMask));
 				float mr2 = mr1 == 0 ? 0.f : 255.f / float(mr1);
 				uint16_t mg1 = uint16_t(header.sPixelFormat.dwGBitMask >> std::countr_zero(header.sPixelFormat.dwGBitMask));
