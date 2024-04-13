@@ -97,7 +97,7 @@ typedef struct {
 	unsigned int dwReserved2;
 } DDS_header;
 
-unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint32_t buffer_length, uint32_t& width, uint32_t& height) {
+GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint32_t buffer_length, uint32_t& width, uint32_t& height, int soil_flags) {
 	/*	file reading variables	*/
 	uint32_t mipmaps;
 	uint32_t block_size = 16;
@@ -214,32 +214,40 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 	} else {
 		mipmaps = 0;
 	}
-	auto dds_data = std::unique_ptr<uint8_t[]>(new uint8_t[dds_full_size]);
-	/*	got the image data RAM, create or use an existing OpenGL texture handle	*/
-	GLuint texid = 0;
-	glGenTextures(1, &texid);
-	/*  bind an OpenGL texture ID	*/
-	glBindTexture(GL_TEXTURE_2D, texid);
-	if(texid) {
-		/*	did I have MIPmaps?	*/
-		if(mipmaps > 0) {
-			/*	instruct OpenGL to use the MIPmaps	*/
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-		} else {
-			/*	instruct OpenGL _NOT_ to use the MIPmaps	*/
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		}
-		/*	does the user want clamping, or wrapping?	*/
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, SOIL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	}
 	/*	do this for each face of the cubemap!	*/
 	if(buffer_index + dds_full_size <= uint32_t(buffer_length)) {
+		/*	got the image data RAM, create or use an existing OpenGL texture handle	*/
+		GLuint texid = 0;
+		glGenTextures(1, &texid);
+		/*  bind an OpenGL texture ID	*/
+		glBindTexture(GL_TEXTURE_2D, texid);
+		if(texid) {
+			/*	did I have MIPmaps?	*/
+			if(mipmaps > 0) {
+				/*	instruct OpenGL to use the MIPmaps	*/
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+			} else {
+				/*	instruct OpenGL _NOT_ to use the MIPmaps	*/
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			}
+			/*	does the user want clamping, or wrapping? */
+			if((soil_flags & SOIL_FLAG_TEXTURE_REPEATS) != 0) {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, SOIL_TEXTURE_WRAP_R, GL_REPEAT);
+			} else {
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, SOIL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			}
+		}
+		uint8_t const* dds_source_data = buffer + buffer_index;
+		std::unique_ptr<uint8_t[]> dds_dest_data = std::unique_ptr<uint8_t[]>(new uint8_t[dds_full_size]);
+		//std::memcpy((void*)dds_data.get(), (void const*)(buffer + buffer_index), dds_full_size);
+
 		uint32_t byte_offset = dds_main_size;
-		std::memcpy((void*)dds_data.get(), (void const*)(buffer + buffer_index), dds_full_size);
 		buffer_index += dds_full_size;
 		/*	upload the main chunk	*/
 		if(uncompressed) {
@@ -249,44 +257,45 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 			case 4:
 			{
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint32_t data = *(uint32_t*)(dds_data.get() + i);
+					uint32_t data = *(uint32_t*)(dds_source_data + i);
 					uint32_t r = (data & header.sPixelFormat.dwRBitMask) >> std::countr_zero(header.sPixelFormat.dwRBitMask);
 					uint32_t g = (data & header.sPixelFormat.dwGBitMask) >> std::countr_zero(header.sPixelFormat.dwGBitMask);
 					uint32_t b = (data & header.sPixelFormat.dwBBitMask) >> std::countr_zero(header.sPixelFormat.dwBBitMask);
 					uint32_t a = (data & header.sPixelFormat.dwAlphaBitMask) >> std::countr_zero(header.sPixelFormat.dwAlphaBitMask);
-					dds_data[i + 0] = static_cast<uint8_t>(r);
-					dds_data[i + 1] = static_cast<uint8_t>(g);
-					dds_data[i + 2] = static_cast<uint8_t>(b);
-					dds_data[i + 3] = static_cast<uint8_t>(a);
+					dds_dest_data[i + 0] = static_cast<uint8_t>(r);
+					dds_dest_data[i + 1] = static_cast<uint8_t>(g);
+					dds_dest_data[i + 2] = static_cast<uint8_t>(b);
+					dds_dest_data[i + 3] = static_cast<uint8_t>(a);
 				}
 				break;
 			}
 			case 2:
 			{
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint16_t data = *(uint16_t*)(dds_data.get() + i);
+					uint16_t data = *(uint16_t*)(dds_source_data + i);
 					uint16_t r = (data & header.sPixelFormat.dwRBitMask) >> std::countr_zero(header.sPixelFormat.dwRBitMask);
 					uint16_t g = (data & header.sPixelFormat.dwGBitMask) >> std::countr_zero(header.sPixelFormat.dwGBitMask);
 					uint16_t b = (data & header.sPixelFormat.dwBBitMask) >> std::countr_zero(header.sPixelFormat.dwBBitMask);
 					uint16_t a = (data & header.sPixelFormat.dwAlphaBitMask) >> std::countr_zero(header.sPixelFormat.dwAlphaBitMask);
-					dds_data[i + 0] = (static_cast<uint8_t>(r) >> 3);
-					dds_data[i + 0] = (static_cast<uint8_t>(g) >> 3) << 5;
-					dds_data[i + 1] = (static_cast<uint8_t>(b) >> 3);
-					dds_data[i + 1] = (static_cast<uint8_t>(a) >> 7) << 5;
+					dds_dest_data[i + 0] = (static_cast<uint8_t>(r) >> 3);
+					dds_dest_data[i + 0] = (static_cast<uint8_t>(g) >> 3) << 5;
+					dds_dest_data[i + 1] = (static_cast<uint8_t>(b) >> 3);
+					dds_dest_data[i + 1] = (static_cast<uint8_t>(a) >> 7) << 5;
 				}
 				break;
 			}
 			default:
+				std::memcpy(dds_dest_data.get(), dds_source_data, dds_full_size);
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint8_t temp = dds_data[i];
-					dds_data[i] = dds_data[i + 2];
-					dds_data[i + 2] = temp;
+					uint8_t temp = dds_source_data[i];
+					dds_dest_data[i] = dds_dest_data[i + 2];
+					dds_dest_data[i + 2] = temp;
 				}
 				break;
 			}
-			glTexImage2D(GL_TEXTURE_2D, 0, S3TC_type, width, height, 0, S3TC_type, GL_UNSIGNED_BYTE, dds_data.get());
+			glTexImage2D(GL_TEXTURE_2D, 0, S3TC_type, width, height, 0, S3TC_type, GL_UNSIGNED_BYTE, dds_dest_data.get());
 		} else {
-			glCompressedTexImage2D(GL_TEXTURE_2D, 0, S3TC_type, width, height, 0, dds_main_size, dds_data.get());
+			glCompressedTexImage2D(GL_TEXTURE_2D, 0, S3TC_type, width, height, 0, dds_main_size, dds_dest_data.get());
 		}
 		/*	upload the mipmaps, if we have them	*/
 		for(uint32_t i = 1; i <= mipmaps; ++i) {
@@ -302,19 +311,17 @@ unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer,
 			uint32_t mip_size = 0;
 			if(uncompressed) {
 				mip_size = w * h * block_size;
-				glTexImage2D(GL_TEXTURE_2D, i, S3TC_type, w, h, 0, S3TC_type, GL_UNSIGNED_BYTE, dds_data.get() + byte_offset);
+				glTexImage2D(GL_TEXTURE_2D, i, S3TC_type, w, h, 0, S3TC_type, GL_UNSIGNED_BYTE, dds_dest_data.get() + byte_offset);
 			} else {
 				mip_size = ((w + 3) / 4) * ((h + 3) / 4) * block_size;
-				glCompressedTexImage2D(GL_TEXTURE_2D, i, S3TC_type, w, h, 0, mip_size, dds_data.get() + byte_offset);
+				glCompressedTexImage2D(GL_TEXTURE_2D, i, S3TC_type, w, h, 0, mip_size, dds_dest_data.get() + byte_offset);
 			}
 			/*	and move to the next mipmap	*/
 			byte_offset += mip_size;
 		}
-	} else {
-		glDeleteTextures(1, &texid);
-		return 0;
+		return texid;
 	}
-	return texid;
+	return 0;
 }
 
 texture::~texture() {
@@ -367,7 +374,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 
 			uint32_t w = 0;
 			uint32_t h = 0;
-			asset_texture.texture_handle = SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h);
+			asset_texture.texture_handle = SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data), content.file_size, w, h, 0);
 
 			if(asset_texture.texture_handle) {
 				asset_texture.channels = 4;
