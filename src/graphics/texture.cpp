@@ -298,6 +298,13 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			}
 			glTexImage2D(GL_TEXTURE_2D, 0, s3tc_format, width, height, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get());
 			uint32_t byte_offset = dds_main_size;
+			switch(block_size) {
+			case 2:
+				byte_offset = dds_main_size * 2;
+				break;
+			default:
+				break;
+			}
 			/*	upload the mipmaps, if we have them	*/
 			for(uint32_t i = 1; i <= mipmaps; ++i) {
 				uint32_t w = std::max<uint32_t>(width >> i, 1);
