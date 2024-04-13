@@ -993,7 +993,16 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1);
 	if(prov_id) {
-		province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
+		if(state.mode == sys::game_mode_type::pick_nation) {
+			auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
+			for(const auto p : state.world.in_province) {
+				if(p.get_nation_from_province_ownership() == owner) {
+					province_highlights[province::to_map_id(p.id)] = 0x2B2B2B2B;
+				}
+			}
+		} else {
+			province_highlights[province::to_map_id(prov_id)] = 0x2B2B2B2B;
+		}
 	}
 	gen_prov_color_texture(textures[texture_province_highlight], province_highlights);
 }
