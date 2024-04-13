@@ -10,7 +10,7 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - IF YOU INSTALLED A PREVIOUS DEMO OR RELEASE: I suggest that you delete it and the old assets folder before copying over the new one, as an extra precaution.
 - Start the game by running launch_alice.exe.
 - Mods may or may not run with more or less problems (see the October update and the compatibility patches channel in the discord for more information about particular mods).
-- Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/edit/main/docs/user_guide.md) for further information and troubleshooting
+- Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/main/docs/user_guide.md) for further information and troubleshooting
 
 ## Contributing
 - Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
