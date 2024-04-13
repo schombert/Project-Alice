@@ -150,18 +150,21 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 	width = header.dwWidth;
 	height = header.dwHeight;
 	bool uncompressed = (header.sPixelFormat.dwFlags & ALICE_DDPF_FOURCC) == 0;
-	GLint s3tc_format = 0;
+	GLint s3tc_format = 0; //How we want to give it to shaders
+	GLint s3tc_format_layout = 0; //How's it laid on memory
 	GLint s3tc_type = GL_UNSIGNED_BYTE;
 	uint32_t dds_main_size = 0;
 	if(uncompressed) {
 		s3tc_format = GL_RGB;
+		s3tc_format_layout = GL_RGB;
 		block_size = 3;
 		if(header.sPixelFormat.dwFlags & ALICE_DDPF_ALPHAPIXELS) {
 			s3tc_format = GL_RGBA;
+			s3tc_format_layout = GL_RGBA;
 			block_size = 4;
 			if(header.sPixelFormat.dwRGBBitCount == 16) {
-				s3tc_format = GL_RGB5_A1; //5 bits each R,G,B; 1 for alpha
-				s3tc_type = GL_UNSIGNED_SHORT_5_5_5_1;
+				//s3tc_format_layout = GL_RGBA;
+				//s3tc_type = GL_UNSIGNED_BYTE;
 				block_size = 2;
 			}
 		}
@@ -239,9 +242,8 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 		}
 		/*	upload the main chunk	*/
 		if(uncompressed) {
+			/*	and remember, DXT uncompressed uses BGR(A), so swap to (A)BGR for ALL MIPmap levels	*/
 			std::unique_ptr<uint8_t[]> dds_dest_data = std::unique_ptr<uint8_t[]>(new uint8_t[dds_full_size]);
-			/*	and remember, DXT uncompressed uses BGR(A),
-				so swap to (A)BGR for ALL MIPmap levels	*/
 			switch(block_size) {
 			case 4:
 			{
@@ -260,17 +262,31 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			}
 			case 2:
 			{
+				dds_dest_data.reset();
+				dds_dest_data = std::unique_ptr<uint8_t[]>(new uint8_t[width * height * 4]);
+				uint16_t mr1 = uint16_t(header.sPixelFormat.dwRBitMask >> std::countr_zero(header.sPixelFormat.dwRBitMask));
+				float mr2 = mr1 == 0 ? 0.f : 255.f / float(mr1);
+				uint16_t mg1 = uint16_t(header.sPixelFormat.dwGBitMask >> std::countr_zero(header.sPixelFormat.dwGBitMask));
+				float mg2 = mg1 == 0 ? 0.f : 255.f / float(mg1);
+				uint16_t mb1 = uint16_t(header.sPixelFormat.dwBBitMask >> std::countr_zero(header.sPixelFormat.dwBBitMask));
+				float mb2 = mb1 == 0 ? 0.f : 255.f / float(mb1);
+				uint16_t ma1 = uint16_t(header.sPixelFormat.dwAlphaBitMask >> std::countr_zero(header.sPixelFormat.dwAlphaBitMask));
+				float ma2 = ma1 == 0 ? 0.f : 255.f / float(ma1);
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
 					uint16_t data = *(uint16_t*)(buffer + buffer_index + i);
 					uint16_t r = (data & header.sPixelFormat.dwRBitMask) >> std::countr_zero(header.sPixelFormat.dwRBitMask);
 					uint16_t g = (data & header.sPixelFormat.dwGBitMask) >> std::countr_zero(header.sPixelFormat.dwGBitMask);
 					uint16_t b = (data & header.sPixelFormat.dwBBitMask) >> std::countr_zero(header.sPixelFormat.dwBBitMask);
 					uint16_t a = (data & header.sPixelFormat.dwAlphaBitMask) >> std::countr_zero(header.sPixelFormat.dwAlphaBitMask);
-					*(uint16_t *)(dds_dest_data.get() + i) = (r << 11) | (g << 6) | (b << 1) | a;
+					dds_dest_data[i * 2 + 0] = uint8_t(float(r) * mr2);
+					dds_dest_data[i * 2 + 1] = uint8_t(float(g) * mg2);
+					dds_dest_data[i * 2 + 2] = uint8_t(float(b) * mb2);
+					dds_dest_data[i * 2 + 3] = uint8_t(float(a) * ma2);
 				}
 				break;
 			}
 			default:
+			{
 				std::memcpy(dds_dest_data.get(), buffer + buffer_index, dds_full_size);
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
 					uint8_t temp = dds_dest_data[i];
@@ -279,7 +295,8 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 				}
 				break;
 			}
-			glTexImage2D(GL_TEXTURE_2D, 0, s3tc_format, width, height, 0, s3tc_format, s3tc_type, dds_dest_data.get());
+			}
+			glTexImage2D(GL_TEXTURE_2D, 0, s3tc_format, width, height, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get());
 			uint32_t byte_offset = dds_main_size;
 			/*	upload the mipmaps, if we have them	*/
 			for(uint32_t i = 1; i <= mipmaps; ++i) {
@@ -287,7 +304,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 				uint32_t h = std::max<uint32_t>(height >> i, 1);
 				/*	upload this mipmap	*/
 				uint32_t mip_size = w * h * block_size;
-				glTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, s3tc_format, s3tc_type, dds_dest_data.get() + byte_offset);
+				glTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get() + byte_offset);
 				/*	and move to the next mipmap	*/
 				byte_offset += mip_size;
 			}
