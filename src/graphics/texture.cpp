@@ -287,7 +287,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			default:
 				std::memcpy(dds_dest_data.get(), dds_source_data, dds_full_size);
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint8_t temp = dds_source_data[i];
+					uint8_t temp = dds_dest_data[i];
 					dds_dest_data[i] = dds_dest_data[i + 2];
 					dds_dest_data[i + 2] = temp;
 				}
