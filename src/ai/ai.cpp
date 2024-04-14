@@ -4395,6 +4395,30 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 	}
 }
 
+float estimate_unit_type_value(sys::state& state, dcon::unit_type_id utid) {
+	float v = 0.f;
+	v += state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
+	v += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
+	v += state.military_definitions.unit_base_definitions[utid].maximum_speed;
+	v += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
+	switch(state.military_definitions.unit_base_definitions[utid].type) {
+	case military::unit_type::infantry:
+		v += state.military_definitions.unit_base_definitions[utid].support;
+		v += state.military_definitions.unit_base_definitions[utid].maneuver;
+		break;
+	case military::unit_type::cavalry:
+		break;
+	case military::unit_type::support:
+	case military::unit_type::special:
+		v += state.military_definitions.unit_base_definitions[utid].support * 2.5f;
+		v += state.military_definitions.unit_base_definitions[utid].maneuver * 2.5f;
+		break;
+	default:
+		break;
+	}
+	return v * 0.1f;
+}
+
 float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 	auto regs = state.world.army_get_army_membership(a);
 	if(regs.begin() == regs.end())
@@ -5039,21 +5063,11 @@ void update_land_constructions(sys::state& state) {
 			dcon::unit_type_id utid{ dcon::unit_type_id::value_base_t(i) };
 			if(!n.get_active_unit(utid) && !state.military_definitions.unit_base_definitions[utid].active)
 				continue;
+			float s2 = estimate_unit_type_value(state, utid);
 			if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::infantry) {
-				float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
-				s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
-				s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
-				s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
-				s2 += state.military_definitions.unit_base_definitions[utid].support;
-				s2 += state.military_definitions.unit_base_definitions[utid].maneuver;
 				for(uint32_t j = 0; j < 4; j++) {
-					float s1 = state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].defence_or_hull;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maximum_speed;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].siege_or_torpedo_attack;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].support;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maneuver;
-					if(!best_inf[j] || s1 > s2) {
+					float s1 = estimate_unit_type_value(state, best_inf[j]);
+					if(!best_inf[j] || s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
 						if(b_ov && b_pc)
@@ -5062,20 +5076,9 @@ void update_land_constructions(sys::state& state) {
 				}
 			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
 				|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
-				float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
-				s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
-				s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
-				s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
-				s2 += state.military_definitions.unit_base_definitions[utid].support;
-				s2 += state.military_definitions.unit_base_definitions[utid].maneuver;
 				for(uint32_t j = 0; j < 4; j++) {
-					float s1 = state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].defence_or_hull;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maximum_speed;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].siege_or_torpedo_attack;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].support;
-					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maneuver;
-					if(!best_art[j] || s1 > s2) {
+					float s1 = estimate_unit_type_value(state, best_art[j]);
+					if(!best_art[j] || s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
 						if(b_ov && b_pc)
