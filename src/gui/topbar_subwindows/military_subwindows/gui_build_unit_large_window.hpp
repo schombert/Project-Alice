@@ -1,6 +1,8 @@
 #pragma once
 
+#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "triggers.hpp"
 
 namespace ui {
 
@@ -302,7 +304,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.military_definitions.unit_base_definitions[unit_type].is_land) {
 			text::add_line(state, contents, "alice_unit_folder_unit_name", text::variable_type::x, state.military_definitions.unit_base_definitions[unit_type].name);
-			text::add_line(state, contents, " ");
 			if(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).reconnaissance_or_fire_range, 2));
 			}
@@ -320,7 +321,6 @@ public:
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).supply_consumption * 100, 0));
 		} else {
 			text::add_line(state, contents, "alice_unit_folder_unit_name", text::variable_type::x, state.military_definitions.unit_base_definitions[unit_type].name);
-			text::add_line(state, contents, " ");
 			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).maximum_speed, 2));
 			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).attack_or_gun_power, 2));
 			if(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).siege_or_torpedo_attack > 0) {
@@ -333,6 +333,14 @@ public:
 			}
 			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).supply_consumption * 100, 0));
 			text::add_line(state, contents, "alice_supply_load", text::variable_type::x, state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
+		}
+		if(!(state.world.nation_get_active_unit(state.local_player_nation, unit_type) && state.military_definitions.unit_base_definitions[unit_type].active)) {
+			for(const auto inv : state.world.in_invention) {
+				if(inv.get_activate_unit(unit_type)) {
+					text::add_line(state, contents, "alice_unit_invention", text::variable_type::x, inv.get_name());
+					additive_value_modifier_description(state, contents, inv.get_chance(), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
+				}
+			}
 		}
 	}
 
