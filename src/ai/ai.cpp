@@ -5128,13 +5128,14 @@ void update_land_constructions(sys::state& state) {
 			if(p.get_province().get_nation_from_province_control() != n)
 				continue;
 
+			bool overseas = province::is_overseas(state, p.get_province());
 			if(p.get_province().get_is_colonial()) {
 				float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
 				float minimum = state.defines.pop_min_size_for_regiment;
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
-							auto t = decide_type(pop.get_pop(), true);
+							auto t = decide_type(pop.get_pop(), overseas);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
@@ -5155,7 +5156,7 @@ void update_land_constructions(sys::state& state) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
-							auto t = decide_type(pop.get_pop(), false);
+							auto t = decide_type(pop.get_pop(), overseas);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
@@ -5176,7 +5177,7 @@ void update_land_constructions(sys::state& state) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
-							auto t = decide_type(pop.get_pop(), false);
+							auto t = decide_type(pop.get_pop(), overseas);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
