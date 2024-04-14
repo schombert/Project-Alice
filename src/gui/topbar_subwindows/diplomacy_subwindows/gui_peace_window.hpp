@@ -300,26 +300,21 @@ public:
 
 		if(state.world.war_get_primary_attacker(war) == state.local_player_nation && state.world.war_get_primary_defender(war) == target) {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
-				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, true });
 			}
 		} else if(state.world.war_get_primary_attacker(war) == target && state.world.war_get_primary_defender(war) == state.local_player_nation) {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
-				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+				wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, true });
 			}
 		} else {
 			for(auto wg : state.world.war_get_wargoals_attached(war)) {
-
 				if(state.world.war_get_primary_attacker(war) == state.local_player_nation || state.world.war_get_primary_defender(war) == state.local_player_nation) {
-
 					if(wg.get_wargoal().get_added_by() == target || wg.get_wargoal().get_added_by().get_overlord_as_subject().get_ruler() == target || wg.get_wargoal().get_target_nation() == target || wg.get_wargoal().get_target_nation().get_overlord_as_subject().get_ruler() == target) {
-
-						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, true });
 					}
-					
 				} else {
 					if(wg.get_wargoal().get_added_by() == state.local_player_nation || wg.get_wargoal().get_added_by().get_overlord_as_subject().get_ruler() == state.local_player_nation || wg.get_wargoal().get_target_nation() == state.local_player_nation || wg.get_wargoal().get_target_nation().get_overlord_as_subject().get_ruler() == state.local_player_nation) {
-
-						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, false });
+						wargoals.push_back(toggled_wargoal{ wg.get_wargoal().id, true });
 					}
 				}
 			}
