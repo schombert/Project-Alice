@@ -4999,6 +4999,15 @@ void move_gathered_attackers(sys::state& state) {
 	}
 }
 
+void update_frontline_counters(sys::state& state, dcon::unit_type_id utid, int32_t& num_frontline, int32_t& num_support) {
+	if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
+		|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
+		++num_support;
+		return;
+	}
+	++num_frontline;
+}
+
 void update_land_constructions(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
@@ -5013,112 +5022,118 @@ void update_land_constructions(sys::state& state) {
 
 		int32_t num_frontline = 0;
 		int32_t num_support = 0;
-
-		dcon::unit_type_id best_inf = state.military_definitions.infantry;
-		dcon::unit_type_id best_art = state.military_definitions.artillery;
+		std::array<dcon::unit_type_id, 4> best_inf{
+			dcon::unit_type_id{ }, //normal
+			dcon::unit_type_id{ }, //build overseas
+			dcon::unit_type_id{ }, //non-accepted
+			dcon::unit_type_id{ }, //non-accepted + build overseas
+		};
+		std::array<dcon::unit_type_id, 4> best_art{
+			dcon::unit_type_id{ }, //normal
+			dcon::unit_type_id{ }, //build overseas
+			dcon::unit_type_id{ }, //non-accepted
+			dcon::unit_type_id{ }, //non-accepted + build overseas
+		};
 		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 			dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
 			if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
 				continue;
 			if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::infantry) {
-				if(!best_inf || state.military_definitions.unit_base_definitions[best_inf].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
-					best_inf = j;
+				for(uint32_t i = 0; i < 4; i++) {
+					if(!best_inf[i] && state.military_definitions.unit_base_definitions[best_inf[i]].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
+						bool b_ov = (i & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[i]].can_build_overseas;
+						bool b_pc = (i & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[i]].primary_culture;
+						best_inf[i] = j;
+					}
 				}
 			} else if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::support
 				|| state.military_definitions.unit_base_definitions[j].type == military::unit_type::special) {
-				if(!best_art || state.military_definitions.unit_base_definitions[best_art].support < state.military_definitions.unit_base_definitions[j].support) {
-					best_art = j;
+				for(uint32_t i = 0; i < 4; i++) {
+					if(!best_art[i] && state.military_definitions.unit_base_definitions[best_art[i]].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
+						bool b_ov = (i & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[i]].can_build_overseas;
+						bool b_pc = (i & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[i]].primary_culture;
+						best_art[i] = j;
+					}
 				}
 			}
 		}
-
-		bool can_make_inf = state.world.nation_get_active_unit(n, best_inf) || state.military_definitions.unit_base_definitions[best_inf].active;
-		bool can_make_art = state.world.nation_get_active_unit(n, best_art) || state.military_definitions.unit_base_definitions[best_art].active;
-		const std::function<dcon::unit_type_id()> decide_type = can_make_art
-			? std::function<dcon::unit_type_id()>([&]() {
-			if(num_frontline > num_support) {
-				++num_support;
-				return best_art;
-			} else {
-				++num_frontline;
-				return can_make_inf ? best_inf : state.military_definitions.irregular;
+		auto const decide_type = [&](dcon::pop_id pop, bool overseas) {
+			bool is_pc = nations::nation_accepts_culture(state, n, state.world.pop_get_culture(pop));
+			uint32_t index = (overseas ? 1 : 0) + (is_pc ? 2 : 0);
+			if(num_frontline > num_support
+			&& best_art[index]
+			&& state.world.nation_get_active_unit(n, best_art[index]) || state.military_definitions.unit_base_definitions[best_art[index]].active) {
+				return best_art[index];
 			}
-			})
-			: std::function<dcon::unit_type_id()>([&]() {
-				return best_inf;
-			});
+			return best_inf[index] ? best_inf[index] : state.military_definitions.irregular;
+		};
 
-			for(auto p : state.world.nation_get_province_ownership(n)) {
-				if(p.get_province().get_nation_from_province_control() != n)
-					continue;
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(p.get_province().get_nation_from_province_control() != n)
+				continue;
 
-				if(p.get_province().get_is_colonial()) {
-					float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-					float minimum = state.defines.pop_min_size_for_regiment;
-
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+			if(p.get_province().get_is_colonial()) {
+				float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+				float minimum = state.defines.pop_min_size_for_regiment;
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(decide_type());
+								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								--num_to_make;
 							}
 						}
 					}
-				} else if(!p.get_province().get_is_owner_core()) {
-					float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-					float minimum = state.defines.pop_min_size_for_regiment;
-
-					dcon::pop_id non_preferred;
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+				}
+			} else if(!p.get_province().get_is_owner_core()) {
+				float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+				float minimum = state.defines.pop_min_size_for_regiment;
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(decide_type());
+								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								--num_to_make;
 							}
 						}
 					}
-				} else {
-					float divisor = state.defines.pop_size_per_regiment;
-					float minimum = state.defines.pop_min_size_for_regiment;
-
-					dcon::pop_id non_preferred;
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+				}
+			} else {
+				float divisor = state.defines.pop_size_per_regiment;
+				float minimum = state.defines.pop_min_size_for_regiment;
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(decide_type());
+								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								--num_to_make;
 							}
 						}
 					}
 				}
 			}
+		}
 	}
 }
 
