@@ -4406,7 +4406,7 @@ float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_
 		float atk = (uts.attack_or_gun_power * 0.1f + 1.0f);
 		float def = (uts.attack_or_gun_power * 0.1f + 1.0f);
 		float v = std::max<float>(atk + def, 1.f) / 2.f;
-		return v * uts.support;
+		return v;
 	}
 	case military::unit_type::support:
 	case military::unit_type::special:
@@ -4414,7 +4414,7 @@ float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_
 		float atk = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
 		float def = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
 		float v = std::max<float>(atk + def, 1.f) / 2.f;
-		return v * uts.support;
+		return v;
 	}
 	default:
 		break;
