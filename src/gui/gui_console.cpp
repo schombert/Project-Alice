@@ -437,8 +437,8 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
-	lhs_suggestion = std::string{};
-	rhs_suggestion = std::string{};
+	lhs_suggestion.clear();
+	rhs_suggestion.clear();
 	if(s.empty())
 		return;
 
@@ -488,27 +488,54 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				// Now type in a suggestion...
 				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
-				if(tag.size() >= name.size()) {
-					lhs_suggestion = std::string{};
-				} else {
+				if(tag.size() < name.size()) {
 					lhs_suggestion = name.substr(tag.size());
 				}
-				rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
+				rhs_suggestion = name + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid));
 			} else {
-				lhs_suggestion = std::string{};
-				rhs_suggestion = std::string{};
 				if(tag.size() == 1)
 					rhs_suggestion = tag + "?? - ???";
 				else if(tag.size() == 2)
 					rhs_suggestion = tag + "? - ???";
+			}
+		} else if(s.starts_with("innovate") && pos + 1 < s.size()) {
+			std::string inputted = std::string(s.substr(pos + 1));
+			if(inputted.empty())
+				return; // Can't give suggestion if nothing was inputted
+			std::transform(inputted.begin(), inputted.end(), inputted.begin(), [](auto c) { return char(tolower(char(c))); });
+			// Tag will autofill a country name + indicate it's full name
+			std::pair<uint32_t, dcon::invention_id> closest_match{};
+			closest_match.first = std::numeric_limits<uint32_t>::max();
+			for(auto const id : state.world.in_invention) {
+				std::string name = text::produce_simple_string(state, id.get_name());
+				std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return char(tolower(c)); });
+				if(name.starts_with(inputted)) {
+					uint32_t dist = levenshtein_distance(inputted, name);
+					if(dist < closest_match.first) {
+						closest_match.first = dist;
+						closest_match.second = id;
+					}
+				}
+			}
+			if(closest_match.second) {
+				// Now type in a suggestion...
+				std::string name = text::produce_simple_string(state, state.world.invention_get_name(closest_match.second));
+				if(inputted.size() < name.size()) {
+					std::string canon_name = name;
+					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return c == ' ' ? '_' : c; });
+					lhs_suggestion = canon_name.substr(inputted.size());
+				}
+				rhs_suggestion = name;
 			}
 		}
 	}
 }
 
 void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexcept {
-	if(s.empty())
+	if(s.empty()) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	std::pair<uint32_t, std::string_view> closest_match{};
 	closest_match.first = std::numeric_limits<uint32_t>::max();
@@ -525,8 +552,10 @@ void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexc
 		}
 	}
 	auto closest_name = closest_match.second;
-	if(closest_name.empty())
+	if(closest_name.empty()) {
+		edit_box_update(state, s);
 		return;
+	}
 	set_text(state, std::string(closest_name) + " ");
 	auto index = int32_t(closest_name.size() + 1);
 	edit_index_position(state, index);
@@ -560,12 +589,16 @@ void write_single_component(sys::state& state, native_string_view filename, F&& 
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
-	if(s.empty())
+	if(s.empty()) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	auto pstate = parse_command(state, s);
-	if(pstate.cmd.mode == command_info::type::none)
+	if(pstate.cmd.mode == command_info::type::none) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	log_to_console(state, parent, s);
 	for(uint32_t i = 0; i < command_info::max_arg_slots; ++i) {
@@ -576,6 +609,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ytext\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
@@ -583,6 +617,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ytag\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
@@ -590,6 +625,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ynumeric\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		}
@@ -1650,6 +1686,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 
 	Cyto::Any payload = this;
 	impl_get(state, payload);
+	edit_box_update(state, s);
 }
 
 void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
