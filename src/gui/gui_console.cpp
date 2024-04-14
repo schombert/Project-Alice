@@ -522,7 +522,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				std::string name = text::produce_simple_string(state, state.world.invention_get_name(closest_match.second));
 				if(inputted.size() < name.size()) {
 					std::string canon_name = name;
-					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return c == ' ' ? '_' : c; });
+					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return char(c == ' ' ? '_' : c); });
 					lhs_suggestion = canon_name.substr(inputted.size());
 				}
 				rhs_suggestion = name;
@@ -556,10 +556,11 @@ void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexc
 		edit_box_update(state, s);
 		return;
 	}
-	set_text(state, std::string(closest_name) + " ");
+	std::string str = std::string(closest_name) + " ";
+	set_text(state, str);
 	auto index = int32_t(closest_name.size() + 1);
 	edit_index_position(state, index);
-	edit_box_update(state, s);
+	edit_box_update(state, str);
 }
 
 void ui::console_edit::edit_box_up(sys::state& state) noexcept {
