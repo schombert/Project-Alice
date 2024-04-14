@@ -1121,6 +1121,7 @@ col_invest_3;You are not participating in a crisis war;;;;;;;;;;;;x
 col_invest_4;Without competition, you will be able to turn this state into a colony on $x$;;;;;;;;;;;;x
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$);;;;;;;;;;;;x
 col_invest_6;You have at least $x$ free colonial points;;;;;;;;;;;;x
+alice_unit_invention;Activated by §Y$x$§!, with a chance of:
 alice_maximum_speed;Max Speed §G$x$§! KPH;;;;;;;;;;;;x
 alice_attack;Attack §G$x$;;;;;;;;;;;;x
 alice_hull;Hull §G$x$;;;;;;;;;;;;x
