@@ -5111,12 +5111,12 @@ void update_land_constructions(sys::state& state) {
 				bool is_pc = nations::nation_accepts_culture(state, n, r.get_regiment().get_pop_from_regiment_source().get_culture());
 				uint32_t index = (overseas ? 1 : 0) + (is_pc ? 2 : 0);
 				if(etype == military::unit_type::support || etype == military::unit_type::special) {
-					if(type != best_art[index]) { // free ai upgrades
+					if(best_art[index] && type != best_art[index]) { // free ai upgrades
 						r.get_regiment().set_type(best_art[index]);
 					}
 					++num_support;
 				} else {
-					if(etype == military::unit_type::infantry && type != best_inf[index]) { // free ai upgrades
+					if(best_inf[index] && etype == military::unit_type::infantry && type != best_inf[index]) { // free ai upgrades
 						r.get_regiment().set_type(best_inf[index]);
 					}
 					++num_frontline;
