@@ -773,21 +773,17 @@ std::string prettify_currency(float num) {
 		"%.0fZ \xA4"
 	};
 	char buffer[200] = { 0 };
-	double dval = std::abs(double(num));
+	double dval = double(num);
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
-		if(dval >= mag[i]) {
+		if(std::abs(dval) >= mag[i]) {
 			auto reduced = dval / mag[i];
-			if(reduced < 10.0) {
-				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_two[i], reduced);
-			} else if(reduced < 100.0) {
-				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_one[i], reduced);
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer) - 1, sufx_two[i], reduced);
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer) - 1, sufx_one[i], reduced);
 			} else {
-				snprintf(buffer + 1, sizeof(buffer) - 1, sufx_zero[i], reduced);
+				snprintf(buffer, sizeof(buffer) - 1, sufx_zero[i], reduced);
 			}
-			if(num >= 0) {
-				return std::string(buffer + 1);
-			}
-			buffer[0] = '-'; //negative case
 			return std::string(buffer);
 		}
 	}
