@@ -791,8 +791,7 @@ std::string prettify_currency(float num) {
 			return std::string(buffer);
 		}
 	}
-	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
-	return std::string(buffer);
+	return std::string("#inf");
 }
 
 
