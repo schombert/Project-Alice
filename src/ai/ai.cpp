@@ -5048,7 +5048,7 @@ void update_land_constructions(sys::state& state) {
 					s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
 					s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
 					s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
-					if(!best_inf[i] && s1 < s2) {
+					if(!best_inf[j] && s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
 						best_inf[j] = utid;
