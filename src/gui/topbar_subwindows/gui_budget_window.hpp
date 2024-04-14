@@ -965,21 +965,27 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 				text::close_layout_box(contents, box);
 			}
 		}
-		text::add_line(state, contents, "alice_spending_total");
 		uint32_t total_commodities = state.world.commodity_size();
+		bool is_spending = false;
 		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto cost = state.world.commodity_get_current_price(cid);
-			auto amount = total[i];
-			if(amount > 0.f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
-				text::close_layout_box(contents, box);
+			is_spending = is_spending || (total[i] > 0.f);
+		}
+		if(is_spending) {
+			text::add_line(state, contents, "alice_spending_total");
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				auto cost = state.world.commodity_get_current_price(cid);
+				auto amount = total[i];
+				if(amount > 0.f) {
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+					text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+					text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+					text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+					text::close_layout_box(contents, box);
+				}
 			}
 		}
 	}
