@@ -4401,7 +4401,13 @@ float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_
 	auto const& uts = state.world.nation_get_unit_stats(n, utid);
 	auto lo_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_attack_modifier);
 	auto ld_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::land_defense_modifier);
-	float v = ((uts.defence_or_hull + ld_mod) + (uts.attack_or_gun_power + lo_mod)) * uts.discipline_or_evasion;
+	float atk = 1.f *
+		(uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support * lo_mod /
+		(1.f * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::military_tactics)));
+	auto def = 1.f *
+		(uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support * ld_mod /
+		((state.defines.base_military_tactics + state.world.nation_get_modifier_values(n, sys::national_mod_offsets::military_tactics)));
+	float v = std::max<float>(atk + def, 1.f) / 2.f;
 	switch(state.military_definitions.unit_base_definitions[utid].type) {
 	case military::unit_type::infantry:
 		break;
