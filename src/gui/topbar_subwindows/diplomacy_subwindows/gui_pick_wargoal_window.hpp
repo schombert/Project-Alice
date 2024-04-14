@@ -59,7 +59,7 @@ public:
 		auto cb_infamy = !war
 			? (military::has_truce_with(state, state.local_player_nation, target)
 				? military::truce_break_cb_infamy(state, content)
-				: military::cb_infamy(state, content))
+				: 0.f)
 			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target);
 		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
 			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
