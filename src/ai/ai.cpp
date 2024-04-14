@@ -5049,7 +5049,7 @@ void update_land_constructions(sys::state& state) {
 					s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
 					s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
 					s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
-					if(!best_inf[j] && s1 < s2) {
+					if(!best_inf[j] || s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
 						if(b_ov && b_pc)
@@ -5059,7 +5059,7 @@ void update_land_constructions(sys::state& state) {
 			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
 				|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
 				for(uint32_t j = 0; j < 4; j++) {
-					if(!best_art[j] && state.military_definitions.unit_base_definitions[best_art[j]].support < state.military_definitions.unit_base_definitions[utid].support) {
+					if(!best_art[j] || state.military_definitions.unit_base_definitions[best_art[j]].support < state.military_definitions.unit_base_definitions[utid].support) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
 						if(b_ov && b_pc)
@@ -5071,8 +5071,7 @@ void update_land_constructions(sys::state& state) {
 		auto const decide_type = [&](dcon::pop_id pop, bool overseas) {
 			bool is_pc = nations::nation_accepts_culture(state, n, state.world.pop_get_culture(pop));
 			uint32_t index = (overseas ? 1 : 0) + (is_pc ? 2 : 0);
-			if(num_frontline > num_support
-			&& best_art[index]
+			if(num_frontline > num_support && best_art[index]
 			&& (state.world.nation_get_active_unit(n, best_art[index]) || state.military_definitions.unit_base_definitions[best_art[index]].active)) {
 				return best_art[index];
 			}
@@ -5110,12 +5109,12 @@ void update_land_constructions(sys::state& state) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
+							auto t = decide_type(pop.get_pop(), true);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								auto t = decide_type(pop.get_pop(), true);
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
@@ -5131,12 +5130,12 @@ void update_land_constructions(sys::state& state) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
+							auto t = decide_type(pop.get_pop(), false);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								auto t = decide_type(pop.get_pop(), false);
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
@@ -5152,12 +5151,12 @@ void update_land_constructions(sys::state& state) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
 						if(pop.get_pop().get_size() >= minimum) {
+							auto t = decide_type(pop.get_pop(), false);
 							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
 							auto regs = pop.get_pop().get_regiment_source();
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								auto t = decide_type(pop.get_pop(), false);
 								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
 								c.set_type(t);
