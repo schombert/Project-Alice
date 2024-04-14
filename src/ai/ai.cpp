@@ -8,6 +8,7 @@
 #include "politics.hpp"
 #include "prng.hpp"
 #include "province_templates.hpp"
+#include "nations_templates.hpp"
 #include "triggers.hpp"
 
 namespace ai {
