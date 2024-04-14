@@ -5040,16 +5040,20 @@ void update_land_constructions(sys::state& state) {
 			if(!n.get_active_unit(utid) && !state.military_definitions.unit_base_definitions[utid].active)
 				continue;
 			if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::infantry) {
+				float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
+				s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
+				s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
+				s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
+				s2 += state.military_definitions.unit_base_definitions[utid].support;
+				s2 += state.military_definitions.unit_base_definitions[utid].maneuver;
 				for(uint32_t j = 0; j < 4; j++) {
 					float s1 = state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power;
 					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].defence_or_hull;
 					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maximum_speed;
 					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].siege_or_torpedo_attack;
-					float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
-					s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
-					s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
-					s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
-					if(!best_inf[j] || s1 < s2) {
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].support;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maneuver;
+					if(!best_inf[j] || s1 > s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
 						if(b_ov && b_pc)
@@ -5058,8 +5062,20 @@ void update_land_constructions(sys::state& state) {
 				}
 			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
 				|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
+				float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
+				s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
+				s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
+				s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
+				s2 += state.military_definitions.unit_base_definitions[utid].support;
+				s2 += state.military_definitions.unit_base_definitions[utid].maneuver;
 				for(uint32_t j = 0; j < 4; j++) {
-					if(!best_art[j] || state.military_definitions.unit_base_definitions[best_art[j]].support < state.military_definitions.unit_base_definitions[utid].support) {
+					float s1 = state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].defence_or_hull;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maximum_speed;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].siege_or_torpedo_attack;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].support;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maneuver;
+					if(!best_art[j] || s1 > s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
 						if(b_ov && b_pc)
