@@ -571,6 +571,11 @@ public:
 		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
 		return state.world.unilateral_relationship_get_interested_in_alliance(rel);
 	}
+	void on_update(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_toggle_interested_in_alliance(state, state.local_player_nation, n);
+		frame = is_active(state) ? 1 : 0;
+	}
 	void button_action(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
 		command::toggle_interested_in_alliance(state, state.local_player_nation, n);

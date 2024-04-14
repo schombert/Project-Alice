@@ -884,6 +884,11 @@ public:
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept final;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept final;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(type == mouse_probe_type::tooltip)
+			return message_result::consumed;
+		return opaque_element_base::test_mouse(state, x, y, type);
+	}
 };
 
 class scrollbar_slider : public opaque_element_base {
