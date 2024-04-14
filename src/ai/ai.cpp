@@ -5035,24 +5035,24 @@ void update_land_constructions(sys::state& state) {
 			dcon::unit_type_id{ }, //non-accepted + build overseas
 		};
 		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-			dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
-			if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
+			dcon::unit_type_id utid{ dcon::unit_type_id::value_base_t(i) };
+			if(!n.get_active_unit(utid) && !state.military_definitions.unit_base_definitions[utid].active)
 				continue;
-			if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::infantry) {
-				for(uint32_t i = 0; i < 4; i++) {
-					if(!best_inf[i] && state.military_definitions.unit_base_definitions[best_inf[i]].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
-						bool b_ov = (i & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[i]].can_build_overseas;
-						bool b_pc = (i & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[i]].primary_culture;
-						best_inf[i] = j;
+			if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::infantry) {
+				for(uint32_t j = 0; j < 4; j++) {
+					if(!best_inf[i] && state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power < state.military_definitions.unit_base_definitions[utid].attack_or_gun_power) {
+						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
+						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
+						best_inf[j] = utid;
 					}
 				}
-			} else if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::support
-				|| state.military_definitions.unit_base_definitions[j].type == military::unit_type::special) {
-				for(uint32_t i = 0; i < 4; i++) {
-					if(!best_art[i] && state.military_definitions.unit_base_definitions[best_art[i]].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
-						bool b_ov = (i & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[i]].can_build_overseas;
-						bool b_pc = (i & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[i]].primary_culture;
-						best_art[i] = j;
+			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
+				|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
+				for(uint32_t j = 0; j < 4; j++) {
+					if(!best_art[j] && state.military_definitions.unit_base_definitions[best_art[j]].attack_or_gun_power < state.military_definitions.unit_base_definitions[utid].attack_or_gun_power) {
+						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
+						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
+						best_art[j] = utid;
 					}
 				}
 			}
@@ -5083,10 +5083,11 @@ void update_land_constructions(sys::state& state) {
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto t = decide_type(pop.get_pop(), true);
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(decide_type());
-								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								c.set_type(t);
+								update_frontline_counters(state, t, num_frontline, num_support);
 								--num_to_make;
 							}
 						}
@@ -5103,10 +5104,11 @@ void update_land_constructions(sys::state& state) {
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto t = decide_type(pop.get_pop(), false);
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(decide_type());
-								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								c.set_type(t);
+								update_frontline_counters(state, t, num_frontline, num_support);
 								--num_to_make;
 							}
 						}
@@ -5123,10 +5125,11 @@ void update_land_constructions(sys::state& state) {
 							auto building = pop.get_pop().get_province_land_construction();
 							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
 							while(num_to_make > 0) {
-								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
+								auto t = decide_type(pop.get_pop(), false);
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
 								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-								c.set_type(decide_type());
-								update_frontline_counters(state, decide_type(), num_frontline, num_support);
+								c.set_type(t);
+								update_frontline_counters(state, t, num_frontline, num_support);
 								--num_to_make;
 							}
 						}
