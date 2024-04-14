@@ -20,6 +20,7 @@ namespace ui {
 class land_rally_point : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
 		frame = (state.world.province_get_land_rally_point(retrieve<dcon::province_id>(state, parent))) ? 1 : 0;
 		disabled = state.world.province_get_nation_from_province_ownership(p) != state.local_player_nation;
 	}
