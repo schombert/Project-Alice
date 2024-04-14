@@ -425,8 +425,8 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 		char const* end_text = rhs_suggestion.data() + rhs_suggestion.length();
 		std::string text(std::string_view(start_text, end_text));
 		if(!text.empty()) {
-			if(text.length() > 24) {
-				text.resize(24);
+			if(text.length() > 16) {
+				text.resize(16);
 				text[text.length() - 1] = '\x85';
 			}
 			// Place text right before it ends (centered right)
