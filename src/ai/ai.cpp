@@ -4400,6 +4400,7 @@ float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_
 	auto const& ut = state.military_definitions.unit_base_definitions[utid];
 	auto const& uts = state.world.nation_get_unit_stats(n, utid);
 	switch(state.military_definitions.unit_base_definitions[utid].type) {
+	case military::unit_type::cavalry:
 	case military::unit_type::infantry:
 	{
 		float atk = (uts.attack_or_gun_power * 0.1f + 1.0f);
@@ -4415,7 +4416,6 @@ float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_
 		float v = std::max<float>(atk + def, 1.f) / 2.f;
 		return v * uts.support;
 	}
-	case military::unit_type::cavalry:
 	default:
 		break;
 	}
