@@ -5070,7 +5070,7 @@ void update_land_constructions(sys::state& state) {
 			uint32_t index = (overseas ? 1 : 0) + (is_pc ? 2 : 0);
 			if(num_frontline > num_support
 			&& best_art[index]
-			&& state.world.nation_get_active_unit(n, best_art[index]) || state.military_definitions.unit_base_definitions[best_art[index]].active) {
+			&& (state.world.nation_get_active_unit(n, best_art[index]) || state.military_definitions.unit_base_definitions[best_art[index]].active)) {
 				return best_art[index];
 			}
 			return best_inf[index] ? best_inf[index] : state.military_definitions.irregular;
