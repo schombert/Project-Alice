@@ -5014,36 +5014,38 @@ void update_land_constructions(sys::state& state) {
 		int32_t num_frontline = 0;
 		int32_t num_support = 0;
 
-		bool can_make_inf = state.world.nation_get_active_unit(n, state.military_definitions.infantry) || state.military_definitions.unit_base_definitions[state.military_definitions.infantry].active;
-		bool can_make_art = state.world.nation_get_active_unit(n, state.military_definitions.artillery) || state.military_definitions.unit_base_definitions[state.military_definitions.artillery].active;
-
-		for(auto ar : state.world.nation_get_army_control(n)) {
-			for(auto r : ar.get_army().get_army_membership()) {
-				auto type = r.get_regiment().get_type();
-				auto etype = state.military_definitions.unit_base_definitions[type].type;
-				if(etype == military::unit_type::support || etype == military::unit_type::special) {
-					++num_support;
-				} else {
-					++num_frontline;
+		dcon::unit_type_id best_inf = state.military_definitions.infantry;
+		dcon::unit_type_id best_art = state.military_definitions.artillery;
+		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
+			if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
+				continue;
+			if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::infantry) {
+				if(!best_inf || state.military_definitions.unit_base_definitions[best_inf].attack_or_gun_power < state.military_definitions.unit_base_definitions[j].attack_or_gun_power) {
+					best_inf = j;
 				}
-				if(can_make_inf && type == state.military_definitions.irregular) { // free ai upgrades
-					r.get_regiment().set_type(state.military_definitions.infantry);
+			} else if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::support
+				|| state.military_definitions.unit_base_definitions[j].type == military::unit_type::special) {
+				if(!best_art || state.military_definitions.unit_base_definitions[best_art].support < state.military_definitions.unit_base_definitions[j].support) {
+					best_art = j;
 				}
 			}
 		}
 
+		bool can_make_inf = state.world.nation_get_active_unit(n, best_inf) || state.military_definitions.unit_base_definitions[best_inf].active;
+		bool can_make_art = state.world.nation_get_active_unit(n, best_art) || state.military_definitions.unit_base_definitions[best_art].active;
 		const std::function<dcon::unit_type_id()> decide_type = can_make_art
 			? std::function<dcon::unit_type_id()>([&]() {
 			if(num_frontline > num_support) {
 				++num_support;
-				return state.military_definitions.artillery;
+				return best_art;
 			} else {
 				++num_frontline;
-				return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
+				return can_make_inf ? best_inf : state.military_definitions.irregular;
 			}
 			})
 			: std::function<dcon::unit_type_id()>([&]() {
-				return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
+				return best_inf;
 			});
 
 			for(auto p : state.world.nation_get_province_ownership(n)) {
