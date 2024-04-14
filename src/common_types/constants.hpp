@@ -185,7 +185,8 @@ enum class map_label_mode : uint8_t {
 enum class map_zoom_mode : uint8_t {
 	panning = 0,
 	inverted = 1,
-	centered = 2
+	centered = 2,
+	to_cursor = 3,
 };
 
 enum class map_vassal_color_mode : uint8_t {
