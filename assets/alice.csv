@@ -1565,6 +1565,21 @@ alice_reinforce_rate_none;This regiment cannot currently be reinforced.
 alice_domestic_investment_button;Investing in individual projects is §Rdeprecated§W, use the §Ydomestic investment§W slider on the budget screen instead
 alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
 alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
+alice_budget_scaled_inc;Income: §G$value$
+alice_budget_scaled_1;Poor tax: §G$value$
+alice_budget_scaled_2;Middle tax: §G$value$
+alice_budget_scaled_3;Rich tax: §G$value$
+alice_budget_scaled_4;Tariffs: §G$value$
+alice_budget_scaled_exp;Expenses: §R$value$
+alice_budget_scaled_5;Army maintanance: §R$value$
+alice_budget_scaled_6;Navy maintanance: §R$value$
+alice_budget_scaled_7;Construction: §R$value$
+alice_budget_scaled_8;Education: §R$value$
+alice_budget_scaled_9;Administration: §R$value$
+alice_budget_scaled_10;Social spending: §R$value$
+alice_budget_scaled_11;Military spending: §R$value$
+alice_budget_scaled_12;Domestic investments: §R$value$
+alice_budget_scaled_net;Net revenue: §Y$value$
 alice_budget_setting_percent;Set at $perc$.
 alice_spending_land_construction;Land construction in $name$: §R$cost$§W
 alice_spending_naval_construction;Naval construction in $name$: §R$cost$§W

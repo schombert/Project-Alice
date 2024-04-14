@@ -1117,6 +1117,101 @@ public:
 		apply_multipliers(state);
 	}
 
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+
+		float total = 0.f;
+		float total_exp = 0.f;
+		float total_inc = 0.f;
+		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+			float v = values[i] * multipliers[i];
+			if(expense)
+				v = -v;
+			if(v < 0.f)
+				total_exp += v;
+			else
+				total_inc += v;
+			total += v;
+		}
+		if(total_inc != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_inc", text::variable_type::value, text::fp_currency{ total_inc });
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+				float v = values[i] * multipliers[i];
+				if(expense)
+					v = -v;
+				if(v < 0.f) {
+					switch(budget_slider_target(i)) {
+					case budget_slider_target::poor_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_1", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::middle_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_2", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::rich_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_3", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::tariffs:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_4", text::variable_type::value, text::fp_currency{ v });
+						break;
+					default:
+						break;
+					}
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+		}
+		if(total_exp != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_exp", text::variable_type::value, text::fp_currency{ total_exp });
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+				float v = values[i] * multipliers[i];
+				if(expense)
+					v = -v;
+				if(v < 0.f) {
+					switch(budget_slider_target(i)) {
+					case budget_slider_target::army_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_5", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::navy_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_6", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::construction_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_7", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::education:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_8", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::admin:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_9", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::social:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_10", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::military:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_11", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::domestic_investment:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_12", text::variable_type::value, text::fp_currency{ v });
+						break;
+					default:
+						break;
+					}
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+		}
+		if(total != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_net", text::variable_type::value, text::fp_currency{ total });
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		text::close_layout_box(contents, box);
+	}
+
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<budget_slider_signal>()) {
 			auto sig = any_cast<budget_slider_signal>(payload);
