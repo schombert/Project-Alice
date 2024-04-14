@@ -222,30 +222,26 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(mode != sys::game_mode_type::in_game) {
-		if(state::user_settings.left_mouse_click_hold_and_release) {
-			if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
-				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
-			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
-				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+	if(ui_state.left_mouse_hold_target != nullptr) {
+		if(user_settings.left_mouse_click_hold_and_release) {
+			if(mode != sys::game_mode_type::in_game) {
+				if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+					ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+				} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+					ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+				}
+				return;
+			} else {
+				if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
+					ui_state.left_mouse_hold_target = nullptr;
+					ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+				} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
+					ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+				}
 			}
 		}
-		return;
-	}
-	if(state::user_settings.left_mouse_click_hold_and_release) {
-		if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
-			ui_state.left_mouse_hold_target = nullptr;
-			ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
-		} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
-			ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
-		}
-	}
-	if(ui_state.left_mouse_hold_target != nullptr) {
-
 		ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
-
 		ui_state.left_mouse_hold_target = nullptr;
-
 		if(ui_state.scrollbar_continuous_movement) {
 			Cyto::Any payload = ui::scrollbar_settings{};
 			temp_hold_target->impl_set(*this, payload);
