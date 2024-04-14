@@ -5040,7 +5040,15 @@ void update_land_constructions(sys::state& state) {
 				continue;
 			if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::infantry) {
 				for(uint32_t j = 0; j < 4; j++) {
-					if(!best_inf[i] && state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power < state.military_definitions.unit_base_definitions[utid].attack_or_gun_power) {
+					float s1 = state.military_definitions.unit_base_definitions[best_inf[j]].attack_or_gun_power;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].defence_or_hull;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].maximum_speed;
+					s1 += state.military_definitions.unit_base_definitions[best_inf[j]].siege_or_torpedo_attack;
+					float s2 = state.military_definitions.unit_base_definitions[utid].attack_or_gun_power;
+					s2 += state.military_definitions.unit_base_definitions[utid].defence_or_hull;
+					s2 += state.military_definitions.unit_base_definitions[utid].maximum_speed;
+					s2 += state.military_definitions.unit_base_definitions[utid].siege_or_torpedo_attack;
+					if(!best_inf[i] && s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
 						best_inf[j] = utid;
@@ -5049,7 +5057,7 @@ void update_land_constructions(sys::state& state) {
 			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
 				|| state.military_definitions.unit_base_definitions[utid].type == military::unit_type::special) {
 				for(uint32_t j = 0; j < 4; j++) {
-					if(!best_art[j] && state.military_definitions.unit_base_definitions[best_art[j]].attack_or_gun_power < state.military_definitions.unit_base_definitions[utid].attack_or_gun_power) {
+					if(!best_art[j] && state.military_definitions.unit_base_definitions[best_art[j]].support < state.military_definitions.unit_base_definitions[utid].support) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
 						best_art[j] = utid;
@@ -5067,6 +5075,24 @@ void update_land_constructions(sys::state& state) {
 			}
 			return best_inf[index] ? best_inf[index] : state.military_definitions.irregular;
 		};
+
+		for(auto ar : state.world.nation_get_army_control(n)) {
+			for(auto r : ar.get_army().get_army_membership()) {
+				auto type = r.get_regiment().get_type();
+				auto etype = state.military_definitions.unit_base_definitions[type].type;
+				if(etype == military::unit_type::support || etype == military::unit_type::special) {
+					if(type != best_art[0]) { // free ai upgrades
+						r.get_regiment().set_type(best_art[0]);
+					}
+					++num_support;
+				} else {
+					if(etype == military::unit_type::infantry && type != best_inf[0]) { // free ai upgrades
+						r.get_regiment().set_type(best_inf[0]);
+					}
+					++num_frontline;
+				}
+			}
+		}
 
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(p.get_province().get_nation_from_province_control() != n)
