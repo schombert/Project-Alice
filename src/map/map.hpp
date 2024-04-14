@@ -167,7 +167,8 @@ public:
 	static constexpr uint32_t texture_coastal_border = 16;
 	static constexpr uint32_t texture_diag_border_identifier = 17;
 	static constexpr uint32_t texture_railroad = 18;
-	static constexpr uint32_t texture_count = 19;
+	static constexpr uint32_t texture_frontline = 19;
+	static constexpr uint32_t texture_count = 20;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;

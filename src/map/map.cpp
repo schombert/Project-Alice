@@ -555,6 +555,20 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
+		{
+			glUniform1f(4, 0.00035f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_frontline]);
+			for(auto b : borders) {
+				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::impassible_bit)) == 0) {
+					auto n0 = state.world.province_get_nation_from_province_control(state.world.province_adjacency_get_connected_provinces(b.adj, 0));
+					auto n1 = state.world.province_get_nation_from_province_control(state.world.province_adjacency_get_connected_provinces(b.adj, 1));
+					if(n0 && n1 && n0 != n1 && (n0 == state.local_player_nation || n1 == state.local_player_nation) && military::are_at_war(state, n0, n1)) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			}
+		}
 	} else {
 		if(zoom > map::zoom_very_close) { // Render province borders
 			glUniform1f(4, 0.0001f); // width
@@ -1949,6 +1963,9 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_coastal_border] = load_dds_texture(assets_dir, NATIVE("coastborder.dds"));
 	ogl::set_gltex_parameters(textures[texture_coastal_border], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_frontline] = load_dds_texture(assets_dir, NATIVE("frontline.dds"));
+	ogl::set_gltex_parameters(textures[texture_frontline], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_railroad] = load_dds_texture(gfx_anims_dir, NATIVE("railroad.dds"));
 	ogl::set_gltex_parameters(textures[texture_railroad], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
