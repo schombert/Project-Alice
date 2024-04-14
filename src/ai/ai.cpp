@@ -5051,7 +5051,8 @@ void update_land_constructions(sys::state& state) {
 					if(!best_inf[j] && s1 < s2) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_inf[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_inf[j]].primary_culture;
-						best_inf[j] = utid;
+						if(b_ov && b_pc)
+							best_inf[j] = utid;
 					}
 				}
 			} else if(state.military_definitions.unit_base_definitions[utid].type == military::unit_type::support
@@ -5060,7 +5061,8 @@ void update_land_constructions(sys::state& state) {
 					if(!best_art[j] && state.military_definitions.unit_base_definitions[best_art[j]].support < state.military_definitions.unit_base_definitions[utid].support) {
 						bool b_ov = (j & 1) == 0 || state.military_definitions.unit_base_definitions[best_art[j]].can_build_overseas;
 						bool b_pc = (j & 2) == 0 || !state.military_definitions.unit_base_definitions[best_art[j]].primary_culture;
-						best_art[j] = utid;
+						if(b_ov && b_pc)
+							best_art[j] = utid;
 					}
 				}
 			}
