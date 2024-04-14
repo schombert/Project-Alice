@@ -571,15 +571,6 @@ public:
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			if(per_state > 0.f) {
-				/*
-				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::name, si.get_state());
-				text::add_to_substitution_map(sub, text::variable_type::cap, text::fp_two_places{ total_factory_capacity });
-				text::add_to_substitution_map(sub, text::variable_type::level, text::int_wholenum{ int32_t(total_level) });
-				text::add_to_substitution_map(sub, text::variable_type::amount, text::fp_two_places{ worker_total });
-				text::add_to_substitution_map(sub, text::variable_type::total, text::fp_two_places{ per_state });
-				*/
-
 				auto box = text::open_layout_box(contents);
 				text::layout_box name_entry = box;
 				text::layout_box level_entry = box;
@@ -588,7 +579,7 @@ public:
 				text::layout_box score_box = box;
 
 				name_entry.x_size /= 10;
-				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20));
+				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20), text::text_color::yellow);
 				
 				level_entry.x_position += 150;
 				text::add_to_layout_box(state, contents, level_entry, text::int_wholenum{ int32_t(total_level) });
@@ -607,14 +598,22 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_two_places{ iweight });
+		float total_invest = 0.f;
 		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
-			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
-			text::close_layout_box(contents, box);
+			total_invest += ur.get_foreign_investment();
+		}
+		if(total_invest > 0.f) {
+			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
+			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
+				if(ur.get_foreign_investment() > 0.f) {
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
+					text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
+					auto box = text::open_layout_box(contents);
+					text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
+					text::close_layout_box(contents, box);
+				}
+			}
 		}
 	}
 };
