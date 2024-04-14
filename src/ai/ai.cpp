@@ -3350,7 +3350,7 @@ void update_ships(sys::state& state) {
 			dcon::unit_type_id best_big;
 
 			for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-				dcon::unit_type_id j(dcon::unit_type_id::value_base_t(i));
+				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
 				if(state.military_definitions.unit_base_definitions[j].is_land)
 					continue;
 				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
@@ -3410,7 +3410,7 @@ void build_ships(sys::state& state) {
 			dcon::unit_type_id best_light;
 			dcon::unit_type_id best_big;
 
-			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+			for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
 				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
 					continue;
@@ -5067,7 +5067,7 @@ void update_land_constructions(sys::state& state) {
 			dcon::unit_type_id{ }, //non-accepted + build overseas
 		};
 		for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-			dcon::unit_type_id utid(dcon::unit_type_id::value_base_t(i));
+			dcon::unit_type_id utid{ dcon::unit_type_id::value_base_t(i) };
 			if(!state.military_definitions.unit_base_definitions[utid].is_land)
 				continue;
 			if(!n.get_active_unit(utid) && !state.military_definitions.unit_base_definitions[utid].active)
