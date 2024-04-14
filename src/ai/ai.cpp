@@ -3349,11 +3349,12 @@ void update_ships(sys::state& state) {
 			dcon::unit_type_id best_light;
 			dcon::unit_type_id best_big;
 
-			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
+			for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+				dcon::unit_type_id j(dcon::unit_type_id::value_base_t(i));
+				if(state.military_definitions.unit_base_definitions[j].is_land)
+					continue;
 				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
 					continue;
-
 				if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
 					if(!best_transport || state.military_definitions.unit_base_definitions[best_transport].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
 						best_transport = j;
@@ -4422,7 +4423,7 @@ float estimate_unit_type_value(sys::state& state, dcon::unit_type_id utid) {
 	default:
 		break;
 	}
-	return v * 0.1f;
+	return v;
 }
 
 float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
@@ -5057,7 +5058,7 @@ void update_land_constructions(sys::state& state) {
 			dcon::unit_type_id{ }, //normal
 			dcon::unit_type_id{ }, //build overseas
 			dcon::unit_type_id{ }, //non-accepted
-			state.military_definitions.irregular, //non-accepted + build overseas
+			dcon::unit_type_id{ }, //non-accepted + build overseas
 		};
 		std::array<dcon::unit_type_id, 4> best_art{
 			dcon::unit_type_id{ }, //normal
@@ -5065,8 +5066,10 @@ void update_land_constructions(sys::state& state) {
 			dcon::unit_type_id{ }, //non-accepted
 			dcon::unit_type_id{ }, //non-accepted + build overseas
 		};
-		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
-			dcon::unit_type_id utid{ dcon::unit_type_id::value_base_t(i) };
+		for(uint32_t i = 0; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id utid(dcon::unit_type_id::value_base_t(i));
+			if(!state.military_definitions.unit_base_definitions[utid].is_land)
+				continue;
 			if(!n.get_active_unit(utid) && !state.military_definitions.unit_base_definitions[utid].active)
 				continue;
 			float s2 = estimate_unit_type_value(state, utid);
@@ -5096,10 +5099,8 @@ void update_land_constructions(sys::state& state) {
 		auto const decide_type = [&](dcon::pop_id pop, bool overseas) {
 			bool is_pc = nations::nation_accepts_culture(state, n, state.world.pop_get_culture(pop));
 			uint32_t index = (overseas ? 1 : 0) + (is_pc ? 2 : 0);
-			if(num_frontline > num_support && best_art[index]
-			&& (state.world.nation_get_active_unit(n, best_art[index]) || state.military_definitions.unit_base_definitions[best_art[index]].active)) {
+			if(num_frontline > num_support && best_art[index])
 				return best_art[index];
-			}
 			return best_inf[index] ? best_inf[index] : best_inf[3];
 		};
 
@@ -5216,7 +5217,8 @@ void new_units_and_merging(sys::state& state) {
 					// existing multi-unit formation
 					ar.set_ai_activity(uint8_t(army_activity::on_guard));
 				} else {
-					bool is_art = state.military_definitions.artillery == (*regs.begin()).get_regiment().get_type();
+					auto art_type = state.military_definitions.unit_base_definitions[(*regs.begin()).get_regiment().get_type()].type;
+					bool is_art = art_type == military::unit_type::support || art_type == military::unit_type::special;
 					dcon::province_id target_location;
 					float nearest_distance = 1.0f;
 
@@ -5277,7 +5279,8 @@ void new_units_and_merging(sys::state& state) {
 					// empty army -- cleanup will get it
 					continue;
 				}
-				bool is_art = state.military_definitions.artillery == (*regs.begin()).get_regiment().get_type();
+				auto art_type = state.military_definitions.unit_base_definitions[(*regs.begin()).get_regiment().get_type()].type;
+				bool is_art = art_type == military::unit_type::support || art_type == military::unit_type::special;
 				for(auto o : location.get_army_location()) {
 					if(o.get_army().get_ai_activity() == uint8_t(army_activity::on_guard)
 						&& o.get_army().get_controller_from_army_control() == controller) {
