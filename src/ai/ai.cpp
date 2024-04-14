@@ -4399,22 +4399,27 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 float estimate_unit_type_value(sys::state& state, dcon::nation_id n, dcon::unit_type_id utid) {
 	auto const& ut = state.military_definitions.unit_base_definitions[utid];
 	auto const& uts = state.world.nation_get_unit_stats(n, utid);
-	float atk = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
-	float def = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
-	float v = std::max<float>(atk + def, 1.f) / 2.f;
 	switch(state.military_definitions.unit_base_definitions[utid].type) {
 	case military::unit_type::infantry:
-		break;
-	case military::unit_type::cavalry:
-		break;
+	{
+		float atk = (uts.attack_or_gun_power * 0.1f + 1.0f);
+		float def = (uts.attack_or_gun_power * 0.1f + 1.0f);
+		float v = std::max<float>(atk + def, 1.f) / 2.f;
+		return v * uts.support;
+	}
 	case military::unit_type::support:
 	case military::unit_type::special:
-		v *= uts.support;
-		break;
+	{
+		float atk = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
+		float def = (uts.attack_or_gun_power * 0.1f + 1.0f) * uts.support;
+		float v = std::max<float>(atk + def, 1.f) / 2.f;
+		return v * uts.support;
+	}
+	case military::unit_type::cavalry:
 	default:
 		break;
 	}
-	return v;
+	return 0.f;
 }
 
 float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
