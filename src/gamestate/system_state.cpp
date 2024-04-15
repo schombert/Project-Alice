@@ -237,15 +237,15 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 					ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
 				} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
 					ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+					ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
+					ui_state.left_mouse_hold_target = nullptr;
+					if(ui_state.scrollbar_continuous_movement) {
+						Cyto::Any payload = ui::scrollbar_settings{};
+						temp_hold_target->impl_set(*this, payload);
+						ui_state.scrollbar_continuous_movement = false;
+					}
 				}
 			}
-		}
-		ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
-		ui_state.left_mouse_hold_target = nullptr;
-		if(ui_state.scrollbar_continuous_movement) {
-			Cyto::Any payload = ui::scrollbar_settings{};
-			temp_hold_target->impl_set(*this, payload);
-			ui_state.scrollbar_continuous_movement = false;
 		}
 	}
 	ui_state.scrollbar_timer = 0;
