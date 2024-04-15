@@ -19,6 +19,11 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
 	//text::add_to_substitution_map(m, text::variable_type::month, text::localize_month(state, state.current_date.to_ymd(state.start_date).month));
 	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
+	auto sm = state.world.nation_get_in_sphere_of(n);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster, sm);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	auto smpc = state.world.nation_get_primary_culture(sm);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
 	// Non-vanilla
 	text::add_to_substitution_map(m, text::variable_type::government, state.world.nation_get_government_type(n).get_name());
