@@ -615,6 +615,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
+		CT_STRING_ENUM(spheremaster_adj)
 	} else if(v.length() == 17) {
 		if(false) { }
 		CT_STRING_ENUM(culture_last_name)
@@ -639,6 +640,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		if(false) { }
 		CT_STRING_ENUM(crisisattacker_capital)
 		CT_STRING_ENUM(crisisdefender_capital)
+		CT_STRING_ENUM(spheremaster_union_adj)
 	} else if(v.length() == 23) {
 		if(false) { }
 	} else if(v.length() == 24) {
