@@ -735,11 +735,11 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 
 
 std::string prettify_currency(float num) {
-	if(num == 0)
+	if(num == 0.f)
 		return std::string("0 \xA4");
 
 	constexpr static double mag[] = {
-		1.0,
+		0.0,
 		1'000.0,
 		1'000'000.0,
 		1'000'000'000.0,
