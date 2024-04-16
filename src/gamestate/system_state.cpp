@@ -671,17 +671,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
-		if(ui_state.units_root && !ui_state.ctrl_held_down) {
-			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-				// RGO doesn't need clicks... yet
-			} else {
-				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-				if(!tooltip_probe.under_mouse) {
-					tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-				}
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.units_root && !ui_state.ctrl_held_down) {
+		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+			// RGO doesn't need clicks... yet
+		} else {
+			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+			if(!tooltip_probe.under_mouse) {
+				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 			}
 		}
 	}
