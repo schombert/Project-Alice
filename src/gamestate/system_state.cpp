@@ -608,590 +608,110 @@ void state::render() { // called to render the frame may (and should) delay retu
 		ui_state.scrollbar_timer += 1;
 	}
 
-	if(mode == sys::game_mode_type::end_screen) { // END SCREEN RENDERING
-		ui_state.end_screen->base_data.size.x = ui_state.root->base_data.size.x;
-		ui_state.end_screen->base_data.size.y = ui_state.root->base_data.size.y;
-
-		auto mouse_probe = ui_state.end_screen->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-		auto tooltip_probe = ui_state.end_screen->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-
-		if(game_state_was_updated) {
-			nations::update_ui_rankings(*this);
-			ui_state.end_screen->impl_on_update(*this);
-
-			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
+	if(mode == sys::game_mode_type::in_game) {
+		if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
+			ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
+			if(ui_state.military_subwindow->is_visible() == false
+				&& std::find(selected_armies.begin(), selected_armies.end(), win->a) == selected_armies.end()
+				&& std::find(selected_navies.begin(), selected_navies.end(), win->v) == selected_navies.end()) {
+				ui_state.change_leader_window->set_visible(*this, false);
+			}
+		}
+		for(auto i = selected_armies.size(); i-- > 0; ) {
+			if(!world.army_is_valid(selected_armies[i]) || world.army_get_controller_from_army_control(selected_armies[i]) != local_player_nation) {
+				selected_armies[i] = selected_armies.back();
+				selected_armies.pop_back();
+			}
+		}
+		for(auto i = selected_navies.size(); i-- > 0; ) {
+			if(!world.navy_is_valid(selected_navies[i]) || world.navy_get_controller_from_navy_control(selected_navies[i]) != local_player_nation) {
+				selected_navies[i] = selected_navies.back();
+				selected_navies.pop_back();
+			}
+		}
+		// clear up control groups too
+		for(auto& v : ctrl_armies) {
+			for(auto i = v.size(); i-- > 0; ) {
+				if(!world.army_is_valid(v[i]) || world.army_get_controller_from_army_control(v[i]) != local_player_nation) {
+					v[i] = v.back();
+					v.pop_back();
 				}
 			}
 		}
-
-
-
-		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
-			ui_state.last_tooltip = tooltip_probe.under_mouse;
-			if(tooltip_probe.under_mouse) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type != ui::tooltip_behavior::no_tooltip) {
-
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
-				} else {
-					ui_state.tooltip->set_visible(*this, false);
-				}
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else if(ui_state.last_tooltip &&
-							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.end_screen->base_data.size.y - 20), ui_state.tooltip_font, 0,
-							text::alignment::left,
-							text::text_color::white, true },
-					 10);
-			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
-			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(container.used_width > 0)
-				ui_state.tooltip->set_visible(*this, true);
-			else
-				ui_state.tooltip->set_visible(*this, false);
-		}
-
-		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-			// reposition tooltip
-			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
-			if(ui_state.tooltip->base_data.size.y <=
-					ui_state.end_screen->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else if(ui_state.tooltip->base_data.size.x <=
-								ui_state.end_screen->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0),
-						int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else {
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.end_screen->base_data.size.x - ui_state.tooltip->base_data.size.x));
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.end_screen->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			}
-		}
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		// UI rendering
-		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-		glUniform1f(11, user_settings.gamma);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0f, 1.0f);
-
-		ui_state.under_mouse = mouse_probe.under_mouse;
-		ui_state.scroll_target = ui_state.end_screen->impl_probe_mouse(*this,
-			int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale),
-			ui::mouse_probe_type::scroll).under_mouse;
-
-		ui_state.relative_mouse_location = mouse_probe.relative_location;
-
-		ui_state.end_screen->impl_render(*this, 0, 0);
-		if(ui_state.tooltip->is_visible()) {
-			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
-		}
-		return;
-	} else if(mode == sys::game_mode_type::pick_nation) {  // NATION PICKER RENDERING
-		ui_state.nation_picker->base_data.size.x = ui_state.root->base_data.size.x;
-		ui_state.nation_picker->base_data.size.y = ui_state.root->base_data.size.y;
-
-		auto mouse_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-		auto tooltip_probe = ui_state.nation_picker->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-
-		if(game_state_was_updated) {
-			this->map_state.map_data.update_borders(*this);
-			nations::update_ui_rankings(*this);
-
-
-
-			ui_state.nation_picker->impl_on_update(*this);
-			map_mode::update_map_mode(*this);
-
-
-			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
-				}
-			}
-		}
-
-
-
-		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
-			ui_state.last_tooltip = tooltip_probe.under_mouse;
-			if(tooltip_probe.under_mouse) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type != ui::tooltip_behavior::no_tooltip) {
-
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
-				} else {
-					ui_state.tooltip->set_visible(*this, false);
-				}
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else if(ui_state.last_tooltip &&
-							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.nation_picker->base_data.size.y - 20), ui_state.tooltip_font, 0,
-							text::alignment::left,
-							text::text_color::white, true },
-					 10);
-			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
-			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(container.used_width > 0)
-				ui_state.tooltip->set_visible(*this, true);
-			else
-				ui_state.tooltip->set_visible(*this, false);
-		}
-
-		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-			// reposition tooltip
-			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
-			if(ui_state.tooltip->base_data.size.y <=
-					ui_state.nation_picker->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else if(ui_state.tooltip->base_data.size.x <=
-								ui_state.nation_picker->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0),
-						int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else {
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.x - ui_state.tooltip->base_data.size.x));
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.nation_picker->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			}
-		}
-
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		if(bg_gfx_id) {
-			// Render default background
-			glUseProgram(open_gl.ui_shader_program);
-			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-			glUniform1f(11, user_settings.gamma);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glViewport(0, 0, x_size, y_size);
-			glDepthRange(-1.0f, 1.0f);
-			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
-			if(gfx_def.primary_texture_handle) {
-				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size) / user_settings.ui_scale, float(y_size) / user_settings.ui_scale,
-						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-						ui::rotation::upright, gfx_def.is_vertically_flipped());
-			}
-		}
-
-		map_state.render(*this, x_size, y_size);
-
-		// UI rendering
-		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-		glUniform1f(11, user_settings.gamma);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0f, 1.0f);
-
-		ui_state.under_mouse = mouse_probe.under_mouse;
-		ui_state.scroll_target = ui_state.nation_picker->impl_probe_mouse(*this,
-			int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale),
-			ui::mouse_probe_type::scroll).under_mouse;
-
-		ui_state.relative_mouse_location = mouse_probe.relative_location;
-
-		ui_state.nation_picker->impl_render(*this, 0, 0);
-		if(ui_state.tooltip->is_visible()) {
-			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
-		}
-		return;
-	} else if(mode == sys::game_mode_type::select_states) {  // SELECT STATES RENDERING
-		ui_state.select_states_legend->base_data.size.x = ui_state.root->base_data.size.x;
-		ui_state.select_states_legend->base_data.size.y = ui_state.root->base_data.size.y;
-
-		auto mouse_probe = ui_state.select_states_legend->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-		auto tooltip_probe = ui_state.select_states_legend->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-
-		if(game_state_was_updated) {
-			this->map_state.map_data.update_borders(*this);
-			nations::update_ui_rankings(*this);
-
-
-
-			ui_state.select_states_legend->impl_on_update(*this);
-			map_mode::update_map_mode(*this);
-
-
-			if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
-				}
-			}
-		}
-
-
-
-		if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
-			ui_state.last_tooltip = tooltip_probe.under_mouse;
-			if(tooltip_probe.under_mouse) {
-				auto type = ui_state.last_tooltip->has_tooltip(*this);
-				if(type != ui::tooltip_behavior::no_tooltip) {
-
-					auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-							text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
-									text::alignment::left,
-									text::text_color::white, true },
-							 10);
-					ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
-							container);
-					populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-					ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-					ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-					if(container.used_width > 0)
-						ui_state.tooltip->set_visible(*this, true);
-					else
-						ui_state.tooltip->set_visible(*this, false);
-				} else {
-					ui_state.tooltip->set_visible(*this, false);
-				}
-			} else {
-				ui_state.tooltip->set_visible(*this, false);
-			}
-		} else if(ui_state.last_tooltip &&
-							ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.select_states_legend->base_data.size.y - 20), ui_state.tooltip_font, 0,
-							text::alignment::left,
-							text::text_color::white, true },
-					 10);
-			ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
-			populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
-			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
-			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
-			if(container.used_width > 0)
-				ui_state.tooltip->set_visible(*this, true);
-			else
-				ui_state.tooltip->set_visible(*this, false);
-		}
-
-		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
-			// reposition tooltip
-			auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
-			if(ui_state.tooltip->base_data.size.y <=
-					ui_state.select_states_legend->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else if(ui_state.tooltip->base_data.size.x <=
-								ui_state.select_states_legend->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0),
-						int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
-				ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
-				ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
-			} else {
-				ui_state.tooltip->base_data.position.x = std::clamp(
-						int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.x - ui_state.tooltip->base_data.size.x));
-				ui_state.tooltip->base_data.position.y = std::clamp(
-						int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-						int16_t(0), int16_t(ui_state.select_states_legend->base_data.size.y - ui_state.tooltip->base_data.size.y));
-			}
-		}
-
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		if(bg_gfx_id) {
-			// Render default background
-			glUseProgram(open_gl.ui_shader_program);
-			glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-			glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-			glUniform1f(11, user_settings.gamma);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glViewport(0, 0, x_size, y_size);
-			glDepthRange(-1.0f, 1.0f);
-			auto& gfx_def = ui_defs.gfx[bg_gfx_id];
-			if(gfx_def.primary_texture_handle) {
-				ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
-						ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-						ui::rotation::upright, gfx_def.is_vertically_flipped());
-			}
-		}
-
-		map_state.render(*this, x_size, y_size);
-
-		// UI rendering
-		glUseProgram(open_gl.ui_shader_program);
-		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
-		glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
-		glUniform1f(11, user_settings.gamma);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		glViewport(0, 0, x_size, y_size);
-		glDepthRange(-1.0f, 1.0f);
-
-		ui_state.under_mouse = mouse_probe.under_mouse;
-		ui_state.scroll_target = ui_state.select_states_legend->impl_probe_mouse(*this,
-			int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale),
-			ui::mouse_probe_type::scroll).under_mouse;
-
-		ui_state.relative_mouse_location = mouse_probe.relative_location;
-
-		ui_state.select_states_legend->impl_render(*this, 0, 0);
-		if(ui_state.tooltip->is_visible()) {
-			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
-		}
-		return;
-	}
-
-	//
-	// MAIN IN-GAME RENDERING
-	//
-
-	if(ui_state.change_leader_window && ui_state.change_leader_window->is_visible()) {
-		ui::leader_selection_window* win = static_cast<ui::leader_selection_window*>(ui_state.change_leader_window);
-		if(ui_state.military_subwindow->is_visible() == false
-			&& std::find(selected_armies.begin(), selected_armies.end(), win->a) == selected_armies.end()
-			&& std::find(selected_navies.begin(), selected_navies.end(), win->v) == selected_navies.end()) {
-
-			ui_state.change_leader_window->set_visible(*this, false);
-		}
-	}
-
-	for(auto i = selected_armies.size(); i-- > 0; ) {
-		if(!world.army_is_valid(selected_armies[i]) || world.army_get_controller_from_army_control(selected_armies[i]) != local_player_nation) {
-			selected_armies[i] = selected_armies.back();
-			selected_armies.pop_back();
-		}
-	}
-	for(auto i = selected_navies.size(); i-- > 0; ) {
-		if(!world.navy_is_valid(selected_navies[i]) || world.navy_get_controller_from_navy_control(selected_navies[i]) != local_player_nation) {
-			selected_navies[i] = selected_navies.back();
-			selected_navies.pop_back();
-		}
-	}
-	// clear up control groups too
-	for(auto& v : ctrl_armies) {
-		for(auto i = v.size(); i-- > 0; ) {
-			if(!world.army_is_valid(v[i]) || world.army_get_controller_from_army_control(v[i]) != local_player_nation) {
-				v[i] = v.back();
-				v.pop_back();
-			}
-		}
-	}
-	for(auto& v : ctrl_navies) {
-		for(auto i = v.size(); i-- > 0; ) {
-			if(!world.navy_is_valid(v[i]) || world.navy_get_controller_from_navy_control(v[i]) != local_player_nation) {
-				v[i] = v.back();
-				v.pop_back();
-			}
-		}
-	}
-
-	auto mouse_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-	auto tooltip_probe = ui_state.root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-			int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-
-	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.unit_details_box->is_visible()) {
-		mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
-			int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
-			int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
-			ui::mouse_probe_type::click);
-		if(!tooltip_probe.under_mouse) {
-			tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
-				int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
-				int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
-				ui::mouse_probe_type::tooltip);
-		}
-	}
-
-	if(!mouse_probe.under_mouse && map_state.get_zoom() > 5) {
-		if(!ui_state.ctrl_held_down) {
-			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-				// RGO doesn't need clicks... yet
-			} else {
-				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-				if(!tooltip_probe.under_mouse) {
-					tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+		for(auto& v : ctrl_navies) {
+			for(auto i = v.size(); i-- > 0; ) {
+				if(!world.navy_is_valid(v[i]) || world.navy_get_controller_from_navy_control(v[i]) != local_player_nation) {
+					v[i] = v.back();
+					v.pop_back();
 				}
 			}
 		}
 	}
 
+	ui::element_base* root_elm = nullptr;
+	switch(mode) {
+	case sys::game_mode_type::end_screen:
+		root_elm = ui_state.end_screen.get();
+		break;
+	case sys::game_mode_type::pick_nation:
+		root_elm = ui_state.nation_picker.get();
+		break;
+	case sys::game_mode_type::select_states:
+		root_elm = ui_state.select_states_legend.get();
+		break;
+	case sys::game_mode_type::in_game:
+		root_elm = ui_state.root.get();
+		break;
+	}
+
+	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
+	root_elm->base_data.size.y = ui_state.root->base_data.size.y;
+
+	auto mouse_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.units_root && !ui_state.ctrl_held_down) {
+		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+			// RGO doesn't need clicks... yet
+		} else {
+			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+			if(!tooltip_probe.under_mouse) {
+				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			}
+		}
+	}
 	if(game_state_was_updated) {
-		if(!ui_state.tech_queue.empty()) {
-			if(!world.nation_get_current_research(local_player_nation)) {
-				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
-					if(world.nation_get_active_technologies(local_player_nation, *it)) {
-						ui_state.tech_queue.erase(it);
-						break;
-					}
-					if(command::can_start_research(*this, local_player_nation, *it)) {
-						// can research, so research it
-						command::start_research(*this, local_player_nation, *it);
-						ui_state.tech_queue.erase(it);
-						break;
+		if(mode != sys::game_mode_type::end_screen) {
+			if(!ui_state.tech_queue.empty()) {
+				if(!world.nation_get_current_research(local_player_nation)) {
+					for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+						if(world.nation_get_active_technologies(local_player_nation, *it)) {
+							ui_state.tech_queue.erase(it);
+							break;
+						}
+						if(command::can_start_research(*this, local_player_nation, *it)) {
+							// can research, so research it
+							command::start_research(*this, local_player_nation, *it);
+							ui_state.tech_queue.erase(it);
+							break;
+						}
 					}
 				}
 			}
-		}
-
-		if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
-			ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
-			if(win->battle && !world.land_battle_is_valid(win->battle)) {
-				ui_state.army_combat_window->set_visible(*this, false);
+			if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
+				ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
+				if(win->battle && !world.land_battle_is_valid(win->battle)) {
+					ui_state.army_combat_window->set_visible(*this, false);
+				}
 			}
+			map_state.map_data.update_borders(*this);
 		}
-
-		this->map_state.map_data.update_borders(*this);
 		nations::update_ui_rankings(*this);
 		// Processing of (gamestate <=> ui) queues
-		{
+		if(mode == sys::game_mode_type::in_game) {
 			// National events
 			auto* c1 = new_n_event.front();
 			while(c1) {
@@ -1425,66 +945,68 @@ void state::render() { // called to render the frame may (and should) delay retu
 				naval_battle_reports.pop();
 				c7 = naval_battle_reports.front();
 			}
-		}
-		if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty()) {
-			ui_state.request_window->set_visible(*this, true);
-			ui_state.root->move_child_to_front(ui_state.request_window);
-		}
-		if(!static_cast<ui::message_window*>(ui_state.msg_window)->messages.empty()) {
-			ui_state.msg_window->set_visible(*this, true);
-			ui_state.root->move_child_to_front(ui_state.msg_window);
-		}
-
-		ui_state.root->impl_on_update(*this);
-		map_mode::update_map_mode(*this);
-		if(ui_state.unit_details_box->is_visible())
-			ui_state.unit_details_box->impl_on_update(*this);
-		ui::close_expired_event_windows(*this);
-
-		ui_state.rgos_root->impl_on_update(*this);
-		ui_state.units_root->impl_on_update(*this);
-		if(ui_state.ctrl_held_down && map_state.get_zoom() >= ui::big_counter_cutoff) {
-			ui_state.province_details_root->impl_on_update(*this);
-		}
-
-		if(selected_armies.size() + selected_navies.size() > 1) {
-			ui_state.multi_unit_selection_window->set_visible(*this, true);
-			ui_state.army_status_window->set_visible(*this, false);
-			ui_state.navy_status_window->set_visible(*this, false);
-		} else if(selected_armies.size() == 1) {
-			ui_state.multi_unit_selection_window->set_visible(*this, false);
-			if(ui_state.army_status_window->is_visible() && ui_state.army_status_window->unit_id != selected_armies[0]) {
-				ui_state.army_status_window->unit_id = selected_armies[0];
-				ui_state.army_status_window->impl_on_update(*this);
-			} else {
-				ui_state.army_status_window->unit_id = selected_armies[0];
-				ui_state.army_status_window->set_visible(*this, true);
+			if(!static_cast<ui::diplomacy_request_window*>(ui_state.request_window)->messages.empty()) {
+				ui_state.request_window->set_visible(*this, true);
+				ui_state.root->move_child_to_front(ui_state.request_window);
 			}
-			ui_state.navy_status_window->set_visible(*this, false);
-		} else if(selected_navies.size() == 1) {
-			ui_state.multi_unit_selection_window->set_visible(*this, false);
-			ui_state.army_status_window->set_visible(*this, false);
-			if(ui_state.navy_status_window->is_visible() && ui_state.navy_status_window->unit_id != selected_navies[0]) {
-				ui_state.navy_status_window->unit_id = selected_navies[0];
-				ui_state.navy_status_window->impl_on_update(*this);
-			} else {
-				ui_state.navy_status_window->unit_id = selected_navies[0];
-				ui_state.navy_status_window->set_visible(*this, true);
+			if(!static_cast<ui::message_window*>(ui_state.msg_window)->messages.empty()) {
+				ui_state.msg_window->set_visible(*this, true);
+				ui_state.root->move_child_to_front(ui_state.msg_window);
 			}
-		} else {
-			ui_state.multi_unit_selection_window->set_visible(*this, false);
-			ui_state.army_status_window->set_visible(*this, false);
-			ui_state.navy_status_window->set_visible(*this, false);
+		}
+		root_elm->impl_on_update(*this);
+		if(mode != sys::game_mode_type::end_screen) {
+			map_mode::update_map_mode(*this);
+		}
+
+		if(mode != sys::game_mode_type::in_game) {
+			if(ui_state.unit_details_box->is_visible())
+				ui_state.unit_details_box->impl_on_update(*this);
+			ui::close_expired_event_windows(*this);
+			ui_state.rgos_root->impl_on_update(*this);
+			ui_state.units_root->impl_on_update(*this);
+			if(ui_state.ctrl_held_down && map_state.get_zoom() >= ui::big_counter_cutoff) {
+				ui_state.province_details_root->impl_on_update(*this);
+			}
+			if(selected_armies.size() + selected_navies.size() > 1) {
+				ui_state.multi_unit_selection_window->set_visible(*this, true);
+				ui_state.army_status_window->set_visible(*this, false);
+				ui_state.navy_status_window->set_visible(*this, false);
+			} else if(selected_armies.size() == 1) {
+				ui_state.multi_unit_selection_window->set_visible(*this, false);
+				if(ui_state.army_status_window->is_visible() && ui_state.army_status_window->unit_id != selected_armies[0]) {
+					ui_state.army_status_window->unit_id = selected_armies[0];
+					ui_state.army_status_window->impl_on_update(*this);
+				} else {
+					ui_state.army_status_window->unit_id = selected_armies[0];
+					ui_state.army_status_window->set_visible(*this, true);
+				}
+				ui_state.navy_status_window->set_visible(*this, false);
+			} else if(selected_navies.size() == 1) {
+				ui_state.multi_unit_selection_window->set_visible(*this, false);
+				ui_state.army_status_window->set_visible(*this, false);
+				if(ui_state.navy_status_window->is_visible() && ui_state.navy_status_window->unit_id != selected_navies[0]) {
+					ui_state.navy_status_window->unit_id = selected_navies[0];
+					ui_state.navy_status_window->impl_on_update(*this);
+				} else {
+					ui_state.navy_status_window->unit_id = selected_navies[0];
+					ui_state.navy_status_window->set_visible(*this, true);
+				}
+			} else {
+				ui_state.multi_unit_selection_window->set_visible(*this, false);
+				ui_state.army_status_window->set_visible(*this, false);
+				ui_state.navy_status_window->set_visible(*this, false);
+			}
 		}
 
 		if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type == ui::tooltip_behavior::variable_tooltip || type == ui::tooltip_behavior::position_sensitive_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
+						text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
 								text::alignment::left,
 								text::text_color::white, true },
-						 10);
+							10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
@@ -1503,12 +1025,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(tooltip_probe.under_mouse) {
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
-
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-						text::layout_parameters{ 16, 16, tooltip_width,int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
-								text::alignment::left,
-								text::text_color::white, true },
-						 10);
+					text::layout_parameters{ 16, 16, tooltip_width,int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+					text::alignment::left, text::text_color::white, true }, 10);
 				ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y,
 						container);
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
@@ -1526,10 +1045,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	} else if(ui_state.last_tooltip && ui_state.last_tooltip->has_tooltip(*this) == ui::tooltip_behavior::position_sensitive_tooltip) {
 		auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0,
-						text::alignment::left,
-						text::text_color::white, true },
-				 10);
+			text::layout_parameters{ 16, 16, tooltip_width, int16_t(root_elm->base_data.size.y - 20), ui_state.tooltip_font, 0,
+			text::alignment::left, text::text_color::white, true }, 10);
 		ui_state.last_tooltip->update_tooltip(*this, tooltip_probe.relative_location.x, tooltip_probe.relative_location.y, container);
 		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
@@ -1540,61 +1057,45 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->set_visible(*this, false);
 	}
 
-
-
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
 		auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
-		if(ui_state.tooltip->base_data.size.y <=
-				ui_state.root->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
+		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(0, ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x)));
-		} else if(ui_state.tooltip->base_data.size.x <=
-							ui_state.root->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
+					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
+		} else if(ui_state.tooltip->base_data.size.x <= root_elm->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0),
-					int16_t(std::max(0, ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y)));
+					int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(std::max(0, ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y)));
+					int16_t(0), int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(0, ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x)));
+					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
 		} else {
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(std::max(0, ui_state.root->base_data.size.x - ui_state.tooltip->base_data.size.x)));
+					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(std::max(0, ui_state.root->base_data.size.y - ui_state.tooltip->base_data.size.y)));
+					int16_t(0), int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
 		}
 	}
 
-	// Have to have the map tooltip down here, and we must check both of the probes
-	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
-	if(!mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-
 		if(map_state.get_zoom() <= 5)
 			prov = dcon::province_id{};
-
 		if(prov) {
-			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
-					text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
-					20);
-
-			// Enable this and tooltip will follow the cursor
-			// ui_state.tooltip->base_data.position.x = int16_t(mouse_x_position / user_settings.ui_scale);
-			// ui_state.tooltip->base_data.position.y = int16_t(mouse_y_position / user_settings.ui_scale);
-
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
 				bool fail = false;
 				for(auto a : selected_armies) {
@@ -1618,14 +1119,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 					window::change_cursor(*this, window::cursor_type::no_move);
 				}
 			}
+		}
+	}
 
+	// Have to have the map tooltip down here, and we must check both of the probes
+	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
+		if(map_state.get_zoom() <= 5)
+			prov = dcon::province_id{};
+		if(prov) {
+			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
+				20);
 			ui::populate_map_tooltip(*this, container, prov);
-
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
-
 				auto mid_point = world.province_get_mid_point(prov);
 				auto map_pos = map_state.normalize_map_coord(mid_point);
 				auto screen_size =
@@ -1638,10 +1149,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 						ui::xy_pair{ int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * map_state.get_zoom()) };
 					ui_state.tooltip->set_visible(*this, true);
 				}
-
 				// Alternatively: just make it visible
 				// ui_state.tooltip->set_visible(*this, true);
-				//
 			} else {
 				ui_state.tooltip->set_visible(*this, false);
 			}
@@ -1650,7 +1159,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	if(bg_gfx_id) {
 		// Render default background
@@ -1670,51 +1179,50 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	map_state.render(*this, x_size, y_size);
+	if(mode != sys::game_mode_type::end_screen) {
+		map_state.render(*this, x_size, y_size);
+	}
 
-	// UI rendering
+	//UI rendering
 	glUseProgram(open_gl.ui_shader_program);
 	glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
 	glUniform1f(ogl::parameters::screen_height, float(y_size) / user_settings.ui_scale);
 	glUniform1f(11, user_settings.gamma);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glViewport(0, 0, x_size, y_size);
 	glDepthRange(-1.0f, 1.0f);
 
 	ui_state.under_mouse = mouse_probe.under_mouse;
-	ui_state.scroll_target = ui_state.root->impl_probe_mouse(*this,
+	ui_state.scroll_target = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale),
 		ui::mouse_probe_type::scroll).under_mouse;
-
 	ui_state.relative_mouse_location = mouse_probe.relative_location;
-
-	if(ui_state.tl_chat_list) {
-		ui_state.root->move_child_to_front(ui_state.tl_chat_list);
-	}
-
-	if(map_state.get_zoom() > 5) {
-		if(!ui_state.ctrl_held_down) {
-			if(map_state.active_map_mode == map_mode::mode::rgo_output) {
-				ui_state.rgos_root->impl_render(*this, 0, 0);
-			} else {
-				ui_state.units_root->impl_render(*this, 0, 0);
+	if(mode == sys::game_mode_type::in_game) {
+		if(ui_state.tl_chat_list) {
+			ui_state.root->move_child_to_front(ui_state.tl_chat_list);
+		}
+		if(map_state.get_zoom() > 5) {
+			if(!ui_state.ctrl_held_down) {
+				if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+					ui_state.rgos_root->impl_render(*this, 0, 0);
+				} else {
+					ui_state.units_root->impl_render(*this, 0, 0);
+				}
+				if(ui_state.unit_details_box->is_visible()) {
+					ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+				}
+			} else if(map_state.get_zoom() >= ui::big_counter_cutoff) {
+				ui_state.province_details_root->impl_render(*this, 0, 0);
 			}
-			if(ui_state.unit_details_box->is_visible()) {
-				ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
-			}
-		} else if(map_state.get_zoom() >= ui::big_counter_cutoff) {
-			ui_state.province_details_root->impl_render(*this, 0, 0);
 		}
 	}
-	ui_state.root->impl_render(*this, 0, 0);
+	root_elm->impl_render(*this, 0, 0);
 
 	if(ui_state.tooltip->is_visible()) {
 		//TODO: make this accessible by in-game settings
 		constexpr static auto tooltip_delay = std::chrono::milliseconds{ 0 };
-
 		//show tooltip if timer going for longer than delay ( currently 0(zero) milliseconds )
 		if((std::chrono::steady_clock::now() - tooltip_timer) > tooltip_delay) {
 			//floating by mouse
@@ -1734,7 +1242,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			} else {//tooltip centered over ui element
 				ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 			}
-		} else {//this branch currently can't be taken since tooltip delay is hardcoded to 0ms.
+		} else { //this branch currently can't be taken since tooltip delay is hardcoded to 0ms.
 			//this branch is taken if tooltip timer hasn't surpassed tooltip delay.
 			//only start showing tooltip once mouse is hovered over same ui element for time period of tooltip_delay.
 			//all province tooltips are the same tooltip so first checks tooltip pointer and
@@ -1753,7 +1261,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 			last_tooltip = ui_state.last_tooltip;
 		}
-	} else {//if there is no tooltip to display, reset tooltip_timer
+	} else { //if there is no tooltip to display, reset tooltip_timer
 		tooltip_timer = std::chrono::steady_clock::now();
 	}
 }
