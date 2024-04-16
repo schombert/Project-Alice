@@ -657,6 +657,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.095000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.095000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.095000)                                                             \
 
 namespace parsing {
 struct defines {

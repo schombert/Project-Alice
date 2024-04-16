@@ -597,21 +597,21 @@ void poptype_file::equivalent(association_type, std::string_view value, error_ha
 void poptype_file::life_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
-			context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid]);
+			context.outer_context.state.world.pop_type_set_life_needs(context.id, cid, value.data[cid] * context.outer_context.state.defines.alice_lf_needs_scale);
 	});
 }
 
 void poptype_file::everyday_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
-			context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid]);
+			context.outer_context.state.world.pop_type_set_everyday_needs(context.id, cid, value.data[cid] * context.outer_context.state.defines.alice_ev_needs_scale);
 	});
 }
 
 void poptype_file::luxury_needs(commodity_array const& value, error_handler& err, int32_t line, poptype_context& context) {
 	context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id cid) {
 		if(cid.index() < value.data.ssize())
-			context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid]);
+			context.outer_context.state.world.pop_type_set_luxury_needs(context.id, cid, value.data[cid] * context.outer_context.state.defines.alice_lx_needs_scale);
 	});
 }
 

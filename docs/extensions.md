@@ -136,6 +136,9 @@ Alice adds a handful of new defines:
 - `alice_ai_attack_target_radius`: Radius AI will perform attacks
 - `alice_full_reinforce`: 1 = Normal vanilla behaviour, 0 = Understaffed armies are allowed
 - `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive oppontent (makes AI less aggressive)
+- `alice_lf_needs_scale`: Scale multiplier for life needs
+- `alice_ev_needs_scale`: Scale multiplier for everyday needs
+- `alice_lx_needs_scale`: Scale multiplier for luxury needs
 
 ### Dense CSV pop listing
 
