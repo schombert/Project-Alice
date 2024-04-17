@@ -1724,18 +1724,19 @@ void load_static_meshes(sys::state& state) {
 		1.0f, //41
 		1.0f, //42
 	};
-	constexpr float no_elim = 9999.f;
+	constexpr float no_elim = 9999.f + 0.1f;
+	constexpr float quad_elim = 9999.f + 0.2f;
 	static const std::array<float, display_data::max_static_meshes> elim_factor = {
 		-0.1f, //1
 		no_elim, //2
 		no_elim, //3
 		no_elim, //4
-		no_elim, //5
-		-0.1f, //6
+		-0.1f, //5
+		quad_elim, //6
 		-0.1f, //7
 		-0.1f, //8
 		-0.1f, //9
-		no_elim, //10
+		quad_elim, //10
 		-0.1f, //11
 		-0.1f, //12
 		-0.1f, //13
@@ -1811,10 +1812,10 @@ void load_static_meshes(sys::state& state) {
 								auto vv = mesh.vertices[index % mesh.vertices.size()];
 								auto vn = mesh.normals.empty()
 									? emfx::xac_vector3f{ vv.x, vv.y, vv.z }
-									: mesh.normals[index % mesh.normals.size()];
+								: mesh.normals[index % mesh.normals.size()];
 								auto vt = mesh.texcoords.empty()
 									? emfx::xac_vector2f{ vv.x, vv.y }
-									: mesh.texcoords[index % mesh.texcoords.size()];
+								: mesh.texcoords[index % mesh.texcoords.size()];
 								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
 								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
 								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
@@ -1823,16 +1824,33 @@ void load_static_meshes(sys::state& state) {
 							// Clip standing planes (some models have flat planes
 							// beneath them)
 							bool keep = is_visual;
-							if(elim_factor[k] != no_elim) {
-								keep = (triangle_vertices[0].position_.y <= elim_factor[k]
+							if(elim_factor[k] == no_elim) {
+								if(is_visual) {
+									for(const auto& smv : triangle_vertices) {
+										static_mesh_vertex tmp = smv;
+										tmp.position_ *= scaling_factor[k];
+										static_mesh_vertices.push_back(tmp);
+									}
+								}
+							} else if(elim_factor[k] == quad_elim) {
+								if(triangle_vertices[0].position_.y <= -0.1f
+									|| triangle_vertices[1].position_.y <= -0.1f
+									|| triangle_vertices[2].position_.y <= -0.1f) {
+									for(const auto& smv : triangle_vertices) {
+										static_mesh_vertex tmp = smv;
+										tmp.position_ *= scaling_factor[k];
+										static_mesh_vertices.push_back(tmp);
+									}
+								}
+							} else {
+								if(triangle_vertices[0].position_.y <= elim_factor[k]
 									&& triangle_vertices[1].position_.y <= elim_factor[k]
-									&& triangle_vertices[2].position_.y <= elim_factor[k]);
-							}
-							if(keep) {
-								for(const auto& smv : triangle_vertices) {
-									static_mesh_vertex tmp = smv;
-									tmp.position_ *= scaling_factor[k];
-									static_mesh_vertices.push_back(tmp);
+									&& triangle_vertices[2].position_.y <= elim_factor[k]) {
+									for(const auto& smv : triangle_vertices) {
+										static_mesh_vertex tmp = smv;
+										tmp.position_ *= scaling_factor[k];
+										static_mesh_vertices.push_back(tmp);
+									}
 								}
 							}
 						}
