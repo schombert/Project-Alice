@@ -1600,7 +1600,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 	}
 }
 
-GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name) {
+GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
 	auto file = simple_fs::open_file(dir, file_name);
 	if(!bool(file)) {
 		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name) + "\n";
@@ -1614,9 +1614,8 @@ GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file
 	auto content = simple_fs::view_contents(*file);
 	uint32_t size_x, size_y;
 	uint8_t const* data = (uint8_t const*)(content.data);
-	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS);
+	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, soil_flags);
 }
-
 
 emfx::xac_pp_actor_material_layer get_diffuse_layer(emfx::xac_pp_actor_material const& mat) {
 	for(const auto& layer : mat.layers) {
@@ -1787,11 +1786,11 @@ void load_static_meshes(sys::state& state) {
 
 			auto& texid = state.map_state.map_data.static_mesh_textures[k];
 			if(!texid) {
-				texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
+				texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"), 0);
 				if(!texid) {
-					texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"));
+					texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"), 0);
 					if(!texid) {
-						texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"));
+						texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"), 0);
 					}
 				}
 			}
@@ -1811,11 +1810,11 @@ void load_static_meshes(sys::state& state) {
 								auto index = sub.indices[i + j] + vertex_offset;
 								auto vv = mesh.vertices[index % mesh.vertices.size()];
 								auto vn = mesh.normals.empty()
-									? mesh.vertices[index % mesh.vertices.size()]
+									? emfx::xac_vector3f{ vv.x, vv.y, vv.z }
 									: mesh.normals[index % mesh.normals.size()];
 								auto vt = mesh.texcoords.empty()
 									? emfx::xac_vector2f{ vv.x, vv.y }
-								: mesh.texcoords[index % mesh.texcoords.size()];
+									: mesh.texcoords[index % mesh.texcoords.size()];
 								smv.position_ = glm::vec3(vv.x, vv.y, vv.z);
 								smv.normal_ = glm::vec3(vn.x, vn.y, vn.z);
 								smv.texture_coord_ = glm::vec2(vt.x, vt.y);
@@ -1843,19 +1842,19 @@ void load_static_meshes(sys::state& state) {
 							auto const& mat = context.materials[sub.material_id];
 							auto const& layer = get_diffuse_layer(mat);
 							if(layer.texture.empty()) {
-								texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"));
+								texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"), 0);
 								if(!texid) {
-									texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"));
+									texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"), 0);
 									if(!texid) {
-										texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"));
+										texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"), 0);
 									}
 								}
 							} else {
-								texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + "Diffuse.dds"));
+								texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + "Diffuse.dds"), 0);
 								if(!texid) {
-									texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + "_Diffuse.dds"));
+									texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + "_Diffuse.dds"), 0);
 									if(!texid) {
-										texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + ".dds"));
+										texid = load_dds_texture(gfx_anims, simple_fs::utf8_to_native(layer.texture + ".dds"), 0);
 									}
 								}
 							}
@@ -1878,7 +1877,7 @@ void load_static_meshes(sys::state& state) {
 	glBindVertexArray(state.map_state.map_data.vao_array[state.map_state.map_data.vo_static_mesh]);
 	glBindVertexBuffer(0, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh], 0, sizeof(static_mesh_vertex)); // Bind the VBO to 0 of the VAO
 	glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, position_)); // Set up vertex attribute format for the position
-	glVertexAttribFormat(1, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, normal_)); // Set up vertex attribute format for the normal direction
+	glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, normal_)); // Set up vertex attribute format for the normal direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, texture_coord_)); // Set up vertex attribute format for the texture coordinates
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);

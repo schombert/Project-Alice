@@ -17,9 +17,7 @@
 
 #endif
 
-namespace map
-{
-
+namespace map {
 // Used to load the terrain.bmp and the rivers.bmp
 std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, native_string_view name, glm::ivec2 map_size, uint8_t fill) {
 	std::vector<uint8_t> output_data(map_size.x * map_size.y, fill);
