@@ -297,14 +297,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			}
 			}
 			glTexImage2D(GL_TEXTURE_2D, 0, s3tc_format, width, height, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get());
-			uint32_t byte_offset = dds_main_size;
-			switch(block_size) {
-			case 2:
-				byte_offset = dds_main_size * 2;
-				break;
-			default:
-				break;
-			}
+			uint32_t buffer_offset = dds_main_size * (block_size == 2 ? 2 : 1);
 			/*	upload the mipmaps, if we have them	*/
 			for(uint32_t i = 1; i <= mipmaps; ++i) {
 				uint32_t w = std::max<uint32_t>(width >> i, 1);
@@ -318,22 +311,22 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 				default:
 					break;
 				}
-				glTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get() + byte_offset);
+				glTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, s3tc_format_layout, s3tc_type, dds_dest_data.get() + buffer_offset);
 				/*	and move to the next mipmap	*/
-				byte_offset += mip_size;
+				buffer_offset += mip_size;
 			}
 		} else {
 			glCompressedTexImage2D(GL_TEXTURE_2D, 0, s3tc_format, width, height, 0, dds_main_size, buffer + buffer_index);
-			uint32_t byte_offset = dds_main_size;
+			buffer_index += dds_main_size;
 			/*	upload the mipmaps, if we have them	*/
 			for(uint32_t i = 1; i <= mipmaps; ++i) {
 				uint32_t w = std::max<uint32_t>(width >> i, 1);
 				uint32_t h = std::max<uint32_t>(height >> i, 1);
 				/*	upload this mipmap	*/
 				uint32_t mip_size = ((w + 3) / 4) * ((h + 3) / 4) * block_size;
-				glCompressedTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, mip_size, buffer + byte_offset);
+				glCompressedTexImage2D(GL_TEXTURE_2D, i, s3tc_format, w, h, 0, mip_size, buffer + buffer_index);
 				/*	and move to the next mipmap	*/
-				byte_offset += mip_size;
+				buffer_index += mip_size;
 			}
 		}
 		return texid;
