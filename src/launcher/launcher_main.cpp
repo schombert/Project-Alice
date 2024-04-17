@@ -420,7 +420,7 @@ void make_mod_file() {
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
-			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
+			auto assembled_file = std::string("You can still play the mod, but it might be unstable\r\nThe following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
 			auto pdir = simple_fs::get_or_create_settings_directory();
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
