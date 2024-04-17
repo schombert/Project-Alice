@@ -2343,9 +2343,9 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 				float dist_everyday = en_demand_vector.get(t);
 				float dist_luxury = lx_demand_vector.get(t);
 
-				float demand_life = base_life * dist_life * base_demand * ln_mul[strata] * life_weight;
-				float demand_everyday = base_everyday * dist_everyday * base_demand * invention_factor * en_mul[strata] * everyday_weight * en_extra_factor;
-				float demand_luxury = base_luxury * dist_luxury * base_demand * invention_factor * lx_mul[strata] * luxury_weight * lx_extra_factor;
+				float demand_life = base_life * dist_life * base_demand * ln_mul[strata] * life_weight * state.defines.alice_lf_needs_scale;
+				float demand_everyday = base_everyday * dist_everyday * base_demand * invention_factor * en_mul[strata] * everyday_weight * state.defines.alice_ev_needs_scale;
+				float demand_luxury = base_luxury * dist_luxury * base_demand * invention_factor * lx_mul[strata] * luxury_weight * state.defines.alice_lx_needs_scale;
 
 				register_demand(state, n, cid, demand_life, economy_reason::pop);
 				register_demand(state, n, cid, demand_everyday,	economy_reason::pop);
@@ -2389,13 +2389,13 @@ void populate_needs_costs(sys::state& state, dcon::nation_id n, float base_deman
 
 			state.world.for_each_pop_type([&](dcon::pop_type_id ids) {
 				auto ln_base = state.world.pop_type_get_life_needs(ids, c);
-				auto ln = ln_base * effective_price * base_demand * ln_mul[state.world.pop_type_get_strata(ids)] * ln_weight;
+				auto ln = ln_base * effective_price * base_demand * ln_mul[state.world.pop_type_get_strata(ids)] * ln_weight * state.defines.alice_lf_needs_scale;
 				state.world.nation_set_life_needs_costs(n, ids, ln + state.world.nation_get_life_needs_costs(n, ids));
 				auto en_base = state.world.pop_type_get_everyday_needs(ids, c);
-				auto en = en_base * effective_price * base_demand * invention_factor * en_mul[state.world.pop_type_get_strata(ids)] * en_weight * en_extra_factor;
+				auto en = en_base * effective_price * base_demand * invention_factor * en_mul[state.world.pop_type_get_strata(ids)] * en_weight * state.defines.alice_ev_needs_scale;
 				state.world.nation_set_everyday_needs_costs(n, ids, en + state.world.nation_get_everyday_needs_costs(n, ids));
 				auto lx_base = state.world.pop_type_get_luxury_needs(ids, c);
-				auto lx = lx_base * effective_price * base_demand * invention_factor * lx_mul[state.world.pop_type_get_strata(ids)] * lx_weight * lx_extra_factor;
+				auto lx = lx_base * effective_price * base_demand * invention_factor * lx_mul[state.world.pop_type_get_strata(ids)] * lx_weight * state.defines.alice_lx_needs_scale;
 				state.world.nation_set_luxury_needs_costs(n, ids, lx + state.world.nation_get_luxury_needs_costs(n, ids));
 				assert(std::isfinite(state.world.nation_get_life_needs_costs(n, ids)) && state.world.nation_get_life_needs_costs(n, ids) >= 0.f);
 				assert(std::isfinite(state.world.nation_get_everyday_needs_costs(n, ids)) && state.world.nation_get_everyday_needs_costs(n, ids) >= 0.f);

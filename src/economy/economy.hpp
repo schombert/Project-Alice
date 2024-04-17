@@ -138,10 +138,6 @@ inline constexpr float inputs_base_factor = 1.0f;
 // farmers should be able to produce enough to feed themselves
 inline constexpr float rgo_boost = 1.0f;
 
-//demand modifiers
-inline constexpr float lx_extra_factor = 10.0f;
-inline constexpr float en_extra_factor = 10.0f;
-
 void presimulate(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
