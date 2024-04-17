@@ -774,7 +774,7 @@ std::string prettify_currency(float num) {
 	char buffer[200] = { 0 };
 	double dval = double(num);
 	if(std::abs(dval) <= 1.f) {
-		snprintf(buffer, sizeof(buffer), sufx_two[i], float(dval));
+		snprintf(buffer, sizeof(buffer), sufx_two[0], float(dval));
 		return std::string(buffer);
 	}
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
