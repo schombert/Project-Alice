@@ -1144,7 +1144,7 @@ public:
 				float v = values[i] * multipliers[i];
 				if(expense)
 					v = -v;
-				if(v < 0.f) {
+				if(v > 0.f) {
 					switch(budget_slider_target(i)) {
 					case budget_slider_target::poor_tax:
 						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_1", text::variable_type::value, text::fp_currency{ v });
