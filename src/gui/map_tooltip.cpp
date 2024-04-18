@@ -1369,7 +1369,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	if(state.mode == sys::game_mode_type::pick_nation) {
 		picking_map_tt_box(state, contents, prov);
-		break;
+		return;
 	}
 
 	switch(state.map_state.active_map_mode) {
