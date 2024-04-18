@@ -222,28 +222,26 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.drag_target) {
 		on_drag_finished(x, y, mod);
 	}
-	if(ui_state.left_mouse_hold_target != nullptr) {
-		if(user_settings.left_mouse_click_hold_and_release) {
-			if(mode != sys::game_mode_type::in_game) {
-				if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
-					ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
-				} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
-					ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
-				}
-				return;
-			} else {
-				if(ui_state.under_mouse == ui_state.left_mouse_hold_target && ui_state.under_mouse != nullptr) {
-					ui_state.left_mouse_hold_target = nullptr;
-					ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
-				} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
-					ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
-					ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
-					ui_state.left_mouse_hold_target = nullptr;
-					if(ui_state.scrollbar_continuous_movement) {
-						Cyto::Any payload = ui::scrollbar_settings{};
-						temp_hold_target->impl_set(*this, payload);
-						ui_state.scrollbar_continuous_movement = false;
-					}
+	if(user_settings.left_mouse_click_hold_and_release && ui_state.left_mouse_hold_target) {
+		if(mode != sys::game_mode_type::in_game) {
+			if(ui_state.under_mouse == ui_state.left_mouse_hold_target) {
+				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
+				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+			}
+			return;
+		} else {
+			if(ui_state.under_mouse == ui_state.left_mouse_hold_target) {
+				ui_state.left_mouse_hold_target = nullptr;
+				ui_state.under_mouse->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, true);
+			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target && !drag_selecting) {
+				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
+				ui::element_base* temp_hold_target = ui_state.left_mouse_hold_target;
+				ui_state.left_mouse_hold_target = nullptr;
+				if(ui_state.scrollbar_continuous_movement) {
+					Cyto::Any payload = ui::scrollbar_settings{};
+					temp_hold_target->impl_set(*this, payload);
+					ui_state.scrollbar_continuous_movement = false;
 				}
 			}
 		}
@@ -684,29 +682,31 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 	if(game_state_was_updated) {
-		if(mode != sys::game_mode_type::end_screen) {
-			if(!ui_state.tech_queue.empty()) {
-				if(!world.nation_get_current_research(local_player_nation)) {
-					for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
-						if(world.nation_get_active_technologies(local_player_nation, *it)) {
-							ui_state.tech_queue.erase(it);
-							break;
-						}
-						if(command::can_start_research(*this, local_player_nation, *it)) {
-							// can research, so research it
-							command::start_research(*this, local_player_nation, *it);
-							ui_state.tech_queue.erase(it);
-							break;
-						}
+		if(!ui_state.tech_queue.empty()) {
+			if(!world.nation_get_current_research(local_player_nation)) {
+				for(auto it = ui_state.tech_queue.begin(); it != ui_state.tech_queue.end(); it++) {
+					if(world.nation_get_active_technologies(local_player_nation, *it)) {
+						ui_state.tech_queue.erase(it);
+						break;
+					}
+					if(command::can_start_research(*this, local_player_nation, *it)) {
+						// can research, so research it
+						command::start_research(*this, local_player_nation, *it);
+						ui_state.tech_queue.erase(it);
+						break;
 					}
 				}
 			}
+		}
+		if(mode == sys::game_mode_type::in_game) {
 			if(ui_state.army_combat_window && ui_state.army_combat_window->is_visible()) {
 				ui::land_combat_window* win = static_cast<ui::land_combat_window*>(ui_state.army_combat_window);
 				if(win->battle && !world.land_battle_is_valid(win->battle)) {
 					ui_state.army_combat_window->set_visible(*this, false);
 				}
 			}
+		}
+		if(mode != sys::game_mode_type::end_screen) {
 			map_state.map_data.update_borders(*this);
 		}
 		nations::update_ui_rankings(*this);
@@ -957,9 +957,6 @@ void state::render() { // called to render the frame may (and should) delay retu
 		root_elm->impl_on_update(*this);
 		if(mode != sys::game_mode_type::end_screen) {
 			map_mode::update_map_mode(*this);
-		}
-
-		if(mode != sys::game_mode_type::in_game) {
 			if(ui_state.unit_details_box->is_visible())
 				ui_state.unit_details_box->impl_on_update(*this);
 			ui::close_expired_event_windows(*this);
