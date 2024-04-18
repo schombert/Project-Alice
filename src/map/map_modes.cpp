@@ -775,7 +775,7 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 				auto i = province::to_map_id(p.id);
 
 				prov_color[i] = color;
-				prov_color[i + texture_size] = color;
+				prov_color[i + texture_size] = ~color;
 			}
 		}
 	}
