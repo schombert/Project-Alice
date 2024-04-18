@@ -1714,4 +1714,12 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
+alice_pnt_pops;即Population:劬 $x$
+alice_pnt_rpops;即Rich strata:劬 $x$ ($y$)
+alice_pnt_mpops;即Middle strata:劬 $x$ ($y$)
+alice_pnt_ppops;即Poor strata:劬 $x$ ($y$)
+alice_pnt_culture;即Culture:劬 $x$
+alice_pnt_religion;即Religion:劬 $x$
+alice_pnt_dominant_religion;即Dominant religion:劬 $x$
+alice_pnt_dominant_ideology;即Dominant Ideology:劬 $x$
 ;;;;;;;;;;;;;x

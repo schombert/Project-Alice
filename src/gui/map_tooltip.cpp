@@ -1292,7 +1292,86 @@ void mobilization_map_tt_box(sys::state& state, text::columnar_layout& contents,
 	}
 }
 
+void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {   // Done
+	country_name_box(state, contents, prov);
+	if(auto n = state.world.province_get_nation_from_province_ownership(prov); n) {
+		auto fat_id = dcon::fatten(state.world, n);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(economy::money), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ fat_id.get_stockpiles(economy::money) }, text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto total = fat_id.get_demographics(demographics::total);
+		if(total > 0.f) {
+			{
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_pops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::rich_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_rpops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::middle_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_mpops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::poor_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_ppops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+		}
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_primary_culture().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_culture"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_religion().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_religion"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_religion().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_religion"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		{
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_ideology().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_ideology"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::close_layout_box(contents, box);
+	}
+}
+
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	if(state.mode == sys::game_mode_type::pick_nation) {
+		picking_map_tt_box(state, contents, prov);
+		return;
+	}
+
 	switch(state.map_state.active_map_mode) {
 	case map_mode::mode::terrain:
 		terrain_map_tt_box(state, contents, prov);

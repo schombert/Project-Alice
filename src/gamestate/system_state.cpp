@@ -1123,7 +1123,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	// Have to have the map tooltip down here, and we must check both of the probes
 	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
-	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+	if(mode != sys::game_mode_type::end_screen && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
 		if(map_state.get_zoom() <= 5)
 			prov = dcon::province_id{};
