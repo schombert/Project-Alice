@@ -228,7 +228,7 @@ public:
 	}
 	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
 		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(under_mouse) {
+			if(!disabled && under_mouse) {
 				//disabled = false;
 				sound::play_interface_sound(state, sound::get_click_sound(state),
 						state.user_settings.interface_volume * state.user_settings.master_volume);
