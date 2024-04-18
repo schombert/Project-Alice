@@ -423,6 +423,18 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
 		ui_state.ctrl_held_down = true;
 
+	//Emulating autohotkey
+	if(mode != sys::game_mode_type::end_screen && user_settings.wasd_for_map_movement) {
+		if(keycode == sys::virtual_key::W)
+			keycode = sys::virtual_key::UP;
+		else if(keycode == sys::virtual_key::A)
+			keycode = sys::virtual_key::LEFT;
+		else if(keycode == sys::virtual_key::S)
+			keycode = sys::virtual_key::DOWN;
+		else if(keycode == sys::virtual_key::D)
+			keycode = sys::virtual_key::RIGHT;
+	}
+
 	if(ui_state.edit_target) {
 		ui_state.edit_target->impl_on_key_down(*this, keycode, mod);
 	} else if(mode == sys::game_mode_type::pick_nation) {
@@ -453,16 +465,6 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			keycode = sys::virtual_key::SUBTRACT;
 		else if(keycode == sys::virtual_key::PLUS)
 			keycode = sys::virtual_key::ADD;
-		if(user_settings.wasd_for_map_movement) {
-			if(keycode == sys::virtual_key::W)
-				keycode = sys::virtual_key::UP;
-			else if(keycode == sys::virtual_key::A)
-				keycode = sys::virtual_key::LEFT;
-			else if(keycode == sys::virtual_key::S)
-				keycode = sys::virtual_key::DOWN;
-			else if(keycode == sys::virtual_key::D)
-				keycode = sys::virtual_key::RIGHT;
-		}
 		if(ui_state.root->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			uint32_t ctrl_group = 0;
 			if(keycode == virtual_key::ESCAPE) {
