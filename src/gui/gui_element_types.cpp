@@ -704,7 +704,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 	if(stored_text.length() > 0) {
 		if(base_data.get_element_type() == element_type::text) {
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
-				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(color), base_data.data.button.font_handle);
+				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(state, color), base_data.data.button.font_handle);
 		} else {
 			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 			auto ycentered = (base_data.size.y - linesz) / 2;
