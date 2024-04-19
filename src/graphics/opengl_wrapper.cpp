@@ -876,7 +876,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			if(uint8_t(codepoints[i]) == 0xA4)
 				icon_tex = state.open_gl.money_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x01)
-				icon_tex = state.open_gl.cross_icon_tex;
+				icon_tex = state.user_settings.color_blind_mode ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x02)
 				icon_tex = state.open_gl.checkmark_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x03)
