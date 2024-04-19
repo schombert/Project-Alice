@@ -370,12 +370,12 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 		return ogl::color3f{0.9f, 0.9f, 0.1f};
 	case text::text_color::light_blue:
 		if(state.user_settings.color_blind_mode) {
-			return ogl::color3f{ 0.75f, 0.75f, 1.f }; //increase intensity
+			return ogl::color3f{ 0.33f, 0.33f, 1.f }; //increase intensity
 		}
 		return ogl::color3f{0.5f, 0.5f, 1.0f};
 	case text::text_color::dark_blue:
 		if(state.user_settings.color_blind_mode) {
-			return ogl::color3f{ 0.5f, 0.5f, 1.f }; //increase intensity
+			return ogl::color3f{ 0.1515f, 0.1515f, 1.f }; //increase intensity
 		}
 		return ogl::color3f{0.2f, 0.2f, 0.8f};
 	case text::text_color::orange:
