@@ -544,12 +544,12 @@ public:
 		if(sat < 0.5f) { // shortage
 			color = sys::pack_color(255, 196, 196);
 			if(state.user_settings.color_blind_mode) {
-				color = sys::pack_color(196, 196, 255); //remap to blue
+				color = sys::pack_color(255, 100, 255); //remap to blue
 			}
 		} else if(sat >= 1.f) { // full fulfillment
 			color = sys::pack_color(196, 255, 196);
 			if(state.user_settings.color_blind_mode) {
-				color = sys::pack_color(255, 128, 255); //remap to yellow
+				color = sys::pack_color(255, 0, 255); //remap to yellow
 			}
 		} else {
 			color = sys::pack_color(255, 255, 255);
