@@ -236,20 +236,6 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	image_element_base::render(state, x, y);
-	if(stored_text.length() > 0) {
-
-		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
-		auto ycentered = (base_data.size.y - linesz) / 2;
-
-		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
-				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
-				base_data.data.button.font_handle);
-	}
-}
-
 // From ui_f_shader.glsl
 uint32_t internal_get_interactable_disabled_color(float r, float g, float b) {
 	float amount = (r + g + b) / 4.f;
@@ -261,6 +247,59 @@ uint32_t internal_get_interactable_color(float r, float g, float b) {
 uint32_t internal_get_disabled_color(float r, float g, float b) {
 	float amount = (r + g + b) / 4.f;
 	return sys::pack_color(amount, amount, amount);
+}
+
+void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(state.user_settings.color_blind_mode) {
+		/* On colour blind mode we tint things brither to the user can see interactables better */
+		dcon::gfx_object_id gid;
+		if(base_data.get_element_type() == element_type::image) {
+			gid = base_data.data.image.gfx_object;
+		} else if(base_data.get_element_type() == element_type::button) {
+			gid = base_data.data.button.button_image;
+		}
+		if(gid) {
+			auto& gfx_def = state.ui_defs.gfx[gid];
+			if(gfx_def.primary_texture_handle) {
+				float r = 1.f;
+				float g = 1.f;
+				float b = 1.f;
+				ogl::color_modification cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
+				auto tcolor = sys::pack_color(1.f, 1.f, 1.f);
+				if(cmod == ogl::color_modification::interactable) {
+					tcolor = sys::pack_color(0.5f, 0.5f, 1.f);
+				} else if(cmod == ogl::color_modification::interactable_disabled) {
+					tcolor = sys::pack_color(0.25f, 0.25f, 1.f);
+				} else if(cmod == ogl::color_modification::disabled) {
+					tcolor = sys::pack_color(0.125f, 0.125f, 0.125f);
+				}
+				if(gfx_def.number_of_frames > 1) {
+					ogl::render_tinted_subsprite(state, frame,
+						gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(tcolor), sys::green_from_int(tcolor), sys::blue_from_int(tcolor),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped());
+				} else {
+					ogl::render_tinted_textured_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						sys::red_from_int(tcolor), sys::green_from_int(tcolor), sys::blue_from_int(tcolor),
+						ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+						base_data.get_rotation(), gfx_def.is_vertically_flipped());
+				}
+			}
+		}
+	} else {
+		image_element_base::render(state, x, y);
+	}
+	if(stored_text.length() > 0) {
+
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		auto ycentered = (base_data.size.y - linesz) / 2;
+
+		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
+				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
+				base_data.data.button.font_handle);
+	}
 }
 
 void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
