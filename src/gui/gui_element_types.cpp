@@ -265,13 +265,13 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 				float g = 1.f;
 				float b = 1.f;
 				ogl::color_modification cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
-				auto tcolor = sys::pack_color(1.f, 1.f, 1.f);
+				auto tcolor = sys::pack_color(0.66f, 0.66f, 1.f);
 				if(cmod == ogl::color_modification::interactable) {
-					tcolor = sys::pack_color(0.5f, 0.5f, 1.f);
+					tcolor = sys::pack_color(1.f, 1.f, 1.f);
 				} else if(cmod == ogl::color_modification::interactable_disabled) {
-					tcolor = sys::pack_color(0.25f, 0.25f, 1.f);
+					tcolor = sys::pack_color(0.75f, 0.75f, 0.75f);
 				} else if(cmod == ogl::color_modification::disabled) {
-					tcolor = sys::pack_color(0.5f, 0.5f, 0.125f);
+					tcolor = sys::pack_color(0.5f, 0.5f, 0.5f);
 				}
 				if(gfx_def.number_of_frames > 1) {
 					ogl::render_tinted_subsprite(state, frame,

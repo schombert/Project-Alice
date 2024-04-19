@@ -549,7 +549,7 @@ public:
 		} else if(sat >= 1.f) { // full fulfillment
 			color = sys::pack_color(196, 255, 196);
 			if(state.user_settings.color_blind_mode) {
-				color = sys::pack_color(255, 0, 255); //remap to yellow
+				color = sys::pack_color(40, 100, 0); //remap to yellow
 			}
 		} else {
 			color = sys::pack_color(255, 255, 255);
