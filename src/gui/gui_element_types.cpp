@@ -310,43 +310,50 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 	}
 }
 
-ogl::color3f get_text_color(text::text_color text_color) {
+ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 	switch(text_color) {
 	case text::text_color::black:
 	case text::text_color::unspecified:
 		return ogl::color3f{0.0f, 0.0f, 0.0f};
-
 	case text::text_color::white:
 		return ogl::color3f{1.0f, 1.0f, 1.0f};
-
 	case text::text_color::red:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.2f, 0.2f, 0.95f }; //Remap to blue
+		}
 		return ogl::color3f{0.9f, 0.2f, 0.1f};
-
 	case text::text_color::green:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.95f, 0.95f, 0.2f }; //Remap to yellow
+		}
 		return ogl::color3f{0.2f, 0.95f, 0.2f};
-
 	case text::text_color::yellow:
 		return ogl::color3f{0.9f, 0.9f, 0.1f};
-
 	case text::text_color::light_blue:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.75f, 0.75f, 1.f }; //increase intensity
+		}
 		return ogl::color3f{0.5f, 0.5f, 1.0f};
-
 	case text::text_color::dark_blue:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.5f, 0.5f, 1.f }; //increase intensity
+		}
 		return ogl::color3f{0.2f, 0.2f, 0.8f};
-
 	case text::text_color::orange:
 		return ogl::color3f{1.f, 0.7f, 0.1f};
-
 	case text::text_color::lilac:
 		return ogl::color3f{0.8f, 0.7f, 0.3f};
-
 	case text::text_color::light_grey:
 		return ogl::color3f{0.5f, 0.5f, 0.5f};
-
 	case text::text_color::dark_red:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.f, 0.f, 0.5f }; //Remap to blue
+		}
 		return ogl::color3f{0.5f, 0.f, 0.f};
-
 	case text::text_color::dark_green:
+		if(state.user_settings.color_blind_mode) {
+			return ogl::color3f{ 0.5f, 0.5f, 0.f }; //Remap to yellow
+		}
 		return ogl::color3f{0.f, 0.5f, 0.f};
 	case text::text_color::gold:
 		return ogl::color3f{232.0f / 255.0f, 210.0f / 255.0f, 124.0f / 255.0f};
@@ -501,7 +508,7 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
 		ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
-				float(x) + t.x, float(y + t.y), get_text_color(t.color), state.ui_state.tooltip_font);
+				float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
 	}
 }
 
@@ -703,7 +710,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 			auto ycentered = (base_data.size.y - linesz) / 2;
 
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
-				float(x + text_offset), float(y + ycentered), get_text_color(color), base_data.data.text.font_handle);
+				float(x + text_offset), float(y + ycentered), get_text_color(state, color), base_data.data.text.font_handle);
 		}
 	}
 }
@@ -722,7 +729,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
-						float(x) + t.x, float(y + line_offset), get_text_color(t.color), base_data.data.text.font_handle);
+						float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.text.font_handle);
 			}
 		}
 	}
@@ -860,7 +867,7 @@ void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
-						float(x) + t.x, float(y + line_offset), get_text_color(t.color), base_data.data.button.font_handle);
+						float(x) + t.x, float(y + line_offset), get_text_color(state, t.color), base_data.data.button.font_handle);
 			}
 		}
 	}

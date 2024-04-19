@@ -59,6 +59,7 @@ struct command_info {
 		instant_industry,
 		innovate,
 		daily_oos_check,
+		color_blind_mode
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -213,6 +214,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "tcore", command_info::type::toggle_core, "Toggle add/remove core",
 				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
@@ -415,7 +419,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 		if(!text.empty()) {
 			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
 					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 		}
 	}
@@ -435,7 +439,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
 					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 		}
 	}
 }
@@ -1659,6 +1663,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
 		break;
 	}
+	case command_info::type::color_blind_mode:
+	{
+		state.user_settings.color_blind_mode = not state.user_settings.color_blind_mode;
+		log_to_console(state, parent, state.user_settings.color_blind_mode ? "\x02" : "\x01");
+		break;
+	}
 	case command_info::type::innovate:
 	{
 		auto searched_name = std::get<std::string>(pstate.arg_slots[0]);
@@ -1706,7 +1716,7 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			if(!text.empty()) {
 				std::string tmp_text{ text };
 				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
-						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color),
+						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(state, text_color),
 						base_data.data.button.font_handle);
 				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()),
 						base_data.data.text.font_handle);

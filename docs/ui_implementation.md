@@ -260,7 +260,7 @@ for(auto& txt : internal_layout.contents) {
 		ogl::color_modification::none,
 		float(x) + txt.x, float(y + txt.y),
 		float(font_size),
-		get_text_color(txt.color),
+		get_text_color(state, txt.color),
 		state.font_collection.fonts[font_id - 1]
 	);
 }

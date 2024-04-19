@@ -543,8 +543,14 @@ public:
 		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
 		if(sat < 0.5f) { // shortage
 			color = sys::pack_color(255, 196, 196);
+			if(state.user_settings.color_blind_mode) {
+				color = sys::pack_color(196, 196, 255); //remap to blue
+			}
 		} else if(sat >= 1.f) { // full fulfillment
 			color = sys::pack_color(196, 255, 196);
+			if(state.user_settings.color_blind_mode) {
+				color = sys::pack_color(255, 196, 255); //remap to yellow
+			}
 		} else {
 			color = sys::pack_color(255, 255, 255);
 		}
