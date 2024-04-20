@@ -587,7 +587,6 @@ public:
 			//clients cant start the game, only tell that they're "ready"
 		} else {
 			command::notify_start_game(state, state.local_player_nation);
-			state.map_state.set_selected_province(dcon::province_id{});
 		}
 	}
 
