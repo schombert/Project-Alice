@@ -656,8 +656,8 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 		map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 		auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, sound::get_random_province_select_sound(state),
+				state.user_settings.interface_volume * state.user_settings.master_volume);
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 				set_selected_province(province::from_map_id(map_data.province_id_map[idx]));

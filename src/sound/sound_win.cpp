@@ -476,6 +476,23 @@ void initialize_sound_system(sys::state& state) {
 		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_3.wav"));
 		state.sound_ptr->naval_battle_sounds[5].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
 	}
+
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect1.wav"));
+		state.sound_ptr->province_select_sounds[0].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect2.wav"));
+		state.sound_ptr->province_select_sounds[1].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect3.wav"));
+		state.sound_ptr->province_select_sounds[2].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
+	{
+		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect4.wav"));
+		state.sound_ptr->province_select_sounds[3].set_file(file_peek ? get_full_name(*file_peek) : std::wstring());
+	}
 }
 
 // these functions are called to change the volume of the currently playing track or effect
@@ -621,6 +638,9 @@ audio_instance& get_random_land_battle_sound(sys::state& state) {
 }
 audio_instance& get_random_naval_battle_sound(sys::state& state) {
 	return state.sound_ptr->naval_battle_sounds[int32_t(std::rand() % 6)];
+}
+audio_instance& get_random_province_select_sound(sys::state& state) {
+	return state.sound_ptr->province_select_sounds[int32_t(std::rand() % 4)];
 }
 
 void play_new_track(sys::state& state) {
