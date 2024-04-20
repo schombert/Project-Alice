@@ -115,7 +115,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		map_pos *= glm::vec2(float(map_state.map_data.size_x), float(map_state.map_data.size_y));
 		auto idx = int32_t(map_state.map_data.size_y - map_pos.y) * int32_t(map_state.map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size()) {
-			sound::play_interface_sound(*this, sound::get_click_sound(*this),
+			sound::play_interface_sound(*this, sound::get_random_province_select_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
@@ -180,7 +180,6 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 		if(mode == sys::game_mode_type::pick_nation) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
 			if(owner) {
 				// On single player we simply set the local player nation
@@ -199,7 +198,6 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 			}
 		} else if(mode == sys::game_mode_type::select_states) {
 			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
 			state_select(sdef);
 		} else if(mode != sys::game_mode_type::end_screen) {
