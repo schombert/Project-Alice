@@ -250,6 +250,7 @@ uint32_t internal_get_disabled_color(float r, float g, float b) {
 }
 
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	auto text_color = black_text ? ogl::color3f{ 0.0f, 0.0f, 0.0f } : ogl::color3f{ 1.0f, 1.0f, 1.0f };
 	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none) {
 		/* On colour blind mode we tint things brigther to the user can see interactables better */
 		dcon::gfx_object_id gid;
@@ -271,7 +272,8 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 				} else if(cmod == ogl::color_modification::interactable_disabled) {
 					tcolor = sys::pack_color(0.66f, 0.66f, 0.66f);
 				} else if(cmod == ogl::color_modification::disabled) {
-					tcolor = sys::pack_color(0.33f, 0.33f, 0.33f);
+					tcolor = sys::pack_color(0.44f, 0.44f, 0.44f);
+					text_color = black_text ? ogl::color3f{ 1.f, 1.f, 1.f } : ogl::color3f{ 0.f, 0.f, 0.f };
 				}
 				if(gfx_def.number_of_frames > 1) {
 					ogl::render_tinted_subsprite(state, frame,
@@ -291,13 +293,11 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 		image_element_base::render(state, x, y);
 	}
 	if(stored_text.length() > 0) {
-
 		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
 		auto ycentered = (base_data.size.y - linesz) / 2;
-
 		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
-				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
+				float(y + int32_t(ycentered)), text_color,
 				base_data.data.button.font_handle);
 	}
 }

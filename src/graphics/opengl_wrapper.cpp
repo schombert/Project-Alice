@@ -489,6 +489,15 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	l.bind_buffer();
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 1.f);
+	} else {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+	}
 	glLineWidth(2.0f);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::linegraph};
