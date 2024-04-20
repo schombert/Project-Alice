@@ -4636,7 +4636,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		if(state.world.nation_get_is_player_controlled(n))
 			ai::remove_ai_data(state, n);
 	state.mode = sys::game_mode_type::in_game;
-	state.map_state.set_selected_province(state, dcon::province_id{});
+	state.map_state.set_selected_province(dcon::province_id{});
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -4649,7 +4649,7 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
-	state.map_state.set_selected_province(state, dcon::province_id{});
+	state.map_state.set_selected_province(dcon::province_id{});
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
