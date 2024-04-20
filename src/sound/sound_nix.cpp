@@ -88,7 +88,9 @@ void initialize_sound_system(sys::state& state) {
 
 	auto const music_directory = open_directory(root_dir, NATIVE("music"));
 	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
-		state.sound_ptr->music_list.emplace_back(mp3_file);
+		audio_instance audio{};
+		audio.set_file(simple_fs::get_full_name(mp3_file));
+		state.sound_ptr->music_list.emplace_back(audio);
 
 		auto file_name = get_full_name(mp3_file);
 		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
