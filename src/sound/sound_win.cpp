@@ -361,7 +361,7 @@ void initialize_sound_system(sys::state& state) {
 		{ &state.sound_ptr->naval_battle_sounds[4], NATIVE("Combat_MinorShip_2.wav") },
 		{ &state.sound_ptr->naval_battle_sounds[5], NATIVE("Combat_MinorShip_3.wav") },
 	};
-	auto const sound_directory = simple_fs::open_directory(root, NATIVE("sound"));
+	auto const sound_directory = simple_fs::open_directory(root_dir, NATIVE("sound"));
 	for(const auto& e : vanilla_sound_table) {
 		auto file_peek = simple_fs::peek_file(sound_directory, e.name);
 		e.audio->set_file(file_peek ? simple_fs::get_full_name(*file_peek) : native_string());
