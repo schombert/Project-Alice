@@ -660,6 +660,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.950000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.950000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.950000)                                                             \
+	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000)														\
 
 namespace parsing {
 struct defines {
