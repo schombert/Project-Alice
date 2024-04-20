@@ -14,10 +14,10 @@ public:
 		filename = o.filename;
 		return *this;
 	}
-	audio_instance(simple_fs::unopened_file const& file) {
-		filename = simple_fs::get_full_name(file);
-	}
 	~audio_instance() { }
+	void set_file(native_string_view name) {
+		filename = native_string(name);
+	}
 };
 
 class sound_impl {
