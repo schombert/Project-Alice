@@ -96,171 +96,66 @@ void initialize_sound_system(sys::state& state) {
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
 	}
 
-	auto const sound_directory = open_directory(root, NATIVE("sound"));
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("UI_TechnologyFinished.wav"));
-		state.sound_ptr->technology_finished_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	struct {
+		audio_instance* audio;
+		native_string_view name;
+	} vanilla_sound_table[] = {
+		{ &state.sound_ptr->click_sound, NATIVE("GI_ValidClick.wav") },
+		{ &state.sound_ptr->technology_finished_sound, NATIVE("UI_TechnologyFinished.wav") },
+		{ &state.sound_ptr->army_move_sound, NATIVE("GI_InfantryMove.wav") },
+		{ &state.sound_ptr->army_select_sound, NATIVE("GI_InfantrySelected.wav") },
+		{ &state.sound_ptr->navy_move_sound, NATIVE("UI_SailMove.wav") },
+		{ &state.sound_ptr->navy_select_sound, NATIVE("UI_SailSelected.wav") },
+		{ &state.sound_ptr->declaration_of_war_sound, NATIVE("DeclarationofWar.wav") },
+		{ &state.sound_ptr->chat_message_sound, NATIVE("GI_ChatMessage.wav") },
+		{ &state.sound_ptr->error_sound, NATIVE("GI_ErrorBlip.wav") },
+		{ &state.sound_ptr->peace_sound, NATIVE("Misc_Peace.wav") },
+		{ &state.sound_ptr->army_built_sound, NATIVE("UI_LandUnitFinished.wav") },
+		{ &state.sound_ptr->navy_built_sound, NATIVE("UI_NavalUnitFinished.wav") },
+		{ &state.sound_ptr->factory_built_sound, NATIVE("Misc_NewFactory.wav") },
+		{ &state.sound_ptr->revolt_sound, NATIVE("Misc_revolt.wav") },
+		{ &state.sound_ptr->fort_built_sound, NATIVE("Misc_Fortification.wav") },
+		{ &state.sound_ptr->railroad_built_sound, NATIVE("Misc_Infrastructure.wav") },
+		{ &state.sound_ptr->naval_base_built_sound, NATIVE("Misc_CoalingStation.wav") },
+		{ &state.sound_ptr->minor_event_sound, NATIVE("GI_MinorBlip.wav") },
+		{ &state.sound_ptr->major_event_sound, NATIVE("Misc_Attention.wav") },
+		{ &state.sound_ptr->decline_sound, NATIVE("GI_FailureBlip.wav") },
+		{ &state.sound_ptr->accept_sound, NATIVE("GI_SuccessBlip.wav") },
+		{ &state.sound_ptr->diplomatic_request_sound, NATIVE("GI_MessageWindow.wav") },
+		{ &state.sound_ptr->election_sound, NATIVE("Misc_ElectionHeld.wav") },
+		{ &state.sound_ptr->land_battle_sounds[0], NATIVE("Combat_Cavalry_1.wav") },
+		{ &state.sound_ptr->land_battle_sounds[1], NATIVE("Combat_Cavalry_2.wav") },
+		{ &state.sound_ptr->land_battle_sounds[2], NATIVE("Combat_Cavalry_3.wav") },
+		{ &state.sound_ptr->land_battle_sounds[3], NATIVE("Combat_Infantry_1.wav") },
+		{ &state.sound_ptr->land_battle_sounds[4], NATIVE("Combat_Infantry_2.wav") },
+		{ &state.sound_ptr->land_battle_sounds[5], NATIVE("Combat_Infantry_3.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[0], NATIVE("Combat_MajorShip_1.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[1], NATIVE("Combat_MajorShip_2.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[2], NATIVE("Combat_MajorShip_3.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[3], NATIVE("Combat_MinorShip_1.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[4], NATIVE("Combat_MinorShip_2.wav") },
+		{ &state.sound_ptr->naval_battle_sounds[5], NATIVE("Combat_MinorShip_3.wav") },
+	};
+	auto const sound_directory = simple_fs::open_directory(root, NATIVE("sound"));
+	for(const auto& e : vanilla_sound_table) {
+		auto file_peek = simple_fs::peek_file(sound_directory, e.name);
+		e.audio->set_file(file_peek ? simple_fs::get_full_name(*file_peek) : native_string());
 	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_InfantryMove.wav"));
-		state.sound_ptr->army_move_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_InfantrySelected.wav"));
-		state.sound_ptr->army_select_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("UI_SailMove.wav"));
-		state.sound_ptr->navy_move_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("UI_SailSelected.wav"));
-		state.sound_ptr->navy_select_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("DeclarationofWar.wav"));
-		state.sound_ptr->declaration_of_war_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_ChatMessage.wav"));
-		state.sound_ptr->chat_message_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_ErrorBlip.wav"));
-		state.sound_ptr->error_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Peace.wav"));
-		state.sound_ptr->peace_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("UI_LandUnitFinished.wav"));
-		state.sound_ptr->army_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("UI_NavalUnitFinished.wav"));
-		state.sound_ptr->navy_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_NewFactory.wav"));
-		state.sound_ptr->factory_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_revolt.wav"));
-		state.sound_ptr->revolt_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Fortification.wav"));
-		state.sound_ptr->fort_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Infrastructure.wav"));
-		state.sound_ptr->railroad_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_CoalingStation.wav"));
-		state.sound_ptr->naval_base_built_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_MinorBlip.wav"));
-		state.sound_ptr->minor_event_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_Attention.wav"));
-		state.sound_ptr->major_event_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_FailureBlip.wav"));
-		state.sound_ptr->decline_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_SuccessBlip.wav"));
-		state.sound_ptr->accept_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("GI_MessageWindow.wav"));
-		state.sound_ptr->diplomatic_request_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Misc_ElectionHeld.wav"));
-		state.sound_ptr->election_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-
-	auto const assets_directory = open_directory(root, NATIVE("assets"));
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_OpenConsole.wav"));
-		state.sound_ptr->console_open_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_CloseConsole.wav"));
-		state.sound_ptr->console_close_sound = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_1.wav"));
-		state.sound_ptr->land_battle_sounds[0] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_2.wav"));
-		state.sound_ptr->land_battle_sounds[1] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Cavalry_3.wav"));
-		state.sound_ptr->land_battle_sounds[2] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_1.wav"));
-		state.sound_ptr->land_battle_sounds[3] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_2.wav"));
-		state.sound_ptr->land_battle_sounds[4] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_Infantry_3.wav"));
-		state.sound_ptr->land_battle_sounds[5] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_1.wav"));
-		state.sound_ptr->naval_battle_sounds[0] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_2.wav"));
-		state.sound_ptr->naval_battle_sounds[1] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MajorShip_3.wav"));
-		state.sound_ptr->naval_battle_sounds[2] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_1.wav"));
-		state.sound_ptr->naval_battle_sounds[3] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_2.wav"));
-		state.sound_ptr->naval_battle_sounds[4] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(sound_directory, NATIVE("Combat_MinorShip_3.wav"));
-		state.sound_ptr->naval_battle_sounds[5] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect1.wav"));
-		state.sound_ptr->province_select_sounds[0] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect2.wav"));
-		state.sound_ptr->province_select_sounds[1] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect3.wav"));
-		state.sound_ptr->province_select_sounds[2] = (file_peek ? audio_instance(*file_peek) : audio_instance());
-	}
-	{
-		auto file_peek = peek_file(assets_directory, NATIVE("NU_ProvSelect4.wav"));
-		state.sound_ptr->province_select_sounds[3] = (file_peek ? audio_instance(*file_peek) : audio_instance());
+	struct {
+		audio_instance* audio;
+		native_string_view name;
+	} new_sound_table[] = {
+		{ &state.sound_ptr->console_open_sound, NATIVE("NU_OpenConsole.wav") },
+		{ &state.sound_ptr->console_close_sound, NATIVE("NU_CloseConsole.wav") },
+		{ &state.sound_ptr->province_select_sounds[0], NATIVE("NU_ProvSelect1.wav") },
+		{ &state.sound_ptr->province_select_sounds[1], NATIVE("NU_ProvSelect2.wav") },
+		{ &state.sound_ptr->province_select_sounds[2], NATIVE("NU_ProvSelect3.wav") },
+		{ &state.sound_ptr->province_select_sounds[3], NATIVE("NU_ProvSelect4.wav") },
+	};
+	auto const assets_directory = simple_fs::open_directory(root_dir, NATIVE("\\assets"));
+	for(const auto& e : new_sound_table) {
+		auto file_peek = simple_fs::peek_file(assets_directory, e.name);
+		e.audio->set_file(file_peek ? simple_fs::get_full_name(*file_peek) : native_string());
 	}
 }
 void change_effect_volume(sys::state& state, float v) {
