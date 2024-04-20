@@ -2484,22 +2484,21 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
-				auto name_begin = file_name.c_str();
-				auto name_end = name_begin + file_name.length();
-				for(; --name_end > name_begin;) {
-					if(isdigit(*name_end))
+				auto name_start = file_name.c_str();
+				auto name_end = name_start + file_name.length();
+				auto value_start = name_start;
+				for(; value_start < name_end; ++value_start) {
+					if(isdigit(*value_start))
 						break;
 				}
-				auto value_start = name_end;
-				for(; value_start > name_begin; --value_start) {
-					if(!isdigit(*value_start))
+				auto value_end = value_start;
+				for(; value_end < name_end; ++value_end) {
+					if(!isdigit(*value_end))
 						break;
 				}
-				++value_start;
-				++name_end;
 
 				err.file_name = file_name;
-				auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
+				auto province_id = parsers::parse_int(std::string_view(value_start, value_end), 0, err);
 				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
 					if(opened_file) {
