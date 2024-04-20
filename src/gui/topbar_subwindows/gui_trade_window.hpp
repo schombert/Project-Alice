@@ -546,14 +546,14 @@ public:
 			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 				color = sys::pack_color(255, 100, 255); //remap to blue
 			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
-				color = sys::pack_color(160, 160, 160);
+				color = sys::pack_color(196, 196, 196);
 			}
 		} else if(sat >= 1.f) { // full fulfillment
 			color = sys::pack_color(196, 255, 196);
 			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 				color = sys::pack_color(114, 150, 77); //remap to yellow
 			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
-				color = sys::pack_color(196, 196, 196);
+				color = sys::pack_color(128, 128, 128);
 			}
 		} else {
 			color = sys::pack_color(255, 255, 255);

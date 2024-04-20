@@ -409,10 +409,41 @@ guiTypes = {
 				quadTextureSprite = "option_next"
 			}
 
+			# Color blind mode
+			instantTextBoxType = {
+				position = { 58 324 }
+				name = "color_blind_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "color_blind_label"
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			instantTextBoxType = {
+				position = { 216 324 }
+				name = "color_blind_value"
+				font = "Arial14"
+				borderSize = { 0 0 }
+				maxsize = { 72 18 }
+				orientation = "UPPER_LEFT"
+				format = center
+			}
+			guiButtonType = {
+				name = "color_blind_left"
+				position = { 186 320 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "color_blind_right"
+				position = { 289 320 }
+				quadTextureSprite = "option_next"
+			}
+
 			# 3D Models (Y/N)
 			instantTextBoxType = {
 				name = "render_models_label"
-				position = { 78 326 }
+				position = { 78 346 }
 				text = "render_models_label"
 				font = "Arial16"
 				borderSize = { 0 0}
@@ -422,14 +453,14 @@ guiTypes = {
 			}
 			checkboxType = {
 				name = "render_models_checkbox"
-				position = { 51 326 }
+				position = { 51 346 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 
 			# Black map font (Y/N)
 			instantTextBoxType = {
 				name = "black_map_font_label"
-				position = { 78 350 }
+				position = { 78 370 }
 				text = "black_map_font_label"
 				font = "Arial16"
 				borderSize = { 0 0 }
@@ -439,7 +470,7 @@ guiTypes = {
 			}
 			checkboxType = {
 				name = "black_map_font_checkbox"
-				position = { 51 350 }
+				position = { 51 370 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 		}

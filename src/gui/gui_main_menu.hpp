@@ -242,6 +242,20 @@ class vassal_color_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class color_blind_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class color_blind_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class color_blind_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 class music_player_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;

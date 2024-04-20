@@ -100,17 +100,17 @@ class map_legend_civ_level : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "s1_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::green));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(53, 196, 53));
 		} else if(name == "s5_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::green));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(53, 196, 53));
 		} else if(name == "s5_ico_b") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::dark_blue)));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(53, 53, 250));
 		} else if(name == "s2_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::red));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(250, 5, 5));
 		} else if(name == "s3_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::yellow));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(250, 250, 5));
 		} else if(name == "s4_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::light_grey)));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(64, 64, 64));
 		} else {
 			return nullptr;
 		}
@@ -127,13 +127,13 @@ class map_legend_col : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "s1_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::green));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(46, 247, 15));
 		} else if(name == "s2_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::red));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(247, 15, 15));
 		} else if(name == "s3_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::green));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(140, 247, 15));
 		} else if(name == "s4_ico") {
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::yellow));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(250, 250, 5));
 		} else {
 			return nullptr;
 		}
@@ -189,17 +189,17 @@ class map_legend_rr : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "s1_ico") { // Level 0
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::dark_blue));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(41, 5, 245));
 		} else if(name == "s2_ico") { // Level 5
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::gold));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(14, 240, 44));
 		} else if(name == "s3_ico") { // Upgrading
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::red));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(222, 7, 46));
 		} else if(name == "s3_ico_b") { // Upgrading
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::yellow));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(232, 228, 111));
 		} else if(name == "s4_ico") { // Max level
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::yellow));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(232, 228, 111));
 		} else if(name == "s5_ico") { // Blocked
-			return make_element_by_type<tinted_image_element_base>(state, id, get_cvd_map_color(state, text::text_color::red));
+			return make_element_by_type<tinted_image_element_base>(state, id, sys::pack_color(222, 7, 46));
 		} else {
 			return nullptr;
 		}
