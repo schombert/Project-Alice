@@ -147,8 +147,6 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					sound::play_effect(*this, sound::get_error_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				}
 			} else {
-				sound::play_interface_sound(*this, sound::get_click_sound(*this),
-				user_settings.interface_volume * user_settings.master_volume);
 				auto fat_id = dcon::fatten(world, province::from_map_id(map_state.map_data.province_id_map[idx]));
 
 				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
