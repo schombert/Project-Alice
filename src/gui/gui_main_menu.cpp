@@ -407,14 +407,14 @@ void color_blind_left::on_update(sys::state& state) noexcept {
 }
 void color_blind_right::button_action(sys::state& state) noexcept {
 	auto index = uint8_t(state.user_settings.color_blind_mode);
-	if(index < 5) {
+	if(index < 4) {
 		state.user_settings.color_blind_mode = sys::color_blind_mode(index + 1);
 		map_mode::update_map_mode(state);
 		send(state, parent, notify_setting_update{});
 	}
 }
 void color_blind_right::on_update(sys::state& state) noexcept {
-	disabled = (uint8_t(state.user_settings.color_blind_mode) >= 5);
+	disabled = (uint8_t(state.user_settings.color_blind_mode) >= 4);
 }
 void color_blind_display::on_update(sys::state& state) noexcept {
 	switch(state.user_settings.color_blind_mode) {
