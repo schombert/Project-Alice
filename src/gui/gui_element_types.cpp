@@ -268,9 +268,14 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 				ogl::color_modification cmod = get_color_modification(this == state.ui_state.under_mouse, disabled, interactable);
 				auto tcolor = sys::pack_color(1.f, 1.f, 1.f);
 				if(cmod == ogl::color_modification::interactable) {
-					tcolor = sys::pack_color(0.66f, 0.66f, 1.f);
+					if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
+						tcolor = sys::pack_color(0.75f, 1.f, 0.75f);
+					} else {
+						tcolor = sys::pack_color(0.75f, 0.75f, 1.f);
+					}
 				} else if(cmod == ogl::color_modification::interactable_disabled) {
 					tcolor = sys::pack_color(0.66f, 0.66f, 0.66f);
+					text_color = black_text ? ogl::color3f{ 1.f, 1.f, 1.f } : ogl::color3f{ 0.f, 0.f, 0.f };
 				} else if(cmod == ogl::color_modification::disabled) {
 					tcolor = sys::pack_color(0.44f, 0.44f, 0.44f);
 					text_color = black_text ? ogl::color3f{ 1.f, 1.f, 1.f } : ogl::color3f{ 0.f, 0.f, 0.f };
