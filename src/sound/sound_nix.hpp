@@ -56,6 +56,7 @@ public:
 	audio_instance console_close_sound;
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
+	audio_instance province_select_sounds[4];
 
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;
