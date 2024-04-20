@@ -422,7 +422,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		ui_state.ctrl_held_down = true;
 
 	//Emulating autohotkey
-	if(mode != sys::game_mode_type::end_screen && user_settings.wasd_for_map_movement) {
+	if(!ui_state.edit_target && mode != sys::game_mode_type::end_screen && user_settings.wasd_for_map_movement) {
 		if(keycode == sys::virtual_key::W)
 			keycode = sys::virtual_key::UP;
 		else if(keycode == sys::virtual_key::A)
