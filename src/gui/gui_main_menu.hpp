@@ -383,6 +383,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<vassal_color_left>(state, id);
 		} else if(name == "vassal_color_right") {
 			return make_element_by_type<vassal_color_right>(state, id);
+		} else if(name == "color_blind_value") {
+			return make_element_by_type<color_blind_display>(state, id);
+		} else if(name == "color_blind_left") {
+			return make_element_by_type<color_blind_left>(state, id);
+		} else if(name == "color_blind_right") {
+			return make_element_by_type<color_blind_right>(state, id);
 		} else {
 			return nullptr;
 		}
