@@ -412,11 +412,11 @@ guiTypes = {
 			# Color blind mode
 			instantTextBoxType = {
 				position = { 58 324 }
-				name = "color_blind_label"
+				name = "color_blind_mode_label"
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
-				text = "color_blind_label"
+				text = "color_blind_mode_label"
 				orientation = "UPPER_LEFT"
 				format = left
 			}
