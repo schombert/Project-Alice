@@ -67,8 +67,10 @@ public:
 		color = sys::pack_color(255, 255, 255);
 		if(is_navy == false && std::max(state.defines.alice_full_reinforce, state.world.pop_get_size(content.pop_info) / state.defines.pop_size_per_regiment) < 1.f) {
 			color = sys::pack_color(255, 196, 196);
-			if(state.user_settings.color_blind_mode) {
+			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 				color = sys::pack_color(255, 100, 255); //remap to blue
+			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+				color = sys::pack_color(196, 196, 196);
 			}
 		}
 	}

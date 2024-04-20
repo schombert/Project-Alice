@@ -753,7 +753,7 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 				bind_vertices_by_rotation(state, ui::rotation::upright, false);
 				glActiveTexture(GL_TEXTURE0);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? (state.user_settings.color_blind_mode ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
+				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? ((state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
 				glUniform4f(parameters::drawing_rectangle, x, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
 				glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 				);
@@ -876,7 +876,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			if(uint8_t(codepoints[i]) == 0xA4)
 				icon_tex = state.open_gl.money_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x01)
-				icon_tex = state.user_settings.color_blind_mode ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
+				icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x02)
 				icon_tex = state.open_gl.checkmark_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x03)

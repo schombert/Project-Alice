@@ -250,8 +250,8 @@ uint32_t internal_get_disabled_color(float r, float g, float b) {
 }
 
 void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(state.user_settings.color_blind_mode) {
-		/* On colour blind mode we tint things brither to the user can see interactables better */
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none) {
+		/* On colour blind mode we tint things brigther to the user can see interactables better */
 		dcon::gfx_object_id gid;
 		if(base_data.get_element_type() == element_type::image) {
 			gid = base_data.data.image.gfx_object;
@@ -350,6 +350,24 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 }
 
 ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
+	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+		if(text_color == text::text_color::black
+		|| text_color == text::text_color::unspecified) {
+			return ogl::color3f{ 0.f, 0.f, 0.f };
+		} else if(text_color == text::text_color::white) {
+			return ogl::color3f{ 1.f, 1.f, 1.f };
+		} else if(text_color == text::text_color::dark_blue
+		|| text_color == text::text_color::dark_green
+		|| text_color == text::text_color::dark_red
+		|| text_color == text::text_color::brown) {
+			return ogl::color3f{ 0.25f, 0.25f, 0.25f };
+		} else if(text_color == text::text_color::light_blue
+		|| text_color == text::text_color::light_grey) {
+			return ogl::color3f{ 0.75f, 0.75f, 0.75f };
+		}
+		return ogl::color3f{ 0.5f, 0.5f, 0.5f };
+	}
+
 	switch(text_color) {
 	case text::text_color::black:
 	case text::text_color::unspecified:
@@ -357,25 +375,29 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 	case text::text_color::white:
 		return ogl::color3f{1.0f, 1.0f, 1.0f};
 	case text::text_color::red:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.2f, 0.2f, 0.95f }; //Remap to blue
 		}
 		return ogl::color3f{0.9f, 0.2f, 0.1f};
 	case text::text_color::green:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.95f, 0.95f, 0.2f }; //Remap to yellow
 		}
 		return ogl::color3f{0.2f, 0.95f, 0.2f};
 	case text::text_color::yellow:
 		return ogl::color3f{0.9f, 0.9f, 0.1f};
 	case text::text_color::light_blue:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.33f, 0.33f, 1.f }; //increase intensity
+		} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
+			return ogl::color3f{ 0.5f, 1.f, 0.5f };
 		}
 		return ogl::color3f{0.5f, 0.5f, 1.0f};
 	case text::text_color::dark_blue:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.1515f, 0.1515f, 1.f }; //increase intensity
+		} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
+			return ogl::color3f{ 0.2f, 0.8f, 0.2f };
 		}
 		return ogl::color3f{0.2f, 0.2f, 0.8f};
 	case text::text_color::orange:
@@ -385,12 +407,12 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 	case text::text_color::light_grey:
 		return ogl::color3f{0.5f, 0.5f, 0.5f};
 	case text::text_color::dark_red:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.f, 0.f, 0.5f }; //Remap to blue
 		}
 		return ogl::color3f{0.5f, 0.f, 0.f};
 	case text::text_color::dark_green:
-		if(state.user_settings.color_blind_mode) {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
 			return ogl::color3f{ 0.5f, 0.5f, 0.f }; //Remap to yellow
 		}
 		return ogl::color3f{0.f, 0.5f, 0.f};

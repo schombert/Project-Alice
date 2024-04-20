@@ -1665,8 +1665,11 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::color_blind_mode:
 	{
-		state.user_settings.color_blind_mode = not state.user_settings.color_blind_mode;
-		log_to_console(state, parent, state.user_settings.color_blind_mode ? "\x02" : "\x01");
+		state.user_settings.color_blind_mode = sys::color_blind_mode(uint8_t(state.user_settings.color_blind_mode) + 1);
+		if(uint8_t(state.user_settings.color_blind_mode) > 3) {
+			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
+		}
+		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::innovate:
