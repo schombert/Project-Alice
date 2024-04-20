@@ -84,9 +84,9 @@ bool sound_impl::music_finished() {
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
 
-	auto root = get_root(state.common_fs);
+	auto root_dir = get_root(state.common_fs);
 
-	auto const music_directory = open_directory(root, NATIVE("music"));
+	auto const music_directory = open_directory(root_dir, NATIVE("music"));
 	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
 		state.sound_ptr->music_list.emplace_back(mp3_file);
 
