@@ -1434,7 +1434,7 @@ public:
 	}
 };
 
-class production_national_focus_button : public button_element_base {
+class production_national_focus_button : public right_click_button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		return bool(state.world.state_instance_get_owner_focus(content).id)
@@ -1454,12 +1454,13 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
-			parent->impl_get(state, s_payload);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		send(state, parent, production_selection_wrapper{sid, false, base_data.position});
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, sid, dcon::national_focus_id{});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
