@@ -669,7 +669,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.units_root && !ui_state.ctrl_held_down) {
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close && ui_state.units_root && !ui_state.ctrl_held_down) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
@@ -1090,7 +1090,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(map_state.get_zoom() <= 5)
+		if(map_state.get_zoom() <= map::zoom_close)
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
@@ -1123,8 +1123,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
 	if(mode != sys::game_mode_type::end_screen && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(map_state.get_zoom() <= 5)
+		if((map_state.active_map_mode == map_mode::mode::political
+		|| map_state.active_map_mode == map_mode::mode::terrain) && map_state.get_zoom() <= map::zoom_close) {
 			prov = dcon::province_id{};
+		}
 		if(prov) {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
@@ -1200,7 +1202,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(ui_state.tl_chat_list) {
 			ui_state.root->move_child_to_front(ui_state.tl_chat_list);
 		}
-		if(map_state.get_zoom() > 5) {
+		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
 				if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 					ui_state.rgos_root->impl_render(*this, 0, 0);
