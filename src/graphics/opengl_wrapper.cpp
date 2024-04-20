@@ -489,6 +489,15 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	l.bind_buffer();
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(4.0f);
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
 	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
 		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
 	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
@@ -499,10 +508,6 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
 	}
 	glLineWidth(2.0f);
-
-	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::linegraph};
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
@@ -513,12 +518,17 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	l.bind_buffer();
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	glUniform3f(parameters::inner_color, r, g, b);
-	glLineWidth(2.0f);
-
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_color };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call	
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(4.0f);
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
+	glLineWidth(2.0f);
+	glUniform3f(parameters::inner_color, r, g, b);
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 

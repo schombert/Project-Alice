@@ -247,14 +247,14 @@ public:
 		}
 
 		float area_ratio = integral / (total_area + 0.0001f);
-		if(state.user_settings.color_blind_mode == sys::color_blind_mode::none) {
-			r = 1.f - area_ratio * 0.5f;
-			g = std::sqrt(area_ratio);
-			b = std::sqrt(area_ratio) * 0.8f;
-		} else {
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
 			r = 0.f;
 			g = 0.f;
 			b = 0.f;
+		} else {
+			r = 1.f - area_ratio * 0.5f;
+			g = std::sqrt(area_ratio);
+			b = std::sqrt(area_ratio) * 0.8f;
 		}
 		set_data_points(state, datapoints, min, max);
 	}
