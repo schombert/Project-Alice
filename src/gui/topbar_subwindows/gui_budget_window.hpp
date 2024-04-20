@@ -252,9 +252,9 @@ public:
 			g = std::sqrt(area_ratio);
 			b = std::sqrt(area_ratio) * 0.8f;
 		} else {
-			r = area_ratio;
-			g = area_ratio;
-			b = area_ratio;
+			r = 0.f;
+			g = 0.f;
+			b = 0.f;
 		}
 		set_data_points(state, datapoints, min, max);
 	}
