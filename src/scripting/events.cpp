@@ -444,23 +444,44 @@ struct event_prov_pair {
 	}
 };
 
+void update_future_events(sys::state& state) {
+	uint32_t last_end_n = 0;
+	uint32_t last_end_p = 0;
+	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
+		bool fired = false;
+		uint32_t n_n_events = uint32_t(state.future_n_event.size());
+		while(last_end_n < n_n_events) {
+			auto const& e = state.future_n_event[last_end_n];
+			if(e.date <= state.current_date) {
+				trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
+				std::swap(state.future_n_event[last_end_n], state.future_n_event[state.future_n_event.size() - 1]);
+				state.future_n_event.pop_back();
+				--n_n_events;
+				fired = true;
+			} else {
+				++last_end_n;
+			}
+		}
+		uint32_t n_p_events = uint32_t(state.future_p_event.size());
+		while(last_end_p < n_p_events) {
+			auto const& e = state.future_p_event[last_end_p];
+			if(e.date <= state.current_date) {
+				trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
+				std::swap(state.future_p_event[last_end_p], state.future_p_event[state.future_p_event.size() - 1]);
+				state.future_p_event.pop_back();
+				--n_p_events;
+				fired = true;
+			} else {
+				++last_end_p;
+			}
+		}
+		if(!fired)
+			break;
+	}
+}
+
 void update_events(sys::state& state) {
-	for(uint32_t j = uint32_t(state.future_n_event.size()); j-- > 0;) {
-		auto& e = state.future_n_event[j];
-		if(e.date <= state.current_date) {
-			trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
-			state.future_n_event[j] = state.future_n_event.back();
-			state.future_n_event.pop_back();
-		}
-	}
-	for(uint32_t j = uint32_t(state.future_p_event.size()); j-- > 0;) {
-		auto& e = state.future_p_event[j];
-		if(e.date <= state.current_date) {
-			trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
-			state.future_p_event[j] = state.future_p_event.back();
-			state.future_p_event.pop_back();
-		}
-	}
+	update_future_events(state);
 
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
