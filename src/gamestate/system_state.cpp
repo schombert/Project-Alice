@@ -176,7 +176,7 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		ui_state.left_mouse_hold_target = ui_state.under_mouse;
 	} else if(mode != sys::game_mode_type::end_screen) {
 		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-		if(mode == sys::game_mode_type::pick_nation) {
+		if(mode != sys::game_mode_type::pick_nation) {
 			x_drag_start = x;
 			y_drag_start = y;
 			drag_selecting = true;
