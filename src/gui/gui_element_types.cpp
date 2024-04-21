@@ -740,7 +740,7 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(line_height == 0.f)
-		return;
+		return message_result::unseen;;
 	auto const* chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
