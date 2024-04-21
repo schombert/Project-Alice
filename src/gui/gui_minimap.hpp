@@ -935,11 +935,6 @@ public:
 			ptr->base_data.position.y += 1; //nudge
 			open_btn = ptr.get();
 			return ptr;
-		} else if(name == "closebutton") {
-			auto ptr = make_element_by_type<minimap_open_message_log_button>(state, id);
-			ptr->base_data.position.y += 1; //nudge
-			close_btn = ptr.get();
-			return ptr;
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_macro") {
@@ -986,7 +981,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		if(state.ui_state.msg_log_window) {
 			open_btn->set_visible(state, !state.ui_state.msg_log_window->is_visible());
-			close_btn->set_visible(state, state.ui_state.msg_log_window->is_visible());
 		}
 	}
 
