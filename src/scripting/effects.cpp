@@ -4001,7 +4001,6 @@ uint32_t ef_country_event_this_nation(EFFECT_PARAMTERS) {
 uint32_t ef_country_event_immediate_this_nation(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
@@ -4018,7 +4017,6 @@ uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
 uint32_t ef_province_event_immediate_this_nation(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::nation});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
@@ -4035,7 +4033,6 @@ uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
 uint32_t ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
@@ -4052,7 +4049,6 @@ uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
 uint32_t ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::state});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
@@ -4069,7 +4065,6 @@ uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
 uint32_t ef_country_event_immediate_this_province(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
@@ -4086,7 +4081,6 @@ uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
 uint32_t ef_province_event_immediate_this_province(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::province});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
@@ -4103,7 +4097,6 @@ uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
 uint32_t ef_country_event_immediate_this_pop(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
@@ -4120,7 +4113,6 @@ uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
 uint32_t ef_province_event_immediate_this_pop(EFFECT_PARAMTERS) {
 	auto future_date = ws.current_date + 0;
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::pop});
-	event::update_future_events(ws);
 	return 0;
 }
 uint32_t ef_country_event_province_this_nation(EFFECT_PARAMTERS) {

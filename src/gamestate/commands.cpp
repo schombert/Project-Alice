@@ -1867,6 +1867,7 @@ bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_op
 }
 void execute_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
 	nations::enact_reform(state, source, r);
+	event::update_future_events(state);
 }
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
@@ -1891,6 +1892,7 @@ bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_opti
 }
 void execute_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 	nations::enact_issue(state, source, i);
+	event::update_future_events(state);
 }
 
 void become_interested_in_crisis(sys::state& state, dcon::nation_id source) {
@@ -2027,9 +2029,11 @@ bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision
 	return true;
 }
 void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
-	if(auto e = state.world.decision_get_effect(d); e)
+	if(auto e = state.world.decision_get_effect(d); e) {
 		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
 				uint32_t(source.index() << 4 ^ d.index()));
+		event::update_future_events(state);
+	}
 
 	notification::post(state, notification::message{
 		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
@@ -2105,21 +2109,25 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
 			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft}, e.opt_choice);
+	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
 	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
+	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
 	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date, e.ft}, e.opt_choice);
+	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
 	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
+	event::update_future_events(state);
 }
 
 void fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type) {
