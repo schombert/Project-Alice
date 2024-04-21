@@ -84,18 +84,22 @@ bool sound_impl::music_finished() {
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
 
-	auto root_dir = get_root(state.common_fs);
-
-	auto const music_directory = open_directory(root_dir, NATIVE("music"));
-	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
+	auto root_dir = simple_fs::get_root(state.common_fs);
+	auto const music_dir = simple_fs::open_directory(root_dir, NATIVE("music"));
+	for(auto const& mp3_file : simple_fs::list_files(music_dir, NATIVE(".mp3"))) {
 		audio_instance audio{};
 		audio.set_file(simple_fs::get_full_name(mp3_file));
 		state.sound_ptr->music_list.emplace_back(audio);
-
-		auto file_name = get_full_name(mp3_file);
-		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
-					 NATIVE("thecoronation_titletheme.mp3")))
+		auto file_name = simple_fs::get_full_name(mp3_file);
+		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(), NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
+	}
+	for(auto const& music_subdir : simple_fs::list_subdirectories(music_dir)) {
+		for(auto const& mp3_file : simple_fs::list_files(music_subdir, NATIVE(".mp3"))) {
+			audio_instance audio{};
+			audio.set_file(simple_fs::get_full_name(mp3_file));
+			state.sound_ptr->music_list.emplace_back(audio);
+		}
 	}
 
 	struct {
