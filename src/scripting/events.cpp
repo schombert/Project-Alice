@@ -454,24 +454,30 @@ void update_future_events(sys::state& state) {
 			auto const& e = state.future_n_event[last_end_n];
 			if(e.date <= state.current_date) {
 				trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
+				std::swap(state.future_n_event[last_end_n], state.future_n_event[state.future_n_event.size() - 1]);
+				state.future_n_event.pop_back();
+				--n_n_events;
 				fired = true;
+			} else {
+				++last_end_n;
 			}
-			++last_end_n;
 		}
 		uint32_t n_p_events = uint32_t(state.future_p_event.size());
 		while(last_end_p < n_p_events) {
 			auto const& e = state.future_p_event[last_end_p];
 			if(e.date <= state.current_date) {
 				trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
+				std::swap(state.future_p_event[last_end_p], state.future_p_event[state.future_p_event.size() - 1]);
+				state.future_p_event.pop_back();
+				--n_p_events;
 				fired = true;
+			} else {
+				++last_end_p;
 			}
-			++last_end_p;
 		}
 		if(!fired)
 			break;
 	}
-	state.future_n_event.erase(state.future_n_event.begin(), state.future_n_event.begin() + last_end_n);
-	state.future_p_event.erase(state.future_p_event.begin(), state.future_p_event.begin() + last_end_p);
 }
 
 void update_events(sys::state& state) {
