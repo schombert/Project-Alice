@@ -381,7 +381,7 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 		return ogl::color3f{1.0f, 1.0f, 1.0f};
 	case text::text_color::red:
 		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-			return ogl::color3f{ 0.2f, 0.2f, 0.95f }; //Remap to blue
+			return ogl::color3f{ 0.66f, 0.66f, 1.f }; //Remap to blue
 		}
 		return ogl::color3f{0.9f, 0.2f, 0.1f};
 	case text::text_color::green:
@@ -400,7 +400,7 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 		return ogl::color3f{0.5f, 0.5f, 1.0f};
 	case text::text_color::dark_blue:
 		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-			return ogl::color3f{ 0.1515f, 0.1515f, 1.f }; //increase intensity
+			return ogl::color3f{ 0.125f, 0.125f, 1.f }; //increase intensity
 		} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
 			return ogl::color3f{ 0.2f, 0.8f, 0.2f };
 		}
@@ -413,7 +413,7 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 		return ogl::color3f{0.5f, 0.5f, 0.5f};
 	case text::text_color::dark_red:
 		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
-			return ogl::color3f{ 0.f, 0.f, 0.5f }; //Remap to blue
+			return ogl::color3f{ 0.42f, 0.42f, 1.f }; //Remap to blue
 		}
 		return ogl::color3f{0.5f, 0.f, 0.f};
 	case text::text_color::dark_green:
