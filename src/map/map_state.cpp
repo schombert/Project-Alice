@@ -113,6 +113,43 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		auto n = p.get_nation_from_province_ownership();
 		if(!n || !n.get_name())
 			continue;
+		std::string name = text::produce_simple_string(state, n.get_name());
+		if(n.get_capital().get_connected_region_id() != rid) {
+			// Adjective + " " + Continent
+			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+			// 66% of the provinces correspond to a single national identity
+			// then it gets named after that identity
+			ankerl::unordered_dense::map<int32_t, uint32_t> map;
+			uint32_t total_provinces = 0;
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == rid) {
+					total_provinces++;
+					for(const auto core : p2.get_core_as_province()) {
+						uint32_t v = 1;
+						if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
+							v += it->second;
+						}
+						map.insert_or_assign(core.get_identity().id.index(), v);
+					}
+				}
+			}
+			for(const auto e : map) {
+				if(float(e.second) / float(total_provinces) >= 0.75f) {
+					// Adjective + " " + National identity
+					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
+					if(state.world.national_identity_get_name(nid)) {
+						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
+						break;
+					}
+				}
+			}
+		}
+		if(name.starts_with("The ")) {
+			name.erase(0, 4);
+		}
+		if(name.empty())
+			continue;
+
 		std::array<glm::vec2, 5> key_provs{
 			p.get_mid_point(), //capital
 			p.get_mid_point(), //min x
@@ -154,12 +191,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 
-		std::string name = text::produce_simple_string(state, n.get_name());
-		if(n.get_capital().get_connected_region_id() != rid) {
-			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
-		}
-
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
@@ -198,7 +229,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
 			};
-			float xstep = (1.f / float(name.length() * 4.f));
+			float xstep = (1.f / float(name.length() * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -241,7 +272,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return 1.f + 2.f * mo[2] * x;
 			};
-			float xstep = (1.f / float(name.length() * 4.f));
+			float xstep = (1.f / float(name.length() * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
