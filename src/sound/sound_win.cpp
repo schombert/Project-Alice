@@ -308,17 +308,21 @@ void sound_impl::resume_music() const {
 // called on startup and shutdown -- initialize should also load the list of available music files and load sound effects
 void initialize_sound_system(sys::state& state) {
 	state.sound_ptr = std::make_unique<sound_impl>();
-	auto root_dir = get_root(state.common_fs);
-	auto const music_directory = open_directory(root_dir, NATIVE("music"));
-
 	state.sound_ptr->window_handle = state.win_ptr->hwnd;
 
-	for(auto const& mp3_file : list_files(music_directory, NATIVE(".mp3"))) {
-		auto file_name = get_full_name(mp3_file);
+	auto root_dir = simple_fs::get_root(state.common_fs);
+	auto const music_dir = simple_fs::open_directory(root_dir, NATIVE("music"));
+	for(auto const& mp3_file : simple_fs::list_files(music_dir, NATIVE(".mp3"))) {
+		auto file_name = simple_fs::get_full_name(mp3_file);
 		state.sound_ptr->music_list.emplace_back(file_name);
-		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(),
-			NATIVE("thecoronation_titletheme.mp3")))
+		if(parsers::native_has_fixed_suffix_ci(file_name.c_str(), file_name.c_str() + file_name.length(), NATIVE("thecoronation_titletheme.mp3")))
 			state.sound_ptr->first_music = int32_t(state.sound_ptr->music_list.size()) - 1;
+	}
+	for(auto const& music_subdir : simple_fs::list_subdirectories(music_dir)) {
+		for(auto const& mp3_file : simple_fs::list_files(music_subdir, NATIVE(".mp3"))) {
+			auto file_name = simple_fs::get_full_name(mp3_file);
+			state.sound_ptr->music_list.emplace_back(file_name);
+		}
 	}
 
 	struct {
