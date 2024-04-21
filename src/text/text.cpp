@@ -169,28 +169,24 @@ void consume_csv_file(sys::state& state, uint32_t language, char const* file_con
 }
 
 void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
-	auto rt = get_root(state.common_fs);
+	auto root_dir = get_root(state.common_fs);
 
-	auto text_dir = open_directory(rt, NATIVE("localisation"));
-	auto all_files = list_files(text_dir, NATIVE(".csv"));
-
-	for(auto& file : all_files) {
-		auto ofile = open_file(file);
-		if(ofile) {
+	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
+		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
 			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
-
-	// special keys after all existing keys
-	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
-	if(alice_csv) {
-		auto content = view_contents(*alice_csv);
-		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size, err);
+	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+			consume_csv_file(state, language, content.data, content.file_size, err);
+		}
 	}
-
 }
 
 template<size_t N>
