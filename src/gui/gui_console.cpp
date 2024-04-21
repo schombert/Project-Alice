@@ -1260,6 +1260,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
+		window::change_cursor(state, window::cursor_type::busy);
 		state.debug_save_oos_dump();
 		state.debug_scenario_oos_dump();
 		// Extneded data NOT included in normal dumps
@@ -1512,6 +1513,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			return ptr_in;
 		});
 		log_to_console(state, parent, "Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
+		window::change_cursor(state, window::cursor_type::normal);
 		break;
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;

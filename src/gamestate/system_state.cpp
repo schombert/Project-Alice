@@ -2483,6 +2483,10 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto name_start = file_name.c_str();
 				auto name_end = name_start + file_name.length();
+				// exclude files starting with "~" for example
+				if(name_start < name_end && !isdigit(*name_start))
+					continue;
+
 				auto value_start = name_start;
 				for(; value_start < name_end; ++value_start) {
 					if(isdigit(*value_start))
@@ -2771,9 +2775,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					break;
 				}
 			}
-			if(last - start_of_name >= 6 && file_name.ends_with(NATIVE("_oob.txt"))) {
-				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
+			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
+				continue;
+
+			if(last - start_of_name >= 3) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
 						it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);

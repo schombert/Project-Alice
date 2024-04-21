@@ -1193,7 +1193,7 @@ void officers_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		float value = state.world.province_get_demographics(prov, demographics::to_key(state, state.culture_definitions.officers));
 		float total = state.world.province_get_demographics(prov, demographics::total);
-		float ratio = std::max(1.f, total) / std::max(1.f, value);
+		float ratio = value / std::max(1.f, total);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
@@ -1234,7 +1234,7 @@ void life_rating_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 void crime_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
-	if(prov.value < state.province_definitions.first_sea_province.value) {
+	if(prov.value < state.province_definitions.first_sea_province.value && state.world.province_get_crime(prov)) {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::x, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name);
@@ -1287,7 +1287,11 @@ void mobilization_map_tt_box(sys::state& state, text::columnar_layout& contents,
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ max });
 		text::add_to_substitution_map(sub, text::variable_type::y, text::pretty_integer{ used });
-		text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_44"), sub);
+		if(max == 0) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_44_2"), sub);
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmtt_44"), sub);
+		}
 		text::close_layout_box(contents, box);
 	}
 }
@@ -1337,25 +1341,25 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 				text::add_line_break_to_layout_box(state, contents, box);
 			}
 		}
-		{
+		if(fat_id.get_primary_culture()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_primary_culture().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_culture"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_religion()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_religion().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_religion"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_dominant_religion()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_religion().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_religion"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_dominant_ideology()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_ideology().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_ideology"), sub);

@@ -236,6 +236,20 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
+void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	image_element_base::render(state, x, y);
+	if(stored_text.length() > 0) {
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(linesz == 0.f)
+			return;
+		auto ycentered = (base_data.size.y - linesz) / 2;
+		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
+				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
+				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
+				base_data.data.button.font_handle);
+	}
+}
+
 // From ui_f_shader.glsl
 uint32_t internal_get_interactable_disabled_color(float r, float g, float b) {
 	float amount = (r + g + b) / 4.f;
@@ -299,6 +313,8 @@ void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexce
 	}
 	if(stored_text.length() > 0) {
 		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if (linesz == 0.f)
+			return;
 		auto ycentered = (base_data.size.y - linesz) / 2;
 		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
@@ -346,6 +362,8 @@ void tinted_button_element_base::render(sys::state& state, int32_t x, int32_t y)
 	}
 	if(stored_text.length() > 0) {
 		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(linesz == 0)
+			return;
 		auto ycentered = (base_data.size.y - linesz) / 2;
 		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
 				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + text_offset),
@@ -705,6 +723,8 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
 		} else {
 			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+			if(linesz == 0)
+				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
 
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
@@ -773,6 +793,8 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(state, color), base_data.data.button.font_handle);
 		} else {
 			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+			if(linesz == 0)
+				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
 
 			ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()), ogl::color_modification::none,
@@ -785,12 +807,16 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
+		if(line_height == 0.f)
+			return;
 		visible_lines = base_data.size.y / int32_t(line_height);
 	}
 }
 
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
+		if(line_height == 0.f)
+			return;
 		for(auto& t : internal_layout.contents) {
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
@@ -802,6 +828,8 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 }
 
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(line_height == 0.f)
+		return message_result::unseen;;
 	auto const* chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
@@ -892,6 +920,8 @@ message_result multiline_text_element_base::on_rbutton_down(sys::state& state, i
 }
 
 message_result multiline_text_element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	if(line_height == 0.f)
+		return message_result::unseen;
 	switch(type) {
 	case mouse_probe_type::click:
 	{
@@ -921,6 +951,8 @@ void multiline_button_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(line_height == 0.f)
+			return;
 		visible_lines = base_data.size.y / int32_t(line_height);
 	}
 	set_button_text(state, "");
@@ -929,6 +961,8 @@ void multiline_button_element_base::on_create(sys::state& state) noexcept {
 void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	button_element_base::render(state, x, y);
 	if(base_data.get_element_type() == element_type::button) {
+		if(line_height == 0.f)
+			return;
 		for(auto& t : internal_layout.contents) {
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {

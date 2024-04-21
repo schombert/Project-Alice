@@ -252,6 +252,13 @@ void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_part
 	culture::update_nation_issue_rules(state, n);
 	sys::update_single_nation_modifiers(state, n);
 	economy::bound_budget_settings(state, n);
+	if(auto rules = state.world.nation_get_combined_issue_rules(n); (rules & issue_rule::factory_priority) == 0) {
+		for(auto po : state.world.nation_get_province_ownership_as_nation(n)) {
+			for(auto fl : po.get_province().get_factory_location()) {
+				economy::set_factory_priority(state, fl.get_factory(), 0);
+			}
+		}
+	}
 }
 
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
