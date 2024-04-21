@@ -61,6 +61,7 @@
 #endif
 #include <Windowsx.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #include "Objbase.h"
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
@@ -1636,6 +1637,21 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				}
 			}
 			return 0;
+		case WM_NCCREATE:
+		{
+			if(HINSTANCE hUser32dll = LoadLibrary(L"User32.dll"); hUser32dll) {
+				auto pSetProcessDpiAwarenessContext = (decltype(&SetProcessDpiAwarenessContext))GetProcAddress(hUser32dll, "SetProcessDpiAwarenessContext");
+				if(pSetProcessDpiAwarenessContext == NULL) {
+					// not present, so have to call this
+					auto pEnableNonClientDpiScaling = (decltype(&EnableNonClientDpiScaling))GetProcAddress(hUser32dll, "EnableNonClientDpiScaling");
+					if(pEnableNonClientDpiScaling != NULL) {
+						pEnableNonClientDpiScaling(hwnd); //windows 10
+					}
+				}
+				FreeLibrary(hUser32dll);
+			}
+			break;
+		}
 		case WM_CHAR:
 		{
 			if(GetKeyState(VK_CONTROL) & 0x8000) {
@@ -1782,7 +1798,27 @@ int WINAPI wWinMain(
 		signal(SIGABRT, signal_abort_handler);
 	}
 
-	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	// Workaround for old machines
+	if(HINSTANCE hUser32dll = LoadLibrary(L"User32.dll"); hUser32dll) {
+		auto pSetProcessDpiAwarenessContext = (decltype(&SetProcessDpiAwarenessContext))GetProcAddress(hUser32dll, "SetProcessDpiAwarenessContext");
+		if(pSetProcessDpiAwarenessContext != NULL) {
+			pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		} else {
+			// windows 8.1 (not present on windows 8 and only available on desktop apps)
+			if(HINSTANCE hShcoredll = LoadLibrary(L"Shcore.dll"); hShcoredll) {
+				auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
+				if(pSetProcessDpiAwareness != NULL) {
+					pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+				} else {
+					SetProcessDPIAware(); //vista+
+				}
+				FreeLibrary(hShcoredll);
+			} else {
+				SetProcessDPIAware(); //vista+
+			}
+		}
+		FreeLibrary(hUser32dll);
+	}
 
 	if(!SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED)))
 		return 0;
@@ -1838,8 +1874,15 @@ int WINAPI wWinMain(
 	);
 
 	if(launcher::m_hwnd) {
-
-		launcher::dpi = float(GetDpiForWindow((HWND)(launcher::m_hwnd)));
+		if(HINSTANCE hUser32dll = LoadLibrary(L"User32.dll"); hUser32dll) {
+			auto pGetDpiForWindow = (decltype(&GetDpiForWindow))GetProcAddress(hUser32dll, "GetDpiForWindow");
+			if(pGetDpiForWindow != NULL) {
+				launcher::dpi = float(pGetDpiForWindow((HWND)(launcher::m_hwnd)));
+			} else {
+				launcher::dpi = 96.0f; //100%, default
+			}
+			FreeLibrary(hUser32dll);
+		}
 
 		auto monitor_handle = MonitorFromWindow((HWND)(launcher::m_hwnd), MONITOR_DEFAULTTOPRIMARY);
 		MONITORINFO mi;

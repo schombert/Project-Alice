@@ -344,7 +344,9 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 	HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
-		WriteFile(file_handle, file_data, DWORD(file_size), nullptr, nullptr);
+		DWORD written_bytes = 0;
+		WriteFile(file_handle, file_data, DWORD(file_size), &written_bytes, nullptr);
+		(void)written_bytes;
 		SetEndOfFile(file_handle);
 		CloseHandle(file_handle);
 	}
