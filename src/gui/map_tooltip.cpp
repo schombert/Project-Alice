@@ -1337,25 +1337,25 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 				text::add_line_break_to_layout_box(state, contents, box);
 			}
 		}
-		{
+		if(fat_id.get_primary_culture()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_primary_culture().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_culture"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_religion()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_religion().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_religion"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_dominant_religion()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_religion().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_religion"), sub);
 			text::add_line_break_to_layout_box(state, contents, box);
 		}
-		{
+		if(fat_id.get_dominant_ideology()) {
 			text::substitution_map sub;
 			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_ideology().get_name());
 			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_ideology"), sub);
