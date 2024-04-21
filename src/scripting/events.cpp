@@ -444,7 +444,7 @@ struct event_prov_pair {
 	}
 };
 
-void update_events(sys::state& state) {
+void update_future_events(sys::state& state) {
 	uint32_t last_end_n = 0;
 	uint32_t last_end_p = 0;
 	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
@@ -472,6 +472,10 @@ void update_events(sys::state& state) {
 	}
 	state.future_n_event.erase(state.future_n_event.begin(), state.future_n_event.begin() + last_end_n);
 	state.future_p_event.erase(state.future_p_event.begin(), state.future_p_event.begin() + last_end_p);
+}
+
+void update_events(sys::state& state) {
+	update_future_events(state);
 
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
