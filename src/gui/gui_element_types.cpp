@@ -236,20 +236,6 @@ void progress_bar::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	}
 }
 
-void button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	image_element_base::render(state, x, y);
-	if(stored_text.length() > 0) {
-		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
-		if(linesz == 0.f)
-			return;
-		auto ycentered = (base_data.size.y - linesz) / 2;
-		ogl::render_text(state, stored_text.c_str(), uint32_t(stored_text.length()),
-				get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), float(x + int32_t(text_offset)),
-				float(y + int32_t(ycentered)), black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f},
-				base_data.data.button.font_handle);
-	}
-}
-
 // From ui_f_shader.glsl
 uint32_t internal_get_interactable_disabled_color(float r, float g, float b) {
 	float amount = (r + g + b) / 4.f;
