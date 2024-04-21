@@ -134,6 +134,7 @@ alice_mmtt_42_1;Has land rally point?
 alice_mmtt_42_2;Has naval rally point?
 alice_mmtt_43;Workforce distrobution:
 alice_mmtt_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
+alice_mmtt_44_2;No possible regiments
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x

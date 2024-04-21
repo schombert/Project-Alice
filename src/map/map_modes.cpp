@@ -657,10 +657,16 @@ std::vector<uint32_t> mobilization_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
-			auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
-			prov_color[i] = color;
-			prov_color[i + texture_size] = color;
+			if(prov_population[i] == 0.f) {
+				auto color = sys::pack_color(0, 0, 0);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			} else {
+				float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
+				auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			}
 		}
 	});
 	return prov_color;
