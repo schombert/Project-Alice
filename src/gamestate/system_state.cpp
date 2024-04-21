@@ -2496,7 +2496,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						break;
 				}
 
-				err.file_name = file_name;
+				err.file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto province_id = parsers::parse_int(std::string_view(value_start, value_end), 0, err);
 				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
