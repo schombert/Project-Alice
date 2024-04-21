@@ -139,6 +139,7 @@ Alice adds a handful of new defines:
 - `alice_lf_needs_scale`: Scale multiplier for life needs
 - `alice_ev_needs_scale`: Scale multiplier for everyday needs
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
+- `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
 
 ### Dense CSV pop listing
 

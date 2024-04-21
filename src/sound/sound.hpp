@@ -70,5 +70,6 @@ audio_instance& get_console_close_sound(sys::state& state);
 
 audio_instance& get_random_land_battle_sound(sys::state& state);
 audio_instance& get_random_naval_battle_sound(sys::state& state);
+audio_instance& get_random_province_select_sound(sys::state& state);
 
 } // namespace sound

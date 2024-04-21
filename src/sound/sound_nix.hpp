@@ -14,10 +14,10 @@ public:
 		filename = o.filename;
 		return *this;
 	}
-	audio_instance(simple_fs::unopened_file const& file) {
-		filename = simple_fs::get_full_name(file);
-	}
 	~audio_instance() { }
+	void set_file(native_string_view name) {
+		filename = native_string(name);
+	}
 };
 
 class sound_impl {
@@ -56,6 +56,7 @@ public:
 	audio_instance console_close_sound;
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
+	audio_instance province_select_sounds[4];
 
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;

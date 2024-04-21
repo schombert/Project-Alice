@@ -1315,7 +1315,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 			{
 				auto value = fat_id.get_demographics(demographics::rich_total);
 				text::substitution_map sub;
-				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
 				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
 				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_rpops"), sub);
 				text::add_line_break_to_layout_box(state, contents, box);
@@ -1323,7 +1323,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 			{
 				auto value = fat_id.get_demographics(demographics::middle_total);
 				text::substitution_map sub;
-				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
 				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
 				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_mpops"), sub);
 				text::add_line_break_to_layout_box(state, contents, box);
@@ -1331,7 +1331,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 			{
 				auto value = fat_id.get_demographics(demographics::poor_total);
 				text::substitution_map sub;
-				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
 				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
 				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_ppops"), sub);
 				text::add_line_break_to_layout_box(state, contents, box);

@@ -115,7 +115,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		map_pos *= glm::vec2(float(map_state.map_data.size_x), float(map_state.map_data.size_y));
 		auto idx = int32_t(map_state.map_data.size_y - map_pos.y) * int32_t(map_state.map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < map_state.map_data.province_id_map.size()) {
-			sound::play_interface_sound(*this, sound::get_click_sound(*this),
+			sound::play_interface_sound(*this, sound::get_random_province_select_sound(*this),
 					user_settings.interface_volume * user_settings.master_volume);
 			auto id = province::from_map_id(map_state.map_data.province_id_map[idx]);
 			if(selected_armies.size() > 0 || selected_navies.size() > 0) {
@@ -147,8 +147,6 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 					sound::play_effect(*this, sound::get_error_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				}
 			} else {
-				sound::play_interface_sound(*this, sound::get_click_sound(*this),
-				user_settings.interface_volume * user_settings.master_volume);
 				auto fat_id = dcon::fatten(world, province::from_map_id(map_state.map_data.province_id_map[idx]));
 
 				dcon::province_id prov_id = province::from_map_id(map_state.map_data.province_id_map[idx]);
@@ -176,37 +174,12 @@ void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		ui_state.under_mouse->impl_on_lbutton_down(*this, ui_state.relative_mouse_location.x,
 				ui_state.relative_mouse_location.y, mod);
 		ui_state.left_mouse_hold_target = ui_state.under_mouse;
-	} else {
-		x_drag_start = x;
-		y_drag_start = y;
-
-		if(mode == sys::game_mode_type::pick_nation) {
-			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
-			auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province);
-			if(owner) {
-				// On single player we simply set the local player nation
-				// on multiplayer we wait until we get a confirmation that we are
-				// allowed to pick the specified nation as no two players can get on
-				// a nation, at the moment
-				// TODO: Allow Co-op
-				if(network_mode == sys::network_mode_type::single_player) {
-					world.nation_set_is_player_controlled(local_player_nation, false);
-					local_player_nation = owner;
-					world.nation_set_is_player_controlled(local_player_nation, true);
-					ui_state.nation_picker->impl_on_update(*this);
-				} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
-					command::notify_player_picks_nation(*this, local_player_nation, owner);
-				}
-			}
-		} else if(mode == sys::game_mode_type::select_states) {
-			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
-			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
-			auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
-			state_select(sdef);
-		} else if(mode != sys::game_mode_type::end_screen) {
+	} else if(mode != sys::game_mode_type::end_screen) {
+		map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
+		if(mode != sys::game_mode_type::pick_nation) {
+			x_drag_start = x;
+			y_drag_start = y;
 			drag_selecting = true;
-			map_state.on_lbutton_down(*this, x, y, x_size, y_size, mod);
 			window::change_cursor(*this, window::cursor_type::drag_select);
 		}
 	}
@@ -229,6 +202,7 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
 				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
 			}
+			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
 			return;
 		} else {
 			if(ui_state.under_mouse == ui_state.left_mouse_hold_target) {
@@ -246,18 +220,38 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			}
 		}
 	}
-	ui_state.scrollbar_timer = 0;
-
 	map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
+	if(mode == sys::game_mode_type::pick_nation) {
+		if(auto owner = world.province_get_nation_from_province_ownership(map_state.selected_province); owner) {
+			// On single player we simply set the local player nation
+			// on multiplayer we wait until we get a confirmation that we are
+			// allowed to pick the specified nation as no two players can get on
+			// a nation, at the moment
+			// TODO: Allow Co-op
+			if(network_mode == sys::network_mode_type::single_player) {
+				world.nation_set_is_player_controlled(local_player_nation, false);
+				local_player_nation = owner;
+				world.nation_set_is_player_controlled(local_player_nation, true);
+				ui_state.nation_picker->impl_on_update(*this);
+			} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
+				command::notify_player_picks_nation(*this, local_player_nation, owner);
+			}
+		}
+	} else if(mode == sys::game_mode_type::select_states) {
+		auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
+		state_select(sdef);
+	}
+
+	ui_state.scrollbar_timer = 0;
 	if(ui_state.under_mouse != nullptr || !drag_selecting) {
 		drag_selecting = false;
 		window::change_cursor(*this, window::cursor_type::normal);
 	} else if(std::abs(x - x_drag_start) <= int32_t(std::ceil(x_size * 0.0025)) && std::abs(y - y_drag_start) <= int32_t(std::ceil(x_size * 0.0025))) {
+		drag_selecting = false;
+		window::change_cursor(*this, window::cursor_type::normal);
 		if(ui_state.province_window) {
 			static_cast<ui::province_view_window*>(ui_state.province_window)->set_active_province(*this, map_state.selected_province);
 		}
-		drag_selecting = false;
-		window::change_cursor(*this, window::cursor_type::normal);
 		selected_armies.clear();
 		selected_navies.clear();
 		game_state_updated.store(true, std::memory_order_release);
@@ -273,7 +267,6 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			selected_navies.clear();
 		}
-
 		for(auto a : world.nation_get_army_control(local_player_nation)) {
 			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
 				auto loc = a.get_army().get_location_from_army_location();
@@ -671,7 +664,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 	auto tooltip_probe = root_elm->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 		int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
-	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > 5 && ui_state.units_root && !ui_state.ctrl_held_down) {
+	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && map_state.get_zoom() > map::zoom_close && ui_state.units_root && !ui_state.ctrl_held_down) {
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
@@ -1090,9 +1083,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	if(mode == sys::game_mode_type::in_game && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
+	if(mode != sys::game_mode_type::end_screen && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(map_state.get_zoom() <= 5)
+		if(map_state.get_zoom() <= map::zoom_close)
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
@@ -1125,8 +1118,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// Not doing this causes the map tooltip to override some of the regular tooltips (namely the score tooltips)
 	if(mode != sys::game_mode_type::end_screen && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
-		if(map_state.get_zoom() <= 5)
+		if(((map_state.active_map_mode == map_mode::mode::political && mode != sys::game_mode_type::pick_nation)
+		|| map_state.active_map_mode == map_mode::mode::terrain) && map_state.get_zoom() <= map::zoom_close) {
 			prov = dcon::province_id{};
+		}
 		if(prov) {
 			auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
 				text::layout_parameters{ 16, 16, tooltip_width, int16_t(ui_state.root->base_data.size.y - 20), ui_state.tooltip_font, 0, text::alignment::left, text::text_color::white, true },
@@ -1202,7 +1197,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(ui_state.tl_chat_list) {
 			ui_state.root->move_child_to_front(ui_state.tl_chat_list);
 		}
-		if(map_state.get_zoom() > 5) {
+		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
 				if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 					ui_state.rgos_root->impl_render(*this, 0, 0);
@@ -2486,22 +2481,21 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 			for(auto prov_file : list_files(subdir, NATIVE(".txt"))) {
 				auto file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
-				auto name_begin = file_name.c_str();
-				auto name_end = name_begin + file_name.length();
-				for(; --name_end > name_begin;) {
-					if(isdigit(*name_end))
+				auto name_start = file_name.c_str();
+				auto name_end = name_start + file_name.length();
+				auto value_start = name_start;
+				for(; value_start < name_end; ++value_start) {
+					if(isdigit(*value_start))
 						break;
 				}
-				auto value_start = name_end;
-				for(; value_start > name_begin; --value_start) {
-					if(!isdigit(*value_start))
+				auto value_end = value_start;
+				for(; value_end < name_end; ++value_end) {
+					if(!isdigit(*value_end))
 						break;
 				}
-				++value_start;
-				++name_end;
 
 				err.file_name = file_name;
-				auto province_id = parsers::parse_int(std::string_view(value_start, name_end - value_start), 0, err);
+				auto province_id = parsers::parse_int(std::string_view(value_start, value_end), 0, err);
 				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
 					if(opened_file) {

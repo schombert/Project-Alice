@@ -885,17 +885,12 @@ public:
 
 struct open_msg_log_data {};
 
-class open_msg_log_button : public button_element_base {
+class minimap_open_message_log_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		frame = state.ui_state.msg_log_window->is_visible() ? 1 : 0;
-	}
-
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, open_msg_log_data{});
 	}
 };
-
 class minimap_zoom_in_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -923,7 +918,8 @@ public:
 
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
-
+	minimap_open_message_log_button* open_btn = nullptr;
+	minimap_open_message_log_button* close_btn = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
@@ -935,8 +931,9 @@ public:
 		} else if(name == "minimap_bg") {
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "openbutton") {
-			auto ptr = make_element_by_type<open_msg_log_button>(state, id);
+			auto ptr = make_element_by_type<minimap_open_message_log_button>(state, id);
 			ptr->base_data.position.y += 1; //nudge
+			open_btn = ptr.get();
 			return ptr;
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
@@ -978,6 +975,12 @@ public:
 			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.ui_state.msg_log_window) {
+			open_btn->set_visible(state, !state.ui_state.msg_log_window->is_visible());
 		}
 	}
 
