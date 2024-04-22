@@ -682,7 +682,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
-		} else {
+		} else if(state.cheat_data.province_names) {
 			glBindVertexArray(vao_array[vo_province_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
