@@ -799,8 +799,62 @@ public:
 	element_base* topbar_subwindow = nullptr;
 };
 
+class topbar_budget_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_budget_sound(state);
+	}
+};
+class topbar_trade_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		// for now we reuse the budget tab sound
+		return sound::get_tab_budget_sound(state);
+	}
+};
+class topbar_politics_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_politics_sound(state);
+	}
+};
+class topbar_diplomacy_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_diplomacy_sound(state);
+	}
+};
+class topbar_military_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_military_sound(state);
+	}
+};
+class topbar_population_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_population_sound(state);
+	}
+};
+class topbar_production_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_production_sound(state);
+	}
+};
+class topbar_technology_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_technology_sound(state);
+	}
+};
+
 class topbar_population_view_button : public topbar_tab_button {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_population_sound(state);
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto const override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
@@ -1804,21 +1858,21 @@ public:
 		} else if(name == "topbar_paper") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "topbarbutton_production") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_production_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
 			state.ui_state.production_subwindow = state.ui_state.topbar_subwindow = btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_budget") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_budget_tab_button>(state, id);
 
 			auto tab = make_element_by_type<budget_window>(state, "country_budget");
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_tech") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_technology_tab_button>(state, id);
 
 			auto tab = make_element_by_type<technology_window>(state, "country_technology");
 			btn->topbar_subwindow = tab.get();
@@ -1827,7 +1881,7 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_politics") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_politics_tab_button>(state, id);
 			auto tab = make_element_by_type<politics_window>(state, "country_politics");
 			btn->topbar_subwindow = tab.get();
 
@@ -1843,7 +1897,7 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_trade") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_trade_tab_button>(state, id);
 
 			auto tab = make_element_by_type<trade_window>(state, "country_trade");
 			btn->topbar_subwindow = tab.get();
@@ -1852,14 +1906,14 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_diplomacy") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_diplomacy_tab_button>(state, id);
 
 			auto tab = make_element_by_type<diplomacy_window>(state, "country_diplomacy");
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_military") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_military_tab_button>(state, id);
 
 			auto tab = make_element_by_type<military_window>(state, "country_military");
 			btn->topbar_subwindow = tab.get();
