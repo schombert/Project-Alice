@@ -659,7 +659,6 @@ class normal_factory_background : public opaque_element_base {
 
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
-		economy::populate_effective_prices(state, n);
 
 		//inputs
 

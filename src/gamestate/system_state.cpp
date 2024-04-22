@@ -202,8 +202,6 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			} else if(ui_state.under_mouse != ui_state.left_mouse_hold_target) {
 				ui_state.left_mouse_hold_target->impl_on_lbutton_up(*this, ui_state.relative_mouse_location.x, ui_state.relative_mouse_location.y, mod, false);
 			}
-			map_state.on_lbutton_up(*this, x, y, x_size, y_size, mod);
-			return;
 		} else {
 			if(ui_state.under_mouse == ui_state.left_mouse_hold_target) {
 				ui_state.left_mouse_hold_target = nullptr;
@@ -240,6 +238,10 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 	} else if(mode == sys::game_mode_type::select_states) {
 		auto sdef = world.province_get_state_from_abstract_state_membership(map_state.selected_province);
 		state_select(sdef);
+	}
+
+	if(user_settings.left_mouse_click_hold_and_release && ui_state.left_mouse_hold_target && mode != sys::game_mode_type::in_game) {
+		return;
 	}
 
 	ui_state.scrollbar_timer = 0;
@@ -2498,7 +2500,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 						break;
 				}
 
-				err.file_name = file_name;
+				err.file_name = simple_fs::native_to_utf8(get_full_name(prov_file));
 				auto province_id = parsers::parse_int(std::string_view(value_start, value_end), 0, err);
 				if(province_id > 0 && uint32_t(province_id) < context.original_id_to_prov_id_map.size()) {
 					auto opened_file = open_file(prov_file);
