@@ -30,6 +30,8 @@ public:
 	bool global_pause = false;
 
 	audio_instance click_sound;
+	audio_instance click_left_sound;
+	audio_instance click_right_sound;
 	audio_instance technology_finished_sound;
 	audio_instance army_move_sound;
 	audio_instance army_select_sound;

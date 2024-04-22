@@ -106,7 +106,7 @@ void initialize_sound_system(sys::state& state) {
 		audio_instance* audio;
 		native_string_view name;
 	} vanilla_sound_table[] = {
-		{ &state.sound_ptr->click_sound, NATIVE("GI_ValidClick.wav") },
+		//{ &state.sound_ptr->click_sound, NATIVE("GI_ValidClick.wav") },
 		{ &state.sound_ptr->technology_finished_sound, NATIVE("UI_TechnologyFinished.wav") },
 		{ &state.sound_ptr->army_move_sound, NATIVE("GI_InfantryMove.wav") },
 		{ &state.sound_ptr->army_select_sound, NATIVE("GI_InfantrySelected.wav") },
@@ -151,6 +151,9 @@ void initialize_sound_system(sys::state& state) {
 		audio_instance* audio;
 		native_string_view name;
 	} new_sound_table[] = {
+		{ &state.sound_ptr->click_sound, NATIVE("NU_AltClick.wav") },
+		{ &state.sound_ptr->click_left_sound, NATIVE("NU_ClickL.wav") },
+		{ &state.sound_ptr->click_right_sound, NATIVE("NU_ClickR.wav") },
 		{ &state.sound_ptr->console_open_sound, NATIVE("NU_OpenConsole.wav") },
 		{ &state.sound_ptr->console_close_sound, NATIVE("NU_CloseConsole.wav") },
 		{ &state.sound_ptr->province_select_sounds[0], NATIVE("NU_ProvSelect1.wav") },
@@ -241,6 +244,12 @@ void update_music_track(sys::state& state) {
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state) {
 	return state.sound_ptr->click_sound;
+}
+audio_instance& get_click_left_sound(sys::state& state) {
+	return state.sound_ptr->click_left_sound;
+}
+audio_instance& get_click_right_sound(sys::state& state) {
+	return state.sound_ptr->click_right_sound;
 }
 audio_instance& get_army_select_sound(sys::state& state) {
 	return state.sound_ptr->army_select_sound;

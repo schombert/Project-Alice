@@ -42,6 +42,8 @@ native_string get_current_track_name(sys::state& state);
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
+audio_instance& get_click_left_sound(sys::state& state);
+audio_instance& get_click_right_sound(sys::state& state);
 audio_instance& get_army_select_sound(sys::state& state);
 audio_instance& get_army_move_sound(sys::state& state);
 audio_instance& get_navy_select_sound(sys::state& state);
