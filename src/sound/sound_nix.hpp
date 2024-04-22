@@ -32,6 +32,13 @@ public:
 	audio_instance click_sound;
 	audio_instance click_left_sound;
 	audio_instance click_right_sound;
+	audio_instance tab_budget_sound;
+	audio_instance tab_politics_sound;
+	audio_instance tab_diplomacy_sound;
+	audio_instance tab_military_sound;
+	audio_instance tab_population_sound;
+	audio_instance tab_production_sound;
+	audio_instance tab_technology_sound;
 	audio_instance technology_finished_sound;
 	audio_instance army_move_sound;
 	audio_instance army_select_sound;
