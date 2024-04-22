@@ -718,16 +718,12 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
-		if(line_height == 0.f)
-			return;
-		visible_lines = base_data.size.y / int32_t(line_height);
+		visible_lines = base_data.size.y / std::max<int32_t>(int32_t(line_height), 1);
 	}
 }
 
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
-		if(line_height == 0.f)
-			return;
 		for(auto& t : internal_layout.contents) {
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
@@ -739,8 +735,6 @@ void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y
 }
 
 message_result multiline_text_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(line_height == 0.f)
-		return message_result::unseen;;
 	auto const* chunk = internal_layout.get_chunk_from_position(x, y + int32_t(line_height * float(current_line)));
 	if(chunk != nullptr) {
 		if(std::holds_alternative<dcon::nation_id>(chunk->source)) {
