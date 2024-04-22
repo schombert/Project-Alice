@@ -498,6 +498,7 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
 		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 	}
+	glLineWidth(2.0f);
 	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
 		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
 	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
@@ -507,7 +508,6 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	} else {
 		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
 	}
-	glLineWidth(2.0f);
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
