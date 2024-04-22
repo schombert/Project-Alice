@@ -317,6 +317,17 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 	map_data.set_text_lines(state, text_data);
+
+	if(state.cheat_data.province_names) {
+		std::vector<text_line_generator_data> p_text_data;
+		for(auto p : state.world.in_province) {
+			if(p.get_name()) {
+				std::string name = text::produce_simple_string(state, p.get_name());
+				p_text_data.emplace_back(name, glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+			}
+		}
+		map_data.set_province_text_lines(state, p_text_data);
+	}
 }
 
 void map_state::update(sys::state& state) {

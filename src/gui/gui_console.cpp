@@ -59,6 +59,7 @@ struct command_info {
 		instant_industry,
 		innovate,
 		daily_oos_check,
+		province_names,
 		color_blind_mode
 	} mode = type::none;
 	std::string_view desc;
@@ -214,6 +215,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
@@ -1663,6 +1667,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
 		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::province_names:
+	{
+		state.cheat_data.province_names = not state.cheat_data.province_names;
+		log_to_console(state, parent, state.cheat_data.province_names ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::color_blind_mode:
