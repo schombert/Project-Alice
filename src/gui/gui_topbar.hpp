@@ -1568,7 +1568,6 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
 		text::add_to_substitution_map(sub, text::variable_type::attacker, state.primary_crisis_attacker);
@@ -1576,46 +1575,48 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::date, state.last_crisis_end_date);
 		text::add_to_substitution_map(sub, text::variable_type::time, int32_t(state.defines.crisis_cooldown_months));
 		if(state.current_crisis_mode == sys::crisis_mode::inactive) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_inactive"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_attacker"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_defender"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_heating_up"), sub);
+			text::close_layout_box(contents, box);
 			//atackers
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_1"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_1"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && par.supports_attacker) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 			//defenders
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_2"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_2"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && !par.supports_attacker) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 			//merely interested
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_3"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_3"));
 			for(const auto par : state.crisis_participants) {
 				if(par.merely_interested) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 		}
 		if(state.last_crisis_end_date) {
-			text::add_line_break_to_layout_box(state, contents, box);
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_last_crisis"), sub);
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
