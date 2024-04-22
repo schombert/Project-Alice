@@ -2,11 +2,29 @@
 
 We missed you all, and we're sorry for not making a March dev diary, but sometimes you want to "stack things" until you have enough to talk about.
 
-Most of the things that were done on March were of technical aspects, such as bug fixes, nudges, and fixing some glitches. Not a lot to showcase visually.\
+Most of the things that were done on March were of technical aspects, such as bug fixes, nudges, and fixing some glitches. Not a lot to showcase visually.
 
 ## 1.0.13
 
 As of writing, the current version is 1.0.13, this new version includes many new features, fixes for mods and extremely useful features for management and gameplay.
+
+## Colorblind mode
+
+One key aspect I've wanted to work on since I first joined this project was accesibility: Making the game more accessible for people with disabilities or impairments.
+
+I think the original is pretty much garbage at this, contrast is low, and the only option that barely ressembles a "constrast" option is the gamma filter.
+
+I wanted to change this, hence, I started to identify key areas of the game that required contrast to be more visible, recolour elements so that key information isn't lost and ensure that the general experience is as smooth as possible for visually impaired people.
+
+Both images are using a simulator to simulate how a colourblind person would see them, first one is no adjustment (colour blind mode is off), second one is adjustments for deutan and protan:
+
+![](./images/cb_pro1.png)
+
+![](./images/cb_pro2.png)
+
+For now it is still very basic and pales in comparison to making the game unviersally distinc (try playing in grayscale and using achromatic mode, you'll most likely encounter issues).
+
+But it's a good foundation for building upon, and to provide further accesibility to our users.
 
 ## DDS fixes
 
@@ -125,10 +143,15 @@ Additionally, new console commands have been added, while some broken ones were 
 We also added some new sound effects to the console, so it's less "silent", to say the least.
 
 ![](./images/con1.png)
+
 *A checkmark and a cross to indicate the state of cheats*
+
 ![](./images/con2.png)
+
 *New console commands, add pop, instant_industry, tcore, innovate*
+
 ![](./images/con3.png)
+
 *Suggestions for innovate command*
 
 ## That's all for now!
