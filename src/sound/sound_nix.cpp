@@ -164,6 +164,10 @@ void initialize_sound_system(sys::state& state) {
 		{ &state.sound_ptr->tab_production_sound, NATIVE("NU_TabProduction.wav") },
 		{ &state.sound_ptr->tab_technology_sound, NATIVE("NU_TabTechnology.wav") },
 		{ &state.sound_ptr->tab_military_sound, NATIVE("NU_TabMilitary.wav") },
+		{ &state.sound_ptr->event_sound, NATIVE("NU_Event.wav") },
+		{ &state.sound_ptr->decision_sound, NATIVE("NU_Decision.wav") },
+		{ &state.sound_ptr->pause_sound, NATIVE("NU_Pause.wav") },
+		{ &state.sound_ptr->unpause_sound, NATIVE("NU_Unpause.wav") },
 		{ &state.sound_ptr->province_select_sounds[0], NATIVE("NU_ProvSelect1.wav") },
 		{ &state.sound_ptr->province_select_sounds[1], NATIVE("NU_ProvSelect2.wav") },
 		{ &state.sound_ptr->province_select_sounds[2], NATIVE("NU_ProvSelect3.wav") },
@@ -351,6 +355,19 @@ audio_instance& get_console_open_sound(sys::state& state) {
 }
 audio_instance& get_console_close_sound(sys::state& state) {
 	return state.sound_ptr->console_close_sound;
+}
+
+audio_instance& get_event_sound(sys::state& state) {
+	return state.sound_ptr->event_sound;
+}
+audio_instance& get_decision_sound(sys::state& state) {
+	return state.sound_ptr->decision_sound;
+}
+audio_instance& get_pause_sound(sys::state& state) {
+	return state.sound_ptr->pause_sound;
+}
+audio_instance& get_unpause_sound(sys::state& state) {
+	return state.sound_ptr->unpause_sound;
 }
 
 audio_instance& get_random_land_battle_sound(sys::state& state) {

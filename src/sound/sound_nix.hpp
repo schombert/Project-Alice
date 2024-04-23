@@ -66,6 +66,10 @@ public:
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
 	audio_instance province_select_sounds[4];
+	audio_instance event_sound;
+	audio_instance decision_sound;
+	audio_instance pause_sound;
+	audio_instance unpause_sound;
 
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;
