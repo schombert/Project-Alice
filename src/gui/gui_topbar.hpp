@@ -899,6 +899,13 @@ public:
 		base_data.data.button.shortcut = sys::virtual_key::SPACE;
 	}
 
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		if(state.actual_game_speed <= 0) {
+			return sound::get_unpause_sound(state);
+		}
+		return sound::get_pause_sound(state);
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(state.actual_game_speed <= 0) {
 			state.actual_game_speed = state.ui_state.held_game_speed;

@@ -111,6 +111,10 @@ public:
 
 class make_decision : public button_element_base {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_decision_sound(state);
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::decision_id>(state, parent);
 		command::take_decision(state, state.local_player_nation, content);
