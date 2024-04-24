@@ -799,8 +799,62 @@ public:
 	element_base* topbar_subwindow = nullptr;
 };
 
+class topbar_budget_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_budget_sound(state);
+	}
+};
+class topbar_trade_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		// for now we reuse the budget tab sound
+		return sound::get_tab_budget_sound(state);
+	}
+};
+class topbar_politics_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_politics_sound(state);
+	}
+};
+class topbar_diplomacy_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_diplomacy_sound(state);
+	}
+};
+class topbar_military_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_military_sound(state);
+	}
+};
+class topbar_population_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_population_sound(state);
+	}
+};
+class topbar_production_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_production_sound(state);
+	}
+};
+class topbar_technology_tab_button : public topbar_tab_button {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_technology_sound(state);
+	}
+};
+
 class topbar_population_view_button : public topbar_tab_button {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_tab_population_sound(state);
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto const override_and_show_tab = [&]() {
 			topbar_subwindow->set_visible(state, true);
@@ -843,6 +897,13 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		base_data.data.button.shortcut = sys::virtual_key::SPACE;
+	}
+
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		if(state.actual_game_speed <= 0) {
+			return sound::get_unpause_sound(state);
+		}
+		return sound::get_pause_sound(state);
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -1568,7 +1629,6 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{state.crisis_temperature});
 		text::add_to_substitution_map(sub, text::variable_type::attacker, state.primary_crisis_attacker);
@@ -1576,46 +1636,48 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::date, state.last_crisis_end_date);
 		text::add_to_substitution_map(sub, text::variable_type::time, int32_t(state.defines.crisis_cooldown_months));
 		if(state.current_crisis_mode == sys::crisis_mode::inactive) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_inactive"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::finding_attacker) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_attacker"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::finding_defender) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_finding_defender"), sub);
+			text::close_layout_box(contents, box);
 		} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_heating_up"), sub);
+			text::close_layout_box(contents, box);
 			//atackers
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_1"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_1"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && par.supports_attacker) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 			//defenders
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_2"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_2"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && !par.supports_attacker) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 			//merely interested
-			text::localised_format_box(state, contents, box, std::string_view("alice_crisis_par_3"), sub);
-			text::add_line_break_to_layout_box(state, contents, box);
+			text::add_line(state, contents, std::string_view("alice_crisis_par_3"));
 			for(const auto par : state.crisis_participants) {
 				if(par.merely_interested) {
-					text::add_to_layout_box(state, contents, box, par.id);
-					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_line(state, contents, state.world.nation_get_name(par.id));
 				}
 			}
 		}
 		if(state.last_crisis_end_date) {
-			text::add_line_break_to_layout_box(state, contents, box);
+			auto box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, std::string_view("alice_last_crisis"), sub);
+			text::close_layout_box(contents, box);
 		}
-		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1803,21 +1865,21 @@ public:
 		} else if(name == "topbar_paper") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "topbarbutton_production") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_production_tab_button>(state, id);
 
 			auto tab = make_element_by_type<production_window>(state, "country_production");
 			state.ui_state.production_subwindow = state.ui_state.topbar_subwindow = btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_budget") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_budget_tab_button>(state, id);
 
 			auto tab = make_element_by_type<budget_window>(state, "country_budget");
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_tech") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_technology_tab_button>(state, id);
 
 			auto tab = make_element_by_type<technology_window>(state, "country_technology");
 			btn->topbar_subwindow = tab.get();
@@ -1826,7 +1888,7 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_politics") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_politics_tab_button>(state, id);
 			auto tab = make_element_by_type<politics_window>(state, "country_politics");
 			btn->topbar_subwindow = tab.get();
 
@@ -1842,7 +1904,7 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_trade") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_trade_tab_button>(state, id);
 
 			auto tab = make_element_by_type<trade_window>(state, "country_trade");
 			btn->topbar_subwindow = tab.get();
@@ -1851,14 +1913,14 @@ public:
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_diplomacy") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_diplomacy_tab_button>(state, id);
 
 			auto tab = make_element_by_type<diplomacy_window>(state, "country_diplomacy");
 			btn->topbar_subwindow = tab.get();
 			state.ui_state.root->add_child_to_back(std::move(tab));
 			return btn;
 		} else if(name == "topbarbutton_military") {
-			auto btn = make_element_by_type<topbar_tab_button>(state, id);
+			auto btn = make_element_by_type<topbar_military_tab_button>(state, id);
 
 			auto tab = make_element_by_type<military_window>(state, "country_military");
 			btn->topbar_subwindow = tab.get();

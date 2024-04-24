@@ -213,37 +213,29 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 
 	virtual void button_action(sys::state& state) noexcept { }
+	virtual sound::audio_instance& get_click_sound(sys::state& state) noexcept {
+		return sound::get_click_sound(state);
+	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled) {
-				//ToDo: Make button change appearance while pressed
-				//disabled = true;
-			}
-		} else if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-						state.user_settings.interface_volume * state.user_settings.master_volume);
+		if(!state.user_settings.left_mouse_click_hold_and_release && !disabled) {
+			sound::play_interface_sound(state, get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 		}
 		return message_result::consumed;
 	}
 	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled && under_mouse) {
-				//disabled = false;
-				sound::play_interface_sound(state, sound::get_click_sound(state),
-						state.user_settings.interface_volume * state.user_settings.master_volume);
-				button_action(state);
-			} else {
-				//ToDo: Make button revert appearance when released
-				//disabled = false;
-			}
+		if(state.user_settings.left_mouse_click_hold_and_release && !disabled && under_mouse) {
+			sound::play_interface_sound(state, get_click_sound(state),
+					state.user_settings.interface_volume * state.user_settings.master_volume);
+			button_action(state);
 		}
 		return message_result::consumed;
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, get_click_sound(state),
+				state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_action(state);
 			return message_result::consumed;
 		} else {
@@ -265,7 +257,7 @@ public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_right_action(state);
 		}
 		return message_result::consumed;
@@ -277,7 +269,7 @@ public:
 	virtual void button_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_right_action(state);
 		}
 		return message_result::consumed;
@@ -294,7 +286,7 @@ public:
 				//disabled = true;
 			}
 		} else if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
+			sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
 				button_shift_action(state);
@@ -306,7 +298,7 @@ public:
 	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
 		if(state.user_settings.left_mouse_click_hold_and_release) {
 			if(under_mouse) {
-				sound::play_interface_sound(state, sound::get_click_sound(state),
+				sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 				if(mods == sys::key_modifiers::modifiers_shift)
 					button_shift_action(state);
@@ -321,7 +313,7 @@ public:
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
+			sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
 				button_shift_action(state);
@@ -348,7 +340,7 @@ public:
 				//disabled = true;
 			}
 		} else if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
+			sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
 				buttons_ctrl_shift_action(state);
@@ -364,7 +356,7 @@ public:
 	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
 		if(state.user_settings.left_mouse_click_hold_and_release) {
 			if(under_mouse) {
-				sound::play_interface_sound(state, sound::get_click_sound(state),
+				sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 				if(mods == sys::key_modifiers::modifiers_ctrl_shift)
 					buttons_ctrl_shift_action(state);
@@ -383,7 +375,7 @@ public:
 	}
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
+			sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
 				buttons_ctrl_shift_action(state);
@@ -406,7 +398,7 @@ public:
 	virtual void button_shift_right_action(sys::state& state) noexcept { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
 				button_shift_right_action(state);
 			else
@@ -841,6 +833,9 @@ class scrollbar_left : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_click_left_sound(state);
+	}
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
 	void button_shift_right_action(sys::state& state) noexcept final;
@@ -862,6 +857,9 @@ class scrollbar_right : public shift_right_button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_click_right_sound(state);
+	}
 	void button_action(sys::state& state) noexcept final;
 	void button_shift_action(sys::state& state) noexcept final;
 	void button_shift_right_action(sys::state& state) noexcept final;

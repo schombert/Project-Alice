@@ -13,6 +13,9 @@ using event_data_wrapper =  std::variant< event::pending_human_n_event, event::p
 
 class event_option_button : public button_element_base {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_event_sound(state);
+	}
 	void on_update(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
