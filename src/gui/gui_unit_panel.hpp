@@ -112,10 +112,21 @@ public:
 	}
 };
 
-class unit_selection_disband_too_small_button : public button_element_base {
+class unit_selection_disband_too_small_button : public tinted_button_element_base {
 public:
+	void on_create(sys::state& state) noexcept override{
+		auto const it = state.ui_state.defs_by_name.find("disbandbutton");
+		if(it != state.ui_state.defs_by_name.end()) {
+			base_data.data.button.button_image = state.ui_defs.gui[it->second.definition].data.button.button_image;
+		}
+		tinted_button_element_base::on_create(state);
+	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));
+		color = sys::pack_color(255, 196, 196);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+			color = sys::pack_color(196, 196, 255); //remap to blue
+		}
 	}
 	void button_action(sys::state& state) noexcept override {
 		 command::disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));

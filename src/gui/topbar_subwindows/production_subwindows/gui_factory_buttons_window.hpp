@@ -6,7 +6,7 @@
 
 namespace ui {
 
-class factory_prod_subsidise_all_button : public button_element_base {
+class factory_prod_subsidise_all_button : public tinted_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(!parent)
@@ -31,6 +31,12 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 		disabled = (rules & issue_rule::can_subsidise) == 0;
+		color = sys::pack_color(255, 255, 255);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+			color = sys::pack_color(114, 150, 77); //remap to yellow
+		} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+			color = sys::pack_color(128, 128, 128);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -44,7 +50,7 @@ public:
 	}
 };
 
-class factory_prod_unsubsidise_all_button : public button_element_base {
+class factory_prod_unsubsidise_all_button : public tinted_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		if(!parent)
@@ -69,6 +75,12 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto rules = state.world.nation_get_combined_issue_rules(state.local_player_nation);
 		disabled = (rules & issue_rule::can_subsidise) == 0;
+		color = sys::pack_color(255, 255, 255);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+			color = sys::pack_color(255, 100, 255); //remap to blue
+		} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+			color = sys::pack_color(196, 196, 196);
+		}
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
