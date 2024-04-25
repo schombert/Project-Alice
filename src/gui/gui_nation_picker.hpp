@@ -230,6 +230,7 @@ public:
 		/* Savefiles might load with new railroads, so for responsiveness we
 		   update whenever one is loaded. */
 		state.map_state.set_selected_province(dcon::province_id{});
+		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
