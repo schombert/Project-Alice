@@ -1566,6 +1566,7 @@ class province_build_unit : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = true;
+		//
 		auto p = retrieve<dcon::province_id>(state, parent);
 		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
 			auto utid = dcon::unit_type_id(i);
@@ -1575,25 +1576,25 @@ public:
 			if(def.is_land != std::is_same_v<T, dcon::army_id>)
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				state.world.for_each_culture([&](dcon::culture_id c) {
+				for(const auto c : state.world.in_culture) {
 					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
-									can_build = true;
+									disabled = false;
 									break;
 								}
 							}
 						}
 					}
-				});
+					if(!disabled)
+						break;
+				}
 			} else {
-				can_build = command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+				disabled = !command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
 			}
-			if(can_build) {
-				disabled = false;
+			if(!disabled)
 				break;
-			}
 		}
 	}
 
