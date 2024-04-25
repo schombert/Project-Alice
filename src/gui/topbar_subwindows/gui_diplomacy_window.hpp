@@ -1173,8 +1173,8 @@ public:
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
 			win->gp_num = 0;
 			win->base_data.position = sub_window_top_left;
-			win->base_data.position.x += win->base_data.size.y * (i / row_count);
-			win->base_data.position.y += win->base_data.size.y * (i % row_count);
+			win->base_data.position.x += win->base_data.size.y * int16_t(i / row_count);
+			win->base_data.position.y += win->base_data.size.y * int16_t(i % row_count);
 			non_gp_elements[1 + i] = win.get();
 			add_child_to_front(std::move(win));
 		}
