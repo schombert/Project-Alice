@@ -2164,7 +2164,7 @@ public:
 
 		//Hide unit builder if not our province
 		auto n = state.world.province_get_nation_from_province_ownership(active_province);
-		if(state.ui_state.build_province_unit_window && state.ui_state.build_unit_window->is_visible() && n != state.local_player_nation) {
+		if(state.ui_state.build_province_unit_window && state.ui_state.build_province_unit_window->is_visible() && n != state.local_player_nation) {
 			state.ui_state.build_province_unit_window->set_visible(state, false);
 		}
 	}
