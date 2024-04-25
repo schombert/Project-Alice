@@ -11,6 +11,7 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_production_window.hpp"
+#include "gui_build_unit_large_window.hpp"
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
 
@@ -1510,6 +1511,102 @@ public:
 	}
 };
 
+class province_army_progress_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		float amount = 0.f;
+		float total = 0.f;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
+					auto& current_purchased = lc.get_purchased_goods();
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(base_cost.commodity_type[i]) {
+							amount += current_purchased.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i];
+						} else {
+							break;
+						}
+					}
+				}
+			}
+		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
+	}
+};
+class province_navy_progress_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		float amount = 0.f;
+		float total = 0.f;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
+			auto& current_purchased = nc.get_purchased_goods();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					amount += current_purchased.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i];
+				} else {
+					break;
+				}
+			}
+		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
+	}
+};
+
+
+template<typename T>
+class province_build_unit : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = true;
+		//
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto utid = dcon::unit_type_id(i);
+			auto const& def = state.military_definitions.unit_base_definitions[utid];
+			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				continue;
+			if(def.is_land != std::is_same_v<T, dcon::army_id>)
+				continue;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				for(const auto c : state.world.in_culture) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
+							if(pl.get_pop().get_culture() == c) {
+								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
+									disabled = false;
+									break;
+								}
+							}
+						}
+					}
+					if(!disabled)
+						break;
+				}
+			} else {
+				disabled = !command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+			}
+			if(!disabled)
+				break;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.build_province_unit_window) {
+			state.ui_state.build_province_unit_window->set_visible(state, true);
+			Cyto::Any payload = Cyto::any_cast<T>(T{});
+			state.ui_state.build_province_unit_window->impl_get(state, payload);
+		}
+	}
+};
+
 class province_view_buildings : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1572,11 +1669,14 @@ public:
 			return make_element_by_type<naval_rally_point>(state, id);
 		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
 			return make_element_by_type<merge_rally_point>(state, id);
-		} else if(name == "army_text"
-			|| name == "navy_text"
-			|| name == "build_army"
-			|| name == "build_navy") {
-			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "build_army") {
+			return make_element_by_type<province_build_unit<dcon::army_id>>(state, id);
+		} else if(name == "build_navy") {
+			return make_element_by_type<province_build_unit<dcon::navy_id>>(state, id);
+		} else if(name == "army_text") {
+			return make_element_by_type<province_army_progress_text>(state, id);
+		} else if(name == "navy_text") {
+			return make_element_by_type<province_navy_progress_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1982,6 +2082,10 @@ public:
 		window_element_base::on_create(state);
 		state.ui_state.province_window = this;
 		set_visible(state, false);
+		//
+		auto ptr = make_element_by_type<build_unit_province_window>(state, "build_unit_view");
+		state.ui_state.build_province_unit_window = ptr.get();
+		add_child_to_front(std::move(ptr));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -2057,6 +2161,12 @@ public:
 		local_details_window->impl_on_update(state);
 		local_buildings_window->impl_on_update(state);
 		colony_window->impl_on_update(state);
+
+		//Hide unit builder if not our province
+		auto n = state.world.province_get_nation_from_province_ownership(active_province);
+		if(state.ui_state.build_province_unit_window && state.ui_state.build_province_unit_window->is_visible() && n != state.local_player_nation) {
+			state.ui_state.build_province_unit_window->set_visible(state, false);
+		}
 	}
 
 	friend class province_national_focus_button;
