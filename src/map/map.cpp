@@ -1618,7 +1618,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		for(float x = 0.f; x <= 1.f; x += x_step)
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 
-		float size = (curve_length / text_length) * 0.85f;
+		float size = (curve_length / text_length) * 0.66f;
 		if(size > 200.0f) {
 			size = 200.0f + (size - 200.0f) * 0.5f;
 		}
