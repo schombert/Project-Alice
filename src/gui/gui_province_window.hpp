@@ -1534,9 +1534,7 @@ public:
 				}
 			}
 		}
-		if(total > 0.f) {
-			set_text(state, text::format_percentage(amount / total));
-		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
 	}
 };
 class province_navy_progress_text : public simple_text_element_base {
@@ -1558,9 +1556,7 @@ public:
 				}
 			}
 		}
-		if(total > 0.f) {
-			set_text(state, text::format_percentage(amount / total));
-		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
 	}
 };
 
@@ -1568,6 +1564,39 @@ public:
 template<typename T>
 class province_build_unit : public button_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = true;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto utid = dcon::unit_type_id(i);
+			auto const& def = state.military_definitions.unit_base_definitions[utid];
+			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				continue;
+			if(def.is_land != std::is_same_v<T, dcon::army_id>)
+				continue;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				state.world.for_each_culture([&](dcon::culture_id c) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
+							if(pl.get_pop().get_culture() == c) {
+								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
+									can_build = true;
+									break;
+								}
+							}
+						}
+					}
+				});
+			} else {
+				can_build = command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+			}
+			if(can_build) {
+				disabled = false;
+				break;
+			}
+		}
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		if(state.ui_state.build_province_unit_window) {
 			state.ui_state.build_province_unit_window->set_visible(state, true);
