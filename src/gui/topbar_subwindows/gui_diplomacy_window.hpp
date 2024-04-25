@@ -1171,9 +1171,9 @@ public:
 		uint32_t row_count = uint32_t(state.defines.great_nations_count) / 2;
 		for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count); i++) {
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 0;
+			win->gp_num = int32_t(i);
 			win->base_data.position = sub_window_top_left;
-			win->base_data.position.x += win->base_data.size.y * int16_t(i / row_count);
+			win->base_data.position.x += win->base_data.size.x * int16_t(i / row_count);
 			win->base_data.position.y += win->base_data.size.y * int16_t(i % row_count);
 			non_gp_elements[1 + i] = win.get();
 			add_child_to_front(std::move(win));
