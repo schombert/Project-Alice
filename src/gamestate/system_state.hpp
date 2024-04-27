@@ -383,6 +383,7 @@ struct user_settings_s {
 	bool diplomatic_message_popup = false;
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
+	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

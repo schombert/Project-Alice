@@ -394,6 +394,57 @@ void vassal_color_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void color_blind_left::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.color_blind_mode);
+	if(index > 0) {
+		state.user_settings.color_blind_mode = sys::color_blind_mode(index - 1);
+		map_mode::update_map_mode(state);
+		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.rgos_root->impl_on_update(state);
+		state.ui_state.root->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void color_blind_left::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.color_blind_mode) == 0);
+}
+void color_blind_right::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.color_blind_mode);
+	if(index < 4) {
+		state.user_settings.color_blind_mode = sys::color_blind_mode(index + 1);
+		map_mode::update_map_mode(state);
+		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.rgos_root->impl_on_update(state);
+		state.ui_state.root->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void color_blind_right::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.color_blind_mode) >= 4);
+}
+void color_blind_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.color_blind_mode) {
+	case sys::color_blind_mode::none:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_none"));
+		break;
+	case sys::color_blind_mode::deutan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_deutan"));
+		break;
+	case sys::color_blind_mode::protan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_protan"));
+		break;
+	case sys::color_blind_mode::tritan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_tritan"));
+		break;
+	case sys::color_blind_mode::achroma:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_achroma"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+
 /*
 class autosave_left : public button_element_base {
 public:

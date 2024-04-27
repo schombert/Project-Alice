@@ -530,6 +530,13 @@ enum class network_mode_type {
 	host
 };
 
+enum class color_blind_mode {
+	none,
+	protan, //lack red
+	deutan, //lack green
+	tritan, //lack blue
+	achroma, //black and white
+};
 
 constexpr int32_t max_event_options = 8;
 
