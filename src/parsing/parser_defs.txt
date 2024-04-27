@@ -1479,6 +1479,8 @@ effect_body
 	increment_variable              value       text                        member_fn
 	decrement_variable              value       text                        member_fn
 	set_variable_to_zero            value       text                        member_fn
+	lambda_country_event			extern		lambda_country_event		discard
+	lambda_province_event			extern		lambda_province_event		discard
 	#any                            extern      ef_scope_variable           discard
 
 cb_body
