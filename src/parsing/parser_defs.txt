@@ -44,14 +44,17 @@ gfx_files
 	#any         group      none         discard
 
 gui_element_common
-	position     group      gfx_xy_pair   member_fn
-	size         group      gfx_xy_pair   member_fn
-	rotation     value      text          member_fn
-	name         value      text          member_fn
-	orientation  value      text          member_fn
-	maxheight    value      int           member_fn
-	maxwidth     value      int           member_fn
-	maxsize      group      gfx_xy_pair   member_fn
+	position			group		gfx_xy_pair		member_fn
+	size				group		gfx_xy_pair		member_fn
+	rotation			value		text			member_fn
+	name				value		text			member_fn
+	orientation			value		text			member_fn
+	maxheight			value		int				member_fn
+	maxwidth			value		int				member_fn
+	maxsize				group		gfx_xy_pair		member_fn
+	add_size			group		gfx_xy_pair		member_fn
+	add_position		group		gfx_xy_pair		member_fn
+	table_layout		group		gfx_xy_pair		member_fn
 
 button
 	#base                 gui_element_common
