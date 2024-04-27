@@ -889,6 +889,7 @@ class minimap_open_message_log_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, open_msg_log_data{});
+		set_visible(state, false);
 	}
 };
 class minimap_zoom_in_button : public button_element_base {
@@ -919,7 +920,6 @@ public:
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 	minimap_open_message_log_button* open_btn = nullptr;
-	minimap_open_message_log_button* close_btn = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
