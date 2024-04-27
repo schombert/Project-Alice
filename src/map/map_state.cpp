@@ -137,7 +137,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				if(float(e.second) / float(total_provinces) >= 0.75f) {
 					// Adjective + " " + National identity
 					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-					if(state.world.national_identity_get_name(nid)) {
+					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
 						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
 						break;
 					}
