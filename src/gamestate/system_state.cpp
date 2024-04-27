@@ -50,6 +50,7 @@ void state::start_state_selection(state_selection_data& data) {
 	state_selection = data;
 	stored_map_mode = map_state.active_map_mode;
 	map_mode::set_map_mode(*this, map_mode::mode::state_select);
+	map_state.set_selected_province(dcon::province_id{});
 	ui_state.select_states_legend->impl_on_update(*this);
 }
 
