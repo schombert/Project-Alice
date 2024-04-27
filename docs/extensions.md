@@ -186,6 +186,22 @@ Alice adds a handful of new defines:
 - `alice_ev_needs_scale`: Scale multiplier for everyday needs
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
 - `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
+- `alice_needs_scaling_factor`: Scale factor multiplier for all needs
+- `alice_factory_per_level_employment`: Employment per factory level.
+- `alice_domestic_investment_multiplier`: Multiplier of domestic investment.
+- `alice_rgo_boost`: Boost given to RGOs (for example, 1.2 produces 120% more)
+- `alice_inputs_base_factor_artisans`: Artisan input base factor + modifiers.
+- `alice_output_base_factor_artisans`: See above.
+- `alice_inputs_base_factor`: See above, for factories.
+- `alice_rgo_overhire_multiplier`: Overhire multiplier for RGOs.
+- `alice_rgo_production_scale_neg_delta`: Scale delta for RGO production.
+- `alice_invest_capitalist`: % of total budget that capitalists will invest in the private investment pool
+- `alice_invest_aristocrat`: See above.
+- `alice_needs_lf_spend`: % of total budget dedicated to life needs
+- `alice_needs_ev_spend`: See above, but everyday needs
+- `alice_needs_lx_spend`: See above, but luxury needs
+- `alice_sat_delay_factor`: Satisfaction delay factor
+- `alice_need_drift_speed`: Drift speed of need weights for POPs
 
 ### Dense CSV pop listing
 

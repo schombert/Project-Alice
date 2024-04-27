@@ -893,7 +893,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 
 				float output_total = type.get_output_amount() * state.world.commodity_get_current_price(type.get_output());
 
-				float input_multiplier = std::max(0.1f, (economy::inputs_base_factor +
+				float input_multiplier = std::max(0.1f, (state.defines.alice_inputs_base_factor +
 					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)));
 
 				float output_multiplier = state.world.nation_get_factory_goods_output(n, type.get_output()) +

@@ -875,8 +875,8 @@ class normal_factory_background : public opaque_element_base {
 
 		float wage_estimation =
 			factory_min_wage
-			* economy::factory_per_level_employment
-			/ economy::needs_scaling_factor
+			* state.defines.alice_factory_per_level_employment
+			/ state.defines.alice_needs_scaling_factor
 			* effective_production_scale;
 
 		total_expenses += wage_estimation;
