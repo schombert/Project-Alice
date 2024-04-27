@@ -557,31 +557,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
-		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if((state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-				|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
-				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
-			}
-		} else if(state.map_state.selected_province) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if(p0 == state.map_state.selected_province || p1 == state.map_state.selected_province) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
-			}
-		}
 	} else {
 		if(zoom > map::zoom_very_close) { // Render province borders
 			glUniform1f(4, 0.0001f); // width
@@ -614,28 +589,89 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
+	}
+	if(state.map_state.selected_province || (state.local_player_nation && state.mode == sys::game_mode_type::pick_nation)) {
+		glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 				if((state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-				|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
+					|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
 				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 				}
 			}
-		} else if(state.map_state.selected_province) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+		} else if(state.mode == sys::game_mode_type::select_states) {
+			auto owner = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+			if(owner) {
+				auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
+				//per state
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_state_membership(p0) == siid
+						|| state.world.province_get_state_membership(p1) == siid)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			}
+		} else {
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 				if(p0 == state.map_state.selected_province || p1 == state.map_state.selected_province) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+	}
+	dcon::province_id prov{};
+	glm::vec2 map_pos;
+	if(state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
+		map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
+		auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
+		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
+			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
+			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			auto owner = state.world.province_get_nation_from_province_ownership(prov);
+			if(owner && state.mode == sys::game_mode_type::pick_nation) {
+				//per nation
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_nation_from_province_ownership(p0) == owner
+						|| state.world.province_get_nation_from_province_ownership(p1) == owner)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			} else if(owner && state.mode == sys::game_mode_type::select_states) {
+				auto siid = state.world.province_get_state_membership(prov);
+				//per state
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_state_membership(p0) == siid
+						|| state.world.province_get_state_membership(p1) == siid)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			} else {
+				//per province
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if(p0 == prov || p1 == prov) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
 				}
 			}
 		}
