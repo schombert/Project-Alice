@@ -1007,7 +1007,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 }
 
 void lambda_country_event(token_generator& gen, error_handler& err, effect_building_context& context) {
-	event_building_context e_context{ context.outer_context, trigger::slot_contents::nation, context.this_slot, context.from_slot };
+	event_building_context e_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation, context.this_slot };
 	auto event_result = parse_generic_event(gen, err, e_context);
 	auto id = context.outer_context.state.world.create_national_event();
 	auto fid = dcon::fatten(context.outer_context.state.world, id);
@@ -1094,7 +1094,7 @@ void lambda_country_event(token_generator& gen, error_handler& err, effect_build
 	}
 }
 void lambda_province_event(token_generator& gen, error_handler& err, effect_building_context& context) {
-	event_building_context e_context{ context.outer_context, trigger::slot_contents::province, context.this_slot, context.from_slot };
+	event_building_context e_context{ context.outer_context, trigger::slot_contents::province, trigger::slot_contents::province, context.this_slot };
 	auto event_result = parse_generic_event(gen, err, e_context);
 	auto id = context.outer_context.state.world.create_provincial_event();
 	auto fid = dcon::fatten(context.outer_context.state.world, id);
