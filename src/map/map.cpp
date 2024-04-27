@@ -582,7 +582,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		{
 			glUniform1f(4, 0.0003f); // width
 			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
 				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) == province::border::national_bit) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
@@ -639,7 +639,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
 			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
 			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 			auto owner = state.world.province_get_nation_from_province_ownership(prov);
 			if(owner && state.mode == sys::game_mode_type::pick_nation) {
 				//per nation
