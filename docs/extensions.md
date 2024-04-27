@@ -17,6 +17,52 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
 - `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 
+### Lambda events
+
+Define anonymous lambda events within events, no need to give them an ID.
+
+```
+country_event = {
+	id = 1000
+	# etc...
+	option = {
+		name = "Option A"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+	option = {
+		name = "Option B"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+}
+```
+
+This allows essentially to "inline" anonymous events, for example when doing a FAQ section event, or doing a long event chain for setup or "LARP choices" purpouses.
+
+These events can't be triggered with the `event` command, nor can they be referenced by other events, they never will trigger on their own and will always be treated as if they were `is_triggered_only = yes`.
+
+- `lambda_country_event`: Main slot is a `country`, inherits `FROM` and `THIS` slot types.
+- `lambda_province_event`: Main slot is a `province`, inherits `FROM` and `THIS` slot types.
+
 ### Scripted Triggers
 
 We have added the ability to write complicated trigger conditions once and then to use that same condition multiple times inside other trigger conditions. To use these "scripted triggers," you must add a `scripted triggers` directory to your mod (at the top level of your mod, so the path will look like: `...\mod name\scripted triggers`). Place any number of `.txt` files inside this directory, each of which can contain any number of scripted triggers.

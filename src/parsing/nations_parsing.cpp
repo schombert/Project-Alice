@@ -1006,6 +1006,143 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 	}
 }
 
+void lambda_country_event(token_generator& gen, error_handler& err, effect_building_context& context) {
+	event_building_context e_context{ context.outer_context, trigger::slot_contents::nation, context.this_slot, context.from_slot };
+	auto event_result = parse_generic_event(gen, err, e_context);
+	auto id = context.outer_context.state.world.create_national_event();
+	auto fid = dcon::fatten(context.outer_context.state.world, id);
+	fid.set_description(event_result.desc_);
+	fid.set_name(event_result.title_);
+	fid.set_image(event_result.picture_);
+	fid.set_immediate_effect(event_result.immediate_);
+	fid.set_is_major(event_result.major);
+	fid.get_options() = event_result.options;
+	//Effect
+	ef_country_event value;
+	value.days = 0;
+	value.id_ = id;
+	if(context.main_slot == trigger::slot_contents::nation) {
+		if(value.days <= 0) {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_this_pop));
+			else {
+				err.accumulated_errors +=
+					"lambda_country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+		} else {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_this_pop));
+			else {
+				err.accumulated_errors +=
+					"lambda_country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+			context.compiled_effect.push_back(uint16_t(value.days));
+		}
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		if(value.days <= 0) {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_immediate_province_this_pop));
+			else {
+				err.accumulated_errors +=
+					"lambda_country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+		} else {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_province_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_province_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_province_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::country_event_province_this_pop));
+			else {
+				err.accumulated_errors +=
+					"lambda_country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+			context.compiled_effect.push_back(uint16_t(value.days));
+		}
+	} else {
+		err.accumulated_errors +=
+			"lambda_country_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		return;
+	}
+}
+void lambda_province_event(token_generator& gen, error_handler& err, effect_building_context& context) {
+	event_building_context e_context{ context.outer_context, trigger::slot_contents::province, context.this_slot, context.from_slot };
+	auto event_result = parse_generic_event(gen, err, e_context);
+	auto id = context.outer_context.state.world.create_provincial_event();
+	auto fid = dcon::fatten(context.outer_context.state.world, id);
+	fid.set_description(event_result.desc_);
+	fid.set_name(event_result.title_);
+	fid.get_options() = event_result.options;
+	//Effect
+	ef_province_event value;
+	value.days = 0;
+	value.id_ = id;
+	if(context.main_slot == trigger::slot_contents::province) {
+		if(value.days <= 0) {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_immediate_this_pop));
+			else {
+				err.accumulated_errors += "lambda_province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+		} else {
+			if(context.this_slot == trigger::slot_contents::nation)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_this_nation));
+			else if(context.this_slot == trigger::slot_contents::province)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_this_province));
+			else if(context.this_slot == trigger::slot_contents::state)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_this_state));
+			else if(context.this_slot == trigger::slot_contents::pop)
+				context.compiled_effect.push_back(uint16_t(effect::province_event_this_pop));
+			else {
+				err.accumulated_errors += "lambda_province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(value.id_).value);
+			context.compiled_effect.push_back(uint16_t(value.days));
+		}
+	} else {
+		err.accumulated_errors +=
+			"lambda_province_event effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		return;
+	}
+}
+
 dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, event_building_context& context) {
 	trigger_building_context t_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
 	return make_trigger(gen, err, t_context);
