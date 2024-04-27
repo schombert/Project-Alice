@@ -166,6 +166,17 @@ These `else_if` statments are chained together, if the first runs, the second wi
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
 
+### .gui layout extensions
+
+Laying out elements in the GUI can be a tedious process, while a WYSWYG editor would be ideal, it's not currently available at the moment.
+
+However, the following new extensions will make GUI editing way less painful:
+
+- `add_size = { x y }`: Adds the specified amount to the current `size`
+- `add_position = { x y }`: Adds the specified amount to the current `position`
+- `table_layout = { x y }`: Where `x` is the column and `y` is the row, this basically translates to `position.x = column * size.x`, and `position.y = row * size.y`. Useful for laying out elements in a table-like way
+
+
 ### New defines
 
 Alice adds a handful of new defines:
