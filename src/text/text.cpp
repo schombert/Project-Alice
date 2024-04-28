@@ -169,28 +169,24 @@ void consume_csv_file(sys::state& state, uint32_t language, char const* file_con
 }
 
 void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
-	auto rt = get_root(state.common_fs);
+	auto root_dir = get_root(state.common_fs);
 
-	auto text_dir = open_directory(rt, NATIVE("localisation"));
-	auto all_files = list_files(text_dir, NATIVE(".csv"));
-
-	for(auto& file : all_files) {
-		auto ofile = open_file(file);
-		if(ofile) {
+	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
+		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
 			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
-
-	// special keys after all existing keys
-	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
-	if(alice_csv) {
-		auto content = view_contents(*alice_csv);
-		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size, err);
+	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+			consume_csv_file(state, language, content.data, content.file_size, err);
+		}
 	}
-
 }
 
 template<size_t N>
@@ -615,6 +611,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
+		CT_STRING_ENUM(spheremaster_adj)
 	} else if(v.length() == 17) {
 		if(false) { }
 		CT_STRING_ENUM(culture_last_name)
@@ -639,6 +636,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		if(false) { }
 		CT_STRING_ENUM(crisisattacker_capital)
 		CT_STRING_ENUM(crisisdefender_capital)
+		CT_STRING_ENUM(spheremaster_union_adj)
 	} else if(v.length() == 23) {
 		if(false) { }
 	} else if(v.length() == 24) {
@@ -733,12 +731,6 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 
 
 std::string prettify_currency(float num) {
-	if(num == 0)
-		return std::string("0  \xA4");
-
-	char buffer[200] = { 0 };
-	double dval = double(num);
-
 	constexpr static double mag[] = {
 		1.0,
 		1'000.0,
@@ -775,31 +767,32 @@ std::string prettify_currency(float num) {
 		"%.0fP \xA4",
 		"%.0fZ \xA4"
 	};
-
+	char buffer[200] = { 0 };
+	double dval = double(num);
+	if(std::abs(dval) <= 1.f) {
+		snprintf(buffer, sizeof(buffer), sufx_two[0], float(dval));
+		return std::string(buffer);
+	}
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(reduced < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(reduced < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			auto reduced = dval / mag[i];
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], float(reduced));
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
 			}
 			return std::string(buffer);
 		}
 	}
-	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
-	return std::string(buffer);
+	return std::string("#inf");
 }
 
 
 std::string prettify(int64_t num) {
 	if(num == 0)
 		return std::string("0");
-
-	char buffer[200] = {0};
-	double dval = double(num);
 
 	constexpr static double mag[] = {
 		1.0,
@@ -838,20 +831,21 @@ std::string prettify(int64_t num) {
 		"%.0fZ"
 	};
 
+	char buffer[200] = { 0 };
+	double dval = double(num);
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(reduced < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(reduced < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			auto reduced = dval / mag[i];
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], float(reduced));
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
 			}
 			return std::string(buffer);
 		}
 	}
-
 	return std::string("#inf");
 }
 
@@ -969,14 +963,7 @@ std::string format_float(float num, size_t digits) {
 }
 
 std::string format_money(float num) {
-	std::string amount = "";
-	if(num < 1000.f) {
-		amount = std::to_string(num);
-		amount = amount.substr(0, amount.find_first_of('.') + 3);
-	} else {
-		amount = prettify(int32_t(num));
-	}
-	return amount + "\xA4 ";	// Currency is postfixed, NOT prefixed
+	return prettify_currency(num); // Currency is postfixed, NOT prefixed
 }
 
 std::string format_wholenum(int32_t num) {

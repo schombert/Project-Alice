@@ -19,7 +19,7 @@ public:
 	}
 };
 
-class wargoal_type_item_button : public button_element_base {
+class wargoal_type_item_button : public tinted_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
@@ -32,6 +32,19 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = !war
+			? (military::has_truce_with(state, state.local_player_nation, target)
+				? military::truce_break_cb_infamy(state, content)
+				: military::cb_infamy(state, content))
+			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			color = sys::pack_color(255, 196, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
+
 		auto fat_id = dcon::fatten(state.world, content);
 		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
 	}
@@ -42,6 +55,16 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = !war
+			? (military::has_truce_with(state, state.local_player_nation, target)
+				? military::truce_break_cb_infamy(state, content)
+				: 0.f)
+			: military::cb_addition_infamy_cost(state, war, content, state.local_player_nation, target);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
+		}
+
 		auto fat_id = dcon::fatten(state.world, content);
 		text::add_line(state, contents, "tt_can_use_nation");
 		auto allowed_substates = fat_id.get_allowed_substate_regions();
@@ -619,7 +642,9 @@ public:
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
 			text::close_layout_box(contents, box);
+			text::add_line_with_condition(state, contents, "alice_condition_diplo_points", !(state.world.nation_get_is_player_controlled(state.local_player_nation) && state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost), text::variable_type::x, int64_t(state.defines.declarewar_diplomatic_cost));
 		} else {
+			dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
 			auto box = text::open_layout_box(contents, 0);
 			if(military::are_allied_in_war(state, state.local_player_nation, n)) {
 				text::localised_format_box(state, contents, box, std::string_view("invalid_wartarget_shared_war"));
@@ -630,6 +655,54 @@ public:
 			}
 			text::close_layout_box(contents, box);
 			text::add_line_with_condition(state, contents, "alice_condition_diplo_points", !(state.world.nation_get_is_player_controlled(state.local_player_nation) && state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.addwargoal_diplomatic_cost), text::variable_type::x, int64_t(state.defines.addwargoal_diplomatic_cost));
+
+			bool is_attacker = military::is_attacker(state, w, state.local_player_nation);
+			bool target_in_war = false;
+			for(auto par : state.world.war_get_war_participant(w)) {
+				if(par.get_nation() == n) {
+					text::add_line_with_condition(state, contents, "alice_wg_condition_4", !(par.get_is_attacker() == is_attacker));
+					target_in_war = true;
+					break;
+				}
+			}
+			text::add_line_with_condition(state, contents, "alice_wg_condition_1", !(!is_attacker && military::defenders_have_status_quo_wargoal(state, w)));
+			text::add_line_with_condition(state, contents, "alice_wg_condition_2", bool(target_in_war));
+			text::add_line_with_condition(state, contents, "alice_wg_condition_3", !(military::war_goal_would_be_duplicate(state, state.local_player_nation, w, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni))));
+
+			if((state.world.cb_type_get_type_bits(c) & military::cb_flag::always) == 0) {
+				bool cb_fabbed = false;
+				for(auto& fab_cb : state.world.nation_get_available_cbs(state.local_player_nation)) {
+					if(fab_cb.cb_type == c && fab_cb.target == n) {
+						cb_fabbed = true;
+						break;
+					}
+				}
+				if(!cb_fabbed) {
+					text::add_line_with_condition(state, contents, "alice_wg_condition_7", !((state.world.cb_type_get_type_bits(c) & military::cb_flag::is_not_constructing_cb) != 0));
+					auto totalpop = state.world.nation_get_demographics(state.local_player_nation, demographics::total);
+					auto jingoism_perc = totalpop > 0 ? state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.jingoism)) / totalpop : 0.0f;
+					if(state.world.war_get_is_great(w)) {
+						text::add_line_with_condition(state, contents, "alice_wg_condition_6", jingoism_perc >= state.defines.gw_wargoal_jingoism_requirement_mod,
+							text::variable_type::need, text::fp_two_places{ state.defines.gw_wargoal_jingoism_requirement_mod },
+							text::variable_type::value, text::fp_two_places{ jingoism_perc });
+					} else {
+						text::add_line_with_condition(state, contents, "alice_wg_condition_6", jingoism_perc >= state.defines.wargoal_jingoism_requirement,
+							text::variable_type::need, text::fp_two_places{ state.defines.wargoal_jingoism_requirement },
+							text::variable_type::value, text::fp_two_places{ jingoism_perc });
+					}
+				}
+			}
+		}
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_instance_conditions_satisfied(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni)));
+
+		text::add_line(state, contents, "alice_wg_usage_trigger");
+		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(c), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+		auto allowed_states = state.world.cb_type_get_allowed_states(c);
+		for(auto si : state.world.nation_get_state_ownership(n)) {
+			if(si.get_state().get_definition() == s) {
+				ui::trigger_description(state, contents, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+				break;
+			}
 		}
 	}
 };

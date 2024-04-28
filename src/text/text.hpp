@@ -427,6 +427,8 @@ enum class variable_type : uint16_t {
 	culture_first_name,
 	culture_last_name,
 	fromstatename,
+	spheremaster_adj,
+	spheremaster_union_adj
 };
 
 struct line_break { };

@@ -287,6 +287,10 @@ void c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id
 	p.data.cheat_location.n = new_owner;
 	add_to_command_queue(state, p);
 }
+void execute_c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_owner) {
+	province::change_province_owner(state, pr, new_owner);
+}
+
 void c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -296,13 +300,11 @@ void c_change_controller(sys::state& state, dcon::nation_id source, dcon::provin
 	p.data.cheat_location.n = new_controller;
 	add_to_command_queue(state, p);
 }
-void execute_c_change_owner(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_owner) {
-	province::change_province_owner(state, pr, new_owner);
-}
 void execute_c_change_controller(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id new_controller) {
 	province::set_province_controller(state, pr, new_controller);
 	military::eject_ships(state, pr);
 }
+
 void c_instant_research(sys::state& state, dcon::nation_id source) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -377,6 +379,26 @@ void c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id in
 
 void execute_c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention) {
 	culture::apply_invention(state, source, invention);
+}
+
+void c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id pr, dcon::nation_id n) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_toggle_core;
+	p.source = source;
+	p.data.cheat_location.prov = pr;
+	p.data.cheat_location.n = n;
+	add_to_command_queue(state, p);
+}
+void execute_c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id n) {
+	auto const nid = state.world.nation_get_identity_from_identity_holder(n);
+	for(const auto a : state.world.province_get_core(p)) {
+		if(a.get_identity() == nid) {
+			province::remove_core(state, p, nid);
+			return; //early exit
+		}
+	}
+	province::add_core(state, p, nid);
 }
 
 }

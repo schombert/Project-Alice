@@ -183,6 +183,18 @@ void gui_element_common::maxsize(gfx_xy_pair const& pr, error_handler& err, int3
 	target.size.x = int16_t(pr.x);
 	target.size.y = int16_t(pr.y);
 }
+void gui_element_common::add_size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.size.x += int16_t(pr.x);
+	target.size.y += int16_t(pr.y);
+}
+void gui_element_common::add_position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.position.x += int16_t(pr.x);
+	target.position.y += int16_t(pr.y);
+}
+void gui_element_common::table_layout(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.position.x += int16_t(target.size.x) * int16_t(pr.x);
+	target.position.y += int16_t(target.size.y) * int16_t(pr.y);
+}
 
 button::button() {
 	target.data.button = ui::button_data{};

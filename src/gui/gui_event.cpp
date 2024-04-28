@@ -23,6 +23,8 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -40,6 +42,8 @@ void  national_major_event_window::new_event(sys::state& state, event::pending_h
 		std::unique_ptr<national_major_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -60,6 +64,8 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_n
 		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -77,6 +83,8 @@ void  national_event_window::new_event(sys::state& state, event::pending_human_f
 		std::unique_ptr<national_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -97,6 +105,8 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -114,6 +124,8 @@ void  provincial_event_window::new_event(sys::state& state, event::pending_human
 		std::unique_ptr<provincial_event_window> ptr = std::move(event_pool.back());
 		event_pool.pop_back();
 		ptr->event_data = dat;
+		if(!ptr->is_visible())
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_window")->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}
@@ -242,13 +254,18 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub,
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
-	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation), state.world.nation_get_government_type(target_nation)));
 	// TODO: Is this correct? I remember in vanilla it could vary
 	auto pc = state.world.nation_get_primary_culture(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::culture, state.world.culture_get_name(pc));
 	text::add_to_substitution_map(sub, text::variable_type::culture_group_union, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_nation_from_identity_holder());
 	text::add_to_substitution_map(sub, text::variable_type::union_adj, pc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 	text::add_to_substitution_map(sub, text::variable_type::countryculture, state.world.culture_get_name(pc));
+	auto sm = state.world.nation_get_in_sphere_of(target_nation);
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster, sm);
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	auto smpc = state.world.nation_get_primary_culture(sm);
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);

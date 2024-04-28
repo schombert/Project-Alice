@@ -148,6 +148,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
@@ -188,6 +189,7 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 
 	continent_building_context new_context{context, new_modifier};
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	auto continent = parse_continent_definition(gen, err, new_context);
 
@@ -223,6 +225,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 		auto new_id = context.state.world.create_modifier();
 		context.map_of_modifiers.insert_or_assign(std::string(name), new_id);
 		context.state.world.modifier_set_name(new_id, name_id);
+		context.state.world.modifier_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
 		return new_id;
 	}();
 

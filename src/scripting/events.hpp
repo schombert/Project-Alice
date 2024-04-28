@@ -65,6 +65,7 @@ void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t op
 void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt);
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt);
 
+void update_future_events(sys::state& state);
 void update_events(sys::state& state);
 
 } // namespace event

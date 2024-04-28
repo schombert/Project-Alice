@@ -125,6 +125,14 @@ public:
 				row_contents.push_back(ident);
 			}
 		});
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::national_identity_id a, dcon::national_identity_id b) {
+			auto av = text::produce_simple_string(state, state.world.national_identity_get_name(a));
+			auto bv = text::produce_simple_string(state, state.world.national_identity_get_name(b));
+			if(av != bv)
+				return av > bv;
+			else
+				return a.index() < b.index();
+		});
 		update(state);
 	}
 };

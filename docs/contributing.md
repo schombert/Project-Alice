@@ -58,38 +58,44 @@ X11 (support *should* exist for wayland but there is not guarantee.)
 
 From here compiling is straightforward
 1. `cd Project-Alice`
-2. `nano src/local_user_settings.hpp` or use the text editor of your choice
-3. add the following lines:
-    ```cpp
-        #ifndef GAME_DIR
-        #define GAME_DIR "[insert file path here]"
-        #define OOS_DAILY_CHECK 1
-        #endif
-
-    ```
-  you should set GAME_DIR to the folder which contains your Vic2 files, if you had downloaded the game on steam then you can right click Vic2 > Browse Local Files, and that'll give you the correct path on linux its noteworthy that you dont need to put \ before spaces, so if your Linux file path is /home/user/Victoria\ 2/, then you write /home/user/Victoria 2/ in the GAME_DIR (surronded by quotes of course)
-    copy the file path and replace [insert file path here] with it, then save. Additionaly, `OOS_DAILY_CHECK` should be defined if you want daily OOS checks instead of the usual "monthly" ones.
-    
+2. do something to make the debugger launch the program in your V2 directory so that it can find the game files (I don't know how this is done on linux)
 4. `cmake -B build . -DCMAKE_BUILD_TYPE=Debug`
 5. `cmake --build build -j$(nproc)`
 
 
 #### Final touches
 
-Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed. You do this by creating a file named `local_user_settings.hpp` in the directory `src`.
-That file should contain the following four lines (the last one is an empty line):
-```cpp
-#ifndef GAME_DIR
-#define GAME_DIR "C:\\Your\\Victoria2\\Files"
-#define OOS_DAILY_CHECK 1
-#endif
-```
-except replacing that path with your own installation location.
-Note that on Windows you need to write `\\` instead of just `\` for each path separator. (Linux does not have this issue, and you can write a single `/`)
-Second note: on Windows, BrickPi has made a change such that, if you have Victoria 2 installed, you may be able to bypass creating `local_user_settings.hpp` completely. You may want to try that first.
-Finally, just build the Alice launch target, and you should see the game pop up on your screen.
+Because the project in its current state needs to use the existing game files (as a source of graphics, for starters), everyone needs to tell the compiler where their copy of the game is installed and to put the new files in that directory as well.
 
-Remember, `OOS_DAILY_CHECK` will make OOS checks occur daily.
+Copy the assets folder to your V2 directory. **Note: when the asset files are updated by you or someone else you will need to copy any changed files to your V2 directory and rebuild any scenarios. Not doing so will probably result in crashes**. Then, you will need to configure your debugger to launch Alice and the Launcher *as if* they were located in your V2 directory. For visual studio and visual studio code you can do that by creating a launch configuration file. (See [here for Visual Studio](https://learn.microsoft.com/en-us/visualstudio/ide/customize-build-and-debug-tasks-in-visual-studio?view=vs-2022) and [here for VS code](https://code.visualstudio.com/docs/cpp/launch-json-reference)). The contents of that file will look something like mine (copied below) except with the directory location changed to point to your V2 directory.
+
+```
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "launch_alice.exe (Launcher\\launch_alice.exe)",
+      "name": "launch_alice.exe (Launcher\\launch_alice.exe)",
+      "currentDir": "C:\\programs\\V2"
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "Alice.exe",
+      "name": "Alice.exe",
+      "currentDir": "C:\\programs\\V2",
+      "args": [
+        ""
+      ]
+    }
+  ]
+}
+```
+
+Note that `args` contains the command line parameters to launch the program with. If you want to debug a specific scenario file, you would change it to something like `"9DCA2D56-0.bin"`.
 
 ### Incremental Build
 

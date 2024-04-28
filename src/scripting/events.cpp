@@ -110,9 +110,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		float total = 0.0f;
 		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f , 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] =
-						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
+			if(opt[i].ai_chance) { //opt[i].effect may not be defined, but it may still be present
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
 				total += odds[i];
 			}
 		}
@@ -120,10 +119,12 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+						}
 						return;
 					}
 				}
@@ -206,19 +207,21 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		float total = 0.0f;
 		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance && opt[i].effect) {
+			if(opt[i].ai_chance) { //effect may not be present but chance may
 				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
 				total += odds[i];
 			}
 		}
 
 		if(total > 0.0f) {
-			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
+			auto rvalue = float(rng::get_random(state, uint32_t((e.index() << 3) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+						}
 						return;
 					}
 				}
@@ -296,9 +299,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		float total = 0.0f;
 		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p),
-						trigger::to_generic(p), from_slot);
+			if(opt[i].ai_chance) { //effect may not be present but chance may
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), from_slot);
 				total += odds[i];
 			}
 		}
@@ -306,10 +308,12 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
+						}
 						return;
 					}
 				}
@@ -366,9 +370,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		float total = 0.0f;
 		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance && opt[i].effect) {
-				odds[i] =
-						trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), 0);
+			if(opt[i].ai_chance) { //effect may not be present but chance may
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(p), trigger::to_generic(p), 0);
 				total += odds[i];
 			}
 		}
@@ -376,10 +379,12 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance && opt[i].effect) {
+				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
 					if(rvalue < 0.0f) {
-						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
+						}
 						return;
 					}
 				}
@@ -439,23 +444,44 @@ struct event_prov_pair {
 	}
 };
 
+void update_future_events(sys::state& state) {
+	uint32_t last_end_n = 0;
+	uint32_t last_end_p = 0;
+	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
+		bool fired = false;
+		uint32_t n_n_events = uint32_t(state.future_n_event.size());
+		while(last_end_n < n_n_events) {
+			auto const& e = state.future_n_event[last_end_n];
+			if(e.date <= state.current_date) {
+				trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
+				std::swap(state.future_n_event[last_end_n], state.future_n_event[state.future_n_event.size() - 1]);
+				state.future_n_event.pop_back();
+				--n_n_events;
+				fired = true;
+			} else {
+				++last_end_n;
+			}
+		}
+		uint32_t n_p_events = uint32_t(state.future_p_event.size());
+		while(last_end_p < n_p_events) {
+			auto const& e = state.future_p_event[last_end_p];
+			if(e.date <= state.current_date) {
+				trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
+				std::swap(state.future_p_event[last_end_p], state.future_p_event[state.future_p_event.size() - 1]);
+				state.future_p_event.pop_back();
+				--n_p_events;
+				fired = true;
+			} else {
+				++last_end_p;
+			}
+		}
+		if(!fired)
+			break;
+	}
+}
+
 void update_events(sys::state& state) {
-	for(uint32_t j = uint32_t(state.future_n_event.size()); j-- > 0;) {
-		auto& e = state.future_n_event[j];
-		if(e.date <= state.current_date) {
-			trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
-			state.future_n_event[j] = state.future_n_event.back();
-			state.future_n_event.pop_back();
-		}
-	}
-	for(uint32_t j = uint32_t(state.future_p_event.size()); j-- > 0;) {
-		auto& e = state.future_p_event[j];
-		if(e.date <= state.current_date) {
-			trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
-			state.future_p_event[j] = state.future_p_event.back();
-			state.future_p_event.pop_back();
-		}
-	}
+	update_future_events(state);
 
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;

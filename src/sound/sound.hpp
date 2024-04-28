@@ -29,15 +29,28 @@ void play_interface_sound(sys::state& state, audio_instance& s, float volume);
 // controls autoplaying music (start music should start with the main theme)
 void stop_music(sys::state& state);
 void start_music(sys::state& state, float v);
+void pause_all(sys::state& state);
+void resume_all(sys::state& state);
 // linux may not need this function, but I needed to expose a way to switch to the next track upon
 // recieving a notification via a windows event that the current track could be complete
 void update_music_track(sys::state& state);
 void play_new_track(sys::state& state);
+void play_next_track(sys::state& state);
+void play_previous_track(sys::state& state);
 native_string get_current_track_name(sys::state& state);
 
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
+audio_instance& get_click_left_sound(sys::state& state);
+audio_instance& get_click_right_sound(sys::state& state);
+audio_instance& get_tab_budget_sound(sys::state& state);
+audio_instance& get_tab_politics_sound(sys::state& state);
+audio_instance& get_tab_diplomacy_sound(sys::state& state);
+audio_instance& get_tab_military_sound(sys::state& state);
+audio_instance& get_tab_population_sound(sys::state& state);
+audio_instance& get_tab_production_sound(sys::state& state);
+audio_instance& get_tab_technology_sound(sys::state& state);
 audio_instance& get_army_select_sound(sys::state& state);
 audio_instance& get_army_move_sound(sys::state& state);
 audio_instance& get_navy_select_sound(sys::state& state);
@@ -59,8 +72,17 @@ audio_instance& get_major_event_sound(sys::state& state);
 audio_instance& get_decline_sound(sys::state& state);
 audio_instance& get_accept_sound(sys::state& state);
 audio_instance& get_diplomatic_request_sound(sys::state& state);
+audio_instance& get_chat_message_sound(sys::state& state);
+//alice
+audio_instance& get_console_open_sound(sys::state& state);
+audio_instance& get_console_close_sound(sys::state& state);
+audio_instance& get_event_sound(sys::state& state);
+audio_instance& get_decision_sound(sys::state& state);
+audio_instance& get_pause_sound(sys::state& state);
+audio_instance& get_unpause_sound(sys::state& state);
 
 audio_instance& get_random_land_battle_sound(sys::state& state);
 audio_instance& get_random_naval_battle_sound(sys::state& state);
+audio_instance& get_random_province_select_sound(sys::state& state);
 
 } // namespace sound

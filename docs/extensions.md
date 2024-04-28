@@ -17,6 +17,52 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
 - `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 
+### Lambda events
+
+Define anonymous lambda events within events, no need to give them an ID.
+
+```
+country_event = {
+	id = 1000
+	# etc...
+	option = {
+		name = "Option A"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+	option = {
+		name = "Option B"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+}
+```
+
+This allows essentially to "inline" anonymous events, for example when doing a FAQ section event, or doing a long event chain for setup or "LARP choices" purpouses.
+
+These events can't be triggered with the `event` command, nor can they be referenced by other events, they never will trigger on their own and will always be treated as if they were `is_triggered_only = yes`.
+
+- `lambda_country_event`: Main slot is a `country`, inherits `FROM` and `THIS` slot types.
+- `lambda_province_event`: Main slot is a `province`, inherits `FROM` and `THIS` slot types.
+
 ### Scripted Triggers
 
 We have added the ability to write complicated trigger conditions once and then to use that same condition multiple times inside other trigger conditions. To use these "scripted triggers," you must add a `scripted triggers` directory to your mod (at the top level of your mod, so the path will look like: `...\mod name\scripted triggers`). Place any number of `.txt` files inside this directory, each of which can contain any number of scripted triggers.
@@ -120,6 +166,17 @@ These `else_if` statments are chained together, if the first runs, the second wi
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
 
+### .gui layout extensions
+
+Laying out elements in the GUI can be a tedious process, while a WYSWYG editor would be ideal, it's not currently available at the moment.
+
+However, the following new extensions will make GUI editing way less painful:
+
+- `add_size = { x y }`: Adds the specified amount to the current `size`
+- `add_position = { x y }`: Adds the specified amount to the current `position`
+- `table_layout = { x y }`: Where `x` is the column and `y` is the row, this basically translates to `position.x = column * size.x`, and `position.y = row * size.y`. Useful for laying out elements in a table-like way
+
+
 ### New defines
 
 Alice adds a handful of new defines:
@@ -136,6 +193,26 @@ Alice adds a handful of new defines:
 - `alice_ai_attack_target_radius`: Radius AI will perform attacks
 - `alice_full_reinforce`: 1 = Normal vanilla behaviour, 0 = Understaffed armies are allowed
 - `alice_ai_offensive_strength_overestimate`: Overestimate strength of an offensive oppontent (makes AI less aggressive)
+- `alice_lf_needs_scale`: Scale multiplier for life needs
+- `alice_ev_needs_scale`: Scale multiplier for everyday needs
+- `alice_lx_needs_scale`: Scale multiplier for luxury needs
+- `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
+- `alice_needs_scaling_factor`: Scale factor multiplier for all needs
+- `alice_factory_per_level_employment`: Employment per factory level.
+- `alice_domestic_investment_multiplier`: Multiplier of domestic investment.
+- `alice_rgo_boost`: Boost given to RGOs (for example, 1.2 produces 120% more)
+- `alice_inputs_base_factor_artisans`: Artisan input base factor + modifiers.
+- `alice_output_base_factor_artisans`: See above.
+- `alice_inputs_base_factor`: See above, for factories.
+- `alice_rgo_overhire_multiplier`: Overhire multiplier for RGOs.
+- `alice_rgo_production_scale_neg_delta`: Scale delta for RGO production.
+- `alice_invest_capitalist`: % of total budget that capitalists will invest in the private investment pool
+- `alice_invest_aristocrat`: See above.
+- `alice_needs_lf_spend`: % of total budget dedicated to life needs
+- `alice_needs_ev_spend`: See above, but everyday needs
+- `alice_needs_lx_spend`: See above, but luxury needs
+- `alice_sat_delay_factor`: Satisfaction delay factor
+- `alice_need_drift_speed`: Drift speed of need weights for POPs
 
 ### Dense CSV pop listing
 
@@ -238,3 +315,27 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 ### Political party triggers
 
 Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
+
+```
+party = {
+	name = "default_fascist_military_junta"
+	start_date = 1836.1.1 #also part of trigger check
+	end_date = 2000.1.1 #same here
+	ideology = fascist
+	#[...]
+	#Example trigger!
+	trigger = {
+		war = yes
+		nationalism_n_imperialism = 1
+	}
+}
+```
+
+## Government ruler-names
+
+Now you can define ruler names for a specific nation with a specific government type, for example:
+
+```
+RUS_absolute_monarchy;The Russian Empire
+RUS_absolute_monarchy_ruler;Tsar
+```

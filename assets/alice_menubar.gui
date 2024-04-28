@@ -1,3 +1,4 @@
+guiTypes = {
 	windowType = {
 		name = "alice_menubar"
 		backGround = ""
@@ -113,28 +114,47 @@
 		}
 		guiButtonType = {
 			name = "menu_button"
+			size = { 44 24 }
 			position = { -49 -155 }
+			table_layout = { 0 0 }
 			quadTextureSprite = "GFX_menu_button"
 			Orientation = "LOWER_RIGHT"
-			clicksound = click
+			#shortcut = "esc"
 		}
 		guiButtonType = {
 			name = "ledger_button"
-			position = { -49 -125 }
+			size = { 44 24 }
+			position = { -49 -155 }
+			table_layout = { 0 1 }
 			quadTextureSprite = "GFX_ledger_button"
 			Orientation = "LOWER_RIGHT"
-			shortcut = "l"
+			shortcut = "f9"
+		}
+		guiButtonType = {
+			name = "button_macro"
+			size = { 44 24 }
+			position = { -49 -155 }
+			table_layout = { 0 2 }
+			quadTextureSprite = "GFX_button_macro"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "f10"
 		}
 		guiButtonType = {
 			name = "button_goto"
-			position = { -49 -90 }
-			quadTextureSprite ="GFX_button_goto"
-			tooltip = ""
-			tooltipText = ""
-			delayedTooltipText = ""
-			buttonText = ""
-			buttonFont = "Main_14_black"
+			size = { 44 24 }
+			position = { -49 -155 }
+			table_layout = { 0 3 }
+			quadTextureSprite = "GFX_button_goto"
 			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "button_console"
+			size = { 44 24 }
+			position = { -49 -155 }
+			table_layout = { 0 4 }
+			quadTextureSprite = "GFX_button_console"
+			Orientation = "LOWER_RIGHT"
+			shortcut = "~"
 		}
 		guiButtonType = {
 			name = "map_zoom_in"

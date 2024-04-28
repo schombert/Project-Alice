@@ -70,20 +70,20 @@ struct user_settings_s {
 		message_response::standard_popup,//breakcountry = 13,
 		message_response::ignore,//peace_accepted_from_nation = 14,
 		message_response::standard_popup,//peace_rejected_from_nation = 15,
-		message_response::ignore,//peace_accepted_by_nation = 16,
-		message_response::ignore,//peace_rejected_by_nation = 17,
+		message_response::standard_log,//peace_accepted_by_nation = 16,
+		message_response::standard_log,//peace_rejected_by_nation = 17,
 		message_response::standard_popup,//mobilization_start = 18,
 		message_response::standard_popup,//mobilization_end = 19,
-		message_response::log,//factory_complete = 20,
-		message_response::log,//rr_complete = 21,
-		message_response::log,//fort_complete = 22,
-		message_response::log,//naval_base_complete = 23,
-		message_response::log,//province_event = 24,
-		message_response::log,//national_event = 25,
-		message_response::log,//major_event = 26,
+		message_response::standard_log,//factory_complete = 20,
+		message_response::standard_log,//rr_complete = 21,
+		message_response::standard_log,//fort_complete = 22,
+		message_response::standard_log,//naval_base_complete = 23,
+		message_response::standard_log,//province_event = 24,
+		message_response::standard_log,//national_event = 25,
+		message_response::standard_log,//major_event = 26,
 		message_response::standard_popup,//invention = 27,
 		message_response::standard_popup,//tech = 28,
-		message_response::log,//leader_dies = 29,
+		message_response::standard_log,//leader_dies = 29,
 		message_response::ignore,//land_combat_starts_on_nation = 30,
 		message_response::ignore,//naval_combat_starts_on_nation = 31,
 		message_response::ignore,//land_combat_starts_by_nation = 32,
@@ -152,27 +152,28 @@ struct user_settings_s {
 		message_response::standard_popup,//cb_fab_finished = 95,
 		message_response::standard_popup,//cb_fab_cancelled = 96,
 		message_response::ignore,//crisis_voluntary_joi_on = 97,
-		message_response::log,//army_built = 98,
-		message_response::log,//navy_built = 99,
+		message_response::standard_log,//army_built = 98,
+		message_response::standard_log,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
+		message_response::standard_popup,//entered_automatic_alliance = 101,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
-		message_response::log,//revolt = 0,
-		message_response::log,//war_on_nation = 1,
+		message_response::standard_log,//revolt = 0,
+		message_response::standard_log,//war_on_nation = 1,
 		message_response::ignore,//war_by_nation = 2,
-		message_response::log,//wargoal_added = 3,
+		message_response::standard_log,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
-		message_response::log,//colony_finished = 6,
+		message_response::standard_log,//colony_finished = 6,
 		message_response::ignore,//reform_gained = 7,
 		message_response::ignore,//reform_lost = 8,
 		message_response::ignore,//ruling_party_change = 9,
-		message_response::log,//upperhouse = 10,
-		message_response::log,//electionstart = 11,
-		message_response::log,//electiondone = 12,
-		message_response::log,//breakcountry = 13,
+		message_response::standard_log,//upperhouse = 10,
+		message_response::standard_log,//electionstart = 11,
+		message_response::standard_log,//electiondone = 12,
+		message_response::standard_log,//breakcountry = 13,
 		message_response::ignore,//peace_accepted_from_nation = 14,
-		message_response::log,//peace_rejected_from_nation = 15,
+		message_response::standard_log,//peace_rejected_from_nation = 15,
 		message_response::ignore,//peace_accepted_by_nation = 16,
 		message_response::ignore,//peace_rejected_by_nation = 17,
 		message_response::standard_popup,//mobilization_start = 18,
@@ -181,11 +182,11 @@ struct user_settings_s {
 		message_response::ignore,//rr_complete = 21,
 		message_response::ignore,//fort_complete = 22,
 		message_response::ignore,//naval_base_complete = 23,
-		message_response::log,//province_event = 24,
-		message_response::log,//national_event = 25,
+		message_response::standard_log,//province_event = 24,
+		message_response::standard_log,//national_event = 25,
 		message_response::standard_popup,//major_event = 26,
-		message_response::log,//invention = 27,
-		message_response::log,//tech = 28,
+		message_response::standard_log,//invention = 27,
+		message_response::standard_log,//tech = 28,
 		message_response::ignore,//leader_dies = 29,
 		message_response::ignore,//land_combat_starts_on_nation = 30,
 		message_response::ignore,//naval_combat_starts_on_nation = 31,
@@ -193,53 +194,53 @@ struct user_settings_s {
 		message_response::ignore,//naval_combat_starts_by_nation = 33,
 		message_response::ignore,//movement_finishes = 34,
 		message_response::ignore,//decision = 35,
-		message_response::log,//lose_great_power = 36,
-		message_response::log,//become_great_power = 37,
-		message_response::log,//war_subsidies_start_by_nation = 38,
-		message_response::log,//war_subsidies_start_on_nation = 39,
-		message_response::log,//war_subsidies_end_by_nation = 40,
-		message_response::log,//war_subsidies_end_on_nation = 41,
-		message_response::log,//reparations_start_by_nation = 42,
-		message_response::log,//reparations_start_on_nation = 43,
-		message_response::log,//reparations_end_by_nation = 44,
-		message_response::log,//reparations_end_on_nation = 45,
+		message_response::standard_log,//lose_great_power = 36,
+		message_response::standard_log,//become_great_power = 37,
+		message_response::standard_log,//war_subsidies_start_by_nation = 38,
+		message_response::standard_log,//war_subsidies_start_on_nation = 39,
+		message_response::standard_log,//war_subsidies_end_by_nation = 40,
+		message_response::standard_log,//war_subsidies_end_on_nation = 41,
+		message_response::standard_log,//reparations_start_by_nation = 42,
+		message_response::standard_log,//reparations_start_on_nation = 43,
+		message_response::standard_log,//reparations_end_by_nation = 44,
+		message_response::standard_log,//reparations_end_on_nation = 45,
 		message_response::ignore,//mil_access_start_by_nation = 46,
 		message_response::ignore,//mil_access_start_on_nation = 47,
 		message_response::ignore,//mil_access_end_by_nation = 48,
 		message_response::ignore,//mil_access_end_on_nation = 49,
 		message_response::ignore,//mil_access_declined_by_nation = 50,
 		message_response::ignore,//mil_access_declined_on_nation = 51,
-		message_response::log,//alliance_starts = 52,
-		message_response::log,//alliance_ends = 53,
+		message_response::standard_log,//alliance_starts = 52,
+		message_response::standard_log,//alliance_ends = 53,
 		message_response::ignore,//alliance_declined_by_nation = 54,
 		message_response::ignore,//alliance_declined_on_nation = 55,
 		message_response::ignore,//ally_called_accepted_by_nation = 56,
 		message_response::ignore,//ally_called_declined_by_nation = 57,
 		message_response::ignore,//discredit_by_nation = 58,
-		message_response::log,//ban_by_nation = 59,
-		message_response::log,//expell_by_nation = 60,
-		message_response::log,//discredit_on_nation = 61,
+		message_response::standard_log,//ban_by_nation = 59,
+		message_response::standard_log,//expell_by_nation = 60,
+		message_response::standard_log,//discredit_on_nation = 61,
 		message_response::ignore,//ban_on_nation = 62,
 		message_response::ignore,//expell_on_nation = 63,
 		message_response::ignore,//increase_opinion = 64,
-		message_response::log,//decrease_opinion_by_nation = 65,
-		message_response::log,//decrease_opinion_on_nation = 66,
-		message_response::log,//rem_sphere_by_nation = 67,
-		message_response::log,//rem_sphere_on_nation = 68,
-		message_response::log,//removed_from_sphere = 69,
-		message_response::log,//add_sphere = 70,
-		message_response::log,//added_to_sphere = 71,
-		message_response::log,//increase_relation_by_nation = 72,
-		message_response::log,//increase_relation_on_nation = 73,
-		message_response::log,//decrease_relation_by_nation = 74,
-		message_response::log,//decrease_relation_on_nation = 75,
-		message_response::log,//join_war_by_nation = 76,
-		message_response::log,//join_war_on_nation = 77,
+		message_response::standard_log,//decrease_opinion_by_nation = 65,
+		message_response::standard_log,//decrease_opinion_on_nation = 66,
+		message_response::standard_log,//rem_sphere_by_nation = 67,
+		message_response::standard_log,//rem_sphere_on_nation = 68,
+		message_response::standard_log,//removed_from_sphere = 69,
+		message_response::standard_log,//add_sphere = 70,
+		message_response::standard_log,//added_to_sphere = 71,
+		message_response::standard_log,//increase_relation_by_nation = 72,
+		message_response::standard_log,//increase_relation_on_nation = 73,
+		message_response::standard_log,//decrease_relation_by_nation = 74,
+		message_response::standard_log,//decrease_relation_on_nation = 75,
+		message_response::standard_log,//join_war_by_nation = 76,
+		message_response::standard_log,//join_war_on_nation = 77,
 		message_response::ignore,//gw_unlocked = 78,
 		message_response::ignore,//war_becomes_great = 79,
 		message_response::ignore,//cb_detected_on_nation = 80,
 		message_response::standard_popup,//cb_detected_by_nation = 81,
-		message_response::log,//crisis_join_offer_accepted_by_nation = 82,
+		message_response::standard_log,//crisis_join_offer_accepted_by_nation = 82,
 		message_response::ignore,//crisis_join_offer_declined_by_nation = 83,
 		message_response::ignore,//crisis_join_offer_accepted_from_nation = 84,
 		message_response::ignore,//crisis_join_offer_declined_from_nation = 85,
@@ -250,7 +251,7 @@ struct user_settings_s {
 		message_response::standard_popup,//crisis_attacker_backer = 90,
 		message_response::standard_popup,//crisis_defender_backer = 91,
 		message_response::ignore,//crisis_fizzle = 92,
-		message_response::log,//war_join_by = 93,
+		message_response::standard_log,//war_join_by = 93,
 		message_response::ignore,//war_join_on = 94,
 		message_response::ignore,//cb_fab_finished = 95,
 		message_response::ignore,//cb_fab_cancelled = 96,
@@ -258,6 +259,7 @@ struct user_settings_s {
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
+		message_response::ignore,//entered_automatic_alliance = 101,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -341,7 +343,7 @@ struct user_settings_s {
 		message_response::ignore,//gw_unlocked = 78,
 		message_response::ignore,//war_becomes_great = 79,
 		message_response::ignore,//cb_detected_on_nation = 80,
-		message_response::log,//cb_detected_by_nation = 81,
+		message_response::standard_log,//cb_detected_by_nation = 81,
 		message_response::ignore,//crisis_join_offer_accepted_by_nation = 82,
 		message_response::ignore,//crisis_join_offer_declined_by_nation = 83,
 		message_response::ignore,//crisis_join_offer_accepted_from_nation = 84,
@@ -361,6 +363,7 @@ struct user_settings_s {
 		message_response::ignore,//army_built = 98,
 		message_response::ignore,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
+		message_response::ignore,//entered_automatic_alliance = 101,
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
@@ -375,6 +378,12 @@ struct user_settings_s {
 	bool mouse_edge_scrolling = false;
 	bool black_map_font = true;
 	bool spoilers = true;
+	float zoom_speed = 20.f;
+	bool mute_on_focus_lost = true;
+	bool diplomatic_message_popup = false;
+	bool wasd_for_map_movement = false;
+	bool notify_rebels_defeat = true;
+	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -385,10 +394,11 @@ struct cheat_data_s {
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
 	bool show_province_id_tooltip = false;
-	bool wasd_move_cam = false;
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
+	bool daily_oos_check = false;
+	bool province_names = false;
 };
 
 struct crisis_member_def {
@@ -554,6 +564,11 @@ struct alignas(64) state {
 	player_data player_data_cache;
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::navy_id> selected_navies;
+
+	//control groups
+	std::array<std::vector<dcon::army_id>, 9> ctrl_armies;
+	std::array<std::vector<dcon::navy_id>, 9> ctrl_navies;
+
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
 

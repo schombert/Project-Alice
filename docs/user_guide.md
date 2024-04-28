@@ -30,6 +30,22 @@ Then simply click on the `launch_alice` executable.
 - `readme OR ELSE.txt`: Contains relevant information, again, optional and it's fine if you don't have it.
 - `assets`: Folder NEEDED for Alice to work properly.
 
+## Ubuntu/PopOS
+
+To install the game on Ubuntu/PopOS, follow the same steps for installation and download as for Windows until the point of launching `launch_alice`. At that point, download [Lutris](https://lutris.net).
+
+Start Lutris and click on the Wine icon in the sidebar. An icon with an arrow pointing downwards will show up, click that. You should have an installed version already but if you do not, pick one. ge versions are said to be a great base for many games. 
+
+Now click on the + “Manually add a game” icon in the main menu's top left corner. Afterwards, select the last option to "Add a locally installed game". In the first window “Game Info” give the game a name (can be anything). Choose “Wine” as a runner from the pull down. In the second tab “Game options” locate your `launch_alice.exe` file and select it as your “Executable”. Ignore arguments and working directory. “Wine Prefix” I choose ~/Games/Project-Alice for example, and select 64bit for prefix architecture. Under “Runner options” you can choose different wine versions, if you have them. Ignore “System options” you can come in here later if you need to. “Save” and it will exit. if you don’t see you game in the list in Lutris, restart the app. There was a minor bug that won’t show launch banners until you have at least “one game” installed. It is unclear if this bug still exists.
+
+Now, the game should be ready to play from the Lutris main menu.
+
+## Installation troubleshooting guide
+
+Please refer to this before opening a tech support ticket.
+
+**Missing audio/music**: You may lack the proper MP3 decoders to playback the MP3 files, consider using [The Codec Guide](https://codecguide.com/download_kl.htm) or, if that fails, [LAV Filters](https://github.com/Nevcairiel/LAVFilters/releases/download/0.79.2/LAVFilters-0.79.2-Installer.exe)
+
 ## Multiplayer Instructions
 
 ### Joining a game

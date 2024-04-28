@@ -8,94 +8,22 @@
 
 namespace ui {
 
-class decision_requirements : public button_element_base {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto id = retrieve<dcon::decision_id>(state, parent);
-		auto condition = state.world.decision_get_allow(id);
-		if(condition)
-			trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
-	}
-};
-
-class decision_ai_will_do : public button_element_base {
-public:
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto id = retrieve<dcon::decision_id>(state, parent);
-		auto potential = state.world.decision_get_potential(id);
-		if(potential)
-			trigger_description(state, contents, potential, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
-		auto mkey = state.world.decision_get_ai_will_do(id);
-		if(mkey) {
-			multiplicative_value_modifier_description(state, contents, mkey, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
-		}
-	}
-};
-
-class make_decision : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::decision_id>(state, parent);
-		command::take_decision(state, state.local_player_nation, content);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto content = retrieve<dcon::decision_id>(state, parent);
-		disabled = !command::can_take_decision(state, state.local_player_nation, content);
-		/*
-		auto condition = state.world.decision_get_allow(id);
-		disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation),
-		trigger::to_generic(state.local_player_nation), 0);
-		*/
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto id = retrieve<dcon::decision_id>(state, parent);
-
-		auto fat_id = dcon::fatten(state.world, id);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
-			text::close_layout_box(contents, box);
-		}
-
-		auto ef = fat_id.get_effect();
-		if(bool(ef))
-			effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
-					trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-					uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
-	}
-
-};
-
-// -------------
-// Decision Name
-// -------------
-
 inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
 	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
 	text::add_to_substitution_map(m, text::variable_type::country, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::countryname, state.world.nation_get_name(n));
 	text::add_to_substitution_map(m, text::variable_type::capital, state.world.province_get_name(state.world.nation_get_capital(n)));
-	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(n)));
+	text::add_to_substitution_map(m, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(n), state.world.nation_get_government_type(n)));
 	text::add_to_substitution_map(m, text::variable_type::continentname, state.world.nation_get_capital(n).get_continent().get_name());
 	// Date
 	text::add_to_substitution_map(m, text::variable_type::year, int32_t(state.current_date.to_ymd(state.start_date).year));
 	//text::add_to_substitution_map(m, text::variable_type::month, text::localize_month(state, state.current_date.to_ymd(state.start_date).month));
 	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
+	auto sm = state.world.nation_get_in_sphere_of(n);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster, sm);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	auto smpc = state.world.nation_get_primary_culture(sm);
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
 	// Non-vanilla
 	text::add_to_substitution_map(m, text::variable_type::government, state.world.nation_get_government_type(n).get_name());
@@ -147,6 +75,87 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 		text::add_to_substitution_map(m, text::variable_type::anyprovince, (*(plist.begin() + index)).get_province());
 	}
 }
+
+class decision_requirements : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::decision_id>(state, parent);
+		auto condition = state.world.decision_get_allow(id);
+		if(condition)
+			trigger_description(state, contents, condition, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+	}
+};
+
+class decision_ai_will_do : public button_element_base {
+public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::decision_id>(state, parent);
+		auto potential = state.world.decision_get_potential(id);
+		if(potential)
+			trigger_description(state, contents, potential, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		text::add_line(state, contents, "alice_ai_decision");
+		auto mkey = state.world.decision_get_ai_will_do(id);
+		if(mkey) {
+			multiplicative_value_modifier_description(state, contents, mkey, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), -1);
+		}
+	}
+};
+
+class make_decision : public button_element_base {
+public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_decision_sound(state);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::decision_id>(state, parent);
+		command::take_decision(state, state.local_player_nation, content);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::decision_id>(state, parent);
+		disabled = !command::can_take_decision(state, state.local_player_nation, content);
+		/*
+		auto condition = state.world.decision_get_allow(id);
+		disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation),
+		trigger::to_generic(state.local_player_nation), 0);
+		*/
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto id = retrieve<dcon::decision_id>(state, parent);
+
+		auto fat_id = dcon::fatten(state.world, id);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map m;
+		produce_decision_substitutions(state, m, state.local_player_nation);
+		text::add_to_layout_box(state, contents, box, fat_id.get_name(), m);
+		text::close_layout_box(contents, box);
+
+		auto ef = fat_id.get_effect();
+		if(bool(ef))
+			effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
+					trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
+					uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+	}
+
+};
+
+// -------------
+// Decision Name
+// -------------
 
 class decision_name : public multiline_text_element_base {
 public:

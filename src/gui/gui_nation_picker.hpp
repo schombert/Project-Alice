@@ -168,6 +168,8 @@ public:
 		if(i->file_name == state.loaded_save_file)\
 			return;
 
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
 		for(const auto n : state.world.in_nation)
@@ -179,14 +181,22 @@ public:
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-				window::emit_error_message(msg, false);
+				ui::popup_error_window(state, "Scenario Error", msg);
 			} else {
 				loaded = true;
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
 				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
-				window::emit_error_message(msg, false);
+				ui::popup_error_window(state, "Save Error", msg);
+				state.save_list_updated.store(true, std::memory_order::release); //update savefile list
+				//try loading save from scenario so we atleast have something to work on
+				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
+					auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+					ui::popup_error_window(state, "Scenario Error", msg2);
+				} else {
+					loaded = true;
+				}
 			} else {
 				loaded = true;
 			}
@@ -219,9 +229,13 @@ public:
 		}
 		/* Savefiles might load with new railroads, so for responsiveness we
 		   update whenever one is loaded. */
+		state.map_state.set_selected_province(dcon::province_id{});
+		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
+
+		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);

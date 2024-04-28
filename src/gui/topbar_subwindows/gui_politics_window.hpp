@@ -67,6 +67,10 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "plurality");
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::localised_format_box(state, contents, box, "plurality_explanation");
+		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, "plurality_change");
 		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, std::string_view{"+"}, text::text_color::green);
@@ -89,6 +93,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "revanchism");
+		text::add_line(state, contents, "revanchism_explanation");
 		text::add_line(state, contents, "revanchism_reason");
 	}
 };
@@ -234,7 +240,6 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto party = retrieve<dcon::political_party_id>(state, parent);
-
 		{
 			auto box = text::open_layout_box(contents);
 			text::add_to_layout_box(state, contents, box, state.world.political_party_get_name(party));
@@ -246,10 +251,6 @@ public:
 		}
 
 		for(auto pi : state.culture_definitions.party_issues) {
-			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(party, pi).get_name(),
-					text::text_color::yellow);
-			text::close_layout_box(contents, box);
 			reform_description(state, contents, state.world.political_party_get_party_issues(party, pi));
 			text::add_line_break_to_layout(state, contents);
 		}
@@ -346,10 +347,16 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto ruling_party = state.world.nation_get_ruling_party(state.local_player_nation);
-		for(auto pi : state.culture_definitions.party_issues) {
+		{
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, ruling_party.get_party_issues(pi).get_name(), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, state.world.political_party_get_name(ruling_party));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view{ "(" });
+			text::add_to_layout_box(state, contents, box, state.world.ideology_get_name(state.world.political_party_get_ideology(ruling_party)));
+			text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
 			text::close_layout_box(contents, box);
+		}
+		for(auto pi : state.culture_definitions.party_issues) {
 			reform_description(state, contents, ruling_party.get_party_issues(pi));
 			text::add_line_break_to_layout(state, contents);
 		}

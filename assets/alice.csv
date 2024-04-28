@@ -10,16 +10,28 @@ map_projection;Map projection;;;Proyeccion del mapa;;;;;;;;;x
 map_projection_globe;Orthographic;;;Ortografica;;;;;;;;;x
 map_projection_flat;Equirectangular;;;Equirectangular;;;;;;;;;x
 map_projection_globe_perspective;Vertical
+dm_popup_label;Diplomatic message as popups
 ui_scale;UI scale;;;Escala del UI;;;;;;;;;x
 zoom_mode_label;Zoom style;;;Estilo del zoom;;;;;;;;;x
 zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
 zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
 zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
+zoom_mode_to_cursor;To cursor;;;Al cursor;;;;;;;;;x
+zoom_mode_away_from_cursor;Away from cursor;;;Alejandose
+zoom_speed_label;Zoom Acceleration
 river_label;Rivers;;;Rios;;;;;;;;;x
+mute_on_focus_lost_label;Mute On Focus Lost
+wasd_for_map_movement_label;WASD for map movement
 vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same
 vassal_color_none;None
+color_blind_mode_label;Color blind
+color_blind_mode_none;None
+color_blind_mode_deutan;Deutan
+color_blind_mode_protan;Protan
+color_blind_mode_tritan;Tritan
+color_blind_mode_achroma;Achroma
 render_models_label;Render models
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
@@ -37,9 +49,13 @@ map_label_0;None;;;Ninguna;;;;;;;;;x
 map_label_1;Linear;;;Linear;;;;;;;;;x
 map_label_2;Quadratic;;;Cuadratica;;;;;;;;;x
 map_label_3;Cubic;;;Cubica;;;;;;;;;x
+message_notify_rebels_defeat_label;Notify when defeating rebels?
 antialiasing_label;Antialiasing;;;Antialiasing;;;;;;;;;x
+mm_settings_pc_tt;Set at $perc$
 spoilers_label;Spoilers
 spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
+message_settings_reset;Reset
+message_settings_spectator;Preset: Spectate only
 mapmode_23;Religion Mapmode;;;;;;;;;;;;x
 mapmode_24;Fort Mapmode
 mapmode_25;Ideology Mapmode
@@ -110,7 +126,10 @@ lg_max_mapmode_38;High amount
 lg_max_mapmode_39;Rich CTC ratio
 lg_max_mapmode_40;High life rating
 lg_max_mapmode_44;High regiment count
-alice_mmtt_34;Player: $x$
+alice_mmtt_34;Player: $x$ 
+alice_mmtt_34_you_sp;This is you! 
+alice_mmtt_34_you;Player: $x$ (This is you!) 
+alice_mmtt_34_ai;AI controlled
 alice_mmtt_35;Life needs satisfied: $x$
 alice_mmtt_36;Everyday needs satisfied: $x$
 alice_mmtt_37;Luxury needs satisfied: $x$
@@ -122,6 +141,7 @@ alice_mmtt_42_1;Has land rally point?
 alice_mmtt_42_2;Has naval rally point?
 alice_mmtt_43;Workforce distrobution:
 alice_mmtt_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
+alice_mmtt_44_2;No possible regiments
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -943,11 +963,17 @@ wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
 wg_not_ready;You must finish choosing a war goal
+crisis_temperature_ex;The current crisis temperature is §R$value$§W! Reaching §R100§W will trigger a crisis war between the two sides
+crisis_mode_no_crisis;There is no crisis
+crisis_mode_finding_attacker;Finding a backer for the attacker side
+crisis_mode_finding_defender;Finding a backer for the defender side
+crisis_mode_heating_up;Crisis heating up
 crisis_back_explain_1;You are interested in the crisis (on the fence)
 crisis_back_explain_2;The crisis has attracted its initial backers
 crisis_add_interest_button;Take an interest in this crisis
 crisis_add_interest_button_ex_1;You are a great power
 crisis_add_interest_button_ex_2;The crisis has attracted its initial backers
+crisis_add_interest_button_ex_3;You have at least 1 diplomatic point
 crisis_offer_button;Make an offer to this nation to join your side of the crisis
 crisis_offer_button_ex_1;You are the leader of one of the crisis sides
 crisis_offer_button_ex_2;The crisis has attracted its initial backers
@@ -1075,6 +1101,8 @@ msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the
 msg_crisis_vol_join_title;Nation Takes a Side
 msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
+msg_entered_automatic_alliance_title;Entered alliance automatically
+msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
 msg_n_event_title;National Event
 msg_p_event_title;Provincial Event
 msg_m_event_title;Major Event
@@ -1102,6 +1130,7 @@ col_invest_3;You are not participating in a crisis war;;;;;;;;;;;;x
 col_invest_4;Without competition, you will be able to turn this state into a colony on $x$;;;;;;;;;;;;x
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$);;;;;;;;;;;;x
 col_invest_6;You have at least $x$ free colonial points;;;;;;;;;;;;x
+alice_unit_invention;Activated by §Y$x$§!, with a chance of:
 alice_maximum_speed;Max Speed §G$x$§! KPH;;;;;;;;;;;;x
 alice_attack;Attack §G$x$;;;;;;;;;;;;x
 alice_hull;Hull §G$x$;;;;;;;;;;;;x
@@ -1370,6 +1399,7 @@ amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;
 amsg_army_built;The nation built an army;;;;;;;;;;;;x
 amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
 amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
+amsg_entered_automatic_alliance_title;The nation is automatically allied by another
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
 alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring
@@ -1533,13 +1563,31 @@ alice_rf_demands_enforced_effect;Once the rebels enforce their demands they will
 alice_rf_siege_won_trigger;If a rebel wins a siege, the following is checked for, for example in your capital $x$:
 alice_rf_siege_won_effect;And if all of the above was true, the following effects apply, for example in your capital $x$:
 may_month_name;May;Mai;Mai;Marzec;Mayo;Marzo
+alice_ca_cant_influence;We currently are unable to increase or decrease the opinion of other nations at the moment
+alice_gp_status_regain_expiration;If we don't become rank §Y$x$§W or higher, we will lose §Ygreat power§W status by §Y$date§W!
 alice_mil_decay_description;Natural decay §G-$x$
 alice_con_decay_description;Natural decay §R-$x$
 alice_x_from_y;$x$ from $y$
 alice_reinforce_rate;This regiment can reinforce up to $x$ soldiers per month.
 alice_reinforce_rate_none;This regiment cannot currently be reinforced.
+alice_domestic_investment_button;Investing in individual projects is §Rdeprecated§W, use the §Ydomestic investment§W slider on the budget screen instead
 alice_domestic_investment_pops;We have $x$ capitalists we can indirectly give generous donations to
 alice_domestic_investment_needs;They require $x$ each day to satisfy their luxurious lifestyle
+alice_budget_scaled_inc;Income: §G$value$
+alice_budget_scaled_1;Poor tax: §G$value$
+alice_budget_scaled_2;Middle tax: §G$value$
+alice_budget_scaled_3;Rich tax: §G$value$
+alice_budget_scaled_4;Tariffs: §G$value$
+alice_budget_scaled_exp;Expenses: §R$value$
+alice_budget_scaled_5;Army maintanance: §R$value$
+alice_budget_scaled_6;Navy maintanance: §R$value$
+alice_budget_scaled_7;Construction: §R$value$
+alice_budget_scaled_8;Education: §R$value$
+alice_budget_scaled_9;Administration: §R$value$
+alice_budget_scaled_10;Social spending: §R$value$
+alice_budget_scaled_11;Military spending: §R$value$
+alice_budget_scaled_12;Domestic investments: §R$value$
+alice_budget_scaled_net;Net revenue: §Y$value$
 alice_budget_setting_percent;Set at $perc$.
 alice_spending_land_construction;Land construction in $name$: §R$cost$§W
 alice_spending_naval_construction;Naval construction in $name$: §R$cost$§W
@@ -1556,17 +1604,21 @@ alice_factory_inputs;Inputs required:
 alice_factory_input_item;§R$cost$§W - Needs $need$ of $name$ ($val$)
 alice_factory_base_workforce;Base workforce §Y$x$§W
 alice_factory_total_bonus;This sums to about §Y$x$§W
-alice_slider_controls;§YLeft-Click§W to increment by 1, §YSHIFT-Left-Click§W to increment by 10, §YSHIFT-Right-Click§W to increment to max
+alice_slider_controls;§YLeft-Click§W to increment by §Y$value$§W\n§YSHIFT-Left-Click§W to increment by §Y$x$§W\n§YSHIFT-Right-Click§W to increment to maximum
+alice_slider_controls_2;§YLeft-Click§W to decrement by §Y$value$§W\n§YSHIFT-Left-Click§W to decrement by §Y$x$§W\n§YSHIFT-Right-Click§W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
 alice_lobby_close;Close
 alice_lobby_close_tt;You can reopen this window with §YTAB§W
+alice_topbar_tab_1;Open or close this tab
+alice_topbar_tab_2;Open or close the population tab
 colonial_points_from_technology;From technologies:
 colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
+topbar_pause_speed;Pauses the game, click again to unpause
 att_call_no_allies;You don't have any allies!
 att_truce_with;Truce with $text$ until $y$
 domestic_investment_label;Domestic investment:
@@ -1603,6 +1655,8 @@ alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
 alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
 alice_demobilize;Demobilize
 alice_mobilize;Mobilize
+alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
+alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of §Y$type$§W. This process may take roughly about §Y$days$§W, and the potential costs from being discovered will give us §R$badboy$§W infamy.
 alice_mob_controls;§YRight-click§W to remobilize
 alice_mw_create_1;Add general
 alice_mw_create_2;Add admiral
@@ -1610,13 +1664,52 @@ alice_mw_create_lpb;§YLeadership points§W will automatically be used to create g
 alice_mw_create_lp;We need §R$x$§W §Yleadership points§W to add
 alice_mw_controls_1;§YRight-click§W create §Gall§W possible as generals
 alice_mw_controls_2;§YRight-click§W create §Gall§W possible as admirals
+alice_daily_leadership_tt;$poptype$ provides §G$value$§W leadership points (§Y$fraction$§W of the population, §Y$optimal$§W is optimal). Extra leadership points will automatically be spent on creating new generals.
 current_supply_text;This unit received §Y$val$%§W of the supplies needed in the last day.
 current_supply_text2;The amount we could get of our current supply consumption was:
 current_supply_text_commodity;$what$: §Y$val$§W/§Y$value$§W §l(§W§G$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_orange_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§O$total$%§W§l demand satisfaction)§W
 current_supply_text_commodity_red_satisfaction;$what$: §Y$val$§W/§Y$value$§W §l(§W§R$total$%§W§l demand satisfaction)§W
+alice_crisis_inactive;No current active crisis
+alice_crisis_finding_attacker;Finding an attacker for the current crisis
+alice_crisis_finding_defender;Finding a defender for the current crisis
+alice_crisis_heating_up;Crisis is heating up in temperature, currently at §R$temperature$§W
+alice_last_crisis;Last crisis ocurred in $date$ (there is a $time$ month cooldown between crises)
+alice_crisis_par_1;§RAttackers§W:
+alice_crisis_par_2;§BDefenders§W:
+alice_crisis_par_3;§YMerely interested (no side)§W:
+alice_commodity_cprice;Current price: $x$
+alice_commodity_cost;Cost: $x$
+alice_commodity_eprice;Effective price: $x$
+alice_trade_top_producers;Top §Y$value$§W producers:
+alice_trade_no_producers;§RNobody is producing this commodity§W
 alice_political_party_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W, and satisfying the following trigger:
 alice_political_party_no_trigger;Only available from §Y$date_long_0$§W to §Y$date_long_1$§W
+alice_ai_decision;AI's chance of choosing this decision will depend on:
+alice_ctrl_group;Press §YCTRL-1§W thru §YCTRL-9§W to assign/unassign this unit to a control group, which you can then press §Y1§W thru §Y9§W to select
+alice_mobilized_is_ai_controlled;Whetever mobilized units will automatically become AI controlled
+alice_ai_controlled_unit;Enable/Disable AI control of this unit, the unit will:\n- Automatically reinforce frontlines\n- Automatically siege when it's safe to do so\n- Hunt rebels\n- Form a defensive position against nations we're likely to attack (this is at the AI's discretion, and only at peace time)\nIf you want to make this unit target a specific nation or region, first move it close to that region or nation, then turn on AI control - because the AI will override all of your commands until you turn it off again
+alice_navy_allocation_tt;With §Y$curr$§W ships, we accumulate a total supply throughput of §Y$tot$§W, requiring §Y$req$§W for our fleets. A detailed summary of the consumption of each naval fleet:
+alice_navy_allocation_2;$name$: §Y$value$§W (§Y$perc$§W)
+alice_wg_condition_1;Does not have status quo as a defender
+alice_wg_condition_2;Is in a war with us
+alice_wg_condition_3;Unique wargoal (isn't a duplicate of another wargoal)
+alice_wg_condition_4;Not on the same side as us
+alice_wg_condition_5;Satisfies triggers for wargoal
+alice_wg_condition_6;Enough jingoism (needs $need$, has $value$)
+alice_wg_condition_7;Is constructable wargoal
+alice_tt_wg_infamy_limit;§RThis wargoal will exceed the infamy limit§W
+alice_wg_usage_trigger;Can only use if the following trigger is satisfied:
+alice_pvid_id;Province Id:
+alice_pvid_tag;Tag:
+alice_rgo_trade_prod_1;RGO Farming Production: $x$ ($y$)
+alice_rgo_trade_prod_2;RGO Mining Production: $x$ ($y$)
+alice_rgo_trade_prod_3;RGO Minting Production: $x$ ($y$)
+alice_artisan_trade_prod;Artisan Production: $x$ ($y$)
+alice_factory_trade_prod;Factory Production: $x$ ($y$)
+alice_all_trade_prod;Total Production: $x$
+alice_interested_in_alliance;(Only applies to AI nations) Mark that we're interested in an alliance with this country, and will immediately accept alliance offers
+alice_merge_rally_point_why;Merge rally points are deprecated, rally points will now automatically merge
 alice_mvcap_1;Moves the capital to this province
 alice_mvcap_2;No ongoing crisis
 alice_mvcap_3;At peace
@@ -1629,4 +1722,12 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
+alice_pnt_pops;§YPopulation:§W $x$
+alice_pnt_rpops;§YRich strata:§W $x$ ($y$)
+alice_pnt_mpops;§YMiddle strata:§W $x$ ($y$)
+alice_pnt_ppops;§YPoor strata:§W $x$ ($y$)
+alice_pnt_culture;§YCulture:§W $x$
+alice_pnt_religion;§YReligion:§W $x$
+alice_pnt_dominant_religion;§YDominant religion:§W $x$
+alice_pnt_dominant_ideology;§YDominant Ideology:§W $x$
 ;;;;;;;;;;;;;x

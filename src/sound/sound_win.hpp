@@ -40,6 +40,8 @@ public:
 		filename = file;
 	}
 	void play(float volume, bool as_music, void* window_handle);
+	void pause() const;
+	void resume() const;
 	void stop() const;
 	bool is_playing() const;
 	void change_volume(float new_volume) const;
@@ -56,8 +58,18 @@ public:
 	HWND window_handle = nullptr;
 	int32_t last_music = -1;
 	int32_t first_music = -1;
+	bool global_pause = false;
 
 	audio_instance click_sound;
+	audio_instance click_left_sound;
+	audio_instance click_right_sound;
+	audio_instance tab_budget_sound;
+	audio_instance tab_politics_sound;
+	audio_instance tab_diplomacy_sound;
+	audio_instance tab_military_sound;
+	audio_instance tab_population_sound;
+	audio_instance tab_production_sound;
+	audio_instance tab_technology_sound;
 	audio_instance technology_finished_sound;
 	audio_instance army_move_sound;
 	audio_instance army_select_sound;
@@ -80,14 +92,29 @@ public:
 	audio_instance decline_sound;
 	audio_instance accept_sound;
 	audio_instance diplomatic_request_sound;
+	audio_instance console_open_sound;
+	audio_instance console_close_sound;
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
+	audio_instance province_select_sounds[4];
+	audio_instance event_sound;
+	audio_instance decision_sound;
+	audio_instance pause_sound;
+	audio_instance unpause_sound;
 
 	std::vector<audio_instance> music_list;
 
 	void play_effect(audio_instance& s, float volume);
 	void play_interface_sound(audio_instance& s, float volume);
 	void play_music(int32_t track, float volume);
+
+	void pause_effect() const;
+	void pause_interface_sound() const;
+	void pause_music() const;
+
+	void resume_effect() const;
+	void resume_interface_sound() const;
+	void resume_music() const;
 
 	void change_effect_volume(float v) const;
 	void change_interface_volume(float v) const;
@@ -96,6 +123,8 @@ public:
 	bool music_finished() const;
 
 	void play_new_track(sys::state& ws);
+	void play_next_track(sys::state& ws);
+	void play_previous_track(sys::state& ws);
 };
 
 } // namespace sound

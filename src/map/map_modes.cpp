@@ -629,7 +629,7 @@ std::vector<uint32_t> rally_map_from(sys::state& state) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		auto i = province::to_map_id(prov_id);
 		prov_color[i] = state.world.province_get_land_rally_point(prov_id) ? sys::pack_color(46, 247, 15) : 0;
-		prov_color[i] = state.world.province_get_naval_rally_point(prov_id) ? sys::pack_color(46, 15, 247) : 0;
+		prov_color[i + texture_size] = state.world.province_get_naval_rally_point(prov_id) ? sys::pack_color(46, 15, 247) : 0;
 	});
 	return prov_color;
 }
@@ -657,10 +657,16 @@ std::vector<uint32_t> mobilization_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
-			auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
-			prov_color[i] = color;
-			prov_color[i + texture_size] = color;
+			if(prov_population[i] == 0.f) {
+				auto color = sys::pack_color(0, 0, 0);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			} else {
+				float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
+				auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
+				prov_color[i] = color;
+				prov_color[i + texture_size] = color;
+			}
 		}
 	});
 	return prov_color;
@@ -690,7 +696,7 @@ std::vector<uint32_t> workforce_map_from(sys::state& state) {
 				auto i = province::to_map_id(prov_id);
 				float total = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::total);
 				float value = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::to_key(state, fat_id));
-				auto ratio = total / value;
+				auto ratio = value / total;
 				auto color = ogl::color_gradient(ratio, full_color, empty_color);
 				prov_color[i] = color;
 				prov_color[i + texture_size] = color;
@@ -775,7 +781,7 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 				auto i = province::to_map_id(p.id);
 
 				prov_color[i] = color;
-				prov_color[i + texture_size] = color;
+				prov_color[i + texture_size] = ~color;
 			}
 		}
 	}

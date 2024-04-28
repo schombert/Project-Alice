@@ -383,9 +383,6 @@ public:
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
 					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
-					}
 					if(state.ui_state.naval_combat_window) {
 						state.ui_state.naval_combat_window->set_visible(state, false);
 					}
@@ -401,9 +398,6 @@ public:
 					if(state.ui_state.province_window) {
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
 					}
 					if(state.ui_state.naval_combat_window) {
 						state.ui_state.naval_combat_window->set_visible(state, false);
@@ -425,9 +419,6 @@ public:
 					if(state.ui_state.province_window) {
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
 					}
 					if(state.ui_state.army_combat_window) {
 						state.ui_state.army_combat_window->set_visible(state, false);

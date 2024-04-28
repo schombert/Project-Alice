@@ -271,14 +271,38 @@ bool can_accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon
 	return true;
 }
 
+bool can_accept(sys::state& state, message const& m) {
+	switch(m.type) {
+	case type::none:
+		return true;
+	case type::access_request:
+		return command::can_ask_for_access(state, m.from, m.to, true);
+	case type::alliance_request:
+		return command::can_ask_for_alliance(state, m.from, m.to, true);
+	case type::call_ally_request:
+		return command::can_call_to_arms(state, m.from, m.to, m.data.war, true);
+	case type::be_crisis_primary_attacker:
+	case type::be_crisis_primary_defender:
+	case type::peace_offer:
+		return true;
+	case type::take_crisis_side_offer:
+		return can_accept_crisis_offer(state, m.from, m.to, m.data.crisis_offer);
+	case type::crisis_peace_offer:
+		return can_accept_crisis_peace_offer(state, m.from, m.to, m.data.peace);
+	case type::state_transfer:
+		return command::can_state_transfer(state, m.from, m.to, m.data.state);
+	}
+	return true;
+}
+
 void accept(sys::state& state, message const& m) {
+	if(!can_accept(state, m))
+		return;
+
 	switch(m.type) {
 	case type::none:
 		break;
 	case type::access_request: {
-		if(!command::can_ask_for_access(state, m.from, m.to, true))
-			return;
-
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
 		auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(m.to, m.from);
 		if(!rel) {
@@ -294,25 +318,16 @@ void accept(sys::state& state, message const& m) {
 			m.to, m.from, dcon::nation_id{},
 			sys::message_base_type::mil_access_start
 		});
-
 		break;
 	}
 	case type::alliance_request: {
-		if(!command::can_ask_for_alliance(state, m.from, m.to, true))
-			return;
-
 		nations::adjust_relationship(state, m.from, m.to, state.defines.alliance_relation_on_accept);
 		nations::make_alliance(state, m.from, m.to);
 		break;
 	}
 	case type::call_ally_request: {
-		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
-			return;
-
 		military::add_to_war(state, m.data.war, m.to, military::is_attacker(state, m.data.war, m.from));
-
 		nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_accept);
-
 		notification::post(state, notification::message{
 			[from = m.from, to = m.to, pa = state.world.war_get_primary_attacker(m.data.war), pd = state.world.war_get_primary_defender(m.data.war), name = state.world.war_get_name(m.data.war), tag = state.world.war_get_over_tag(m.data.war), st = state.world.war_get_over_state(m.data.war)](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
@@ -343,45 +358,37 @@ void accept(sys::state& state, message const& m) {
 		military::implement_peace_offer(state, m.data.peace);
 		break;
 	case type::take_crisis_side_offer:
-		if(can_accept_crisis_offer(state, m.from, m.to, m.data.crisis_offer)) {
-			add_to_crisis_with_offer(state, m.from, m.to, m.data.crisis_offer);
-
-			notification::post(state, notification::message{
-				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, source);
+		add_to_crisis_with_offer(state, m.from, m.to, m.data.crisis_offer);
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_crisis_joffer_accepted_1", text::variable_type::x, target, text::variable_type::y, source);
 					
-				},
-				"msg_crisis_joffer_accepted",
-				m.to, m.from, dcon::nation_id{},
-				sys::message_base_type::crisis_join_offer_accepted
-			});
-		}
+			},
+			"msg_crisis_joffer_accepted",
+			m.to, m.from, dcon::nation_id{},
+			sys::message_base_type::crisis_join_offer_accepted
+		});
 		break;
 	case type::crisis_peace_offer:
-		if(can_accept_crisis_peace_offer(state, m.from, m.to, m.data.peace)) {
-			nations::accept_crisis_peace_offer(state, m.from, m.to, m.data.peace);
-
-			notification::post(state, notification::message{
-				[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, source);
-				},
-				"msg_crisis_settled_title",
-				m.to, m.from, dcon::nation_id{},
-				sys::message_base_type::crisis_resolution_accepted
-			});
-		}
+		nations::accept_crisis_peace_offer(state, m.from, m.to, m.data.peace);
+		notification::post(state, notification::message{
+			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_crisis_settled_1", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_crisis_settled_title",
+			m.to, m.from, dcon::nation_id{},
+			sys::message_base_type::crisis_resolution_accepted
+		});
 		break;
 	case type::state_transfer:
-		if(command::can_state_transfer(state, m.from, m.to, m.data.state)) {
-			for(const auto ab : state.world.state_definition_get_abstract_state_membership(m.data.state)) {
-				if(ab.get_province().get_province_ownership().get_nation() == m.from) {
-					province::change_province_owner(state, ab.get_province(), m.to);
-				}
+		for(const auto ab : state.world.state_definition_get_abstract_state_membership(m.data.state)) {
+			if(ab.get_province().get_province_ownership().get_nation() == m.from) {
+				province::change_province_owner(state, ab.get_province(), m.to);
 			}
-			province::update_connected_regions(state);
-			province::update_cached_values(state);
-			nations::update_cached_values(state);
 		}
+		province::update_connected_regions(state);
+		province::update_cached_values(state);
+		nations::update_cached_values(state);
 		break;
 	}
 }

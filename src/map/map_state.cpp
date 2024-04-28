@@ -113,6 +113,43 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		auto n = p.get_nation_from_province_ownership();
 		if(!n || !n.get_name())
 			continue;
+		std::string name = text::produce_simple_string(state, n.get_name());
+		if(n.get_capital().get_connected_region_id() != rid) {
+			// Adjective + " " + Continent
+			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+			// 66% of the provinces correspond to a single national identity
+			// then it gets named after that identity
+			ankerl::unordered_dense::map<int32_t, uint32_t> map;
+			uint32_t total_provinces = 0;
+			for(auto p2 : state.world.in_province) {
+				if(p2.get_connected_region_id() == rid) {
+					total_provinces++;
+					for(const auto core : p2.get_core_as_province()) {
+						uint32_t v = 1;
+						if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
+							v += it->second;
+						}
+						map.insert_or_assign(core.get_identity().id.index(), v);
+					}
+				}
+			}
+			for(const auto& e : map) {
+				if(float(e.second) / float(total_provinces) >= 0.75f) {
+					// Adjective + " " + National identity
+					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
+					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
+						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
+						break;
+					}
+				}
+			}
+		}
+		if(name.starts_with("The ")) {
+			name.erase(0, 4);
+		}
+		if(name.empty())
+			continue;
+
 		std::array<glm::vec2, 5> key_provs{
 			p.get_mid_point(), //capital
 			p.get_mid_point(), //min x
@@ -154,12 +191,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 
-		std::string name = text::produce_simple_string(state, n.get_name());
-		if(n.get_capital().get_connected_region_id() != rid) {
-			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
-		}
-
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
@@ -198,7 +229,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return 1.f + 2.f * mo[2] * x + 3.f * mo[3] * x * x;
 			};
-			float xstep = (1.f / float(name.length() * 4.f));
+			float xstep = (1.f / float(name.length() * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -241,7 +272,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return 1.f + 2.f * mo[2] * x;
 			};
-			float xstep = (1.f / float(name.length() * 4.f));
+			float xstep = (1.f / float(name.length() * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -286,6 +317,17 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 	map_data.set_text_lines(state, text_data);
+
+	if(state.cheat_data.province_names) {
+		std::vector<text_line_generator_data> p_text_data;
+		for(auto p : state.world.in_province) {
+			if(p.get_name()) {
+				std::string name = text::produce_simple_string(state, p.get_name());
+				p_text_data.emplace_back(name, glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+			}
+		}
+		map_data.set_province_text_lines(state, p_text_data);
+	}
 }
 
 void map_state::update(sys::state& state) {
@@ -370,7 +412,7 @@ void map_state::update(sys::state& state) {
 
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += zoom_diff;
-	zoom_change *= std::exp(-seconds_since_last_update * 20);
+	zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
 	glm::vec2 pos_after_zoom;
@@ -381,6 +423,20 @@ void map_state::update(sys::state& state) {
 			break;
 		case sys::map_zoom_mode::inverted:
 			pos -= pos_before_zoom - pos_after_zoom;
+			break;
+		case sys::map_zoom_mode::to_cursor:
+			if(zoom_change < 0.f) {
+				pos -= pos_before_zoom - pos_after_zoom;
+			} else {
+				pos += pos_before_zoom - pos_after_zoom;
+			}
+			break;
+		case sys::map_zoom_mode::away_from_cursor:
+			if(zoom_change < 0.f) {
+				pos += pos_before_zoom - pos_after_zoom;
+			} else {
+				pos -= pos_before_zoom - pos_after_zoom;
+			}
 			break;
 		case sys::map_zoom_mode::centered:
 			//no pos change
@@ -401,7 +457,7 @@ void map_state::update(sys::state& state) {
 
 	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
 	zoom += keyboard_zoom_diff;
-	keyboard_zoom_change *= std::exp(-seconds_since_last_update * 20);
+	keyboard_zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
 	glm::vec2 pos_after_keyboard_zoom;
@@ -649,8 +705,8 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 		map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
 		auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
+			sound::play_interface_sound(state, sound::get_random_province_select_sound(state),
+				state.user_settings.interface_volume * state.user_settings.master_volume);
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 				set_selected_province(province::from_map_id(map_data.province_id_map[idx]));

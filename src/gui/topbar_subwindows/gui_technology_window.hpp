@@ -25,12 +25,39 @@ public:
 			if(state.culture_definitions.tech_folders[fat_id.get_folder_index()].category != category)
 				return;
 			bool discovered = state.world.nation_get_active_technologies(state.local_player_nation, id);
-			auto color = discovered ? text::text_color::green : text::text_color::red;
+			bool can_research = command::can_start_research(state, state.local_player_nation, id);
+			bool is_current = state.world.nation_get_current_research(state.local_player_nation) == id;
+			auto color = discovered
+				? text::text_color::green
+				: (is_current
+					? text::text_color::light_blue
+					: (can_research
+						? text::text_color::red
+						: text::text_color::light_grey));
 			auto name = fat_id.get_name();
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), color);
 			text::close_layout_box(contents, box);
 		});
+		switch(category) {
+		case culture::tech_category::army:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::army_tech_research_bonus, true);
+			break;
+		case culture::tech_category::commerce:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::commerce_tech_research_bonus, true);
+			break;
+		case culture::tech_category::culture:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::culture_tech_research_bonus, true);
+			break;
+		case culture::tech_category::industry:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
+			break;
+		case culture::tech_category::navy:
+			active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::navy_tech_research_bonus, true);
+			break;
+		case culture::tech_category::unknown:
+			break;
+		}
 	}
 };
 
@@ -804,12 +831,20 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
 		if(bool(mod_id)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			if(state.world.modifier_get_desc(mod_id)) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::country, n);
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
+			}
 			text::close_layout_box(contents, box);
-
 			modifier_description(state, contents, mod_id);
 		}
 	}

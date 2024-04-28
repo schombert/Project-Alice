@@ -435,19 +435,20 @@ struct state {
 	element_base* map_rank_legend = nullptr;
 	element_base* map_rec_legend = nullptr;
 	element_base* tl_chat_list = nullptr;
+	element_base* error_win = nullptr;
+	element_base* naval_combat_window = nullptr;
+	element_base* army_combat_window = nullptr;
+	element_base* change_leader_window = nullptr;
+	element_base* macro_builder_window = nullptr;
+	element_base* request_topbar_listbox = nullptr;
+	element_base* build_province_unit_window = nullptr;
+
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;
 
-	element_base* naval_combat_window = nullptr;
-	element_base* army_combat_window = nullptr;
-
-	element_base* change_leader_window = nullptr;
-
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
-
-	element_base* macro_builder_window = nullptr;
 
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 	sys::macro_builder_template current_template; // used as the currently edited template

@@ -125,6 +125,25 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+class wasd_for_map_movement_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
+class dm_popup_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
+class mute_on_focus_lost_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
+class zoom_speed_scrollbar : public scrollbar {
+	void on_value_change(sys::state& state, int32_t v) noexcept final;
+	void on_update(sys::state& state) noexcept final;
+};
 
 class fow_checkbox : public checkbox_button {
 public:
@@ -223,6 +242,20 @@ class vassal_color_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
 
+class color_blind_left : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class color_blind_right : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+class color_blind_display : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override;
+};
+
 class music_player_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -260,8 +293,14 @@ class controls_menu_window : public window_element_base {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
 		} else if(name == "spoilers_checkbox") {
 			return make_element_by_type<spoilers_checkbox>(state, id);
+		} else if(name == "dm_popup_checkbox") {
+			return make_element_by_type<dm_popup_checkbox>(state, id);
+		} else if(name == "zoom_speed_scrollbar") {
+			return make_element_by_type<zoom_speed_scrollbar>(state, id);
 		} else if(name == "mouse_edge_scrolling_checkbox") {
 			return make_element_by_type<map_mouse_edge_scrolling>(state, id);
+		} else if(name == "wasd_for_map_movement_checkbox") {
+			return make_element_by_type<wasd_for_map_movement_checkbox>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -344,6 +383,12 @@ class graphics_menu_window : public window_element_base {
 			return make_element_by_type<vassal_color_left>(state, id);
 		} else if(name == "vassal_color_right") {
 			return make_element_by_type<vassal_color_right>(state, id);
+		} else if(name == "color_blind_value") {
+			return make_element_by_type<color_blind_display>(state, id);
+		} else if(name == "color_blind_left") {
+			return make_element_by_type<color_blind_left>(state, id);
+		} else if(name == "color_blind_right") {
+			return make_element_by_type<color_blind_right>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -382,6 +427,8 @@ class audio_menu_window : public window_element_base {
 			return make_element_by_type<music_player_left>(state, id);
 		else if(name == "music_player_right")
 			return make_element_by_type<music_player_right>(state, id);
+		else if(name == "mute_on_focus_lost_checkbox")
+			return make_element_by_type<mute_on_focus_lost_checkbox>(state, id);
 		else
 			return nullptr;
 	}

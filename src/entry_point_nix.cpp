@@ -4,12 +4,7 @@
 static sys::state game_state; // too big for the stack
 
 int main(int argc, char **argv) {
-	assert(
-			std::string("NONE") !=
-			GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
-	add_root(game_state.common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-	add_root(game_state.common_fs,
-			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
+	add_root(game_state.common_fs, NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
 
 	if(argc >= 2) {
 #ifndef NDEBUG
@@ -85,6 +80,6 @@ int main(int argc, char **argv) {
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
 
-	network::finish(game_state);
+	network::finish(game_state, true);
 	return EXIT_SUCCESS;
 }

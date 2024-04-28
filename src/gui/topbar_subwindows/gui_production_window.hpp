@@ -660,14 +660,11 @@ class normal_factory_background : public opaque_element_base {
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
 
-		static auto effective_prices = state.world.commodity_make_vectorizable_float_buffer();
-		economy::populate_effective_prices(state, n, effective_prices);
-
 		//inputs
 
-		float input_total = economy::factory_input_total_cost(state, n, type, effective_prices);
+		float input_total = economy::factory_input_total_cost(state, n, type);
 		float min_input_available = economy::factory_min_input_available(state, n, type);
-		float e_input_total = economy::factory_e_input_total_cost(state, n, type, effective_prices);
+		float e_input_total = economy::factory_e_input_total_cost(state, n, type);
 		float min_e_input_available = economy::factory_min_e_input_available(state, n, type);
 
 		//modifiers
@@ -743,7 +740,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -787,7 +784,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* amount;
 
 			total_expenses += cost;
@@ -841,7 +838,7 @@ class normal_factory_background : public opaque_element_base {
 				* effective_production_scale;
 
 			float output_cost =
-				effective_prices.get(cid)
+				state.world.nation_get_effective_prices(n, cid)
 				* output_amount;
 
 			text::add_to_layout_box(state, contents, amount, text::fp_two_places{ output_amount });
@@ -878,8 +875,8 @@ class normal_factory_background : public opaque_element_base {
 
 		float wage_estimation =
 			factory_min_wage
-			* economy::factory_per_level_employment
-			/ economy::needs_scaling_factor
+			* state.defines.alice_factory_per_level_employment
+			/ state.defines.alice_needs_scaling_factor
 			* effective_production_scale;
 
 		total_expenses += wage_estimation;
@@ -1209,15 +1206,20 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		factories.resize(size_t(state.defines.factories_per_state));
+		xy_pair vert_bound{ 0, 0 };
+		int16_t num_cols = 8;
 		// Create factory slots for each of the provinces
-		for(uint8_t factory_index = 0; factory_index < uint8_t(state.defines.factories_per_state); ++factory_index) {
+		for(int16_t factory_index = 0; factory_index < int16_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state,
 					state.ui_state.defs_by_name.find("factory_info")->second.definition);
-			ptr->index = factory_index;
-			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
+			ptr->index = uint8_t(factory_index);
+			ptr->base_data.position.x = (factory_index % num_cols) * ptr->base_data.size.x;
+			ptr->base_data.position.y += std::max<int16_t>(0, (factory_index / num_cols) * (ptr->base_data.size.y - 26));
 			infos.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+			* ((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1431,7 +1433,7 @@ public:
 	}
 };
 
-class production_national_focus_button : public button_element_base {
+class production_national_focus_button : public right_click_button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		return bool(state.world.state_instance_get_owner_focus(content).id)
@@ -1451,12 +1453,13 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
-			parent->impl_get(state, s_payload);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		send(state, parent, production_selection_wrapper{sid, false, base_data.position});
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, sid, dcon::national_focus_id{});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1593,6 +1596,10 @@ public:
 	}
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::state_instance_id>::on_create(state);
+		constexpr int16_t num_cols = 8;
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+			* (((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols) - 1);
+		// (8 + 7 - 1) - 1 = (8 + 6) - 1 = (14 / 8) - 1 ~= 1.75 rundown 1 - 1 = 0, ok
 
 		xy_pair base_sort_template_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;

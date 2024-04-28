@@ -113,6 +113,9 @@ struct gui_element_common {
 	void maxwidth(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxheight(association_type, int32_t v, error_handler& err, int32_t line, building_gfx_context& context);
 	void maxsize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void add_size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void add_position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void table_layout(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context) { }
 };
 

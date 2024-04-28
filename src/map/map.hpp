@@ -102,6 +102,7 @@ public:
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void update_railroad_paths(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
+	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b> border_vertices;
@@ -120,6 +121,7 @@ public:
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
 	std::vector<text_line_vertex> text_line_vertices;
+	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
@@ -144,7 +146,8 @@ public:
 	static constexpr uint32_t vo_coastal = 6;
 	static constexpr uint32_t vo_railroad = 7;
 	static constexpr uint32_t vo_static_mesh = 8;
-	static constexpr uint32_t vo_count = 9;
+	static constexpr uint32_t vo_province_text_line = 9;
+	static constexpr uint32_t vo_count = 10;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures

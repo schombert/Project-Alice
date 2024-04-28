@@ -464,22 +464,14 @@ public:
 template<class T>
 class build_unit_button : public button_element_base {
 public:
-	bool is_navy = false;
 	bool disarmed = false;
 	bool no_possible_units = false;
 	void button_action(sys::state& state) noexcept override {
 		state.ui_state.unit_window_army->set_visible(state, false);
 		state.ui_state.unit_window_navy->set_visible(state, false);
-
 		state.ui_state.root->move_child_to_front(state.ui_state.build_unit_window);
-
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			Cyto::Any payload = dcon::army_id{};
-			state.ui_state.build_unit_window->impl_set(state, payload);
-		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-			Cyto::Any payload = dcon::navy_id{};
-			state.ui_state.build_unit_window->impl_set(state, payload);
-		}
+		Cyto::Any payload = T{};
+		state.ui_state.build_unit_window->impl_set(state, payload);
 		state.ui_state.build_unit_window->set_visible(state, true);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -520,7 +512,7 @@ public:
 				unit_def_count++;
 			}
 			utid = dcon::unit_type_id{ unit_def_count };
-			if(is_navy == false) {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				for(auto ucon : state.world.nation_get_province_land_construction(state.local_player_nation)) {
 					count++;
 					if(count) {
@@ -545,9 +537,7 @@ public:
 				disabled = true;
 				no_possible_units = true;
 			} else {
-				
 				disarmed = false;
-
 				utid = dcon::unit_type_id{ 0 };
 				count = 0;
 				unit_def_count = 0;
@@ -657,7 +647,6 @@ template<class T>
 class military_units_window : public window_element_base {
 private:
 	image_element_base* cdts_icon = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "current_count") {
@@ -672,34 +661,25 @@ public:
 			} else {
 				return make_element_by_type<military_navies_construction_text>(state, id);
 			}
-
 		} else if(name == "cut_down_to_size") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			ptr->set_visible(state, false);
 			cdts_icon = ptr.get();
 			return ptr;
-
 		} else if(name == "sort_name") {
 			return make_element_by_type<military_units_sortby_name>(state, id);
-
 		} else if(name == "sort_strength") {
 			return make_element_by_type<military_units_sortby_strength>(state, id);
-
 		} else if(name == "build_new") {
 			auto ptr = make_element_by_type<build_unit_button<T>>(state, id);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				ptr->is_navy = false;
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_army_label"));
 			} else {
-				ptr->is_navy = true;
 				ptr->set_button_text(state, text::produce_simple_string(state, "military_build_navy_label"));
 			}
-			ptr->set_visible(state, true);
 			return ptr;
-
 		} else if(name == "unit_listbox") {
 			return make_element_by_type<military_units_listbox<T>>(state, id);
-
 		} else {
 			return nullptr;
 		}

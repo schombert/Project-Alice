@@ -449,4 +449,18 @@ spriteTypes = {
 		name = "GFX_new_minimap_bg"
 		texturefile = "assets\\new_minimap_bg.dds"
 	}
+	spriteType = {
+		name = "GFX_button_macro"
+		texturefile = "assets\\button_macro.dds"
+		noOfFrames = 1
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		transparencecheck = yes
+	}
+	spriteType = {
+		name = "GFX_button_console"
+		texturefile = "assets\\button_console.dds"
+		noOfFrames = 1
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		transparencecheck = yes
+	}
 }
