@@ -426,6 +426,13 @@ void map_state::update(sys::state& state) {
 			break;
 		case sys::map_zoom_mode::to_cursor:
 			if(zoom_change < 0.f) {
+				pos -= pos_before_zoom - pos_after_zoom;
+			} else {
+				pos += pos_before_zoom - pos_after_zoom;
+			}
+			break;
+		case sys::map_zoom_mode::away_from_cursor:
+			if(zoom_change < 0.f) {
 				pos += pos_before_zoom - pos_after_zoom;
 			} else {
 				pos -= pos_before_zoom - pos_after_zoom;

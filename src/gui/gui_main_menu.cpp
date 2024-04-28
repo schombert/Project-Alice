@@ -116,14 +116,14 @@ void map_zoom_mode_left::on_update(sys::state& state) noexcept {
 }
 void map_zoom_mode_right::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
-	if(scale_index < 3) {
+	if(scale_index < 4) {
 		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index + 1);
 		send(state, parent, notify_setting_update{});
 	}
 }
 void map_zoom_mode_right::on_update(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
-	disabled = (scale_index >= 3);
+	disabled = (scale_index >= 4);
 }
 void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 	switch(state.user_settings.zoom_mode) {
@@ -138,6 +138,9 @@ void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	case sys::map_zoom_mode::to_cursor:
 		set_text(state, text::produce_simple_string(state, "zoom_mode_to_cursor"));
+		break;
+	case sys::map_zoom_mode::away_from_cursor:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_away_from_cursor"));
 		break;
 	default:
 		set_text(state, "???");

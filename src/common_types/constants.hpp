@@ -187,6 +187,7 @@ enum class map_zoom_mode : uint8_t {
 	inverted = 1,
 	centered = 2,
 	to_cursor = 3,
+	away_from_cursor = 4,
 };
 
 enum class map_vassal_color_mode : uint8_t {
