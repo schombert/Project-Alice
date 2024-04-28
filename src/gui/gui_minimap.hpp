@@ -753,6 +753,12 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
+class minimap_console_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		ui::console_window::show_toggle(state);
+	}
+};
 
 class minimap_msg_settings_button : public button_element_base {
 public:
@@ -939,6 +945,8 @@ public:
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_macro") {
 			return make_element_by_type<minimap_macro_builder_button>(state, id);
+		} else if(name == "button_console") {
+			return make_element_by_type<minimap_console_button>(state, id);
 		} else if(name == "button_goto") {
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
