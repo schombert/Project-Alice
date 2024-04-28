@@ -14,444 +14,437 @@ constexpr inline uint16_t scope_has_limit = 0x1000;
 constexpr inline uint16_t code_mask = 0x0FFF;
 
 // non scopes
-constexpr inline uint16_t capital = 0x0001;
-constexpr inline uint16_t add_core_tag = 0x0002;
-constexpr inline uint16_t add_core_int = 0x0003;
-constexpr inline uint16_t add_core_this_nation = 0x0004;
-constexpr inline uint16_t add_core_this_province = 0x0005;
-constexpr inline uint16_t add_core_this_state = 0x0006;
-constexpr inline uint16_t add_core_this_pop = 0x0007;
-constexpr inline uint16_t add_core_from_province = 0x0008;
-constexpr inline uint16_t add_core_from_nation = 0x0009;
-constexpr inline uint16_t add_core_reb = 0x000A;
-constexpr inline uint16_t remove_core_tag = 0x000B;
-constexpr inline uint16_t remove_core_int = 0x000C;
-constexpr inline uint16_t remove_core_this_nation = 0x000D;
-constexpr inline uint16_t remove_core_this_province = 0x000E;
-constexpr inline uint16_t remove_core_this_state = 0x000F;
-constexpr inline uint16_t remove_core_this_pop = 0x0010;
-constexpr inline uint16_t remove_core_from_province = 0x0011;
-constexpr inline uint16_t remove_core_from_nation = 0x0012;
-constexpr inline uint16_t remove_core_reb = 0x0013;
-constexpr inline uint16_t change_region_name_state = 0x0014;
-constexpr inline uint16_t change_region_name_province = 0x0015;
-constexpr inline uint16_t trade_goods = 0x0016;
-constexpr inline uint16_t add_accepted_culture = 0x0017;
-constexpr inline uint16_t add_accepted_culture_union = 0x0018;
-constexpr inline uint16_t primary_culture = 0x0019;
-constexpr inline uint16_t primary_culture_this_nation = 0x001A;
-constexpr inline uint16_t primary_culture_this_state = 0x001B;
-constexpr inline uint16_t primary_culture_this_province = 0x001C;
-constexpr inline uint16_t primary_culture_this_pop = 0x001D;
-constexpr inline uint16_t primary_culture_from_nation = 0x001E;
-constexpr inline uint16_t remove_accepted_culture = 0x001F;
-constexpr inline uint16_t life_rating = 0x0020;
-constexpr inline uint16_t religion = 0x0021;
-constexpr inline uint16_t is_slave_state_yes = 0x0022;
-constexpr inline uint16_t is_slave_pop_yes = 0x0023;
-constexpr inline uint16_t research_points = 0x0024;
-constexpr inline uint16_t tech_school = 0x0025;
-constexpr inline uint16_t government = 0x0026;
-constexpr inline uint16_t government_reb = 0x0027;
-constexpr inline uint16_t treasury = 0x0028;
-constexpr inline uint16_t war_exhaustion = 0x0029;
-constexpr inline uint16_t prestige = 0x002A;
-constexpr inline uint16_t change_tag = 0x002B;
-constexpr inline uint16_t change_tag_culture = 0x002C;
-constexpr inline uint16_t change_tag_no_core_switch = 0x002D;
-constexpr inline uint16_t change_tag_no_core_switch_culture = 0x002E;
-constexpr inline uint16_t set_country_flag = 0x002F;
-constexpr inline uint16_t clr_country_flag = 0x0030;
-constexpr inline uint16_t military_access = 0x0031;
-constexpr inline uint16_t military_access_this_nation = 0x0032;
-constexpr inline uint16_t military_access_this_province = 0x0033;
-constexpr inline uint16_t military_access_from_nation = 0x0034;
-constexpr inline uint16_t military_access_from_province = 0x0035;
-constexpr inline uint16_t badboy = 0x0036;
-constexpr inline uint16_t secede_province = 0x0037;
-constexpr inline uint16_t secede_province_this_nation = 0x0038;
-constexpr inline uint16_t secede_province_this_state = 0x0039;
-constexpr inline uint16_t secede_province_this_province = 0x003A;
-constexpr inline uint16_t secede_province_this_pop = 0x003B;
-constexpr inline uint16_t secede_province_from_nation = 0x003C;
-constexpr inline uint16_t secede_province_from_province = 0x003D;
-constexpr inline uint16_t secede_province_reb = 0x003E;
-constexpr inline uint16_t inherit = 0x003F;
-constexpr inline uint16_t inherit_this_nation = 0x0040;
-constexpr inline uint16_t inherit_this_state = 0x0041;
-constexpr inline uint16_t inherit_this_province = 0x0042;
-constexpr inline uint16_t inherit_this_pop = 0x0043;
-constexpr inline uint16_t inherit_from_nation = 0x0044;
-constexpr inline uint16_t inherit_from_province = 0x0045;
-constexpr inline uint16_t annex_to = 0x0046;
-constexpr inline uint16_t annex_to_this_nation = 0x0047;
-constexpr inline uint16_t annex_to_this_state = 0x0048;
-constexpr inline uint16_t annex_to_this_province = 0x0049;
-constexpr inline uint16_t annex_to_this_pop = 0x004A;
-constexpr inline uint16_t annex_to_from_nation = 0x004B;
-constexpr inline uint16_t annex_to_from_province = 0x004C;
-constexpr inline uint16_t release = 0x004D;
-constexpr inline uint16_t release_this_nation = 0x004E;
-constexpr inline uint16_t release_this_state = 0x004F;
-constexpr inline uint16_t release_this_province = 0x0050;
-constexpr inline uint16_t release_this_pop = 0x0051;
-constexpr inline uint16_t release_from_nation = 0x0052;
-constexpr inline uint16_t release_from_province = 0x0053;
-constexpr inline uint16_t change_controller = 0x0054;
-constexpr inline uint16_t change_controller_this_nation = 0x0055;
-constexpr inline uint16_t change_controller_this_province = 0x0056;
-constexpr inline uint16_t change_controller_from_nation = 0x0057;
-constexpr inline uint16_t change_controller_from_province = 0x0058;
-constexpr inline uint16_t infrastructure = 0x0059;
-constexpr inline uint16_t money = 0x005A;
-constexpr inline uint16_t leadership = 0x005B;
-constexpr inline uint16_t create_vassal = 0x005C;
-constexpr inline uint16_t create_vassal_this_nation = 0x005D;
-constexpr inline uint16_t create_vassal_this_province = 0x005E;
-constexpr inline uint16_t create_vassal_from_nation = 0x005F;
-constexpr inline uint16_t create_vassal_from_province = 0x0060;
-constexpr inline uint16_t end_military_access = 0x0061;
-constexpr inline uint16_t end_military_access_this_nation = 0x0062;
-constexpr inline uint16_t end_military_access_this_province = 0x0063;
-constexpr inline uint16_t end_military_access_from_nation = 0x0064;
-constexpr inline uint16_t end_military_access_from_province = 0x0065;
-constexpr inline uint16_t leave_alliance = 0x0066;
-constexpr inline uint16_t leave_alliance_this_nation = 0x0067;
-constexpr inline uint16_t leave_alliance_this_province = 0x0068;
-constexpr inline uint16_t leave_alliance_from_nation = 0x0069;
-constexpr inline uint16_t leave_alliance_from_province = 0x006A;
-constexpr inline uint16_t end_war = 0x006B;
-constexpr inline uint16_t end_war_this_nation = 0x006C;
-constexpr inline uint16_t end_war_this_province = 0x006D;
-constexpr inline uint16_t end_war_from_nation = 0x006E;
-constexpr inline uint16_t end_war_from_province = 0x006F;
-constexpr inline uint16_t enable_ideology = 0x0070;
-constexpr inline uint16_t ruling_party_ideology = 0x0071;
-constexpr inline uint16_t plurality = 0x0072;
-constexpr inline uint16_t remove_province_modifier = 0x0073;
-constexpr inline uint16_t remove_country_modifier = 0x0074;
-constexpr inline uint16_t create_alliance = 0x0075;
-constexpr inline uint16_t create_alliance_this_nation = 0x0076;
-constexpr inline uint16_t create_alliance_this_province = 0x0077;
-constexpr inline uint16_t create_alliance_from_nation = 0x0078;
-constexpr inline uint16_t create_alliance_from_province = 0x0079;
-constexpr inline uint16_t release_vassal = 0x007A;
-constexpr inline uint16_t release_vassal_this_nation = 0x007B;
-constexpr inline uint16_t release_vassal_this_province = 0x007C;
-constexpr inline uint16_t release_vassal_from_nation = 0x007D;
-constexpr inline uint16_t release_vassal_from_province = 0x007E;
-constexpr inline uint16_t release_vassal_reb = 0x007F;
-constexpr inline uint16_t release_vassal_random = 0x0080;
-constexpr inline uint16_t change_province_name = 0x0081;
-constexpr inline uint16_t enable_canal = 0x0082;
-constexpr inline uint16_t set_global_flag = 0x0083;
-constexpr inline uint16_t clr_global_flag = 0x0084;
-constexpr inline uint16_t nationalvalue_province = 0x0085;
-constexpr inline uint16_t nationalvalue_nation = 0x0086;
-constexpr inline uint16_t civilized_yes = 0x0087;
-constexpr inline uint16_t civilized_no = 0x0088;
-constexpr inline uint16_t is_slave_state_no = 0x0089;
-constexpr inline uint16_t is_slave_pop_no = 0x008A;
-constexpr inline uint16_t election = 0x008B;
-constexpr inline uint16_t social_reform = 0x008C;
-constexpr inline uint16_t political_reform = 0x008D;
-constexpr inline uint16_t add_tax_relative_income = 0x008E;
-constexpr inline uint16_t neutrality = 0x008F;
-constexpr inline uint16_t reduce_pop = 0x0090;
-constexpr inline uint16_t move_pop = 0x0091;
-constexpr inline uint16_t pop_type = 0x0092;
-constexpr inline uint16_t years_of_research = 0x0093;
-constexpr inline uint16_t prestige_factor_positive = 0x0094;
-constexpr inline uint16_t prestige_factor_negative = 0x0095;
-constexpr inline uint16_t military_reform = 0x0096;
-constexpr inline uint16_t economic_reform = 0x0097;
-constexpr inline uint16_t remove_random_military_reforms = 0x0098;
-constexpr inline uint16_t remove_random_economic_reforms = 0x0099;
-constexpr inline uint16_t add_crime = 0x009A;
-constexpr inline uint16_t add_crime_none = 0x009B;
-constexpr inline uint16_t nationalize = 0x009C;
-constexpr inline uint16_t build_factory_in_capital_state = 0x009D;
-constexpr inline uint16_t activate_technology = 0x009E;
-constexpr inline uint16_t great_wars_enabled_yes = 0x009F;
-constexpr inline uint16_t great_wars_enabled_no = 0x00A0;
-constexpr inline uint16_t world_wars_enabled_yes = 0x00A1;
-constexpr inline uint16_t world_wars_enabled_no = 0x00A2;
-constexpr inline uint16_t assimilate_province = 0x00A3;
-constexpr inline uint16_t assimilate_pop = 0x00A4;
-constexpr inline uint16_t literacy = 0x00A5;
-constexpr inline uint16_t add_crisis_interest = 0x00A6;
-constexpr inline uint16_t flashpoint_tension = 0x00A7;
-constexpr inline uint16_t add_crisis_temperature = 0x00A8;
-constexpr inline uint16_t consciousness = 0x00A9;
-constexpr inline uint16_t militancy = 0x00AA;
-constexpr inline uint16_t rgo_size = 0x00AB;
-constexpr inline uint16_t fort = 0x00AC;
-constexpr inline uint16_t naval_base = 0x00AD;
+#define EFFECT_BYTECODE_LIST \
+EFFECT_BYTECODE_ELEMENT(0x0001, capital, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0002, add_core_tag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0003, add_core_int, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0004, add_core_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0005, add_core_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0006, add_core_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0007, add_core_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0008, add_core_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0009, add_core_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x000A, add_core_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x000B, remove_core_tag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x000C, remove_core_int, 1) \
+EFFECT_BYTECODE_ELEMENT(0x000D, remove_core_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x000E, remove_core_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x000F, remove_core_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0010, remove_core_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0011, remove_core_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0012, remove_core_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0013, remove_core_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0014, change_region_name_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0015, change_region_name_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0016, trade_goods, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0017, add_accepted_culture, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0018, add_accepted_culture_union, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0019, primary_culture, 1) \
+EFFECT_BYTECODE_ELEMENT(0x001A, primary_culture_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x001B, primary_culture_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x001C, primary_culture_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x001D, primary_culture_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x001E, primary_culture_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x001F, remove_accepted_culture, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0020, life_rating, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0021, religion, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0022, is_slave_state_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0023, is_slave_pop_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0024, research_points, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0025, tech_school, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0026, government, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0027, government_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0028, treasury, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0029, war_exhaustion, 2) \
+EFFECT_BYTECODE_ELEMENT(0x002A, prestige, 2) \
+EFFECT_BYTECODE_ELEMENT(0x002B, change_tag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x002C, change_tag_culture, 0) \
+EFFECT_BYTECODE_ELEMENT(0x002D, change_tag_no_core_switch, 1) \
+EFFECT_BYTECODE_ELEMENT(0x002E, change_tag_no_core_switch_culture, 0) \
+EFFECT_BYTECODE_ELEMENT(0x002F, set_country_flag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0030, clr_country_flag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0031, military_access, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0032, military_access_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0033, military_access_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0034, military_access_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0035, military_access_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0036, badboy, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0037, secede_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0038, secede_province_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0039, secede_province_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003A, secede_province_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003B, secede_province_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003C, secede_province_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003D, secede_province_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003E, secede_province_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x003F, inherit, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0040, inherit_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0041, inherit_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0042, inherit_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0043, inherit_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0044, inherit_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0045, inherit_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0046, annex_to, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0047, annex_to_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0048, annex_to_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0049, annex_to_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x004A, annex_to_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x004B, annex_to_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x004C, annex_to_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x004D, release, 1) \
+EFFECT_BYTECODE_ELEMENT(0x004E, release_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x004F, release_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0050, release_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0051, release_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0052, release_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0053, release_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0054, change_controller, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0055, change_controller_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0056, change_controller_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0057, change_controller_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0058, change_controller_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0059, infrastructure, 1) \
+EFFECT_BYTECODE_ELEMENT(0x005A, money, 2) \
+EFFECT_BYTECODE_ELEMENT(0x005B, leadership, 1) \
+EFFECT_BYTECODE_ELEMENT(0x005C, create_vassal, 1) \
+EFFECT_BYTECODE_ELEMENT(0x005D, create_vassal_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x005E, create_vassal_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x005F, create_vassal_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0060, create_vassal_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0061, end_military_access, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0062, end_military_access_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0063, end_military_access_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0064, end_military_access_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0065, end_military_access_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0066, leave_alliance, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0067, leave_alliance_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0068, leave_alliance_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0069, leave_alliance_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x006A, leave_alliance_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x006B, end_war, 1) \
+EFFECT_BYTECODE_ELEMENT(0x006C, end_war_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x006D, end_war_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x006E, end_war_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x006F, end_war_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0070, enable_ideology, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0071, ruling_party_ideology, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0072, plurality, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0073, remove_province_modifier, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0074, remove_country_modifier, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0075, create_alliance, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0076, create_alliance_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0077, create_alliance_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0078, create_alliance_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0079, create_alliance_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x007A, release_vassal, 1) \
+EFFECT_BYTECODE_ELEMENT(0x007B, release_vassal_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x007C, release_vassal_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x007D, release_vassal_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x007E, release_vassal_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x007F, release_vassal_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0080, release_vassal_random, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0081, change_province_name, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0082, enable_canal, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0083, set_global_flag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0084, clr_global_flag, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0085, nationalvalue_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0086, nationalvalue_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0087, civilized_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0088, civilized_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0089, is_slave_state_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x008A, is_slave_pop_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x008B, election, 0) \
+EFFECT_BYTECODE_ELEMENT(0x008C, social_reform, 1) \
+EFFECT_BYTECODE_ELEMENT(0x008D, political_reform, 1) \
+EFFECT_BYTECODE_ELEMENT(0x008E, add_tax_relative_income, 2) \
+EFFECT_BYTECODE_ELEMENT(0x008F, neutrality, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0090, reduce_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0091, move_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0092, pop_type, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0093, years_of_research, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0094, prestige_factor_positive, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0095, prestige_factor_negative, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0096, military_reform, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0097, economic_reform, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0098, remove_random_military_reforms, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0099, remove_random_economic_reforms, 1) \
+EFFECT_BYTECODE_ELEMENT(0x009A, add_crime, 1) \
+EFFECT_BYTECODE_ELEMENT(0x009B, add_crime_none, 0) \
+EFFECT_BYTECODE_ELEMENT(0x009C, nationalize, 0) \
+EFFECT_BYTECODE_ELEMENT(0x009D, build_factory_in_capital_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x009E, activate_technology, 1) \
+EFFECT_BYTECODE_ELEMENT(0x009F, great_wars_enabled_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A0, great_wars_enabled_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A1, world_wars_enabled_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A2, world_wars_enabled_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A3, assimilate_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A4, assimilate_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A5, literacy, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00A6, add_crisis_interest, 0) \
+EFFECT_BYTECODE_ELEMENT(0x00A7, flashpoint_tension, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00A8, add_crisis_temperature, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00A9, consciousness, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00AA, militancy, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00AB, rgo_size, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00AC, fort, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00AD, naval_base, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00AE, trigger_revolt_nation, 4) \
+EFFECT_BYTECODE_ELEMENT(0x00AF, trigger_revolt_state, 4) \
+EFFECT_BYTECODE_ELEMENT(0x00B0, trigger_revolt_province, 4) \
+EFFECT_BYTECODE_ELEMENT(0x00B1, diplomatic_influence, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00B2, diplomatic_influence_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B3, diplomatic_influence_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B4, diplomatic_influence_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B5, diplomatic_influence_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B6, relation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00B7, relation_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B8, relation_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00B9, relation_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00BA, relation_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00BB, add_province_modifier, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00BC, add_province_modifier_no_duration, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00BD, add_country_modifier, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00BE, add_country_modifier_no_duration, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00BF, casus_belli_tag, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00C0, casus_belli_int, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00C1, casus_belli_this_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C2, casus_belli_this_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C3, casus_belli_this_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C4, casus_belli_this_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C5, casus_belli_from_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C6, casus_belli_from_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00C7, add_casus_belli_tag, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00C8, add_casus_belli_int, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00C9, add_casus_belli_this_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CA, add_casus_belli_this_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CB, add_casus_belli_this_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CC, add_casus_belli_this_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CD, add_casus_belli_from_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CE, add_casus_belli_from_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00CF, remove_casus_belli_tag, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00D0, remove_casus_belli_int, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00D1, remove_casus_belli_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D2, remove_casus_belli_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D3, remove_casus_belli_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D4, remove_casus_belli_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D5, remove_casus_belli_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D6, remove_casus_belli_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00D7, this_remove_casus_belli_tag, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00D8, this_remove_casus_belli_int, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00D9, this_remove_casus_belli_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DA, this_remove_casus_belli_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DB, this_remove_casus_belli_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DC, this_remove_casus_belli_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DD, this_remove_casus_belli_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DE, this_remove_casus_belli_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00DF, war_tag, 7) \
+EFFECT_BYTECODE_ELEMENT(0x00E0, war_this_nation, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E1, war_this_state, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E2, war_this_province, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E3, war_this_pop, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E4, war_from_nation, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E5, war_from_province, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E6, war_no_ally_tag, 7) \
+EFFECT_BYTECODE_ELEMENT(0x00E7, war_no_ally_this_nation, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E8, war_no_ally_this_state, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00E9, war_no_ally_this_province, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00EA, war_no_ally_this_pop, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00EB, war_no_ally_from_nation, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00EC, war_no_ally_from_province, 6) \
+EFFECT_BYTECODE_ELEMENT(0x00ED, country_event_this_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00EE, country_event_immediate_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00EF, province_event_this_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00F0, province_event_immediate_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00F1, sub_unit_int, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00F2, sub_unit_this, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00F3, sub_unit_from, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00F4, sub_unit_current, 1) \
+EFFECT_BYTECODE_ELEMENT(0x00F5, set_variable, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00F6, change_variable, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00F7, ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00F8, upper_house, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00F9, scaled_militancy_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00FA, scaled_militancy_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00FB, scaled_militancy_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00FC, scaled_consciousness_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00FD, scaled_consciousness_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x00FE, scaled_consciousness_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x00FF, define_general, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0100, define_admiral, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0101, dominant_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0102, add_war_goal, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0103, move_issue_percentage_nation, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0104, move_issue_percentage_state, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0105, move_issue_percentage_province, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0106, move_issue_percentage_pop, 4) \
+EFFECT_BYTECODE_ELEMENT(0x0107, party_loyalty, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0108, party_loyalty_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0109, variable_tech_name_no, 1) \
+EFFECT_BYTECODE_ELEMENT(0x010A, variable_invention_name_yes, 1) \
+EFFECT_BYTECODE_ELEMENT(0x010B, build_railway_in_capital_yes_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x010C, build_railway_in_capital_yes_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x010D, build_railway_in_capital_no_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x010E, build_railway_in_capital_no_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x010F, build_fort_in_capital_yes_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0110, build_fort_in_capital_yes_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0111, build_fort_in_capital_no_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0112, build_fort_in_capital_no_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0113, relation_reb, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0114, variable_tech_name_yes, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0115, variable_good_name, 3) \
+/*misplaced*/ \
+EFFECT_BYTECODE_ELEMENT(0x0116, set_country_flag_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0117, add_country_modifier_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0118, add_country_modifier_province_no_duration, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0119, dominant_issue_nation, 3) \
+EFFECT_BYTECODE_ELEMENT(0x011A, relation_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x011B, relation_province_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x011C, relation_province_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x011D, relation_province_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x011E, relation_province_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x011F, relation_province_reb, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0120, scaled_militancy_nation_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0121, scaled_militancy_nation_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0122, scaled_militancy_nation_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0123, scaled_consciousness_nation_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0124, scaled_consciousness_nation_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0125, scaled_consciousness_nation_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0126, scaled_militancy_state_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0127, scaled_militancy_state_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0128, scaled_militancy_state_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0129, scaled_consciousness_state_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x012A, scaled_consciousness_state_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x012B, scaled_consciousness_state_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x012C, scaled_militancy_province_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x012D, scaled_militancy_province_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x012E, scaled_militancy_province_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x012F, scaled_consciousness_province_issue, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0130, scaled_consciousness_province_ideology, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0131, scaled_consciousness_province_unemployment, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0132, variable_good_name_province, 3) \
+EFFECT_BYTECODE_ELEMENT(0x0133, treasury_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0134, country_event_this_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0135, country_event_immediate_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0136, province_event_this_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0137, province_event_immediate_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0138, country_event_this_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0139, country_event_immediate_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x013A, province_event_this_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x013B, province_event_immediate_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x013C, country_event_this_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x013D, country_event_immediate_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x013E, province_event_this_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x013F, province_event_immediate_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0140, country_event_province_this_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0141, country_event_immediate_province_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0142, country_event_province_this_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0143, country_event_immediate_province_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0144, country_event_province_this_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0145, country_event_immediate_province_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0146, country_event_province_this_pop, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0147, country_event_immediate_province_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0148, activate_invention, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0149, variable_invention_name_no, 1) \
+EFFECT_BYTECODE_ELEMENT(0x014A, add_core_tag_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x014B, remove_core_tag_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x014C, secede_province_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x014D, assimilate_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x014E, add_core_state_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x014F, add_core_state_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0150, add_core_state_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0151, add_core_state_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0152, add_core_state_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0153, add_core_state_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0154, add_core_state_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0155, add_province_modifier_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0156, add_province_modifier_state_no_duration, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0157, remove_core_state_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0158, remove_core_state_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0159, remove_core_state_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x015A, remove_core_state_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x015B, remove_core_state_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x015C, remove_core_state_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x015D, remove_core_state_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x015E, remove_province_modifier_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x015F, life_rating_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0160, secede_province_state_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0161, secede_province_state_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0162, secede_province_state_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0163, secede_province_state_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0164, secede_province_state_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0165, secede_province_state_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0166, secede_province_state_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0167, infrastructure_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0168, fort_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0169, naval_base_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x016A, is_slave_province_yes, 0) \
+EFFECT_BYTECODE_ELEMENT(0x016B, is_slave_province_no, 0) \
+EFFECT_BYTECODE_ELEMENT(0x016C, change_controller_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x016D, change_controller_state_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x016E, change_controller_state_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x016F, change_controller_state_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0170, change_controller_state_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0171, reduce_pop_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0172, reduce_pop_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0173, reduce_pop_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0174, consciousness_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0175, consciousness_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0176, consciousness_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0177, militancy_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0178, militancy_state, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0179, militancy_nation, 2) \
+EFFECT_BYTECODE_ELEMENT(0x017A, remove_core_tag_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x017B, remove_core_nation_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x017C, remove_core_nation_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x017D, remove_core_nation_this_state, 0) \
+EFFECT_BYTECODE_ELEMENT(0x017E, remove_core_nation_this_pop, 0) \
+EFFECT_BYTECODE_ELEMENT(0x017F, remove_core_nation_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0180, remove_core_nation_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0181, remove_core_nation_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0182, set_country_flag_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0183, social_reform_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0184, political_reform_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0185, flashpoint_tension_province, 2) \
+EFFECT_BYTECODE_ELEMENT(0x0186, release_vassal_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0187, release_vassal_province_this_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0188, release_vassal_province_this_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0189, release_vassal_province_from_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018A, release_vassal_province_from_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018B, release_vassal_province_reb, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018C, release_vassal_province_random, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018D, build_bank_in_capital_yes_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018E, build_bank_in_capital_yes_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x018F, build_bank_in_capital_no_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0190, build_bank_in_capital_no_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0191, build_university_in_capital_yes_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0192, build_university_in_capital_yes_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0193, build_university_in_capital_no_whole_state_yes_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0194, build_university_in_capital_no_whole_state_no_limit, 0) \
+EFFECT_BYTECODE_ELEMENT(0x0195, bank, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0196, bank_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0197, university, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0198, university_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x0199, kill_leader, 2) \
+EFFECT_BYTECODE_ELEMENT(0x019A, annex_to_null_nation, 0) \
+EFFECT_BYTECODE_ELEMENT(0x019B, annex_to_null_province, 0) \
+EFFECT_BYTECODE_ELEMENT(0x019C, add_truce_tag, 2) \
+EFFECT_BYTECODE_ELEMENT(0x019D, add_truce_this_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x019E, add_truce_this_state, 1) \
+EFFECT_BYTECODE_ELEMENT(0x019F, add_truce_this_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01A0, add_truce_this_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01A1, add_truce_from_nation, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01A2, add_truce_from_province, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01A3, call_allies, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A4, ruling_party_this, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A5, ruling_party_from, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A6, add_accepted_culture_this, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A7, add_accepted_culture_union_this, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A8, add_accepted_culture_from, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01A9, add_accepted_culture_union_from, 0) \
 
-// discard only
-// set_province_flag
-// clr_province_flag
-
-// complex
-constexpr inline uint16_t trigger_revolt_nation = 0x00AE;
-constexpr inline uint16_t trigger_revolt_state = 0x00AF;
-constexpr inline uint16_t trigger_revolt_province = 0x00B0;
-constexpr inline uint16_t diplomatic_influence = 0x00B1;
-constexpr inline uint16_t diplomatic_influence_this_nation = 0x00B2;
-constexpr inline uint16_t diplomatic_influence_this_province = 0x00B3;
-constexpr inline uint16_t diplomatic_influence_from_nation = 0x00B4;
-constexpr inline uint16_t diplomatic_influence_from_province = 0x00B5;
-constexpr inline uint16_t relation = 0x00B6;
-constexpr inline uint16_t relation_this_nation = 0x00B7;
-constexpr inline uint16_t relation_this_province = 0x00B8;
-constexpr inline uint16_t relation_from_nation = 0x00B9;
-constexpr inline uint16_t relation_from_province = 0x00BA;
-constexpr inline uint16_t add_province_modifier = 0x00BB;
-constexpr inline uint16_t add_province_modifier_no_duration = 0x00BC;
-constexpr inline uint16_t add_country_modifier = 0x00BD;
-constexpr inline uint16_t add_country_modifier_no_duration = 0x00BE;
-constexpr inline uint16_t casus_belli_tag = 0x00BF;
-constexpr inline uint16_t casus_belli_int = 0x00C0;
-constexpr inline uint16_t casus_belli_this_nation = 0x00C1;
-constexpr inline uint16_t casus_belli_this_state = 0x00C2;
-constexpr inline uint16_t casus_belli_this_province = 0x00C3;
-constexpr inline uint16_t casus_belli_this_pop = 0x00C4;
-constexpr inline uint16_t casus_belli_from_nation = 0x00C5;
-constexpr inline uint16_t casus_belli_from_province = 0x00C6;
-constexpr inline uint16_t add_casus_belli_tag = 0x00C7;
-constexpr inline uint16_t add_casus_belli_int = 0x00C8;
-constexpr inline uint16_t add_casus_belli_this_nation = 0x00C9;
-constexpr inline uint16_t add_casus_belli_this_state = 0x00CA;
-constexpr inline uint16_t add_casus_belli_this_province = 0x00CB;
-constexpr inline uint16_t add_casus_belli_this_pop = 0x00CC;
-constexpr inline uint16_t add_casus_belli_from_nation = 0x00CD;
-constexpr inline uint16_t add_casus_belli_from_province = 0x00CE;
-constexpr inline uint16_t remove_casus_belli_tag = 0x00CF;
-constexpr inline uint16_t remove_casus_belli_int = 0x00D0;
-constexpr inline uint16_t remove_casus_belli_this_nation = 0x00D1;
-constexpr inline uint16_t remove_casus_belli_this_state = 0x00D2;
-constexpr inline uint16_t remove_casus_belli_this_province = 0x00D3;
-constexpr inline uint16_t remove_casus_belli_this_pop = 0x00D4;
-constexpr inline uint16_t remove_casus_belli_from_nation = 0x00D5;
-constexpr inline uint16_t remove_casus_belli_from_province = 0x00D6;
-constexpr inline uint16_t this_remove_casus_belli_tag = 0x00D7;
-constexpr inline uint16_t this_remove_casus_belli_int = 0x00D8;
-constexpr inline uint16_t this_remove_casus_belli_this_nation = 0x00D9;
-constexpr inline uint16_t this_remove_casus_belli_this_state = 0x00DA;
-constexpr inline uint16_t this_remove_casus_belli_this_province = 0x00DB;
-constexpr inline uint16_t this_remove_casus_belli_this_pop = 0x00DC;
-constexpr inline uint16_t this_remove_casus_belli_from_nation = 0x00DD;
-constexpr inline uint16_t this_remove_casus_belli_from_province = 0x00DE;
-constexpr inline uint16_t war_tag = 0x00DF;
-constexpr inline uint16_t war_this_nation = 0x00E0;
-constexpr inline uint16_t war_this_state = 0x00E1;
-constexpr inline uint16_t war_this_province = 0x00E2;
-constexpr inline uint16_t war_this_pop = 0x00E3;
-constexpr inline uint16_t war_from_nation = 0x00E4;
-constexpr inline uint16_t war_from_province = 0x00E5;
-constexpr inline uint16_t war_no_ally_tag = 0x00E6;
-constexpr inline uint16_t war_no_ally_this_nation = 0x00E7;
-constexpr inline uint16_t war_no_ally_this_state = 0x00E8;
-constexpr inline uint16_t war_no_ally_this_province = 0x00E9;
-constexpr inline uint16_t war_no_ally_this_pop = 0x00EA;
-constexpr inline uint16_t war_no_ally_from_nation = 0x00EB;
-constexpr inline uint16_t war_no_ally_from_province = 0x00EC;
-constexpr inline uint16_t country_event_this_nation = 0x00ED;
-constexpr inline uint16_t country_event_immediate_this_nation = 0x00EE;
-constexpr inline uint16_t province_event_this_nation = 0x00EF;
-constexpr inline uint16_t province_event_immediate_this_nation = 0x00F0;
-constexpr inline uint16_t sub_unit_int = 0x00F1;
-constexpr inline uint16_t sub_unit_this = 0x00F2;
-constexpr inline uint16_t sub_unit_from = 0x00F3;
-constexpr inline uint16_t sub_unit_current = 0x00F4;
-constexpr inline uint16_t set_variable = 0x00F5;
-constexpr inline uint16_t change_variable = 0x00F6;
-constexpr inline uint16_t ideology = 0x00F7;
-constexpr inline uint16_t upper_house = 0x00F8;
-constexpr inline uint16_t scaled_militancy_issue = 0x00F9;
-constexpr inline uint16_t scaled_militancy_ideology = 0x00FA;
-constexpr inline uint16_t scaled_militancy_unemployment = 0x00FB;
-constexpr inline uint16_t scaled_consciousness_issue = 0x00FC;
-constexpr inline uint16_t scaled_consciousness_ideology = 0x00FD;
-constexpr inline uint16_t scaled_consciousness_unemployment = 0x00FE;
-constexpr inline uint16_t define_general = 0x00FF;
-constexpr inline uint16_t define_admiral = 0x0100;
-constexpr inline uint16_t dominant_issue = 0x0101;
-constexpr inline uint16_t add_war_goal = 0x0102;
-constexpr inline uint16_t move_issue_percentage_nation = 0x0103;
-constexpr inline uint16_t move_issue_percentage_state = 0x0104;
-constexpr inline uint16_t move_issue_percentage_province = 0x0105;
-constexpr inline uint16_t move_issue_percentage_pop = 0x0106;
-constexpr inline uint16_t party_loyalty = 0x0107;
-constexpr inline uint16_t party_loyalty_province = 0x0108;
-constexpr inline uint16_t variable_tech_name_no = 0x0109;
-constexpr inline uint16_t variable_invention_name_yes = 0x010A;
-constexpr inline uint16_t build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
-constexpr inline uint16_t build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
-constexpr inline uint16_t build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
-constexpr inline uint16_t build_railway_in_capital_no_whole_state_no_limit = 0x010E;
-constexpr inline uint16_t build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
-constexpr inline uint16_t build_fort_in_capital_yes_whole_state_no_limit = 0x0110;
-constexpr inline uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x0111;
-constexpr inline uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x0112;
-constexpr inline uint16_t relation_reb = 0x0113;
-
-// variable name
-constexpr inline uint16_t variable_tech_name_yes = 0x0114;
-constexpr inline uint16_t variable_good_name = 0x0115;
-
-// misplaced
-constexpr inline uint16_t set_country_flag_province = 0x0116;
-constexpr inline uint16_t add_country_modifier_province = 0x0117;
-constexpr inline uint16_t add_country_modifier_province_no_duration = 0x0118;
-constexpr inline uint16_t dominant_issue_nation = 0x0119;
-constexpr inline uint16_t relation_province = 0x011A;
-constexpr inline uint16_t relation_province_this_nation = 0x011B;
-constexpr inline uint16_t relation_province_this_province = 0x011C;
-constexpr inline uint16_t relation_province_from_nation = 0x011D;
-constexpr inline uint16_t relation_province_from_province = 0x011E;
-constexpr inline uint16_t relation_province_reb = 0x011F;
-constexpr inline uint16_t scaled_militancy_nation_issue = 0x0120;
-constexpr inline uint16_t scaled_militancy_nation_ideology = 0x0121;
-constexpr inline uint16_t scaled_militancy_nation_unemployment = 0x0122;
-constexpr inline uint16_t scaled_consciousness_nation_issue = 0x0123;
-constexpr inline uint16_t scaled_consciousness_nation_ideology = 0x0124;
-constexpr inline uint16_t scaled_consciousness_nation_unemployment = 0x0125;
-constexpr inline uint16_t scaled_militancy_state_issue = 0x0126;
-constexpr inline uint16_t scaled_militancy_state_ideology = 0x0127;
-constexpr inline uint16_t scaled_militancy_state_unemployment = 0x0128;
-constexpr inline uint16_t scaled_consciousness_state_issue = 0x0129;
-constexpr inline uint16_t scaled_consciousness_state_ideology = 0x012A;
-constexpr inline uint16_t scaled_consciousness_state_unemployment = 0x012B;
-constexpr inline uint16_t scaled_militancy_province_issue = 0x012C;
-constexpr inline uint16_t scaled_militancy_province_ideology = 0x012D;
-constexpr inline uint16_t scaled_militancy_province_unemployment = 0x012E;
-constexpr inline uint16_t scaled_consciousness_province_issue = 0x012F;
-constexpr inline uint16_t scaled_consciousness_province_ideology = 0x0130;
-constexpr inline uint16_t scaled_consciousness_province_unemployment = 0x0131;
-constexpr inline uint16_t variable_good_name_province = 0x0132;
-constexpr inline uint16_t treasury_province = 0x0133;
-constexpr inline uint16_t country_event_this_state = 0x0134;
-constexpr inline uint16_t country_event_immediate_this_state = 0x0135;
-constexpr inline uint16_t province_event_this_state = 0x0136;
-constexpr inline uint16_t province_event_immediate_this_state = 0x0137;
-constexpr inline uint16_t country_event_this_province = 0x0138;
-constexpr inline uint16_t country_event_immediate_this_province = 0x0139;
-constexpr inline uint16_t province_event_this_province = 0x013A;
-constexpr inline uint16_t province_event_immediate_this_province = 0x013B;
-constexpr inline uint16_t country_event_this_pop = 0x013C;
-constexpr inline uint16_t country_event_immediate_this_pop = 0x013D;
-constexpr inline uint16_t province_event_this_pop = 0x013E;
-constexpr inline uint16_t province_event_immediate_this_pop = 0x013F;
-constexpr inline uint16_t country_event_province_this_nation = 0x0140;
-constexpr inline uint16_t country_event_immediate_province_this_nation = 0x0141;
-constexpr inline uint16_t country_event_province_this_state = 0x0142;
-constexpr inline uint16_t country_event_immediate_province_this_state = 0x0143;
-constexpr inline uint16_t country_event_province_this_province = 0x0144;
-constexpr inline uint16_t country_event_immediate_province_this_province = 0x0145;
-constexpr inline uint16_t country_event_province_this_pop = 0x0146;
-constexpr inline uint16_t country_event_immediate_province_this_pop = 0x0147;
-constexpr inline uint16_t activate_invention = 0x0148;
-constexpr inline uint16_t variable_invention_name_no = 0x0149;
-constexpr inline uint16_t add_core_tag_state = 0x014A;
-constexpr inline uint16_t remove_core_tag_state = 0x014B;
-constexpr inline uint16_t secede_province_state = 0x014C;
-constexpr inline uint16_t assimilate_state = 0x014D;
-constexpr inline uint16_t add_core_state_this_nation = 0x014E;
-constexpr inline uint16_t add_core_state_this_province = 0x014F;
-constexpr inline uint16_t add_core_state_this_state = 0x0150;
-constexpr inline uint16_t add_core_state_this_pop = 0x0151;
-constexpr inline uint16_t add_core_state_from_province = 0x0152;
-constexpr inline uint16_t add_core_state_from_nation = 0x0153;
-constexpr inline uint16_t add_core_state_reb = 0x0154;
-constexpr inline uint16_t add_province_modifier_state = 0x0155;
-constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
-constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
-constexpr inline uint16_t remove_core_state_this_province = 0x0158;
-constexpr inline uint16_t remove_core_state_this_state = 0x0159;
-constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
-constexpr inline uint16_t remove_core_state_from_province = 0x015B;
-constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
-constexpr inline uint16_t remove_core_state_reb = 0x015D;
-constexpr inline uint16_t remove_province_modifier_state = 0x015E;
-constexpr inline uint16_t life_rating_state = 0x015F;
-constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
-constexpr inline uint16_t secede_province_state_this_state = 0x0161;
-constexpr inline uint16_t secede_province_state_this_province = 0x0162;
-constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
-constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
-constexpr inline uint16_t secede_province_state_from_province = 0x0165;
-constexpr inline uint16_t secede_province_state_reb = 0x0166;
-constexpr inline uint16_t infrastructure_state = 0x0167;
-constexpr inline uint16_t fort_state = 0x0168;
-constexpr inline uint16_t naval_base_state = 0x0169;
-constexpr inline uint16_t is_slave_province_yes = 0x016A;
-constexpr inline uint16_t is_slave_province_no = 0x016B;
-constexpr inline uint16_t change_controller_state = 0x016C;
-constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
-constexpr inline uint16_t change_controller_state_this_province = 0x016E;
-constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
-constexpr inline uint16_t change_controller_state_from_province = 0x0170;
-constexpr inline uint16_t reduce_pop_province = 0x0171;
-constexpr inline uint16_t reduce_pop_state = 0x0172;
-constexpr inline uint16_t reduce_pop_nation = 0x0173;
-constexpr inline uint16_t consciousness_province = 0x0174;
-constexpr inline uint16_t consciousness_state = 0x0175;
-constexpr inline uint16_t consciousness_nation = 0x0176;
-constexpr inline uint16_t militancy_province = 0x0177;
-constexpr inline uint16_t militancy_state = 0x0178;
-constexpr inline uint16_t militancy_nation = 0x0179;
-constexpr inline uint16_t remove_core_tag_nation = 0x017A;
-constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
-constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
-constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
-constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
-constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
-constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
-constexpr inline uint16_t remove_core_nation_reb = 0x0181;
-constexpr inline uint16_t set_country_flag_pop = 0x0182;
-constexpr inline uint16_t social_reform_province = 0x0183;
-constexpr inline uint16_t political_reform_province = 0x0184;
-constexpr inline uint16_t flashpoint_tension_province = 0x0185;
-constexpr inline uint16_t release_vassal_province = 0x0186;
-constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
-constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
-constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
-constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
-constexpr inline uint16_t release_vassal_province_reb = 0x018B;
-constexpr inline uint16_t release_vassal_province_random = 0x018C;
-
-// non-vanilla compat
-constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
-constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
-constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
-constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
-constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
-constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
-constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
-constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
-constexpr inline uint16_t bank = 0x0195;
-constexpr inline uint16_t bank_state = 0x0196;
-constexpr inline uint16_t university = 0x0197;
-constexpr inline uint16_t university_state = 0x0198;
-constexpr inline uint16_t kill_leader = 0x0199;
-constexpr inline uint16_t annex_to_null_nation = 0x019A;
-constexpr inline uint16_t annex_to_null_province = 0x019B;
-
-constexpr inline uint16_t add_truce_tag = 0x019C;
-constexpr inline uint16_t add_truce_this_nation = 0x019D;
-constexpr inline uint16_t add_truce_this_state = 0x019E;
-constexpr inline uint16_t add_truce_this_province = 0x019F;
-constexpr inline uint16_t add_truce_this_pop = 0x01A0;
-constexpr inline uint16_t add_truce_from_nation = 0x01A1;
-constexpr inline uint16_t add_truce_from_province = 0x01A2;
-constexpr inline uint16_t call_allies = 0x01A3;
-constexpr inline uint16_t ruling_party_this = 0x01A4;
-constexpr inline uint16_t ruling_party_from = 0x01A5;
-constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
-constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
-constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
-constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
+#define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
+	EFFECT_BYTECODE_LIST
+#undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
 constexpr inline uint16_t first_scope_code = 0x01AA;
@@ -525,432 +518,9 @@ constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003D;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
-		1, // constexpr uint16_t capital = 0x0001;
-		1, // constexpr uint16_t add_core_tag = 0x0002;
-		1, // constexpr uint16_t add_core_int = 0x0003;
-		0, // constexpr uint16_t add_core_this_nation = 0x0004;
-		0, // constexpr uint16_t add_core_this_province = 0x0005;
-		0, // constexpr uint16_t add_core_this_state = 0x0006;
-		0, // constexpr uint16_t add_core_this_pop = 0x0007;
-		0, // constexpr uint16_t add_core_from_province = 0x0008;
-		0, // constexpr uint16_t add_core_from_nation = 0x0009;
-		0, // constexpr uint16_t add_core_reb = 0x000A;
-		1, // constexpr uint16_t remove_core_tag = 0x000B;
-		1, // constexpr uint16_t remove_core_int = 0x000C;
-		0, // constexpr uint16_t remove_core_this_nation = 0x000D;
-		0, // constexpr uint16_t remove_core_this_province = 0x000E;
-		0, // constexpr uint16_t remove_core_this_state = 0x000F;
-		0, // constexpr uint16_t remove_core_this_pop = 0x0010;
-		0, // constexpr uint16_t remove_core_from_province = 0x0011;
-		0, // constexpr uint16_t remove_core_from_nation = 0x0012;
-		0, // constexpr uint16_t remove_core_reb = 0x0013;
-		2, // constexpr uint16_t change_region_name_state = 0x0014;
-		2, // constexpr uint16_t change_region_name_province = 0x0015;
-		1, // constexpr uint16_t trade_goods = 0x0016;
-		1, // constexpr uint16_t add_accepted_culture = 0x0017;
-		0, // constexpr uint16_t add_accepted_culture_union = 0x0018;
-		1, // constexpr uint16_t primary_culture = 0x0019;
-		0, // constexpr uint16_t primary_culture_this_nation = 0x001A;
-		0, // constexpr uint16_t primary_culture_this_state = 0x001B;
-		0, // constexpr uint16_t primary_culture_this_province = 0x001C;
-		0, // constexpr uint16_t primary_culture_this_pop = 0x001D;
-		0, // constexpr uint16_t primary_culture_from_nation = 0x001E;
-		1, // constexpr uint16_t remove_accepted_culture = 0x001F;
-		1, // constexpr uint16_t life_rating = 0x0020;
-		1, // constexpr uint16_t religion = 0x0021;
-		0, // constexpr uint16_t is_slave_state_yes = 0x0022;
-		0, // constexpr uint16_t is_slave_pop_yes = 0x0023;
-		1, // constexpr uint16_t research_points = 0x0024;
-		1, // constexpr uint16_t tech_school = 0x0025;
-		1, // constexpr uint16_t government = 0x0026;
-		0, // constexpr uint16_t government_reb = 0x0027;
-		2, // constexpr uint16_t treasury = 0x0028;
-		2, // constexpr uint16_t war_exhaustion = 0x0029;
-		2, // constexpr uint16_t prestige = 0x002A;
-		1, // constexpr uint16_t change_tag = 0x002B;
-		0, // constexpr uint16_t change_tag_culture = 0x002C;
-		1, // constexpr uint16_t change_tag_no_core_switch = 0x002D;
-		0, // constexpr uint16_t change_tag_no_core_switch_culture = 0x002E;
-		1, // constexpr uint16_t set_country_flag = 0x002F;
-		1, // constexpr uint16_t clr_country_flag = 0x0030;
-		1, // constexpr uint16_t military_access = 0x0031;
-		0, // constexpr uint16_t military_access_this_nation = 0x0032;
-		0, // constexpr uint16_t military_access_this_province = 0x0033;
-		0, // constexpr uint16_t military_access_from_nation = 0x0034;
-		0, // constexpr uint16_t military_access_from_province = 0x0035;
-		2, // constexpr uint16_t badboy = 0x0036;
-		1, // constexpr uint16_t secede_province = 0x0037;
-		0, // constexpr uint16_t secede_province_this_nation = 0x0038;
-		0, // constexpr uint16_t secede_province_this_state = 0x0039;
-		0, // constexpr uint16_t secede_province_this_province = 0x003A;
-		0, // constexpr uint16_t secede_province_this_pop = 0x003B;
-		0, // constexpr uint16_t secede_province_from_nation = 0x003C;
-		0, // constexpr uint16_t secede_province_from_province = 0x003D;
-		0, // constexpr uint16_t secede_province_reb = 0x003E;
-		1, // constexpr uint16_t inherit = 0x003F;
-		0, // constexpr uint16_t inherit_this_nation = 0x0040;
-		0, // constexpr uint16_t inherit_this_state = 0x0041;
-		0, // constexpr uint16_t inherit_this_province = 0x0042;
-		0, // constexpr uint16_t inherit_this_pop = 0x0043;
-		0, // constexpr uint16_t inherit_from_nation = 0x0044;
-		0, // constexpr uint16_t inherit_from_province = 0x0045;
-		1, // constexpr uint16_t annex_to = 0x0046;
-		0, // constexpr uint16_t annex_to_this_nation = 0x0047;
-		0, // constexpr uint16_t annex_to_this_state = 0x0048;
-		0, // constexpr uint16_t annex_to_this_province = 0x0049;
-		0, // constexpr uint16_t annex_to_this_pop = 0x004A;
-		0, // constexpr uint16_t annex_to_from_nation = 0x004B;
-		0, // constexpr uint16_t annex_to_from_province = 0x004C;
-		1, // constexpr uint16_t release = 0x004D;
-		0, // constexpr uint16_t release_this_nation = 0x004E;
-		0, // constexpr uint16_t release_this_state = 0x004F;
-		0, // constexpr uint16_t release_this_province = 0x0050;
-		0, // constexpr uint16_t release_this_pop = 0x0051;
-		0, // constexpr uint16_t release_from_nation = 0x0052;
-		0, // constexpr uint16_t release_from_province = 0x0053;
-		1, // constexpr uint16_t change_controller = 0x0054;
-		0, // constexpr uint16_t change_controller_this_nation = 0x0055;
-		0, // constexpr uint16_t change_controller_this_province = 0x0056;
-		0, // constexpr uint16_t change_controller_from_nation = 0x0057;
-		0, // constexpr uint16_t change_controller_from_province = 0x0058;
-		1, // constexpr uint16_t infrastructure = 0x0059;
-		2, // constexpr uint16_t money = 0x005A;
-		1, // constexpr uint16_t leadership = 0x005B;
-		1, // constexpr uint16_t create_vassal = 0x005C;
-		0, // constexpr uint16_t create_vassal_this_nation = 0x005D;
-		0, // constexpr uint16_t create_vassal_this_province = 0x005E;
-		0, // constexpr uint16_t create_vassal_from_nation = 0x005F;
-		0, // constexpr uint16_t create_vassal_from_province = 0x0060;
-		1, // constexpr uint16_t end_military_access = 0x0061;
-		0, // constexpr uint16_t end_military_access_this_nation = 0x0062;
-		0, // constexpr uint16_t end_military_access_this_province = 0x0063;
-		0, // constexpr uint16_t end_military_access_from_nation = 0x0064;
-		0, // constexpr uint16_t end_military_access_from_province = 0x0065;
-		1, // constexpr uint16_t leave_alliance = 0x0066;
-		0, // constexpr uint16_t leave_alliance_this_nation = 0x0067;
-		0, // constexpr uint16_t leave_alliance_this_province = 0x0068;
-		0, // constexpr uint16_t leave_alliance_from_nation = 0x0069;
-		0, // constexpr uint16_t leave_alliance_from_province = 0x006A;
-		1, // constexpr uint16_t end_war = 0x006B;
-		0, // constexpr uint16_t end_war_this_nation = 0x006C;
-		0, // constexpr uint16_t end_war_this_province = 0x006D;
-		0, // constexpr uint16_t end_war_from_nation = 0x006E;
-		0, // constexpr uint16_t end_war_from_province = 0x006F;
-		1, // constexpr uint16_t enable_ideology = 0x0070;
-		1, // constexpr uint16_t ruling_party_ideology = 0x0071;
-		2, // constexpr uint16_t plurality = 0x0072;
-		1, // constexpr uint16_t remove_province_modifier = 0x0073;
-		1, // constexpr uint16_t remove_country_modifier = 0x0074;
-		1, // constexpr uint16_t create_alliance = 0x0075;
-		0, // constexpr uint16_t create_alliance_this_nation = 0x0076;
-		0, // constexpr uint16_t create_alliance_this_province = 0x0077;
-		0, // constexpr uint16_t create_alliance_from_nation = 0x0078;
-		0, // constexpr uint16_t create_alliance_from_province = 0x0079;
-		1, // constexpr uint16_t release_vassal = 0x007A;
-		0, // constexpr uint16_t release_vassal_this_nation = 0x007B;
-		0, // constexpr uint16_t release_vassal_this_province = 0x007C;
-		0, // constexpr uint16_t release_vassal_from_nation = 0x007D;
-		0, // constexpr uint16_t release_vassal_from_province = 0x007E;
-		0, // constexpr uint16_t release_vassal_reb = 0x007F;
-		0, // constexpr uint16_t release_vassal_random = 0x0080;
-		2, // constexpr uint16_t change_province_name = 0x0081;
-		1, // constexpr uint16_t enable_canal = 0x0082;
-		1, // constexpr uint16_t set_global_flag = 0x0083;
-		1, // constexpr uint16_t clr_global_flag = 0x0084;
-		1, // constexpr uint16_t nationalvalue_province = 0x0085;
-		1, // constexpr uint16_t nationalvalue_nation = 0x0086;
-		0, // constexpr uint16_t civilized_yes = 0x0087;
-		0, // constexpr uint16_t civilized_no = 0x0088;
-		0, // constexpr uint16_t is_slave_state_no = 0x0089;
-		0, // constexpr uint16_t is_slave_pop_no = 0x008A;
-		0, // constexpr uint16_t election = 0x008B;
-		1, // constexpr uint16_t social_reform = 0x008C;
-		1, // constexpr uint16_t political_reform = 0x008D;
-		2, // constexpr uint16_t add_tax_relative_income = 0x008E;
-		0, // constexpr uint16_t neutrality = 0x008F;
-		2, // constexpr uint16_t reduce_pop = 0x0090;
-		1, // constexpr uint16_t move_pop = 0x0091;
-		1, // constexpr uint16_t pop_type = 0x0092;
-		2, // constexpr uint16_t years_of_research = 0x0093;
-		2, // constexpr uint16_t prestige_factor_positive = 0x0094;
-		2, // constexpr uint16_t prestige_factor_negative = 0x0095;
-		1, // constexpr uint16_t military_reform = 0x0096;
-		1, // constexpr uint16_t economic_reform = 0x0097;
-		1, // constexpr uint16_t remove_random_military_reforms = 0x0098;
-		1, // constexpr uint16_t remove_random_economic_reforms = 0x0099;
-		1, // constexpr uint16_t add_crime = 0x009A;
-		0, // constexpr uint16_t add_crime_none = 0x009B;
-		0, // constexpr uint16_t nationalize = 0x009C;
-		1, // constexpr uint16_t build_factory_in_capital_state = 0x009D;
-		1, // constexpr uint16_t activate_technology = 0x009E;
-		0, // constexpr uint16_t great_wars_enabled_yes = 0x009F;
-		0, // constexpr uint16_t great_wars_enabled_no = 0x00A0;
-		0, // constexpr uint16_t world_wars_enabled_yes = 0x00A1;
-		0, // constexpr uint16_t world_wars_enabled_no = 0x00A2;
-		0, // constexpr uint16_t assimilate_province = 0x00A3;
-		0, // constexpr uint16_t assimilate_pop = 0x00A4;
-		2, // constexpr uint16_t literacy = 0x00A5;
-		0, // constexpr uint16_t add_crisis_interest = 0x00A6;
-		2, // constexpr uint16_t flashpoint_tension = 0x00A7;
-		2, // constexpr uint16_t add_crisis_temperature = 0x00A8;
-		2, // constexpr uint16_t consciousness = 0x00A9;
-		2, // constexpr uint16_t militancy = 0x00AA;
-		1, // constexpr uint16_t rgo_size = 0x00AB;
-		1, // constexpr uint16_t fort = 0x00AC;
-		1, // constexpr uint16_t naval_base = 0x00AD;
-		4, // constexpr uint16_t trigger_revolt_nation = 0x00AE;
-		4, // constexpr uint16_t trigger_revolt_state = 0x00AF;
-		4, // constexpr uint16_t trigger_revolt_province = 0x00B0;
-		2, // constexpr uint16_t diplomatic_influence = 0x00B1;
-		1, // constexpr uint16_t diplomatic_influence_this_nation = 0x00B2;
-		1, // constexpr uint16_t diplomatic_influence_this_province = 0x00B3;
-		1, // constexpr uint16_t diplomatic_influence_from_nation = 0x00B4;
-		1, // constexpr uint16_t diplomatic_influence_from_province = 0x00B5;
-		2, // constexpr uint16_t relation = 0x00B6;
-		1, // constexpr uint16_t relation_this_nation = 0x00B7;
-		1, // constexpr uint16_t relation_this_province = 0x00B8;
-		1, // constexpr uint16_t relation_from_nation = 0x00B9;
-		1, // constexpr uint16_t relation_from_province = 0x00BA;
-		2, // constexpr uint16_t add_province_modifier = 0x00BB;
-		1, // constexpr uint16_t add_province_modifier_no_duration = 0x00BC;
-		2, // constexpr uint16_t add_country_modifier = 0x00BD;
-		1, // constexpr uint16_t add_country_modifier_no_duration = 0x00BE;
-		3, // constexpr uint16_t casus_belli_tag = 0x00BF;
-		3, // constexpr uint16_t casus_belli_int = 0x00C0;
-		2, // constexpr uint16_t casus_belli_this_nation = 0x00C1;
-		2, // constexpr uint16_t casus_belli_this_state = 0x00C2;
-		2, // constexpr uint16_t casus_belli_this_province = 0x00C3;
-		2, // constexpr uint16_t casus_belli_this_pop = 0x00C4;
-		2, // constexpr uint16_t casus_belli_from_nation = 0x00C5;
-		2, // constexpr uint16_t casus_belli_from_province = 0x00C6;
-		3, // constexpr uint16_t add_casus_belli_tag = 0x00C7;
-		3, // constexpr uint16_t add_casus_belli_int = 0x00C8;
-		2, // constexpr uint16_t add_casus_belli_this_nation = 0x00C9;
-		2, // constexpr uint16_t add_casus_belli_this_state = 0x00CA;
-		2, // constexpr uint16_t add_casus_belli_this_province = 0x00CB;
-		2, // constexpr uint16_t add_casus_belli_this_pop = 0x00CC;
-		2, // constexpr uint16_t add_casus_belli_from_nation = 0x00CD;
-		2, // constexpr uint16_t add_casus_belli_from_province = 0x00CE;
-		2, // constexpr uint16_t remove_casus_belli_tag = 0x00CF;
-		2, // constexpr uint16_t remove_casus_belli_int = 0x00D0;
-		1, // constexpr uint16_t remove_casus_belli_this_nation = 0x00D1;
-		1, // constexpr uint16_t remove_casus_belli_this_state = 0x00D2;
-		1, // constexpr uint16_t remove_casus_belli_this_province = 0x00D3;
-		1, // constexpr uint16_t remove_casus_belli_this_pop = 0x00D4;
-		1, // constexpr uint16_t remove_casus_belli_from_nation = 0x00D5;
-		1, // constexpr uint16_t remove_casus_belli_from_province = 0x00D6;
-		2, // constexpr uint16_t this_remove_casus_belli_tag = 0x00D7;
-		2, // constexpr uint16_t this_remove_casus_belli_int = 0x00D8;
-		1, // constexpr uint16_t this_remove_casus_belli_this_nation = 0x00D9;
-		1, // constexpr uint16_t this_remove_casus_belli_this_state = 0x00DA;
-		1, // constexpr uint16_t this_remove_casus_belli_this_province = 0x00DB;
-		1, // constexpr uint16_t this_remove_casus_belli_this_pop = 0x00DC;
-		1, // constexpr uint16_t this_remove_casus_belli_from_nation = 0x00DD;
-		1, // constexpr uint16_t this_remove_casus_belli_from_province = 0x00DE;
-		7, // constexpr uint16_t war_tag = 0x00DF;
-		6, // constexpr uint16_t war_this_nation = 0x00E0;
-		6, // constexpr uint16_t war_this_state = 0x00E1;
-		6, // constexpr uint16_t war_this_province = 0x00E2;
-		6, // constexpr uint16_t war_this_pop = 0x00E3;
-		6, // constexpr uint16_t war_from_nation = 0x00E4;
-		6, // constexpr uint16_t war_from_province = 0x00E5;
-		7, // constexpr uint16_t war_no_ally_tag = 0x00E6;
-		6, // constexpr uint16_t war_no_ally_this_nation = 0x00E7;
-		6, // constexpr uint16_t war_no_ally_this_state = 0x00E8;
-		6, // constexpr uint16_t war_no_ally_this_province = 0x00E9;
-		6, // constexpr uint16_t war_no_ally_this_pop = 0x00EA;
-		6, // constexpr uint16_t war_no_ally_from_nation = 0x00EB;
-		6, // constexpr uint16_t war_no_ally_from_province = 0x00EC;
-		2, // constexpr uint16_t country_event_this_nation = 0x00ED;
-		1, // constexpr uint16_t country_event_immediate_this_nation = 0x00EE;
-		2, // constexpr uint16_t province_event_this_nation = 0x00EF;
-		1, // constexpr uint16_t province_event_immediate_this_nation = 0x00F0;
-		2, // constexpr uint16_t sub_unit_int = 0x00F1;
-		1, // constexpr uint16_t sub_unit_this = 0x00F2;
-		1, // constexpr uint16_t sub_unit_from = 0x00F3;
-		1, // constexpr uint16_t sub_unit_current = 0x00F4;
-		3, // constexpr uint16_t set_variable = 0x00F5;
-		3, // constexpr uint16_t change_variable = 0x00F6;
-		3, // constexpr uint16_t ideology = 0x00F7;
-		3, // constexpr uint16_t upper_house = 0x00F8;
-		3, // constexpr uint16_t scaled_militancy_issue = 0x00F9;
-		3, // constexpr uint16_t scaled_militancy_ideology = 0x00FA;
-		2, // constexpr uint16_t scaled_militancy_unemployment = 0x00FB;
-		3, // constexpr uint16_t scaled_consciousness_issue = 0x00FC;
-		3, // constexpr uint16_t scaled_consciousness_ideology = 0x00FD;
-		2, // constexpr uint16_t scaled_consciousness_unemployment = 0x00FE;
-		4, // constexpr uint16_t define_general = 0x00FF;
-		4, // constexpr uint16_t define_admiral = 0x0100;
-		3, // constexpr uint16_t dominant_issue = 0x0101;
-		1, // constexpr uint16_t add_war_goal = 0x0102;
-		4, // constexpr uint16_t move_issue_percentage_nation = 0x0103;
-		4, // constexpr uint16_t move_issue_percentage_state = 0x0104;
-		4, // constexpr uint16_t move_issue_percentage_province = 0x0105;
-		4, // constexpr uint16_t move_issue_percentage_pop = 0x0106;
-		3, // constexpr uint16_t party_loyalty = 0x0107;
-		2, // constexpr uint16_t party_loyalty_province = 0x0108;
-		1, // constexpr inline uint16_t variable_tech_name_no = 0x0109;
-		1, // constexpr inline uint16_t variable_invention_name_yes = 0x010A;
-		0, // constexpr uint16_t build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
-		0, // constexpr uint16_t build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
-		0, // constexpr uint16_t build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
-		0, // constexpr uint16_t build_railway_in_capital_no_whole_state_no_limit = 0x010E;
-		0, // constexpr uint16_t build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
-		0, // constexpr uint16_t build_fort_in_capital_yes_whole_state_no_limit = 0x0110;
-		0, // constexpr uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x0111;
-		0, // constexpr uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x0112;
-		1, // constexpr uint16_t relation_reb = 0x0113;
-		1, // constexpr uint16_t variable_tech_name_yes = 0x0114;
-		3, // constexpr uint16_t variable_good_name = 0x0115;
-		// misplaced
-		1, // constexpr uint16_t set_country_flag_province = 0x0116;
-		2, // constexpr uint16_t add_country_modifier_province = 0x0117;
-		1, // constexpr uint16_t add_country_modifier_province_no_duration = 0x0118;
-		3, // constexpr uint16_t dominant_issue_nation = 0x0119;
-		2, // constexpr uint16_t relation_province = 0x011A;
-		1, // constexpr uint16_t relation_province_this_nation = 0x011B;
-		1, // constexpr uint16_t relation_province_this_province = 0x011C;
-		1, // constexpr uint16_t relation_province_from_nation = 0x011D;
-		1, // constexpr uint16_t relation_province_from_province = 0x011E;
-		1, // constexpr uint16_t relation_province_reb = 0x011F;
-		3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0120;
-		3, // constexpr uint16_t scaled_militancy_nation_ideology = 0x0121;
-		2, // constexpr uint16_t scaled_militancy_nation_unemployment = 0x0122;
-		3, // constexpr uint16_t scaled_consciousness_nation_issue = 0x0123;
-		3, // constexpr uint16_t scaled_consciousness_nation_ideology = 0x0124;
-		2, // constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0125;
-		3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x0126;
-		3, // constexpr uint16_t scaled_militancy_nation_ideology = 0x0127;
-		2, // constexpr uint16_t scaled_militancy_nation_unemployment = 0x0128;
-		3, // constexpr uint16_t scaled_consciousness_nation_issue = 0x0129;
-		3, // constexpr uint16_t scaled_consciousness_nation_ideology = 0x012A;
-		2, // constexpr uint16_t scaled_consciousness_nation_unemployment = 0x012B;
-		3, //	constexpr uint16_t scaled_militancy_nation_issue = 0x012C;
-		3, // constexpr uint16_t scaled_militancy_nation_ideology = 0x012D;
-		2, // constexpr uint16_t scaled_militancy_nation_unemployment = 0x012E;
-		3, // constexpr uint16_t scaled_consciousness_nation_issue = 0x012F;
-		3, // constexpr uint16_t scaled_consciousness_nation_ideology = 0x0130;
-		2, // constexpr uint16_t scaled_consciousness_nation_unemployment = 0x0131;
-		3, //	constexpr uint16_t variable_good_name_province = 0x0132;
-		2, // constexpr uint16_t treasury_province = 0x0133;
-		2, //	constexpr uint16_t country_event_this_state = 0x0134;
-		1, // constexpr uint16_t country_event_immediate_this_state = 0x0135;
-		2, // constexpr uint16_t province_event_this_state = 0x0136;
-		1, // constexpr uint16_t province_event_immediate_this_state = 0x0137;
-		2, // constexpr uint16_t country_event_this_province = 0x0138;
-		1, // constexpr uint16_t country_event_immediate_this_province = 0x0139;
-		2, // constexpr uint16_t province_event_this_province = 0x013A;
-		1, // constexpr uint16_t province_event_immediate_this_province = 0x013B;
-		2, // constexpr uint16_t country_event_this_pop = 0x013C;
-		1, // constexpr uint16_t country_event_immediate_this_pop = 0x013D;
-		2, // constexpr uint16_t province_event_this_pop = 0x013E;
-		1, // constexpr uint16_t province_event_immediate_this_pop = 0x013F;
-		2, // constexpr uint16_t country_event_province_this_nation = 0x0140;
-		1, // constexpr uint16_t country_event_immediate_province_this_nation = 0x0141;
-		2, // constexpr uint16_t country_event_province_this_state = 0x0142;
-		1, // constexpr uint16_t country_event_immediate_province_this_state = 0x0143;
-		2, // constexpr uint16_t country_event_province_this_province = 0x0144;
-		1, // constexpr uint16_t country_event_immediate_province_this_province = 0x0145;
-		2, // constexpr uint16_t country_event_province_this_pop = 0x0146;
-		1, // constexpr uint16_t country_event_immediate_province_this_pop = 0x0147;
-		1, // constexpr inline uint16_t activate_invention = 0x0148;
-		1, // constexpr inline uint16_t variable_invention_name_no = 0x0149;
-		1, // constexpr inline uint16_t add_core_tag_state = 0x0014A;
-		1, // constexpr inline uint16_t remove_core_tag_state = 0x0014B;
-		1, // constexpr inline uint16_t secede_province_state = 0x014C;
-		0, // constexpr inline uint16_t assimilate_state = 0x014D;
-		0, //constexpr inline uint16_t add_core_state_this_nation = 0x014E;
-		0, //constexpr inline uint16_t add_core_state_this_province = 0x014F;
-		0, //constexpr inline uint16_t add_core_state_this_state = 0x0150;
-		0, //constexpr inline uint16_t add_core_state_this_pop = 0x0151;
-		0, //constexpr inline uint16_t add_core_state_from_province = 0x0152;
-		0, //constexpr inline uint16_t add_core_state_from_nation = 0x0153;
-		0, //constexpr inline uint16_t add_core_state_reb = 0x0154;
-		2, //constexpr inline uint16_t add_province_modifier_state = 0x0155;
-		1, //constexpr inline uint16_t add_province_modifier_state_no_duration = 0x0156;
-		0, //constexpr inline uint16_t remove_core_state_this_nation = 0x0157;
-		0, //constexpr inline uint16_t remove_core_state_this_province = 0x0158;
-		0, //constexpr inline uint16_t remove_core_state_this_state = 0x0159;
-		0, //constexpr inline uint16_t remove_core_state_this_pop = 0x015A;
-		0, //constexpr inline uint16_t remove_core_state_from_province = 0x015B;
-		0, //constexpr inline uint16_t remove_core_state_from_nation = 0x015C;
-		0, //constexpr inline uint16_t remove_core_state_reb = 0x015D;
-		1, //constexpr inline uint16_t remove_province_modifier_state = 0x015E;
-		1, //constexpr inline uint16_t life_rating_state = 0x015F;
-		0, //constexpr inline uint16_t secede_province_state_this_nation = 0x0160;
-		0, //constexpr inline uint16_t secede_province_state_this_state = 0x0161;
-		0, //constexpr inline uint16_t secede_province_state_this_province = 0x0162;
-		0, //constexpr inline uint16_t secede_province_state_this_pop = 0x0163;
-		0, //constexpr inline uint16_t secede_province_state_from_nation = 0x0164;
-		0, //constexpr inline uint16_t secede_province_state_from_province = 0x0165;
-		0, //constexpr inline uint16_t secede_province_state_reb = 0x0166;
-		1, //constexpr inline uint16_t infrastructure_state = 0x0167;
-		1, //constexpr inline uint16_t fort_state = 0x0168;
-		1, //constexpr inline uint16_t naval_base_state = 0x0169;
-		0, //ef_is_slave_province_yes, //constexpr inline uint16_t is_slave_province_yes = 0x016A;
-		0, //ef_is_slave_province_no, //constexpr inline uint16_t is_slave_province_no = 0x016B;
-		1, //constexpr inline uint16_t change_controller_state = 0x016C;
-		0, //constexpr inline uint16_t change_controller_state_this_nation = 0x016D;
-		0, //constexpr inline uint16_t change_controller_state_this_province = 0x016E;
-		0, //constexpr inline uint16_t change_controller_state_from_nation = 0x016F;
-		0, //constexpr inline uint16_t change_controller_state_from_province = 0x0170;
-		2, //constexpr inline uint16_t reduce_pop_province = 0x0171;
-		2, //constexpr inline uint16_t reduce_pop_state = 0x0172;
-		2, //constexpr inline uint16_t reduce_pop_nation = 0x0173;
-		2, //constexpr inline uint16_t consciousness_province = 0x0174;
-		2, //constexpr inline uint16_t consciousness_state = 0x0175;
-		2, //constexpr inline uint16_t consciousness_nation = 0x0176;
-		2, //constexpr inline uint16_t militancy_province = 0x0177;
-		2, //constexpr inline uint16_t militancy_state = 0x0178;
-		2, //constexpr inline uint16_t militancy_nation = 0x0179;
-		1, //constexpr inline uint16_t remove_core_tag_nation = 0x017A;
-		0, //constexpr inline uint16_t remove_core_nation_this_nation = 0x017B;
-		0, //constexpr inline uint16_t remove_core_nation_this_province = 0x017C;
-		0, //constexpr inline uint16_t remove_core_nation_this_state = 0x017D;
-		0, //constexpr inline uint16_t remove_core_nation_this_pop = 0x017E;
-		0, //constexpr inline uint16_t remove_core_nation_from_province = 0x017F;
-		0, //constexpr inline uint16_t remove_core_nation_from_nation = 0x0180;
-		0, //constexpr inline uint16_t remove_core_nation_reb = 0x0181;
-		1, //constexpr inline uint16_t set_country_flag_pop = 0x0182;
-		1, //constexpr inline uint16_t social_reform_province = 0x0183;
-		1, //constexpr inline uint16_t political_reform_province = 0x0184;
-		2, //constexpr inline uint16_t flashpoint_tension_province = 0x0185;
-		1, //constexpr inline uint16_t release_vassal_province = 0x0186;
-		0, //constexpr inline uint16_t release_vassal_province_this_nation = 0x0187;
-		0, //constexpr inline uint16_t release_vassal_province_this_province = 0x0188;
-		0, //constexpr inline uint16_t release_vassal_province_from_nation = 0x0189;
-		0, //constexpr inline uint16_t release_vassal_province_from_province = 0x018A;
-		0, //constexpr inline uint16_t release_vassal_province_reb = 0x018B;
-		0, //constexpr inline uint16_t release_vassal_province_random = 0x018C;
-		0, // constexpr inline uint16_t build_bank_in_capital_yes_whole_state_yes_limit = 0x018D;
-		0,	// constexpr inline uint16_t build_bank_in_capital_yes_whole_state_no_limit = 0x018E;
-		0,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_yes_limit = 0x018F;
-		0,	// constexpr inline uint16_t build_bank_in_capital_no_whole_state_no_limit = 0x0190;
-		0, // constexpr inline uint16_t build_university_in_capital_yes_whole_state_yes_limit = 0x0191;
-		0,	// constexpr inline uint16_t build_university_in_capital_yes_whole_state_no_limit = 0x0192;
-		0,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_yes_limit = 0x0193;
-		0,	// constexpr inline uint16_t build_university_in_capital_no_whole_state_no_limit = 0x0194;
-		1, //constexpr inline uint16_t bank = 0x0195;
-		1, //constexpr inline uint16_t bank_state = 0x0196;
-		1, //constexpr inline uint16_t university = 0x0197;
-		1, //constexpr inline uint16_t university_state = 0x0198;
-		2, //constexpr inline uint16_t kill_leader = 0x0199;
-		0, //constexpr inline uint16_t annex_to_null_nation = 0x019A;
-		0, //constexpr inline uint16_t annex_to_null_province = 0x019B;
-		2, //constexpr inline uint16_t add_truce_tag = 0x019C;
-		1, //constexpr inline uint16_t add_truce_this_nation = 0x019D;
-		1, //constexpr inline uint16_t add_truce_this_state = 0x019E;
-		1, //constexpr inline uint16_t add_truce_this_province = 0x019F;
-		1, //constexpr inline uint16_t add_truce_this_pop = 0x01A0;
-		1, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
-		1, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
-		0, //constexpr inline uint16_t call_allies = 0x01A3;
-		0, //constexpr inline uint16_t ruling_party_this = 0x01A4;
-		0, //constexpr inline uint16_t ruling_party_from = 0x01A5;
-		0, //constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
-		0, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
-		0, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
-		0, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
+#define EFFECT_BYTECODE_ELEMENT(code, name, arg) arg,
+		EFFECT_BYTECODE_LIST
+#undef EFFECT_BYTECODE_ELEMENT
 };
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
@@ -1000,746 +570,748 @@ constexpr inline uint16_t no_payload = 0x0800;
 constexpr inline uint16_t code_mask = 0x07FF;
 
 // non scopes
-constexpr inline uint16_t year = 0x0001;
-constexpr inline uint16_t month = 0x0002;
-constexpr inline uint16_t port = 0x0003;
-constexpr inline uint16_t rank = 0x0004;
-constexpr inline uint16_t technology = 0x0005;
-constexpr inline uint16_t strata_rich = 0x0006;
-constexpr inline uint16_t life_rating_province = 0x0007;
-constexpr inline uint16_t life_rating_state = 0x0008;
-constexpr inline uint16_t has_empty_adjacent_state_province = 0x0009;
-constexpr inline uint16_t has_empty_adjacent_state_state = 0x000A;
-constexpr inline uint16_t state_id_province = 0x000B;
-constexpr inline uint16_t state_id_state = 0x000C;
-constexpr inline uint16_t cash_reserves = 0x000D;
-constexpr inline uint16_t unemployment_nation = 0x000E;
-constexpr inline uint16_t unemployment_state = 0x000F;
-constexpr inline uint16_t unemployment_province = 0x0010;
-constexpr inline uint16_t unemployment_pop = 0x0011;
-constexpr inline uint16_t is_slave_nation = 0x0012;
-constexpr inline uint16_t is_slave_state = 0x0013;
-constexpr inline uint16_t is_slave_province = 0x0014;
-constexpr inline uint16_t is_slave_pop = 0x0015;
-constexpr inline uint16_t is_independant = 0x0016;
-constexpr inline uint16_t has_national_minority_province = 0x0017;
-constexpr inline uint16_t has_national_minority_state = 0x0018;
-constexpr inline uint16_t has_national_minority_nation = 0x0019;
-constexpr inline uint16_t government_nation = 0x001A;
-constexpr inline uint16_t government_pop = 0x001B;
-constexpr inline uint16_t capital = 0x001C;
-constexpr inline uint16_t tech_school = 0x001D;
-constexpr inline uint16_t primary_culture = 0x001E;
-constexpr inline uint16_t accepted_culture = 0x001F;
-constexpr inline uint16_t culture_pop = 0x0020;
-constexpr inline uint16_t culture_state = 0x0021;
-constexpr inline uint16_t culture_province = 0x0022;
-constexpr inline uint16_t culture_nation = 0x0023;
-constexpr inline uint16_t culture_pop_reb = 0x0024;
-constexpr inline uint16_t culture_state_reb = 0x0025;
-constexpr inline uint16_t culture_province_reb = 0x0026;
-constexpr inline uint16_t culture_nation_reb = 0x0027;
-constexpr inline uint16_t culture_from_nation = 0x0028;
-constexpr inline uint16_t culture_this_nation = 0x0029;
-constexpr inline uint16_t culture_this_state = 0x002A;
-constexpr inline uint16_t culture_this_pop = 0x002B;
-constexpr inline uint16_t culture_this_province = 0x002C;
-constexpr inline uint16_t culture_group_nation = 0x002D;
-constexpr inline uint16_t culture_group_pop = 0x002E;
-constexpr inline uint16_t culture_group_reb_nation = 0x002F;
-constexpr inline uint16_t culture_group_reb_pop = 0x0030;
-constexpr inline uint16_t culture_group_nation_from_nation = 0x0031;
-constexpr inline uint16_t culture_group_pop_from_nation = 0x0032;
-constexpr inline uint16_t culture_group_nation_this_nation = 0x0033;
-constexpr inline uint16_t culture_group_pop_this_nation = 0x0034;
-constexpr inline uint16_t culture_group_nation_this_province = 0x0035;
-constexpr inline uint16_t culture_group_pop_this_province = 0x0036;
-constexpr inline uint16_t culture_group_nation_this_state = 0x0037;
-constexpr inline uint16_t culture_group_pop_this_state = 0x0038;
-constexpr inline uint16_t culture_group_nation_this_pop = 0x0039;
-constexpr inline uint16_t culture_group_pop_this_pop = 0x003A;
-constexpr inline uint16_t religion = 0x003B;
-constexpr inline uint16_t religion_reb = 0x003C;
-constexpr inline uint16_t religion_from_nation = 0x003D;
-constexpr inline uint16_t religion_this_nation = 0x003E;
-constexpr inline uint16_t religion_this_state = 0x003F;
-constexpr inline uint16_t religion_this_province = 0x0040;
-constexpr inline uint16_t religion_this_pop = 0x0041;
-constexpr inline uint16_t terrain_province = 0x0042;
-constexpr inline uint16_t terrain_pop = 0x0043;
-constexpr inline uint16_t trade_goods = 0x0044;
-constexpr inline uint16_t is_secondary_power_pop = 0x0045;
-constexpr inline uint16_t is_secondary_power_nation = 0x0046;
-constexpr inline uint16_t has_faction_nation = 0x0047;
-constexpr inline uint16_t has_faction_pop = 0x0048;
-constexpr inline uint16_t has_unclaimed_cores = 0x0049;
-constexpr inline uint16_t is_cultural_union_bool = 0x004A;
-constexpr inline uint16_t is_cultural_union_this_self_pop = 0x004B;
-constexpr inline uint16_t is_cultural_union_this_pop = 0x004C;
-constexpr inline uint16_t is_cultural_union_this_state = 0x004D;
-constexpr inline uint16_t is_cultural_union_this_province = 0x004E;
-constexpr inline uint16_t is_cultural_union_this_nation = 0x004F;
-constexpr inline uint16_t is_cultural_union_this_rebel = 0x0050;
-constexpr inline uint16_t is_cultural_union_tag_nation = 0x0051;
-constexpr inline uint16_t is_cultural_union_tag_this_pop = 0x0052;
-constexpr inline uint16_t is_cultural_union_tag_this_state = 0x0053;
-constexpr inline uint16_t is_cultural_union_tag_this_province = 0x0054;
-constexpr inline uint16_t is_cultural_union_tag_this_nation = 0x0055;
-constexpr inline uint16_t can_build_factory_pop = 0x0056;
-constexpr inline uint16_t war_pop = 0x0057;
-constexpr inline uint16_t war_nation = 0x0058;
-constexpr inline uint16_t war_exhaustion_nation = 0x0059;
-constexpr inline uint16_t blockade = 0x005A;
-constexpr inline uint16_t owns = 0x005B;
-constexpr inline uint16_t controls = 0x005C;
-constexpr inline uint16_t is_core_integer = 0x005D;
-constexpr inline uint16_t is_core_this_nation = 0x005E;
-constexpr inline uint16_t is_core_this_state = 0x005F;
-constexpr inline uint16_t is_core_this_province = 0x0060;
-constexpr inline uint16_t is_core_this_pop = 0x0061;
-constexpr inline uint16_t is_core_from_nation = 0x0062;
-constexpr inline uint16_t is_core_reb = 0x0063;
-constexpr inline uint16_t is_core_tag = 0x0064;
-constexpr inline uint16_t num_of_revolts = 0x0065;
-constexpr inline uint16_t revolt_percentage = 0x0066;
-constexpr inline uint16_t num_of_cities_int = 0x0067;
-constexpr inline uint16_t num_of_cities_from_nation = 0x0068;
-constexpr inline uint16_t num_of_cities_this_nation = 0x0069;
-constexpr inline uint16_t num_of_cities_this_state = 0x006A;
-constexpr inline uint16_t num_of_cities_this_province = 0x006B;
-constexpr inline uint16_t num_of_cities_this_pop = 0x006C;
-constexpr inline uint16_t num_of_ports = 0x006D;
-constexpr inline uint16_t num_of_allies = 0x006E;
-constexpr inline uint16_t num_of_vassals = 0x006F;
-constexpr inline uint16_t owned_by_tag = 0x0070;
-constexpr inline uint16_t owned_by_from_nation = 0x0071;
-constexpr inline uint16_t owned_by_this_nation = 0x0072;
-constexpr inline uint16_t owned_by_this_province = 0x0073;
-constexpr inline uint16_t owned_by_this_state = 0x0074;
-constexpr inline uint16_t owned_by_this_pop = 0x0075;
-constexpr inline uint16_t exists_bool = 0x0076;
-constexpr inline uint16_t exists_tag = 0x0077;
-constexpr inline uint16_t has_country_flag = 0x0078;
-constexpr inline uint16_t continent_nation = 0x0079;
-constexpr inline uint16_t continent_state = 0x007A;
-constexpr inline uint16_t continent_province = 0x007B;
-constexpr inline uint16_t continent_pop = 0x007C;
-constexpr inline uint16_t continent_nation_this = 0x007D;
-constexpr inline uint16_t continent_state_this = 0x007E;
-constexpr inline uint16_t continent_province_this = 0x007F;
-constexpr inline uint16_t continent_pop_this = 0x0080;
-constexpr inline uint16_t continent_nation_from = 0x0081;
-constexpr inline uint16_t continent_state_from = 0x0082;
-constexpr inline uint16_t continent_province_from = 0x0083;
-constexpr inline uint16_t continent_pop_from = 0x0084;
-constexpr inline uint16_t casus_belli_tag = 0x0085;
-constexpr inline uint16_t casus_belli_from = 0x0086;
-constexpr inline uint16_t casus_belli_this_nation = 0x0087;
-constexpr inline uint16_t casus_belli_this_state = 0x0088;
-constexpr inline uint16_t casus_belli_this_province = 0x0089;
-constexpr inline uint16_t casus_belli_this_pop = 0x008A;
-constexpr inline uint16_t military_access_tag = 0x008B;
-constexpr inline uint16_t military_access_from = 0x008C;
-constexpr inline uint16_t military_access_this_nation = 0x008D;
-constexpr inline uint16_t military_access_this_state = 0x008E;
-constexpr inline uint16_t military_access_this_province = 0x008F;
-constexpr inline uint16_t military_access_this_pop = 0x0090;
-constexpr inline uint16_t prestige_value = 0x0091;
-constexpr inline uint16_t prestige_from = 0x0092;
-constexpr inline uint16_t prestige_this_nation = 0x0093;
-constexpr inline uint16_t prestige_this_state = 0x0094;
-constexpr inline uint16_t prestige_this_province = 0x0095;
-constexpr inline uint16_t prestige_this_pop = 0x0096;
-constexpr inline uint16_t badboy = 0x0097;
-constexpr inline uint16_t has_building_state = 0x0098;
-constexpr inline uint16_t has_building_fort = 0x0099;
-constexpr inline uint16_t has_building_railroad = 0x009A;
-constexpr inline uint16_t has_building_naval_base = 0x009B;
-constexpr inline uint16_t empty = 0x009C;
-constexpr inline uint16_t is_blockaded = 0x009D;
-constexpr inline uint16_t has_country_modifier = 0x009E;
-constexpr inline uint16_t has_province_modifier = 0x009F;
-constexpr inline uint16_t region = 0x00A0;
-constexpr inline uint16_t tag_tag = 0x00A1;
-constexpr inline uint16_t tag_this_nation = 0x00A2;
-constexpr inline uint16_t tag_this_province = 0x00A3;
-constexpr inline uint16_t tag_from_nation = 0x00A4;
-constexpr inline uint16_t tag_from_province = 0x00A5;
-constexpr inline uint16_t neighbour_tag = 0x00A6;
-constexpr inline uint16_t neighbour_this = 0x00A7;
-constexpr inline uint16_t neighbour_from = 0x00A8;
-constexpr inline uint16_t units_in_province_value = 0x00A9;
-constexpr inline uint16_t units_in_province_from = 0x00AA;
-constexpr inline uint16_t units_in_province_this_nation = 0x00AB;
-constexpr inline uint16_t units_in_province_this_province = 0x00AC;
-constexpr inline uint16_t units_in_province_this_state = 0x00AD;
-constexpr inline uint16_t units_in_province_this_pop = 0x00AE;
-constexpr inline uint16_t war_with_tag = 0x00AF;
-constexpr inline uint16_t war_with_from = 0x00B0;
-constexpr inline uint16_t war_with_this_nation = 0x00B1;
-constexpr inline uint16_t war_with_this_province = 0x00B2;
-constexpr inline uint16_t war_with_this_state = 0x00B3;
-constexpr inline uint16_t war_with_this_pop = 0x00B4;
-constexpr inline uint16_t unit_in_battle = 0x00B5;
-constexpr inline uint16_t total_amount_of_divisions = 0x00B6;
-constexpr inline uint16_t money = 0x00B7;
-constexpr inline uint16_t lost_national = 0x00B8;
-constexpr inline uint16_t is_vassal = 0x00B9;
-constexpr inline uint16_t ruling_party_ideology_pop = 0x00BA;
-constexpr inline uint16_t ruling_party_ideology_nation = 0x00BB;
-constexpr inline uint16_t ruling_party = 0x00BC;
-constexpr inline uint16_t is_ideology_enabled = 0x00BD;
-constexpr inline uint16_t political_reform_want_nation = 0x00BE;
-constexpr inline uint16_t political_reform_want_pop = 0x00BF;
-constexpr inline uint16_t social_reform_want_nation = 0x00C0;
-constexpr inline uint16_t social_reform_want_pop = 0x00C1;
-constexpr inline uint16_t total_amount_of_ships = 0x00C2;
-constexpr inline uint16_t plurality = 0x00C3;
-constexpr inline uint16_t corruption = 0x00C4;
-constexpr inline uint16_t is_state_religion_pop = 0x00C5;
-constexpr inline uint16_t is_state_religion_province = 0x00C6;
-constexpr inline uint16_t is_state_religion_state = 0x00C7;
-constexpr inline uint16_t is_primary_culture_pop = 0x00C8;
-constexpr inline uint16_t is_primary_culture_province = 0x00C9;
-constexpr inline uint16_t is_primary_culture_state = 0x00CA;
-constexpr inline uint16_t is_primary_culture_nation_this_pop = 0x00CB;
-constexpr inline uint16_t is_primary_culture_nation_this_nation = 0x00CC;
-constexpr inline uint16_t is_primary_culture_nation_this_state = 0x00CD;
-constexpr inline uint16_t is_primary_culture_nation_this_province = 0x00CE;
-constexpr inline uint16_t is_primary_culture_state_this_pop = 0x00CF;
-constexpr inline uint16_t is_primary_culture_state_this_nation = 0x00D0;
-constexpr inline uint16_t is_primary_culture_state_this_state = 0x00D1;
-constexpr inline uint16_t is_primary_culture_state_this_province = 0x00D2;
-constexpr inline uint16_t is_primary_culture_province_this_pop = 0x00D3;
-constexpr inline uint16_t is_primary_culture_province_this_nation = 0x00D4;
-constexpr inline uint16_t is_primary_culture_province_this_state = 0x00D5;
-constexpr inline uint16_t is_primary_culture_province_this_province = 0x00D6;
-constexpr inline uint16_t is_primary_culture_pop_this_pop = 0x00D7;
-constexpr inline uint16_t is_primary_culture_pop_this_nation = 0x00D8;
-constexpr inline uint16_t is_primary_culture_pop_this_state = 0x00D9;
-constexpr inline uint16_t is_primary_culture_pop_this_province = 0x00DA;
-constexpr inline uint16_t is_accepted_culture_pop = 0x00DB;
-constexpr inline uint16_t is_accepted_culture_province = 0x00DC;
-constexpr inline uint16_t is_accepted_culture_state = 0x00DD;
-constexpr inline uint16_t is_coastal_province = 0x00DE;
-constexpr inline uint16_t in_sphere_tag = 0x00DF;
-constexpr inline uint16_t in_sphere_from = 0x00E0;
-constexpr inline uint16_t in_sphere_this_nation = 0x00E1;
-constexpr inline uint16_t in_sphere_this_province = 0x00E2;
-constexpr inline uint16_t in_sphere_this_state = 0x00E3;
-constexpr inline uint16_t in_sphere_this_pop = 0x00E4;
-constexpr inline uint16_t produces_nation = 0x00E5;
-constexpr inline uint16_t produces_state = 0x00E6;
-constexpr inline uint16_t produces_province = 0x00E7;
-constexpr inline uint16_t produces_pop = 0x00E8;
-constexpr inline uint16_t average_militancy_nation = 0x00E9;
-constexpr inline uint16_t average_militancy_state = 0x00EA;
-constexpr inline uint16_t average_militancy_province = 0x00EB;
-constexpr inline uint16_t average_consciousness_nation = 0x00EC;
-constexpr inline uint16_t average_consciousness_state = 0x00ED;
-constexpr inline uint16_t average_consciousness_province = 0x00EE;
-constexpr inline uint16_t is_next_reform_nation = 0x00EF;
-constexpr inline uint16_t is_next_reform_pop = 0x00F0;
-constexpr inline uint16_t rebel_power_fraction = 0x00F1;
-constexpr inline uint16_t recruited_percentage_nation = 0x00F2;
-constexpr inline uint16_t recruited_percentage_pop = 0x00F3;
-constexpr inline uint16_t has_culture_core = 0x00F4;
-constexpr inline uint16_t nationalism = 0x00F5;
-constexpr inline uint16_t is_overseas = 0x00F6;
-constexpr inline uint16_t controlled_by_rebels = 0x00F7;
-constexpr inline uint16_t controlled_by_tag = 0x00F8;
-constexpr inline uint16_t controlled_by_from = 0x00F9;
-constexpr inline uint16_t controlled_by_this_nation = 0x00FA;
-constexpr inline uint16_t controlled_by_this_province = 0x00FB;
-constexpr inline uint16_t controlled_by_this_state = 0x00FC;
-constexpr inline uint16_t controlled_by_this_pop = 0x00FD;
-constexpr inline uint16_t controlled_by_owner = 0x00FE;
-constexpr inline uint16_t controlled_by_reb = 0x00FF;
-constexpr inline uint16_t is_canal_enabled = 0x0100;
-constexpr inline uint16_t is_state_capital = 0x0101;
-constexpr inline uint16_t truce_with_tag = 0x0102;
-constexpr inline uint16_t truce_with_from = 0x0103;
-constexpr inline uint16_t truce_with_this_nation = 0x0104;
-constexpr inline uint16_t truce_with_this_province = 0x0105;
-constexpr inline uint16_t truce_with_this_state = 0x0106;
-constexpr inline uint16_t truce_with_this_pop = 0x0107;
-constexpr inline uint16_t total_pops_nation = 0x0108;
-constexpr inline uint16_t total_pops_state = 0x0109;
-constexpr inline uint16_t total_pops_province = 0x010A;
-constexpr inline uint16_t total_pops_pop = 0x010B;
-constexpr inline uint16_t has_pop_type_nation = 0x010C;
-constexpr inline uint16_t has_pop_type_state = 0x010D;
-constexpr inline uint16_t has_pop_type_province = 0x010E;
-constexpr inline uint16_t has_pop_type_pop = 0x010F;
-constexpr inline uint16_t has_empty_adjacent_province = 0x0110;
-constexpr inline uint16_t has_leader = 0x0111;
-constexpr inline uint16_t ai = 0x0112;
-constexpr inline uint16_t can_create_vassals = 0x0113;
-constexpr inline uint16_t is_possible_vassal = 0x0114;
-constexpr inline uint16_t province_id = 0x0115;
-constexpr inline uint16_t vassal_of_tag = 0x0116;
-constexpr inline uint16_t vassal_of_from = 0x0117;
-constexpr inline uint16_t vassal_of_this_nation = 0x0118;
-constexpr inline uint16_t vassal_of_this_province = 0x0119;
-constexpr inline uint16_t vassal_of_this_state = 0x011A;
-constexpr inline uint16_t vassal_of_this_pop = 0x011B;
-constexpr inline uint16_t alliance_with_tag = 0x011C;
-constexpr inline uint16_t alliance_with_from = 0x011D;
-constexpr inline uint16_t alliance_with_this_nation = 0x011E;
-constexpr inline uint16_t alliance_with_this_province = 0x011F;
-constexpr inline uint16_t alliance_with_this_state = 0x0120;
-constexpr inline uint16_t alliance_with_this_pop = 0x0121;
-constexpr inline uint16_t has_recently_lost_war = 0x0122;
-constexpr inline uint16_t is_mobilised = 0x0123;
-constexpr inline uint16_t mobilisation_size = 0x0124;
-constexpr inline uint16_t crime_higher_than_education_nation = 0x0125;
-constexpr inline uint16_t crime_higher_than_education_state = 0x0126;
-constexpr inline uint16_t crime_higher_than_education_province = 0x0127;
-constexpr inline uint16_t crime_higher_than_education_pop = 0x0128;
-constexpr inline uint16_t agree_with_ruling_party = 0x0129;
-constexpr inline uint16_t is_colonial_state = 0x012A;
-constexpr inline uint16_t is_colonial_province = 0x012B;
-constexpr inline uint16_t has_factories_state = 0x012C;
-constexpr inline uint16_t in_default_tag = 0x012D;
-constexpr inline uint16_t in_default_from = 0x012E;
-constexpr inline uint16_t in_default_this_nation = 0x012F;
-constexpr inline uint16_t in_default_this_province = 0x0130;
-constexpr inline uint16_t in_default_this_state = 0x0131;
-constexpr inline uint16_t in_default_this_pop = 0x0132;
-constexpr inline uint16_t total_num_of_ports = 0x0133;
-constexpr inline uint16_t always = 0x0134;
-constexpr inline uint16_t election = 0x0135;
-constexpr inline uint16_t has_global_flag = 0x0136;
-constexpr inline uint16_t is_capital = 0x0137;
-constexpr inline uint16_t nationalvalue_nation = 0x0138;
-constexpr inline uint16_t industrial_score_value = 0x0139;
-constexpr inline uint16_t industrial_score_from_nation = 0x013A;
-constexpr inline uint16_t industrial_score_this_nation = 0x013B;
-constexpr inline uint16_t industrial_score_this_pop = 0x013C;
-constexpr inline uint16_t industrial_score_this_state = 0x013D;
-constexpr inline uint16_t industrial_score_this_province = 0x013E;
-constexpr inline uint16_t military_score_value = 0x013F;
-constexpr inline uint16_t military_score_from_nation = 0x0140;
-constexpr inline uint16_t military_score_this_nation = 0x0141;
-constexpr inline uint16_t military_score_this_pop = 0x0142;
-constexpr inline uint16_t military_score_this_state = 0x0143;
-constexpr inline uint16_t military_score_this_province = 0x0144;
-constexpr inline uint16_t civilized_nation = 0x0145;
-constexpr inline uint16_t civilized_pop = 0x0146;
-constexpr inline uint16_t civilized_province = 0x0147;
-constexpr inline uint16_t national_provinces_occupied = 0x0148;
-constexpr inline uint16_t is_greater_power_nation = 0x0149;
-constexpr inline uint16_t is_greater_power_pop = 0x014A;
-constexpr inline uint16_t rich_tax = 0x014B;
-constexpr inline uint16_t middle_tax = 0x014C;
-constexpr inline uint16_t poor_tax = 0x014D;
-constexpr inline uint16_t social_spending_nation = 0x014E;
-constexpr inline uint16_t social_spending_pop = 0x014F;
-constexpr inline uint16_t social_spending_province = 0x0150;
-constexpr inline uint16_t colonial_nation = 0x0151;
-constexpr inline uint16_t pop_majority_religion_nation = 0x0152;
-constexpr inline uint16_t pop_majority_religion_state = 0x0153;
-constexpr inline uint16_t pop_majority_religion_province = 0x0154;
-constexpr inline uint16_t pop_majority_culture_nation = 0x0155;
-constexpr inline uint16_t pop_majority_culture_state = 0x0156;
-constexpr inline uint16_t pop_majority_culture_province = 0x0157;
-constexpr inline uint16_t pop_majority_issue_nation = 0x0158;
-constexpr inline uint16_t pop_majority_issue_state = 0x0159;
-constexpr inline uint16_t pop_majority_issue_province = 0x015A;
-constexpr inline uint16_t pop_majority_issue_pop = 0x015B;
-constexpr inline uint16_t pop_majority_ideology_nation = 0x015C;
-constexpr inline uint16_t pop_majority_ideology_state = 0x015D;
-constexpr inline uint16_t pop_majority_ideology_province = 0x015E;
-constexpr inline uint16_t pop_majority_ideology_pop = 0x015F;
-constexpr inline uint16_t poor_strata_militancy_nation = 0x0160;
-constexpr inline uint16_t poor_strata_militancy_state = 0x0161;
-constexpr inline uint16_t poor_strata_militancy_province = 0x0162;
-constexpr inline uint16_t poor_strata_militancy_pop = 0x0163;
-constexpr inline uint16_t middle_strata_militancy_nation = 0x0164;
-constexpr inline uint16_t middle_strata_militancy_state = 0x0165;
-constexpr inline uint16_t middle_strata_militancy_province = 0x0166;
-constexpr inline uint16_t middle_strata_militancy_pop = 0x0167;
-constexpr inline uint16_t rich_strata_militancy_nation = 0x0168;
-constexpr inline uint16_t rich_strata_militancy_state = 0x0169;
-constexpr inline uint16_t rich_strata_militancy_province = 0x016A;
-constexpr inline uint16_t rich_strata_militancy_pop = 0x016B;
-constexpr inline uint16_t rich_tax_above_poor = 0x016C;
-constexpr inline uint16_t culture_has_union_tag_pop = 0x016D;
-constexpr inline uint16_t culture_has_union_tag_nation = 0x016E;
-constexpr inline uint16_t this_culture_union_tag = 0x016F;
-constexpr inline uint16_t this_culture_union_from = 0x0170;
-constexpr inline uint16_t this_culture_union_this_nation = 0x0171;
-constexpr inline uint16_t this_culture_union_this_province = 0x0172;
-constexpr inline uint16_t this_culture_union_this_state = 0x0173;
-constexpr inline uint16_t this_culture_union_this_pop = 0x0174;
-constexpr inline uint16_t this_culture_union_this_union_nation = 0x0175;
-constexpr inline uint16_t this_culture_union_this_union_province = 0x0176;
-constexpr inline uint16_t this_culture_union_this_union_state = 0x0177;
-constexpr inline uint16_t this_culture_union_this_union_pop = 0x0178;
-constexpr inline uint16_t minorities_nation = 0x0179;
-constexpr inline uint16_t minorities_state = 0x017A;
-constexpr inline uint16_t minorities_province = 0x017B;
-constexpr inline uint16_t revanchism_nation = 0x017C;
-constexpr inline uint16_t revanchism_pop = 0x017D;
-constexpr inline uint16_t has_crime = 0x017E;
-constexpr inline uint16_t num_of_substates = 0x017F;
-constexpr inline uint16_t num_of_vassals_no_substates = 0x0180;
-constexpr inline uint16_t brigades_compare_this = 0x0181;
-constexpr inline uint16_t brigades_compare_from = 0x0182;
-constexpr inline uint16_t constructing_cb_tag = 0x0183;
-constexpr inline uint16_t constructing_cb_from = 0x0184;
-constexpr inline uint16_t constructing_cb_this_nation = 0x0185;
-constexpr inline uint16_t constructing_cb_this_province = 0x0186;
-constexpr inline uint16_t constructing_cb_this_state = 0x0187;
-constexpr inline uint16_t constructing_cb_this_pop = 0x0188;
-constexpr inline uint16_t constructing_cb_discovered = 0x0189;
-constexpr inline uint16_t constructing_cb_progress = 0x018A;
-constexpr inline uint16_t civilization_progress = 0x018B;
-constexpr inline uint16_t constructing_cb_type = 0x018C;
-constexpr inline uint16_t is_our_vassal_tag = 0x018D;
-constexpr inline uint16_t is_our_vassal_from = 0x018E;
-constexpr inline uint16_t is_our_vassal_this_nation = 0x018F;
-constexpr inline uint16_t is_our_vassal_this_province = 0x0190;
-constexpr inline uint16_t is_our_vassal_this_state = 0x0191;
-constexpr inline uint16_t is_our_vassal_this_pop = 0x0192;
-constexpr inline uint16_t substate_of_tag = 0x0193;
-constexpr inline uint16_t substate_of_from = 0x0194;
-constexpr inline uint16_t substate_of_this_nation = 0x0195;
-constexpr inline uint16_t substate_of_this_province = 0x0196;
-constexpr inline uint16_t substate_of_this_state = 0x0197;
-constexpr inline uint16_t substate_of_this_pop = 0x0198;
-constexpr inline uint16_t is_substate = 0x0199;
-constexpr inline uint16_t great_wars_enabled = 0x019A;
-constexpr inline uint16_t can_nationalize = 0x019B;
-constexpr inline uint16_t part_of_sphere = 0x019C;
-constexpr inline uint16_t is_sphere_leader_of_tag = 0x019D;
-constexpr inline uint16_t is_sphere_leader_of_from = 0x019E;
-constexpr inline uint16_t is_sphere_leader_of_this_nation = 0x019F;
-constexpr inline uint16_t is_sphere_leader_of_this_province = 0x01A0;
-constexpr inline uint16_t is_sphere_leader_of_this_state = 0x01A1;
-constexpr inline uint16_t is_sphere_leader_of_this_pop = 0x01A2;
-constexpr inline uint16_t number_of_states = 0x01A3;
-constexpr inline uint16_t war_score = 0x01A4;
-constexpr inline uint16_t is_releasable_vassal_from = 0x01A5;
-constexpr inline uint16_t is_releasable_vassal_other = 0x01A6;
-constexpr inline uint16_t has_recent_imigration = 0x01A7;
-constexpr inline uint16_t province_control_days = 0x01A8;
-constexpr inline uint16_t is_disarmed = 0x01A9;
-constexpr inline uint16_t big_producer = 0x01AA;
-constexpr inline uint16_t someone_can_form_union_tag_from = 0x01AB;
-constexpr inline uint16_t someone_can_form_union_tag_other = 0x01AC;
-constexpr inline uint16_t social_movement_strength = 0x01AD;
-constexpr inline uint16_t political_movement_strength = 0x01AE;
-constexpr inline uint16_t can_build_factory_in_capital_state = 0x01AF;
-constexpr inline uint16_t social_movement = 0x01B0;
-constexpr inline uint16_t political_movement = 0x01B1;
-constexpr inline uint16_t has_cultural_sphere = 0x01B2;
-constexpr inline uint16_t world_wars_enabled = 0x01B3;
-constexpr inline uint16_t has_pop_culture_pop_this_pop = 0x01B4;
-constexpr inline uint16_t has_pop_culture_state_this_pop = 0x01B5;
-constexpr inline uint16_t has_pop_culture_province_this_pop = 0x01B6;
-constexpr inline uint16_t has_pop_culture_nation_this_pop = 0x01B7;
-constexpr inline uint16_t has_pop_culture_pop = 0x01B8;
-constexpr inline uint16_t has_pop_culture_state = 0x01B9;
-constexpr inline uint16_t has_pop_culture_province = 0x01BA;
-constexpr inline uint16_t has_pop_culture_nation = 0x01BB;
-constexpr inline uint16_t has_pop_religion_pop_this_pop = 0x01BC;
-constexpr inline uint16_t has_pop_religion_state_this_pop = 0x01BD;
-constexpr inline uint16_t has_pop_religion_province_this_pop = 0x01BE;
-constexpr inline uint16_t has_pop_religion_nation_this_pop = 0x01BF;
-constexpr inline uint16_t has_pop_religion_pop = 0x01C0;
-constexpr inline uint16_t has_pop_religion_state = 0x01C1;
-constexpr inline uint16_t has_pop_religion_province = 0x01C2;
-constexpr inline uint16_t has_pop_religion_nation = 0x01C3;
-constexpr inline uint16_t life_needs = 0x01C4;
-constexpr inline uint16_t everyday_needs = 0x01C5;
-constexpr inline uint16_t luxury_needs = 0x01C6;
-constexpr inline uint16_t consciousness_pop = 0x01C7;
-constexpr inline uint16_t consciousness_province = 0x01C8;
-constexpr inline uint16_t consciousness_state = 0x01C9;
-constexpr inline uint16_t consciousness_nation = 0x01CA;
-constexpr inline uint16_t literacy_pop = 0x01CB;
-constexpr inline uint16_t literacy_province = 0x01CC;
-constexpr inline uint16_t literacy_state = 0x01CD;
-constexpr inline uint16_t literacy_nation = 0x01CE;
-constexpr inline uint16_t militancy_pop = 0x01CF;
-constexpr inline uint16_t militancy_province = 0x01D0;
-constexpr inline uint16_t militancy_state = 0x01D1;
-constexpr inline uint16_t militancy_nation = 0x01D2;
-constexpr inline uint16_t military_spending_pop = 0x01D3;
-constexpr inline uint16_t military_spending_province = 0x01D4;
-constexpr inline uint16_t military_spending_state = 0x01D5;
-constexpr inline uint16_t military_spending_nation = 0x01D6;
-constexpr inline uint16_t administration_spending_pop = 0x01D7;
-constexpr inline uint16_t administration_spending_province = 0x01D8;
-constexpr inline uint16_t administration_spending_state = 0x01D9;
-constexpr inline uint16_t administration_spending_nation = 0x01DA;
-constexpr inline uint16_t education_spending_pop = 0x01DB;
-constexpr inline uint16_t education_spending_province = 0x01DC;
-constexpr inline uint16_t education_spending_state = 0x01DD;
-constexpr inline uint16_t education_spending_nation = 0x01DE;
-constexpr inline uint16_t trade_goods_in_state_state = 0x01DF;
-constexpr inline uint16_t trade_goods_in_state_province = 0x01E0;
-constexpr inline uint16_t has_flashpoint = 0x01E1;
-constexpr inline uint16_t flashpoint_tension = 0x01E2;
-constexpr inline uint16_t crisis_exist = 0x01E3;
-constexpr inline uint16_t is_liberation_crisis = 0x01E4;
-constexpr inline uint16_t is_claim_crisis = 0x01E5;
-constexpr inline uint16_t crisis_temperature = 0x01E6;
-constexpr inline uint16_t involved_in_crisis_pop = 0x01E7;
-constexpr inline uint16_t involved_in_crisis_nation = 0x01E8;
-constexpr inline uint16_t rich_strata_life_needs_nation = 0x01E9;
-constexpr inline uint16_t rich_strata_life_needs_state = 0x01EA;
-constexpr inline uint16_t rich_strata_life_needs_province = 0x01EB;
-constexpr inline uint16_t rich_strata_life_needs_pop = 0x01EC;
-constexpr inline uint16_t rich_strata_everyday_needs_nation = 0x01ED;
-constexpr inline uint16_t rich_strata_everyday_needs_state = 0x01EE;
-constexpr inline uint16_t rich_strata_everyday_needs_province = 0x01EF;
-constexpr inline uint16_t rich_strata_everyday_needs_pop = 0x01F0;
-constexpr inline uint16_t rich_strata_luxury_needs_nation = 0x01F1;
-constexpr inline uint16_t rich_strata_luxury_needs_state = 0x01F2;
-constexpr inline uint16_t rich_strata_luxury_needs_province = 0x01F3;
-constexpr inline uint16_t rich_strata_luxury_needs_pop = 0x01F4;
-constexpr inline uint16_t middle_strata_life_needs_nation = 0x01F5;
-constexpr inline uint16_t middle_strata_life_needs_state = 0x01F6;
-constexpr inline uint16_t middle_strata_life_needs_province = 0x01F7;
-constexpr inline uint16_t middle_strata_life_needs_pop = 0x01F8;
-constexpr inline uint16_t middle_strata_everyday_needs_nation = 0x01F9;
-constexpr inline uint16_t middle_strata_everyday_needs_state = 0x01FA;
-constexpr inline uint16_t middle_strata_everyday_needs_province = 0x01FB;
-constexpr inline uint16_t middle_strata_everyday_needs_pop = 0x01FC;
-constexpr inline uint16_t middle_strata_luxury_needs_nation = 0x01FD;
-constexpr inline uint16_t middle_strata_luxury_needs_state = 0x01FE;
-constexpr inline uint16_t middle_strata_luxury_needs_province = 0x01FF;
-constexpr inline uint16_t middle_strata_luxury_needs_pop = 0x0200;
-constexpr inline uint16_t poor_strata_life_needs_nation = 0x0201;
-constexpr inline uint16_t poor_strata_life_needs_state = 0x0202;
-constexpr inline uint16_t poor_strata_life_needs_province = 0x0203;
-constexpr inline uint16_t poor_strata_life_needs_pop = 0x0204;
-constexpr inline uint16_t poor_strata_everyday_needs_nation = 0x0205;
-constexpr inline uint16_t poor_strata_everyday_needs_state = 0x0206;
-constexpr inline uint16_t poor_strata_everyday_needs_province = 0x0207;
-constexpr inline uint16_t poor_strata_everyday_needs_pop = 0x0208;
-constexpr inline uint16_t poor_strata_luxury_needs_nation = 0x0209;
-constexpr inline uint16_t poor_strata_luxury_needs_state = 0x020A;
-constexpr inline uint16_t poor_strata_luxury_needs_province = 0x020B;
-constexpr inline uint16_t poor_strata_luxury_needs_pop = 0x020C;
+#define TRIGGER_BYTECODE_LIST \
+TRIGGER_BYTECODE_ELEMENT(0x0001, year, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0002, month, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0003, port, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0004, rank, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0005, technology, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0006, strata_rich, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0007, life_rating_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0008, life_rating_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0009, has_empty_adjacent_state_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x000A, has_empty_adjacent_state_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x000B, state_id_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x000C, state_id_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x000D, cash_reserves, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x000E, unemployment_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x000F, unemployment_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0010, unemployment_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0011, unemployment_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0012, is_slave_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0013, is_slave_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0014, is_slave_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0015, is_slave_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0016, is_independant, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0017, has_national_minority_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0018, has_national_minority_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0019, has_national_minority_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x001A, government_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x001B, government_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x001C, capital, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x001D, tech_school, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x001E, primary_culture, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x001F, accepted_culture, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0020, culture_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0021, culture_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0022, culture_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0023, culture_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0024, culture_pop_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0025, culture_state_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0026, culture_province_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0027, culture_nation_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0028, culture_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0029, culture_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x002A, culture_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x002B, culture_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x002C, culture_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x002D, culture_group_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x002E, culture_group_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x002F, culture_group_reb_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0030, culture_group_reb_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0031, culture_group_nation_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0032, culture_group_pop_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0033, culture_group_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0034, culture_group_pop_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0035, culture_group_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0036, culture_group_pop_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0037, culture_group_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0038, culture_group_pop_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0039, culture_group_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x003A, culture_group_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x003B, religion, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x003C, religion_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x003D, religion_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x003E, religion_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x003F, religion_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0040, religion_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0041, religion_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0042, terrain_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0043, terrain_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0044, trade_goods, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0045, is_secondary_power_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0046, is_secondary_power_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0047, has_faction_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0048, has_faction_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0049, has_unclaimed_cores, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004A, is_cultural_union_bool, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004B, is_cultural_union_this_self_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004C, is_cultural_union_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004D, is_cultural_union_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004E, is_cultural_union_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x004F, is_cultural_union_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0050, is_cultural_union_this_rebel, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0051, is_cultural_union_tag_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0052, is_cultural_union_tag_this_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0053, is_cultural_union_tag_this_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0054, is_cultural_union_tag_this_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0055, is_cultural_union_tag_this_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0056, can_build_factory_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0057, war_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0058, war_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0059, war_exhaustion_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x005A, blockade, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x005B, owns, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x005C, controls, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x005D, is_core_integer, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x005E, is_core_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x005F, is_core_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0060, is_core_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0061, is_core_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0062, is_core_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0063, is_core_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0064, is_core_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0065, num_of_revolts, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0066, revolt_percentage, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0067, num_of_cities_int, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0068, num_of_cities_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0069, num_of_cities_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x006A, num_of_cities_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x006B, num_of_cities_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x006C, num_of_cities_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x006D, num_of_ports, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x006E, num_of_allies, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x006F, num_of_vassals, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0070, owned_by_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0071, owned_by_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0072, owned_by_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0073, owned_by_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0074, owned_by_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0075, owned_by_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0076, exists_bool, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0077, exists_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0078, has_country_flag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0079, continent_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x007A, continent_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x007B, continent_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x007C, continent_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x007D, continent_nation_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x007E, continent_state_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x007F, continent_province_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0080, continent_pop_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0081, continent_nation_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0082, continent_state_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0083, continent_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0084, continent_pop_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0085, casus_belli_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0086, casus_belli_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0087, casus_belli_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0088, casus_belli_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0089, casus_belli_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x008A, casus_belli_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x008B, military_access_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x008C, military_access_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x008D, military_access_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x008E, military_access_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x008F, military_access_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0090, military_access_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0091, prestige_value, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0092, prestige_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0093, prestige_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0094, prestige_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0095, prestige_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0096, prestige_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0097, badboy, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0098, has_building_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0099, has_building_fort, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x009A, has_building_railroad, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x009B, has_building_naval_base, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x009C, empty, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x009D, is_blockaded, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x009E, has_country_modifier, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x009F, has_province_modifier, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00A0, region, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00A1, tag_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00A2, tag_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A3, tag_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A4, tag_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A5, tag_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A6, neighbour_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00A7, neighbour_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A8, neighbour_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00A9, units_in_province_value, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00AA, units_in_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00AB, units_in_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00AC, units_in_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00AD, units_in_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00AE, units_in_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00AF, war_with_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00B0, war_with_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B1, war_with_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B2, war_with_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B3, war_with_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B4, war_with_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B5, unit_in_battle, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00B6, total_amount_of_divisions, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00B7, money, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00B8, lost_national, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00B9, is_vassal, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00BA, ruling_party_ideology_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00BB, ruling_party_ideology_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00BC, ruling_party, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00BD, is_ideology_enabled, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00BE, political_reform_want_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00BF, political_reform_want_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00C0, social_reform_want_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00C1, social_reform_want_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00C2, total_amount_of_ships, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00C3, plurality, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00C4, corruption, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00C5, is_state_religion_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00C6, is_state_religion_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00C7, is_state_religion_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00C8, is_primary_culture_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00C9, is_primary_culture_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CA, is_primary_culture_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CB, is_primary_culture_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CC, is_primary_culture_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CD, is_primary_culture_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CE, is_primary_culture_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00CF, is_primary_culture_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D0, is_primary_culture_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D1, is_primary_culture_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D2, is_primary_culture_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D3, is_primary_culture_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D4, is_primary_culture_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D5, is_primary_culture_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D6, is_primary_culture_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D7, is_primary_culture_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D8, is_primary_culture_pop_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00D9, is_primary_culture_pop_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DA, is_primary_culture_pop_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DB, is_accepted_culture_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DC, is_accepted_culture_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DD, is_accepted_culture_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DE, is_coastal_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00DF, in_sphere_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00E0, in_sphere_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00E1, in_sphere_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00E2, in_sphere_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00E3, in_sphere_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00E4, in_sphere_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00E5, produces_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00E6, produces_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00E7, produces_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00E8, produces_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00E9, average_militancy_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00EA, average_militancy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00EB, average_militancy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00EC, average_consciousness_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00ED, average_consciousness_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00EE, average_consciousness_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00EF, is_next_reform_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00F0, is_next_reform_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00F1, rebel_power_fraction, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00F2, recruited_percentage_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00F3, recruited_percentage_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x00F4, has_culture_core, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00F5, nationalism, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00F6, is_overseas, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00F7, controlled_by_rebels, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00F8, controlled_by_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x00F9, controlled_by_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FA, controlled_by_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FB, controlled_by_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FC, controlled_by_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FD, controlled_by_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FE, controlled_by_owner, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x00FF, controlled_by_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0100, is_canal_enabled, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0101, is_state_capital, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0102, truce_with_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0103, truce_with_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0104, truce_with_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0105, truce_with_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0106, truce_with_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0107, truce_with_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0108, total_pops_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0109, total_pops_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x010A, total_pops_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x010B, total_pops_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x010C, has_pop_type_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x010D, has_pop_type_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x010E, has_pop_type_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x010F, has_pop_type_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0110, has_empty_adjacent_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0111, has_leader, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0112, ai, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0113, can_create_vassals, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0114, is_possible_vassal, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0115, province_id, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0116, vassal_of_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0117, vassal_of_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0118, vassal_of_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0119, vassal_of_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x011A, vassal_of_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x011B, vassal_of_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x011C, alliance_with_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x011D, alliance_with_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x011E, alliance_with_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x011F, alliance_with_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0120, alliance_with_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0121, alliance_with_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0122, has_recently_lost_war, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0123, is_mobilised, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0124, mobilisation_size, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0125, crime_higher_than_education_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0126, crime_higher_than_education_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0127, crime_higher_than_education_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0128, crime_higher_than_education_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0129, agree_with_ruling_party, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x012A, is_colonial_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x012B, is_colonial_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x012C, has_factories_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x012D, in_default_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x012E, in_default_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x012F, in_default_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0130, in_default_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0131, in_default_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0132, in_default_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0133, total_num_of_ports, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0134, always, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0135, election, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0136, has_global_flag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0137, is_capital, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0138, nationalvalue_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0139, industrial_score_value, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x013A, industrial_score_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x013B, industrial_score_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x013C, industrial_score_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x013D, industrial_score_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x013E, industrial_score_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x013F, military_score_value, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0140, military_score_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0141, military_score_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0142, military_score_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0143, military_score_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0144, military_score_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0145, civilized_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0146, civilized_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0147, civilized_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0148, national_provinces_occupied, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0149, is_greater_power_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x014A, is_greater_power_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x014B, rich_tax, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x014C, middle_tax, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x014D, poor_tax, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x014E, social_spending_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x014F, social_spending_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0150, social_spending_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0151, colonial_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0152, pop_majority_religion_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0153, pop_majority_religion_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0154, pop_majority_religion_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0155, pop_majority_culture_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0156, pop_majority_culture_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0157, pop_majority_culture_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0158, pop_majority_issue_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0159, pop_majority_issue_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x015A, pop_majority_issue_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x015B, pop_majority_issue_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x015C, pop_majority_ideology_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x015D, pop_majority_ideology_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x015E, pop_majority_ideology_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x015F, pop_majority_ideology_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0160, poor_strata_militancy_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0161, poor_strata_militancy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0162, poor_strata_militancy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0163, poor_strata_militancy_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0164, middle_strata_militancy_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0165, middle_strata_militancy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0166, middle_strata_militancy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0167, middle_strata_militancy_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0168, rich_strata_militancy_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0169, rich_strata_militancy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x016A, rich_strata_militancy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x016B, rich_strata_militancy_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x016C, rich_tax_above_poor, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x016D, culture_has_union_tag_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x016E, culture_has_union_tag_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x016F, this_culture_union_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0170, this_culture_union_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0171, this_culture_union_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0172, this_culture_union_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0173, this_culture_union_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0174, this_culture_union_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0175, this_culture_union_this_union_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0176, this_culture_union_this_union_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0177, this_culture_union_this_union_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0178, this_culture_union_this_union_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0179, minorities_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x017A, minorities_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x017B, minorities_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x017C, revanchism_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x017D, revanchism_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x017E, has_crime, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x017F, num_of_substates, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0180, num_of_vassals_no_substates, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0181, brigades_compare_this, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0182, brigades_compare_from, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0183, constructing_cb_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0184, constructing_cb_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0185, constructing_cb_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0186, constructing_cb_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0187, constructing_cb_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0188, constructing_cb_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0189, constructing_cb_discovered, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x018A, constructing_cb_progress, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x018B, civilization_progress, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x018C, constructing_cb_type, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x018D, is_our_vassal_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x018E, is_our_vassal_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x018F, is_our_vassal_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0190, is_our_vassal_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0191, is_our_vassal_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0192, is_our_vassal_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0193, substate_of_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0194, substate_of_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0195, substate_of_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0196, substate_of_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0197, substate_of_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0198, substate_of_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0199, is_substate, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x019A, great_wars_enabled, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x019B, can_nationalize, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x019C, part_of_sphere, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x019D, is_sphere_leader_of_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x019E, is_sphere_leader_of_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x019F, is_sphere_leader_of_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A0, is_sphere_leader_of_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A1, is_sphere_leader_of_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A2, is_sphere_leader_of_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A3, number_of_states, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01A4, war_score, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01A5, is_releasable_vassal_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A6, is_releasable_vassal_other, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01A7, has_recent_imigration, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01A8, province_control_days, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01A9, is_disarmed, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01AA, big_producer, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01AB, someone_can_form_union_tag_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01AC, someone_can_form_union_tag_other, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01AD, social_movement_strength, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01AE, political_movement_strength, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01AF, can_build_factory_in_capital_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01B0, social_movement, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B1, political_movement, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B2, has_cultural_sphere, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B3, world_wars_enabled, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B4, has_pop_culture_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B5, has_pop_culture_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B6, has_pop_culture_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B7, has_pop_culture_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01B8, has_pop_culture_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01B9, has_pop_culture_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01BA, has_pop_culture_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01BB, has_pop_culture_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01BC, has_pop_religion_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01BD, has_pop_religion_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01BE, has_pop_religion_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01BF, has_pop_religion_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01C0, has_pop_religion_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01C1, has_pop_religion_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01C2, has_pop_religion_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01C3, has_pop_religion_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01C4, life_needs, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01C5, everyday_needs, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01C6, luxury_needs, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01C7, consciousness_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01C8, consciousness_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01C9, consciousness_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CA, consciousness_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CB, literacy_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CC, literacy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CD, literacy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CE, literacy_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01CF, militancy_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01D0, militancy_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01D1, militancy_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01D2, militancy_nation, 2) \
+/*FEB FIX*/\
+TRIGGER_BYTECODE_ELEMENT(0x01D3, military_spending_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D4, military_spending_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D5, military_spending_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D6, military_spending_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D7, administration_spending_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D8, administration_spending_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01D9, administration_spending_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DA, administration_spending_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DB, education_spending_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DC, education_spending_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DD, education_spending_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DE, education_spending_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01DF, trade_goods_in_state_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01E0, trade_goods_in_state_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x01E1, has_flashpoint, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E2, flashpoint_tension, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01E3, crisis_exist, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E4, is_liberation_crisis, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E5, is_claim_crisis, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E6, crisis_temperature, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01E7, involved_in_crisis_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E8, involved_in_crisis_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x01E9, rich_strata_life_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01EA, rich_strata_life_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01EB, rich_strata_life_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01EC, rich_strata_life_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01ED, rich_strata_everyday_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01EE, rich_strata_everyday_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01EF, rich_strata_everyday_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F0, rich_strata_everyday_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F1, rich_strata_luxury_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F2, rich_strata_luxury_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F3, rich_strata_luxury_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F4, rich_strata_luxury_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F5, middle_strata_life_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F6, middle_strata_life_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F7, middle_strata_life_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F8, middle_strata_life_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01F9, middle_strata_everyday_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FA, middle_strata_everyday_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FB, middle_strata_everyday_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FC, middle_strata_everyday_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FD, middle_strata_luxury_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FE, middle_strata_luxury_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x01FF, middle_strata_luxury_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0200, middle_strata_luxury_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0201, poor_strata_life_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0202, poor_strata_life_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0203, poor_strata_life_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0204, poor_strata_life_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0205, poor_strata_everyday_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0206, poor_strata_everyday_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0207, poor_strata_everyday_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0208, poor_strata_everyday_needs_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0209, poor_strata_luxury_needs_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x020A, poor_strata_luxury_needs_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x020B, poor_strata_luxury_needs_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x020C, poor_strata_luxury_needs_pop, 2) \
+/*complex*/\
+TRIGGER_BYTECODE_ELEMENT(0x020D, diplomatic_influence_tag, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x020E, diplomatic_influence_this_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x020F, diplomatic_influence_this_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0210, diplomatic_influence_from_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0211, diplomatic_influence_from_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0212, pop_unemployment_nation, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0213, pop_unemployment_state, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0214, pop_unemployment_province, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0215, pop_unemployment_pop, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0216, pop_unemployment_nation_this_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0217, pop_unemployment_state_this_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0218, pop_unemployment_province_this_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0219, relation_tag, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x021A, relation_this_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x021B, relation_this_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x021C, relation_from_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x021D, relation_from_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x021E, check_variable, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x021F, upper_house, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0220, unemployment_by_type_nation, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0221, unemployment_by_type_state, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0222, unemployment_by_type_province, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0223, unemployment_by_type_pop, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0224, party_loyalty_nation_province_id, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0225, party_loyalty_from_nation_province_id, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0226, party_loyalty_province_province_id, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0227, party_loyalty_from_province_province_id, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0228, party_loyalty_nation_from_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0229, party_loyalty_from_nation_scope_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x022A, can_build_in_province_railroad_no_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x022B, can_build_in_province_railroad_yes_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x022C, can_build_in_province_railroad_no_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x022D, can_build_in_province_railroad_yes_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x022E, can_build_in_province_fort_no_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x022F, can_build_in_province_fort_yes_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0230, can_build_in_province_fort_no_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0231, can_build_in_province_fort_yes_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0232, can_build_in_province_naval_base_no_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0233, can_build_in_province_naval_base_yes_limit_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0234, can_build_in_province_naval_base_no_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0235, can_build_in_province_naval_base_yes_limit_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0236, can_build_railway_in_capital_yes_whole_state_yes_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0237, can_build_railway_in_capital_yes_whole_state_no_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0238, can_build_railway_in_capital_no_whole_state_yes_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0239, can_build_railway_in_capital_no_whole_state_no_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x023A, can_build_fort_in_capital_yes_whole_state_yes_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x023B, can_build_fort_in_capital_yes_whole_state_no_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x023C, can_build_fort_in_capital_no_whole_state_yes_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x023D, can_build_fort_in_capital_no_whole_state_no_limit, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x023E, work_available_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x023F, work_available_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0240, work_available_province, 1) \
+/*variable name*/\
+TRIGGER_BYTECODE_ELEMENT(0x0242, variable_ideology_name_nation, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0243, variable_ideology_name_state, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0244, variable_ideology_name_province, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0245, variable_ideology_name_pop, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0246, variable_issue_name_nation, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0247, variable_issue_name_state, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0248, variable_issue_name_province, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0249, variable_issue_name_pop, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x024A, variable_issue_group_name_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x024B, variable_issue_group_name_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x024C, variable_issue_group_name_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x024D, variable_issue_group_name_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x024E, variable_pop_type_name_nation, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x024F, variable_pop_type_name_state, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0250, variable_pop_type_name_province, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0251, variable_pop_type_name_pop, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x0252, variable_good_name, 3) \
+/*misplaced*/ \
+TRIGGER_BYTECODE_ELEMENT(0x0253, strata_middle, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0254, strata_poor, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0254, party_loyalty_from_province_scope_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0255, can_build_factory_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0256, can_build_factory_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0257, nationalvalue_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0258, nationalvalue_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0259, war_exhaustion_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x025A, has_culture_core_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x025B, tag_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025C, has_country_flag_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025D, has_country_flag_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025E, has_country_modifier_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025F, religion_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0260, religion_nation_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0261, religion_nation_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0262, religion_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0263, religion_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0264, religion_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0265, religion_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0266, war_exhaustion_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0267, is_greater_power_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0268, is_cultural_union_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0269, has_building_factory, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026A, has_building_state_from_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x026B, has_building_factory_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026C, party_loyalty_generic, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x026D, invention, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x026E, political_movement_from_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026F, social_movement_from_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0270, is_next_rreform_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0271, is_next_rreform_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0272, variable_reform_group_name_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0273, variable_reform_group_name_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0274, variable_reform_group_name_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0275, variable_reform_group_name_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0276, is_disarmed_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0277, owned_by_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0278, owned_by_state_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0279, owned_by_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027A, owned_by_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027B, owned_by_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027C, owned_by_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027D, units_in_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x027E, primary_culture_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027F, primary_culture_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0280, neighbour_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0281, neighbour_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0282, technology_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0283, invention_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0284, brigades_compare_province_this, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0285, brigades_compare_province_from, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0286, is_accepted_culture_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0287, is_accepted_culture_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0288, is_accepted_culture_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0289, is_accepted_culture_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028A, is_accepted_culture_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028B, is_accepted_culture_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028C, is_accepted_culture_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028D, is_accepted_culture_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028E, is_accepted_culture_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028F, is_accepted_culture_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0290, is_accepted_culture_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0291, is_accepted_culture_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0292, is_accepted_culture_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0293, is_accepted_culture_pop_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0294, is_accepted_culture_pop_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0295, is_accepted_culture_pop_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0296, culture_group_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0297, culture_group_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0298, have_core_in_nation_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0299, have_core_in_nation_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029A, have_core_in_nation_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029B, owns_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x029C, empty_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029D, is_overseas_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029E, primary_culture_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x029F, plurality_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02A0, is_overseas_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A1, stronger_army_than_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A2, region_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A3, region_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A4, owns_region, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A5, is_core_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A6, country_units_in_state_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A7, country_units_in_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A8, country_units_in_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A9, country_units_in_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AA, country_units_in_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AB, country_units_in_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02AC, stronger_army_than_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AD, stronger_army_than_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AE, stronger_army_than_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AF, stronger_army_than_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B0, stronger_army_than_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B1, stronger_army_than_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B2, flashpoint_tension_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02B3, is_colonial_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B4, has_country_flag_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B5, rich_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B6, middle_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B7, poor_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B8, is_core_pop_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B9, is_core_boolean, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BA, is_core_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BB, is_core_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BC, is_core_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BD, is_core_state_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BE, ruling_party_ideology_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02BF, money_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02C0, is_our_vassal_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02C1, is_our_vassal_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C2, is_our_vassal_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C3, is_our_vassal_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C4, is_our_vassal_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C5, is_our_vassal_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C6, vassal_of_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02C7, vassal_of_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C8, vassal_of_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C9, vassal_of_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CA, vassal_of_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CB, vassal_of_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CC, relation_this_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02CD, has_recently_lost_war_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CE, technology_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02CF, invention_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D0, in_default_bool, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D1, is_state_capital_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D2, region_proper, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D3, region_proper_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D4, region_proper_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D5, owns_region_proper, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D6, pop_majority_religion_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D7, military_score_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D8, industrial_score_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D9, has_factories_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DA, is_coastal_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DB, has_building_bank, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_university, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DD, test, 1) \
 
-// complex
-constexpr inline uint16_t diplomatic_influence_tag = 0x020D;
-constexpr inline uint16_t diplomatic_influence_this_nation = 0x020E;
-constexpr inline uint16_t diplomatic_influence_this_province = 0x020F;
-constexpr inline uint16_t diplomatic_influence_from_nation = 0x0210;
-constexpr inline uint16_t diplomatic_influence_from_province = 0x0211;
-constexpr inline uint16_t pop_unemployment_nation = 0x0212;
-constexpr inline uint16_t pop_unemployment_state = 0x0213;
-constexpr inline uint16_t pop_unemployment_province = 0x0214;
-constexpr inline uint16_t pop_unemployment_pop = 0x0215;
-constexpr inline uint16_t pop_unemployment_nation_this_pop = 0x0216;
-constexpr inline uint16_t pop_unemployment_state_this_pop = 0x0217;
-constexpr inline uint16_t pop_unemployment_province_this_pop = 0x0218;
-constexpr inline uint16_t relation_tag = 0x0219;
-constexpr inline uint16_t relation_this_nation = 0x021A;
-constexpr inline uint16_t relation_this_province = 0x021B;
-constexpr inline uint16_t relation_from_nation = 0x021C;
-constexpr inline uint16_t relation_from_province = 0x021D;
-constexpr inline uint16_t check_variable = 0x021E;
-constexpr inline uint16_t upper_house = 0x021F;
-constexpr inline uint16_t unemployment_by_type_nation = 0x0220;
-constexpr inline uint16_t unemployment_by_type_state = 0x0221;
-constexpr inline uint16_t unemployment_by_type_province = 0x0222;
-constexpr inline uint16_t unemployment_by_type_pop = 0x0223;
-constexpr inline uint16_t party_loyalty_nation_province_id = 0x0224;
-constexpr inline uint16_t party_loyalty_from_nation_province_id = 0x0225;
-constexpr inline uint16_t party_loyalty_province_province_id = 0x0226;
-constexpr inline uint16_t party_loyalty_from_province_province_id = 0x0227;
-constexpr inline uint16_t party_loyalty_nation_from_province = 0x0228;
-constexpr inline uint16_t party_loyalty_from_nation_scope_province = 0x0229;
-constexpr inline uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
-constexpr inline uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
-constexpr inline uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
-constexpr inline uint16_t can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
-constexpr inline uint16_t can_build_in_province_fort_no_limit_from_nation = 0x022E;
-constexpr inline uint16_t can_build_in_province_fort_yes_limit_from_nation = 0x022F;
-constexpr inline uint16_t can_build_in_province_fort_no_limit_this_nation = 0x0230;
-constexpr inline uint16_t can_build_in_province_fort_yes_limit_this_nation = 0x0231;
-constexpr inline uint16_t can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
-constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
-constexpr inline uint16_t can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
-constexpr inline uint16_t can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
-constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
-constexpr inline uint16_t can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
-constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
-constexpr inline uint16_t can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
-constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
-constexpr inline uint16_t can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
-constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
-constexpr inline uint16_t can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
-constexpr inline uint16_t work_available_nation = 0x023E;
-constexpr inline uint16_t work_available_state = 0x023F;
-constexpr inline uint16_t work_available_province = 0x0240;
-
-// variable name
-//  constexpr inline uint16_t variable_tech_name = 0x0241; REMOVED
-constexpr inline uint16_t variable_ideology_name_nation = 0x0241;
-constexpr inline uint16_t variable_ideology_name_state = 0x0242;
-constexpr inline uint16_t variable_ideology_name_province = 0x0243;
-constexpr inline uint16_t variable_ideology_name_pop = 0x0244;
-constexpr inline uint16_t variable_issue_name_nation = 0x0245;
-constexpr inline uint16_t variable_issue_name_state = 0x0246;
-constexpr inline uint16_t variable_issue_name_province = 0x0247;
-constexpr inline uint16_t variable_issue_name_pop = 0x0248;
-constexpr inline uint16_t variable_issue_group_name_nation = 0x0249;
-constexpr inline uint16_t variable_issue_group_name_state = 0x024A;
-constexpr inline uint16_t variable_issue_group_name_province = 0x024B;
-constexpr inline uint16_t variable_issue_group_name_pop = 0x024C;
-constexpr inline uint16_t variable_pop_type_name_nation = 0x024D;
-constexpr inline uint16_t variable_pop_type_name_state = 0x024E;
-constexpr inline uint16_t variable_pop_type_name_province = 0x024F;
-constexpr inline uint16_t variable_pop_type_name_pop = 0x0250;
-constexpr inline uint16_t variable_good_name = 0x0251;
-
-// misplaced
-constexpr inline uint16_t strata_middle = 0x0252;
-constexpr inline uint16_t strata_poor = 0x0253;
-constexpr inline uint16_t party_loyalty_from_province_scope_province = 0x0254;
-constexpr inline uint16_t can_build_factory_nation = 0x0255;
-constexpr inline uint16_t can_build_factory_province = 0x0256;
-constexpr inline uint16_t nationalvalue_pop = 0x0257;
-constexpr inline uint16_t nationalvalue_province = 0x0258;
-constexpr inline uint16_t war_exhaustion_pop = 0x0259;
-constexpr inline uint16_t has_culture_core_province_this_pop = 0x025A;
-constexpr inline uint16_t tag_pop = 0x025B;
-constexpr inline uint16_t has_country_flag_pop = 0x025C;
-constexpr inline uint16_t has_country_flag_province = 0x025D;
-constexpr inline uint16_t has_country_modifier_province = 0x025E;
-constexpr inline uint16_t religion_nation = 0x025F;
-constexpr inline uint16_t religion_nation_reb = 0x0260;
-constexpr inline uint16_t religion_nation_from_nation = 0x0261;
-constexpr inline uint16_t religion_nation_this_nation = 0x0262;
-constexpr inline uint16_t religion_nation_this_state = 0x0263;
-constexpr inline uint16_t religion_nation_this_province = 0x0264;
-constexpr inline uint16_t religion_nation_this_pop = 0x0265;
-constexpr inline uint16_t war_exhaustion_province = 0x0266;
-constexpr inline uint16_t is_greater_power_province = 0x0267;
-constexpr inline uint16_t is_cultural_union_pop_this_pop = 0x0268;
-constexpr inline uint16_t has_building_factory = 0x0269;
-constexpr inline uint16_t has_building_state_from_province = 0x026A;
-constexpr inline uint16_t has_building_factory_from_province = 0x026B;
-constexpr inline uint16_t party_loyalty_generic = 0x026C;
-constexpr inline uint16_t invention = 0x026D;
-constexpr inline uint16_t political_movement_from_reb = 0x026E;
-constexpr inline uint16_t social_movement_from_reb = 0x026F;
-constexpr inline uint16_t is_next_rreform_nation = 0x0270;
-constexpr inline uint16_t is_next_rreform_pop = 0x0271;
-constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
-constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
-constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
-constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
-constexpr inline uint16_t is_disarmed_pop = 0x0276;
-constexpr inline uint16_t owned_by_state_tag = 0x0277;
-constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
-constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
-constexpr inline uint16_t owned_by_state_this_province = 0x027A;
-constexpr inline uint16_t owned_by_state_this_state = 0x027B;
-constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
-constexpr inline uint16_t units_in_province_tag = 0x027D;
-constexpr inline uint16_t primary_culture_from_nation = 0x027E;
-constexpr inline uint16_t primary_culture_from_province = 0x027F;
-constexpr inline uint16_t neighbour_this_province = 0x0280;
-constexpr inline uint16_t neighbour_from_province = 0x0281;
-constexpr inline uint16_t technology_province = 0x0282;
-constexpr inline uint16_t invention_province = 0x0283;
-constexpr inline uint16_t brigades_compare_province_this = 0x0284;
-constexpr inline uint16_t brigades_compare_province_from = 0x0285;
-constexpr inline uint16_t is_accepted_culture_nation_this_pop = 0x0286;
-constexpr inline uint16_t is_accepted_culture_nation_this_nation = 0x0287;
-constexpr inline uint16_t is_accepted_culture_nation_this_state = 0x0288;
-constexpr inline uint16_t is_accepted_culture_nation_this_province = 0x0289;
-constexpr inline uint16_t is_accepted_culture_state_this_pop = 0x028A;
-constexpr inline uint16_t is_accepted_culture_state_this_nation = 0x028B;
-constexpr inline uint16_t is_accepted_culture_state_this_state = 0x028C;
-constexpr inline uint16_t is_accepted_culture_state_this_province = 0x028D;
-constexpr inline uint16_t is_accepted_culture_province_this_pop = 0x028E;
-constexpr inline uint16_t is_accepted_culture_province_this_nation = 0x028F;
-constexpr inline uint16_t is_accepted_culture_province_this_state = 0x0290;
-constexpr inline uint16_t is_accepted_culture_province_this_province = 0x0291;
-constexpr inline uint16_t is_accepted_culture_pop_this_pop = 0x0292;
-constexpr inline uint16_t is_accepted_culture_pop_this_nation = 0x0293;
-constexpr inline uint16_t is_accepted_culture_pop_this_state = 0x0294;
-constexpr inline uint16_t is_accepted_culture_pop_this_province = 0x0295;
-constexpr inline uint16_t culture_group_province = 0x0296;
-constexpr inline uint16_t culture_group_state = 0x0297;
-constexpr inline uint16_t have_core_in_nation_tag = 0x0298;
-constexpr inline uint16_t have_core_in_nation_this = 0x0299;
-constexpr inline uint16_t have_core_in_nation_from = 0x029A;
-constexpr inline uint16_t owns_province = 0x029B;
-constexpr inline uint16_t empty_state = 0x029C;
-constexpr inline uint16_t is_overseas_pop = 0x029D;
-constexpr inline uint16_t primary_culture_pop = 0x029E;
-constexpr inline uint16_t plurality_pop = 0x029F;
-constexpr inline uint16_t is_overseas_state = 0x02A0;
-constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
-constexpr inline uint16_t region_state = 0x02A2;
-constexpr inline uint16_t region_pop = 0x02A3;
-constexpr inline uint16_t owns_region = 0x02A4;
-constexpr inline uint16_t is_core_state_tag = 0x02A5;
-constexpr inline uint16_t country_units_in_state_from = 0x02A6;
-constexpr inline uint16_t country_units_in_state_this_nation = 0x02A7;
-constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
-constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
-constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
-constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
-constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
-constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
-constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
-constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
-constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
-constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
-constexpr inline uint16_t flashpoint_tension_province = 0x02B2;
-constexpr inline uint16_t is_colonial_pop = 0x02B3;
-constexpr inline uint16_t has_country_flag_state = 0x02B4;
-constexpr inline uint16_t rich_tax_pop = 0x02B5;
-constexpr inline uint16_t middle_tax_pop = 0x02B6;
-constexpr inline uint16_t poor_tax_pop = 0x02B7;
-constexpr inline uint16_t is_core_pop_tag = 0x02B8;
-constexpr inline uint16_t is_core_boolean = 0x02B9;
-constexpr inline uint16_t is_core_state_this_nation = 0x02BA;
-constexpr inline uint16_t is_core_state_this_province = 0x02BB;
-constexpr inline uint16_t is_core_state_this_pop = 0x02BC;
-constexpr inline uint16_t is_core_state_from_nation = 0x02BD;
-constexpr inline uint16_t ruling_party_ideology_province = 0x02BE;
-constexpr inline uint16_t money_province = 0x02BF;
-constexpr inline uint16_t is_our_vassal_province_tag = 0x02C0;
-constexpr inline uint16_t is_our_vassal_province_from = 0x02C1;
-constexpr inline uint16_t is_our_vassal_province_this_nation = 0x02C2;
-constexpr inline uint16_t is_our_vassal_province_this_province = 0x02C3;
-constexpr inline uint16_t is_our_vassal_province_this_state = 0x02C4;
-constexpr inline uint16_t is_our_vassal_province_this_pop = 0x02C5;
-constexpr inline uint16_t vassal_of_province_tag = 0x02C6;
-constexpr inline uint16_t vassal_of_province_from = 0x02C7;
-constexpr inline uint16_t vassal_of_province_this_nation = 0x02C8;
-constexpr inline uint16_t vassal_of_province_this_province = 0x02C9;
-constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
-constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
-constexpr inline uint16_t relation_this_pop = 0x02CC;
-constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
-constexpr inline uint16_t technology_pop = 0x02CE;
-constexpr inline uint16_t invention_pop = 0x02CF;
-constexpr inline uint16_t in_default_bool = 0x02D0;
-constexpr inline uint16_t is_state_capital_pop = 0x02D1;
-constexpr inline uint16_t region_proper = 0x02D2;
-constexpr inline uint16_t region_proper_state = 0x02D3;
-constexpr inline uint16_t region_proper_pop = 0x02D4;
-constexpr inline uint16_t owns_region_proper = 0x02D5;
-constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6; // as a special favor
-constexpr inline uint16_t military_score_tag = 0x02D7;
-constexpr inline uint16_t industrial_score_tag = 0x02D8;
-constexpr inline uint16_t has_factories_nation = 0x02D9;
-constexpr inline uint16_t is_coastal_state = 0x02DA;
-constexpr inline uint16_t has_building_bank = 0x02DB;
-constexpr inline uint16_t has_building_university = 0x02DC;
-constexpr inline uint16_t test = 0x02DD;
+#define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
+TRIGGER_BYTECODE_LIST
+#undef TRIGGER_BYTECODE_ELEMENT
 
 constexpr inline uint16_t first_scope_code = 0x02DE;
 
@@ -1814,745 +1386,10 @@ constexpr inline uint16_t placeholder_not_scope = code_mask;
 //  integer = 1 variant, payload 1
 
 inline constexpr int8_t data_sizes[] = {
-		0, // none
-		1, // constexpr uint16_t year = 0x0001;
-		1, // constexpr uint16_t month = 0x0002;
-		0, // constexpr uint16_t port = 0x0003;
-		1, // constexpr uint16_t rank = 0x0004;
-		1, // constexpr uint16_t technology = 0x0005;
-		0, // constexpr uint16_t strata_rich = 0x0006;
-		1, // constexpr uint16_t life_rating_province = 0x0007;
-		1, // constexpr uint16_t life_rating_state = 0x0008;
-		0, // constexpr uint16_t has_empty_adjacent_state_province = 0x0009;
-		0, // constexpr uint16_t has_empty_adjacent_state_state = 0x000A;
-		1, // constexpr uint16_t state_id_province = 0x000B;
-		1, // constexpr uint16_t state_id_state = 0x000C;
-		2, // constexpr uint16_t cash_reserves = 0x000D;
-		2, // constexpr uint16_t unemployment_nation = 0x000E;
-		2, // constexpr uint16_t unemployment_state = 0x000F;
-		2, // constexpr uint16_t unemployment_province = 0x0010;
-		2, // constexpr uint16_t unemployment_pop = 0x0011;
-		0, // constexpr uint16_t is_slave_nation = 0x0012;
-		0, // constexpr uint16_t is_slave_state = 0x0013;
-		0, // constexpr uint16_t is_slave_province = 0x0014;
-		0, // constexpr uint16_t is_slave_pop = 0x0015;
-		0, // constexpr uint16_t is_independant = 0x0016;
-		0, // constexpr uint16_t has_national_minority_province = 0x0017;
-		0, // constexpr uint16_t has_national_minority_state = 0x0018;
-		0, // constexpr uint16_t has_national_minority_nation = 0x0019;
-		1, // constexpr uint16_t government_nation = 0x001A;
-		1, // constexpr uint16_t government_pop = 0x001B;
-		1, // constexpr uint16_t capital = 0x001C;
-		1, // constexpr uint16_t tech_school = 0x001D;
-		1, // constexpr uint16_t primary_culture = 0x001E;
-		1, // constexpr uint16_t accepted_culture = 0x001F;
-		1, // constexpr uint16_t culture_pop = 0x0020;
-		1, // constexpr uint16_t culture_state = 0x0021;
-		1, // constexpr uint16_t culture_province = 0x0022;
-		1, // constexpr uint16_t culture_nation = 0x0023;
-		0, // constexpr uint16_t culture_pop_reb = 0x0024;
-		0, // constexpr uint16_t culture_state_reb = 0x0025;
-		0, // constexpr uint16_t culture_province_reb = 0x0026;
-		0, // constexpr uint16_t culture_nation_reb = 0x0027;
-		0, // constexpr uint16_t culture_from_nation = 0x0028;
-		0, // constexpr uint16_t culture_this_nation = 0x0029;
-		0, // constexpr uint16_t culture_this_state = 0x002A;
-		0, // constexpr uint16_t culture_this_pop = 0x002B;
-		0, // constexpr uint16_t culture_this_province = 0x002C;
-		1, // constexpr uint16_t culture_group_nation = 0x002D;
-		1, // constexpr uint16_t culture_group_pop = 0x002E;
-		0, // constexpr uint16_t culture_group_reb_nation = 0x002F;
-		0, // constexpr uint16_t culture_group_reb_pop = 0x0030;
-		0, // constexpr uint16_t culture_group_nation_from_nation = 0x0031;
-		0, // constexpr uint16_t culture_group_pop_from_nation = 0x0032;
-		0, // constexpr uint16_t culture_group_nation_this_nation = 0x0033;
-		0, // constexpr uint16_t culture_group_pop_this_nation = 0x0034;
-		0, // constexpr uint16_t culture_group_nation_this_province = 0x0035;
-		0, // constexpr uint16_t culture_group_pop_this_province = 0x0036;
-		0, // constexpr uint16_t culture_group_nation_this_state = 0x0037;
-		0, // constexpr uint16_t culture_group_pop_this_state = 0x0038;
-		0, // constexpr uint16_t culture_group_nation_this_pop = 0x0039;
-		0, // constexpr uint16_t culture_group_pop_this_pop = 0x003A;
-		1, // constexpr uint16_t religion = 0x003B;
-		0, // constexpr uint16_t religion_reb = 0x003C;
-		0, // constexpr uint16_t religion_from_nation = 0x003D;
-		0, // constexpr uint16_t religion_this_nation = 0x003E;
-		0, // constexpr uint16_t religion_this_state = 0x003F;
-		0, // constexpr uint16_t religion_this_province = 0x0040;
-		0, // constexpr uint16_t religion_this_pop = 0x0041;
-		1, // constexpr uint16_t terrain_province = 0x0042;
-		1, // constexpr uint16_t terrain_pop = 0x0043;
-		1, // constexpr uint16_t trade_goods = 0x0044;
-		0, // constexpr uint16_t is_secondary_power_pop = 0x0045;
-		0, // constexpr uint16_t is_secondary_power_nation = 0x0046;
-		0, // constexpr uint16_t has_faction_nation = 0x0047;
-		1, // constexpr uint16_t has_faction_pop = 0x0048;
-		0, // constexpr uint16_t has_unclaimed_cores = 0x0049;
-		0, // constexpr uint16_t is_cultural_union_bool = 0x004A;
-		0, // constexpr uint16_t is_cultural_union_this_self_pop = 0x004B;
-		0, // constexpr uint16_t is_cultural_union_this_pop = 0x004C;
-		0, // constexpr uint16_t is_cultural_union_this_state = 0x004D;
-		0, // constexpr uint16_t is_cultural_union_this_province = 0x004E;
-		0, // constexpr uint16_t is_cultural_union_this_nation = 0x004F;
-		0, // constexpr uint16_t is_cultural_union_this_rebel = 0x0050;
-		1, // constexpr uint16_t is_cultural_union_tag_nation = 0x0051;
-		1, // constexpr uint16_t is_cultural_union_tag_this_pop = 0x0052;
-		1, // constexpr uint16_t is_cultural_union_tag_this_state = 0x0053;
-		1, // constexpr uint16_t is_cultural_union_tag_this_province = 0x0054;
-		1, // constexpr uint16_t is_cultural_union_tag_this_nation = 0x0055;
-		0, // constexpr uint16_t can_build_factory_pop = 0x0056;
-		0, // constexpr uint16_t war_pop = 0x0057;
-		0, // constexpr uint16_t war_nation = 0x0058;
-		2, // constexpr uint16_t war_exhaustion_nation = 0x0059;
-		2, // constexpr uint16_t blockade = 0x005A;
-		1, // constexpr uint16_t owns = 0x005B;
-		1, // constexpr uint16_t controls = 0x005C;
-		1, // constexpr uint16_t is_core_integer = 0x005D;
-		0, // constexpr uint16_t is_core_this_nation = 0x005E;
-		0, // constexpr uint16_t is_core_this_state = 0x005F;
-		0, // constexpr uint16_t is_core_this_province = 0x0060;
-		0, // constexpr uint16_t is_core_this_pop = 0x0061;
-		0, // constexpr uint16_t is_core_from_nation = 0x0062;
-		0, // constexpr uint16_t is_core_reb = 0x0063;
-		1, // constexpr uint16_t is_core_tag = 0x0064;
-		1, // constexpr uint16_t num_of_revolts = 0x0065;
-		2, // constexpr uint16_t revolt_percentage = 0x0066;
-		1, // constexpr uint16_t num_of_cities_int = 0x0067;
-		0, // constexpr uint16_t num_of_cities_from_nation = 0x0068;
-		0, // constexpr uint16_t num_of_cities_this_nation = 0x0069;
-		0, // constexpr uint16_t num_of_cities_this_state = 0x006A;
-		0, // constexpr uint16_t num_of_cities_this_province = 0x006B;
-		0, // constexpr uint16_t num_of_cities_this_pop = 0x006C;
-		1, // constexpr uint16_t num_of_ports = 0x006D;
-		1, // constexpr uint16_t num_of_allies = 0x006E;
-		1, // constexpr uint16_t num_of_vassals = 0x006F;
-		1, // constexpr uint16_t owned_by_tag = 0x0070;
-		0, // constexpr uint16_t owned_by_from_nation = 0x0071;
-		0, // constexpr uint16_t owned_by_this_nation = 0x0072;
-		0, // constexpr uint16_t owned_by_this_province = 0x0073;
-		0, // constexpr uint16_t owned_by_this_state = 0x0074;
-		0, // constexpr uint16_t owned_by_this_pop = 0x0075;
-		0, // constexpr uint16_t exists_bool = 0x0076;
-		1, // constexpr uint16_t exists_tag = 0x0077;
-		1, // constexpr uint16_t has_country_flag = 0x0078;
-		1, // constexpr uint16_t continent_nation = 0x0079;
-		1, // constexpr uint16_t continent_state = 0x007A;
-		1, // constexpr uint16_t continent_province = 0x007B;
-		1, // constexpr uint16_t continent_pop = 0x007C;
-		0, // constexpr uint16_t continent_nation_this = 0x007D;
-		0, // constexpr uint16_t continent_state_this = 0x007E;
-		0, // constexpr uint16_t continent_province_this = 0x007F;
-		0, // constexpr uint16_t continent_pop_this = 0x0080;
-		0, // constexpr uint16_t continent_nation_from = 0x0081;
-		0, // constexpr uint16_t continent_state_from = 0x0082;
-		0, // constexpr uint16_t continent_province_from = 0x0083;
-		0, // constexpr uint16_t continent_pop_from = 0x0084;
-		1, // constexpr uint16_t casus_belli_tag = 0x0085;
-		0, // constexpr uint16_t casus_belli_from = 0x0086;
-		0, // constexpr uint16_t casus_belli_this_nation = 0x0087;
-		0, // constexpr uint16_t casus_belli_this_state = 0x0088;
-		0, // constexpr uint16_t casus_belli_this_province = 0x0089;
-		0, // constexpr uint16_t casus_belli_this_pop = 0x008A;
-		1, // constexpr uint16_t military_access_tag = 0x008B;
-		0, // constexpr uint16_t military_access_from = 0x008C;
-		0, // constexpr uint16_t military_access_this_nation = 0x008D;
-		0, // constexpr uint16_t military_access_this_state = 0x008E;
-		0, // constexpr uint16_t military_access_this_province = 0x008F;
-		0, // constexpr uint16_t military_access_this_pop = 0x0090;
-		2, // constexpr uint16_t prestige_value = 0x0091;
-		0, // constexpr uint16_t prestige_from = 0x0092;
-		0, // constexpr uint16_t prestige_this_nation = 0x0093;
-		0, // constexpr uint16_t prestige_this_state = 0x0094;
-		0, // constexpr uint16_t prestige_this_province = 0x0095;
-		0, // constexpr uint16_t prestige_this_pop = 0x0096;
-		2, // constexpr uint16_t badboy = 0x0097;
-		1, // constexpr uint16_t has_building_state = 0x0098;
-		0, // constexpr uint16_t has_building_fort = 0x0099;
-		0, // constexpr uint16_t has_building_railroad = 0x009A;
-		0, // constexpr uint16_t has_building_naval_base = 0x009B;
-		0, // constexpr uint16_t empty = 0x009C;
-		0, // constexpr uint16_t is_blockaded = 0x009D;
-		1, // constexpr uint16_t has_country_modifier = 0x009E;
-		1, // constexpr uint16_t has_province_modifier = 0x009F;
-		1, // constexpr uint16_t region = 0x00A0;
-		1, // constexpr uint16_t tag_tag = 0x00A1;
-		0, // constexpr uint16_t tag_this_nation = 0x00A2;
-		0, // constexpr uint16_t tag_this_province = 0x00A3;
-		0, // constexpr uint16_t tag_from_nation = 0x00A4;
-		0, // constexpr uint16_t tag_from_province = 0x00A5;
-		1, // constexpr uint16_t neighbour_tag = 0x00A6;
-		0, // constexpr uint16_t neighbour_this = 0x00A7;
-		0, // constexpr uint16_t neighbour_from = 0x00A8;
-		1, // constexpr uint16_t units_in_province_value = 0x00A9;
-		0, // constexpr uint16_t units_in_province_from = 0x00AA;
-		0, // constexpr uint16_t units_in_province_this_nation = 0x00AB;
-		0, // constexpr uint16_t units_in_province_this_province = 0x00AC;
-		0, // constexpr uint16_t units_in_province_this_state = 0x00AD;
-		0, // constexpr uint16_t units_in_province_this_pop = 0x00AE;
-		1, // constexpr uint16_t war_with_tag = 0x00AF;
-		0, // constexpr uint16_t war_with_from = 0x00B0;
-		0, // constexpr uint16_t war_with_this_nation = 0x00B1;
-		0, // constexpr uint16_t war_with_this_province = 0x00B2;
-		0, // constexpr uint16_t war_with_this_state = 0x00B3;
-		0, // constexpr uint16_t war_with_this_pop = 0x00B4;
-		0, // constexpr uint16_t unit_in_battle = 0x00B5;
-		1, // constexpr uint16_t total_amount_of_divisions = 0x00B6;
-		2, // constexpr uint16_t money = 0x00B7;
-		2, // constexpr uint16_t lost_national = 0x00B8;
-		0, // constexpr uint16_t is_vassal = 0x00B9;
-		1, // constexpr uint16_t ruling_party_ideology_pop = 0x00BA;
-		1, // constexpr uint16_t ruling_party_ideology_nation = 0x00BB;
-		2, // constexpr uint16_t ruling_party = 0x00BC;
-		1, // constexpr uint16_t is_ideology_enabled = 0x00BD;
-		2, // constexpr uint16_t political_reform_want_nation = 0x00BE;
-		2, // constexpr uint16_t political_reform_want_pop = 0x00BF;
-		2, // constexpr uint16_t social_reform_want_nation = 0x00C0;
-		2, // constexpr uint16_t social_reform_want_pop = 0x00C1;
-		1, // constexpr uint16_t total_amount_of_ships = 0x00C2;
-		2, // constexpr uint16_t plurality = 0x00C3;
-		2, // constexpr uint16_t corruption = 0x00C4;
-		0, // constexpr uint16_t is_state_religion_pop = 0x00C5;
-		0, // constexpr uint16_t is_state_religion_province = 0x00C6;
-		0, // constexpr uint16_t is_state_religion_state = 0x00C7;
-		0, // constexpr uint16_t is_primary_culture_pop = 0x00C8;
-		0, // constexpr uint16_t is_primary_culture_province = 0x00C9;
-		0, // constexpr uint16_t is_primary_culture_state = 0x00CA;
-		0, // constexpr uint16_t is_primary_culture_nation_this_pop = 0x00CB;
-		0, // constexpr uint16_t is_primary_culture_nation_this_nation = 0x00CC;
-		0, // constexpr uint16_t is_primary_culture_nation_this_state = 0x00CD;
-		0, // constexpr uint16_t is_primary_culture_nation_this_province = 0x00CE;
-		0, // constexpr uint16_t is_primary_culture_state_this_pop = 0x00CF;
-		0, // constexpr uint16_t is_primary_culture_state_this_nation = 0x00D0;
-		0, // constexpr uint16_t is_primary_culture_state_this_state = 0x00D1;
-		0, // constexpr uint16_t is_primary_culture_state_this_province = 0x00D2;
-		0, // constexpr uint16_t is_primary_culture_province_this_pop = 0x00D3;
-		0, // constexpr uint16_t is_primary_culture_province_this_nation = 0x00D4;
-		0, // constexpr uint16_t is_primary_culture_province_this_state = 0x00D5;
-		0, // constexpr uint16_t is_primary_culture_province_this_province = 0x00D6;
-		0, // constexpr uint16_t is_primary_culture_pop_this_pop = 0x00D7;
-		0, // constexpr uint16_t is_primary_culture_pop_this_nation = 0x00D8;
-		0, // constexpr uint16_t is_primary_culture_pop_this_state = 0x00D9;
-		0, // constexpr uint16_t is_primary_culture_pop_this_province = 0x00DA;
-		0, // constexpr uint16_t is_accepted_culture_pop = 0x00DB;
-		0, // constexpr uint16_t is_accepted_culture_province = 0x00DC;
-		0, // constexpr uint16_t is_accepted_culture_state = 0x00DD;
-		0, // constexpr uint16_t is_coastal_province = 0x00DE;
-		1, // constexpr uint16_t in_sphere_tag = 0x00DF;
-		0, // constexpr uint16_t in_sphere_from = 0x00E0;
-		0, // constexpr uint16_t in_sphere_this_nation = 0x00E1;
-		0, // constexpr uint16_t in_sphere_this_province = 0x00E2;
-		0, // constexpr uint16_t in_sphere_this_state = 0x00E3;
-		0, // constexpr uint16_t in_sphere_this_pop = 0x00E4;
-		1, // constexpr uint16_t produces_nation = 0x00E5;
-		1, // constexpr uint16_t produces_state = 0x00E6;
-		1, // constexpr uint16_t produces_province = 0x00E7;
-		1, // constexpr uint16_t produces_pop = 0x00E8;
-		2, // constexpr uint16_t average_militancy_nation = 0x00E9;
-		2, // constexpr uint16_t average_militancy_state = 0x00EA;
-		2, // constexpr uint16_t average_militancy_province = 0x00EB;
-		2, // constexpr uint16_t average_consciousness_nation = 0x00EC;
-		2, // constexpr uint16_t average_consciousness_state = 0x00ED;
-		2, // constexpr uint16_t average_consciousness_province = 0x00EE;
-		1, // constexpr uint16_t is_next_reform_nation = 0x00EF;
-		1, // constexpr uint16_t is_next_reform_pop = 0x00F0;
-		2, // constexpr uint16_t rebel_power_fraction = 0x00F1;
-		2, // constexpr uint16_t recruited_percentage_nation = 0x00F2;
-		2, // constexpr uint16_t recruited_percentage_pop = 0x00F3;
-		0, // constexpr uint16_t has_culture_core = 0x00F4;
-		1, // constexpr uint16_t nationalism = 0x00F5;
-		0, // constexpr uint16_t is_overseas = 0x00F6;
-		0, // constexpr uint16_t controlled_by_rebels = 0x00F7;
-		1, // constexpr uint16_t controlled_by_tag = 0x00F8;
-		0, // constexpr uint16_t controlled_by_from = 0x00F9;
-		0, // constexpr uint16_t controlled_by_this_nation = 0x00FA;
-		0, // constexpr uint16_t controlled_by_this_province = 0x00FB;
-		0, // constexpr uint16_t controlled_by_this_state = 0x00FC;
-		0, // constexpr uint16_t controlled_by_this_pop = 0x00FD;
-		0, // constexpr uint16_t controlled_by_owner = 0x00FE;
-		0, // constexpr uint16_t controlled_by_reb = 0x00FF;
-		1, // constexpr uint16_t is_canal_enabled = 0x0100;
-		0, // constexpr uint16_t is_state_capital = 0x0101;
-		1, // constexpr uint16_t truce_with_tag = 0x0102;
-		0, // constexpr uint16_t truce_with_from = 0x0103;
-		0, // constexpr uint16_t truce_with_this_nation = 0x0104;
-		0, // constexpr uint16_t truce_with_this_province = 0x0105;
-		0, // constexpr uint16_t truce_with_this_state = 0x0106;
-		0, // constexpr uint16_t truce_with_this_pop = 0x0107;
-		2, // constexpr uint16_t total_pops_nation = 0x0108;
-		2, // constexpr uint16_t total_pops_state = 0x0109;
-		2, // constexpr uint16_t total_pops_province = 0x010A;
-		2, // constexpr uint16_t total_pops_pop = 0x010B;
-		1, // constexpr uint16_t has_pop_type_nation = 0x010C;
-		1, // constexpr uint16_t has_pop_type_state = 0x010D;
-		1, // constexpr uint16_t has_pop_type_province = 0x010E;
-		1, // constexpr uint16_t has_pop_type_pop = 0x010F;
-		0, // constexpr uint16_t has_empty_adjacent_province = 0x0110;
-		2, // constexpr uint16_t has_leader = 0x0111;
-		0, // constexpr uint16_t ai = 0x0112;
-		0, // constexpr uint16_t can_create_vassals = 0x0113;
-		1, // constexpr uint16_t is_possible_vassal = 0x0114;
-		1, // constexpr uint16_t province_id = 0x0115;
-		1, // constexpr uint16_t vassal_of_tag = 0x0116;
-		0, // constexpr uint16_t vassal_of_from = 0x0117;
-		0, // constexpr uint16_t vassal_of_this_nation = 0x0118;
-		0, // constexpr uint16_t vassal_of_this_province = 0x0119;
-		0, // constexpr uint16_t vassal_of_this_state = 0x011A;
-		0, // constexpr uint16_t vassal_of_this_pop = 0x011B;
-		1, // constexpr uint16_t alliance_with_tag = 0x011C;
-		0, // constexpr uint16_t alliance_with_from = 0x011D;
-		0, // constexpr uint16_t alliance_with_this_nation = 0x011E;
-		0, // constexpr uint16_t alliance_with_this_province = 0x011F;
-		0, // constexpr uint16_t alliance_with_this_state = 0x0120;
-		0, // constexpr uint16_t alliance_with_this_pop = 0x0121;
-		0, // constexpr uint16_t has_recently_lost_war = 0x0122;
-		0, // constexpr uint16_t is_mobilised = 0x0123;
-		2, // constexpr uint16_t mobilisation_size = 0x0124;
-		0, // constexpr uint16_t crime_higher_than_education_nation = 0x0125;
-		0, // constexpr uint16_t crime_higher_than_education_state = 0x0126;
-		0, // constexpr uint16_t crime_higher_than_education_province = 0x0127;
-		0, // constexpr uint16_t crime_higher_than_education_pop = 0x0128;
-		2, // constexpr uint16_t agree_with_ruling_party = 0x0129;
-		0, // constexpr uint16_t is_colonial_state = 0x012A;
-		0, // constexpr uint16_t is_colonial_province = 0x012B;
-		0, // constexpr uint16_t has_factories_state = 0x012C;
-		1, // constexpr uint16_t in_default_tag = 0x012D;
-		0, // constexpr uint16_t in_default_from = 0x012E;
-		0, // constexpr uint16_t in_default_this_nation = 0x012F;
-		0, // constexpr uint16_t in_default_this_province = 0x0130;
-		0, // constexpr uint16_t in_default_this_state = 0x0131;
-		0, // constexpr uint16_t in_default_this_pop = 0x0132;
-		1, // constexpr uint16_t total_num_of_ports = 0x0133;
-		0, // constexpr uint16_t always = 0x0134;
-		0, // constexpr uint16_t election = 0x0135;
-		1, // constexpr uint16_t has_global_flag = 0x0136;
-		0, // constexpr uint16_t is_capital = 0x0137;
-		1, // constexpr uint16_t nationalvalue_nation = 0x0138;
-		1, // constexpr uint16_t industrial_score_value = 0x0139;
-		0, // constexpr uint16_t industrial_score_from_nation = 0x013A;
-		0, // constexpr uint16_t industrial_score_this_nation = 0x013B;
-		0, // constexpr uint16_t industrial_score_this_pop = 0x013C;
-		0, // constexpr uint16_t industrial_score_this_state = 0x013D;
-		0, // constexpr uint16_t industrial_score_this_province = 0x013E;
-		1, // constexpr uint16_t military_score_value = 0x013F;
-		0, // constexpr uint16_t military_score_from_nation = 0x0140;
-		0, // constexpr uint16_t military_score_this_nation = 0x0141;
-		0, // constexpr uint16_t military_score_this_pop = 0x0142;
-		0, // constexpr uint16_t military_score_this_state = 0x0143;
-		0, // constexpr uint16_t military_score_this_province = 0x0144;
-		0, // constexpr uint16_t civilized_nation = 0x0145;
-		0, // constexpr uint16_t civilized_pop = 0x0146;
-		0, // constexpr uint16_t civilized_province = 0x0147;
-		2, // constexpr uint16_t national_provinces_occupied = 0x0148;
-		0, // constexpr uint16_t is_greater_power_nation = 0x0149;
-		0, // constexpr uint16_t is_greater_power_pop = 0x014A;
-		1, // constexpr uint16_t rich_tax = 0x014B;
-		1, // constexpr uint16_t middle_tax = 0x014C;
-		1, // constexpr uint16_t poor_tax = 0x014D;
-		1, // constexpr uint16_t social_spending_nation = 0x014E;
-		1, // constexpr uint16_t social_spending_pop = 0x014F;
-		1, // constexpr uint16_t social_spending_province = 0x0150;
-		0, // constexpr uint16_t colonial_nation = 0x0151;
-		1, // constexpr uint16_t pop_majority_religion_nation = 0x0152;
-		1, // constexpr uint16_t pop_majority_religion_state = 0x0153;
-		1, // constexpr uint16_t pop_majority_religion_province = 0x0154;
-		1, // constexpr uint16_t pop_majority_culture_nation = 0x0155;
-		1, // constexpr uint16_t pop_majority_culture_state = 0x0156;
-		1, // constexpr uint16_t pop_majority_culture_province = 0x0157;
-		2, // constexpr uint16_t pop_majority_issue_nation = 0x0158;
-		2, // constexpr uint16_t pop_majority_issue_state = 0x0159;
-		2, // constexpr uint16_t pop_majority_issue_province = 0x015A;
-		2, // constexpr uint16_t pop_majority_issue_pop = 0x015B;
-		1, // constexpr uint16_t pop_majority_ideology_nation = 0x015C;
-		1, // constexpr uint16_t pop_majority_ideology_state = 0x015D;
-		1, // constexpr uint16_t pop_majority_ideology_province = 0x015E;
-		1, // constexpr uint16_t pop_majority_ideology_pop = 0x015F;
-		2, // constexpr uint16_t poor_strata_militancy_nation = 0x0160;
-		2, // constexpr uint16_t poor_strata_militancy_state = 0x0161;
-		2, // constexpr uint16_t poor_strata_militancy_province = 0x0162;
-		2, // constexpr uint16_t poor_strata_militancy_pop = 0x0163;
-		2, // constexpr uint16_t middle_strata_militancy_nation = 0x0164;
-		2, // constexpr uint16_t middle_strata_militancy_state = 0x0165;
-		2, // constexpr uint16_t middle_strata_militancy_province = 0x0166;
-		2, // constexpr uint16_t middle_strata_militancy_pop = 0x0167;
-		2, // constexpr uint16_t rich_strata_militancy_nation = 0x0168;
-		2, // constexpr uint16_t rich_strata_militancy_state = 0x0169;
-		2, // constexpr uint16_t rich_strata_militancy_province = 0x016A;
-		2, // constexpr uint16_t rich_strata_militancy_pop = 0x016B;
-		0, // constexpr uint16_t rich_tax_above_poor = 0x016C;
-		0, // constexpr uint16_t culture_has_union_tag_pop = 0x016D;
-		0, // constexpr uint16_t culture_has_union_tag_nation = 0x016E;
-		1, // constexpr uint16_t this_culture_union_tag = 0x016F;
-		0, // constexpr uint16_t this_culture_union_from = 0x0170;
-		0, // constexpr uint16_t this_culture_union_this_nation = 0x0171;
-		0, // constexpr uint16_t this_culture_union_this_province = 0x0172;
-		0, // constexpr uint16_t this_culture_union_this_state = 0x0173;
-		0, // constexpr uint16_t this_culture_union_this_pop = 0x0174;
-		0, // constexpr uint16_t this_culture_union_this_union_nation = 0x0175;
-		0, // constexpr uint16_t this_culture_union_this_union_province = 0x0176;
-		0, // constexpr uint16_t this_culture_union_this_union_state = 0x0177;
-		0, // constexpr uint16_t this_culture_union_this_union_pop = 0x0178;
-		0, // constexpr uint16_t minorities_nation = 0x0179;
-		0, // constexpr uint16_t minorities_state = 0x017A;
-		0, // constexpr uint16_t minorities_province = 0x017B;
-		2, // constexpr uint16_t revanchism_nation = 0x017C;
-		2, // constexpr uint16_t revanchism_pop = 0x017D;
-		1, // constexpr uint16_t has_crime = 0x017E;
-		1, // constexpr uint16_t num_of_substates = 0x017F;
-		1, // constexpr uint16_t num_of_vassals_no_substates = 0x0180;
-		2, // constexpr uint16_t brigades_compare_this = 0x0181;
-		2, // constexpr uint16_t brigades_compare_from = 0x0182;
-		1, // constexpr uint16_t constructing_cb_tag = 0x0183;
-		0, // constexpr uint16_t constructing_cb_from = 0x0184;
-		0, // constexpr uint16_t constructing_cb_this_nation = 0x0185;
-		0, // constexpr uint16_t constructing_cb_this_province = 0x0186;
-		0, // constexpr uint16_t constructing_cb_this_state = 0x0187;
-		0, // constexpr uint16_t constructing_cb_this_pop = 0x0188;
-		0, // constexpr uint16_t constructing_cb_discovered = 0x0189;
-		2, // constexpr uint16_t constructing_cb_progress = 0x018A;
-		2, // constexpr uint16_t civilization_progress = 0x018B;
-		1, // constexpr uint16_t constructing_cb_type = 0x018C;
-		1, // constexpr uint16_t is_our_vassal_tag = 0x018D;
-		0, // constexpr uint16_t is_our_vassal_from = 0x018E;
-		0, // constexpr uint16_t is_our_vassal_this_nation = 0x018F;
-		0, // constexpr uint16_t is_our_vassal_this_province = 0x0190;
-		0, // constexpr uint16_t is_our_vassal_this_state = 0x0191;
-		0, // constexpr uint16_t is_our_vassal_this_pop = 0x0192;
-		1, // constexpr uint16_t substate_of_tag = 0x0193;
-		0, // constexpr uint16_t substate_of_from = 0x0194;
-		0, // constexpr uint16_t substate_of_this_nation = 0x0195;
-		0, // constexpr uint16_t substate_of_this_province = 0x0196;
-		0, // constexpr uint16_t substate_of_this_state = 0x0197;
-		0, // constexpr uint16_t substate_of_this_pop = 0x0198;
-		0, // constexpr uint16_t is_substate = 0x0199;
-		0, // constexpr uint16_t great_wars_enabled = 0x019A;
-		0, // constexpr uint16_t can_nationalize = 0x019B;
-		0, // constexpr uint16_t part_of_sphere = 0x019C;
-		1, // constexpr uint16_t is_sphere_leader_of_tag = 0x019D;
-		0, // constexpr uint16_t is_sphere_leader_of_from = 0x019E;
-		0, // constexpr uint16_t is_sphere_leader_of_this_nation = 0x019F;
-		0, // constexpr uint16_t is_sphere_leader_of_this_province = 0x01A0;
-		0, // constexpr uint16_t is_sphere_leader_of_this_state = 0x01A1;
-		0, // constexpr uint16_t is_sphere_leader_of_this_pop = 0x01A2;
-		1, // constexpr uint16_t number_of_states = 0x01A3;
-		2, // constexpr uint16_t war_score = 0x01A4;
-		0, // constexpr uint16_t is_releasable_vassal_from = 0x01A5;
-		0, // constexpr uint16_t is_releasable_vassal_other = 0x01A6;
-		1, // constexpr uint16_t has_recent_imigration = 0x01A7;
-		1, // constexpr uint16_t province_control_days = 0x01A8;
-		0, // constexpr uint16_t is_disarmed = 0x01A9;
-		1, // constexpr uint16_t big_producer = 0x01AA;
-		0, // constexpr uint16_t someone_can_form_union_tag_from = 0x01AB;
-		0, // constexpr uint16_t someone_can_form_union_tag_other = 0x01AC;
-		2, // constexpr uint16_t social_movement_strength = 0x01AD;
-		2, // constexpr uint16_t political_movement_strength = 0x01AE;
-		1, // constexpr uint16_t can_build_factory_in_capital_state = 0x01AF;
-		0, // constexpr uint16_t social_movement = 0x01B0;
-		0, // constexpr uint16_t political_movement = 0x01B1;
-		0, // constexpr uint16_t has_cultural_sphere = 0x01B2;
-		0, // constexpr uint16_t world_wars_enabled = 0x01B3;
-		0, // constexpr uint16_t has_pop_culture_pop_this_pop = 0x01B4;
-		0, // constexpr uint16_t has_pop_culture_state_this_pop = 0x01B5;
-		0, // constexpr uint16_t has_pop_culture_province_this_pop = 0x01B6;
-		0, // constexpr uint16_t has_pop_culture_nation_this_pop = 0x01B7;
-		1, // constexpr uint16_t has_pop_culture_pop = 0x01B8;
-		1, // constexpr uint16_t has_pop_culture_state = 0x01B9;
-		1, // constexpr uint16_t has_pop_culture_province = 0x01BA;
-		1, // constexpr uint16_t has_pop_culture_nation = 0x01BB;
-		0, // constexpr uint16_t has_pop_religion_pop_this_pop = 0x01BC;
-		0, // constexpr uint16_t has_pop_religion_state_this_pop = 0x01BD;
-		0, // constexpr uint16_t has_pop_religion_province_this_pop = 0x01BE;
-		0, // constexpr uint16_t has_pop_religion_nation_this_pop = 0x01BF;
-		1, // constexpr uint16_t has_pop_religion_pop = 0x01C0;
-		1, // constexpr uint16_t has_pop_religion_state = 0x01C1;
-		1, // constexpr uint16_t has_pop_religion_province = 0x01C2;
-		1, // constexpr uint16_t has_pop_religion_nation = 0x01C3;
-		2, // constexpr uint16_t life_needs = 0x01C4;
-		2, // constexpr uint16_t everyday_needs = 0x01C5;
-		2, // constexpr uint16_t luxury_needs = 0x01C6;
-		2, // constexpr uint16_t consciousness_pop = 0x01C7;
-		2, // constexpr uint16_t consciousness_province = 0x01C8;
-		2, // constexpr uint16_t consciousness_state = 0x01C9;
-		2, // constexpr uint16_t consciousness_nation = 0x01CA;
-		2, // constexpr uint16_t literacy_pop = 0x01CB;
-		2, // constexpr uint16_t literacy_province = 0x01CC;
-		2, // constexpr uint16_t literacy_state = 0x01CD;
-		2, // constexpr uint16_t literacy_nation = 0x01CE;
-		2, // constexpr uint16_t militancy_pop = 0x01CF;
-		2, // constexpr uint16_t militancy_province = 0x01D0;
-		2, // constexpr uint16_t militancy_state = 0x01D1;
-		2, // constexpr uint16_t militancy_nation = 0x01D2;
-		1, // FEB FIX constexpr uint16_t military_spending_pop = 0x01D3;
-		1, // FEB FIX constexpr uint16_t military_spending_province = 0x01D4;
-		1, // FEB FIX constexpr uint16_t military_spending_state = 0x01D5;
-		1, // FEB FIX constexpr uint16_t military_spending_nation = 0x01D6;
-		1, // FEB FIX constexpr uint16_t administration_spending_pop = 0x01D7;
-		1, // FEB FIX constexpr uint16_t administration_spending_province = 0x01D8;
-		1, // FEB FIX constexpr uint16_t administration_spending_state = 0x01D9;
-		1, // FEB FIX constexpr uint16_t administration_spending_nation = 0x01DA;
-		1, // FEB FIX constexpr uint16_t education_spending_pop = 0x01DB;
-		1, // FEB FIX constexpr uint16_t education_spending_province = 0x01DC;
-		1, // FEB FIX constexpr uint16_t education_spending_state = 0x01DD;
-		1, // FEB FIX constexpr uint16_t education_spending_nation = 0x01DE;
-		1, // constexpr uint16_t trade_goods_in_state_state = 0x01DF;
-		1, // constexpr uint16_t trade_goods_in_state_province = 0x01E0;
-		0, // constexpr uint16_t has_flashpoint = 0x01E1;
-		2, // constexpr uint16_t flashpoint_tension = 0x01E2;
-		0, // constexpr uint16_t crisis_exist = 0x01E3;
-		0, // constexpr uint16_t is_liberation_crisis = 0x01E4;
-		0, // constexpr uint16_t is_claim_crisis = 0x01E5;
-		2, // constexpr uint16_t crisis_temperature = 0x01E6;
-		0, // constexpr uint16_t involved_in_crisis_pop = 0x01E7;
-		0, // constexpr uint16_t involved_in_crisis_nation = 0x01E8;
-		2, // constexpr uint16_t rich_strata_life_needs_nation = 0x01E9;
-		2, // constexpr uint16_t rich_strata_life_needs_state = 0x01EA;
-		2, // constexpr uint16_t rich_strata_life_needs_province = 0x01EB;
-		2, // constexpr uint16_t rich_strata_life_needs_pop = 0x01EC;
-		2, // constexpr uint16_t rich_strata_everyday_needs_nation = 0x01ED;
-		2, // constexpr uint16_t rich_strata_everyday_needs_state = 0x01EE;
-		2, // constexpr uint16_t rich_strata_everyday_needs_province = 0x01EF;
-		2, // constexpr uint16_t rich_strata_everyday_needs_pop = 0x01F0;
-		2, // constexpr uint16_t rich_strata_luxury_needs_nation = 0x01F1;
-		2, // constexpr uint16_t rich_strata_luxury_needs_state = 0x01F2;
-		2, // constexpr uint16_t rich_strata_luxury_needs_province = 0x01F3;
-		2, // constexpr uint16_t rich_strata_luxury_needs_pop = 0x01F4;
-		2, // constexpr uint16_t middle_strata_life_needs_nation = 0x01F5;
-		2, // constexpr uint16_t middle_strata_life_needs_state = 0x01F6;
-		2, // constexpr uint16_t middle_strata_life_needs_province = 0x01F7;
-		2, // constexpr uint16_t middle_strata_life_needs_pop = 0x01F8;
-		2, // constexpr uint16_t middle_strata_everyday_needs_nation = 0x01F9;
-		2, // constexpr uint16_t middle_strata_everyday_needs_state = 0x01FA;
-		2, // constexpr uint16_t middle_strata_everyday_needs_province = 0x01FB;
-		2, // constexpr uint16_t middle_strata_everyday_needs_pop = 0x01FC;
-		2, // constexpr uint16_t middle_strata_luxury_needs_nation = 0x01FD;
-		2, // constexpr uint16_t middle_strata_luxury_needs_state = 0x01FE;
-		2, // constexpr uint16_t middle_strata_luxury_needs_province = 0x01FF;
-		2, // constexpr uint16_t middle_strata_luxury_needs_pop = 0x0200;
-		2, // constexpr uint16_t poor_strata_life_needs_nation = 0x0201;
-		2, // constexpr uint16_t poor_strata_life_needs_state = 0x0202;
-		2, // constexpr uint16_t poor_strata_life_needs_province = 0x0203;
-		2, // constexpr uint16_t poor_strata_life_needs_pop = 0x0204;
-		2, // constexpr uint16_t poor_strata_everyday_needs_nation = 0x0205;
-		2, // constexpr uint16_t poor_strata_everyday_needs_state = 0x0206;
-		2, // constexpr uint16_t poor_strata_everyday_needs_province = 0x0207;
-		2, // constexpr uint16_t poor_strata_everyday_needs_pop = 0x0208;
-		2, // constexpr uint16_t poor_strata_luxury_needs_nation = 0x0209;
-		2, // constexpr uint16_t poor_strata_luxury_needs_state = 0x020A;
-		2, // constexpr uint16_t poor_strata_luxury_needs_province = 0x020B;
-		2, // constexpr uint16_t poor_strata_luxury_needs_pop = 0x020C;
-
-		// complex
-		2, // constexpr uint16_t diplomatic_influence_tag = 0x020D;
-		1, // constexpr uint16_t diplomatic_influence_this_nation = 0x020E;
-		1, // constexpr uint16_t diplomatic_influence_this_province = 0x020F;
-		1, // constexpr uint16_t diplomatic_influence_from_nation = 0x0210;
-		1, // constexpr uint16_t diplomatic_influence_from_province = 0x0211;
-		3, // constexpr uint16_t pop_unemployment_nation = 0x0212;
-		3, // constexpr uint16_t pop_unemployment_state = 0x0213;
-		3, // constexpr uint16_t pop_unemployment_province = 0x0214;
-		3, // constexpr uint16_t pop_unemployment_pop = 0x0215;
-		2, // constexpr uint16_t pop_unemployment_nation_this_pop = 0x0216;
-		2, // constexpr uint16_t pop_unemployment_state_this_pop = 0x0217;
-		2, // constexpr uint16_t pop_unemployment_province_this_pop = 0x0218;
-		2, // constexpr uint16_t relation_tag = 0x0219;
-		1, // constexpr uint16_t relation_this_nation = 0x021A;
-		1, // constexpr uint16_t relation_this_province = 0x021B;
-		1, // constexpr uint16_t relation_from_nation = 0x021C;
-		1, // constexpr uint16_t relation_from_province = 0x021D;
-		3, // constexpr uint16_t check_variable = 0x021E;
-		3, // constexpr uint16_t upper_house = 0x021F;
-		3, // constexpr uint16_t unemployment_by_type_nation = 0x0220;
-		3, // constexpr uint16_t unemployment_by_type_state = 0x0221;
-		3, // constexpr uint16_t unemployment_by_type_province = 0x0222;
-		3, // constexpr uint16_t unemployment_by_type_pop = 0x0223;
-		3, // constexpr uint16_t party_loyalty_nation_province_id = 0x0224;
-		3, // constexpr uint16_t party_loyalty_from_nation_province_id = 0x0225;
-		3, // constexpr uint16_t party_loyalty_province_province_id = 0x0226;
-		3, // constexpr uint16_t party_loyalty_from_province_province_id = 0x0227;
-		2, // constexpr uint16_t party_loyalty_nation_from_province = 0x0228;
-		2, // constexpr uint16_t party_loyalty_from_nation_scope_province = 0x0229;
-		0, // constexpr uint16_t can_build_in_province_railroad_no_limit_from_nation = 0x022A;
-		0, // constexpr uint16_t can_build_in_province_railroad_yes_limit_from_nation = 0x022B;
-		0, // constexpr uint16_t can_build_in_province_railroad_no_limit_this_nation = 0x022C;
-		0, // constexpr uint16_t can_build_in_province_railroad_yes_limit_this_nation = 0x022D;
-		0, // constexpr uint16_t can_build_in_province_fort_no_limit_from_nation = 0x022E;
-		0, // constexpr uint16_t can_build_in_province_fort_yes_limit_from_nation = 0x022F;
-		0, // constexpr uint16_t can_build_in_province_fort_no_limit_this_nation = 0x0230;
-		0, // constexpr uint16_t can_build_in_province_fort_yes_limit_this_nation = 0x0231;
-		0, // constexpr uint16_t can_build_in_province_naval_base_no_limit_from_nation = 0x0232;
-		0, // constexpr uint16_t can_build_in_province_naval_base_yes_limit_from_nation = 0x0233;
-		0, // constexpr uint16_t can_build_in_province_naval_base_no_limit_this_nation = 0x0234;
-		0, // constexpr uint16_t can_build_in_province_naval_base_yes_limit_this_nation = 0x0235;
-		0, // constexpr uint16_t can_build_railway_in_capital_yes_whole_state_yes_limit = 0x0236;
-		0, // constexpr uint16_t can_build_railway_in_capital_yes_whole_state_no_limit = 0x0237;
-		0, // constexpr uint16_t can_build_railway_in_capital_no_whole_state_yes_limit = 0x0238;
-		0, // constexpr uint16_t can_build_railway_in_capital_no_whole_state_no_limit = 0x0239;
-		0, // constexpr uint16_t can_build_fort_in_capital_yes_whole_state_yes_limit = 0x023A;
-		0, // constexpr uint16_t can_build_fort_in_capital_yes_whole_state_no_limit = 0x023B;
-		0, // constexpr uint16_t can_build_fort_in_capital_no_whole_state_yes_limit = 0x023C;
-		0, // constexpr uint16_t can_build_fort_in_capital_no_whole_state_no_limit = 0x023D;
-		1, // constexpr uint16_t work_available_nation = 0x023E;
-		1, // constexpr uint16_t work_available_state = 0x023F;
-		1, // constexpr uint16_t work_available_province = 0x0240;
-
-		// variable name
-		3, // constexpr uint16_t variable_ideology_name_nation = 0x0242;
-		3, // constexpr uint16_t variable_ideology_name_state = 0x0243;
-		3, // constexpr uint16_t variable_ideology_name_province = 0x0244;
-		3, // constexpr uint16_t variable_ideology_name_pop = 0x0245;
-		3, // constexpr uint16_t variable_issue_name_nation = 0x0246;
-		3, // constexpr uint16_t variable_issue_name_state = 0x0247;
-		3, // constexpr uint16_t variable_issue_name_province = 0x0248;
-		3, // constexpr uint16_t variable_issue_name_pop = 0x0249;
-		2, // constexpr uint16_t variable_issue_group_name_nation = 0x024A;
-		2, // constexpr uint16_t variable_issue_group_name_state = 0x024B;
-		2, // constexpr uint16_t variable_issue_group_name_province = 0x024C;
-		2, // constexpr uint16_t variable_issue_group_name_pop = 0x024D;
-		3, // constexpr uint16_t variable_pop_type_name_nation = 0x024E;
-		3, // constexpr uint16_t variable_pop_type_name_state = 0x024F;
-		3, // constexpr uint16_t variable_pop_type_name_province = 0x0250;
-		3, // constexpr uint16_t variable_pop_type_name_pop = 0x0251;
-		3, // constexpr uint16_t variable_good_name = 0x0252;
-		// misplaced
-		0, //	constexpr uint16_t strata_middle = 0x0253;
-		0, // constexpr uint16_t strata_poor = 0x0254;
-		2, // constexpr uint16_t party_loyalty_from_province_scope_province = 0x0254;
-		0, //	constexpr uint16_t can_build_factory_nation = 0x0255;
-		0, //	constexpr uint16_t can_build_factory_province = 0x0256;
-		1, //	constexpr uint16_t nationalvalue_pop = 0x0257;
-		1, //	constexpr uint16_t nationalvalue_province = 0x0258;
-		2, // constexpr uint16_t war_exhaustion_pop = 0x0259;
-		0, // constexpr uint16_t has_culture_core_province_this_pop = 0x025A;
-		1, // constexpr uint16_t tag_pop = 0x025B;
-		1, // constexpr uint16_t has_country_flag_pop = 0x025C;
-		1, // constexpr uint16_t has_country_flag_province = 0x025D;
-		1, // constexpr uint16_t has_country_modifier_province = 0x025E;
-		1, //	constexpr uint16_t religion_nation = 0x025F;
-		0, // constexpr uint16_t religion_nation_reb = 0x0260;
-		0, // constexpr uint16_t religion_nation_from_nation = 0x0261;
-		0, // constexpr uint16_t religion_nation_this_nation = 0x0262;
-		0, // constexpr uint16_t religion_nation_this_state = 0x0263;
-		0, // constexpr uint16_t religion_nation_this_province = 0x0264;
-		0, // constexpr uint16_t religion_nation_this_pop = 0x0265;
-		2, // constexpr uint16_t war_exhaustion_province = 0x0266;
-		0, // constexpr uint16_t is_greater_power_province = 0x0267;
-		0, // constexpr uint16_t is_cultural_union_pop_this_pop = 0x0268;
-		0, // constexpr uint16_t has_building_factory = 0x0269;
-		1, // constexpr uint16_t has_building_state_from_province = 0x026A;
-		0, // constexpr uint16_t has_building_factory_from_province = 0x026B;
-		2, // constexpr uint16_t party_loyalty_generic = 0x026C;
-		1, // constexpr inline uint16_t invention = 0x026D;
-		0, // constexpr inline uint16_t political_movement_from_reb = 0x026E;
-		0, // constexpr inline uint16_t social_movement_from_reb = 0x026F;
-		1, // constexpr inline uint16_t is_next_rreform_nation = 0x0270;
-		1, // constexpr inline uint16_t is_next_rreform_pop = 0x0271;
-		2, // constexpr inline uint16_t variable_reform_group_name_nation = 0x0272;
-		2, // constexpr inline uint16_t variable_reform_group_name_state = 0x0273;
-		2, // constexpr inline uint16_t variable_reform_group_name_province = 0x0274;
-		2, // constexpr inline uint16_t variable_reform_group_name_pop = 0x0275;
-		0, //constexpr inline uint16_t is_disarmed_pop = 0x0276;
-		1, //constexpr inline uint16_t owned_by_state_tag = 0x0277;
-		0, //constexpr inline uint16_t owned_by_state_from_nation = 0x0278;
-		0, //constexpr inline uint16_t owned_by_state_this_nation = 0x0279;
-		0, //constexpr inline uint16_t owned_by_state_this_province = 0x027A;
-		0, //constexpr inline uint16_t owned_by_state_this_state = 0x027B;
-		0, //constexpr inline uint16_t owned_by_state_this_pop = 0x027C;
-		1, //constexpr inline uint16_t units_in_province_tag = 0x027D;
-		0, //constexpr inline uint16_t primary_culture_from_nation = 0x027E;
-		0, //constexpr inline uint16_t primary_culture_from_province = 0x027F;
-		0, //constexpr inline uint16_t neighbour_this_province = 0x0280;
-		0, //constexpr inline uint16_t neighbour_from_province = 0x0281;
-		1, //constexpr inline uint16_t technology_province = 0x0282;
-		1, //constexpr inline uint16_t invention_province = 0x0283;
-		2, //constexpr inline uint16_t brigades_compare_province_this = 0x0284;
-		2, //constexpr inline uint16_t brigades_compare_province_from = 0x0285;
-		0, //constexpr inline uint16_t is_accepted_culture_nation_this_pop = 0x0286;
-		0, //constexpr inline uint16_t is_accepted_culture_nation_this_nation = 0x0287;
-		0, //constexpr inline uint16_t is_accepted_culture_nation_this_state = 0x0288;
-		0, //constexpr inline uint16_t is_accepted_culture_nation_this_province = 0x0289;
-		0, //constexpr inline uint16_t is_accepted_culture_state_this_pop = 0x028A;
-		0, //constexpr inline uint16_t is_accepted_culture_state_this_nation = 0x028B;
-		0, //constexpr inline uint16_t is_accepted_culture_state_this_state = 0x028C;
-		0, //constexpr inline uint16_t is_accepted_culture_state_this_province = 0x028D;
-		0, //constexpr inline uint16_t is_accepted_culture_province_this_pop = 0x028E;
-		0, //constexpr inline uint16_t is_accepted_culture_province_this_nation = 0x028F;
-		0, //constexpr inline uint16_t is_accepted_culture_province_this_state = 0x0290;
-		0, //constexpr inline uint16_t is_accepted_culture_province_this_province = 0x0291;
-		0, //constexpr inline uint16_t is_accepted_culture_pop_this_pop = 0x0292;
-		0, //constexpr inline uint16_t is_accepted_culture_pop_this_nation = 0x0293;
-		0, //constexpr inline uint16_t is_accepted_culture_pop_this_state = 0x0294;
-		0, //constexpr inline uint16_t is_accepted_culture_pop_this_province = 0x0295;
-		1, //constexpr inline uint16_t culture_group_province = 0x0296;
-		1, //constexpr inline uint16_t culture_group_state = 0x0297;
-		1, //constexpr inline uint16_t have_core_in_nation_tag = 0x0298;
-		0, //constexpr inline uint16_t have_core_in_nation_this = 0x0299;
-		0, //constexpr inline uint16_t have_core_in_nation_from = 0x029A;
-		1, //constexpr inline uint16_t owns_province = 0x029B;
-		0, //constexpr inline uint16_t empty_state = 0x029C;
-		0, //constexpr inline uint16_t is_overseas_pop = 0x029D;
-		1, //constexpr inline uint16_t primary_culture_pop = 0x029E;
-		2, //constexpr inline uint16_t plurality_pop = 0x029F;
-		0, //constexpr inline uint16_t is_overseas_state = 0x02A0;
-		1, //constexpr inline uint16_t stronger_army_than_tag = 0x02A1;
-		1, //constexpr inline uint16_t region_state = 0x02A2;
-		1, //constexpr inline uint16_t region_pop = 0x02A3;
-		1, //constexpr inline uint16_t owns_region = 0x02A4;
-		1, //constexpr inline uint16_t is_core_state_tag = 0x02A5;
-		0, //constexpr inline uint16_t country_units_in_state_from = 0x02A6;
-		0, //constexpr inline uint16_t country_units_in_state_this_nation = 0x02A7;
-		0, //constexpr inline uint16_t country_units_in_state_this_province = 0x02A8;
-		0, //constexpr inline uint16_t country_units_in_state_this_state = 0x02A9;
-		0, //constexpr inline uint16_t country_units_in_state_this_pop = 0x02AA;
-		1, //constexpr inline uint16_t country_units_in_state_tag = 0x02AB;
-		0, //constexpr inline uint16_t stronger_army_than_this_nation = 0x02AC;
-		0, //constexpr inline uint16_t stronger_army_than_this_state = 0x02AD;
-		0, //constexpr inline uint16_t stronger_army_than_this_province = 0x02AE;
-		0, //constexpr inline uint16_t stronger_army_than_this_pop = 0x02AF;
-		0, //constexpr inline uint16_t stronger_army_than_from_nation = 0x02B0;
-		0, //constexpr inline uint16_t stronger_army_than_from_province = 0x02B1;
-		2, //constexpr inline uint16_t flashpoint_tension_province = 0x02B2;
-		0, //constexpr inline uint16_t is_colonial_pop = 0x02B3;
-		1, //constexpr inline uint16_t has_country_flag_state = 0x02B4;
-		1, //constexpr inline uint16_t rich_tax_pop = 0x02B5;
-		1, //constexpr inline uint16_t middle_tax_pop = 0x02B6;
-		1, //constexpr inline uint16_t poor_tax_pop = 0x02B7;
-		1, //constexpr inline uint16_t is_core_pop_tag = 0x02B8;
-		0, //constexpr inline uint16_t is_core_boolean = 0x02B9;
-		0, //constexpr inline uint16_t is_core_state_this_nation = 0x02BA;
-		0, //constexpr inline uint16_t is_core_state_this_province = 0x02BB;
-		0, //constexpr inline uint16_t is_core_state_this_pop = 0x02BC;
-		0, //constexpr inline uint16_t is_core_state_from_nation = 0x02BD;
-		1, //constexpr inline uint16_t ruling_party_ideology_province = 0x02BE;
-		2, //constexpr inline uint16_t money_province = 0x02BF;
-		1, //constexpr inline uint16_t is_our_vassal_province_tag = 0x02C0;
-		0, //constexpr inline uint16_t is_our_vassal_province_from = 0x02C1;
-		0, //constexpr inline uint16_t is_our_vassal_province_this_nation = 0x02C2;
-		0, //constexpr inline uint16_t is_our_vassal_province_this_province = 0x02C3;
-		0, //constexpr inline uint16_t is_our_vassal_province_this_state = 0x02C4;
-		0, //constexpr inline uint16_t is_our_vassal_province_this_pop = 0x02C5;
-		1, //constexpr inline uint16_t vassal_of_province_tag = 0x02C6;
-		0, //constexpr inline uint16_t vassal_of_province_from = 0x02C7;
-		0, //constexpr inline uint16_t vassal_of_province_this_nation = 0x02C8;
-		0, //constexpr inline uint16_t vassal_of_province_this_province = 0x02C9;
-		0, //constexpr inline uint16_t vassal_of_province_this_state = 0x02CA;
-		0, //constexpr inline uint16_t vassal_of_province_this_pop = 0x02CB;
-		1, //constexpr inline uint16_t relation_this_pop = 0x02CC;
-		0, //constexpr inline uint16_t has_recently_lost_war_pop = 0x02CD;
-		1, //constexpr inline uint16_t technology_pop = 0x02CE;
-		1, //constexpr inline uint16_t invention_pop = 0x02CF;
-		0, //constexpr inline uint16_t in_default_bool = 0x02D0;
-		0, //constexpr inline uint16_t is_state_capital_pop = 0x02D1;
-		1, //constexpr inline uint16_t region_proper = 0x02D2;
-		1, //constexpr inline uint16_t region_proper_state = 0x02D3;
-		1, //constexpr inline uint16_t region_proper_pop = 0x02D4;
-		1, //constexpr inline uint16_t owns_region_proper = 0x02D5;
-		0, //constexpr inline uint16_t pop_majority_religion_nation_this_nation = 0x02D6;
-		1, //constexpr inline uint16_t military_score_tag = 0x02D7;
-		1, //constexpr inline uint16_t industrial_score_tag = 0x02D8;
-		0, //constexpr inline uint16_t has_factories_nation = 0x02D9;
-		0, //constexpr inline uint16_t is_coastal_state = 0x02DA;
-		0, // constexpr uint16_t has_building_bank = 0x02DB;
-		0, // constexpr uint16_t has_building_university = 0x02DC;
-		1, // constexpr inline uint16_t test = 0x02DD;
+	0, //none
+#define TRIGGER_BYTECODE_ELEMENT(code, name, arg) arg,
+	TRIGGER_BYTECODE_LIST
+#undef TRIGGER_BYTECODE_ELEMENT
 };
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
