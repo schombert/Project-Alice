@@ -1385,7 +1385,9 @@ public:
 
 			std::vector<dcon::issue_option_id> distrib;
 			for(auto io : state.world.in_issue_option) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
@@ -1534,7 +1536,9 @@ public:
 
 			std::vector<dcon::ideology_id> distrib;
 			for(auto io : state.world.in_ideology) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
