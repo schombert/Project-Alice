@@ -91,6 +91,8 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 		while(b != nullptr) {
 			if(b == ui_state.units_root.get())
 				return true;
+			if(b == ui_state.unit_details_box.get())
+				return true;
 			b = b->parent;
 		}
 		return false;
@@ -396,6 +398,8 @@ void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount
 		while(b != nullptr) {
 			if(b == ui_state.units_root.get())
 				return true;
+			if(b == ui_state.unit_details_box.get())
+				return true;
 			b = b->parent;
 		}
 		return false;
@@ -676,6 +680,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(!tooltip_probe.under_mouse) {
 				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			}
+			if(ui_state.unit_details_box->is_visible() && !mouse_probe.under_mouse) {
+				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
+				if(!tooltip_probe.under_mouse) {
+					tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+				}
 			}
 		}
 	}
@@ -1206,9 +1218,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 					ui_state.rgos_root->impl_render(*this, 0, 0);
 				} else {
 					ui_state.units_root->impl_render(*this, 0, 0);
-				}
-				if(ui_state.unit_details_box->is_visible()) {
-					ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+					if(ui_state.unit_details_box->is_visible()) {
+						ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
+					}
 				}
 			} else if(map_state.get_zoom() >= ui::big_counter_cutoff) {
 				ui_state.province_details_root->impl_render(*this, 0, 0);
