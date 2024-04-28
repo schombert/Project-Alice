@@ -161,14 +161,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 	std::unordered_map<uint16_t, std::set<uint16_t>> regions_graph;
 
-	int samples_N = 100;
+	int samples_N = 50;
+	int samples_M = 100;
 
 	// generate additional points
 	std::vector<uint16_t> samples_regions;
 	for(int i = 0; i < samples_N; i++)
-		for(int j = 0; j < samples_N; j++) {
+		for(int j = 0; j < samples_M; j++) {
 			float x = float(i) / float(samples_N) * float(map_data.size_x);
-			float y = float(map_data.size_y) * (1.f - float(j) / float(samples_N));
+			float y = float(map_data.size_y) * (1.f - float(j) / float(samples_M));
 
 			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
 
@@ -240,7 +241,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 
-		//fit an ellipse
+
 		std::vector<glm::vec2> points;
 		std::vector<glm::vec2> bad_points;
 		glm::vec2 sum_points = { 0.f, 0.f };
@@ -275,11 +276,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		for(auto visited_region : group_of_regions)
 			for(int i = 0; i < samples_N; i++)
-				for(int j = 0; j < samples_N; j++) {
+				for(int j = 0; j < samples_M; j++) {
 					int index = j * samples_N + i;
 
 					float x = float(i) / float(samples_N) * float(map_data.size_x);
-					float y = float(map_data.size_y) * (1.f - float(j) / float(samples_N));
+					float y = float(map_data.size_y) * (1.f - float(j) / float(samples_M));
 					glm::vec2 candidate = { x, y };
 
 					auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
@@ -301,44 +302,188 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					*/
 				}
 
+		// clustering points into num_of_clusters parts
+		size_t min_amount = 2;
+		if(state.user_settings.map_label == sys::map_label_mode::cubic) {
+			min_amount = 4;
+		}
+		if(state.user_settings.map_label == sys::map_label_mode::quadratic) {
+			min_amount = 3;
+		}
+		size_t num_of_clusters = std::max(min_amount, (size_t)(points.size() / 40));
+
+		if(points.size() < num_of_clusters) {
+			num_of_clusters = points.size();
+		}
+
+		std::vector<glm::vec2> centroids;
+
+		for(size_t i = 0; i < num_of_clusters; i++) {
+			centroids.push_back(points[i]);
+		}
+
+		for(int step = 0; step < 100; step++) {
+			std::vector<glm::vec2> new_centroids;
+			std::vector<int> counters;
+			for(size_t i = 0; i < num_of_clusters; i++) {
+				new_centroids.push_back(glm::vec2(0, 0));
+				counters.push_back(0);
+			}
+
+
+			for(size_t i = 0; i < points.size(); i++) {
+				size_t closest = 0;
+				float best_dist = std::numeric_limits<float>::max();
+
+				//finding the closest centroid
+				for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
+					if(best_dist > glm::distance(centroids[cluster], points[i])) {
+						closest = cluster;
+						best_dist = glm::distance(centroids[cluster], points[i]);
+					}
+				}
+
+				new_centroids[closest] += points[i];
+				counters[closest] += 1;
+			}
+
+			for(size_t i = 0; i < num_of_clusters; i++) {
+				new_centroids[i] /= counters[i];
+			}
+
+			centroids = new_centroids;
+		}
+
+		std::vector<size_t> good_centroids;
+		float min_cross = 1;
+
+		float base_distance = std::numeric_limits<float>::max();
+
+		float average_distance = 0;
+
+		float amount_of_links = 0;
+
+		for(size_t i = 0; i < num_of_clusters; i++)
+			for(size_t j = 0; j < num_of_clusters; j++) {
+				if(i == j) continue;
+				if(base_distance > glm::distance(centroids[i], centroids[j]))
+					base_distance = glm::distance(centroids[i], centroids[j]);
+
+				average_distance += glm::distance(centroids[i], centroids[j]);
+				amount_of_links += 1;
+			}
+
+		average_distance /= amount_of_links;
+
+		std::vector<glm::vec2> final_points;
+
+		for(size_t i = 0; i < num_of_clusters; i++) {
+			int counter_of_neighbors = 0;
+			for(size_t j = 0; j < num_of_clusters; j++) {
+				if(i == j) {
+					continue;
+				}
+				if(glm::distance(centroids[i], centroids[j]) < base_distance * 2.f) {
+					counter_of_neighbors++;
+				}
+			}
+			if(counter_of_neighbors >= 0) {
+				good_centroids.push_back(i);
+				final_points.push_back(centroids[i]);
+			}
+		}
+
+
+		if(good_centroids.size() == 0) {
+			good_centroids.clear();
+			for(size_t i = 0; i < num_of_clusters; i++) {
+				good_centroids.push_back(i);
+			}
+		}
+
+		//throwing away bad cluster
+
+		std::vector<glm::vec2> good_points;
+
+		//OutputDebugStringA("\n\n");
+
+		for(auto point : points) {
+			size_t closest = 0;
+			float best_dist = std::numeric_limits<float>::max();
+
+			//finding the closest centroid
+			for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
+				if(best_dist > glm::distance(centroids[cluster], point)) {
+					closest = cluster;
+					best_dist = glm::distance(centroids[cluster], point);
+				}
+			}
+
+
+			bool is_good = false;
+			for(size_t i = 0; i < good_centroids.size(); i++) {
+				if(closest == good_centroids[i])
+					is_good = true;
+			}
+
+			if (text::produce_simple_string(state, n.get_name()) == "Austria")
+				OutputDebugStringA((std::to_string(point.x) + ", " + std::to_string(point.y) + ", " + std::to_string(closest) + ", \n").c_str());
+
+			if (is_good) {
+				good_points.push_back(point);
+			} else {
+				total--;
+				sum_points -= point;
+			}
+		}
+
+		points = good_points;
+		
+
 		//initial center:
 		glm::vec2 center = sum_points / total;
+
+		//calculate deviation
+		float total_sum = 0;
+
+		for(auto point : points) {
+			auto dif_v = point - center;
+			total_sum += dif_v.x * dif_v.x;
+		}
+
+		float mse = total_sum / points.size();
+		float limit = mse * 2;
 
 		//calculate radius
 		//OutputDebugStringA("\n");
 		//OutputDebugStringA("\n");
-		float radius_1 = 0.f;
-		float radius_2 = 0.f;
+		float right = 0.f;
+		float left = 0.f;
+		float top = 0.f;
+		float bottom = 0.f;
 		for(auto point: points) {
 			//OutputDebugStringA((std::to_string(point.x) + ", " + std::to_string(point.y) + ", \n").c_str());
-			glm::vec2 current = glm::abs(point - center);
-			if(current.x > radius_1) {
-				radius_1 = current.x;
+			glm::vec2 current = point - center;
+			if((current.x > right) && (current.x * current.x < limit)) {
+				right = current.x;
 			}
-			if(current.y > radius_2) {
-				radius_2 = current.y;
+			if(current.y > top) {
+				top = current.y;
+			}
+			if((current.x < left) && (current.x * current.x < limit)) {
+				left = current.x;
+			}
+			if(current.y < bottom) {
+				bottom = current.y;
 			}
 		}
 
-		//initial quadratic form:
-		float sigma_1 = radius_1 * 0.9f;
-		float sigma_2 = radius_2 * 0.9f;
-
-
-		//now we turn the ellipse into a box
-
 		std::vector<glm::vec2> key_points;
 
-		glm::vec2 eigenvector_1 = { 1.f, 0.f };
-		glm::vec2 eigenvector_2 = { -eigenvector_1.y, eigenvector_1.x };
-
-		float r_1 = sigma_1;
-		float r_2 = sigma_2;
-
-		key_points.push_back(center - eigenvector_1 * r_1 * 0.95f);
-		key_points.push_back(center + eigenvector_1 * r_1 * 0.95f);
-		key_points.push_back(center - eigenvector_2 * r_2 * 0.95f);
-		key_points.push_back(center + eigenvector_2 * r_2 * 0.95f);
+		key_points.push_back(center + left * 0.95f);
+		key_points.push_back(center + bottom * 0.95f);
+		key_points.push_back(center + right * 0.95f);
+		key_points.push_back(center + top * 0.95f);
 
 		std::array<glm::vec2, 5> key_provs{
 			center, //capital
@@ -358,8 +503,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
 		glm::vec2 ratio{ key_provs[3].x - key_provs[1].x, key_provs[4].y - key_provs[2].y };
 
-		if(ratio.x < 0.000001f || ratio.y < 0.000001f)
+		if(ratio.x < 0.001f || ratio.y < 0.001f)
 			continue;
+
+		points = final_points;
 
 		//regularisation parameters
 		float lambda = 0.f;
@@ -378,6 +525,14 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		for (auto point : points) {
 			auto e = point;
+
+			if(e.x < basis.x) {
+				continue;
+			}
+			if(e.x > basis.x + ratio.y) {
+				continue;
+			}
+
 			w.push_back(1);
 
 			e -= basis;

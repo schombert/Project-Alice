@@ -1492,7 +1492,29 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
-		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
+		// y = a + bx + cx^2 + dx^3
+		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+		auto poly_fn = [&](float x) {
+			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
+			};
+
+		//cutting box if graph goes outside
+
+		float left = 0.f;
+		while((poly_fn(left) < 0) || (poly_fn(left) > 1)) {
+			left += 0.01f;
+		}
+		float right = 1.f;
+		while((poly_fn(right) < 0) || (poly_fn(right) > 1)) {
+			right -= 0.01f;
+		}
+
+		float result_interval = right - left;
+
+		glm::vec2 ratio = e.ratio;
+		glm::vec2 basis = e.basis;
+
+		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
 
 		auto& f = state.font_collection.fonts[2];
 		if(!f.loaded)
@@ -1500,15 +1522,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
-		// y = a + bx + cx^2 + dx^3
-		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
-		auto poly_fn = [&](float x) {
-			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
-		float x_step = (1.f / float(e.text.length() * 32.f));
+		float x_step = (result_interval / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
-		for(float x = 0.f; x <= 1.f; x += x_step)
-			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+		for(float x = left; x <= right; x += x_step)
+			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 
 		float size = (curve_length / text_length) * 0.85f;
 		if(size > 200.0f) {
@@ -1519,10 +1536,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float margin = (curve_length - text_length * size) / 2.0f;
 
-		float x = 0.f;
+		float x = left;
 
 		for(float accumulated_length = 0.f; ; x += x_step) {
-			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
 				x += x_step * (margin - accumulated_length) / added_distance;
 				break;
@@ -1545,9 +1562,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				curr_dir.x *= 0.5f;
 				curr_normal_dir.x *= 0.5f;
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(e.ratio.x, dpoly_fn(x) * e.ratio.y));
+				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
 
-				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
+				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
@@ -1568,7 +1585,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 			for(float glyph_length = 0.f; ; x += x_step) {
-				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 				if(glyph_length + added_distance >= glyph_advance) {
 					x += x_step * (glyph_advance - glyph_length) / added_distance;
 					break;
