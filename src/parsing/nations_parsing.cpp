@@ -1293,6 +1293,16 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 						r.condition = event_result.trigger;
 					}
 				}
+				for(auto& r : context.state.national_definitions.on_election_started) {
+					if(r.id == data_copy.id) {
+						r.condition = event_result.trigger;
+					}
+				}
+				for(auto& r : context.state.national_definitions.on_election_finished) {
+					if(r.id == data_copy.id) {
+						r.condition = event_result.trigger;
+					}
+				}
 
 				if(context.map_of_national_events.size() != fixed_size)
 					break;
