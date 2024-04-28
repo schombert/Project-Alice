@@ -133,11 +133,11 @@ public:
 
 	}
 
-	void button_right_action(sys::state& state) noexcept {
+	void button_right_action(sys::state& state) noexcept override {
 
 	}
 
-	void button_shift_action(sys::state& state) noexcept {
+	void button_shift_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -151,7 +151,7 @@ public:
 		}
 	}
 
-	void button_shift_right_action(sys::state& state) noexcept {
+	void button_shift_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -167,7 +167,7 @@ public:
 		}
 	}
 
-	void button_ctrl_action(sys::state& state) noexcept {
+	void button_ctrl_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -180,7 +180,7 @@ public:
 		}
 	}
 
-	void button_ctrl_right_action(sys::state& state) noexcept {
+	void button_ctrl_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -195,7 +195,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_action(sys::state& state) noexcept {
+	void button_ctrl_shift_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -210,7 +210,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_right_action(sys::state& state) noexcept {
+	void button_ctrl_shift_right_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -232,68 +232,6 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
-	}
-
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled) {
-				//ToDo: Make button change appearance while pressed
-				//disabled = true;
-			}
-		} else if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_right_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_right_action(state);
-			else
-				button_right_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(under_mouse) {
-				sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-				if(mods == sys::key_modifiers::modifiers_shift)
-					button_shift_action(state);
-				else if(mods == sys::key_modifiers::modifiers_ctrl)
-					button_ctrl_action(state);
-				else
-					button_action(state);
-			} else {
-				//ToDo: Make button revert appearance when released
-				//disabled = false;
-			}
-		}
-		return message_result::consumed;
-	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else
-				button_action(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

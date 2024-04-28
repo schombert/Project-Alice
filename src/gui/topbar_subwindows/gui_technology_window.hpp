@@ -214,7 +214,7 @@ public:
 struct technology_select_tech {
 	dcon::technology_id tech_id;
 };
-class technology_item_button : public shift_right_button_element_base {
+class technology_item_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
