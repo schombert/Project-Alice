@@ -1495,7 +1495,7 @@ public:
 	}
 };
 
-class whole_panel_button : public shift_button_element_base {
+class whole_panel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);

@@ -43,7 +43,7 @@ using outliner_data = std::variant< outliner_filter, dcon::army_id, dcon::navy_i
 	dcon::province_naval_construction_id, dcon::state_instance_id, outliner_rebel_occupation, outliner_hostile_siege, outliner_my_siege,
 	dcon::land_battle_id, dcon::naval_battle_id, outliner_rally_point>;
 
-class outliner_element_button : public shift_button_element_base {
+class outliner_element_button : public button_element_base {
 public:
 	bool visible = false;
 
@@ -62,7 +62,7 @@ public:
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
-			shift_button_element_base::render(state, x, y);
+			button_element_base::render(state, x, y);
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(!visible)

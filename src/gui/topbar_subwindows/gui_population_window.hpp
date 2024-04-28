@@ -2459,7 +2459,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_employment()/a_fat_id.get_size() < b_fat_id.get_employment()/b_fat_id.get_size();
+				return a_fat_id.get_employment() / a_fat_id.get_size() < b_fat_id.get_employment() / b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::ideology:
