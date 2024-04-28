@@ -678,7 +678,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			if(ui_state.unit_details_box->is_visible()) {
 				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
 					int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
-					int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y)
+					int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
 					ui::mouse_probe_type::click);
 				if(!tooltip_probe.under_mouse) {
 					tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
