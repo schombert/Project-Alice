@@ -133,11 +133,11 @@ public:
 
 	}
 
-	void button_right_action(sys::state& state) noexcept {
+	void button_right_action(sys::state& state) noexcept override {
 
 	}
 
-	void button_shift_action(sys::state& state) noexcept {
+	void button_shift_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -151,7 +151,7 @@ public:
 		}
 	}
 
-	void button_shift_right_action(sys::state& state) noexcept {
+	void button_shift_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -167,7 +167,7 @@ public:
 		}
 	}
 
-	void button_ctrl_action(sys::state& state) noexcept {
+	void button_ctrl_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -180,7 +180,7 @@ public:
 		}
 	}
 
-	void button_ctrl_right_action(sys::state& state) noexcept {
+	void button_ctrl_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -195,7 +195,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_action(sys::state& state) noexcept {
+	void button_ctrl_shift_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -210,7 +210,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_right_action(sys::state& state) noexcept {
+	void button_ctrl_shift_right_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
