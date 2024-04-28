@@ -156,6 +156,8 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
 				if(owner) {
 					open_diplomacy(owner);
+				} else {
+					open_diplomacy(local_player_nation);
 				}
 			}
 		}
