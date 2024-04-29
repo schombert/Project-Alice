@@ -1835,6 +1835,7 @@ decision_list
 
 decision_file
 	political_decisions             group      decision_list                     member
+	diplomatic_decisions            group      decision_list                     member (political_decisions)
 
 scan_event
 	is_triggered_only               value      bool                              member

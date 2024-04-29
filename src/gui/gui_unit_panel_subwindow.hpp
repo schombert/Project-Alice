@@ -165,7 +165,7 @@ enum class reorg_win_action : uint8_t {
 };
 
 template<class T>
-class reorg_unit_transfer_button : public shift_button_element_base {
+class reorg_unit_transfer_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);

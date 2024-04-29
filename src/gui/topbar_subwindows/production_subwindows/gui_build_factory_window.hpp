@@ -18,7 +18,7 @@ public:
 	}
 };
 
-class factory_build_button : public shift_right_button_element_base {
+class factory_build_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);

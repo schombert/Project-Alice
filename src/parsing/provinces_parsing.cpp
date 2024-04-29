@@ -453,9 +453,15 @@ void parse_csv_province_history_file(sys::state& state, const char* start, const
 			}
 			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
 			province_file_context province_context{ context, p };
-			f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
-			f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
-			f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			if(!owner_text.empty()) {
+				f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
+			}
+			if(!controller_text.empty()) {
+				f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
+			}
+			if(!core_text.empty()) {
+				f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			}
 			f.trade_goods(parsers::association_type::eq_default, trade_goods_text, err, 0, province_context);
 			f.life_rating(parsers::association_type::eq_default, parsers::parse_int(life_rating_text, 0, err), err, 0, province_context);
 			f.colony(parsers::association_type::eq_default, parsers::parse_int(is_colonial_text, 0, err), err, 0, province_context);

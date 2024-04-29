@@ -567,7 +567,7 @@ public:
 	}
 };
 template<economy::province_building_type Value>
-class province_building_expand_button : public shift_right_button_element_base {
+class province_building_expand_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
@@ -770,7 +770,7 @@ public:
 //
 // Selector
 //
-class province_selector_button : public shift_button_element_base {
+class province_selector_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
@@ -850,7 +850,7 @@ public:
 //
 // Immigrator
 //
-class province_immigrator_button : public shift_button_element_base {
+class province_immigrator_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
@@ -927,7 +927,7 @@ public:
 	}
 };
 
-class province_invest_railroad_button : public shift_right_button_element_base {
+class province_invest_railroad_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
