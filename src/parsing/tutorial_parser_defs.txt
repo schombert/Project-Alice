@@ -41,7 +41,6 @@ tutorial_page
 	specific_exclusive			value	text						discard
 	select_units				value	int							discard
 	cont_on_unit_select_prov	value	int							discard
-	continue_on_action			value	text						discard
 	custom_int_arg				value	int							discard
 	custom_action				value	text						discard
 	unit_set					group	tutorial_unit_set			discard
