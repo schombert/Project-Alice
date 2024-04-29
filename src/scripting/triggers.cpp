@@ -253,6 +253,9 @@ TRIGGER_FUNCTION(apply_subtriggers) {
 TRIGGER_FUNCTION(tf_none) {
 	return return_type(true);
 }
+TRIGGER_FUNCTION(tf_unused_1) {
+	return return_type(true);
+}
 
 TRIGGER_FUNCTION(tf_generic_scope) {
 	return apply_subtriggers<return_type, primary_type, this_type, from_type>(tval, ws, primary_slot, this_slot, from_slot);

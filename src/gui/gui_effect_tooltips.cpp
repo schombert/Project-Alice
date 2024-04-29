@@ -6924,6 +6924,8 @@ ef_add_accepted_culture_this, //constexpr inline uint16_t add_accepted_culture_t
 ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
 ef_add_accepted_culture_from, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
 ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
+ef_fop_clr_global_flag, //constexpr inline uint16_t fop_clr_global_flag = 0x01AA;
+ef_fop_clr_country_flag, //constexpr inline uint16_t fop_clr_country_flag = 0x01AB;
 
 //
 // SCOPES

@@ -524,6 +524,7 @@ inline constexpr int8_t data_sizes[] = {
 		EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 };
+static_assert(sizeof(data_sizes) == first_scope_code);
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
 	return effect::data_sizes[data[0] & effect::code_mask];
@@ -1152,6 +1153,7 @@ TRIGGER_BYTECODE_ELEMENT(0x023E, work_available_nation, 1) \
 TRIGGER_BYTECODE_ELEMENT(0x023F, work_available_state, 1) \
 TRIGGER_BYTECODE_ELEMENT(0x0240, work_available_province, 1) \
 /*variable name*/\
+TRIGGER_BYTECODE_ELEMENT(0x0241, unused_1, 0) /* UNUSED 1 */ \
 TRIGGER_BYTECODE_ELEMENT(0x0242, variable_ideology_name_nation, 3) \
 TRIGGER_BYTECODE_ELEMENT(0x0243, variable_ideology_name_state, 3) \
 TRIGGER_BYTECODE_ELEMENT(0x0244, variable_ideology_name_province, 3) \
@@ -1172,150 +1174,150 @@ TRIGGER_BYTECODE_ELEMENT(0x0252, variable_good_name, 3) \
 /*misplaced*/ \
 TRIGGER_BYTECODE_ELEMENT(0x0253, strata_middle, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x0254, strata_poor, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0254, party_loyalty_from_province_scope_province, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0255, can_build_factory_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0256, can_build_factory_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0257, nationalvalue_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0258, nationalvalue_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0259, war_exhaustion_pop, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x025A, has_culture_core_province_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x025B, tag_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x025C, has_country_flag_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x025D, has_country_flag_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x025E, has_country_modifier_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x025F, religion_nation, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0260, religion_nation_reb, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0261, religion_nation_from_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0262, religion_nation_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0263, religion_nation_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0264, religion_nation_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0265, religion_nation_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0266, war_exhaustion_province, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0267, is_greater_power_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0268, is_cultural_union_pop_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0269, has_building_factory, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x026A, has_building_state_from_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x026B, has_building_factory_from_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x026C, party_loyalty_generic, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x026D, invention, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x026E, political_movement_from_reb, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x026F, social_movement_from_reb, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0270, is_next_rreform_nation, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0271, is_next_rreform_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0272, variable_reform_group_name_nation, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0273, variable_reform_group_name_state, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0274, variable_reform_group_name_province, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0275, variable_reform_group_name_pop, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0276, is_disarmed_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0277, owned_by_state_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0278, owned_by_state_from_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0279, owned_by_state_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x027A, owned_by_state_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x027B, owned_by_state_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x027C, owned_by_state_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x027D, units_in_province_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x027E, primary_culture_from_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x027F, primary_culture_from_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0280, neighbour_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0281, neighbour_from_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0282, technology_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0283, invention_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0284, brigades_compare_province_this, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0285, brigades_compare_province_from, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x0286, is_accepted_culture_nation_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0287, is_accepted_culture_nation_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0288, is_accepted_culture_nation_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0289, is_accepted_culture_nation_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028A, is_accepted_culture_state_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028B, is_accepted_culture_state_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028C, is_accepted_culture_state_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028D, is_accepted_culture_state_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028E, is_accepted_culture_province_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x028F, is_accepted_culture_province_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0290, is_accepted_culture_province_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0291, is_accepted_culture_province_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0292, is_accepted_culture_pop_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0293, is_accepted_culture_pop_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0294, is_accepted_culture_pop_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0295, is_accepted_culture_pop_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x0296, culture_group_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0297, culture_group_state, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0298, have_core_in_nation_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x0299, have_core_in_nation_this, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x029A, have_core_in_nation_from, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x029B, owns_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x029C, empty_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x029D, is_overseas_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x029E, primary_culture_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x029F, plurality_pop, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x02A0, is_overseas_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02A1, stronger_army_than_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02A2, region_state, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02A3, region_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02A4, owns_region, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02A5, is_core_state_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02A6, country_units_in_state_from, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02A7, country_units_in_state_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02A8, country_units_in_state_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02A9, country_units_in_state_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02AA, country_units_in_state_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02AB, country_units_in_state_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02AC, stronger_army_than_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02AD, stronger_army_than_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02AE, stronger_army_than_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02AF, stronger_army_than_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02B0, stronger_army_than_from_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02B1, stronger_army_than_from_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02B2, flashpoint_tension_province, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x02B3, is_colonial_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02B4, has_country_flag_state, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02B5, rich_tax_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02B6, middle_tax_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02B7, poor_tax_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02B8, is_core_pop_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02B9, is_core_boolean, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02BA, is_core_state_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02BB, is_core_state_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02BC, is_core_state_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02BD, is_core_state_from_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02BE, ruling_party_ideology_province, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02BF, money_province, 2) \
-TRIGGER_BYTECODE_ELEMENT(0x02C0, is_our_vassal_province_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02C1, is_our_vassal_province_from, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C2, is_our_vassal_province_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C3, is_our_vassal_province_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C4, is_our_vassal_province_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C5, is_our_vassal_province_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C6, vassal_of_province_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02C7, vassal_of_province_from, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C8, vassal_of_province_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02C9, vassal_of_province_this_province, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02CA, vassal_of_province_this_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02CB, vassal_of_province_this_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02CC, relation_this_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02CD, has_recently_lost_war_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02CE, technology_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02CF, invention_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D0, in_default_bool, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02D1, is_state_capital_pop, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02D2, region_proper, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D3, region_proper_state, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D4, region_proper_pop, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D5, owns_region_proper, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D6, pop_majority_religion_nation_this_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02D7, military_score_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D8, industrial_score_tag, 1) \
-TRIGGER_BYTECODE_ELEMENT(0x02D9, has_factories_nation, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02DA, is_coastal_state, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02DB, has_building_bank, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_university, 0) \
-TRIGGER_BYTECODE_ELEMENT(0x02DD, test, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0255, party_loyalty_from_province_scope_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0256, can_build_factory_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0257, can_build_factory_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0258, nationalvalue_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0259, nationalvalue_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025A, war_exhaustion_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x025B, has_culture_core_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x025C, tag_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025D, has_country_flag_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025E, has_country_flag_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x025F, has_country_modifier_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0260, religion_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0261, religion_nation_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0262, religion_nation_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0263, religion_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0264, religion_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0265, religion_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0266, religion_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0267, war_exhaustion_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0268, is_greater_power_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0269, is_cultural_union_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026A, has_building_factory, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026B, has_building_state_from_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x026C, has_building_factory_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x026D, party_loyalty_generic, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x026E, invention, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x026F, political_movement_from_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0270, social_movement_from_reb, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0271, is_next_rreform_nation, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0272, is_next_rreform_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0273, variable_reform_group_name_nation, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0274, variable_reform_group_name_state, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0275, variable_reform_group_name_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0276, variable_reform_group_name_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0277, is_disarmed_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0278, owned_by_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0279, owned_by_state_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027A, owned_by_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027B, owned_by_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027C, owned_by_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027D, owned_by_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x027E, units_in_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x027F, primary_culture_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0280, primary_culture_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0281, neighbour_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0282, neighbour_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0283, technology_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0284, invention_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0285, brigades_compare_province_this, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0286, brigades_compare_province_from, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x0287, is_accepted_culture_nation_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0288, is_accepted_culture_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0289, is_accepted_culture_nation_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028A, is_accepted_culture_nation_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028B, is_accepted_culture_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028C, is_accepted_culture_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028D, is_accepted_culture_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028E, is_accepted_culture_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x028F, is_accepted_culture_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0290, is_accepted_culture_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0291, is_accepted_culture_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0292, is_accepted_culture_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0293, is_accepted_culture_pop_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0294, is_accepted_culture_pop_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0295, is_accepted_culture_pop_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0296, is_accepted_culture_pop_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x0297, culture_group_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0298, culture_group_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x0299, have_core_in_nation_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x029A, have_core_in_nation_this, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029B, have_core_in_nation_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029C, owns_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x029D, empty_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029E, is_overseas_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x029F, primary_culture_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A0, plurality_pop, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02A1, is_overseas_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A2, stronger_army_than_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A3, region_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A4, region_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A5, owns_region, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A6, is_core_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02A7, country_units_in_state_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A8, country_units_in_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02A9, country_units_in_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AA, country_units_in_state_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AB, country_units_in_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AC, country_units_in_state_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02AD, stronger_army_than_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AE, stronger_army_than_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02AF, stronger_army_than_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B0, stronger_army_than_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B1, stronger_army_than_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B2, stronger_army_than_from_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B3, flashpoint_tension_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02B4, is_colonial_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02B5, has_country_flag_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B6, rich_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B7, middle_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B8, poor_tax_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02B9, is_core_pop_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02BA, is_core_boolean, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BB, is_core_state_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BC, is_core_state_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BD, is_core_state_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BE, is_core_state_from_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02BF, ruling_party_ideology_province, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02C0, money_province, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02C1, is_our_vassal_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02C2, is_our_vassal_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C3, is_our_vassal_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C4, is_our_vassal_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C5, is_our_vassal_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C6, is_our_vassal_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C7, vassal_of_province_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02C8, vassal_of_province_from, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02C9, vassal_of_province_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CA, vassal_of_province_this_province, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CB, vassal_of_province_this_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CC, vassal_of_province_this_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CD, relation_this_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02CE, has_recently_lost_war_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02CF, technology_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D0, invention_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D1, in_default_bool, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D2, is_state_capital_pop, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D3, region_proper, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D4, region_proper_state, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D5, region_proper_pop, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D6, owns_region_proper, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D7, pop_majority_religion_nation_this_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02D8, military_score_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02D9, industrial_score_tag, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02DA, has_factories_nation, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DB, is_coastal_state, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_bank, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DD, has_building_university, 0) \
+TRIGGER_BYTECODE_ELEMENT(0x02DE, test, 1) \
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02DE;
+constexpr inline uint16_t first_scope_code = 0x02DF;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1393,6 +1395,7 @@ inline constexpr int8_t data_sizes[] = {
 	TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 };
+static_assert(sizeof(data_sizes) == first_scope_code);
 
 enum class slot_contents { empty = 0, province = 1, state = 2, pop = 3, nation = 4, rebel = 5 };
 
@@ -1580,6 +1583,7 @@ union payload {
 static_assert(sizeof(payload) == 2);
 
 inline int32_t get_trigger_non_scope_payload_size(uint16_t const* data) {
+	assert((data[0] & trigger::code_mask) < trigger::first_scope_code);
 	return trigger::data_sizes[data[0] & trigger::code_mask];
 }
 inline int32_t get_trigger_scope_payload_size(uint16_t const* data) {

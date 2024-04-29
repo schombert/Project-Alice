@@ -121,6 +121,8 @@ inline void display_subtriggers(uint16_t const* source, sys::state& ws, text::la
 
 void tf_none(TRIGGER_DISPLAY_PARAMS) { }
 
+void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
+
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 
@@ -8198,6 +8200,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_work_available_nation,																	 // constexpr inline uint16_t work_available_nation = 0x023E;
 		tf_work_available_state,																	 // constexpr inline uint16_t work_available_state = 0x023F;
 		tf_work_available_province,																 // constexpr inline uint16_t work_available_province = 0x0240;
+		tf_unused_1, //compensate for missing slot
 		tf_variable_ideology_name_nation,							 // constexpr inline uint16_t variable_ideology_name_nation = 0x0241;
 		tf_variable_ideology_name_state,							 // constexpr inline uint16_t variable_ideology_name_state = 0x0242;
 		tf_variable_ideology_name_province,						 // constexpr inline uint16_t variable_ideology_name_province = 0x0243;
