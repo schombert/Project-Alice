@@ -216,48 +216,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(visited[uint16_t(rid)])
 			continue;
 		visited[uint16_t(rid)] = true;
-		//
-		auto n = p.get_nation_from_province_ownership();
-		if(!n || !n.get_name())
-			continue;
-		std::string name = text::produce_simple_string(state, n.get_name());
-		if(n.get_capital().get_connected_region_id() != rid) {
-			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
-			// 66% of the provinces correspond to a single national identity
-			// then it gets named after that identity
-			ankerl::unordered_dense::map<int32_t, uint32_t> map;
-			uint32_t total_provinces = 0;
-			for(auto p2 : state.world.in_province) {
-				if(p2.get_connected_region_id() == rid) {
-					total_provinces++;
-					for(const auto core : p2.get_core_as_province()) {
-						uint32_t v = 1;
-						if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
-							v += it->second;
-						}
-						map.insert_or_assign(core.get_identity().id.index(), v);
-					}
-				}
-			}
-			for(const auto& e : map) {
-				if(float(e.second) / float(total_provinces) >= 0.75f) {
-					// Adjective + " " + National identity
-					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
-						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
-						break;
-					}
-				}
-			}
-		}
-		if(name.starts_with("The ")) {
-			name.erase(0, 4);
-		}
-		if(name.empty())
-			continue;
 
-				
+		auto n = p.get_nation_from_province_ownership();
 		n = get_top_overlord(state, n.id);
 
 		// flood fill regions
@@ -277,6 +237,58 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
+
+		//
+		//
+		if(!n || !n.get_name())
+			continue;
+		std::string name = text::produce_simple_string(state, n.get_name());
+
+		bool connected_to_capital = false;
+
+		for(auto visited_region : group_of_regions) {
+			if(n.get_capital().get_connected_region_id() == visited_region){
+				connected_to_capital = true;
+			}
+		}
+
+		if(!connected_to_capital) {
+			// Adjective + " " + Continent
+			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+			// 66% of the provinces correspond to a single national identity
+			// then it gets named after that identity
+			ankerl::unordered_dense::map<int32_t, uint32_t> map;
+			uint32_t total_provinces = 0;
+			for(auto visited_region : group_of_regions) {
+				for(auto candidate : state.world.in_province) {
+					if(candidate.get_connected_region_id() == rid) {
+						total_provinces++;
+						for(const auto core : candidate.get_core_as_province()) {
+							uint32_t v = 1;
+							if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
+								v += it->second;
+							}
+							map.insert_or_assign(core.get_identity().id.index(), v);
+						}
+					}
+				}
+			}
+			for(const auto& e : map) {
+				if(float(e.second) / float(total_provinces) >= 0.75f) {
+					// Adjective + " " + National identity
+					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
+					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
+						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
+						break;
+					}
+				}
+			}
+		}
+		if(name.starts_with("The ")) {
+			name.erase(0, 4);
+		}
+		if(name.empty())
+			continue;
 
 
 		std::vector<glm::vec2> points;
