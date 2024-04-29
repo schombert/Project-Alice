@@ -2150,6 +2150,22 @@ struct effect_body {
 		&& context.compiled_effect.size() >= 4
 		&& context.compiled_effect[context.compiled_effect.size() - 4] == effect::fop_clr_global_flag_3) {
 			context.compiled_effect[context.compiled_effect.size() - 4] = uint16_t(effect::fop_clr_global_flag_4);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 5
+		&& context.compiled_effect[context.compiled_effect.size() - 5] == effect::fop_clr_global_flag_4) {
+			context.compiled_effect[context.compiled_effect.size() - 5] = uint16_t(effect::fop_clr_global_flag_5);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 6
+		&& context.compiled_effect[context.compiled_effect.size() - 6] == effect::fop_clr_global_flag_5) {
+			context.compiled_effect[context.compiled_effect.size() - 6] = uint16_t(effect::fop_clr_global_flag_6);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 7
+		&& context.compiled_effect[context.compiled_effect.size() - 7] == effect::fop_clr_global_flag_6) {
+			context.compiled_effect[context.compiled_effect.size() - 7] = uint16_t(effect::fop_clr_global_flag_7);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 8
+		&& context.compiled_effect[context.compiled_effect.size() - 8] == effect::fop_clr_global_flag_7) {
+			context.compiled_effect[context.compiled_effect.size() - 8] = uint16_t(effect::fop_clr_global_flag_8);
 		} else {
 			context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
 		}
