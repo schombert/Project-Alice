@@ -441,15 +441,20 @@ EFFECT_BYTECODE_ELEMENT(0x01A6, add_accepted_culture_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A7, add_accepted_culture_union_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A8, add_accepted_culture_from, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A9, add_accepted_culture_union_from, 0) \
-EFFECT_BYTECODE_ELEMENT(0x01AA, fop_clr_global_flag, 2) \
-EFFECT_BYTECODE_ELEMENT(0x01AB, fop_clr_country_flag, 2) \
+/* fused ops */ \
+EFFECT_BYTECODE_ELEMENT(0x01AA, fop_clr_global_flag_2, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01AB, fop_clr_country_flag_2, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01AC, fop_clr_global_flag_3, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01AD, fop_clr_country_flag_3, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01AE, fop_clr_global_flag_4, 4) \
+EFFECT_BYTECODE_ELEMENT(0x01AF, fop_clr_country_flag_4, 4) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01AC;
+constexpr inline uint16_t first_scope_code = 0x01B0;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)

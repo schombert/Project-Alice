@@ -4964,14 +4964,40 @@ uint32_t ef_annex_to_null_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 
-uint32_t ef_fop_clr_global_flag(EFFECT_PARAMTERS) {
+uint32_t ef_fop_clr_global_flag_2(EFFECT_PARAMTERS) {
 	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[1]).glob_id, false);
 	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[2]).glob_id, false);
 	return 0;
 }
-uint32_t ef_fop_clr_country_flag(EFFECT_PARAMTERS) {
+uint32_t ef_fop_clr_country_flag_2(EFFECT_PARAMTERS) {
 	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natf_id, false);
 	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[2]).natf_id, false);
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_3(EFFECT_PARAMTERS) {
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[1]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[2]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[3]).glob_id, false);
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag_3(EFFECT_PARAMTERS) {
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[2]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[3]).natf_id, false);
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_4(EFFECT_PARAMTERS) {
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[1]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[2]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[3]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[4]).glob_id, false);
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag_4(EFFECT_PARAMTERS) {
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[2]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[3]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[4]).natf_id, false);
 	return 0;
 }
 

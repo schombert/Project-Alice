@@ -6470,25 +6470,69 @@ uint32_t ef_annex_to_null(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
-uint32_t ef_fop_clr_global_flag(EFFECT_DISPLAY_PARAMS) {
-	auto box = text::open_layout_box(layout, indentation);
-	text::substitution_map m;
-	text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1]).glob_id]);
-	text::localised_format_box(ws, layout, box, "remove_global_flag", m);
-	text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[2]).glob_id]);
-	text::localised_format_box(ws, layout, box, "remove_global_flag", m);
-	text::close_layout_box(layout, box);
-	return 0;
-}
-uint32_t ef_fop_clr_country_flag(EFFECT_DISPLAY_PARAMS) {
-	if(ws.user_settings.spoilers) {
+uint32_t ef_fop_clr_global_flag_2(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 2; i++) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]);
-		text::localised_format_box(ws, layout, box, "remove_national_flag", m);
-		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[2]).natf_id]);
-		text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
 		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag_2(EFFECT_DISPLAY_PARAMS) {
+	if(ws.user_settings.spoilers) {
+		for(uint32_t i = 0; i < 2; i++) {
+			auto box = text::open_layout_box(layout, indentation);
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
+			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+			text::close_layout_box(layout, box);
+		}
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_3(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 3; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag_3(EFFECT_DISPLAY_PARAMS) {
+	if(ws.user_settings.spoilers) {
+		for(uint32_t i = 0; i < 3; i++) {
+			auto box = text::open_layout_box(layout, indentation);
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
+			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+			text::close_layout_box(layout, box);
+		}
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_4(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 4; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag_4(EFFECT_DISPLAY_PARAMS) {
+	if(ws.user_settings.spoilers) {
+		for(uint32_t i = 0; i < 4; i++) {
+			auto box = text::open_layout_box(layout, indentation);
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
+			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+			text::close_layout_box(layout, box);
+		}
 	}
 	return 0;
 }
@@ -6924,8 +6968,12 @@ ef_add_accepted_culture_this, //constexpr inline uint16_t add_accepted_culture_t
 ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
 ef_add_accepted_culture_from, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
 ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
-ef_fop_clr_global_flag, //constexpr inline uint16_t fop_clr_global_flag = 0x01AA;
-ef_fop_clr_country_flag, //constexpr inline uint16_t fop_clr_country_flag = 0x01AB;
+ef_fop_clr_global_flag_2, //constexpr inline uint16_t fop_clr_global_flag_2 = 0x01AA;
+ef_fop_clr_country_flag_2, //constexpr inline uint16_t fop_clr_country_flag_2 = 0x01AB;
+ef_fop_clr_global_flag_3, //constexpr inline uint16_t fop_clr_global_flag_3 = 0x01AC;
+ef_fop_clr_country_flag_3, //constexpr inline uint16_t fop_clr_country_flag_3 = 0x01AD;
+ef_fop_clr_global_flag_4, //constexpr inline uint16_t fop_clr_global_flag_4 = 0x01AE;
+ef_fop_clr_country_flag_4, //constexpr inline uint16_t fop_clr_country_flag_4 = 0x01AF;
 
 //
 // SCOPES

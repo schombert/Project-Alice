@@ -1163,7 +1163,15 @@ struct effect_body {
 			if(context.fuse_idemp == old_fuse_idemp
 			&& context.compiled_effect.size() >= 2
 			&& context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_country_flag) {
-				context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_country_flag);
+				context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_country_flag_2);
+			} else if(context.fuse_idemp == old_fuse_idemp
+			&& context.compiled_effect.size() >= 3
+			&& context.compiled_effect[context.compiled_effect.size() - 3] == effect::fop_clr_country_flag_2) {
+				context.compiled_effect[context.compiled_effect.size() - 3] = uint16_t(effect::fop_clr_country_flag_3);
+			} else if(context.fuse_idemp == old_fuse_idemp
+			&& context.compiled_effect.size() >= 4
+			&& context.compiled_effect[context.compiled_effect.size() - 4] == effect::fop_clr_country_flag_3) {
+				context.compiled_effect[context.compiled_effect.size() - 4] = uint16_t(effect::fop_clr_country_flag_4);
 			} else {
 				context.compiled_effect.push_back(uint16_t(effect::clr_country_flag));
 			}
@@ -2133,7 +2141,15 @@ struct effect_body {
 		if(context.fuse_idemp == old_fuse_idemp
 		&& context.compiled_effect.size() >= 2
 		&& context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_global_flag) {
-			context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_global_flag);
+			context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_global_flag_2);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 3
+		&& context.compiled_effect[context.compiled_effect.size() - 3] == effect::fop_clr_global_flag_2) {
+			context.compiled_effect[context.compiled_effect.size() - 3] = uint16_t(effect::fop_clr_global_flag_3);
+		} else if(context.fuse_idemp == old_fuse_idemp
+		&& context.compiled_effect.size() >= 4
+		&& context.compiled_effect[context.compiled_effect.size() - 4] == effect::fop_clr_global_flag_3) {
+			context.compiled_effect[context.compiled_effect.size() - 4] = uint16_t(effect::fop_clr_global_flag_4);
 		} else {
 			context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
 		}
