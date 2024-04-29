@@ -1,0 +1,62 @@
+tutorial_diplomatic_action
+	diplomatic_action			value	text						discard
+	actor						value	text						discard
+	recipient					value	text						discard
+
+tutorial_unit_set
+	location					value	int							discard
+	organisation				value	float						discard
+	morale						value	float						discard
+
+tutorial_page
+	tutorial_window_position	group	gfx_xy_pair					discard
+	window_size					group	gfx_xy_pair					discard
+	tutorial_window				value	text						discard
+	text						value	text						discard
+	text1						value	text						discard (text)
+	text2						value	text						discard (text)
+	text3						value	text						discard (text)
+	text4						value	text						discard (text)
+	text5						value	text						discard (text)
+	text6						value	text						discard (text)
+	text7						value	text						discard (text)
+	text8						value	text						discard (text)
+	text9						value	text						discard (text)
+	text10						value	text						discard (text)
+	goto						value	int							discard
+	zoom						value	int							discard
+	lockpan						value	bool						discard
+	lockzoom					value	bool						discard
+	exclusive					value	bool						discard
+	allow_province_click		value	bool						discard
+	allow_unpause				value	bool						discard
+	allow_screens				value	bool						discard
+	allow_merge					value	bool						discard
+	cont_on_unit_select			value	int							discard
+	continue_on_action			value	text						discard
+	diplomacy					value	text						discard
+	diplomatic_action			group	tutorial_diplomatic_action	discard
+	mapmode						value	text						discard
+	continue_on_interface		value	text						discard
+	specific_exclusive			value	text						discard
+	select_units				value	int							discard
+	cont_on_unit_select_prov	value	int							discard
+	continue_on_action			value	text						discard
+	custom_int_arg				value	int							discard
+	custom_action				value	text						discard
+	unit_set					group	tutorial_unit_set			discard
+	allow_screen				value	text						discard
+	effect						group	none						discard
+
+tutorial
+	save_game		value	text				discard
+	title			value	text				discard
+	desc			value	text				discard
+	tutorial_window	value	text				discard
+	exclusive		value	bool				discard
+	country			value	tag					discard
+	basic_start		value	int					discard
+	page			group	tutorial_page		discard
+
+tutorial_file
+	tutorial		group	tutorial			discard

@@ -2901,6 +2901,33 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	// load news
+	{
+		auto news_dir = open_directory(root, NATIVE("news"));
+		for(auto news_file : list_files(news_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(news_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_news_file(gen, err, parsers::news_context{ context });
+			}
+		}
+	}
+	// load tutorial
+	{
+		auto tutorial_dir = open_directory(root, NATIVE("tutorial"));
+		for(auto tutorial_file : list_files(tutorial_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(tutorial_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_tutorial_file(gen, err, context);
+			}
+		}
+	}
+
 	// misc touch ups
 	nations::generate_initial_state_instances(*this);
 	world.nation_resize_stockpiles(world.commodity_size());

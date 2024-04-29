@@ -1,0 +1,292 @@
+save_flags
+	#any				value		bool				member_fn
+
+save_variables
+	#any				value		int					member_fn
+
+save_pop_ideology
+	#any				value		float				member_fn
+
+save_pop_issues
+	#any				value		float				member_fn
+
+save_pop
+	size					value		int					member_fn
+	money					value		float				member_fn
+	ideology				group		save_pop_ideology	member_fn
+	issues					group		save_pop_issues		member_fn
+	con						value		float				member_fn
+	mil						value		float				member_fn
+	literacy				value		float				member_fn
+	bank					value		float				member_fn
+	id						value		int					discard
+	production_type			value		text				discard
+	stockpile				group		none				discard
+	need					group		none				discard
+	last_spending			value		float				discard
+	current_producing		value		float				discard
+	percent_afforded		value		float				discard
+	percent_sold_domestic	value		float				discard
+	percent_sold_export		value		float				discard
+	leftover				value		float				discard
+	throttle				value		float				discard
+	needs_cost				value		float				discard
+	production_income		value		float				discard
+	con_factor				value		float				discard
+	days_of_loss			value		int					discard
+	promoted				value		int					discard
+	luxury_needs			value		float				discard
+	everyday_needs			value		float				discard
+	life_needs				value		float				discard
+	random					value		float				discard
+	#any					value		text				member_fn
+
+save_war_dated_history
+	battle				group		none					discard
+	add_attacker		value		text					member_fn
+	add_defender		value		text					member_fn
+
+save_war_history
+	#any				group		save_war_dated_history		member_fn
+
+save_wargoal
+	casus_belli			value		text				member_fn
+	state_province_id	value		int					member_fn
+	actor				value		text				member_fn
+	receiver			value		text				member_fn
+	score				value		float				member_fn
+	change				value		float				member_fn
+	date				value		date				member_fn
+	is_fulfilled		value		bool				member_fn
+
+save_alliance
+	first				value		text				member_fn
+	second				value		text				member_fn
+	start_date			value		date				discard
+
+save_vassal
+	first				value		text				member_fn
+	second				value		text				member_fn
+	end_date			value		date				member_fn
+	start_date			value		date				discard
+
+save_substate
+	first				value		text				member_fn
+	second				value		text				member_fn
+	end_date			value		date				member_fn
+	start_date			value		date				discard
+
+save_casus_belli
+	type				value		text				member_fn
+	first				value		text				member_fn
+	second				value		text				member_fn
+	end_date			value		date				member_fn
+	start_date			value		date				discard
+
+save_diplomacy
+	naval_combat		group		none				member_fn
+	land_combat			group		none				member_fn
+	siege_combat		group		none				member_fn
+	casus_belli			group		save_casus_belli	member_fn
+	alliance			group		save_alliance		member_fn
+	vassal				group		save_vassal			member_fn
+	substate			group		save_substate		member_fn
+
+save_typed_id
+	id					value		int					member
+	type				value		int					member
+
+save_rebel_faction
+	id					group		save_typed_id		member_fn
+	type				value		text				member_fn
+	name				value		text				member_fn
+	country				value		tag					member_fn
+	independence		value		tag					member_fn
+	culture				value		text				member_fn
+	religion			value		text				member_fn
+	government			value		text				member_fn
+	province			value		int					member_fn
+	leader				group		save_typed_id		member_fn
+	organization		value		float				member_fn
+	pop					group		save_typed_id		member_fn
+	next_unit			value		int					discard
+
+save_war
+	name				value		text				member_fn
+	history				group		save_war_history	member_fn
+	attacker			value		text				member_fn
+	defender			value		text				member_fn
+	original_attacker	value		text				member_fn
+	original_defender	value		text				member_fn
+	war_goal			group		save_wargoal		member_fn
+	original_wargoal	group		save_wargoal		member_fn
+	action				value		date				discard
+
+save_rgo
+	goods_type			value		text				member_fn
+	employment			group		none				discard
+	last_income			value		date				discard
+
+save_army_path
+	#free				value		int					member_fn
+
+save_regiment
+	id					group		save_typed_id		member_fn
+	name				value		text				member_fn
+	pop					group		save_typed_id		member_fn
+	organisation		value		float				member_fn
+	strength			value		float				member_fn
+	experience			value		float				member_fn
+	count				value		int					member_fn
+	type				value		text				member_fn
+
+save_army
+	id					group		save_typed_id		member_fn
+	leader				group		save_typed_id		member_fn
+	name				value		text				member_fn
+	previous			value		int					member_fn
+	movement_progress	value		float				member_fn
+	path				group		save_army_path		member_fn
+	location			value		int					member_fn
+	dig_in_last_date	value		date				member_fn
+	supplies			value		float				member_fn
+	regiment			group		save_regiment		member_fn
+
+save_ship
+	id					group		save_typed_id		member_fn
+	name				value		text				member_fn
+	pop					group		save_typed_id		member_fn
+	organisation		value		float				member_fn
+	strength			value		float				member_fn
+	experience			value		float				member_fn
+	type				value		text				member_fn
+
+save_navy
+	id					group		save_typed_id		member_fn
+	leader				group		save_typed_id		member_fn
+	name				value		text				member_fn
+	previous			value		int					member_fn
+	movement_progress	value		float				member_fn
+	path				group		save_army_path		member_fn
+	location			value		int					member_fn
+	dig_in_last_date	value		date				member_fn
+	supplies			value		float				member_fn
+	regiment			group		save_ship			member_fn
+
+save_province
+	name					value		text				member_fn
+	owner					value		tag					member_fn
+	controller				value		tag					member_fn
+	core					value		tag					member_fn
+	colonial				value		int					member_fn
+	life_rating				value		int					member_fn
+	army					group		save_army			member_fn
+	navy					group		save_navy			member_fn
+	rgo						group		save_rgo			member_fn
+	garrison				value		int					discard
+	last_imigration			value		date				discard
+	party_loyalty			group		none				discard
+	military_construction	group		none				discard
+	unit_names				group		none				discard
+	#any					group		save_pop			member_fn
+
+save_technologies
+	#any				value		float				member_fn
+
+save_upper_house
+	#any				value		float				member_fn
+
+save_tax
+	current				value		float				member_fn
+	tax_income			group		none				discard
+	tax_eff				group		none				discard
+	total				value		float				discard
+	rangelimitmax		value		float				discard
+	rangelimitmin		value		float				discard
+	max_tax				value		int					discard
+	min_tax				value		int					discard
+
+save_relations
+	value				value		float				discard
+
+save_country
+	flags					group		save_flags			member_fn
+	variables				group		save_variables		member_fn
+	capital					value		int					member_fn
+	research_points			value		float				member_fn
+	technology				group		save_technologies	member_fn
+	last_election			value		date				member_fn
+	upper_house				group		save_upper_house	member_fn
+	ruling_party			value		int					member_fn
+	diplomatic_points		value		float				member_fn
+	religion				value		text				member_fn
+	plurality				value		float				member_fn
+	revanchism				value		float				member_fn
+	rich_tax				group		save_tax			member_fn
+	middle_tax				group		save_tax			member_fn
+	poor_tax				group		save_tax			member_fn
+	education_spending		group		save_tax			member_fn
+	crime_fighting			group		save_tax			member_fn
+	social_spending			group		save_tax			member_fn
+	military_spending		group		save_tax			member_fn
+	overseas_penalty		value		float				member_fn
+	leadership				value		float				member_fn
+	schools					value		text				member_fn
+	primary_culture			value		text				member_fn
+	prestige				value		float				member_fn
+	money					value		float				member_fn
+	last_bankrupt			value		date				member_fn
+	nationalvalue			value		text				member_fn
+	civilized				value		bool				member_fn
+	badboy					value		float				member_fn
+	domestic_supply_pool	group		none				member_fn
+	domestic_demand_pool	group		none				member_fn
+	actual_sold_domestic	group		none				member_fn
+	saved_country_supply	group		none				member_fn
+	max_bought				group		none				member_fn
+	national_focus			group		none				member_fn
+	expenses				group		none				member_fn
+	incomes					group		none				member_fn
+	suppression				value		float				member_fn
+	tax_base				value		float				discard
+	active_party			value		int					discard
+	auto_assign_leaders		value		bool				discard
+	auto_create_leaders		value		bool				discard
+	illegal_inventions		group		none				discard
+	government_flag			group		none				discard
+	last_mission_cancel		value		date				discard
+	ai_hard_strategy		group		none				discard
+	ai						group		none				discard
+	bank					group		none				discard
+	buy_domestic			group		none				discard
+	trade					group		none				discard
+	next_quarterly_pulse	value		date				discard
+	next_yearly_pulse		value		date				discard
+	is_releasable_vassal	value		bool				discard
+	#any					value		text				member_fn
+	#any					group		save_relations		member_fn
+
+save_file
+	date				value		date				member_fn
+	player				value		tag					member_fn
+	government			value		int					member_fn
+	automate_trade		value		bool				member_fn
+	flags				group		save_flags			member_fn
+	start_date			value		date				member_fn
+	diplomacy			group		save_diplomacy		member_fn
+	active_war			group		save_war			member_fn
+	automate_sliders	value		bool				discard
+	rebel				value		int					discard
+	unit				value		int					discard
+	state				value		int					discard
+	gameplaysettings	group		none				discard
+	start_pop_index		value		int					discard
+	worldmarket			group		none				discard
+	previous_war		group		none				discard
+	invention			group		none				discard
+	great_nations		group		none				discard
+	outliner			group		none				discard
+	news_collector		group		none				discard
+	crisis_manager		group		none				discard
+	region				group		none				discard
+	#any				group		none				discard
