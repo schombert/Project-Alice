@@ -1,8 +1,5 @@
 #define ALICE_NO_ENTRY_POINT 1
 
-#ifdef LOCAL_USER_SETTINGS
-#include "local_user_settings.hpp"
-#endif
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
@@ -38,6 +35,7 @@
 #include "gui_population_window.cpp"
 #include "gui_budget_window.cpp"
 #include "gui_technology_window.cpp"
+#include "gui_error_window.cpp"
 #include "commands.cpp"
 #include "network.cpp"
 #include "diplomatic_messages.cpp"
@@ -132,6 +130,8 @@ constexpr inline int32_t ui_row_height = 32;
 constexpr inline float list_text_right_align = 420.0f;
 
 static int32_t obj_under_mouse = -1;
+
+static bool game_dir_not_found = false;
 
 constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 880 - 31,  0 , 31, 31}, // close
@@ -422,7 +422,7 @@ void make_mod_file() {
 		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
-			auto assembled_file = std::string("The following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
+			auto assembled_file = std::string("You can still play the mod, but it might be unstable\r\nThe following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
 			auto pdir = simple_fs::get_or_create_settings_directory();
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
@@ -1154,7 +1154,7 @@ static ::ogl::texture down_tex;
 static ::ogl::texture line_bg_tex;
 static ::ogl::texture big_l_button_tex;
 static ::ogl::texture big_r_button_tex;
-
+static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
 	float total = 0.0f;
@@ -1234,6 +1234,14 @@ void render() {
 			ui_rects[ui_obj_create_scenario].width,
 			ui_rects[ui_obj_create_scenario].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		if(game_dir_not_found) {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_create_scenario ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+				ui_rects[ui_obj_create_scenario].x,
+				ui_rects[ui_obj_create_scenario].y,
+				44,
+				33,
+				warning_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
 		if(selected_scenario_file.empty()) {
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Create Scenario", 15, 22, font_collection.fonts[1]) / 2.0f;
@@ -1249,11 +1257,17 @@ void render() {
 			ui_rects[ui_obj_create_scenario].width,
 			ui_rects[ui_obj_create_scenario].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		if(game_dir_not_found) {
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+				ui_rects[ui_obj_create_scenario].x,
+				ui_rects[ui_obj_create_scenario].y,
+				44,
+				33,
+				warning_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-
-
 	}
 
 	{
@@ -1470,7 +1484,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		load_global_squares();		// create various squares to drive the shaders with
 
 		simple_fs::file_system fs;
-		add_root(fs, NATIVE_M(GAME_DIR));
 		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
@@ -1499,6 +1512,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_up.png"), fs, up_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_warning.png"), fs, warning_tex, false);
+
+		game_dir_not_found = false;
+		{
+			auto f = simple_fs::peek_file(root, NATIVE("v2game.exe"));
+			if(!f) {
+				f = simple_fs::peek_file(root, NATIVE("victoria2.exe"));
+				if(!f) {
+					game_dir_not_found = true;
+				}
+			}
+		}
 
 		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
 		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
@@ -1650,7 +1675,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 						if(turned_into == '\b') {
 							if(!ip_addr.empty())
 								ip_addr.pop_back();
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 32) {
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && ip_addr.size() < 46) {
 							ip_addr.push_back(turned_into);
 						}
 					} else if(obj_under_mouse == ui_obj_player_name) {
@@ -1659,7 +1684,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 								player_name.pop_back();
 								save_playername();
 							}
-						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 32) {
+						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && player_name.size() < 24) {
 							player_name.push_back(turned_into);
 							save_playername();
 						}

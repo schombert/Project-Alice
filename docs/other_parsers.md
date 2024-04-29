@@ -6,7 +6,7 @@ All of these functions are declared in `parsers.hpp`
 
 The following functions are provided to turn text into the appropriate kinds of values. They are fairly self explanatory, except that I will note that they all expect to receive just the text containing the value, and not any surrounding whitespace (see the next section for that).
 
-```
+```c++
 float parse_float(std::string_view content, int32_t line, error_handler& err);
 double parse_double(std::string_view content, int32_t line, error_handler& err);
 bool parse_bool(std::string_view content, int32_t line, error_handler& err);
@@ -17,7 +17,7 @@ association_type parse_association_type(std::string_view content, int32_t line, 
 
 ### Other utility functions
 
-```
+```c++
 std::string_view remove_surrounding_whitespace(std::string_view txt);
 ```
 This function strips the common forms of ASCII whitespace (` `, `\t`, `\r`, `\n`) off of a string (well, technically it just moves the view around, but it works out to the same thing.
@@ -25,19 +25,19 @@ This function strips the common forms of ASCII whitespace (` `, `\t`, `\r`, `\n`
 ### Reading text from a "csv"
 
 Paradox shipped Victoria 2 with some data in a pseudo-csv format. Unlike your ordinary csv files it may contain comments (I don't think ordinary csv files have comments, right?), and ignores the csv rules for quotation marks. When you open up a csv file to begin parsing data from it, the first thing you want to do is write the following lines:
-```
+```c++
 if(sz != 0 && cpos[0] == '#')
 	cpos = parsers::csv_advance_to_next_line(cpos, file_data + sz);
 ```
 where `cpos` is your current position into the file data, `file_data` is the beginning of the file (so probably equal to `cpos` when you are doing this), and `sz` is the number of bytes in the file. This will advance the position past the first comment. You will never have to do this again manually, and all subsequent comments will be skipped for you.
 
 To read data out of the csv file, you will use one of the following two functions:
-```
+```c++
 template<size_t count_values, typename T>
 char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator, T&& function)
 ```
 or
-```
+```c++
 template<typename T>
 char const* parse_first_and_nth_csv_values(uint32_t nth, char const* start, char const* end, char separator, T&& function)
 ```

@@ -10,12 +10,15 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - IF YOU INSTALLED A PREVIOUS DEMO OR RELEASE: I suggest that you delete it and the old assets folder before copying over the new one, as an extra precaution.
 - Start the game by running launch_alice.exe.
 - Mods may or may not run with more or less problems (see the October update and the compatibility patches channel in the discord for more information about particular mods).
+- Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/blob/main/docs/user_guide.md) for further information and troubleshooting
 
 ## Contributing
 - Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
 
 ## Updates
 
+- [2024 02](docs/Devlogs/2024-04/log_en.md), [简中](docs/Devlogs/2024-04/log_cn.md)
+- [2024 02](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-02/log_en.md), [简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-02/log_cn.md)
 - [January 2024 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_en.md) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_cn.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_es.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2024-01/log_pt.md))
 - [December 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-12/log_en.md) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-12/log_cn.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-12/log_es.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-12/log_pt.md))
 - [November 2023 update](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-11/log_en.md) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/november/log_cn.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-11/log_es.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/Devlogs/2023-11/log_pt.md))

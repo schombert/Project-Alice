@@ -373,7 +373,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 			std::max(0.0f, (state.world.pop_get_everyday_needs_satisfaction(ids) - 0.5f)) * state.defines.mil_has_everyday_need;
 	//Ranges from +0.00 - +0.50 militancy monthly, 0 - 100 war exhaustion
 	float war_exhaustion =
-		state.world.nation_get_war_exhaustion(owner) * 0.005f;
+		state.world.nation_get_war_exhaustion(owner) * state.defines.mil_war_exhaustion;
 	auto old_mil = state.world.pop_get_militancy(ids) * 0.01f;
 	float total = (sub_t + local_mod) + ((sep_mod - ln_mod - old_mil) + (en_mod_b - en_mod_a) + war_exhaustion);
 

@@ -203,6 +203,7 @@ struct data {
 
 	GLuint money_icon_tex = 0;
 	GLuint cross_icon_tex = 0;
+	GLuint color_blind_cross_icon_tex = 0;
 	GLuint checkmark_icon_tex = 0;
 	GLuint navy_icon_tex = 0;
 	GLuint army_icon_tex = 0;

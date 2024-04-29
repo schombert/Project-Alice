@@ -412,7 +412,23 @@ enum class variable_type : uint16_t {
 	total,
 	infantry,
 	cavalry,
-	special
+	special,
+	//non-vanilla
+	fromcontinent,
+	fromcapital,
+	crisistaker_continent,
+	crisistaker_capital,
+	crisisattacker_continent,
+	crisisattacker_adj,
+	crisisattacker_capital,
+	crisisdefender_continent,
+	crisisdefender_adj,
+	crisisdefender_capital,
+	culture_first_name,
+	culture_last_name,
+	fromstatename,
+	spheremaster_adj,
+	spheremaster_union_adj
 };
 
 struct line_break { };
@@ -731,6 +747,7 @@ template<class T>
 std::string get_adjective_as_string(sys::state const& state, T t) {
 	return text::produce_simple_string(state, t.get_adjective());
 }
+std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);

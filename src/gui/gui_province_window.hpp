@@ -11,9 +11,64 @@
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_production_window.hpp"
+#include "gui_build_unit_large_window.hpp"
 #include "province_templates.hpp"
+#include "nations_templates.hpp"
 
 namespace ui {
+
+
+class land_rally_point : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = (state.world.province_get_land_rally_point(retrieve<dcon::province_id>(state, parent))) ? 1 : 0;
+		disabled = state.world.province_get_nation_from_province_ownership(p) != state.local_player_nation;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::set_rally_point(state, state.local_player_nation, p, false, !state.world.province_get_land_rally_point(p));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "rally_point_enable_info");
+	}
+};
+
+class naval_rally_point : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		frame = state.world.province_get_naval_rally_point(p) ? 1 : 0;
+		disabled = !(state.world.province_get_is_coast(p)) || state.world.province_get_nation_from_province_ownership(p) != state.local_player_nation;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::set_rally_point(state, state.local_player_nation, p, true, !state.world.province_get_naval_rally_point(p));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "rally_point_enable_info");
+	}
+};
+
+class merge_rally_point : public button_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		disabled = true;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_merge_rally_point_why");
+	}
+};
 
 class province_liferating : public progress_bar {
 public:
@@ -310,7 +365,21 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {
-			text::add_line(state, contents, state.world.modifier_get_name(mod.mod_id));
+			auto p = retrieve<dcon::province_id>(state, parent);
+			auto n = state.world.province_get_nation_from_province_ownership(p);
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod.mod_id), text::text_color::yellow);
+			text::add_line_break_to_layout_box(state, contents, box);
+			if(state.world.modifier_get_desc(mod.mod_id)) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::country, n);
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+				text::add_to_substitution_map(sub, text::variable_type::provincename, p);
+				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod.mod_id), sub);
+			}
+			text::close_layout_box(contents, box);
 			modifier_description(state, contents, mod.mod_id, 15);
 		}
 		if(mod.expiration) {
@@ -362,6 +431,40 @@ public:
 	}
 };
 
+class province_move_capital_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		disabled = !command::can_move_capital(state, state.local_player_nation, p);
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+		command::move_capital(state, state.local_player_nation, p);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto source = state.local_player_nation;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		text::add_line(state, contents, "alice_mvcap_1");
+		text::add_line_with_condition(state, contents, "alice_mvcap_2", !(state.current_crisis != sys::crisis_type::none));
+		text::add_line_with_condition(state, contents, "alice_mvcap_3", !(state.world.nation_get_is_at_war(source)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_4", !(state.world.nation_get_capital(source) == p));
+		text::add_line_with_condition(state, contents, "alice_mvcap_5", !(state.world.province_get_is_colonial(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_6", !(state.world.province_get_continent(state.world.nation_get_capital(source)) != state.world.province_get_continent(p)));
+		text::add_line_with_condition(state, contents, "alice_mvcap_7", !(nations::nation_accepts_culture(state, source, state.world.province_get_dominant_culture(p)) == false));
+		text::add_line_with_condition(state, contents, "alice_mvcap_8", !(state.world.province_get_siege_progress(p) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_9", !(state.world.province_get_siege_progress(state.world.nation_get_capital(source)) > 0.f));
+		text::add_line_with_condition(state, contents, "alice_mvcap_10", !(state.world.province_get_nation_from_province_ownership(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_11", !(state.world.province_get_nation_from_province_control(p) != source));
+		text::add_line_with_condition(state, contents, "alice_mvcap_12", !(state.world.province_get_is_owner_core(p) == false));
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -401,6 +504,9 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
+			auto btn = make_element_by_type<province_move_capital_button>(state, id);
+			btn->base_data.position.x -= btn->base_data.size.x * 2;
+			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
 			return ptr;
@@ -536,9 +642,9 @@ public:
 			} else if constexpr(Value == economy::province_building_type::university) {
 				min_build = int32_t(state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::min_build_university));
 			}
-
 			text::add_line_with_condition(state, contents, "fort_build_tt_3", (max_local_lvl - current_lvl - min_build > 0), text::variable_type::x, int64_t(current_lvl), text::variable_type::n, int64_t(min_build), text::variable_type::y, int64_t(max_local_lvl));
 		}
+		modifier_description(state, contents, state.economy_definitions.building_definitions[uint8_t(Value)].province_modifier);
 		text::add_line(state, contents, "alice_province_building_build");
 	}
 };
@@ -1052,15 +1158,12 @@ public:
 		} else if (name == "selected_military_icon") {
 			auto ptr = make_element_by_type<military_score_icon>(state, id);
 			return ptr;
-		} else if(name == "rally_land_icon"
-			|| name == "rallypoint_merge_icon"
-			|| name == "rally_naval_icon"
-			|| name == "rallypoint_merge_icon_naval"
-			|| name == "rallypoint_checkbox"
-			|| name == "rallypoint_merge_checkbox"
-			|| name == "rallypoint_checkbox_naval"
-			|| name == "rallypoint_merge_checkbox_naval") {
-			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "rallypoint_checkbox") {
+			return make_element_by_type<land_rally_point>(state, id);
+		} else if(name == "rallypoint_checkbox_naval") {
+			return make_element_by_type<naval_rally_point>(state, id);
+		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
+			return make_element_by_type<merge_rally_point>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1130,10 +1233,29 @@ public:
 		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 
+		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
+		float const min_wage_factor = economy::pop_min_wage_factor(state, owner);
+		float farmer_min_wage = economy::pop_farmer_min_wage(state, owner, min_wage_factor);
+		float laborer_min_wage = economy::pop_laborer_min_wage(state, owner, min_wage_factor);
+		float expected_min_wage = is_mine ? laborer_min_wage : farmer_min_wage;
+
+		auto [non_slaves, slaves, total_relevant] = economy::rgo_relevant_population(state, prov_id, owner);
+		//float expected_profit = economy::rgo_expected_profit(state, prov_id, owner, total_relevant);
+		//float desired_profit = economy::rgo_desired_profit(state, prov_id, owner, expected_min_wage, total_relevant);
+
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
+		
+
+		//text::add_to_layout_box(state, contents, box, std::string_view{ " / desired profit: " });
+		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(desired_profit * 100.f)));
+		//text::add_to_layout_box(state, contents, box, std::string_view{ " / expected profit: " });
+		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_profit * 100.f)));
+		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
+		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
+
 		text::close_layout_box(contents, box);
 	}
 };
@@ -1260,8 +1382,6 @@ public:
 	}
 };
 
-
-
 class province_view_statistics : public window_element_base {
 private:
 	culture_piechart<dcon::province_id>* culture_chart = nullptr;
@@ -1336,42 +1456,156 @@ public:
 	}
 };
 
-class land_rally_point : public button_element_base {
+class province_army_progress : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
-		frame = (state.world.province_get_land_rally_point(retrieve<dcon::province_id>(state, parent))) ? 1 : 0;
-	}
-	void button_action(sys::state& state) noexcept override {
+		progress = 0.f;
+		float amount = 0.f;
+		float total = 0.f;
 		auto p = retrieve<dcon::province_id>(state, parent);
-		command::set_rally_point(state, state.local_player_nation, p, false,  !state.world.province_get_land_rally_point(p));
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
+					auto& current_purchased = lc.get_purchased_goods();
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(base_cost.commodity_type[i]) {
+							amount += current_purchased.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i];
+						} else {
+							break;
+						}
+					}
+				}
+			}
+		}
+		if(total > 0.f) {
+			progress = amount / total;
+		}
 	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "rally_point_enable_info");
+};
+class province_navy_progress : public progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		progress = 0.f;
+		float amount = 0.f;
+		float total = 0.f;
+		auto p = retrieve<dcon::province_id>(state, parent);
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
+			auto& current_purchased = nc.get_purchased_goods();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					amount += current_purchased.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i];
+				} else {
+					break;
+				}
+			}
+		}
+		if(total > 0.f) {
+			progress = amount / total;
+		}
 	}
 };
 
-class naval_rally_point : public button_element_base {
+class province_army_progress_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		float amount = 0.f;
+		float total = 0.f;
 		auto p = retrieve<dcon::province_id>(state, parent);
-		frame = state.world.province_get_naval_rally_point(p) ? 1 : 0;
-		disabled = !(state.world.province_get_is_coast(p));
+		for(auto pop : dcon::fatten(state.world, p).get_pop_location()) {
+			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+				auto lcs = pop.get_pop().get_province_land_construction();
+				for(const auto lc : lcs) {
+					auto& base_cost = state.military_definitions.unit_base_definitions[lc.get_type()].build_cost;
+					auto& current_purchased = lc.get_purchased_goods();
+					for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+						if(base_cost.commodity_type[i]) {
+							amount += current_purchased.commodity_amounts[i];
+							total += base_cost.commodity_amounts[i];
+						} else {
+							break;
+						}
+					}
+				}
+			}
+		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
 	}
-	void button_action(sys::state& state) noexcept override {
+};
+class province_navy_progress_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		float amount = 0.f;
+		float total = 0.f;
 		auto p = retrieve<dcon::province_id>(state, parent);
-		command::set_rally_point(state, state.local_player_nation, p, true, !state.world.province_get_naval_rally_point(p));
-	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "rally_point_enable_info");
+		auto ncs = state.world.province_get_province_naval_construction(p);
+		for(auto nc : ncs) {
+			auto& base_cost = state.military_definitions.unit_base_definitions[nc.get_type()].build_cost;
+			auto& current_purchased = nc.get_purchased_goods();
+			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+				if(base_cost.commodity_type[i]) {
+					amount += current_purchased.commodity_amounts[i];
+					total += base_cost.commodity_amounts[i];
+				} else {
+					break;
+				}
+			}
+		}
+		set_text(state, text::format_percentage(total > 0.f ? amount / total : 0.f));
 	}
 };
 
+
+template<typename T>
+class province_build_unit : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		disabled = true;
+		//
+		auto p = retrieve<dcon::province_id>(state, parent);
+		for(uint8_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
+			auto utid = dcon::unit_type_id(i);
+			auto const& def = state.military_definitions.unit_base_definitions[utid];
+			if(!def.active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+				continue;
+			if(def.is_land != std::is_same_v<T, dcon::army_id>)
+				continue;
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				for(const auto c : state.world.in_culture) {
+					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
+							if(pl.get_pop().get_culture() == c) {
+								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
+									disabled = false;
+									break;
+								}
+							}
+						}
+					}
+					if(!disabled)
+						break;
+				}
+			} else {
+				disabled = !command::can_start_naval_unit_construction(state, state.local_player_nation, p, utid);
+			}
+			if(!disabled)
+				break;
+		}
+	}
+
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.build_province_unit_window) {
+			state.ui_state.build_province_unit_window->set_visible(state, true);
+			Cyto::Any payload = Cyto::any_cast<T>(T{});
+			state.ui_state.build_province_unit_window->impl_get(state, payload);
+		}
+	}
+};
 
 class province_view_buildings : public window_element_base {
 public:
@@ -1425,24 +1659,24 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "army_size") {
 			return make_element_by_type<province_army_size_text>(state, id);
+		} else if(name == "army_progress") {
+			return make_element_by_type<province_army_progress>(state, id);
+		} else if(name == "navy_progress") {
+			return make_element_by_type<province_navy_progress>(state, id);
 		} else if(name == "rallypoint_checkbox") {
-			return make_element_by_type< land_rally_point>(state, id);
+			return make_element_by_type<land_rally_point>(state, id);
 		} else if(name == "rallypoint_checkbox_naval") {
-			return make_element_by_type< naval_rally_point>(state, id);
-		} else if(name == "rallypoint_merge_icon"
-			|| name == "rallypoint_merge_icon_naval"
-			|| name == "rallypoint_merge_checkbox"
-			|| name == "rallypoint_merge_checkbox_naval"
-			|| name == "army_progress"
-			|| name == "army_progress_overlay"
-			|| name == "navy_progress"
-			|| name == "navy_progress_overlay"
-			|| name == "army_text"
-			|| name == "navy_text"
-			|| name == "build_army"
-			|| name == "build_navy"
-			|| name == "navy_icon") {
-			return make_element_by_type<invisible_element>(state, id);
+			return make_element_by_type<naval_rally_point>(state, id);
+		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
+			return make_element_by_type<merge_rally_point>(state, id);
+		} else if(name == "build_army") {
+			return make_element_by_type<province_build_unit<dcon::army_id>>(state, id);
+		} else if(name == "build_navy") {
+			return make_element_by_type<province_build_unit<dcon::navy_id>>(state, id);
+		} else if(name == "army_text") {
+			return make_element_by_type<province_army_progress_text>(state, id);
+		} else if(name == "navy_text") {
+			return make_element_by_type<province_navy_progress_text>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1807,15 +2041,12 @@ public:
 			return make_element_by_type<colonist_listbox>(state, id);
 		} else if(name == "crisis_temperature") {
 			return make_element_by_type<province_colonisation_temperature>(state, id);
-		} else if(name == "rally_land_icon"
-			|| name == "rallypoint_merge_icon"
-			|| name == "rally_naval_icon"
-			|| name == "rallypoint_merge_icon_naval"
-			|| name == "rallypoint_checkbox"
-			|| name == "rallypoint_merge_checkbox"
-			|| name == "rallypoint_checkbox_naval"
-			|| name == "rallypoint_merge_checkbox_naval") {
-			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "rallypoint_checkbox") {
+			return make_element_by_type<land_rally_point>(state, id);
+		} else if(name == "rallypoint_checkbox_naval") {
+			return make_element_by_type<naval_rally_point>(state, id);
+		} else if(name == "rallypoint_merge_checkbox" || name == "rallypoint_merge_checkbox_naval") {
+			return make_element_by_type<merge_rally_point>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1851,6 +2082,10 @@ public:
 		window_element_base::on_create(state);
 		state.ui_state.province_window = this;
 		set_visible(state, false);
+		//
+		auto ptr = make_element_by_type<build_unit_province_window>(state, "build_unit_view");
+		state.ui_state.build_province_unit_window = ptr.get();
+		add_child_to_front(std::move(ptr));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1926,6 +2161,12 @@ public:
 		local_details_window->impl_on_update(state);
 		local_buildings_window->impl_on_update(state);
 		colony_window->impl_on_update(state);
+
+		//Hide unit builder if not our province
+		auto n = state.world.province_get_nation_from_province_ownership(active_province);
+		if(state.ui_state.build_province_unit_window && state.ui_state.build_province_unit_window->is_visible() && n != state.local_player_nation) {
+			state.ui_state.build_province_unit_window->set_visible(state, false);
+		}
 	}
 
 	friend class province_national_focus_button;

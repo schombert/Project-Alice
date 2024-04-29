@@ -126,6 +126,13 @@ void load_special_icons(sys::state& state) {
 		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
 				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
+	auto cb_cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not_cb.dds"));
+	if(cb_cross_dds) {
+		auto content = simple_fs::view_contents(*cb_cross_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.color_blind_cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
+			content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
 	auto checkmark_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes.dds"));
 	if(checkmark_dds) {
 		auto content = simple_fs::view_contents(*checkmark_dds);
@@ -482,11 +489,25 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	l.bind_buffer();
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	glLineWidth(2.0f);
-
-	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::linegraph};
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(4.0f);
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
+	glLineWidth(2.0f);
+	if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::tritan) {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+	} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 1.f);
+	} else {
+		glUniform3f(parameters::inner_color, 1.f, 1.f, 0.f);
+	}
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
@@ -497,12 +518,17 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 	l.bind_buffer();
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
-	glUniform3f(parameters::inner_color, r, g, b);
-	glLineWidth(2.0f);
-
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::linegraph_color };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call	
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
+	if(state.user_settings.color_blind_mode != sys::color_blind_mode::none
+	&& state.user_settings.color_blind_mode != sys::color_blind_mode::achroma) {
+		glLineWidth(4.0f);
+		glUniform3f(parameters::inner_color, 0.f, 0.f, 0.f);
+		glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
+	}
+	glLineWidth(2.0f);
+	glUniform3f(parameters::inner_color, r, g, b);
 	glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(l.count));
 }
 
@@ -746,7 +772,7 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 				bind_vertices_by_rotation(state, ui::rotation::upright, false);
 				glActiveTexture(GL_TEXTURE0);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? state.open_gl.cross_icon_tex : state.open_gl.checkmark_icon_tex);
+				glBindTexture(GL_TEXTURE_2D, text::win1250toUTF16(codepoints[i]) == u'\u0001' ? ((state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
 				glUniform4f(parameters::drawing_rectangle, x, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size, size);
 				glUniform4f(ogl::parameters::subrect, 0.f /* x offset */, 1.f /* x width */, 0.f /* y offset */, 1.f /* y height */
 				);
@@ -869,7 +895,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			if(uint8_t(codepoints[i]) == 0xA4)
 				icon_tex = state.open_gl.money_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x01)
-				icon_tex = state.open_gl.cross_icon_tex;
+				icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x02)
 				icon_tex = state.open_gl.checkmark_icon_tex;
 			else if(uint8_t(codepoints[i]) == 0x03)

@@ -214,8 +214,10 @@ public:
 		row_contents.clear();
 		bool is_land = retrieve<macro_builder_state>(state, parent).is_land;
 		for(dcon::unit_type_id::value_base_t i = 0; i < state.military_definitions.unit_base_definitions.size(); i++) {
-			if(state.military_definitions.unit_base_definitions[dcon::unit_type_id(i)].is_land == is_land) {
-				row_contents.push_back(dcon::unit_type_id(i));
+			auto const utid = dcon::unit_type_id(i);
+			auto const& ut = state.military_definitions.unit_base_definitions[utid];
+			if(ut.is_land == is_land && (ut.active || state.world.nation_get_active_unit(state.local_player_nation, utid))) {
+				row_contents.push_back(utid);
 			}
 		}
 		update(state);
@@ -751,6 +753,12 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
+class minimap_console_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		ui::console_window::show_toggle(state);
+	}
+};
 
 class minimap_msg_settings_button : public button_element_base {
 public:
@@ -883,17 +891,13 @@ public:
 
 struct open_msg_log_data {};
 
-class open_msg_log_button : public button_element_base {
+class minimap_open_message_log_button : public button_element_base {
 public:
-	void on_update(sys::state& state) noexcept override {
-		frame = state.ui_state.msg_log_window->is_visible() ? 1 : 0;
-	}
-
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, open_msg_log_data{});
+		set_visible(state, false);
 	}
 };
-
 class minimap_zoom_in_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -921,7 +925,7 @@ public:
 
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
-
+	minimap_open_message_log_button* open_btn = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
@@ -933,15 +937,17 @@ public:
 		} else if(name == "minimap_bg") {
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "openbutton") {
-			auto ptr = make_element_by_type<open_msg_log_button>(state, id);
+			auto ptr = make_element_by_type<minimap_open_message_log_button>(state, id);
 			ptr->base_data.position.y += 1; //nudge
+			open_btn = ptr.get();
 			return ptr;
 		} else if(name == "menu_button") {
 			return make_element_by_type<minimap_menu_button>(state, id);
+		} else if(name == "button_macro") {
+			return make_element_by_type<minimap_macro_builder_button>(state, id);
+		} else if(name == "button_console") {
+			return make_element_by_type<minimap_console_button>(state, id);
 		} else if(name == "button_goto") {
-			auto ptr = make_element_by_type<minimap_macro_builder_button>(state, id);
-			ptr->base_data.position.y += ptr->base_data.size.y;
-			add_child_to_front(std::move(ptr));
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {
 			return make_element_by_type<minimap_ledger_button>(state, id);
@@ -977,6 +983,12 @@ public:
 			return ptr;
 		} else {
 			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.ui_state.msg_log_window) {
+			open_btn->set_visible(state, !state.ui_state.msg_log_window->is_visible());
 		}
 	}
 

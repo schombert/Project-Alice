@@ -99,8 +99,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	case ::culture::issue_category::party: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
 		auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
+		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
 		context.outer_context.state.culture_definitions.party_issues.push_back(new_id);
@@ -111,8 +112,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	case ::culture::issue_category::economic: {
 		dcon::reform_id new_id = context.outer_context.state.world.create_reform();
 		auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 		context.outer_context.state.world.reform_set_name(new_id, name_id);
+		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		context.outer_context.state.world.reform_set_desc(new_id, desc_id);
 		context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
 
 		context.outer_context.state.culture_definitions.economic_issues.push_back(new_id);
@@ -123,8 +125,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	case ::culture::issue_category::social: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
 		auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
+		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
 		context.outer_context.state.culture_definitions.social_issues.push_back(new_id);
@@ -134,8 +137,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	case ::culture::issue_category::political: {
 		dcon::issue_id new_id = context.outer_context.state.world.create_issue();
 		auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 		context.outer_context.state.world.issue_set_name(new_id, name_id);
+		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		context.outer_context.state.world.issue_set_desc(new_id, desc_id);
 		context.outer_context.map_of_iissues.insert_or_assign(std::string(name), new_id);
 
 		context.outer_context.state.culture_definitions.political_issues.push_back(new_id);
@@ -145,8 +149,9 @@ void make_issue(std::string_view name, token_generator& gen, error_handler& err,
 	case ::culture::issue_category::military: {
 		dcon::reform_id new_id = context.outer_context.state.world.create_reform();
 		auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 		context.outer_context.state.world.reform_set_name(new_id, name_id);
+		auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+		context.outer_context.state.world.reform_set_desc(new_id, desc_id);
 		context.outer_context.map_of_reforms.insert_or_assign(std::string(name), new_id);
 
 		context.outer_context.state.culture_definitions.military_issues.push_back(new_id);
@@ -161,8 +166,9 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
 
 	auto movement_name_id = text::find_or_add_key(context.outer_context.state, name);
-
 	context.outer_context.state.world.issue_option_set_name(new_id, name_id);
+	auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+	context.outer_context.state.world.issue_option_set_desc(new_id, desc_id);
 	context.outer_context.map_of_ioptions.insert_or_assign(std::string(name), pending_option_content{gen, new_id});
 
 	auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(std::string("movement_") + std::string(name)));
@@ -188,8 +194,9 @@ void register_option(std::string_view name, token_generator& gen, error_handler&
 void register_option(std::string_view name, token_generator& gen, error_handler& err, reform_context& context) {
 	dcon::reform_option_id new_id = context.outer_context.state.world.create_reform_option();
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
-
 	context.outer_context.state.world.reform_option_set_name(new_id, name_id);
+	auto desc_id = text::find_key(context.outer_context.state, std::string(name) + "_desc");
+	context.outer_context.state.world.reform_option_set_desc(new_id, desc_id);
 	context.outer_context.map_of_roptions.insert_or_assign(std::string(name), pending_roption_content{gen, new_id});
 
 	bool assigned = false;
@@ -214,8 +221,8 @@ void make_government(std::string_view name, token_generator& gen, error_handler&
 	auto name_id = text::find_or_add_key(context.state, name);
 
 	context.state.world.government_type_set_name(new_id, name_id);
-	context.state.world.government_type_set_ruler_name(new_id,
-			text::find_or_add_key(context.state, std::string(name) + "_ruler"));
+	context.state.world.government_type_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
+	context.state.world.government_type_set_ruler_name(new_id, text::find_or_add_key(context.state, std::string(name) + "_ruler"));
 	context.map_of_governments.insert_or_assign(std::string(name), new_id);
 
 	government_type_context new_context{context, new_id};
@@ -292,6 +299,7 @@ void read_school_modifier(std::string_view name, token_generator& gen, error_han
 
 	context.map_of_modifiers.insert_or_assign(std::string(name), new_modifier);
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	auto school = parse_modifier_base(gen, err, context);
 
@@ -416,6 +424,12 @@ dcon::value_modifier_key ideology_condition(token_generator& gen, error_handler&
 	trigger_building_context t_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty};
 	return make_value_modifier(gen, err, t_context);
+}
+
+dcon::trigger_key make_party_trigger(token_generator& gen, error_handler& err, party_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
+			trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
 }
 
 dcon::trigger_key make_crime_trigger(token_generator& gen, error_handler& err, scenario_building_context& context) {

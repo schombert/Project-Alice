@@ -234,10 +234,14 @@ float get_economic_reform_multiplier(sys::state& state, dcon::nation_id n) {
 	return reform_factor;
 }
 
-bool political_party_is_active(sys::state& state, dcon::political_party_id p) {
+bool political_party_is_active(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
 	auto start_date = state.world.political_party_get_start_date(p);
 	auto end_date = state.world.political_party_get_end_date(p);
-	return (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
+	bool b = (!start_date || start_date <= state.current_date) && (!end_date || end_date > state.current_date);
+	if(auto k = state.world.political_party_get_trigger(p); b && k) {
+		b = trigger::evaluate(state, k, trigger::to_generic(n), trigger::to_generic(n), - 1);
+	}
+	return b;
 }
 
 void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_party_id p) {
@@ -248,6 +252,13 @@ void set_ruling_party(sys::state& state, dcon::nation_id n, dcon::political_part
 	culture::update_nation_issue_rules(state, n);
 	sys::update_single_nation_modifiers(state, n);
 	economy::bound_budget_settings(state, n);
+	if(auto rules = state.world.nation_get_combined_issue_rules(n); (rules & issue_rule::factory_priority) == 0) {
+		for(auto po : state.world.nation_get_province_ownership_as_nation(n)) {
+			for(auto fl : po.get_province().get_factory_location()) {
+				economy::set_factory_priority(state, fl.get_factory(), 0);
+			}
+		}
+	}
 }
 
 void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ideology_id id) {
@@ -257,7 +268,7 @@ void force_ruling_party_ideology(sys::state& state, dcon::nation_id n, dcon::ide
 
 	for(int32_t i = start; i < end; i++) {
 		auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-		if(politics::political_party_is_active(state, pid) && state.world.political_party_get_ideology(pid) == id) {
+		if(politics::political_party_is_active(state, n, pid) && state.world.political_party_get_ideology(pid) == id) {
 			set_ruling_party(state, n, pid);
 			return;
 		}
@@ -362,7 +373,7 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 
 			for(int32_t i = start; i < end; i++) {
 				auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-				if(politics::political_party_is_active(state, pid) &&
+				if(politics::political_party_is_active(state, n, pid) &&
 						(state.world.government_type_get_ideologies_allowed(new_type) &
 								culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 
@@ -655,6 +666,8 @@ void start_election(sys::state& state, dcon::nation_id n) {
 			sys::message_base_type::electionstart
 			});
 		}
+		event::fire_fixed_event(state, state.national_definitions.on_election_started, trigger::to_generic(n),
+			event::slot_type::nation, n, -1, event::slot_type::none);
 	}
 }
 
@@ -680,7 +693,7 @@ void update_elections(sys::state& state) {
 
 				for(int32_t i = start; i < end; i++) {
 					auto pid = dcon::political_party_id(dcon::political_party_id::value_base_t(i));
-					if(politics::political_party_is_active(state, pid) &&
+					if(politics::political_party_is_active(state, n, pid) &&
 							(n.get_government_type().get_ideologies_allowed() & culture::to_bits(state.world.political_party_get_ideology(pid))) != 0) {
 						party_votes.push_back(party_vote{pid, 0.0f});
 					}
@@ -836,6 +849,8 @@ void update_elections(sys::state& state) {
 						n, dcon::nation_id{}, dcon::nation_id{},
 						sys::message_base_type::electiondone
 					});
+					event::fire_fixed_event(state, state.national_definitions.on_election_finished, trigger::to_generic(n),
+						event::slot_type::nation, n, -1, event::slot_type::none);
 				} else {
 					uint32_t winner = 0;
 					float winner_amount = party_votes[0].vote;
@@ -858,6 +873,8 @@ void update_elections(sys::state& state) {
 						n, dcon::nation_id{}, dcon::nation_id{},
 						sys::message_base_type::electiondone
 					});
+					event::fire_fixed_event(state, state.national_definitions.on_election_finished, trigger::to_generic(n),
+						event::slot_type::nation, n, -1, event::slot_type::none);
 				}
 
 			} else if(next_election_date(state, n) <= state.current_date) {

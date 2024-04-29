@@ -372,6 +372,10 @@ void party::end_date(association_type, sys::year_month_day ymd, error_handler& e
 	context.outer_context.state.world.political_party_set_end_date(context.id, date_tag);
 }
 
+void party::finish(party_context& context) {
+	context.outer_context.state.world.political_party_set_trigger(context.id, trigger);
+}
+
 void party::any_value(std::string_view issue, association_type, std::string_view option, error_handler& err, int32_t line,
 		party_context& context) {
 	if(auto it = context.outer_context.map_of_iissues.find(std::string(issue)); it != context.outer_context.map_of_iissues.end()) {
@@ -2017,6 +2021,36 @@ void s_on_crisis_declare_interest::any_value(std::string_view chance, associatio
 	}
 }
 
+void s_on_election_started::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
+		int32_t line, scenario_building_context& context) {
+	int32_t value = parse_int(chance, line, err);
+	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+		context.state.national_definitions.on_election_started.push_back(
+				nations::fixed_event{ int16_t(value), it->second.id, dcon::trigger_key{} });
+	} else {
+		auto id = context.state.world.create_national_event();
+		context.map_of_national_events.insert_or_assign(event,
+				pending_nat_event {id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
+		context.state.national_definitions.on_election_started.push_back(
+				nations::fixed_event{ int16_t(value), id, dcon::trigger_key{} });
+	}
+}
+
+void s_on_election_finished::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
+		int32_t line, scenario_building_context& context) {
+	int32_t value = parse_int(chance, line, err);
+	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
+		context.state.national_definitions.on_election_finished.push_back(
+				nations::fixed_event{ int16_t(value), it->second.id, dcon::trigger_key{} });
+	} else {
+		auto id = context.state.world.create_national_event();
+		context.map_of_national_events.insert_or_assign(event,
+				pending_nat_event {id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
+		context.state.national_definitions.on_election_finished.push_back(
+				nations::fixed_event{ int16_t(value), id, dcon::trigger_key{} });
+	}
+}
+
 void s_on_my_factories_nationalized::any_value(std::string_view chance, association_type, int32_t event, error_handler& err,
 		int32_t line, scenario_building_context& context) {
 	int32_t value = parse_int(chance, line, err);
@@ -2869,6 +2903,18 @@ void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line,
 	context.outer_context.state.world.national_identity_set_color(context.id, cvalue.value);
 	for(auto g : context.outer_context.state.world.in_government_type) {
 		context.outer_context.state.world.national_identity_set_government_color(context.id, g, cvalue.value);
+	}
+}
+
+void country_file::template_(association_type, std::string_view value, error_handler& err, int32_t line, country_file_context& context) {
+	auto root = simple_fs::get_root(context.outer_context.state.common_fs);
+	auto common_dir = simple_fs::open_directory(root, NATIVE("common"));
+	auto countries_dir = simple_fs::open_directory(common_dir, NATIVE("templates"));
+	if(auto f = simple_fs::open_file(countries_dir, simple_fs::utf8_to_native(value)); f) {
+		auto content = simple_fs::view_contents(*f);
+		err.file_name = std::string(value);
+		parsers::token_generator gen(content.data, content.data + content.file_size);
+		parsers::parse_country_file(gen, err, context);
 	}
 }
 

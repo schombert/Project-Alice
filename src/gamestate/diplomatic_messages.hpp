@@ -54,6 +54,7 @@ bool ai_will_accept(sys::state& state, message const& m);
 
 void decline(sys::state& state, message const& m);
 void accept(sys::state& state, message const& m);
+bool can_accept(sys::state& state, message const& m);
 
 void post(sys::state& state, message const& m);
 void update_pending(sys::state& state);

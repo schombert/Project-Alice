@@ -169,28 +169,24 @@ void consume_csv_file(sys::state& state, uint32_t language, char const* file_con
 }
 
 void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
-	auto rt = get_root(state.common_fs);
+	auto root_dir = get_root(state.common_fs);
 
-	auto text_dir = open_directory(rt, NATIVE("localisation"));
-	auto all_files = list_files(text_dir, NATIVE(".csv"));
-
-	for(auto& file : all_files) {
-		auto ofile = open_file(file);
-		if(ofile) {
+	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
+		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
 			consume_csv_file(state, language, content.data, content.file_size, err);
 		}
 	}
-
-	// special keys after all existing keys
-	auto alice_csv = open_file(rt, NATIVE("assets/alice.csv"));
-	if(alice_csv) {
-		auto content = view_contents(*alice_csv);
-		err.file_name = "assets/alice.csv";
-		consume_csv_file(state, language, content.data, content.file_size, err);
+	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+			consume_csv_file(state, language, content.data, content.file_size, err);
+		}
 	}
-
 }
 
 template<size_t N>
@@ -560,6 +556,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_2_adj)
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
+		CT_STRING_ENUM(fromcapital)
 	} else if(v.length() == 12) {
 		if(false) { }
 		CT_STRING_ENUM(construction)
@@ -590,6 +587,8 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(value_int_0_2)
 		CT_STRING_ENUM(value_int_0_3)
 		CT_STRING_ENUM(value_int_0_4)
+		CT_STRING_ENUM(fromcontinent)
+		CT_STRING_ENUM(fromstatename)
 	} else if(v.length() == 14) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name)
@@ -612,14 +611,38 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(crisistarget_adj)
 		CT_STRING_ENUM(engineermaxunits)
 		CT_STRING_ENUM(provincereligion)
+		CT_STRING_ENUM(spheremaster_adj)
+	} else if(v.length() == 17) {
+		if(false) { }
+		CT_STRING_ENUM(culture_last_name)
 	} else if(v.length() == 18) {
 		if(false) { }
 		CT_STRING_ENUM(cb_target_name_adj)
 		CT_STRING_ENUM(head_of_government)
+		CT_STRING_ENUM(crisisattacker_adj)
+		CT_STRING_ENUM(crisisdefender_adj)
+		CT_STRING_ENUM(culture_first_name)
 	} else if(v.length() == 19) {
 		if(false) { }
 		CT_STRING_ENUM(culture_group_union)
 		CT_STRING_ENUM(numspecialfactories)
+		CT_STRING_ENUM(crisistaker_capital)
+	} else if(v.length() == 20) {
+		if(false) { }
+	} else if(v.length() == 21) {
+		if(false) { }
+		CT_STRING_ENUM(crisistaker_continent)
+	} else if(v.length() == 22) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_capital)
+		CT_STRING_ENUM(crisisdefender_capital)
+		CT_STRING_ENUM(spheremaster_union_adj)
+	} else if(v.length() == 23) {
+		if(false) { }
+	} else if(v.length() == 24) {
+		if(false) { }
+		CT_STRING_ENUM(crisisattacker_continent)
+		CT_STRING_ENUM(crisisdefender_continent)
 	} else if(is_fixed_token_ci(v, "invested_in_us_message")) {
 		return variable_type::invested_in_us_message;
 	}
@@ -708,12 +731,6 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 
 
 std::string prettify_currency(float num) {
-	if(num == 0)
-		return std::string("0  \xA4");
-
-	char buffer[200] = { 0 };
-	double dval = double(num);
-
 	constexpr static double mag[] = {
 		1.0,
 		1'000.0,
@@ -750,31 +767,32 @@ std::string prettify_currency(float num) {
 		"%.0fP \xA4",
 		"%.0fZ \xA4"
 	};
-
+	char buffer[200] = { 0 };
+	double dval = double(num);
+	if(std::abs(dval) <= 1.f) {
+		snprintf(buffer, sizeof(buffer), sufx_two[0], float(dval));
+		return std::string(buffer);
+	}
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(reduced < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(reduced < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			auto reduced = dval / mag[i];
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], float(reduced));
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
 			}
 			return std::string(buffer);
 		}
 	}
-	snprintf(buffer, sizeof(buffer), "%.2f \xA4", dval);
-	return std::string(buffer);
+	return std::string("#inf");
 }
 
 
 std::string prettify(int64_t num) {
 	if(num == 0)
 		return std::string("0");
-
-	char buffer[200] = {0};
-	double dval = double(num);
 
 	constexpr static double mag[] = {
 		1.0,
@@ -813,21 +831,38 @@ std::string prettify(int64_t num) {
 		"%.0fZ"
 	};
 
+	char buffer[200] = { 0 };
+	double dval = double(num);
 	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
 		if(std::abs(dval) >= mag[i]) {
-			auto reduced = num / mag[i];
-			if(reduced < 10.0) {
-				snprintf(buffer, sizeof(buffer), sufx_two[i], reduced);
-			} else if(reduced < 100.0) {
-				snprintf(buffer, sizeof(buffer), sufx_one[i], reduced);
+			auto reduced = dval / mag[i];
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], float(reduced));
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
 			} else {
-				snprintf(buffer, sizeof(buffer), sufx_zero[i], reduced);
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
 			}
 			return std::string(buffer);
 		}
 	}
-
 	return std::string("#inf");
+}
+
+std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+	auto fat_id = dcon::fatten(state.world, state_id);
+	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
+		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
+			if(!fat_id.get_definition().get_name()) {
+				return get_name_as_string(state, fat_id.get_capital());
+			} else {
+				return get_name_as_string(state, fat_id.get_definition());
+			}
+		}
+	}
+	if(!fat_id.get_definition().get_name())
+		return get_name_as_string(state, fat_id.get_capital());
+	return get_name_as_string(state, fat_id.get_definition());
 }
 
 std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
@@ -928,14 +963,7 @@ std::string format_float(float num, size_t digits) {
 }
 
 std::string format_money(float num) {
-	std::string amount = "";
-	if(num < 1000.f) {
-		amount = std::to_string(num);
-		amount = amount.substr(0, amount.find_first_of('.') + 3);
-	} else {
-		amount = prettify(int32_t(num));
-	}
-	return amount + "\xA4 ";	// Currency is postfixed, NOT prefixed
+	return prettify_currency(num); // Currency is postfixed, NOT prefixed
 }
 
 std::string format_wholenum(int32_t num) {
@@ -977,18 +1005,24 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, substituti
 	mp.insert_or_assign(uint32_t(key), value);
 }
 
-std::string localize_month(sys::state const& state, uint16_t month) {
+dcon::text_sequence_id localize_month(sys::state const& state, uint16_t month) {
 	static const std::string_view month_names[12] = {"january", "february", "march", "april", "may_month_name", "june", "july", "august",
-			"september", "october", "november", "december"};
+		"september", "october", "november", "december"};
+	auto it = state.key_to_text_sequence.find(lowercase_str("january"));
 	if(month == 0 || month > 12) {
-		return text::produce_simple_string(state, "january");
+		return it->second;
 	}
-	return text::produce_simple_string(state, month_names[month - 1]);
+	it = state.key_to_text_sequence.find(lowercase_str(month_names[month - 1]));
+	if(it != state.key_to_text_sequence.end()) {
+		return it->second;
+	} else {
+		return dcon::text_sequence_id{};
+	}
 }
 
 std::string date_to_string(sys::state const& state, sys::date date) {
 	sys::year_month_day ymd = date.to_ymd(state.start_date);
-	return localize_month(state, ymd.month) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	return text::produce_simple_string(state, localize_month(state, ymd.month)) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
 }
 
 text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {

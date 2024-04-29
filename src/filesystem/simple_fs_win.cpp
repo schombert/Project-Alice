@@ -163,7 +163,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 			}
 
 			WIN32_FIND_DATAW find_result;
-			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
+			auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
@@ -183,7 +183,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 	} else {
 		auto const appended_path = dir.relative_path + NATIVE("\\*") + extension;
 		WIN32_FIND_DATAW find_result;
-		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
+		auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 		if(find_handle != INVALID_HANDLE_VALUE) {
 			do {
 				if(!(find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
@@ -210,7 +210,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 				continue;
 			}
 			WIN32_FIND_DATAW find_result;
-			auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
+			auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 			if(find_handle != INVALID_HANDLE_VALUE) {
 				do {
 					if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {
@@ -228,7 +228,7 @@ std::vector<directory> list_subdirectories(directory const& dir) {
 	} else {
 		auto const appended_path = dir.relative_path + NATIVE("\\*");
 		WIN32_FIND_DATAW find_result;
-		auto find_handle = FindFirstFileW(appended_path.c_str(), &find_result);
+		auto find_handle = FindFirstFileExW(appended_path.c_str(), FindExInfoBasic, &find_result, FindExSearchNameMatch, NULL, FIND_FIRST_EX_LARGE_FETCH);
 		if(find_handle != INVALID_HANDLE_VALUE) {
 			do {
 				if((find_result.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && !impl::contains_non_ascii(find_result.cFileName)) {

@@ -337,22 +337,27 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(),
-				[&](auto& m) { return m.when + diplomatic_message::expiration_in_days <= state.current_date; });
-		auto r = std::distance(it, messages.end());
+		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
+			return m.when + diplomatic_message::expiration_in_days <= state.current_date
+				|| !diplomatic_message::can_accept(state, m);
+		});
 		messages.erase(it, messages.end());
 
 		if(messages.empty()) {
 			set_visible(state, false);
 		}
 
-		count_text->set_text(state, std::to_string(int32_t(index)) + "/" + std::to_string(int32_t(messages.size())));
+		count_text->set_text(state, std::to_string(int32_t(index + 1)) + "/" + std::to_string(int32_t(messages.size())));
 	}
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(index >= int32_t(messages.size()))
+		if(messages.empty()) {
 			index = 0;
-		else if(index < 0)
-			index = int32_t(messages.size()) - 1;
+		} else {
+			if(index >= int32_t(messages.size()))
+				index = 0;
+			else if(index < 0)
+				index = int32_t(messages.size()) - 1;
+		}
 
 		if(payload.holds_type<dcon::nation_id>()) {
 			if(messages.empty()) {

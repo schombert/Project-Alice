@@ -571,25 +571,49 @@ public:
 			});
 			float per_state = 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			if(per_state > 0.f) {
-				text::substitution_map sub{};
-				text::add_to_substitution_map(sub, text::variable_type::name, si.get_state());
-				text::add_to_substitution_map(sub, text::variable_type::cap, text::fp_two_places{ total_factory_capacity });
-				text::add_to_substitution_map(sub, text::variable_type::level, text::int_wholenum{ int32_t(total_level) });
-				text::add_to_substitution_map(sub, text::variable_type::amount, text::fp_two_places{ worker_total });
-				text::add_to_substitution_map(sub, text::variable_type::total, text::fp_two_places{ per_state });
 				auto box = text::open_layout_box(contents);
-				text::localised_format_box(state, contents, box, std::string_view("alice_indscore_1"), sub);
+				text::layout_box name_entry = box;
+				text::layout_box level_entry = box;
+				text::layout_box workers_entry = box;
+				text::layout_box max_workers_entry = box;
+				text::layout_box score_box = box;
+
+				name_entry.x_size /= 10;
+				text::add_to_layout_box(state, contents, name_entry, text::get_short_state_name(state, si.get_state()).substr(0, 20), text::text_color::yellow);
+				
+				level_entry.x_position += 150;
+				text::add_to_layout_box(state, contents, level_entry, text::int_wholenum{ int32_t(total_level) });
+
+				workers_entry.x_position += 180;
+				text::add_to_layout_box(state, contents, workers_entry, text::int_wholenum{ int32_t(worker_total) });
+
+				max_workers_entry.x_position += 250;
+				text::add_to_layout_box(state, contents, max_workers_entry, text::int_wholenum{ int32_t(total_factory_capacity) });
+
+				score_box.x_position += 350;
+				text::add_to_layout_box(state, contents, score_box, text::fp_two_places{ per_state });
+
+				//text::localised_format_box(state, contents, box, std::string_view("alice_indscore_1"), sub);
+				text::add_to_layout_box(state, contents, box, std::string(" "));
 				text::close_layout_box(contents, box);
 			}
 		}
-		text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_two_places{ iweight });
+		float total_invest = 0.f;
 		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			text::substitution_map sub{};
-			text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
-			text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
-			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
-			text::close_layout_box(contents, box);
+			total_invest += ur.get_foreign_investment();
+		}
+		if(total_invest > 0.f) {
+			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
+			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
+				if(ur.get_foreign_investment() > 0.f) {
+					text::substitution_map sub{};
+					text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
+					text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
+					auto box = text::open_layout_box(contents);
+					text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
+					text::close_layout_box(contents, box);
+				}
+			}
 		}
 	}
 };
@@ -699,8 +723,7 @@ public:
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		std::string ruling_party = text::get_name_as_string(state, fat_id.get_ruling_party());
-		ruling_party = ruling_party + " (" + text::get_name_as_string(state,
-			state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
+		ruling_party = ruling_party + " (" + text::get_name_as_string(state, state.world.political_party_get_ideology(state.world.nation_get_ruling_party(nation_id))) + ")";
 		{
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_single_sub_box(state, contents, box, std::string_view("topbar_ruling_party"), text::variable_type::curr, std::string_view(ruling_party));
@@ -708,9 +731,6 @@ public:
 			text::close_layout_box(contents, box);
 		}
 		for(auto pi : state.culture_definitions.party_issues) {
-			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi).get_name(), text::text_color::yellow);
-			text::close_layout_box(contents, box);
 			reform_description(state, contents, state.world.political_party_get_party_issues(fat_id.get_ruling_party(), pi));
 			text::add_line_break_to_layout(state, contents);
 		}
@@ -722,9 +742,25 @@ public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		auto gov_type_id = fat_id.get_government_type();
-
 		auto gov_name_seq = state.world.government_type_get_name(gov_type_id);
 		return text::produce_simple_string(state, gov_name_seq);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, n);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::country, n);
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+		text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+		text::add_to_layout_box(state, contents, box, fat_id.get_government_type().get_desc(), sub);
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -1066,10 +1102,19 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = state.local_player_nation;
 		auto mod_id = state.world.nation_get_tech_school(retrieve<dcon::nation_id>(state, parent));
 		if(bool(mod_id)) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, state.world.modifier_get_name(mod_id), text::text_color::yellow);
+			if(state.world.modifier_get_desc(mod_id)) {
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::country, n);
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
+				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
+				text::add_to_layout_box(state, contents, box, state.world.modifier_get_desc(mod_id), sub);
+			}
 			text::close_layout_box(contents, box);
 
 			modifier_description(state, contents, mod_id);
@@ -1599,6 +1644,21 @@ public:
 		text::add_to_layout_box(state, contents, box, text,
 				is_positive ? text::text_color::dark_green : text::text_color::dark_red);
 		text::close_layout_box(contents, box);
+	}
+};
+class factory_income_image : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::factory_id>(state, parent);
+		float profit = state.world.factory_get_full_profit(content);
+
+		if(profit > 0.f) {
+			frame = 0;
+		} else if (profit < 0.f) {
+			frame = 1;
+		} else {
+			frame = 2; //empty frame
+		}
 	}
 };
 class factory_priority_image : public image_element_base {

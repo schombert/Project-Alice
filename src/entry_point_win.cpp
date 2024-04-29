@@ -131,26 +131,9 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			window::emit_error_message(msg, true);
 			return 0;
 #else
-			if(std::string("NONE") != GAME_DIR) {									 // check for user-defined location
-				add_root(game_state.common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-				add_root(game_state.common_fs, NATIVE("."));				 // for the moment this lets us find the shader files
-			} else { // before exiting, check if they've installed the game and it's told us where via the registry
-				HKEY hKey;
-				LSTATUS res = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"SOFTWARE\\WOW6432Node\\Paradox Interactive\\Victoria 2", 0, KEY_READ,
-						&hKey); // open key if key exists
-				if(res != ERROR_SUCCESS) {
-					assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
-				}
-				WCHAR szBuffer[256]; // excessive but just in case someone has their game directory NESTED
-				DWORD lnBuffer = 256;
-				res = RegQueryValueEx(hKey, L"path", NULL, NULL, reinterpret_cast<LPBYTE>(szBuffer), &lnBuffer);
-				if(res != ERROR_SUCCESS) {
-					assert(false); // victoria 2 could not be located, see the "Interested in Contributing?" page on the github.
-				}
-				add_root(game_state.common_fs, szBuffer);		// game files directory is overlaid on top of that
-				add_root(game_state.common_fs, NATIVE(".")); // for the moment this lets us find the shader files
-				RegCloseKey(hKey);
-			}
+			
+			add_root(game_state.common_fs, NATIVE("."));				 // for the moment this lets us find the shader files
+			
 
 			if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 				// scenario making functions
@@ -235,7 +218,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 						std::this_thread::sleep_for(std::chrono::milliseconds(15));
 					}
 					//Reload savefile
-					network::finish(game_state);
+					network::finish(game_state, true);
 					game_state.actual_game_speed = 0;
 					//
 					if(sys::try_read_scenario_and_save_file(game_state, parsed_cmd[1])) {
@@ -263,7 +246,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			update_thread.join();
 		}
 
-		network::finish(game_state);
+		network::finish(game_state, true);
 		CoUninitialize();
 	}
 	return 0;

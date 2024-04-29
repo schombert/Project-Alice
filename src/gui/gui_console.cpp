@@ -50,6 +50,7 @@ struct command_info {
 		change_owner,
 		change_control,
 		change_control_and_owner,
+		toggle_core,
 		province_id_tooltip,
 		wasd,
 		next_song,
@@ -57,6 +58,9 @@ struct command_info {
 		instant_army,
 		instant_industry,
 		innovate,
+		daily_oos_check,
+		province_names,
+		color_blind_mode
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -207,6 +211,18 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
 				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "tcore", command_info::type::toggle_core, "Toggle add/remove core",
+				{command_info::argument_info{"province", command_info::argument_info::type::numeric, false}, command_info::argument_info{"country", command_info::argument_info::type::tag, true},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
 				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
@@ -407,7 +423,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 		if(!text.empty()) {
 			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
 					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 		}
 	}
@@ -417,20 +433,24 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 		char const* end_text = rhs_suggestion.data() + rhs_suggestion.length();
 		std::string text(std::string_view(start_text, end_text));
 		if(!text.empty()) {
+			if(text.length() > 36) {
+				text.resize(36);
+				text[text.length() - 1] = '\x85';
+			}
 			// Place text right before it ends (centered right)
 			x_offs = float(base_data.size.x);
 			x_offs -= 24;
 			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
 			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
 					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(text::text_color::light_grey), base_data.data.button.font_handle);
+					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 		}
 	}
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
-	lhs_suggestion = std::string{};
-	rhs_suggestion = std::string{};
+	lhs_suggestion.clear();
+	rhs_suggestion.clear();
 	if(s.empty())
 		return;
 
@@ -480,27 +500,54 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				// Now type in a suggestion...
 				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
-				if(tag.size() >= name.size()) {
-					lhs_suggestion = std::string{};
-				} else {
+				if(tag.size() < name.size()) {
 					lhs_suggestion = name.substr(tag.size());
 				}
-				rhs_suggestion = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " - " + name;
+				rhs_suggestion = name + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid));
 			} else {
-				lhs_suggestion = std::string{};
-				rhs_suggestion = std::string{};
 				if(tag.size() == 1)
 					rhs_suggestion = tag + "?? - ???";
 				else if(tag.size() == 2)
 					rhs_suggestion = tag + "? - ???";
+			}
+		} else if(s.starts_with("innovate") && pos + 1 < s.size()) {
+			std::string inputted = std::string(s.substr(pos + 1));
+			if(inputted.empty())
+				return; // Can't give suggestion if nothing was inputted
+			std::transform(inputted.begin(), inputted.end(), inputted.begin(), [](auto c) { return char(tolower(char(c))); });
+			// Tag will autofill a country name + indicate it's full name
+			std::pair<uint32_t, dcon::invention_id> closest_match{};
+			closest_match.first = std::numeric_limits<uint32_t>::max();
+			for(auto const id : state.world.in_invention) {
+				std::string name = text::produce_simple_string(state, id.get_name());
+				std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return char(tolower(c)); });
+				if(name.starts_with(inputted)) {
+					uint32_t dist = levenshtein_distance(inputted, name);
+					if(dist < closest_match.first) {
+						closest_match.first = dist;
+						closest_match.second = id;
+					}
+				}
+			}
+			if(closest_match.second) {
+				// Now type in a suggestion...
+				std::string name = text::produce_simple_string(state, state.world.invention_get_name(closest_match.second));
+				if(inputted.size() < name.size()) {
+					std::string canon_name = name;
+					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return char(c == ' ' ? '_' : c); });
+					lhs_suggestion = canon_name.substr(inputted.size());
+				}
+				rhs_suggestion = name;
 			}
 		}
 	}
 }
 
 void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexcept {
-	if(s.empty())
+	if(s.empty()) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	std::pair<uint32_t, std::string_view> closest_match{};
 	closest_match.first = std::numeric_limits<uint32_t>::max();
@@ -517,12 +564,15 @@ void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexc
 		}
 	}
 	auto closest_name = closest_match.second;
-	if(closest_name.empty())
+	if(closest_name.empty()) {
+		edit_box_update(state, s);
 		return;
-	set_text(state, std::string(closest_name) + " ");
+	}
+	std::string str = std::string(closest_name) + " ";
+	set_text(state, str);
 	auto index = int32_t(closest_name.size() + 1);
 	edit_index_position(state, index);
-	edit_box_update(state, s);
+	edit_box_update(state, str);
 }
 
 void ui::console_edit::edit_box_up(sys::state& state) noexcept {
@@ -552,12 +602,16 @@ void write_single_component(sys::state& state, native_string_view filename, F&& 
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
-	if(s.empty())
+	if(s.empty()) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	auto pstate = parse_command(state, s);
-	if(pstate.cmd.mode == command_info::type::none)
+	if(pstate.cmd.mode == command_info::type::none) {
+		edit_box_update(state, s);
 		return;
+	}
 
 	log_to_console(state, parent, s);
 	for(uint32_t i = 0; i < command_info::max_arg_slots; ++i) {
@@ -568,6 +622,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ytext\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::tag) {
@@ -575,6 +630,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ytag\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		} else if(pstate.cmd.args[i].mode == command_info::argument_info::type::numeric) {
@@ -582,6 +638,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				log_to_console(state, parent, "Command requires a \xA7Ynumeric\xA7W argument at " + std::to_string(i));
 				Cyto::Any payload = this;
 				impl_get(state, payload);
+				edit_box_update(state, s);
 				return;
 			}
 		}
@@ -1207,6 +1264,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
+		window::change_cursor(state, window::cursor_type::busy);
 		state.debug_save_oos_dump();
 		state.debug_scenario_oos_dump();
 		// Extneded data NOT included in normal dumps
@@ -1458,10 +1516,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			ptr_in = sys::serialize(ptr_in, state.font_collection.font_names);
 			return ptr_in;
 		});
+		log_to_console(state, parent, "Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
+		window::change_cursor(state, window::cursor_type::normal);
 		break;
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 		state.map_state.map_data.update_fog_of_war(state);
+		log_to_console(state, parent, state.user_settings.fow_enabled ? "\x02" : "\x01");
 		break;
 	case command_info::type::win_wars:
 		break;
@@ -1471,18 +1532,29 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		break;
 	case command_info::type::always_allow_wargoals:
 		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
+		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
 		break;
 	case command_info::type::always_allow_reforms:
 		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
+		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
 		break;
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
 		break;
-	case command_info::type::instant_research:
+	case command_info::type::instant_research: {
+		auto has_us = false;
+		for(const auto n : state.cheat_data.instant_research_nations)
+			if(n == state.local_player_nation) {
+				has_us = true;
+				break;
+			}
+		log_to_console(state, parent, !has_us ? "\x02" : "\x01");
 		command::c_instant_research(state, state.local_player_nation);
 		break;
+	}
 	case command_info::type::always_accept_deals:
 		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
+		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\x02" : "\x01");
 		break;
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
@@ -1509,6 +1581,17 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				}
 			}
 		}
+		break;
+	}
+	case command_info::type::toggle_core:
+	{
+		auto province_id = dcon::province_id((uint16_t)std::get<std::int32_t>(pstate.arg_slots[0]));
+		auto nid = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		if(std::holds_alternative<std::string>(pstate.arg_slots[1])) {
+			auto tag = std::get<std::string>(pstate.arg_slots[1]);
+			nid = smart_get_national_identity_from_tag(state, parent, tag);
+		}
+		command::c_toggle_core(state, state.local_player_nation, province_id, state.world.national_identity_get_nation_from_identity_holder(nid));
 		break;
 	}
 	case command_info::type::change_control_and_owner:
@@ -1547,11 +1630,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_id_tooltip:
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
+		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::wasd:
 	{
-		state.cheat_data.wasd_move_cam = not state.cheat_data.wasd_move_cam;
+		state.user_settings.wasd_for_map_movement = not state.user_settings.wasd_for_map_movement;
+		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "\x02" : "\x01");
+		state.save_user_settings();
 		break;
 	}
 	case command_info::type::next_song:
@@ -1567,12 +1653,35 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::instant_army:
 	{
+		log_to_console(state, parent, !state.cheat_data.instant_army ? "\x02" : "\x01");
 		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_industry:
 	{
+		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\x02" : "\x01");
 		command::c_instant_industry(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::daily_oos_check:
+	{
+		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
+		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::province_names:
+	{
+		state.cheat_data.province_names = not state.cheat_data.province_names;
+		log_to_console(state, parent, state.cheat_data.province_names ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::color_blind_mode:
+	{
+		state.user_settings.color_blind_mode = sys::color_blind_mode(uint8_t(state.user_settings.color_blind_mode) + 1);
+		if(uint8_t(state.user_settings.color_blind_mode) > 4) {
+			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
+		}
+		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::innovate:
@@ -1607,6 +1716,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 
 	Cyto::Any payload = this;
 	impl_get(state, payload);
+	edit_box_update(state, s);
 }
 
 void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -1621,7 +1731,7 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			if(!text.empty()) {
 				std::string tmp_text{ text };
 				ogl::render_text(state, tmp_text.c_str(), uint32_t(tmp_text.length()), ogl::color_modification::none,
-						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(text_color),
+						float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y), get_text_color(state, text_color),
 						base_data.data.button.font_handle);
 				x_offs += state.font_collection.text_extent(state, tmp_text.c_str(), uint32_t(tmp_text.length()),
 						base_data.data.text.font_handle);
@@ -1635,8 +1745,21 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	}
 }
 
+void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+
 void ui::console_window::show_toggle(sys::state& state) {
 	assert(state.ui_state.console_window);
+	if(state.ui_state.console_window->is_visible()) { //close
+		sound::play_interface_sound(state, sound::get_console_close_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
+	} else { //open
+		sound::play_interface_sound(state, sound::get_console_open_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
+	}
+
 	state.ui_state.console_window->set_visible(state, !state.ui_state.console_window->is_visible());
 	if(state.ui_state.console_window->is_visible())
 		state.ui_state.root->move_child_to_front(state.ui_state.console_window);

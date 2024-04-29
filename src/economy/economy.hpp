@@ -108,37 +108,8 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 
 constexpr inline dcon::commodity_id money(0);
 
-// scales the needs values so that they are needs per this many pops
-// this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3
-// of the nominal life needs value for themselves. If we assume that there is supposed to be enough grain in the world
-// to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
-// if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
-// 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
-//constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
-constexpr inline float needs_scaling_factor = 100'000.0f * 1.0f;
-
 inline constexpr float production_scale_delta = 0.001f;
 inline constexpr uint32_t price_history_length = 256;
-
-//
-inline constexpr float domestic_investment_multiplier = 2.f;
-
-// rgo
-inline constexpr float rgo_overhire_multiplier = 10.f;
-inline constexpr float rgo_production_scale_neg_delta = 0.0000001f;
-
-// artisans
-inline constexpr float inputs_base_factor_artisans = 1.2f;
-inline constexpr float output_base_factor_artisans = 0.4f;
-// factories
-inline constexpr float inputs_base_factor = 0.8f;
-
-// farmers should be able to produce enough to feed themselves
-inline constexpr float rgo_boost = 1.0f;
-
-//demand modifiers
-inline constexpr float lx_extra_factor = 10.0f;
-inline constexpr float en_extra_factor = 10.0f;
 
 void presimulate(sys::state& state);
 
@@ -154,6 +125,16 @@ bool has_factory(sys::state const& state, dcon::state_instance_id si);
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
+void populate_effective_prices(sys::state& state, dcon::nation_id n);
+float factory_min_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_min_e_input_available(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_e_input_total_cost(sys::state& state, dcon::nation_id n, dcon::factory_type_fat_id fac_type);
+float factory_input_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_throughput_multiplier(sys::state& state, dcon::factory_type_fat_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
+float factory_output_multiplier(sys::state& state, dcon::factory_fat_id fac, dcon::nation_id n, dcon::province_id p);
+float factory_max_production_scale(sys::state& state, dcon::factory_fat_id fac, float mobilization_impact, bool occupied, bool overseas);
+float factory_desired_raw_profit(dcon::factory_fat_id fac, float spendings);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
@@ -166,6 +147,17 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
+
+float pop_min_wage_factor(sys::state& state, dcon::nation_id n);
+float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
+
+std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
+float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n);
+
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);

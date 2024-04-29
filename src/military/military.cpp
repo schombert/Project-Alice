@@ -964,11 +964,7 @@ int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::prov
 		In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is either
 		the primary culture of the nation or an accepted culture.
 		*/
-
-		if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
-				pop.get_pop().get_poptype() != state.culture_definitions.slaves && pop.get_pop().get_is_primary_or_accepted_culture() &&
-				pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
-
+		if(pop_eligible_for_mobilization(state, pop.get_pop())) {
 			/*
 			The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 			define:POP_SIZE_PER_REGIMENT.
@@ -4804,7 +4800,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	for(auto ar : state.world.province_get_army_location(prov)) {
 		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false &&
 				!bool(ar.get_army().get_navy_from_army_transport())) {
-
 			for(auto rg : ar.get_army().get_army_membership()) {
 				total_army_weight += 3.0f * rg.get_regiment().get_strength();
 			}
@@ -4812,8 +4807,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	}
 
 	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
-
-
 	auto ar = fatten(state.world, a);
 
 	auto army_controller = ar.get_controller_from_army_control();
@@ -4821,7 +4814,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
 
 	float greatest_hostile_fort = 0.0f;
-
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
 		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
 			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
@@ -4832,7 +4824,6 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 			}
 		}
 	}
-
 	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
 }
 
@@ -5074,8 +5065,8 @@ void update_land_battles(sys::state& state) {
 		auto attacker_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
-		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
-		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_attacking_general(b));
+		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_defending_general(b));
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -5558,8 +5549,8 @@ void update_naval_battles(sys::state& state) {
 		auto attacker_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(attacker_per) + state.world.leader_trait_get_organisation(attacker_bg);
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
-		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto defence_bonus =
 				int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -6849,23 +6840,17 @@ void advance_mobilizations(sys::state& state) {
 					// mobilize the province
 
 					if(state.world.province_get_nation_from_province_control(back.where) ==
-							state.world.province_get_nation_from_province_ownership(back.where)) { // only if un occupied
+						state.world.province_get_nation_from_province_ownership(back.where)) { // only if un occupied
 						/*
 						In those provinces, mobilized regiments come from non-soldier, non-slave, poor-strata pops with a culture that is
 						either the primary culture of the nation or an accepted culture.
 						*/
 						for(auto pop : state.world.province_get_pop_location(back.where)) {
-
-							if(pop.get_pop().get_poptype() != state.culture_definitions.soldiers &&
-									pop.get_pop().get_poptype() != state.culture_definitions.slaves &&
-									pop.get_pop().get_is_primary_or_accepted_culture() &&
-									pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
-
+							if(pop_eligible_for_mobilization(state, pop.get_pop())) {
 								/*
 								The number of regiments these pops can provide is determined by pop-size x mobilization-size /
 								define:POP_SIZE_PER_REGIMENT.
 								*/
-
 								auto available = int32_t(pop.get_pop().get_size() * mobilization_size(state, n) / state.defines.pop_size_per_regiment);
 								if(available > 0) {
 
@@ -6878,6 +6863,8 @@ void advance_mobilizations(sys::state& state) {
 										}
 										auto new_army = fatten(state.world, state.world.create_army());
 										new_army.set_controller_from_army_control(n);
+										new_army.set_is_ai_controlled(n.get_mobilized_is_ai_controlled()); //toggle
+
 										army_is_new = true;
 										return new_army.id;
 									}();
@@ -7149,6 +7136,14 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
 		state.world.navy_set_moving_to_merge(a, true);
 	}
+}
+
+bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
+	auto const pop = dcon::fatten(state.world, p);
+	return pop.get_poptype() != state.culture_definitions.soldiers
+		&& pop.get_poptype() != state.culture_definitions.slaves
+		&& pop.get_is_primary_or_accepted_culture()
+		&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor);
 }
 
 } // namespace military

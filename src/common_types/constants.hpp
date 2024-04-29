@@ -185,7 +185,9 @@ enum class map_label_mode : uint8_t {
 enum class map_zoom_mode : uint8_t {
 	panning = 0,
 	inverted = 1,
-	centered = 2
+	centered = 2,
+	to_cursor = 3,
+	away_from_cursor = 4,
 };
 
 enum class map_vassal_color_mode : uint8_t {
@@ -299,6 +301,7 @@ enum class message_setting_type : uint8_t {
 	army_built = 98, // added
 	navy_built = 99, // added
 	bankruptcy = 100,
+	entered_automatic_alliance = 101,
 	count = 128
 };
 
@@ -375,7 +378,8 @@ enum class message_base_type : uint8_t {
 	army_built = 69, // added
 	navy_built = 70, // added
 	bankruptcy = 71,
-	count = 72
+	entered_automatic_alliance = 72,
+	count = 73
 };
 
 struct msg_setting_entry {
@@ -496,6 +500,7 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::army_built,				message_setting_type::count,				message_setting_type::count}, //army_built = 69, // added
 	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
 	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
+	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
 };
 
 namespace  message_response {
@@ -526,6 +531,13 @@ enum class network_mode_type {
 	host
 };
 
+enum class color_blind_mode {
+	none,
+	protan, //lack red
+	deutan, //lack green
+	tritan, //lack blue
+	achroma, //black and white
+};
 
 constexpr int32_t max_event_options = 8;
 

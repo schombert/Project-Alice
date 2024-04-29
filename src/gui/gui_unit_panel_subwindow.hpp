@@ -330,12 +330,28 @@ public:
 						listbox_left::row_contents.push_back(regi.get_regiment().id);
 					}
 				}
+				std::sort(listbox_left::row_contents.begin(), listbox_left::row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+					auto av = state.world.regiment_get_type(a).index();
+					auto bv = state.world.regiment_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			} else {
 				for(auto regi : fat.get_navy_membership()) {
 					if(auto result = std::find(begin(selectedunits), end(selectedunits), regi.get_ship().id); result == std::end(selectedunits)) {
 						listbox_left::row_contents.push_back(regi.get_ship().id);
 					}
 				}
+				std::sort(listbox_left::row_contents.begin(), listbox_left::row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+					auto av = state.world.ship_get_type(a).index();
+					auto bv = state.world.ship_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			}
 
 			listbox_left::update(state);
@@ -370,12 +386,28 @@ public:
 						listbox_right::row_contents.push_back(regi.get_regiment().id);
 					}
 				}
+				std::sort(listbox_right::row_contents.begin(), listbox_right::row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+					auto av = state.world.regiment_get_type(a).index();
+					auto bv = state.world.regiment_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			} else {
 				for(auto regi : fat.get_navy_membership()) {
 					if(auto result = std::find(begin(selectedunits), end(selectedunits), regi.get_ship().id); result != std::end(selectedunits)) {
 						listbox_right::row_contents.push_back(regi.get_ship().id);
 					}
 				}
+				std::sort(listbox_right::row_contents.begin(), listbox_right::row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+					auto av = state.world.ship_get_type(a).index();
+					auto bv = state.world.ship_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			}
 
 			listbox_right::update(state);

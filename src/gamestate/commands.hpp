@@ -100,6 +100,10 @@ enum class command_type : uint8_t {
 	state_transfer = 91,
 	release_subject = 92,
 	enable_debt = 93,
+	move_capital = 94,
+	toggle_unit_ai_control = 95,
+	toggle_mobilized_is_ai_controlled = 96,
+	toggle_interested_in_alliance = 97,
 
 	// network
 	notify_player_ban = 106,
@@ -141,6 +145,7 @@ enum class command_type : uint8_t {
 	c_instant_army = 149,
 	c_instant_industry = 150,
 	c_innovate = 151,
+	c_toggle_core = 152,
 };
 
 struct national_focus_data {
@@ -694,6 +699,10 @@ bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::na
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost = false);
+void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
@@ -754,6 +763,8 @@ void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a);
+void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a);
+void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source);
 
 void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
@@ -790,6 +801,9 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 void toggle_mobilization(sys::state& state, dcon::nation_id source);
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled);
+
+void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
+bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
 /*
 PEACE OFFER COMMANDS:

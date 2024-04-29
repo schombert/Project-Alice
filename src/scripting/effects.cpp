@@ -1640,6 +1640,48 @@ uint32_t ef_add_accepted_culture_union(EFFECT_PARAMTERS) {
 	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
 	return 0;
 }
+
+uint32_t ef_add_accepted_culture_this(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(this_slot));
+	if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) == c) {
+		return 0;
+	}
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c, true);
+	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
+	return 0;
+}
+uint32_t ef_add_accepted_culture_union_this(EFFECT_PARAMTERS) {
+	auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(this_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	for(auto c : ws.world.culture_group_get_culture_group_membership(cg)) {
+		if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) != c.get_member().id) {
+			ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.get_member().id, true);
+		}
+	}
+	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
+	return 0;
+}
+uint32_t ef_add_accepted_culture_from(EFFECT_PARAMTERS) {
+	auto c = ws.world.nation_get_primary_culture(trigger::to_nation(from_slot));
+	if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) == c) {
+		return 0;
+	}
+	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c, true);
+	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
+	return 0;
+}
+uint32_t ef_add_accepted_culture_union_from(EFFECT_PARAMTERS) {
+	auto prim_culture = ws.world.nation_get_primary_culture(trigger::to_nation(from_slot));
+	auto cg = ws.world.culture_get_group_from_culture_group_membership(prim_culture);
+	for(auto c : ws.world.culture_group_get_culture_group_membership(cg)) {
+		if(ws.world.nation_get_primary_culture(trigger::to_nation(primary_slot)) != c.get_member().id) {
+			ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), c.get_member().id, true);
+		}
+	}
+	nations::update_pop_acceptance(ws, trigger::to_nation(primary_slot));
+	return 0;
+}
+
 uint32_t ef_primary_culture(EFFECT_PARAMTERS) {
 	ws.world.nation_set_primary_culture(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id);
 	ws.world.nation_set_accepted_cultures(trigger::to_nation(primary_slot), trigger::payload(tval[1]).cul_id, false);
@@ -3803,6 +3845,15 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 	return 0;
 }
 
+uint32_t ef_ruling_party_this(EFFECT_PARAMTERS) {
+	politics::force_ruling_party_ideology(ws, trigger::to_nation(primary_slot), ws.world.nation_get_ruling_party(trigger::to_nation(this_slot)).get_ideology());
+	return 0;
+}
+uint32_t ef_ruling_party_from(EFFECT_PARAMTERS) {
+	politics::force_ruling_party_ideology(ws, trigger::to_nation(primary_slot), ws.world.nation_get_ruling_party(trigger::to_nation(from_slot)).get_ideology());
+	return 0;
+}
+
 uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 	auto target = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	if(!target)
@@ -3948,8 +3999,8 @@ uint32_t ef_country_event_this_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::nation);
+	auto future_date = ws.current_date + 0;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
@@ -3964,8 +4015,8 @@ uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::nation);
+	auto future_date = ws.current_date + 0;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
@@ -3980,8 +4031,8 @@ uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::state);
+	auto future_date = ws.current_date + 0;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
@@ -3996,8 +4047,8 @@ uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::state);
+	auto future_date = ws.current_date + 0;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
@@ -4012,8 +4063,8 @@ uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_province(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::province);
+	auto future_date = ws.current_date + 0;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
@@ -4028,8 +4079,8 @@ uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_province(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::province);
+	auto future_date = ws.current_date + 0;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
@@ -4044,8 +4095,8 @@ uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::pop);
+	auto future_date = ws.current_date + 0;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
@@ -4060,8 +4111,8 @@ uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-			event::slot_type::pop);
+	auto future_date = ws.current_date + 0;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_country_event_province_this_nation(EFFECT_PARAMTERS) {
@@ -5345,6 +5396,12 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_add_truce_from_nation, //constexpr inline uint16_t add_truce_from_nation = 0x01A1;
 		ef_add_truce_from_province, //constexpr inline uint16_t add_truce_from_province = 0x01A2;
 		ef_call_allies, //constexpr inline uint16_t call_allies = 0x01A3;
+		ef_ruling_party_this, //constexpr inline uint16_t ruling_party_this = 0x01A4;
+		ef_ruling_party_from, //constexpr inline uint16_t ruling_party_from = 0x01A5;
+		ef_add_accepted_culture_this, //constexpr inline uint16_t add_accepted_culture_this = 0x01A6;
+		ef_add_accepted_culture_union_this, //constexpr inline uint16_t add_accepted_culture_union_this = 0x01A7;
+		ef_add_accepted_culture_from, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
+		ef_add_accepted_culture_union_from, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
 
 		//
 		// SCOPES

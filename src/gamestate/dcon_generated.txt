@@ -84,6 +84,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_ruler_name }
+		type{ array{government_type_id}{text_sequence_id} }
+		tag{ scenario }
+	}
+	property{
 		name{ government_color }
 		type{ array{government_type_id}{uint32_t} }
 		tag{ scenario }
@@ -139,6 +144,11 @@ object {
 	property{
 		name{ party_issues }
 		type{array{issue_id}{issue_option_id}}
+		tag{ scenario }
+	}
+	property{
+		name{ trigger }
+		type{ dcon::trigger_key }
 		tag{ scenario }
 	}
 }
@@ -420,6 +430,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ province_values }
 		type{ sys::provincial_modifier_definition }
 		tag{ scenario }
@@ -637,6 +652,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<issue_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -665,6 +685,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ desc }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -734,6 +759,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<reform_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -760,7 +790,11 @@ object {
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
-
+	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
 	property{
 		name{ rules }
 		type{ uint32_t }
@@ -812,7 +846,7 @@ object {
 object {
 	name{cb_type}
 	storage_type{ contiguous }
-	size{ 120 }
+	size{ 125 }
 	tag{ scenario }
 
 	property{
@@ -1260,6 +1294,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ ruler_name }
 		type{ text_sequence_id }
 		tag{ scenario }
@@ -1553,7 +1592,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 18000 }
+	size{ 20000 }
 	tag{ save }
 
 	property{
@@ -1673,6 +1712,11 @@ object {
 	property{
 		name{ ai_province }
 		type{ province_id }
+		tag{ save }
+	}
+	property{
+		name{ is_ai_controlled }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -2271,7 +2315,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 20000 }
+	size{ 25000 }
 	tag{ save }
 
 	property{
@@ -3371,6 +3415,14 @@ object {
 		type{ float }
 	}
 	property {
+		name{ private_investment_education }
+		type{ float }
+	}
+	property {
+		name{ private_investment_administration }
+		type{ float }
+	}
+	property {
 		name{ total_rich_income }
 		type{ float }
 		tag{ save }
@@ -3468,6 +3520,11 @@ object {
 	property {
 		name{ substates_count }
 		type{ uint16_t }
+	}
+	property {
+		name{ effective_prices }
+		type{ array{commodity_id}{float} }
+		tag{ save }
 	}
 	property {
 		name{ stockpiles }
@@ -3720,6 +3777,11 @@ object {
 		name{ ai_home_port }
 		type{ province_id }
 	}
+	property{
+		name{ mobilized_is_ai_controlled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 
@@ -3806,6 +3868,11 @@ relationship{
 	}
 	property{
 		name{ reparations }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ interested_in_alliance }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -4652,6 +4719,7 @@ object {
 		tag{ scenario }
 	}
 }
+
 
 object {
 	name{ stored_trigger }

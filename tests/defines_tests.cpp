@@ -4,7 +4,7 @@
 
 TEST_CASE("defines tests", "[defines_tests]") {
 	std::unique_ptr<sys::state> state = std::make_unique<sys::state>();
-	add_root(state->common_fs, NATIVE_M(GAME_DIR));
+	add_root(state->common_fs, NATIVE("."));
 	auto root = get_root(state->common_fs);
 	auto common = open_directory(root, NATIVE("common"));
 
