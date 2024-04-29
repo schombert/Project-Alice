@@ -4964,6 +4964,17 @@ uint32_t ef_annex_to_null_province(EFFECT_PARAMTERS) {
 	return 0;
 }
 
+uint32_t ef_fop_clr_global_flag(EFFECT_PARAMTERS) {
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[1]).glob_id, false);
+	ws.national_definitions.set_global_flag_variable(trigger::payload(tval[2]).glob_id, false);
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag(EFFECT_PARAMTERS) {
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natf_id, false);
+	ws.world.nation_set_flag_variables(trigger::to_nation(primary_slot), trigger::payload(tval[2]).natf_id, false);
+	return 0;
+}
+
 inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) ef_##name,

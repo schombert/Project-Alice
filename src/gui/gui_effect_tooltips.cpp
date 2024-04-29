@@ -6470,6 +6470,29 @@ uint32_t ef_annex_to_null(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 
+uint32_t ef_fop_clr_global_flag(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1]).glob_id]);
+	text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+	text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[2]).glob_id]);
+	text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_fop_clr_country_flag(EFFECT_DISPLAY_PARAMS) {
+	if(ws.user_settings.spoilers) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]);
+		text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[2]).natf_id]);
+		text::localised_format_box(ws, layout, box, "remove_national_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
 inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
 		ef_capital,																// constexpr inline uint16_t capital = 0x0001;
@@ -6738,22 +6761,14 @@ inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_party_loyalty_province,								// constexpr inline uint16_t party_loyalty_province = 0x0108;
 		ef_variable_tech_name_no,									// constexpr inline uint16_t variable_tech_name_no = 0x0109;
 		ef_variable_invention_name_yes,						// constexpr inline uint16_t variable_invention_name_yes = 0x010A;
-		ef_build_railway_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t
-		// build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
-ef_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t
-// build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
-ef_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t
-// build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
-ef_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t
-// build_railway_in_capital_no_whole_state_no_limit = 0x010E;
-ef_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t
-// build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
-ef_build_fort_in_capital_yes_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_yes_whole_state_no_limit
-// = 0x0110;
-ef_build_fort_in_capital_no_whole_state_yes_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_yes_limit
-// = 0x0111;
-ef_build_fort_in_capital_no_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_no_limit =
-// 0x0112;
+		ef_build_railway_in_capital_yes_whole_state_yes_limit, // constexpr inline uint16_t build_railway_in_capital_yes_whole_state_yes_limit = 0x010B;
+ef_build_railway_in_capital_yes_whole_state_no_limit,	 // constexpr inline uint16_t build_railway_in_capital_yes_whole_state_no_limit = 0x010C;
+ef_build_railway_in_capital_no_whole_state_yes_limit,	 // constexpr inline uint16_t build_railway_in_capital_no_whole_state_yes_limit = 0x010D;
+ef_build_railway_in_capital_no_whole_state_no_limit,	 // constexpr inline uint16_t build_railway_in_capital_no_whole_state_no_limit = 0x010E;
+ef_build_fort_in_capital_yes_whole_state_yes_limit,		 // constexpr inline uint16_t build_fort_in_capital_yes_whole_state_yes_limit = 0x010F;
+ef_build_fort_in_capital_yes_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_yes_whole_state_no_limit = 0x0110;
+ef_build_fort_in_capital_no_whole_state_yes_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_yes_limit = 0x0111;
+ef_build_fort_in_capital_no_whole_state_no_limit, // constexpr inline uint16_t build_fort_in_capital_no_whole_state_no_limit = 0x0112;
 ef_relation_reb,																	// constexpr inline uint16_t relation_reb = 0x0113;
 ef_variable_tech_name_yes,												// constexpr inline uint16_t variable_tech_name_yes = 0x0114;
 ef_variable_good_name,														// constexpr inline uint16_t variable_good_name = 0x0115;

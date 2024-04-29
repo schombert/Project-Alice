@@ -1157,11 +1157,16 @@ struct effect_body {
 	void clr_country_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
-			context.compiled_effect.push_back(uint16_t(effect::clr_country_flag));
-			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
+			if(context.compiled_effect.size() >= 2 && context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_country_flag)
+				context.compiled_effect[context.compiled_effect.size() - 2] = effect::fop_clr_country_flag;
+				context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::clr_country_flag));
+				context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
+			}
 		} else {
 			err.accumulated_errors +=
-					"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -2119,8 +2124,13 @@ struct effect_body {
 	}
 	void clr_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
-		context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
-		context.compiled_effect.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
+		if(context.compiled_effect.size() >= 2 && context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_global_flag)
+			context.compiled_effect[context.compiled_effect.size() - 2] = effect::fop_clr_global_flag;
+			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
+		} else {
+			context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
+			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
+		}
 	}
 	void nationalvalue(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {

@@ -441,13 +441,15 @@ EFFECT_BYTECODE_ELEMENT(0x01A6, add_accepted_culture_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A7, add_accepted_culture_union_this, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A8, add_accepted_culture_from, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A9, add_accepted_culture_union_from, 0) \
+EFFECT_BYTECODE_ELEMENT(0x01AA, fop_clr_global_flag, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01AB, fop_clr_country_flag, 2) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01AA;
+constexpr inline uint16_t first_scope_code = 0x01AC;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
