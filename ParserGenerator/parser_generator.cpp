@@ -26,7 +26,7 @@ struct group_association {
 	std::string key;
 	std::string type_or_function;
 	value_and_optional handler;
-	bool is_extern;
+	bool is_extern = false;
 };
 struct extern_group {
 	std::string function;
@@ -336,7 +336,11 @@ void parse() {
 
 				if(err_cond)
 					continue;
-				
+
+				if(key.data.empty()) {
+					report_error(118, type.loc_info, "Empty member '" + type.data + "' in group '" + groups.back().group_object_type + "'\n");
+					continue;
+				}
 				if(type.data == "parser" || type.data == "group") {
 					groups.back().groups.push_back(group_association{ key.data, opt.data, value_and_optional{handler_type.data, handler_opt.data}, false });
 				} else if(type.data == "value") {
@@ -404,6 +408,8 @@ std::string final_match_condition(std::string_view const key, size_t starting_po
 template<typename V, typename F>
 void enum_with_prefix(V const& vector, std::string_view const prefix, int32_t length, F const& fn) {
 	for(int32_t i = 0; i < int32_t(vector.size()); ++i) {
+		//auto const tmp = std::string(prefix);
+		//std::printf("EVAL-A %s (%s)\n", vector[i].key.c_str(), tmp.c_str());
 		if(int32_t(vector[i].key.length()) == length) {
 			bool match = true;
 			for(int32_t j = 0; j < int32_t(prefix.length()); ++j) {
