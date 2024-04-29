@@ -162,9 +162,11 @@ void gui_element_common::name(association_type, std::string_view txt, error_hand
 }
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
-	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")) {
+	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")
+	|| is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.570796")) {
 		target.flags |= uint8_t(ui::rotation::r90_right);
-	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.5708")) {
+	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.5708")
+		|| is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.570796")) {
 		target.flags |= uint8_t(ui::rotation::r90_left);
 	} else if(parse_float(txt, line, err) == 0.0f) {
 		target.flags |= uint8_t(ui::rotation::upright);

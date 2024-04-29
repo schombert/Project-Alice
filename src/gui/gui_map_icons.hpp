@@ -19,7 +19,7 @@ struct toggle_unit_grid {
 };
 
 template<bool IsNear>
-class port_ex_bg : public shift_button_element_base {
+class port_ex_bg : public button_element_base {
 	bool visible = false;
 
 	void on_update(sys::state& state) noexcept override {
@@ -746,7 +746,7 @@ public:
 	}
 };
 
-class tl_frame_bg : public shift_button_element_base {
+class tl_frame_bg : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
