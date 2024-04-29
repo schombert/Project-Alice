@@ -304,7 +304,7 @@ public:
 
 class right_click_button_element_base : public button_element_base {
 public:
-	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_right_action(sys::state& state) noexcept override { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -316,7 +316,7 @@ public:
 
 class tinted_right_click_button_element_base : public tinted_button_element_base {
 public:
-	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_right_action(sys::state& state) noexcept override { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
