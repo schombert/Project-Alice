@@ -3281,4 +3281,57 @@ void mod_file::add_to_file_system(simple_fs::file_system& fs){
 	add_root(fs, mod_path);
 }
 
+void save_country::rich_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_rich_tax(context.current, int8_t(v.current * 100.f));
+}
+void save_country::middle_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_middle_tax(context.current, int8_t(v.current * 100.f));
+}
+void save_country::poor_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_poor_tax(context.current, int8_t(v.current * 100.f));
+}
+void save_country::education_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_education_spending(context.current, int8_t(v.current * 100.f));
+}
+void save_country::crime_fighting(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_administrative_spending(context.current, int8_t(v.current * 100.f));
+}
+void save_country::social_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_social_spending(context.current, int8_t(v.current * 100.f));
+}
+void save_country::military_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_military_spending(context.current, int8_t(v.current * 100.f));
+}
+void save_country::leadership(association_type, float v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_leadership_points(context.current, v);
+}
+void save_country::revanchism(association_type, float v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_revanchism(context.current, v);
+}
+void save_country::plurality(association_type, float v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_plurality(context.current, v);
+}
+void save_country::diplomatic_points(association_type, float v, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.world.nation_set_diplomatic_points(context.current, v);
+}
+
+void save_file::date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, save_parser_context& context) {
+	context.state.current_date = sys::date::date(ymd, context.state.start_date);
+}
+void save_file::player(association_type, uint32_t v, error_handler& err, int32_t line, save_parser_context& context) {
+	auto const tag = nations::int_to_tag(v);
+	for(const auto id : context.state.world.in_national_identity) {
+		auto curr = nations::int_to_tag(context.state.world.national_identity_get_identifying_int(id));
+		if(curr == tag) {
+			context.state.local_player_nation = context.state.world.national_identity_get_nation_from_identity_holder(id);
+			return;
+		}
+	}
+	err.accumulated_errors += "invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+}
+void save_file::government(association_type, int32_t v, error_handler& err, int32_t line, save_parser_context& context) {
+	auto const id = dcon::government_type_id(dcon::government_type_id::value_base_t(v));
+	context.state.world.nation_set_government_type(context.state.local_player_nation, id);
+}
+
 } // namespace parsers

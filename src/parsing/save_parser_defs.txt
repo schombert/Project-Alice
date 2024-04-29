@@ -197,10 +197,14 @@ save_upper_house
 	#any				value		float				member_fn
 
 save_tax
-	current				value		float				member_fn
+	current				value		float				member
+	settings			value		float				member (current)
+	temp_settings		value		float				member (current)
 	tax_income			group		none				discard
 	tax_eff				group		none				discard
 	total				value		float				discard
+	factor				value		float				discard
+	reserve				value		float				discard
 	rangelimitmax		value		float				discard
 	rangelimitmin		value		float				discard
 	max_tax				value		int					discard
@@ -229,7 +233,7 @@ save_country
 	crime_fighting			group		save_tax			member_fn
 	social_spending			group		save_tax			member_fn
 	military_spending		group		save_tax			member_fn
-	overseas_penalty		value		float				member_fn
+	overseas_penalty		value		float				discard
 	leadership				value		float				member_fn
 	schools					value		text				member_fn
 	primary_culture			value		text				member_fn
@@ -270,9 +274,9 @@ save_file
 	date				value		date				member_fn
 	player				value		tag					member_fn
 	government			value		int					member_fn
-	automate_trade		value		bool				member_fn
+	automate_trade		value		bool				discard
 	flags				group		save_flags			member_fn
-	start_date			value		date				member_fn
+	start_date			value		date				discard
 	diplomacy			group		save_diplomacy		member_fn
 	active_war			group		save_war			member_fn
 	automate_sliders	value		bool				discard
