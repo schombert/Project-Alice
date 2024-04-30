@@ -519,7 +519,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(7));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(3 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::fop_clr_country_flag_2));
+		REQUIRE(t[0] == uint16_t(effect::fop_clr_global_flag_2));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(7));
 	}
@@ -533,7 +533,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(3));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(4 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::fop_clr_country_flag_3));
+		REQUIRE(t[0] == uint16_t(effect::fop_clr_global_flag_3));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(7));
 		REQUIRE(t[3] == uint16_t(3));
@@ -550,7 +550,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(8));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(5 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::fop_clr_country_flag_4));
+		REQUIRE(t[0] == uint16_t(effect::fop_clr_global_flag_4));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(7));
 		REQUIRE(t[3] == uint16_t(3));
@@ -570,7 +570,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(9));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(5 == new_size);
-		REQUIRE(t[0] == uint16_t(effect::fop_clr_country_flag_5));
+		REQUIRE(t[0] == uint16_t(effect::fop_clr_global_flag_5));
 		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(7));
 		REQUIRE(t[3] == uint16_t(3));
