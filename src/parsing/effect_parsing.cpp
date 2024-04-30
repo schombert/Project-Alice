@@ -1199,10 +1199,10 @@ int32_t simplify_effect(uint16_t* source) {
 					};
 					sub_units_start[0] = fop_table[repeats];
 					new_size = 1 + effect::data_sizes[fop_table[repeats]];
-					for(auto i = 2; i <= repeats + 1; i++) {
+					for(auto i = 1; i <= repeats + 1; i++) {
 						// todo: copy n size
-						sub_units_start[1 + effect::data_sizes[effect::clr_global_flag] * i]
-							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i];
+						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
+							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
 					}
 				}
 				if(new_size != old_size) { // has been simplified
