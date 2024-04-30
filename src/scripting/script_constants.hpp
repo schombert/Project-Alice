@@ -536,6 +536,7 @@ inline constexpr int8_t data_sizes[] = {
 static_assert(sizeof(data_sizes) == first_scope_code);
 
 inline int32_t get_effect_non_scope_payload_size(uint16_t const* data) {
+	assert((data[0] & effect::code_mask) < effect::first_invalid_code);
 	return effect::data_sizes[data[0] & effect::code_mask];
 }
 inline int32_t get_effect_scope_payload_size(uint16_t const* data) {
@@ -543,7 +544,7 @@ inline int32_t get_effect_scope_payload_size(uint16_t const* data) {
 }
 inline int32_t get_generic_effect_payload_size(uint16_t const* data) {
 	return (data[0] & effect::code_mask) >= first_scope_code ? get_effect_scope_payload_size(data)
-																													 : get_effect_non_scope_payload_size(data);
+		: get_effect_non_scope_payload_size(data);
 }
 inline int32_t effect_scope_data_payload(uint16_t code) {
 	auto const masked_code = code & effect::code_mask;
