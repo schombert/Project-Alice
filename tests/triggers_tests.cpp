@@ -521,9 +521,33 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(7));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(5 == new_size);
+		REQUIRE(t[1] == uint16_t(4));
 		REQUIRE(t[2] == uint16_t(effect::fop_clr_global_flag_2));
 		REQUIRE(t[3] == uint16_t(4));
 		REQUIRE(t[4] == uint16_t(7));
+	}
+	{
+		std::vector<uint16_t> t;
+		t.push_back(uint16_t(effect::generic_scope));
+		t.push_back(uint16_t(9));
+		t.push_back(uint16_t(effect::clr_global_flag));
+		t.push_back(uint16_t(4));
+		t.push_back(uint16_t(effect::clr_global_flag));
+		t.push_back(uint16_t(7));
+		t.push_back(uint16_t(effect::set_global_flag));
+		t.push_back(uint16_t(1));
+		t.push_back(uint16_t(effect::clr_global_flag));
+		t.push_back(uint16_t(8));
+		const auto new_size = parsers::simplify_effect(t.data());
+		REQUIRE(5 == new_size);
+		REQUIRE(t[1] == uint16_t(8));
+		REQUIRE(t[2] == uint16_t(effect::fop_clr_global_flag_2));
+		REQUIRE(t[3] == uint16_t(4));
+		REQUIRE(t[4] == uint16_t(7));
+		REQUIRE(t[5] == uint16_t(effect::set_global_flag));
+		REQUIRE(t[6] == uint16_t(1));
+		REQUIRE(t[7] == uint16_t(effect::clr_global_flag));
+		REQUIRE(t[8] == uint16_t(8));
 	}
 	{
 		std::vector<uint16_t> t;
@@ -537,6 +561,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(3));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(6 == new_size);
+		REQUIRE(t[1] == uint16_t(5));
 		REQUIRE(t[2] == uint16_t(effect::fop_clr_global_flag_3));
 		REQUIRE(t[3] == uint16_t(4));
 		REQUIRE(t[4] == uint16_t(7));
@@ -556,6 +581,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(8));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(7 == new_size);
+		REQUIRE(t[1] == uint16_t(6));
 		REQUIRE(t[2] == uint16_t(effect::fop_clr_global_flag_4));
 		REQUIRE(t[3] == uint16_t(4));
 		REQUIRE(t[4] == uint16_t(7));
@@ -578,6 +604,7 @@ TEST_CASE("effect op fusion", "[effect_tests]") {
 		t.push_back(uint16_t(9));
 		const auto new_size = parsers::simplify_effect(t.data());
 		REQUIRE(8 == new_size);
+		REQUIRE(t[1] == uint16_t(7));
 		REQUIRE(t[2] == uint16_t(effect::fop_clr_global_flag_5));
 		REQUIRE(t[3] == uint16_t(4));
 		REQUIRE(t[4] == uint16_t(7));
