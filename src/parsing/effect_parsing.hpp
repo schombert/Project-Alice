@@ -15,7 +15,6 @@ struct effect_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_effect;
 	size_t limit_position = 0;
-	size_t fuse_idemp = 0;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -1158,23 +1157,7 @@ struct effect_body {
 	void clr_country_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
-			auto old_fuse_idemp = context.fuse_idemp;
-			context.fuse_idemp = context.limit_position;
-			if(context.fuse_idemp == old_fuse_idemp
-			&& context.compiled_effect.size() >= 2
-			&& context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_country_flag) {
-				context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_country_flag_2);
-			} else if(context.fuse_idemp == old_fuse_idemp
-			&& context.compiled_effect.size() >= 3
-			&& context.compiled_effect[context.compiled_effect.size() - 3] == effect::fop_clr_country_flag_2) {
-				context.compiled_effect[context.compiled_effect.size() - 3] = uint16_t(effect::fop_clr_country_flag_3);
-			} else if(context.fuse_idemp == old_fuse_idemp
-			&& context.compiled_effect.size() >= 4
-			&& context.compiled_effect[context.compiled_effect.size() - 4] == effect::fop_clr_country_flag_3) {
-				context.compiled_effect[context.compiled_effect.size() - 4] = uint16_t(effect::fop_clr_country_flag_4);
-			} else {
-				context.compiled_effect.push_back(uint16_t(effect::clr_country_flag));
-			}
+			context.compiled_effect.push_back(uint16_t(effect::clr_country_flag));
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
@@ -2136,39 +2119,7 @@ struct effect_body {
 	}
 	void clr_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
-		auto old_fuse_idemp = context.fuse_idemp;
-		context.fuse_idemp = context.limit_position;
-		if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 2
-		&& context.compiled_effect[context.compiled_effect.size() - 2] == effect::clr_global_flag) {
-			context.compiled_effect[context.compiled_effect.size() - 2] = uint16_t(effect::fop_clr_global_flag_2);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 3
-		&& context.compiled_effect[context.compiled_effect.size() - 3] == effect::fop_clr_global_flag_2) {
-			context.compiled_effect[context.compiled_effect.size() - 3] = uint16_t(effect::fop_clr_global_flag_3);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 4
-		&& context.compiled_effect[context.compiled_effect.size() - 4] == effect::fop_clr_global_flag_3) {
-			context.compiled_effect[context.compiled_effect.size() - 4] = uint16_t(effect::fop_clr_global_flag_4);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 5
-		&& context.compiled_effect[context.compiled_effect.size() - 5] == effect::fop_clr_global_flag_4) {
-			context.compiled_effect[context.compiled_effect.size() - 5] = uint16_t(effect::fop_clr_global_flag_5);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 6
-		&& context.compiled_effect[context.compiled_effect.size() - 6] == effect::fop_clr_global_flag_5) {
-			context.compiled_effect[context.compiled_effect.size() - 6] = uint16_t(effect::fop_clr_global_flag_6);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 7
-		&& context.compiled_effect[context.compiled_effect.size() - 7] == effect::fop_clr_global_flag_6) {
-			context.compiled_effect[context.compiled_effect.size() - 7] = uint16_t(effect::fop_clr_global_flag_7);
-		} else if(context.fuse_idemp == old_fuse_idemp
-		&& context.compiled_effect.size() >= 8
-		&& context.compiled_effect[context.compiled_effect.size() - 8] == effect::fop_clr_global_flag_7) {
-			context.compiled_effect[context.compiled_effect.size() - 8] = uint16_t(effect::fop_clr_global_flag_8);
-		} else {
-			context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
-		}
+		context.compiled_effect.push_back(uint16_t(effect::clr_global_flag));
 		context.compiled_effect.push_back(trigger::payload(context.outer_context.get_global_flag(std::string(value))).value);
 	}
 	void nationalvalue(association_type t, std::string_view value, error_handler& err, int32_t line,

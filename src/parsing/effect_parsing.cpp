@@ -324,6 +324,7 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
+	auto const scope_offset = context.compiled_effect.size();
 	if(context.main_slot == trigger::slot_contents::state) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
@@ -339,6 +340,9 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 
 		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 		context.limit_position = old_limit_offset;
+
+		auto const new_scope_size = simplify_effect(context.compiled_effect.data() + scope_offset);
+		context.compiled_effect.resize(scope_offset + size_t(new_scope_size));
 		return;
 	} else {
 		gen.discard_group();
@@ -358,6 +362,9 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 	context.limit_position = old_limit_offset;
 	context.main_slot = old_main;
+
+	auto const new_scope_size = simplify_effect(context.compiled_effect.data() + scope_offset);
+	context.compiled_effect.resize(scope_offset + size_t(new_scope_size));
 }
 
 void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_building_context& context) {
@@ -1147,12 +1154,12 @@ int32_t simplify_effect(uint16_t* source) {
 
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
-
 			while(sub_units_start < source + source_size) {
 				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
 				auto const new_size = simplify_effect(sub_units_start);
 				if(new_size > 0) {
-					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+					if(new_size != old_size) { // has been simplified
+						assert(new_size < old_size);
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
 						source_size -= (old_size - new_size);
 					}
@@ -1164,12 +1171,42 @@ int32_t simplify_effect(uint16_t* source) {
 			}
 		} else {
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
-
 			while(sub_units_start < source + source_size) {
-				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				auto const new_size = simplify_effect(sub_units_start);
-
-				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+				// [0      0     ] | clr_global_flag	[1      2     ] | clr_global_flag
+				// [0      1     ] | <flag>				[1      3     ] | <flag>
+				// --------------- | n = 1				...............
+				// [n      2n    ]
+				// [n      2n + 1]
+				int32_t old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				int32_t new_size = simplify_effect(sub_units_start);
+				if((sub_units_start[0] & effect::code_mask) == effect::clr_global_flag) {
+					auto repeats = 0;
+					while(sub_units_start + old_size < source + source_size
+						&& (sub_units_start[old_size] & effect::code_mask) == effect::clr_global_flag
+						&& repeats < 8) {
+						old_size += 1 + effect::data_sizes[effect::clr_global_flag];
+						++repeats;
+					}
+					static const uint16_t fop_table[] = {
+						effect::clr_global_flag,
+						effect::fop_clr_global_flag_2,
+						effect::fop_clr_global_flag_3,
+						effect::fop_clr_global_flag_4,
+						effect::fop_clr_global_flag_5,
+						effect::fop_clr_global_flag_6,
+						effect::fop_clr_global_flag_7,
+						effect::fop_clr_global_flag_8
+					};
+					sub_units_start[0] = fop_table[repeats];
+					new_size = 1 + effect::data_sizes[fop_table[repeats]];
+					for(auto i = 1; i <= repeats + 1; i++) {
+						// todo: copy n size
+						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
+							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
+					}
+				}
+				if(new_size != old_size) { // has been simplified
+					assert(new_size < old_size);
 					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
 					source_size -= (old_size - new_size);
 				}
@@ -1231,7 +1268,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 
 	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
 		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) +
-															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
+			" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
 		return dcon::effect_key{0};
 	}
 
