@@ -126,10 +126,9 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 					}
 				}
 			}
-		} else {
-			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
-			}
+		}
+		if(opt[0].effect) {
+			effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
 		}
 	}
 
@@ -220,10 +219,9 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 					}
 				}
 			}
-		} else {
-			if(opt[0].effect) {
-				effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
-			}
+		}
+		if(opt[0].effect) {
+			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
 		}
 	}
 
