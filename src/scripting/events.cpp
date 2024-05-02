@@ -481,8 +481,6 @@ void update_future_events(sys::state& state) {
 }
 
 void update_events(sys::state& state) {
-	update_future_events(state);
-
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
 
@@ -660,6 +658,8 @@ void update_events(sys::state& state) {
 			state.pending_f_p_event.pop_back();
 		}
 	}
+
+	update_future_events(state);
 }
 
 struct internal_n_epair {
