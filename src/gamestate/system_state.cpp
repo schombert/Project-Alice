@@ -479,6 +479,14 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
+			} else if(keycode == virtual_key::HOME) {
+				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
+					auto map_pos = world.province_get_mid_point(cap);
+					map_pos.x /= float(map_state.map_data.size_x);
+					map_pos.y /= float(map_state.map_data.size_y);
+					map_pos.y = 1.0f - map_pos.y;
+					map_state.set_pos(map_pos);
+				}
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
