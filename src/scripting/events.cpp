@@ -309,7 +309,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 					}
 				}
 			}
-		} else if(opt[0].effect) {
+		}
+		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 		}
 	}
@@ -375,7 +376,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 					}
 				}
 			}
-		} else if(opt[0].effect) {
+		}
+		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 		}
 	}
