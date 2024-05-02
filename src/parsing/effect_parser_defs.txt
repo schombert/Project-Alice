@@ -280,7 +280,9 @@ effect_body
 	random_country                  extern      ef_scope_random_country     discard
 	random_neighbor_province        extern      ef_scope_random_neighbor_province        discard
 	random_empty_neighbor_province  extern      ef_scope_random_empty_neighbor_province  discard
+	any_empty_neighbor_province     extern      ef_scope_any_empty_neighbor_province  discard
 	any_greater_power               extern      ef_scope_any_greater_power  discard
+	random_greater_power            extern      ef_scope_random_greater_power  discard
 	poor_strata                     extern      ef_scope_poor_strata        discard
 	middle_strata                   extern      ef_scope_middle_strata      discard
 	rich_strata                     extern      ef_scope_rich_strata        discard
