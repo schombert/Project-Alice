@@ -532,7 +532,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 		auto phe = std::get<event::pending_human_f_p_event>(content);
 		auto imm = state.world.free_provincial_event_get_immediate_effect(phe.e);
 		if(imm) {
-			effect_description(state, contents, imm, trigger::to_generic(phe.p), trigger::to_generic(phe.n), -1, phe.r_lo, phe.r_hi);
+			effect_description(state, contents, imm, trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
 			for(auto& l : delegate->internal_layout.contents) {
 				if(l.color == (delegate->black_text ? text::text_color::white : text::text_color::black)) //Invert colours
 					l.color = delegate->black_text ? text::text_color::black : text::text_color::white;
