@@ -97,45 +97,6 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)))
 							 .is_valid());
 
-	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
-		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
-	}
-	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft};
-		state.pending_n_event.push_back(new_event);
-		if(n == state.local_player_nation)
-			state.new_n_event.push(new_event);
-	} else {
-		auto& opt = state.world.national_event_get_options(e);
-		float total = 0.0f;
-		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f , 0.0f };
-		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance) { //opt[i].effect may not be defined, but it may still be present
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
-				total += odds[i];
-			}
-		}
-
-		if(total > 0.0f) {
-			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
-			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance) {
-					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
-						}
-						return;
-					}
-				}
-			}
-		}
-
-		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
-		}
-	}
-
 	if(state.world.national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
 			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
@@ -181,6 +142,45 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			sys::message_base_type::national_event
 		});
 	}
+
+	if(auto immediate = state.world.national_event_get_immediate_effect(e); immediate) {
+		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
+	}
+	if(state.world.nation_get_is_player_controlled(n)) {
+		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft};
+		state.pending_n_event.push_back(new_event);
+		if(n == state.local_player_nation)
+			state.new_n_event.push(new_event);
+	} else {
+		auto& opt = state.world.national_event_get_options(e);
+		float total = 0.0f;
+		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f , 0.0f };
+		for(uint32_t i = 0; i < opt.size(); ++i) {
+			if(opt[i].ai_chance) { //opt[i].effect may not be defined, but it may still be present
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, primary_slot, trigger::to_generic(n), from_slot);
+				total += odds[i];
+			}
+		}
+
+		if(total > 0.0f) {
+			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
+			for(uint32_t i = 0; i < opt.size(); ++i) {
+				if(opt[i].ai_chance) {
+					rvalue -= odds[i] / total;
+					if(rvalue < 0.0f) {
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+						}
+						return;
+					}
+				}
+			}
+		}
+
+		if(opt[0].effect) {
+			effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+		}
+	}
 }
 void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::nation_id n, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
 	trigger_national_event(state, e, n, r_hi, r_lo, trigger::to_generic(n), slot_type::nation, from_slot, ft);
@@ -194,45 +194,6 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		return;
 
 	state.world.free_national_event_set_has_been_triggered(e, true);
-	if(auto immediate = state.world.free_national_event_get_immediate_effect(e); immediate) {
-		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
-	}
-	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_f_n_event new_event{r_lo, r_hi + 1, e, n, state.current_date};
-		state.pending_f_n_event.push_back(new_event);
-		if(n == state.local_player_nation)
-			state.new_f_n_event.push(new_event);
-	} else {
-		auto& opt = state.world.free_national_event_get_options(e);
-		float total = 0.0f;
-		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		for(uint32_t i = 0; i < opt.size(); ++i) {
-			if(opt[i].ai_chance) { //effect may not be present but chance may
-				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
-				total += odds[i];
-			}
-		}
-
-		if(total > 0.0f) {
-			auto rvalue = float(rng::get_random(state, uint32_t((e.index() << 3) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1);
-			for(uint32_t i = 0; i < opt.size(); ++i) {
-				if(opt[i].ai_chance) {
-					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
-						}
-						return;
-					}
-				}
-			}
-		}
-
-		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
-		}
-	}
-
 	if(state.world.free_national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
 			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
@@ -278,6 +239,44 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			sys::message_base_type::national_event
 		});
 	}
+	if(auto immediate = state.world.free_national_event_get_immediate_effect(e); immediate) {
+		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
+	}
+	if(state.world.nation_get_is_player_controlled(n)) {
+		pending_human_f_n_event new_event{r_lo, r_hi + 1, e, n, state.current_date};
+		state.pending_f_n_event.push_back(new_event);
+		if(n == state.local_player_nation)
+			state.new_f_n_event.push(new_event);
+	} else {
+		auto& opt = state.world.free_national_event_get_options(e);
+		float total = 0.0f;
+		float odds[sys::max_event_options] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		for(uint32_t i = 0; i < opt.size(); ++i) {
+			if(opt[i].ai_chance) { //effect may not be present but chance may
+				odds[i] = trigger::evaluate_multiplicative_modifier(state, opt[i].ai_chance, trigger::to_generic(n), trigger::to_generic(n), 0);
+				total += odds[i];
+			}
+		}
+
+		if(total > 0.0f) {
+			auto rvalue = float(rng::get_random(state, uint32_t((e.index() << 3) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1);
+			for(uint32_t i = 0; i < opt.size(); ++i) {
+				if(opt[i].ai_chance) {
+					rvalue -= odds[i] / total;
+					if(rvalue < 0.0f) {
+						if(opt[i].effect) {
+							effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+						}
+						return;
+					}
+				}
+			}
+		}
+
+		if(opt[0].effect) {
+			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+		}
+	}
 }
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo,
 		int32_t from_slot, slot_type ft) {
@@ -289,6 +288,29 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	if(owner == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_p_event_title",
+			owner, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::province_event
+		});
+	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
 		pending_human_p_event new_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft};
 		state.pending_p_event.push_back(new_event);
@@ -324,30 +346,6 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 		}
 	}
-
-	if(owner == state.local_player_nation) {
-		notification::post(state, notification::message{
-			[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
-				text::substitution_map m;
-				ui::populate_event_submap(state, m, ev);
-
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-			},
-			"msg_p_event_title",
-			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
-		});
-	}
 }
 void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
 		uint32_t r_lo) {
@@ -360,6 +358,29 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 	state.world.free_provincial_event_set_has_been_triggered(e, true);
 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
+	if(owner == state.local_player_nation) {
+		notification::post(state, notification::message{
+			[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
+				text::substitution_map m;
+				ui::populate_event_submap(state, m, ev);
+
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+				{
+					auto box = text::open_layout_box(contents);
+					text::add_line_break_to_layout_box(state, contents, box);
+					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
+					text::close_layout_box(contents, box);
+				}
+			},
+			"msg_p_event_title",
+			owner, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::province_event
+		});
+	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
 		pending_human_f_p_event new_event{r_lo, r_hi, e, p, state.current_date};
 		state.pending_f_p_event.push_back(new_event);
@@ -394,30 +415,6 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 		}
-	}
-
-	if(owner == state.local_player_nation) {
-		notification::post(state, notification::message{
-			[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
-				text::substitution_map m;
-				ui::populate_event_submap(state, m, ev);
-
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-			},
-			"msg_p_event_title",
-			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
-		});
 	}
 }
 
