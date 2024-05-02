@@ -947,6 +947,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 		auto new_id = context.state.world.create_free_provincial_event();
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
+		fid.set_immediate_effect(event_result.immediate_);
 		fid.set_name(event_result.title_);
 		fid.set_mtth(event_result.mean_time_to_happen);
 		fid.set_only_once(event_result.fire_only_once);
@@ -1099,6 +1100,7 @@ void lambda_province_event(token_generator& gen, error_handler& err, effect_buil
 	auto id = context.outer_context.state.world.create_provincial_event();
 	auto fid = dcon::fatten(context.outer_context.state.world, id);
 	fid.set_description(event_result.desc_);
+	fid.set_immediate_effect(event_result.immediate_);
 	fid.set_name(event_result.title_);
 	fid.get_options() = event_result.options;
 	//Effect
@@ -1327,6 +1329,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
+				fid.set_immediate_effect(event_result.immediate_);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;
 
