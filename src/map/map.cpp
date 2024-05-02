@@ -1636,24 +1636,66 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
+		bool is_linear = true;
+		if((e.coeff[2] != 0) || (e.coeff[3] != 0)) {
+			is_linear = false;
+		}
+		//as our methods are quite unstable, forcefully clamp linear coef
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 			};
+		auto dpoly_fn = [&](float x) {
+			// y = a + 1bx^1 + 1cx^2 + 1dx^3
+			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
+			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+		};
+
+		if(e.text == "German Empire") {
+			bool is_chile = true;
+		}
 
 		//cutting box if graph goes outside
 
 		float left = 0.f;
-		while((poly_fn(left) < 0) || (poly_fn(left) > 1)) {
-			left += 0.01f;
-		}
 		float right = 1.f;
-		while((poly_fn(right) < 0) || (poly_fn(right) > 1)) {
-			right -= 0.01f;
+
+		if(is_linear) {
+			if(e.coeff[1] > 0.01f) {
+				left = (-e.coeff[0]) / e.coeff[1];
+				right = (1.f - e.coeff[0]) / e.coeff[1];
+			} else if(e.coeff[1] < -0.01f) {
+				left = (1.f - e.coeff[0]) / e.coeff[1];
+				right = (- e.coeff[0]) / e.coeff[1];
+			}
+		} else {
+			while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
+				left += 1.f / 300.f;
+			}
+			while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
+				right -= 1.f / 300.f;
+			}
 		}
 
+
+		left = std::clamp(left, 0.f, 1.f);
+		right = std::clamp(right, 0.f, 1.f);
+
+
+		if(right <= left) {
+			continue;
+		}
+
+		// we want to compensate for float errors which lead to extended vertical labels
+		float collapse_coef = std::clamp(std::sqrt(1.f + abs(e.coeff[1]) * 0.7f), 1.f, 10.f);
+		//collapse_coef = 1.f;
 		float result_interval = right - left;
+		float center = (right + left) / 2.f;
+		result_interval /= collapse_coef;
+		left = center - result_interval / 2.f;
+		right = center + result_interval / 2.f;
+		result_interval = right - left;
 
 		glm::vec2 ratio = e.ratio;
 		glm::vec2 basis = e.basis;
@@ -1668,17 +1710,32 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		float x_step = (result_interval / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
-		for(float x = left; x <= right; x += x_step)
+		if(is_linear) {
+			float height = poly_fn(right) - poly_fn(left);
+			curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
+		} else for(float x = left; x <= right; x += x_step)
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 
 		float size = (curve_length / text_length) * 0.66f;
 		if(size > 200.0f) {
-			size = 200.0f + (size - 200.0f) * 0.5f;
+			size = 200.0f; //+ (size - 200.0f) * 0.5f;
 		}
+
+		if(size > ratio.x / 2.f) {
+			size = ratio.x / 2.f;
+		}
+		if(size > ratio.y / 2.f) {
+			size = ratio.y / 2.f;
+		}
+
+		size = 40.f + std::round((size - 40.f) / 40.f) * 40.f;
+		size *= 1.5f;
 
 		auto real_text_size = size / (size_x * 2.0f);
 
 		float margin = (curve_length - text_length * size) / 2.0f;
+
+		float letter_spacing = (curve_length / text_length - size) / size_x;
 
 		float x = left;
 
@@ -1694,11 +1751,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
 			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
-				auto dpoly_fn = [&](float x) {
-					// y = a + 1bx^1 + 1cx^2 + 1dx^3
-					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
-					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-					};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
@@ -1731,7 +1783,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 				if(glyph_length + added_distance >= glyph_advance) {
-					x += x_step * (glyph_advance - glyph_length) / added_distance;
+					x += x_step * (glyph_advance - glyph_length) / added_distance + letter_spacing;
 					break;
 				}
 				glyph_length += added_distance;
