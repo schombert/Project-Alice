@@ -6,16 +6,25 @@ This document covers modding extensions that have been added to Project Alice in
 
 In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when the nation's prestige is greater than or equal to 5. If you want to test whether the value is less than 5, you would have to bury it inside a `NOT` scope. And testing for exact equality would be even more complicated. To simplify things, we support replacing the `=` with one of the following tokens: `==`, `!=`, `<`, `>`, `<=`, `>=`. `==` tests for exact equality, `!=` for inequality, and the rest have their ordinary meanings. We also support replacing `=` with `!=` in most situations. For example, `tag != USA` is the same as `NOT = { tag = USA }`.
 
-### New Effects
+### New effects
 
+- `increment_variable = ...`: Shorthand to increment by 1
+- `decrement_variable = ...`: Shorthand to decrement by 1
+- `set_variable_to_zero = ...`: Shorthand to set a variable to 0
+- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
+- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
 - `kill_leader = "name of leader"` -- kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
 - `annex_to = null` -- this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
 - `secede_province = null` -- turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
+- `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
+- `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
 
 ### New Trigger Conditions
 
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
 - `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
 
 ### Lambda events
 
@@ -298,19 +307,6 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 - `$CRISISATTACKER_CONTINENT$`: Continent of attacker, based from capital.
 - `$CRISISDEFENDER_CAPITAL$`: Capital of defender.
 - `$CRISISDEFENDER_CONTINENT$`: Continent of attacker, based from capital.
-
-### New triggers
-
-- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
-
-### New effects
-
-- `increment_variable = ...`: Shorthand to increment by 1
-- `decrement_variable = ...`: Shorthand to decrement by 1
-- `set_variable_to_zero = ...`: Shorthand to set a variable to 0
-- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
-- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
-- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
 
 ### Political party triggers
 
