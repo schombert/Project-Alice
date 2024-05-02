@@ -328,6 +328,11 @@ party = {
 }
 ```
 
+## Extra on-actions
+
+- `on_election_started`: When an election starts
+- `on_election_finished`: When an election ends
+
 ## Government ruler-names
 
 Now you can define ruler names for a specific nation with a specific government type, for example:
