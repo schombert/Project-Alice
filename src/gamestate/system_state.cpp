@@ -2997,7 +2997,8 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	for(auto t : world.in_invention) {
 		for(auto n : world.in_nation) {
-			if(trigger::evaluate(*this, t.get_limit(), trigger::to_generic(n), trigger::to_generic(n), -1)) {
+			if(trigger::evaluate(*this, t.get_limit(), trigger::to_generic(n), trigger::to_generic(n), -1)
+			&& trigger::evaluate_additive_modifier(*this, t.get_chance(), trigger::to_generic(n), trigger::to_generic(n), -1) > 0.f) {
 				n.set_active_inventions(t, true);
 			}
 			if(n.get_active_inventions(t)) {
