@@ -541,6 +541,33 @@ enum class color_blind_mode {
 
 constexpr int32_t max_event_options = 8;
 
+enum class news_generator_type {
+	none,
+	peace_offer_accept,
+	game_event,
+	province_change_controller,
+	province_change_owner,
+	construction_complete,
+	research_complete,
+	battle_over,
+	rebel_break_country,
+	new_party,
+	war_declared,
+	crisis_started,
+	crisis_backer,
+	crisis_side_joined,
+	crisis_resolved,
+	decision,
+	goods_price_change,
+	ai_afraid_of,
+	ai_likes_very_much,
+	fake,
+};
+constexpr inline uint8_t news_size_small = 0x00;
+constexpr inline uint8_t news_size_medium = 0x80;
+constexpr inline uint8_t news_size_huge = 0xC0;
+constexpr int32_t max_news_generator_cases = 4;
+
 } // namespace sys
 
 namespace culture {

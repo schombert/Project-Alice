@@ -122,6 +122,23 @@ static_assert(sizeof(event_option) ==
 	+ sizeof(event_option::ai_chance)
 	+ sizeof(event_option::effect));
 
+struct news_picture_case {
+	dcon::trigger_key trigger;
+	dcon::gfx_object_id picture;
+};
+static_assert(sizeof(news_picture_case) ==
+	sizeof(news_picture_case::trigger)
+	+ sizeof(news_picture_case::picture));
+struct news_text_case {
+	dcon::text_sequence_id text;
+	dcon::trigger_key trigger;
+	uint16_t unused_ = 0;
+};
+static_assert(sizeof(news_text_case) ==
+	sizeof(news_text_case::trigger)
+	+ sizeof(news_text_case::text)
+	+ sizeof(news_text_case::unused_));
+
 struct modifier_hash {
 	using is_avalanching = void;
 

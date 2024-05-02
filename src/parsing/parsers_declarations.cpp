@@ -2245,6 +2245,52 @@ void decision::finish(decision_context& context) {
 	// "always = yes" assumed when no allow is specified
 }
 
+void decision::news_title(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	context.outer_context.state.world.decision_set_news_title(context.id, text::find_or_add_key(context.outer_context.state, value));
+}
+void decision::news_desc_long(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	context.outer_context.state.world.decision_set_news_long_desc(context.id, text::find_or_add_key(context.outer_context.state, value));
+}
+void decision::news_desc_medium(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	context.outer_context.state.world.decision_set_news_medium_desc(context.id, text::find_or_add_key(context.outer_context.state, value));
+}
+void decision::news_desc_short(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	context.outer_context.state.world.decision_set_news_short_desc(context.id, text::find_or_add_key(context.outer_context.state, value));
+}
+
+void decision::news_picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
+	auto root = get_root(context.outer_context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto decisions = open_directory(pictures, NATIVE("decisions"));
+	if(!peek_file(decisions, simple_fs::utf8_to_native(value) + NATIVE(".dds")).has_value()) {
+		err.accumulated_warnings += "Picture " + std::string(value) + " does not exist " + " (" + err.file_name + ")\n";
+		return; // Picture not found
+	}
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\decisions\\") + std::string(value) + ".tga");
+	if(auto it = context.outer_context.gfx_context.map_of_names.find(file_name); it != context.outer_context.gfx_context.map_of_names.end()) {
+		context.outer_context.state.world.decision_set_news_picture(context.id, it->second);
+	} else {
+		auto gfxindex = context.outer_context.state.ui_defs.gfx.size();
+		context.outer_context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.outer_context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+		context.outer_context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+		new_obj.number_of_frames = uint8_t(1);
+		if(auto itb = context.outer_context.gfx_context.map_of_texture_names.find(file_name);
+				itb != context.outer_context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.outer_context.state.ui_defs.textures.size();
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+		context.outer_context.state.world.decision_set_news_picture(context.id, new_id);
+	}
+}
+
 void decision::picture(association_type, std::string_view value, error_handler& err, int32_t line, decision_context& context) {
 	auto root = get_root(context.outer_context.state.common_fs);
 	auto gfx = open_directory(root, NATIVE("gfx"));
@@ -2929,6 +2975,57 @@ void country_file::any_group(std::string_view name, color_from_3i c, error_handl
 void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line,
 		event_building_context& context) {
 	title_ = text::find_or_add_key(context.outer_context.state, value);
+}
+
+void generic_event::news_desc_long(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+	news_long_desc_ = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::news_desc_medium(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+	news_medium_desc_ = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::news_desc_short(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+	news_short_desc_ = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::news_title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context) {
+	news_title_ = text::find_or_add_key(context.outer_context.state, value);
+}
+void generic_event::news_picture(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
+	auto root = get_root(context.outer_context.state.common_fs);
+	auto gfx = open_directory(root, NATIVE("gfx"));
+	auto pictures = open_directory(gfx, NATIVE("pictures"));
+	auto events = open_directory(pictures, NATIVE("events"));
+	std::string file_name = simple_fs::remove_double_backslashes(std::string("gfx\\pictures\\events\\") + [&]() {
+		if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".tga"))) {
+			return std::string(name) + ".tga";
+		} else if(peek_file(events, simple_fs::utf8_to_native(name) + NATIVE(".dds"))) {
+			return std::string(name) + ".tga";
+		} else {
+			return std::string("GFX_event_no_image.tga");
+		}
+	}());
+	if(auto it = context.outer_context.gfx_context.map_of_names.find(file_name);
+			it != context.outer_context.gfx_context.map_of_names.end()) {
+		news_picture_ = it->second;
+	} else {
+		auto gfxindex = context.outer_context.state.ui_defs.gfx.size();
+		context.outer_context.state.ui_defs.gfx.emplace_back();
+		ui::gfx_object& new_obj = context.outer_context.state.ui_defs.gfx.back();
+		auto new_id = dcon::gfx_object_id(uint16_t(gfxindex));
+
+		context.outer_context.gfx_context.map_of_names.insert_or_assign(file_name, new_id);
+		new_obj.number_of_frames = uint8_t(1);
+		if(auto itb = context.outer_context.gfx_context.map_of_texture_names.find(file_name);
+				itb != context.outer_context.gfx_context.map_of_texture_names.end()) {
+			new_obj.primary_texture_handle = itb->second;
+		} else {
+			auto index = context.outer_context.state.ui_defs.textures.size();
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
+			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
+		}
+		new_obj.flags |= uint8_t(ui::object_type::generic_sprite);
+		news_picture_ = new_id;
+	}
 }
 
 void generic_event::desc(association_type, std::string_view value, error_handler& err, int32_t line,
