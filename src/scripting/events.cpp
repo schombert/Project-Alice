@@ -115,24 +115,21 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 				total += odds[i];
 			}
 		}
-
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ n.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
 				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
-						}
-						return;
+					if(rvalue < 0.0f && opt[i].effect) {
+						effect::execute(state, opt[i].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+						break;
 					}
 				}
 			}
-		}
-
-		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+		} else {
+			if(opt[0].effect) {
+				effect::execute(state, opt[0].effect, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi + 1);
+			}
 		}
 	}
 
@@ -212,24 +209,21 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 				total += odds[i];
 			}
 		}
-
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t((e.index() << 3) ^ n.index())) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
 				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
-						}
-						return;
+					if(rvalue < 0.0f && opt[i].effect) {
+						effect::execute(state, opt[i].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+						break;
 					}
 				}
 			}
-		}
-
-		if(opt[0].effect) {
-			effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+		} else {
+			if(opt[0].effect) {
+				effect::execute(state, opt[0].effect, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi + 1);
+			}
 		}
 	}
 
@@ -304,23 +298,18 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 				total += odds[i];
 			}
 		}
-
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
 				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
-						}
-						return;
+					if(rvalue < 0.0f && opt[i].effect) {
+						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
+						break;
 					}
 				}
 			}
-		}
-
-		if(opt[0].effect) {
+		} else if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 		}
 	}
@@ -375,23 +364,18 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 				total += odds[i];
 			}
 		}
-
 		if(total > 0.0f) {
 			auto rvalue = float(rng::get_random(state, uint32_t(e.index() ^ p.index() << 5)) & 0xFFFF) / float(0xFFFF + 1);
 			for(uint32_t i = 0; i < opt.size(); ++i) {
 				if(opt[i].ai_chance) {
 					rvalue -= odds[i] / total;
-					if(rvalue < 0.0f) {
-						if(opt[i].effect) {
-							effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
-						}
-						return;
+					if(rvalue < 0.0f && opt[i].effect) {
+						effect::execute(state, opt[i].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
+						break;
 					}
 				}
 			}
-		}
-
-		if(opt[0].effect) {
+		} else if(opt[0].effect) {
 			effect::execute(state, opt[0].effect, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 		}
 	}
@@ -481,8 +465,6 @@ void update_future_events(sys::state& state) {
 }
 
 void update_events(sys::state& state) {
-	update_future_events(state);
-
 	uint32_t n_block_size = state.world.free_national_event_size() / 32;
 	uint32_t p_block_size = state.world.free_provincial_event_size() / 32;
 
@@ -660,6 +642,8 @@ void update_events(sys::state& state) {
 			state.pending_f_p_event.pop_back();
 		}
 	}
+
+	update_future_events(state);
 }
 
 struct internal_n_epair {
