@@ -274,18 +274,20 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			selected_navies.clear();
 		}
-		for(auto a : world.nation_get_army_control(local_player_nation)) {
-			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
-				auto loc = a.get_army().get_location_from_army_location();
-				auto mid_point = world.province_get_mid_point(loc);
-				auto map_pos = map_state.normalize_map_coord(mid_point);
-				auto screen_size = glm::vec2{ float(x_size), float(y_size) };
-				glm::vec2 screen_pos;
-				if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
-					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
-						&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+		if((int32_t(key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
+			for(auto a : world.nation_get_army_control(local_player_nation)) {
+				if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
+					auto loc = a.get_army().get_location_from_army_location();
+					auto mid_point = world.province_get_mid_point(loc);
+					auto map_pos = map_state.normalize_map_coord(mid_point);
+					auto screen_size = glm::vec2{ float(x_size), float(y_size) };
+					glm::vec2 screen_pos;
+					if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+						if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
+							&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 
-						select(a.get_army());
+							select(a.get_army());
+						}
 					}
 				}
 			}
