@@ -60,7 +60,11 @@ struct command_info {
 		innovate,
 		daily_oos_check,
 		province_names,
-		color_blind_mode
+		color_blind_mode,
+		list_national_variables,
+		list_global_flags,
+		list_national_flags,
+		list_all_flags,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -219,6 +223,18 @@ inline constexpr command_info possible_commands[] = {
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "lnv", command_info::type::list_national_variables, "List national variables",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "lgv", command_info::type::list_global_flags, "List global flags",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "lnf", command_info::type::list_national_flags, "List national flags",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "laf", command_info::type::list_all_flags, "List all flags",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "tcore", command_info::type::toggle_core, "Toggle add/remove core",
@@ -1682,6 +1698,60 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
 		}
 		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::list_national_variables:
+	{
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; i++) {
+			auto nv = dcon::national_variable_id(dcon::national_variable_id::value_base_t(i));
+			auto v = state.world.nation_get_variables(state.local_player_nation, nv);
+			if(v != 0.f)
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.variable_names[nv]) + ": " + text::format_float(v, 4));
+		}
+		break;
+	}
+	case command_info::type::list_national_flags:
+	{
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; i++) {
+			auto nv = dcon::national_flag_id(dcon::national_flag_id::value_base_t(i));
+			if(state.world.nation_get_flag_variables(state.local_player_nation, nv))
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.flag_variable_names[nv]));
+		}
+		break;
+	}
+	case command_info::type::list_global_flags:
+	{
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_global_flags; i++) {
+			auto nv = dcon::global_flag_id(dcon::global_flag_id::value_base_t(i));
+			if(state.national_definitions.is_global_flag_variable_set(nv))
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.global_flag_variable_names[nv]));
+		}
+		break;
+	}
+	case command_info::type::list_all_flags:
+	{
+		log_to_console(state, parent, std::string("-------------------------------"));
+		log_to_console(state, parent, text::produce_simple_string(state, "national_variables"));
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; i++) {
+			auto nv = dcon::national_variable_id(dcon::national_variable_id::value_base_t(i));
+			auto v = state.world.nation_get_variables(state.local_player_nation, nv);
+			if(v != 0.f)
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.variable_names[nv]) + ": " + text::format_float(v, 4));
+		}
+		log_to_console(state, parent, std::string("-------------------------------"));
+		log_to_console(state, parent, text::produce_simple_string(state, "national_flags"));
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; i++) {
+			auto nv = dcon::national_flag_id(dcon::national_flag_id::value_base_t(i));
+			if(state.world.nation_get_flag_variables(state.local_player_nation, nv))
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.flag_variable_names[nv]));
+		}
+		log_to_console(state, parent, std::string("-------------------------------"));
+		log_to_console(state, parent, text::produce_simple_string(state, "global_flags"));
+		for(int32_t i = 0; i < state.national_definitions.num_allocated_global_flags; i++) {
+			auto nv = dcon::global_flag_id(dcon::global_flag_id::value_base_t(i));
+			if(state.national_definitions.is_global_flag_variable_set(nv))
+				log_to_console(state, parent, text::produce_simple_string(state, state.national_definitions.global_flag_variable_names[nv]));
+		}
 		break;
 	}
 	case command_info::type::innovate:
