@@ -273,11 +273,14 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 	}
 }
 void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dcon::province_id p, uint32_t r_hi, uint32_t r_lo, int32_t from_slot, slot_type ft) {
-	if(!state.world.provincial_event_get_name(e)  && state.world.provincial_event_get_options(e).size() == 0)
+	if(!state.world.provincial_event_get_name(e)  && state.world.provincial_event_get_options(e).size() == 0 && !state.world.provincial_event_get_immediate_effect(e))
 		return; // event without data
 	if(ft == slot_type::province)
 		assert(dcon::fatten(state.world, state.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot))).is_valid());
 
+	if(auto immediate = state.world.provincial_event_get_immediate_effect(e); immediate) {
+		effect::execute(state, immediate, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
+	}
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(owner == state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -342,10 +345,13 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		uint32_t r_lo) {
 	if(state.world.free_provincial_event_get_only_once(e) && state.world.free_provincial_event_get_has_been_triggered(e))
 		return;
-	if(!state.world.free_provincial_event_get_name(e)  && state.world.free_provincial_event_get_options(e).size() == 0)
+	if(!state.world.free_provincial_event_get_name(e)  && state.world.free_provincial_event_get_options(e).size() == 0 && !state.world.free_provincial_event_get_immediate_effect(e))
 		return; // event without data
 
 	state.world.free_provincial_event_set_has_been_triggered(e, true);
+	if(auto immediate = state.world.free_provincial_event_get_immediate_effect(e); immediate) {
+		effect::execute(state, immediate, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
+	}
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(owner == state.local_player_nation) {
 		notification::post(state, notification::message{
