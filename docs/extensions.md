@@ -20,7 +20,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
 
-### New Trigger Conditions
+### New trigger conditions
 
 - `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
 - `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
