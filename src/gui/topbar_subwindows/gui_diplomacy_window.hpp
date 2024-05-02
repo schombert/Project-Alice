@@ -2207,8 +2207,10 @@ public:
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
 
-		Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.local_player_nation };
-		impl_get(state, payload);
+		if(state.great_nations.size() > 1) {
+			Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.great_nations[0].nation };
+			impl_get(state, payload);
+		}
 
 		set_visible(state, false);
 	}
