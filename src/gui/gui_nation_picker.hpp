@@ -165,7 +165,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
-		if(i->file_name == state.loaded_save_file)\
+		if(!i->is_new_game && i->file_name == state.loaded_save_file)
 			return;
 
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
