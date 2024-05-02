@@ -2487,7 +2487,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	});
 
 	// load province history files
-
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
@@ -2536,9 +2535,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
-
 	culture::set_default_issue_and_reform_options(*this);
-
 	// load pop history files
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
@@ -2546,8 +2543,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto start_dir_name =
 			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
-
-
 		// NICK: 
 		// Attempts to look through the start date as defined by the mod.
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
@@ -2555,7 +2550,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
-
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -2565,7 +2559,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::parse_pop_history_file(gen, err, context);
 			}
 		}
-
 		// Modding extension:
 		// Support loading pops from a CSV file, this to condense them better and allow
 		// for them to load faster and better ordered, editable with a spreadsheet program
@@ -2783,6 +2776,33 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		err.file_name = "pending events";
 		parsers::commit_pending_events(err, context);
 	}
+	// load news
+	{
+		auto news_dir = open_directory(root, NATIVE("news"));
+		for(auto news_file : list_files(news_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(news_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_news_file(gen, err, parsers::news_context{ context });
+			}
+		}
+	}
+	// load tutorial
+	{
+		auto tutorial_dir = open_directory(root, NATIVE("tutorial"));
+		for(auto tutorial_file : list_files(tutorial_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(tutorial_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_tutorial_file(gen, err, context);
+			}
+		}
+	}
+
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
@@ -2907,33 +2927,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-	// load news
-	{
-		auto news_dir = open_directory(root, NATIVE("news"));
-		for(auto news_file : list_files(news_dir, NATIVE(".txt"))) {
-			auto opened_file = open_file(news_file);
-			if(opened_file) {
-				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
-				auto content = view_contents(*opened_file);
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_news_file(gen, err, parsers::news_context{ context });
-			}
-		}
-	}
-	// load tutorial
-	{
-		auto tutorial_dir = open_directory(root, NATIVE("tutorial"));
-		for(auto tutorial_file : list_files(tutorial_dir, NATIVE(".txt"))) {
-			auto opened_file = open_file(tutorial_file);
-			if(opened_file) {
-				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
-				auto content = view_contents(*opened_file);
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_tutorial_file(gen, err, context);
-			}
-		}
-	}
-
 	// misc touch ups
 	nations::generate_initial_state_instances(*this);
 	world.nation_resize_stockpiles(world.commodity_size());
@@ -3004,8 +2997,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	for(auto t : world.in_invention) {
 		for(auto n : world.in_nation) {
-			if(n.get_active_inventions(t))
+			if(trigger::evaluate(*this, t.get_limit(), trigger::to_generic(n), trigger::to_generic(n), -1)) {
+				n.set_active_inventions(t, true);
+			}
+			if(n.get_active_inventions(t)) {
 				culture::apply_invention(*this, n, t);
+			}
 		}
 	}
 
