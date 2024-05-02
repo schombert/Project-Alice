@@ -4512,6 +4512,11 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ issue_group }
+		type{ issue_id }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4606,6 +4611,11 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+	}
+	property{
+		name{ issue_group }
+		type{ issue_id }
+		tag{ scenario }
 	}
 }
 

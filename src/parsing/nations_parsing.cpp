@@ -998,6 +998,7 @@ void scan_country_event(token_generator& gen, error_handler& err, scenario_build
 		fid.set_image(event_result.picture_);
 		fid.set_immediate_effect(event_result.immediate_);
 		fid.set_is_major(event_result.major);
+		fid.set_issue_group(event_result.issue_group_);
 		fid.set_mtth(event_result.mean_time_to_happen);
 		fid.set_only_once(event_result.fire_only_once);
 		fid.set_trigger(event_result.trigger);
@@ -1016,6 +1017,7 @@ void lambda_country_event(token_generator& gen, error_handler& err, effect_build
 	fid.set_image(event_result.picture_);
 	fid.set_immediate_effect(event_result.immediate_);
 	fid.set_is_major(event_result.major);
+	fid.set_issue_group(event_result.issue_group_);
 	fid.get_options() = event_result.options;
 	//Effect
 	ef_country_event value;
@@ -1216,6 +1218,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.set_image(event_result.picture_);
 				fid.set_immediate_effect(event_result.immediate_);
 				fid.set_is_major(event_result.major);
+				fid.set_issue_group(event_result.issue_group_);
 				fid.get_options() = event_result.options;
 
 				for(auto& r : context.state.national_definitions.on_yearly_pulse) {

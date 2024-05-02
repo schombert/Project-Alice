@@ -605,6 +605,56 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
+void event_issue_group_text::on_update(sys::state& state) noexcept {
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto e = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).e);
+		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto e = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).e);
+		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto e = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).e);
+		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto e = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).e);
+		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
+	}
+}
+
+void event_state_name_text::on_update(sys::state& state) noexcept {
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).n);
+		set_text(state, text::produce_simple_string(state, n.get_name()));
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).n);
+		set_text(state, text::produce_simple_string(state, n.get_name()));
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).n);
+		set_text(state, text::produce_simple_string(state, n.get_name()));
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).n);
+		set_text(state, text::produce_simple_string(state, n.get_name()));
+	}
+}
+
+void event_population_amount_text::on_update(sys::state& state) noexcept {
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+	if(std::holds_alternative<event::pending_human_n_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).n);
+		set_text(state, text::prettify(int64_t(n.get_demographics(demographics::total))));
+	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).n);
+		set_text(state, text::prettify(int64_t(n.get_demographics(demographics::total))));
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).n);
+		set_text(state, text::prettify(int64_t(n.get_demographics(demographics::total))));
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).n);
+		set_text(state, text::prettify(int64_t(n.get_demographics(demographics::total))));
+	}
+}
 
 class alice_button_row : public listbox_row_element_base<int32_t> {
 public:
@@ -824,6 +874,10 @@ std::unique_ptr<element_base> national_event_window::make_child(sys::state& stat
 		return make_element_by_type<event_image>(state, id);
 	} else if(name == "date") {
 		return make_element_by_type<event_date_text>(state, id);
+	} else if(name == "state_name") {
+		return make_element_by_type<event_state_name_text>(state, id);
+	} else if(name == "population_amount") {
+		return make_element_by_type<event_population_amount_text>(state, id);
 	}
 	return nullptr;
 }
@@ -1033,6 +1087,8 @@ std::unique_ptr<element_base> provincial_event_window::make_child(sys::state& st
 		auto ptr = make_element_by_type<event_name_text>(state, id);
 		ptr->base_data.position.y += 6;
 		return ptr;
+	} else if(name == "subtitle") {
+		return make_element_by_type<event_issue_group_text>(state, id);
 	} else if(name == "description") {
 		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "date") {

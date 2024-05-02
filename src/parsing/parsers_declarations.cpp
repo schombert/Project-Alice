@@ -2936,6 +2936,14 @@ void generic_event::desc(association_type, std::string_view value, error_handler
 	desc_ = text::find_or_add_key(context.outer_context.state, value);
 }
 
+void generic_event::issue_group(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
+	if(auto it = context.outer_context.map_of_iissues.find(std::string(name)); it != context.outer_context.map_of_iissues.end()) {
+		issue_group_ = it->second;
+	} else {
+		err.accumulated_errors += "Invalid issue group " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
 	if(last_option_added < sys::max_event_options) {
 		options[last_option_added] = value;

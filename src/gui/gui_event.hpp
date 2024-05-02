@@ -69,6 +69,19 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
+class event_issue_group_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class event_state_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class event_population_amount_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+
 //
 // National events
 //
