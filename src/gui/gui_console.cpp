@@ -678,7 +678,7 @@ void print_graph_label(sys::state& state, std::string& text, std::string_view so
 		} else if((data[0] & effect::code_mask) == effect::province_event_this_state) {
 			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
 		}
-		if(name) {
+		if(name && text.size() < 0xfffff) {
 			text += "\"" + std::string(source) + "\" -> \"" + text::produce_simple_string(state, name) + "\";\n";
 		}
 	});
