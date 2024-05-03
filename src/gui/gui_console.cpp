@@ -624,58 +624,32 @@ void write_single_component(sys::state& state, native_string_view filename, F&& 
 void print_graph_label(sys::state& state, std::string& text, std::string_view source, uint16_t* data) {
 	effect::recurse_over_effects(data, [&](uint16_t* data) {
 		dcon::text_sequence_id name;
-		if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_nation) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_pop) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_province) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_state) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-			//immediate this nation
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_this_nation) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_this_pop) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_this_province) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_immediate_this_state) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-			//delayed country events
-		} else if((data[0] & effect::code_mask) == effect::country_event_province_this_nation) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_province_this_pop) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_province_this_province) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_province_this_state) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-			//this nation
-		} else if((data[0] & effect::code_mask) == effect::country_event_this_nation) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_this_pop) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_this_province) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-		} else if((data[0] & effect::code_mask) == effect::country_event_this_state) {
+		if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_this_nation
+			|| ((data[0] & effect::code_mask) == effect::country_event_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_this_state) {
 			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
 			//province event
-		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_nation) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_pop) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_province) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_state) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-			//delatyed province events
-		} else if((data[0] & effect::code_mask) == effect::province_event_this_nation) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_this_pop) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_this_province) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		} else if((data[0] & effect::code_mask) == effect::province_event_this_state) {
+		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_nation
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_pop
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_province
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_state
+			|| (data[0] & effect::code_mask) == effect::province_event_this_nation
+			|| (data[0] & effect::code_mask) == effect::province_event_this_pop
+			|| (data[0] & effect::code_mask) == effect::province_event_this_province
+			|| (data[0] & effect::code_mask) == effect::province_event_this_state) {
 			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
 		}
 		if(name && text.size() < 0xfffff) {
