@@ -1234,7 +1234,11 @@ int32_t simplify_effect(uint16_t* source) {
 						effect::fop_clr_global_flag_5,
 						effect::fop_clr_global_flag_6,
 						effect::fop_clr_global_flag_7,
-						effect::fop_clr_global_flag_8
+						effect::fop_clr_global_flag_8,
+						effect::fop_clr_global_flag_9,
+						effect::fop_clr_global_flag_10,
+						effect::fop_clr_global_flag_11,
+						effect::fop_clr_global_flag_12
 					};
 					sub_units_start[0] = fop_table[repeats];
 					new_size = 1 + effect::data_sizes[fop_table[repeats]];
