@@ -1368,6 +1368,7 @@ uint32_t es_integer_scope(EFFECT_DISPLAY_PARAMS) {
 	return display_subeffects(ws, tval, layout, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo,
 			indentation + indentation_amount);
 }
+
 uint32_t es_pop_type_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	auto type = (tval[0] & effect::scope_has_limit) != 0 ? trigger::payload(tval[3]).popt_id : trigger::payload(tval[2]).popt_id;
 
@@ -6478,18 +6479,6 @@ uint32_t ef_fop_clr_global_flag_2(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
-uint32_t ef_fop_clr_country_flag_2(EFFECT_DISPLAY_PARAMS) {
-	if(ws.user_settings.spoilers) {
-		for(uint32_t i = 0; i < 2; i++) {
-			auto box = text::open_layout_box(layout, indentation);
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
-			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
-			text::close_layout_box(layout, box);
-		}
-	}
-	return 0;
-}
 uint32_t ef_fop_clr_global_flag_3(EFFECT_DISPLAY_PARAMS) {
 	for(uint32_t i = 0; i < 3; i++) {
 		auto box = text::open_layout_box(layout, indentation);
@@ -6500,18 +6489,6 @@ uint32_t ef_fop_clr_global_flag_3(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
-uint32_t ef_fop_clr_country_flag_3(EFFECT_DISPLAY_PARAMS) {
-	if(ws.user_settings.spoilers) {
-		for(uint32_t i = 0; i < 3; i++) {
-			auto box = text::open_layout_box(layout, indentation);
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
-			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
-			text::close_layout_box(layout, box);
-		}
-	}
-	return 0;
-}
 uint32_t ef_fop_clr_global_flag_4(EFFECT_DISPLAY_PARAMS) {
 	for(uint32_t i = 0; i < 4; i++) {
 		auto box = text::open_layout_box(layout, indentation);
@@ -6519,18 +6496,6 @@ uint32_t ef_fop_clr_global_flag_4(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
 		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
 		text::close_layout_box(layout, box);
-	}
-	return 0;
-}
-uint32_t ef_fop_clr_country_flag_4(EFFECT_DISPLAY_PARAMS) {
-	if(ws.user_settings.spoilers) {
-		for(uint32_t i = 0; i < 4; i++) {
-			auto box = text::open_layout_box(layout, indentation);
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.flag_variable_names[trigger::payload(tval[1 + i]).natf_id]);
-			text::localised_format_box(ws, layout, box, "remove_national_flag", m);
-			text::close_layout_box(layout, box);
-		}
 	}
 	return 0;
 }
@@ -6570,6 +6535,60 @@ uint32_t ef_fop_clr_global_flag_8(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
 		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_9(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 9; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_10(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 10; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_11(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 11; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_clr_global_flag_12(EFFECT_DISPLAY_PARAMS) {
+	for(uint32_t i = 0; i < 11; i++) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1 + i]).glob_id]);
+		text::localised_format_box(ws, layout, box, "remove_global_flag", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_fop_change_province_name(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto p = trigger::payload(tval[2]).prov_id;
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::substitution_map m;
+		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		text::add_to_substitution_map(m, text::variable_type::text, name);
+		text::localised_format_box(ws, layout, box, "change_name_to", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -7007,15 +7026,17 @@ ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_
 ef_add_accepted_culture_from, //constexpr inline uint16_t add_accepted_culture_from = 0x01A8;
 ef_add_accepted_culture_union, //constexpr inline uint16_t add_accepted_culture_union_from = 0x01A9;
 ef_fop_clr_global_flag_2, //constexpr inline uint16_t fop_clr_global_flag_2 = 0x01AA;
-ef_fop_clr_country_flag_2, //constexpr inline uint16_t fop_clr_country_flag_2 = 0x01AB;
-ef_fop_clr_global_flag_3, //constexpr inline uint16_t fop_clr_global_flag_3 = 0x01AC;
-ef_fop_clr_country_flag_3, //constexpr inline uint16_t fop_clr_country_flag_3 = 0x01AD;
-ef_fop_clr_global_flag_4, //constexpr inline uint16_t fop_clr_global_flag_4 = 0x01AE;
-ef_fop_clr_country_flag_4, //constexpr inline uint16_t fop_clr_country_flag_4 = 0x01AF;
-ef_fop_clr_global_flag_5, //constexpr inline uint16_t fop_clr_global_flag_5 = 0x01B0;
-ef_fop_clr_global_flag_6, //constexpr inline uint16_t fop_clr_global_flag_6 = 0x01B1;
-ef_fop_clr_global_flag_7, //constexpr inline uint16_t fop_clr_global_flag_7 = 0x01B2;
-ef_fop_clr_global_flag_8, //constexpr inline uint16_t fop_clr_global_flag_8 = 0x01B3;
+ef_fop_clr_global_flag_3, //constexpr inline uint16_t fop_clr_global_flag_3 = 0x01AB;
+ef_fop_clr_global_flag_4, //constexpr inline uint16_t fop_clr_global_flag_4 = 0x01AC;
+ef_fop_clr_global_flag_5, //constexpr inline uint16_t fop_clr_global_flag_5 = 0x01AD;
+ef_fop_clr_global_flag_6, //constexpr inline uint16_t fop_clr_global_flag_6 = 0x01AE;
+ef_fop_clr_global_flag_7, //constexpr inline uint16_t fop_clr_global_flag_7 = 0x01AF;
+ef_fop_clr_global_flag_8, //constexpr inline uint16_t fop_clr_global_flag_8 = 0x01B0;
+ef_fop_clr_global_flag_9, //constexpr inline uint16_t fop_clr_global_flag_9 = 0x01B1;
+ef_fop_clr_global_flag_10, //constexpr inline uint16_t fop_clr_global_flag_10 = 0x01B2;
+ef_fop_clr_global_flag_11, //constexpr inline uint16_t fop_clr_global_flag_11 = 0x01B3;
+ef_fop_clr_global_flag_12, //constexpr inline uint16_t fop_clr_global_flag_12 = 0x01B4;
+ef_fop_change_province_name, //constexpr inline uint16_t fop_change_province_name = 0x01B5;
 
 //
 // SCOPES

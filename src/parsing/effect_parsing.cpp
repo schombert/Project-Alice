@@ -1234,7 +1234,11 @@ int32_t simplify_effect(uint16_t* source) {
 						effect::fop_clr_global_flag_5,
 						effect::fop_clr_global_flag_6,
 						effect::fop_clr_global_flag_7,
-						effect::fop_clr_global_flag_8
+						effect::fop_clr_global_flag_8,
+						effect::fop_clr_global_flag_9,
+						effect::fop_clr_global_flag_10,
+						effect::fop_clr_global_flag_11,
+						effect::fop_clr_global_flag_12
 					};
 					sub_units_start[0] = fop_table[repeats];
 					new_size = 1 + effect::data_sizes[fop_table[repeats]];
@@ -1242,6 +1246,17 @@ int32_t simplify_effect(uint16_t* source) {
 						// todo: copy n size
 						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
 							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
+					}
+				} else if((sub_units_start[0] & effect::code_mask) == effect::integer_scope
+					&& (sub_units_start[0] & effect::scope_has_limit) == 0
+					&& (sub_units_start[0] & effect::is_random_scope) == 0) {
+					// sub sub
+					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
+					if(ss_units_start[0] == effect::change_province_name) {
+						sub_units_start[0] = effect::fop_change_province_name;
+						sub_units_start[2] = sub_units_start[1]; //province
+						sub_units_start[1] = ss_units_start[1]; //name
+						new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
 					}
 				}
 				if(new_size != old_size) { // has been simplified
