@@ -1368,6 +1368,7 @@ uint32_t es_integer_scope(EFFECT_DISPLAY_PARAMS) {
 	return display_subeffects(ws, tval, layout, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo,
 			indentation + indentation_amount);
 }
+
 uint32_t es_pop_type_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	auto type = (tval[0] & effect::scope_has_limit) != 0 ? trigger::payload(tval[3]).popt_id : trigger::payload(tval[2]).popt_id;
 
@@ -6578,6 +6579,20 @@ uint32_t ef_fop_clr_global_flag_12(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_fop_change_province_name(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto p = trigger::payload(tval[2]).prov_id;
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
+		text::add_space_to_layout_box(ws, layout, box);
+		text::substitution_map m;
+		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+		text::add_to_substitution_map(m, text::variable_type::text, name);
+		text::localised_format_box(ws, layout, box, "change_name_to", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 
 inline constexpr uint32_t(*effect_functions[])(EFFECT_DISPLAY_PARAMS) = {
 		ef_none,
@@ -7021,6 +7036,7 @@ ef_fop_clr_global_flag_9, //constexpr inline uint16_t fop_clr_global_flag_9 = 0x
 ef_fop_clr_global_flag_10, //constexpr inline uint16_t fop_clr_global_flag_10 = 0x01B2;
 ef_fop_clr_global_flag_11, //constexpr inline uint16_t fop_clr_global_flag_11 = 0x01B3;
 ef_fop_clr_global_flag_12, //constexpr inline uint16_t fop_clr_global_flag_12 = 0x01B4;
+ef_fop_change_province_name, //constexpr inline uint16_t fop_change_province_name = 0x01B5;
 
 //
 // SCOPES
