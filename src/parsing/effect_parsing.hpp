@@ -1267,7 +1267,7 @@ struct effect_body {
 						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
@@ -1413,7 +1413,7 @@ struct effect_body {
 						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_nation | effect::no_payload));
 				return;
 			} else {
@@ -1422,7 +1422,7 @@ struct effect_body {
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::province) {
-			if(value == "null") {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
