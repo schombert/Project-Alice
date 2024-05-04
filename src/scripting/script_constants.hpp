@@ -562,6 +562,22 @@ inline bool effect_scope_has_single_member(uint16_t const* source) { // precondi
 	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
 }
 
+template<typename T>
+uint16_t* recurse_over_effects(uint16_t* source, T const& f) {
+	f(source);
+	assert((source[0] & effect::code_mask) < effect::first_invalid_code || (source[0] & effect::code_mask) == effect::code_mask);
+	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
+		auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
+		auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+		while(sub_units_start < source + source_size) {
+			sub_units_start = recurse_over_effects(sub_units_start, f);
+		}
+		return source + source_size;
+	} else {
+		return source + 1 + effect::get_effect_non_scope_payload_size(source);
+	}
+}
+
 } // namespace effect
 
 //
