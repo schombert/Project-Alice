@@ -637,7 +637,7 @@ void print_graph_label(sys::state& state, std::string& text, std::string_view so
 			|| (data[0] & effect::code_mask) == effect::country_event_province_this_province
 			|| (data[0] & effect::code_mask) == effect::country_event_province_this_state
 			|| (data[0] & effect::code_mask) == effect::country_event_this_nation
-			|| ((data[0] & effect::code_mask) == effect::country_event_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_this_pop
 			|| (data[0] & effect::code_mask) == effect::country_event_this_province
 			|| (data[0] & effect::code_mask) == effect::country_event_this_state) {
 			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
