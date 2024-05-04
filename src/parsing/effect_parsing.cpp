@@ -1253,9 +1253,11 @@ int32_t simplify_effect(uint16_t* source) {
 					// sub sub
 					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
 					if(ss_units_start[0] == effect::change_province_name) {
+						auto const prov = sub_units_start[2]; //[code] [size] [province]
+						auto const name = ss_units_start[1];
 						sub_units_start[0] = effect::fop_change_province_name;
-						sub_units_start[2] = sub_units_start[1]; //province
-						sub_units_start[1] = ss_units_start[1]; //name
+						sub_units_start[2] = prov; //province
+						sub_units_start[1] = name; //name
 						new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
 					}
 				}
