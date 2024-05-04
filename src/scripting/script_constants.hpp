@@ -453,7 +453,7 @@ EFFECT_BYTECODE_ELEMENT(0x01B1, fop_clr_global_flag_9, 9) \
 EFFECT_BYTECODE_ELEMENT(0x01B2, fop_clr_global_flag_10, 10) \
 EFFECT_BYTECODE_ELEMENT(0x01B3, fop_clr_global_flag_11, 11) \
 EFFECT_BYTECODE_ELEMENT(0x01B4, fop_clr_global_flag_12, 12) \
-EFFECT_BYTECODE_ELEMENT(0x01B5, fop_change_province_name, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01B5, fop_change_province_name, 3) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
