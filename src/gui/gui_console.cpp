@@ -35,6 +35,7 @@ struct command_info {
 		militancy,
 		dump_out_of_sync,
 		dump_event_graph,
+		ai_elligibility,
 		fog_of_war,
 		prestige,
 		force_ally,
@@ -154,6 +155,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"graph", command_info::type::dump_event_graph, "Dump an event graph",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
+		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
 		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
@@ -1395,6 +1399,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		txt += "}\n";
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("graph.txt"), txt.c_str(), uint32_t(txt.size()));
+	}
+	break;
+	case command_info::type::ai_elligibility:
+	{
+		auto const n = state.local_player_nation;
+		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
+		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "\x02" : "\x01");
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
