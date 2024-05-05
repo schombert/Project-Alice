@@ -517,7 +517,6 @@ constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 constexpr inline uint16_t x_substate_scope = first_scope_code + 0x0031;
 constexpr inline uint16_t capital_scope_province = first_scope_code + 0x0032;
 constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
-
 // variable named scopes
 constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
 constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
@@ -528,8 +527,10 @@ constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
 constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
 constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
+constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
+constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003D;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003F;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none

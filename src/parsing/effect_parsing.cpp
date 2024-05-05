@@ -99,7 +99,52 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
+	if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+		context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
+	} else {
+		if(context.effect_is_for_event) {
+			context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
+		} else {
+			context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
+		}
+	}
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	context.main_slot = trigger::slot_contents::nation;
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+	context.main_slot = old_main;
+}
+
+void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	auto old_main = context.main_slot;
+
+	context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	context.main_slot = trigger::slot_contents::nation;
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+	context.main_slot = old_main;
+}
+void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	auto old_main = context.main_slot;
+
+	context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
