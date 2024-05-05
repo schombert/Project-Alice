@@ -223,6 +223,7 @@ Alice adds a handful of new defines:
 - `alice_needs_lx_spend`: See above, but luxury needs
 - `alice_sat_delay_factor`: Satisfaction delay factor
 - `alice_need_drift_speed`: Drift speed of need weights for POPs
+- `alice_cleanup_tag_exception`: Set to 1 to activate the `CLN` tag exception, allowing AI to take decisions on the `CLN` tag even if it doesn't own any provinces, set to 0 to revert this behaviour
 
 ### Dense CSV pop listing
 

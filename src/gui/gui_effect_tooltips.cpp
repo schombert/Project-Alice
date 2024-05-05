@@ -6581,7 +6581,7 @@ uint32_t ef_fop_clr_global_flag_12(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t ef_fop_change_province_name(EFFECT_DISPLAY_PARAMS) {
 	{
-		auto p = trigger::payload(tval[2]).prov_id;
+		auto p = trigger::payload(tval[3]).prov_id;
 		auto box = text::open_layout_box(layout, indentation);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
 		text::add_space_to_layout_box(ws, layout, box);

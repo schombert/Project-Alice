@@ -28,12 +28,17 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	}
 
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "who")
-		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")) {
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "yes")) {
 		err.accumulated_warnings += err.file_name + " line " + std::to_string(line) + ": A tag which may conflict with a built-in 'who' or 'oob'\n";
 	}
 
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
+	// Recognize the cleanup utility tag
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
+		context.state.national_definitions.cleanup_tag = new_ident;
+	}
 
 	auto name_id = text::find_or_add_key(context.state, tag);
 	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
