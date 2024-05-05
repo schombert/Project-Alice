@@ -454,13 +454,15 @@ EFFECT_BYTECODE_ELEMENT(0x01B2, fop_clr_global_flag_10, 10) \
 EFFECT_BYTECODE_ELEMENT(0x01B3, fop_clr_global_flag_11, 11) \
 EFFECT_BYTECODE_ELEMENT(0x01B4, fop_clr_global_flag_12, 12) \
 EFFECT_BYTECODE_ELEMENT(0x01B5, fop_change_province_name, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01B6, change_terrain_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01B7, change_terrain_province, 1) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01B6;
+constexpr inline uint16_t first_scope_code = 0x01B8;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)

@@ -3414,6 +3414,22 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(which_).value);
 		context.add_float_to_payload(0.f);
 	}
+	void change_terrain(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(auto it = context.outer_context.map_of_terrain_types.find(std::string(value));
+				it != context.outer_context.map_of_terrain_types.end()) {
+			if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_pop));
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_province));
+			} else {
+				err.accumulated_errors += "chenge_terrain effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+		} else {
+			err.accumulated_errors += "chenge_terrain effect supplied with an invalid terrain \"" + std::string(value) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors +=

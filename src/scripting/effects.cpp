@@ -5079,6 +5079,16 @@ uint32_t ef_fop_change_province_name(EFFECT_PARAMTERS) {
 	ws.world.province_set_name(trigger::payload(tval[3]).prov_id, name);
 	return 0;
 }
+uint32_t ef_change_terrain_province(EFFECT_PARAMTERS) {
+	auto const p = trigger::to_prov(primary_slot);
+	ws.world.province_set_terrain(p, trigger::payload(tval[1]).mod_id);
+	return 0;
+}
+uint32_t ef_change_terrain_pop(EFFECT_PARAMTERS) {
+	auto const p = ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot));
+	ws.world.province_set_terrain(p, trigger::payload(tval[1]).mod_id);
+	return 0;
+}
 
 inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		ef_none,

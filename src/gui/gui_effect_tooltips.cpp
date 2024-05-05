@@ -6604,17 +6604,31 @@ uint32_t ef_fop_clr_global_flag_12(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_fop_change_province_name(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto p = trigger::payload(tval[3]).prov_id;
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::substitution_map m;
-		dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
-		text::add_to_substitution_map(m, text::variable_type::text, name);
-		text::localised_format_box(ws, layout, box, "change_name_to", m);
-		text::close_layout_box(layout, box);
-	}
+	auto p = trigger::payload(tval[3]).prov_id;
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::substitution_map m;
+	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
+	text::add_to_substitution_map(m, text::variable_type::text, name);
+	text::localised_format_box(ws, layout, box, "change_name_to", m);
+	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_change_terrain_pop(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "ett_change_pop_terrain_to", m);
+	text::close_layout_box(layout, box);
+	return 0;
+}
+uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "ett_change_province_terrain_to", m);
+	text::close_layout_box(layout, box);
 	return 0;
 }
 
