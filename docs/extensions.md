@@ -19,6 +19,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `secede_province = null` -- turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
+- `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
 
 ### New trigger conditions
 

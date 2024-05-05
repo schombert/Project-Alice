@@ -320,6 +320,7 @@ effect_body
 	set_variable_to_zero            value       text                        member_fn
 	lambda_country_event			extern		lambda_country_event		discard
 	lambda_province_event			extern		lambda_province_event		discard
+	change_terrain					value		text						member_fn
 	#any                            extern      ef_scope_variable           discard
 
 event_option
