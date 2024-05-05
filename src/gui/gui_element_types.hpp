@@ -239,7 +239,7 @@ public:
 	}
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(!state.user_settings.left_mouse_click_hold_and_release && !disabled) {
+		if(!state.user_settings.left_mouse_click_hold_and_release && !disabled && under_mouse) {
 			sound::play_interface_sound(state, get_click_sound(state),
 					state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)
