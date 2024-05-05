@@ -919,6 +919,8 @@ message_result multiline_text_element_base::test_mouse(sys::state& state, int32_
 		return message_result::unseen;
 	}
 	case mouse_probe_type::tooltip:
+		if(has_tooltip(state) != tooltip_behavior::no_tooltip)
+			return message_result::consumed;
 		return message_result::unseen;
 	case mouse_probe_type::scroll:
 		return message_result::unseen;
