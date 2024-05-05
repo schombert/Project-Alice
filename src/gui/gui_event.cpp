@@ -457,8 +457,7 @@ void event_image::on_update(sys::state& state) noexcept {
 	if(std::holds_alternative<event::pending_human_n_event>(content))
 		base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
 	else if(std::holds_alternative<event::pending_human_f_n_event>(content))
-		base_data.data.image.gfx_object =
-				state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
+		base_data.data.image.gfx_object = state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
 }
 
 void event_desc_text::on_create(sys::state& state) noexcept {
@@ -710,6 +709,9 @@ void national_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.y += 5;
 		add_child_to_front(std::move(ptr));
 	}
+	if(image) {
+		move_child_to_front(image);
+	}
 }
 
 void national_major_event_window::on_create(sys::state& state) noexcept {
@@ -727,14 +729,14 @@ void national_major_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.x += ptr->base_data.size.x * 2;
 		add_child_to_front(std::move(ptr));
 	}
-
-	//auto s3 = IsMajor ? "event_major_optionbutton" : "event_country_optionbutton";
-
 	{
 		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_option_start")->second.definition].position;
 		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
 		ptr->base_data.position = cur_offset;
 		add_child_to_front(std::move(ptr));
+	}
+	if(image) {
+		move_child_to_front(image);
 	}
 }
 
@@ -841,7 +843,9 @@ std::unique_ptr<element_base> national_event_window::make_child(sys::state& stat
 	} else if(name == "description") {
 		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "event_images") {
-		return make_element_by_type<event_image>(state, id);
+		auto ptr = make_element_by_type<event_image>(state, id);
+		image = ptr.get();
+		return ptr;
 	} else if(name == "date") {
 		return make_element_by_type<event_date_text>(state, id);
 	}
@@ -856,7 +860,9 @@ std::unique_ptr<element_base> national_major_event_window::make_child(sys::state
 	} else if(name == "description") {
 		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "event_images") {
-		return make_element_by_type<event_image>(state, id);
+		auto ptr = make_element_by_type<event_image>(state, id);
+		image = ptr.get();
+		return ptr;
 	} else if(name == "date") {
 		return make_element_by_type<event_date_text>(state, id);
 	} else if(name == "country_flag1") {
