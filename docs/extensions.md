@@ -20,6 +20,8 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
 - `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
+- `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
+- `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 
 ### New trigger conditions
 
@@ -226,6 +228,7 @@ Alice adds a handful of new defines:
 - `alice_sat_delay_factor`: Satisfaction delay factor
 - `alice_need_drift_speed`: Drift speed of need weights for POPs
 - `alice_cleanup_tag_exception`: Set to 1 to activate the `CLN` tag exception, allowing AI to take decisions on the `CLN` tag even if it doesn't own any provinces, set to 0 to revert this behaviour
+- `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including non-existant and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behaviour, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
 
 ### Dense CSV pop listing
 

@@ -15,6 +15,7 @@ struct effect_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_effect;
 	size_t limit_position = 0;
+	bool effect_is_for_event = false;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -3723,6 +3724,8 @@ void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_bu
 void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);

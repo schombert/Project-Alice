@@ -219,6 +219,82 @@ uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 		}
 	}
 }
+uint32_t es_x_event_country_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		std::vector<dcon::nation_id> rlist;
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			for(auto n : ws.world.in_nation) {
+				if(trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					rlist.push_back(n.id);
+			}
+		} else {
+			for(auto n : ws.world.in_nation) {
+				rlist.push_back(n.id);
+			}
+		}
+		if(rlist.size() != 0) {
+			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
+		}
+		return 0;
+	} else {
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			uint32_t i = 0;
+			for(auto n : ws.world.in_nation) {
+				if(trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
+			}
+			return i;
+		} else {
+			uint32_t i = 0;
+			for(auto n : ws.world.in_nation) {
+				i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
+			}
+			return i;
+		}
+	}
+}
+uint32_t es_x_decision_country_scope(EFFECT_PARAMTERS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		std::vector<dcon::nation_id> rlist;
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					rlist.push_back(n.id);
+			}
+		} else {
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0)
+					rlist.push_back(n.id);
+			}
+		}
+		if(rlist.size() != 0) {
+			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
+		}
+		return 0;
+	} else {
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			uint32_t i = 0;
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
+			}
+			return i;
+		} else {
+			uint32_t i = 0;
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0)
+					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
+			}
+			return i;
+		}
+	}
+}
 uint32_t es_x_country_scope(EFFECT_PARAMTERS) {
 	return es_x_country_scope_nation(tval, ws, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_hi, r_lo, els);
 }
@@ -5159,6 +5235,8 @@ inline constexpr uint32_t (*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 		es_if_scope, // constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
 		es_else_if_scope, // constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
+		es_x_event_country_scope, // constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
+		es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

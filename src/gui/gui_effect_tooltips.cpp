@@ -338,24 +338,19 @@ uint32_t es_x_neighbor_country_scope(EFFECT_DISPLAY_PARAMS) {
 			return 0;
 		}
 	}
-
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
 }
 uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::nation_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto n : ws.world.in_nation) {
@@ -368,7 +363,6 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 					rlist.push_back(n.id);
 			}
 		}
-
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
@@ -377,26 +371,93 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 			text::close_layout_box(layout, box);
 			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-										 indentation + indentation_amount);
+				indentation + indentation_amount);
 		}
 		return 0;
 	}
-
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
+}
+uint32_t es_x_event_country_scope(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		std::vector<dcon::nation_id> rlist;
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			for(auto n : ws.world.in_nation) {
+				if(trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					rlist.push_back(n.id);
+			}
+		} else {
+			for(auto n : ws.world.in_nation) {
+				rlist.push_back(n.id);
+			}
+		}
+		if(rlist.size() != 0) {
+			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto box = text::open_layout_box(layout, indentation);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
+			text::close_layout_box(layout, box);
+			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
+				indentation + indentation_amount);
+		}
+		return 0;
+	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
+}
+uint32_t es_x_decision_country_scope(EFFECT_DISPLAY_PARAMS) {
+	if((tval[0] & effect::is_random_scope) != 0) {
+		std::vector<dcon::nation_id> rlist;
+		if((tval[0] & effect::scope_has_limit) != 0) {
+			auto limit = trigger::payload(tval[2]).tr_id;
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+					rlist.push_back(n.id);
+			}
+		} else {
+			for(auto n : ws.world.in_nation) {
+				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0)
+					rlist.push_back(n.id);
+			}
+		}
+		if(rlist.size() != 0) {
+			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
+			auto box = text::open_layout_box(layout, indentation);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
+			text::close_layout_box(layout, box);
+			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
+				indentation + indentation_amount);
+		}
+		return 0;
+	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
 }
 uint32_t es_x_country_scope(EFFECT_DISPLAY_PARAMS) {
-	return es_x_country_scope_nation(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
+	return es_x_country_scope_nation(ws, tval, layout, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_lo, r_hi, indentation);
 }
 uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -7075,6 +7136,8 @@ ef_fop_clr_global_flag_10, //constexpr inline uint16_t fop_clr_global_flag_10 = 
 ef_fop_clr_global_flag_11, //constexpr inline uint16_t fop_clr_global_flag_11 = 0x01B3;
 ef_fop_clr_global_flag_12, //constexpr inline uint16_t fop_clr_global_flag_12 = 0x01B4;
 ef_fop_change_province_name, //constexpr inline uint16_t fop_change_province_name = 0x01B5;
+ef_change_terrain_province, //constexpr inline uint16_t change_terrain_province = 0x01B6;
+ef_change_terrain_pop, //constexpr inline uint16_t change_terrain_pop = 0x01B7;
 
 //
 // SCOPES
@@ -7141,6 +7204,8 @@ es_region_proper_scope,										// constexpr inline uint16_t region_scope = fir
 es_region_scope,										// constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 es_if_scope, // constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
 es_else_if_scope, // constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
+es_x_event_country_scope, // constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
+es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

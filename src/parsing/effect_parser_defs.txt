@@ -282,7 +282,6 @@ effect_body
 	random_empty_neighbor_province  extern      ef_scope_random_empty_neighbor_province  discard
 	any_empty_neighbor_province     extern      ef_scope_any_empty_neighbor_province  discard
 	any_greater_power               extern      ef_scope_any_greater_power  discard
-	random_greater_power            extern      ef_scope_random_greater_power  discard
 	poor_strata                     extern      ef_scope_poor_strata        discard
 	middle_strata                   extern      ef_scope_middle_strata      discard
 	rich_strata                     extern      ef_scope_rich_strata        discard
@@ -321,6 +320,9 @@ effect_body
 	lambda_country_event			extern		lambda_country_event		discard
 	lambda_province_event			extern		lambda_province_event		discard
 	change_terrain					value		text						member_fn
+	random_greater_power            extern      ef_scope_random_greater_power  discard
+	any_defined_country             extern      ef_scope_any_defined_country  discard
+	any_existing_country_except_scoped	extern	ef_scope_any_existing_country_except_scoped  discard
 	#any                            extern      ef_scope_variable           discard
 
 event_option

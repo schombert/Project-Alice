@@ -851,6 +851,7 @@ dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err
 dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context) {
 	effect_building_context e_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty};
+	e_context.effect_is_for_event = false;
 	return make_effect(gen, err, e_context);
 }
 
@@ -1156,6 +1157,7 @@ dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, e
 }
 dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 	return make_effect(gen, err, e_context);
 }
 dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context) {
@@ -1168,6 +1170,7 @@ dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handl
 }
 sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 
 	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	e_context.compiled_effect.push_back(uint16_t(0));
