@@ -1731,6 +1731,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		size = 40.f + std::round((size - 40.f) / 40.f) * 40.f;
 		size *= 1.5f;
 
+		if(size < 20.f) {
+			continue;
+		}
+
 		auto real_text_size = size / (size_x * 2.0f);
 
 		float margin = (curve_length - text_length * size) / 2.0f;

@@ -165,14 +165,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 	int samples_N = 200;
 	int samples_M = 100;
+	float step_x = float(map_data.size_x) / float(samples_N);
+	float step_y = float(map_data.size_y) / float(samples_M);
 
 	// generate additional points
-	std::vector<uint16_t> samples_regions;
+	/*std::vector<uint16_t> samples_regions;
 	for(int i = 0; i < samples_N; i++)
 		for(int j = 0; j < samples_M; j++) {
-			float x = float(i) / float(samples_N) * float(map_data.size_x);
-			float y = float(map_data.size_y) * (1.f - float(j) / float(samples_M));
-
+			float x = float(i) * step_x;
+			float y = float(map_data.size_y) - float(j) * step_y;
 			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
 
 			if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
@@ -181,7 +182,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			} else {
 				samples_regions.push_back(0);
 			}
-		}
+		}*/
 
 	// generate graph of regions:
 	for(auto candidate : state.world.in_province) {
@@ -229,12 +230,12 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		int vacant_index = 1;
 		while(first_index < vacant_index) {
 			auto current_region = group_of_regions[first_index];
-			visited[current_region] = true;
 			first_index++;
 
 			for(auto neighbour_region : regions_graph[current_region]) {
 				if(!visited[neighbour_region]) {
 					group_of_regions.push_back(neighbour_region);
+					visited[neighbour_region] = true;
 					vacant_index++;
 				}
 			}
@@ -249,11 +250,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		bool connected_to_capital = false;
 
 		for(auto visited_region : group_of_regions) {
-			if(n.get_capital().get_connected_region_id() == visited_region){
+			if(n.get_capital().get_connected_region_id() == visited_region) {
 				connected_to_capital = true;
 			}
 		}
-
+		
 		if(!connected_to_capital) {
 			// Adjective + " " + Continent
 			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
@@ -263,7 +264,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			uint32_t total_provinces = 0;
 			for(auto visited_region : group_of_regions) {
 				for(auto candidate : state.world.in_province) {
-					if(candidate.get_connected_region_id() == rid) {
+					if(candidate.get_connected_region_id() == visited_region) {
 						total_provinces++;
 						for(const auto core : candidate.get_core_as_province()) {
 							uint32_t v = 1;
@@ -292,27 +293,150 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.empty())
 			continue;
 
+		bool is_interesting = false;
+		if(name == "Chile") {
+			is_interesting = true;
+		}
+
+		float rough_box_left = std::numeric_limits<float>::max();
+		float rough_box_right = 0;
+		float rough_box_bottom = std::numeric_limits<float>::max();
+		float rough_box_top = 0;
+
+		for(auto visited_region : group_of_regions) {
+			for(auto candidate : state.world.in_province) {
+				if(candidate.get_connected_region_id() == visited_region) {
+					glm::vec2 mid_point = candidate.get_mid_point();
+
+					if(mid_point.x < rough_box_left) {
+						rough_box_left = mid_point.x;
+					}
+					if(mid_point.x > rough_box_right) {
+						rough_box_right = mid_point.x;
+					}
+					if(mid_point.y < rough_box_bottom) {
+						rough_box_bottom = mid_point.y;
+					}
+					if(mid_point.y > rough_box_top) {
+						rough_box_top = mid_point.y;
+					}
+				}
+			}
+		}
+
 
 		std::vector<glm::vec2> points;
 		std::vector<glm::vec2> bad_points;
 
-		for(auto visited_region : group_of_regions)
-			for(int i = 0; i < samples_N; i++)
-				for(int j = 0; j < samples_M; j++) {
-					int index = j * samples_N + i;
+		rough_box_bottom = std::max(0.f, rough_box_bottom - step_y);
+		rough_box_top = std::min(float(map_data.size_y), rough_box_top + step_y);
+		rough_box_left = std::max(0.f, rough_box_left - step_x);
+		rough_box_right = std::min(float(map_data.size_x), rough_box_right + step_x);
 
-					float x = float(i) / float(samples_N) * float(map_data.size_x);
-					float y = float(map_data.size_y) * (1.f - float(j) / float(samples_M));
-					glm::vec2 candidate = { x, y };
+		float rough_box_width = rough_box_right - rough_box_left;
+		float rough_box_height = rough_box_top - rough_box_bottom;
 
-					auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-					if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-						auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+		float rough_box_ratio = rough_box_width / rough_box_height;
+		float height_steps = 15.f;
+		float width_steps = std::max(10.f, height_steps * rough_box_ratio);
+
+		glm::vec2 local_step = glm::vec2(rough_box_width, rough_box_height) / glm::vec2(width_steps, height_steps);
+
+		float best_y = 0.f;
+		//float best_y_length = 0.f;
+		float counter_from_the_bottom = 0.f;
+		float best_y_length_real = 0.f;
+		float best_y_left_x = 0.f;
+		float height = 0.f;
+
+		for(int j = 0; j < height_steps; j++) {
+			float y = rough_box_bottom + j * local_step.y;
+			float line_has_valid_points = false;
+
+			for(int i = 0; i < width_steps; i++) {
+				float x = rough_box_left + float(i) * local_step.x;
+				glm::vec2 candidate = { x, y };
+				auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
+				if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
+					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+					for(auto visited_region : group_of_regions) {
 						if(fat_id.get_connected_region_id() == visited_region) {
 							points.push_back(candidate);
+							line_has_valid_points = true;
 						}
 					}
 				}
+			}
+
+			if(line_has_valid_points) {
+				height++;
+			}
+		}
+
+
+		//float prev_length = 0.f;
+		//float prev_left_x = 0.f;
+		float points_above = 0.f;
+
+		for(int j = 0; j < height_steps; j++) {
+			float y = rough_box_bottom + j * local_step.y;
+
+			float current_length = 0.f;
+			float line_has_valid_points = false;
+			float left_x = (float)(map_data.size_x);
+
+			for(int i = 0; i < width_steps; i++) {
+				float x = rough_box_left + float(i) * local_step.x;
+
+				glm::vec2 candidate = { x, y };
+
+				auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
+				if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
+					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
+					for(auto visited_region : group_of_regions)
+						if(fat_id.get_connected_region_id() == visited_region) {
+							points_above++;
+							current_length += local_step.x;
+							line_has_valid_points = true;
+							if(x < left_x) {
+								left_x = x;
+							}
+						}
+				}
+			}
+
+			if(points_above * 2.f > points.size()) {
+				//best_y_length = current_length_adjusted;
+				best_y_length_real = current_length;
+				best_y = y;
+				best_y_left_x = left_x;
+				break;
+			}
+
+			/*
+			if(line_has_valid_points) {
+				counter_from_the_bottom++;
+			
+				current_length -= local_step.x;
+				float current_length_adjusted = std::min(current_length, prev_length)
+					/ (std::abs((height + 1) * 0.5f - counter_from_the_bottom) + 10.f)
+					/ (std::abs((height + 1) * 0.5f - counter_from_the_bottom) + 10.f);
+					// (std::abs(prev_length - current_length) + 1.f)
+					// (std::max(0.f, prev_left_x - left_x) + 0.5f)
+					// (std::max(0.f, -prev_left_x - prev_length + left_x + current_length) + 0.5f);
+
+				if(current_length_adjusted > best_y_length) {
+					best_y_length = current_length_adjusted;
+					best_y_length_real = current_length;
+					best_y = y;
+					best_y_left_x = left_x;
+				}
+			}
+
+			prev_length = current_length;
+			prev_left_x = left_x;
+			*/
+		}
 
 		if(points.size() < 2) {
 			continue;
@@ -354,9 +478,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 				//finding the closest centroid
 				for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
-					if(best_dist > glm::distance(centroids[cluster] * glm::vec2(1.2f, 1), points[i] * glm::vec2(1.2f, 1))) {
+					if(best_dist > glm::distance(centroids[cluster], points[i])) {
 						closest = cluster;
-						best_dist = glm::distance(centroids[cluster] * glm::vec2(1.2f, 1), points[i] * glm::vec2(1.2f, 1));
+						best_dist = glm::distance(centroids[cluster], points[i]);
 					}
 				}
 
@@ -454,7 +578,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					is_good = true;
 			}
 
-			if (name == "German Empire")
+			if (is_interesting)
 				OutputDebugStringA((std::to_string(point.x) + ", " + std::to_string(point.y) + ", " + std::to_string(closest) + ", \n").c_str());
 
 			if (is_good) {
@@ -707,6 +831,37 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto poly_fn = [&](float x) {
 				return mo[0] * l_0 + mo[1] * x * l_1;
 			};
+
+			// check if this is really better than taking the longest horizontal
+
+			// firstly check if we are already horizontal
+			if(abs(mo[1]) > 0.05) {
+				// calculate where our line will start and end:
+				float left_side = 0.f;
+				float right_side = 1.f;
+
+				if(mo[1] > 0.01f) {
+					left_side = -mo[0] / mo[1];
+					right_side = (1.f - mo[0]) / mo[1];
+				} else if(mo[1] < -0.01f) {
+					left_side = (1.f - mo[0]) / mo[1];
+					right_side = -mo[0] / mo[1];
+				}
+
+				left_side = std::clamp(left_side, 0.f, 1.f);
+				right_side = std::clamp(right_side, 0.f, 1.f);
+
+				float length_in_box_units = glm::length(ratio * glm::vec2(poly_fn(left_side), poly_fn(right_side)));
+
+				if(best_y_length_real * 1.2f >= length_in_box_units) {
+					basis.x = best_y_left_x;
+					ratio.x = best_y_length_real;
+					mo[0] = (best_y - basis.y) / ratio.y;
+					mo[1] = 0;
+				}
+			}
+
+
 			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
 				text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
 		}
