@@ -453,7 +453,7 @@ void event_option_button::button_action(sys::state& state) noexcept {
 }
 
 void event_image::on_update(sys::state& state) noexcept {
-	event_data_wrapper econtent = retrieve<event_data_wrapper>(state, parent);
+	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 	if(std::holds_alternative<event::pending_human_n_event>(content))
 		base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
 	else if(std::holds_alternative<event::pending_human_f_n_event>(content))
