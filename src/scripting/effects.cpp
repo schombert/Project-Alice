@@ -5079,12 +5079,6 @@ uint32_t ef_fop_change_province_name(EFFECT_PARAMTERS) {
 	ws.world.province_set_name(trigger::payload(tval[3]).prov_id, name);
 	return 0;
 }
-
-uint32_t ef_fop_change_province_name(EFFECT_PARAMTERS) {
-	dcon::text_sequence_id name{ dcon::text_sequence_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)) };
-	ws.world.province_set_name(trigger::payload(tval[3]).prov_id, name);
-	return 0;
-}
 uint32_t ef_change_terrain_province(EFFECT_PARAMTERS) {
 	auto const p = trigger::to_prov(primary_slot);
 	ws.world.province_set_terrain(p, trigger::payload(tval[1]).mod_id);
