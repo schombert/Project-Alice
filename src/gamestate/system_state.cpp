@@ -2248,16 +2248,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File common/event_modifiers.txt could not be opened\n";
 		}
 	}
-	// read defines.lua
+	// read *.lua, not being able to read the defines isn't fatal per se
 	{
-		auto defines_file = open_file(common, NATIVE("defines.lua"));
-		if(defines_file) {
-			auto content = view_contents(*defines_file);
-			err.file_name = "defines.lua";
-			defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
-		} else {
-			err.fatal = true;
-			err.accumulated_errors += "File common/defines.lua could not be opened\n";
+		// Default vanilla dates used if ones are not defined
+		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
+			auto opened_file = open_file(defines_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			}
 		}
 	}
 	// gather names of poptypes
