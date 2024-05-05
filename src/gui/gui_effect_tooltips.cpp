@@ -7136,6 +7136,8 @@ ef_fop_clr_global_flag_10, //constexpr inline uint16_t fop_clr_global_flag_10 = 
 ef_fop_clr_global_flag_11, //constexpr inline uint16_t fop_clr_global_flag_11 = 0x01B3;
 ef_fop_clr_global_flag_12, //constexpr inline uint16_t fop_clr_global_flag_12 = 0x01B4;
 ef_fop_change_province_name, //constexpr inline uint16_t fop_change_province_name = 0x01B5;
+ef_change_terrain_province, //constexpr inline uint16_t change_terrain_province = 0x01B6;
+ef_change_terrain_pop, //constexpr inline uint16_t change_terrain_pop = 0x01B7;
 
 //
 // SCOPES
