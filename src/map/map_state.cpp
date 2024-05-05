@@ -294,7 +294,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			continue;
 
 		bool is_interesting = false;
-		if(name == "Chile") {
+		if(name == "United Kingdom") {
 			is_interesting = true;
 		}
 
@@ -602,7 +602,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		float mse = total_sum / points.size();
-		float limit = mse * 2;
+		float limit = mse * 3;
 
 		//calculate radius
 		//OutputDebugStringA("\n");
@@ -631,9 +631,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<glm::vec2> key_points;
 
 		key_points.push_back(center + glm::vec2(left, 0));
-		key_points.push_back(center + glm::vec2(0, bottom));
+		key_points.push_back(center + glm::vec2(0, bottom + local_step.y));
 		key_points.push_back(center + glm::vec2(right, 0));
-		key_points.push_back(center + glm::vec2(0, top));
+		key_points.push_back(center + glm::vec2(0, top - local_step.y));
 
 		std::array<glm::vec2, 5> key_provs{
 			center, //capital
@@ -832,6 +832,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return mo[0] * l_0 + mo[1] * x * l_1;
 			};
 
+
 			// check if this is really better than taking the longest horizontal
 
 			// firstly check if we are already horizontal
@@ -851,14 +852,52 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				left_side = std::clamp(left_side, 0.f, 1.f);
 				right_side = std::clamp(right_side, 0.f, 1.f);
 
+				/*
+				// avoiding seas:
+				float left_y = basis.y + poly_fn(left_side - 50.f / ratio.x) * ratio.y;
+				float right_y = basis.y + poly_fn(right_side + 50.f / ratio.x) * ratio.y;
+
+				auto left_idx = int32_t(left_y) * int32_t(map_data.size_x) + int32_t(std::max(0.f, basis.x - 50.f));
+				auto right_idx = int32_t(right_y) * int32_t(map_data.size_x) + int32_t(std::min(float(map_data.size_x), basis.x + ratio.x + 50.f));
+
+
+				float step_away = 1.f / 16.f;
+				float base_y = ratio.y;
+
+				if(0 <= left_idx && size_t(left_idx) < map_data.province_id_map.size()) {
+					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[left_idx]));
+					if(is_sea_province(state, fat_id)) {
+						basis.y += step_away * base_y;
+						mo[0] -= step_away;
+
+						ratio.y -= 2 * step_away * base_y;
+					}
+				}
+
+				if(0 <= right_idx && size_t(right_idx) < map_data.province_id_map.size()) {
+					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[right_idx]));
+					if(is_sea_province(state, fat_id)) {
+						basis.y += step_away * base_y;
+						mo[0] -= step_away;
+
+						ratio.y -= 2 * step_away * base_y;
+					}
+				}
+
+				mo[1] *= base_y / ratio.y;
+				*/
+
+
 				float length_in_box_units = glm::length(ratio * glm::vec2(poly_fn(left_side), poly_fn(right_side)));
 
-				if(best_y_length_real * 1.2f >= length_in_box_units) {
+				if(best_y_length_real * 1.05f >= length_in_box_units) {
 					basis.x = best_y_left_x;
 					ratio.x = best_y_length_real;
 					mo[0] = (best_y - basis.y) / ratio.y;
 					mo[1] = 0;
 				}
+
+				
 			}
 
 

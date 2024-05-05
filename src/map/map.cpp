@@ -1652,7 +1652,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 		};
 
-		if(e.text == "German Empire") {
+		if(e.text == "United Kingdom") {
 			bool is_chile = true;
 		}
 
@@ -1689,7 +1689,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		// we want to compensate for float errors which lead to extended vertical labels
 		float collapse_coef = std::clamp(std::sqrt(1.f + abs(e.coeff[1]) * 0.7f), 1.f, 10.f);
-		//collapse_coef = 1.f;
+		collapse_coef = 1.f;
 		float result_interval = right - left;
 		float center = (right + left) / 2.f;
 		result_interval /= collapse_coef;
@@ -1716,9 +1716,12 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		} else for(float x = left; x <= right; x += x_step)
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 
-		float size = (curve_length / text_length) * 0.66f;
-		if(size > 200.0f) {
-			size = 200.0f; //+ (size - 200.0f) * 0.5f;
+		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
+
+		float size_step = 30.f;
+
+		if(size > size_step * 6.f) {
+			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
 		}
 
 		if(size > ratio.x / 2.f) {
@@ -1727,19 +1730,20 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(size > ratio.y / 2.f) {
 			size = ratio.y / 2.f;
 		}
+		
+		size = std::round(size / size_step) * size_step;
 
-		size = 40.f + std::round((size - 40.f) / 40.f) * 40.f;
-		size *= 1.5f;
-
-		if(size < 20.f) {
+		if(size < size_step) {
 			continue;
 		}
 
 		auto real_text_size = size / (size_x * 2.0f);
 
-		float margin = (curve_length - text_length * size) / 2.0f;
+		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
+		float letter_spacing = letter_spacing_map / size_x;
 
-		float letter_spacing = (curve_length / text_length - size) / size_x;
+		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
+
 
 		float x = left;
 
@@ -1786,8 +1790,8 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
-				if(glyph_length + added_distance >= glyph_advance) {
-					x += x_step * (glyph_advance - glyph_length) / added_distance + letter_spacing;
+				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
+					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
 					break;
 				}
 				glyph_length += added_distance;
