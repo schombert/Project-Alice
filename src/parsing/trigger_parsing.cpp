@@ -80,9 +80,9 @@ void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, tri
 }
 void tr_scope_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation | trigger::is_existence_scope));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
-		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop));
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
 		err.accumulated_errors += "war_countries trigger scope used in an incorrect scope type " +
