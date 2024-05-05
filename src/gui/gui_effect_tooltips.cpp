@@ -385,7 +385,7 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
-uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
+uint32_t es_x_event_country_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::nation_id> rlist;
 		if((tval[0] & effect::scope_has_limit) != 0) {
@@ -420,7 +420,7 @@ uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
-uint32_t es_x_decision_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
+uint32_t es_x_decision_country_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::nation_id> rlist;
 		if((tval[0] & effect::scope_has_limit) != 0) {
@@ -457,7 +457,7 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		indentation + indentation_amount);
 }
 uint32_t es_x_country_scope(EFFECT_DISPLAY_PARAMS) {
-	return es_x_country_scope_nation(ws, tval, layout, primary_slot, this_slot, from_slot, r_lo, r_hi, indentation);
+	return es_x_country_scope_nation(ws, tval, layout, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_lo, r_hi, indentation);
 }
 uint32_t es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
