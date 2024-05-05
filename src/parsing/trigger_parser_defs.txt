@@ -310,6 +310,7 @@ trigger_body
 	state_scope                  extern tr_state_scope                  discard
 	any_country                  extern tr_scope_any_country            discard
 	every_country                extern tr_scope_every_country          discard
+	all_war_countries            extern tr_scope_all_war_countries      discard
 	#any                         extern tr_scope_variable               discard
 
 stored_condition

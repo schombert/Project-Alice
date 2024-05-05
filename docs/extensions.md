@@ -26,6 +26,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 - `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
 - `has_global_flag = project_alice` -- true if playing on Project Alice, false if not
+- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
 
 ### Lambda events
 
