@@ -952,6 +952,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::mil_access_start:
 						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
+					case message_base_type::chat_message:
+						sound::play_interface_sound(*this, sound::get_chat_message_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
 					case message_base_type::province_event:
 					case message_base_type::national_event:
 					case message_base_type::major_event:

@@ -306,7 +306,6 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 }
 
 void add_ignore_path(file_system& fs, native_string_view replaced_path) {
-
 	fs.ignored_paths.emplace_back(correct_slashes(replaced_path));
 }
 
@@ -315,7 +314,6 @@ std::vector<native_string> list_roots(file_system const& fs) {
 }
 
 bool is_ignored_path(file_system const& fs, native_string_view path) {
-
 	for(auto const& replace_path : fs.ignored_paths) {
 		if(path.starts_with(replace_path))
 			return true;
@@ -340,11 +338,12 @@ void write_file(directory const& dir, native_string_view file_name, char const* 
 		std::abort();
 
 	native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
-
 	HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
-			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 	if(file_handle != INVALID_HANDLE_VALUE) {
-		WriteFile(file_handle, file_data, DWORD(file_size), nullptr, nullptr);
+		DWORD written_bytes = 0;
+		WriteFile(file_handle, file_data, DWORD(file_size), &written_bytes, nullptr);
+		(void)written_bytes;
 		SetEndOfFile(file_handle);
 		CloseHandle(file_handle);
 	}
@@ -356,9 +355,9 @@ file_contents view_contents(file const& f) {
 
 directory get_or_create_settings_directory() {
 	wchar_t* local_path_out = nullptr;
-	std::wstring base_path;
+	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local_path_out) == S_OK) {
-		base_path = std::wstring(local_path_out) + L"\\Project Alice";
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
 	}
 	CoTaskMemFree(local_path_out);
 	if(base_path.length() > 0) {
@@ -369,9 +368,9 @@ directory get_or_create_settings_directory() {
 
 directory get_or_create_save_game_directory() {
 	wchar_t* local_path_out = nullptr;
-	std::wstring base_path;
+	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
-		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
 	}
 	CoTaskMemFree(local_path_out);
 	if(base_path.length() > 0) {
@@ -383,10 +382,10 @@ directory get_or_create_save_game_directory() {
 }
 
 directory get_or_create_templates_directory() {
-	wchar_t* local_path_out = nullptr;
-	std::wstring base_path;
+	native_char* local_path_out = nullptr;
+	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
-		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
 	}
 	CoTaskMemFree(local_path_out);
 	if(base_path.length() > 0) {
@@ -398,10 +397,10 @@ directory get_or_create_templates_directory() {
 }
 
 directory get_or_create_oos_directory() {
-	wchar_t* local_path_out = nullptr;
-	std::wstring base_path;
+	native_char* local_path_out = nullptr;
+	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
-		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
 	}
 	CoTaskMemFree(local_path_out);
 	if(base_path.length() > 0) {
@@ -413,10 +412,10 @@ directory get_or_create_oos_directory() {
 }
 
 directory get_or_create_scenario_directory() {
-	wchar_t* local_path_out = nullptr;
-	std::wstring base_path;
+	native_char* local_path_out = nullptr;
+	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
-		base_path = std::wstring(local_path_out) + NATIVE("\\Project Alice");
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
 	}
 	CoTaskMemFree(local_path_out);
 	if(base_path.length() > 0) {
@@ -430,33 +429,21 @@ directory get_or_create_scenario_directory() {
 native_string win1250_to_native(std::string_view data_in) {
 	native_string result;
 	for(auto ch : data_in) {
-		result += wchar_t(text::win1250toUTF16(ch));
+		result += native_char(text::win1250toUTF16(ch));
 	}
 	return result;
 }
 
 native_string utf8_to_native(std::string_view str) {
-	WCHAR* buffer = new WCHAR[str.length() * 2];
-
-	auto chars_written =
-			MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 2));
-
-	std::wstring result(buffer, size_t(chars_written));
-
-	delete[] buffer;
-	return result;
+	auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
+	auto chars_written = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
+	return native_string(buffer.get(), size_t(chars_written));
 }
 
 std::string native_to_utf8(native_string_view str) {
-	char* buffer = new char[str.length() * 4];
-
-	auto chars_written =
-			WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer, int32_t(str.length() * 4), nullptr, nullptr);
-
-	std::string result(buffer, size_t(chars_written));
-
-	delete[] buffer;
-	return result;
+	auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
+	auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), nullptr, nullptr);
+	return std::string(buffer.get(), size_t(chars_written));
 }
 
 std::string remove_double_backslashes(std::string_view data_in) {
@@ -475,7 +462,7 @@ std::string remove_double_backslashes(std::string_view data_in) {
 }
 
 native_string correct_slashes(native_string_view path) {
-	std::wstring res;
+	native_string res;
 	res.reserve(path.size());
 	for(size_t i = 0; i < path.size(); i++) {
 		res += path[i] == '/' ? '\\' : path[i];

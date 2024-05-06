@@ -46,7 +46,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
 		if(FAILED(hr)) {
 			MessageBoxW(nullptr, L"failed to create graph builder", L"Audio error", MB_OK);
-			std::abort();
+			return;
 		}
 
 		std::thread creation_dispatch([pGraph, as_music, volume, window_handle, _this = this]() {
@@ -68,7 +68,6 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			if(as_music) {
 				IMediaEventEx* pEvent = nullptr;
 				hr = pGraph->QueryInterface(IID_IMediaEventEx, (void**)&pEvent);
-
 				if(FAILED(hr)) {
 					MessageBoxW(nullptr, L"failed to get event interface", L"Audio error", MB_OK);
 					std::abort();
@@ -108,8 +107,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			}
 
 			LONGLONG new_position = 0;
-			hr =
-					((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+			hr = ((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
@@ -134,7 +132,6 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
 		}
-
 		if(control_interface) {
 			hr = control_interface->Run();
 			if(FAILED(hr)) {
@@ -231,8 +228,8 @@ void sound_impl::play_effect(audio_instance& s, float volume) {
 		return;
 
 	if(!current_effect || current_effect->is_playing() == false) {
-		s.play(volume, false, window_handle);
 		current_effect = &s;
+		s.play(volume, false, window_handle);
 	}
 }
 
