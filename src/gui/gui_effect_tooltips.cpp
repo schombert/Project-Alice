@@ -369,7 +369,7 @@ uint32_t es_x_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
-			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
 		}
@@ -404,7 +404,7 @@ uint32_t es_x_event_country_scope(EFFECT_DISPLAY_PARAMS) {
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
-			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
 		}
@@ -440,7 +440,7 @@ uint32_t es_x_decision_country_scope(EFFECT_DISPLAY_PARAMS) {
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
-			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 				indentation + indentation_amount);
 		}
@@ -742,7 +742,7 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
-				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
 			}
@@ -800,7 +800,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
-				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
 			}
@@ -852,7 +852,7 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
-				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
 			}
@@ -905,7 +905,7 @@ uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
-				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
 			}
@@ -951,7 +951,7 @@ uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 			auto box = text::open_layout_box(layout, indentation);
 			text::add_to_layout_box(ws, layout, box, rlist[r]);
 			text::close_layout_box(layout, box);
-			show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 		}
 		return 0;
@@ -997,7 +997,7 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
-				show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
 											 indentation + indentation_amount);
 			}
