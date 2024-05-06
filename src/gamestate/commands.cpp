@@ -4345,10 +4345,15 @@ static void post_chat_message(sys::state& state, ui::chat_message& m) {
 		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
 		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
 			state.ui_state.chat_messages_index = 0;
-		if(state.sound_ptr.get()) {
-			// TODO: Perhaps move it to another place in the code? -- Doesn't seem fitting here! Or is it? Or was it?
-			sound::play_interface_sound(state, sound::get_chat_message_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
-		}
+		notification::post(state, notification::message{
+			[&m](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_chat_message_1", text::variable_type::x, m.source);
+				text::add_line(state, contents, "msg_chat_message_2", text::variable_type::x, m.body);
+			},
+			"msg_chat_message_title",
+			m.source, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::chat_message
+		});
 	}
 }
 

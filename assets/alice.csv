@@ -1105,6 +1105,9 @@ msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of 
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
 msg_entered_automatic_alliance_title;Entered alliance automatically
 msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
+msg_chat_message_title;Chat message
+msg_chat_message_1;$x$ says:
+msg_chat_message_2;$x$
 msg_n_event_title;National Event
 msg_p_event_title;Provincial Event
 msg_m_event_title;Major Event
@@ -1401,7 +1404,8 @@ amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;
 amsg_army_built;The nation built an army;;;;;;;;;;;;x
 amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
 amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
-amsg_entered_automatic_alliance_title;The nation is automatically allied by another
+amsg_entered_automatic_alliance;The nation is automatically allied by another
+amsg_chat_message;The nation sent a message in chat
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
 alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring
