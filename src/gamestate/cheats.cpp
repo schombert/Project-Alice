@@ -400,5 +400,35 @@ void execute_c_toggle_core(sys::state& state, dcon::nation_id source, dcon::prov
 	}
 	province::add_core(state, p, nid);
 }
+void c_always_allow_wargoals(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_allow_wargoals;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_allow_wargoals(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
+}
+void c_always_allow_reforms(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_allow_reforms;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_allow_reforms(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
+}
+void c_always_accept_deals(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_accept_deals;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_accept_deals(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
+}
 
 }

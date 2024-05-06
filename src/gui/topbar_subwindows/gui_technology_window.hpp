@@ -214,7 +214,7 @@ public:
 struct technology_select_tech {
 	dcon::technology_id tech_id;
 };
-class technology_item_button : public shift_right_button_element_base {
+class technology_item_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
@@ -341,13 +341,8 @@ public:
 class invention_image : public opaque_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
-			frame = int32_t(state.world.invention_get_technology_type(content));
-		}
+		auto content = retrieve<dcon::invention_id>(state, parent);
+		frame = int32_t(state.world.invention_get_technology_type(content));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -355,36 +350,31 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::invention_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::invention_id>(payload);
-
-			auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
-			std::string category_name{};
-			switch(category) {
-			case culture::tech_category::army:
-				category_name = "army_tech";
-				break;
-			case culture::tech_category::navy:
-				category_name = "navy_tech";
-				break;
-			case culture::tech_category::commerce:
-				category_name = "commerce_tech";
-				break;
-			case culture::tech_category::culture:
-				category_name = "culture_tech";
-				break;
-			case culture::tech_category::industry:
-				category_name = "industry_tech";
-				break;
-			default:
-				break;
-			}
-			auto box = text::open_layout_box(contents, 0);
-			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, category_name), text::text_color::white);
-			text::close_layout_box(contents, box);
+		auto content = retrieve<dcon::invention_id>(state, parent);
+		auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
+		std::string category_name{};
+		switch(category) {
+		case culture::tech_category::army:
+			category_name = "army_tech";
+			break;
+		case culture::tech_category::navy:
+			category_name = "navy_tech";
+			break;
+		case culture::tech_category::commerce:
+			category_name = "commerce_tech";
+			break;
+		case culture::tech_category::culture:
+			category_name = "culture_tech";
+			break;
+		case culture::tech_category::industry:
+			category_name = "industry_tech";
+			break;
+		default:
+			break;
 		}
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, category_name), text::text_color::white);
+		text::close_layout_box(contents, box);
 	}
 };
 

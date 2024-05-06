@@ -5053,6 +5053,9 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_instant_industry:
 	case command_type::c_innovate:
 	case command_type::c_toggle_core:
+	case command_type::c_always_accept_deals:
+	case command_type::c_always_allow_reforms:
+	case command_type::c_always_allow_wargoals:
 		return true;
 	}
 	return false;
@@ -5489,6 +5492,15 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_toggle_core:
 		execute_c_toggle_core(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
+		break;
+	case command_type::c_always_accept_deals:
+		execute_c_always_accept_deals(state, c.source);
+		break;
+	case command_type::c_always_allow_reforms:
+		execute_c_always_allow_reforms(state, c.source);
+		break;
+	case command_type::c_always_allow_wargoals:
+		execute_c_always_allow_wargoals(state, c.source);
 		break;
 	}
 }

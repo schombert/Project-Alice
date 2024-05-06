@@ -213,35 +213,82 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 
 	virtual void button_action(sys::state& state) noexcept { }
+	virtual void button_right_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_shift_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_shift_right_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_ctrl_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_ctrl_right_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_ctrl_shift_action(sys::state& state) noexcept {
+		button_action(state);
+	}
+	virtual void button_ctrl_shift_right_action(sys::state& state) noexcept {
+		button_action(state);
+	}
 	virtual sound::audio_instance& get_click_sound(sys::state& state) noexcept {
 		return sound::get_click_sound(state);
 	}
+
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		if(!state.user_settings.left_mouse_click_hold_and_release && !disabled) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			button_action(state);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
+		}
+		return message_result::consumed;
+	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_right_action(state);
+			else
+				button_right_action(state);
 		}
 		return message_result::consumed;
 	}
 	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
 		if(state.user_settings.left_mouse_click_hold_and_release && !disabled && under_mouse) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			button_action(state);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
 		}
 		return message_result::consumed;
 	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, get_click_sound(state),
-				state.user_settings.interface_volume * state.user_settings.master_volume);
-			button_action(state);
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;
 		}
 	}
+
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
@@ -254,7 +301,7 @@ public:
 
 class right_click_button_element_base : public button_element_base {
 public:
-	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_right_action(sys::state& state) noexcept override { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -266,143 +313,11 @@ public:
 
 class tinted_right_click_button_element_base : public tinted_button_element_base {
 public:
-	virtual void button_right_action(sys::state& state) noexcept { }
+	virtual void button_right_action(sys::state& state) noexcept override { }
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
 		if(!disabled) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			button_right_action(state);
-		}
-		return message_result::consumed;
-	}
-};
-
-class shift_button_element_base : public button_element_base {
-public:
-	virtual void button_shift_action(sys::state& state) noexcept { }
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled) {
-				//ToDo: Make button change appearance while pressed
-				//disabled = true;
-			}
-		} else if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(under_mouse) {
-				sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-				if(mods == sys::key_modifiers::modifiers_shift)
-					button_shift_action(state);
-				else
-					button_action(state);
-			} else {
-				//ToDo: Make button revert appearance when released
-				//disabled = false;
-			}
-		}
-		return message_result::consumed;
-	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else
-				button_action(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-
-class ctrl_shift_button_element_base : public button_element_base {
-public:
-	virtual void button_shift_action(sys::state& state) noexcept { }
-	virtual void button_ctrl_action(sys::state& state) noexcept { };
-	virtual void buttons_ctrl_shift_action(sys::state& state) noexcept { };
-
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled) {
-				//ToDo: Make button change appearance while pressed
-				//disabled = true;
-			}
-		} else if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
-				buttons_ctrl_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(under_mouse) {
-				sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-				if(mods == sys::key_modifiers::modifiers_ctrl_shift)
-					buttons_ctrl_shift_action(state);
-				else if(mods == sys::key_modifiers::modifiers_shift)
-					button_shift_action(state);
-				else if(mods == sys::key_modifiers::modifiers_ctrl)
-					button_ctrl_action(state);
-				else
-					button_action(state);
-			} else {
-				//ToDo: Make button revert appearance when released
-				//disabled = false;
-			}
-		}
-		return message_result::consumed;
-	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_ctrl_shift)
-				buttons_ctrl_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
-};
-
-class shift_right_button_element_base : public shift_button_element_base {
-public:
-	virtual void button_right_action(sys::state& state) noexcept { }
-	virtual void button_shift_right_action(sys::state& state) noexcept { }
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_right_action(state);
-			else
-				button_right_action(state);
 		}
 		return message_result::consumed;
 	}
@@ -829,7 +744,7 @@ protected:
 	}
 };
 
-class scrollbar_left : public shift_right_button_element_base {
+class scrollbar_left : public button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
@@ -853,7 +768,7 @@ public:
 	}
 };
 
-class scrollbar_right : public shift_right_button_element_base {
+class scrollbar_right : public button_element_base {
 public:
 	int32_t step_size = 1;
 	bool hold_continous = false;
@@ -1135,7 +1050,7 @@ enum class outline_color : uint8_t {
 
 using unit_var = std::variant<std::monostate, dcon::army_id, dcon::navy_id>;
 
-class unit_frame_bg : public shift_button_element_base {
+class unit_frame_bg : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		frame = int32_t(retrieve<outline_color>(state, parent));

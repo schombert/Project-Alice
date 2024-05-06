@@ -1,0 +1,102 @@
+news_picture_case
+	trigger			group	none			discard
+	picture			value	text			discard
+
+news_text_add
+	#free			value	text			discard
+
+news_text_case
+	trigger			group	none			discard
+	text_add		value	news_text_add		discard
+
+news_generator
+	type			value	text			discard
+	name			value	text			discard
+	size			value	text			discard
+	picture_case		group	news_picture_case	discard
+	title_case		group	news_text_case		discard
+	description_case	group	news_text_case		discard
+
+news_generator_selector
+	#base news_generator
+
+news_generate_article
+	#base news_generator
+
+news_pattern
+	name			value	text			member_fn
+	generator_selector	group	news_generator_selector	discard
+	generate_article	group	news_generate_article	discard
+	news_priority		group	news_priority		discard
+
+news_case
+	trigger			group	none			discard
+	priority_add		value	int			discard
+
+news_priority
+	type			value	text			discard
+	name			value	text			discard
+	case			group	news_case		discard
+
+news_on_printing
+	type			value	text			discard
+	name			value	text			discard
+	effect			group	none			discard
+
+news_on_collection
+	type			value	text			discard
+	name			value	text			discard
+	effect			group	none			discard
+
+news_pattern_instance
+	#free			value	text			discard
+
+news_article_types
+	peace_offer_accept		value	int	member
+	game_event			value	int	member
+	province_change_controller	value	int	member
+	province_change_owner		value	int	member
+	construction_complete		value	int	member
+	research_complete		value	int	member
+	battle_over			value	int	member
+	rebel_break_country		value	int	member
+	new_party			value	int	member
+	war_declared			value	int	member
+	crisis_started			value	int	member
+	crisis_backer			value	int	member
+	crisis_side_joined		value	int	member
+	crisis_resolved			value	int	member
+	decision			value	int	member
+	goods_price_change		value	int	member
+	ai_afraid_of			value	int	member
+	ai_likes_very_much		value	int	member
+	fake				value	int	member
+
+news_style_article
+	size			value	text			discard
+	gui_window		value	text			discard
+
+news_title_image
+	case			group	news_picture_case	discard
+
+news_style
+	name			value	text			discard
+	trigger			group	none			discard
+	gui_window		value	text			discard
+	article			group	news_style_article	discard
+	article_limits		group	news_article_types	discard
+	title_image		group	news_title_image	discard
+
+news_file
+	pattern			group	news_pattern		discard
+	aiafraidof		group	none			discard
+	ailoves			group	none			discard
+	newgp			group	none			discard
+	generator_selector	group	news_generator		discard
+	generate_article	group	news_generate_article	discard
+	news_priority		group	news_priority		discard
+	on_printing		group	news_on_printing	discard
+	on_collection		group	news_on_collection	discard
+	article_tensions	group	news_article_types	discard
+	#any			group	news_pattern_instance	discard
+

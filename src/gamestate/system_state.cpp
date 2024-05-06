@@ -156,6 +156,8 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 				auto owner = world.province_get_nation_from_province_ownership(prov_id);
 				if(owner) {
 					open_diplomacy(owner);
+				} else {
+					open_diplomacy(local_player_nation);
 				}
 			}
 		}
@@ -272,18 +274,20 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 			selected_armies.clear();
 			selected_navies.clear();
 		}
-		for(auto a : world.nation_get_army_control(local_player_nation)) {
-			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
-				auto loc = a.get_army().get_location_from_army_location();
-				auto mid_point = world.province_get_mid_point(loc);
-				auto map_pos = map_state.normalize_map_coord(mid_point);
-				auto screen_size = glm::vec2{ float(x_size), float(y_size) };
-				glm::vec2 screen_pos;
-				if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
-					if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
-						&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+		if((int32_t(key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
+			for(auto a : world.nation_get_army_control(local_player_nation)) {
+				if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
+					auto loc = a.get_army().get_location_from_army_location();
+					auto mid_point = world.province_get_mid_point(loc);
+					auto map_pos = map_state.normalize_map_coord(mid_point);
+					auto screen_size = glm::vec2{ float(x_size), float(y_size) };
+					glm::vec2 screen_pos;
+					if(map_state.map_to_screen(*this, map_pos, screen_size, screen_pos)) {
+						if(x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
+							&& y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
 
-						select(a.get_army());
+							select(a.get_army());
+						}
 					}
 				}
 			}
@@ -477,6 +481,16 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				}
 			} else if(keycode == virtual_key::TILDA || keycode == virtual_key::BACK_SLASH) {
 				ui::console_window::show_toggle(*this);
+			} else if(keycode == virtual_key::HOME) {
+				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
+					if(map_state.get_zoom() < map::zoom_very_close)
+						map_state.zoom = map::zoom_very_close;
+					auto map_pos = world.province_get_mid_point(cap);
+					map_pos.x /= float(map_state.map_data.size_x);
+					map_pos.y /= float(map_state.map_data.size_y);
+					map_pos.y = 1.0f - map_pos.y;
+					map_state.set_pos(map_pos);
+				}
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
 				ui_state.root->move_child_to_front(ui_state.chat_window);
@@ -675,17 +689,23 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(map_state.active_map_mode == map_mode::mode::rgo_output) {
 			// RGO doesn't need clicks... yet
 		} else {
-			mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-				int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
-			if(!tooltip_probe.under_mouse) {
-				tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
-					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
+			if(ui_state.unit_details_box->is_visible()) {
+				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
+					int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
+					int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
+					ui::mouse_probe_type::click);
+				if(!tooltip_probe.under_mouse) {
+					tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this,
+						int32_t(mouse_x_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.x),
+						int32_t(mouse_y_position / user_settings.ui_scale - ui_state.unit_details_box->base_data.position.y),
+						ui::mouse_probe_type::tooltip);
+				}
 			}
-			if(ui_state.unit_details_box->is_visible() && !mouse_probe.under_mouse) {
-				mouse_probe = ui_state.unit_details_box->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+			if(!mouse_probe.under_mouse) {
+				mouse_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 					int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::click);
 				if(!tooltip_probe.under_mouse) {
-					tooltip_probe = ui_state.unit_details_box->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
+					tooltip_probe = ui_state.units_root->impl_probe_mouse(*this, int32_t(mouse_x_position / user_settings.ui_scale),
 						int32_t(mouse_y_position / user_settings.ui_scale), ui::mouse_probe_type::tooltip);
 				}
 			}
@@ -788,14 +808,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 			{
 				auto* lr = land_battle_reports.front();
 				while(lr) {
-					if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
-						if(user_settings.notify_rebels_defeat) {
-							ui::land_combat_end_popup::make_new_report(*this, *lr);
+					if(local_player_nation) {
+						if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
+							if(user_settings.notify_rebels_defeat) {
+								ui::land_combat_end_popup::make_new_report(*this, *lr);
+							} else {
+								//do not pester user with defeat of rebels
+							}
 						} else {
-							//do not pester user with defeat of rebels
+							ui::land_combat_end_popup::make_new_report(*this, *lr);
 						}
-					} else {
-						ui::land_combat_end_popup::make_new_report(*this, *lr);
 					}
 					land_battle_reports.pop();
 					lr = land_battle_reports.front();
@@ -861,14 +883,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 				}
 
-				if(settings_bits & message_response::log) {
+				if((settings_bits & message_response::log) && ui_state.msg_log_window) {
 					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
 				}
 				if(settings_bits & message_response::popup) {
 					if(c6->source == local_player_nation && (base_type == message_base_type::major_event || base_type == message_base_type::national_event || base_type == message_base_type::province_event)) {
 						// do nothing -- covered by event window logic
 					} else {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(ui_state.msg_window) {
+							static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						}
 						if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
@@ -1071,30 +1095,30 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
+					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
 		} else if(ui_state.tooltip->base_data.size.x <= root_elm->base_data.size.x - (target_location.x + ui_state.last_tooltip->base_data.size.x)) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x + ui_state.last_tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
 					int16_t(0),
-					int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
+					int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
 		} else if(ui_state.tooltip->base_data.size.x <= target_location.x) {
 			ui_state.tooltip->base_data.position.x = int16_t(target_location.x - ui_state.tooltip->base_data.size.x);
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
+					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
 		} else if(ui_state.tooltip->base_data.size.y <= target_location.y) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y - ui_state.tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
+					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
 		} else {
 			ui_state.tooltip->base_data.position.x = std::clamp(
 					int16_t(target_location.x + (ui_state.last_tooltip->base_data.size.x / 2) - (ui_state.tooltip->base_data.size.x / 2)),
-					int16_t(0), int16_t(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x));
+					int16_t(0), int16_t(std::max(root_elm->base_data.size.x - ui_state.tooltip->base_data.size.x, 0)));
 			ui_state.tooltip->base_data.position.y = std::clamp(
 					int16_t(target_location.y + (ui_state.last_tooltip->base_data.size.y / 2) - (ui_state.tooltip->base_data.size.y / 2)),
-					int16_t(0), int16_t(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y));
+					int16_t(0), int16_t(std::max(root_elm->base_data.size.y - ui_state.tooltip->base_data.size.y, 0)));
 		}
 	}
 
@@ -2230,16 +2254,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File common/event_modifiers.txt could not be opened\n";
 		}
 	}
-	// read defines.lua
+	// read *.lua, not being able to read the defines isn't fatal per se
 	{
-		auto defines_file = open_file(common, NATIVE("defines.lua"));
-		if(defines_file) {
-			auto content = view_contents(*defines_file);
-			err.file_name = "defines.lua";
-			defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
-		} else {
-			err.fatal = true;
-			err.accumulated_errors += "File common/defines.lua could not be opened\n";
+		// Default vanilla dates used if ones are not defined
+		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
+			auto opened_file = open_file(defines_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			}
 		}
 	}
 	// gather names of poptypes
@@ -2479,7 +2505,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	});
 
 	// load province history files
-
 	auto history = open_directory(root, NATIVE("history"));
 	{
 		auto prov_history = open_directory(history, NATIVE("provinces"));
@@ -2528,9 +2553,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
-
 	culture::set_default_issue_and_reform_options(*this);
-
 	// load pop history files
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
@@ -2538,8 +2561,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto start_dir_name =
 			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
-
-
 		// NICK: 
 		// Attempts to look through the start date as defined by the mod.
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
@@ -2547,7 +2568,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
-
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -2557,7 +2577,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				parsers::parse_pop_history_file(gen, err, context);
 			}
 		}
-
 		// Modding extension:
 		// Support loading pops from a CSV file, this to condense them better and allow
 		// for them to load faster and better ordered, editable with a spreadsheet program
@@ -2775,6 +2794,33 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		err.file_name = "pending events";
 		parsers::commit_pending_events(err, context);
 	}
+	// load news
+	{
+		auto news_dir = open_directory(root, NATIVE("news"));
+		for(auto news_file : list_files(news_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(news_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_news_file(gen, err, parsers::news_context{ context });
+			}
+		}
+	}
+	// load tutorial
+	{
+		auto tutorial_dir = open_directory(root, NATIVE("tutorial"));
+		for(auto tutorial_file : list_files(tutorial_dir, NATIVE(".txt"))) {
+			auto opened_file = open_file(tutorial_file);
+			if(opened_file) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*opened_file));
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_tutorial_file(gen, err, context);
+			}
+		}
+	}
+
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
@@ -2955,6 +3001,25 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
 
+	world.nation_resize_domestic_market_pool(world.commodity_size());
+	world.nation_resize_real_demand(world.commodity_size());
+	world.nation_resize_stockpile_targets(world.commodity_size());
+	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
+	world.nation_resize_life_needs_costs(world.pop_type_size());
+	world.nation_resize_everyday_needs_costs(world.pop_type_size());
+	world.nation_resize_luxury_needs_costs(world.pop_type_size());
+	world.nation_resize_imports(world.commodity_size());
+	world.nation_resize_army_demand(world.commodity_size());
+	world.nation_resize_navy_demand(world.commodity_size());
+	world.nation_resize_construction_demand(world.commodity_size());
+	world.nation_resize_private_construction_demand(world.commodity_size());
+	world.nation_resize_demand_satisfaction(world.commodity_size());
+	world.nation_resize_life_needs_weights(world.commodity_size());
+	world.nation_resize_everyday_needs_weights(world.commodity_size());
+	world.nation_resize_luxury_needs_weights(world.commodity_size());
+	world.nation_resize_effective_prices(world.commodity_size());
+	world.commodity_resize_price_record(economy::price_history_length);
+
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
 	nations_by_military_score.resize(2000);
@@ -2969,8 +3034,13 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	for(auto t : world.in_invention) {
 		for(auto n : world.in_nation) {
-			if(n.get_active_inventions(t))
+			if(trigger::evaluate(*this, t.get_limit(), trigger::to_generic(n), trigger::to_generic(n), -1)
+			&& trigger::evaluate_additive_modifier(*this, t.get_chance(), trigger::to_generic(n), trigger::to_generic(n), -1) > 0.f) {
+				n.set_active_inventions(t, true);
+			}
+			if(n.get_active_inventions(t)) {
 				culture::apply_invention(*this, n, t);
+			}
 		}
 	}
 
