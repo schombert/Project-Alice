@@ -688,7 +688,9 @@ public:
 
 void national_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
-
+	if(image) {
+		move_child_to_front(image);
+	}
 	{
 		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 		ptr->base_data.position.y = 20;
@@ -701,7 +703,6 @@ void national_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.x += ptr->base_data.size.x * 2;
 		add_child_to_front(std::move(ptr));
 	}
-
 	{
 		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_option_start")->second.definition].position;
 		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
@@ -709,14 +710,13 @@ void national_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.y += 5;
 		add_child_to_front(std::move(ptr));
 	}
-	if(image) {
-		move_child_to_front(image);
-	}
 }
 
 void national_major_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
-
+	if(image) {
+		move_child_to_front(image);
+	}
 	{
 		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 		ptr->base_data.position.y = 20;
@@ -734,9 +734,6 @@ void national_major_event_window::on_create(sys::state& state) noexcept {
 		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
 		ptr->base_data.position = cur_offset;
 		add_child_to_front(std::move(ptr));
-	}
-	if(image) {
-		move_child_to_front(image);
 	}
 }
 
