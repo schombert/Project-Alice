@@ -4,6 +4,11 @@ In addition to the settings files, we generate two types of files: save files an
 
 In terms of compatibility, the data produced by the Data Container library is fairly robust, as it is possible to load data that has been stored with more or fewer object or properties, or even if the properties have changed type. However, the data that lives outside the Data Container is stored much less robustly. When that sort of data changes we will have to increase a file version number and simply reject files with the wrong version. Hopefully this won't happen too much, and hopefully we can confine most of our revisions to things that are in the Data Container.
 
+### Save Location
+
+Windows: 
+> my documents / project alice / saves
+
 ### How to manually serialize information found outside the data container
 
 If you add information to the game state that needs to persist for more than just a single session, and that information is *not* stored in the data container (and given the appropriate `save` or `scenario` tag), then you need to add it to either the data we store for the scenario or the data we store for save games. In either case, the functions for saving and loading the data are implemented in `serialization.cpp`. We only support trivial serialization of two kinds of objects: (1) those that can be trivially moved with `memcpy` (so without requiring work to be done in the constructor or destructor, and which do not contain any pointers), or (2) `vector`s of such objects. In the case of (1) you need to add the following three items:

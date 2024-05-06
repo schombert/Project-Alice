@@ -165,10 +165,28 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
-		if(i->file_name == state.loaded_save_file)\
+		if(!i->is_new_game && i->file_name == state.loaded_save_file)
 			return;
 
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+		if(state.ui_state.request_window)
+			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
+		if(state.ui_state.msg_window)
+			static_cast<ui::message_window*>(state.ui_state.msg_window)->messages.clear();
+		if(state.ui_state.request_topbar_listbox)
+			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
+		if(state.ui_state.msg_log_window)
+			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
+		for(const auto& win : land_combat_end_popup::land_reports_pool)
+			win->set_visible(state, false);
+		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
+			win->set_visible(state, false);
+		for(const auto& win : provincial_event_window::event_pool)
+			win->set_visible(state, false);
+		for(const auto& win : national_event_window::event_pool)
+			win->set_visible(state, false);
+		for(const auto& win : national_major_event_window::event_pool)
+			win->set_visible(state, false);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
@@ -587,6 +605,15 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
+			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				auto map_pos = state.world.province_get_mid_point(cap);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
 			command::notify_start_game(state, state.local_player_nation);
 		}
 	}

@@ -5880,6 +5880,7 @@ void tr_scope_not(token_generator& gen, error_handler& err, trigger_building_con
 void tr_scope_any_neighbor_province(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_greater_power(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_owned_province(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_any_core(token_generator& gen, error_handler& err, trigger_building_context& context);

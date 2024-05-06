@@ -80,23 +80,38 @@ void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, tri
 }
 void tr_scope_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation | trigger::is_existence_scope));
+	} else if(context.main_slot == trigger::slot_contents::pop) {
+		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop | trigger::is_existence_scope));
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "war_countries trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		return;
+	}
+	context.compiled_trigger.push_back(uint16_t(1));
+	auto payload_size_offset = context.compiled_trigger.size() - 1;
+	auto old_main = context.main_slot;
+	context.main_slot = trigger::slot_contents::nation;
+	parse_trigger_body(gen, err, context);
+	context.main_slot = old_main;
+	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
+}
+void tr_scope_all_war_countries(token_generator& gen, error_handler& err, trigger_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_nation));
 	} else if(context.main_slot == trigger::slot_contents::pop) {
 		context.compiled_trigger.push_back(uint16_t(trigger::x_war_countries_scope_pop));
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "war_countries trigger scope used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		err.accumulated_errors += "all_war_countries trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
 		return;
 	}
 	context.compiled_trigger.push_back(uint16_t(1));
 	auto payload_size_offset = context.compiled_trigger.size() - 1;
-
 	auto old_main = context.main_slot;
 	context.main_slot = trigger::slot_contents::nation;
 	parse_trigger_body(gen, err, context);
 	context.main_slot = old_main;
-
 	context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 }
 void tr_scope_any_greater_power(token_generator& gen, error_handler& err, trigger_building_context& context) {

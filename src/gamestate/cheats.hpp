@@ -32,4 +32,8 @@ void c_instant_army(sys::state& state, dcon::nation_id source);
 void c_instant_industry(sys::state& state, dcon::nation_id source);
 void c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention);
 void c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id n);
+void c_always_allow_wargoals(sys::state& state, dcon::nation_id source);
+void c_always_allow_reforms(sys::state& state, dcon::nation_id source);
+void c_always_accept_deals(sys::state& state, dcon::nation_id source);
+
 } // namespace command

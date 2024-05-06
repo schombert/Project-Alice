@@ -195,6 +195,8 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
+ett_change_pop_terrain_to;Change location terrain to $text$
+ett_change_province_terrain_to;Change terrain to $text$
 change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x

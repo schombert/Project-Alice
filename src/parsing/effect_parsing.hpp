@@ -15,6 +15,7 @@ struct effect_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_effect;
 	size_t limit_position = 0;
+	bool effect_is_for_event = false;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -1161,7 +1162,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
-					"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1267,7 +1268,7 @@ struct effect_body {
 						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
@@ -1413,7 +1414,7 @@ struct effect_body {
 						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_nation | effect::no_payload));
 				return;
 			} else {
@@ -1422,7 +1423,7 @@ struct effect_body {
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::province) {
-			if(value == "null") {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
@@ -3414,6 +3415,22 @@ struct effect_body {
 		context.compiled_effect.push_back(trigger::payload(which_).value);
 		context.add_float_to_payload(0.f);
 	}
+	void change_terrain(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(auto it = context.outer_context.map_of_terrain_types.find(std::string(value));
+				it != context.outer_context.map_of_terrain_types.end()) {
+			if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_pop));
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_province));
+			} else {
+				err.accumulated_errors += "chenge_terrain effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+		} else {
+			err.accumulated_errors += "chenge_terrain effect supplied with an invalid terrain \"" + std::string(value) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
 			err.accumulated_errors +=
@@ -3707,6 +3724,8 @@ void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_bu
 void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
