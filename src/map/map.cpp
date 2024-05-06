@@ -714,12 +714,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		if(/*zoom < map::zoom_very_close && */!text_line_vertices.empty()) {
+		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
+			glUniform1f(15, 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
-		} //else
-		if(state.cheat_data.province_names) {
+		} else if(state.cheat_data.province_names) {
+			glUniform1f(15, 1.f);
 			glBindVertexArray(vao_array[vo_province_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());

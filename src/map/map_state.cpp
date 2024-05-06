@@ -200,7 +200,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					auto indx2 = adj_of_neighbor.get_connected_provinces(0) != neighbor.id ? 0 : 1;
 					auto neighbor_of_neighbor = adj_of_neighbor.get_connected_provinces(indx2);
 
-					if(neighbor_of_neighbor.id.index() < state.province_definitions.first_sea_province.index()) {
+					// check for a "cut line"
+					glm::vec2 point_candidate = candidate.get_mid_point();
+					glm::vec2 point_potential_friend = neighbor_of_neighbor.get_mid_point();
+
+					if(glm::distance(point_candidate, point_potential_friend) > map_data.size_x * 0.5f) {
+						// do nothing
+					} else if(neighbor_of_neighbor.id.index() < state.province_definitions.first_sea_province.index()) {
 						auto nation_2 = get_top_overlord(state, state.world.province_get_nation_from_province_ownership(neighbor_of_neighbor));
 						if(nation == nation_2)
 							regions_graph[rid].insert(neighbor_of_neighbor.get_connected_region_id());
@@ -214,11 +220,14 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 
+	int counter = 0;
+
 	for(auto p : state.world.in_province) {
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
 			continue;
 		visited[uint16_t(rid)] = true;
+		counter++;
 
 		auto n = p.get_nation_from_province_ownership();
 		n = get_top_overlord(state, n.id);
@@ -318,6 +327,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 				}
 			}
+		}
+
+		if(rough_box_right - rough_box_left > map_data.size_x * 0.9f) {
+			continue;
 		}
 
 
@@ -811,42 +824,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				left_side = std::clamp(left_side, 0.f, 1.f);
 				right_side = std::clamp(right_side, 0.f, 1.f);
 
-				/*
-				// avoiding seas:
-				float left_y = basis.y + poly_fn(left_side - 50.f / ratio.x) * ratio.y;
-				float right_y = basis.y + poly_fn(right_side + 50.f / ratio.x) * ratio.y;
-
-				auto left_idx = int32_t(left_y) * int32_t(map_data.size_x) + int32_t(std::max(0.f, basis.x - 50.f));
-				auto right_idx = int32_t(right_y) * int32_t(map_data.size_x) + int32_t(std::min(float(map_data.size_x), basis.x + ratio.x + 50.f));
-
-
-				float step_away = 1.f / 16.f;
-				float base_y = ratio.y;
-
-				if(0 <= left_idx && size_t(left_idx) < map_data.province_id_map.size()) {
-					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[left_idx]));
-					if(is_sea_province(state, fat_id)) {
-						basis.y += step_away * base_y;
-						mo[0] -= step_away;
-
-						ratio.y -= 2 * step_away * base_y;
-					}
-				}
-
-				if(0 <= right_idx && size_t(right_idx) < map_data.province_id_map.size()) {
-					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[right_idx]));
-					if(is_sea_province(state, fat_id)) {
-						basis.y += step_away * base_y;
-						mo[0] -= step_away;
-
-						ratio.y -= 2 * step_away * base_y;
-					}
-				}
-
-				mo[1] *= base_y / ratio.y;
-				*/
-
-
 				float length_in_box_units = glm::length(ratio * glm::vec2(poly_fn(left_side), poly_fn(right_side)));
 
 				if(best_y_length_real * 1.05f >= length_in_box_units) {
@@ -855,8 +832,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					mo[0] = (best_y - basis.y) / ratio.y;
 					mo[1] = 0;
 				}
-
-				
 			}
 
 
