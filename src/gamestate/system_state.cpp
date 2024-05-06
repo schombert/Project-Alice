@@ -806,14 +806,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 			{
 				auto* lr = land_battle_reports.front();
 				while(lr) {
-					if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
-						if(user_settings.notify_rebels_defeat) {
-							ui::land_combat_end_popup::make_new_report(*this, *lr);
+					if(local_player_nation) {
+						if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
+							if(user_settings.notify_rebels_defeat) {
+								ui::land_combat_end_popup::make_new_report(*this, *lr);
+							} else {
+								//do not pester user with defeat of rebels
+							}
 						} else {
-							//do not pester user with defeat of rebels
+							ui::land_combat_end_popup::make_new_report(*this, *lr);
 						}
-					} else {
-						ui::land_combat_end_popup::make_new_report(*this, *lr);
 					}
 					land_battle_reports.pop();
 					lr = land_battle_reports.front();
