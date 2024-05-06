@@ -1370,33 +1370,42 @@ public:
 
 		if(active_tab != diplomacy_window_tab::great_powers) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 		} else if(nations::is_great_power(state, content)) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		} else {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		}
 		
