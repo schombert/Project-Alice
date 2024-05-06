@@ -1676,12 +1676,16 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
 	case command_info::type::always_allow_wargoals:
-		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
-		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
-		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		command::c_always_allow_reforms(state, state.local_player_nation);
+		break;
+	case command_info::type::always_accept_deals:
+		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
+		command::c_always_accept_deals(state, state.local_player_nation);
 		break;
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
@@ -1697,10 +1701,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
-	case command_info::type::always_accept_deals:
-		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
-		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\x02" : "\x01");
-		break;
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
 		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
@@ -1901,7 +1901,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(!found) {
 			log_to_console(state, parent, "Couldn't find innovation: " + searched_name);
 		}
-		//command::c_innovate(state, state.local_player_nation, )
 		break;
 	}
 	case command_info::type::none:

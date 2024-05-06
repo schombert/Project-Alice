@@ -146,6 +146,9 @@ enum class command_type : uint8_t {
 	c_instant_industry = 150,
 	c_innovate = 151,
 	c_toggle_core = 152,
+	c_always_allow_wargoals = 153,
+	c_always_allow_reforms = 154,
+	c_always_accept_deals = 155,
 };
 
 struct national_focus_data {
