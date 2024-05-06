@@ -115,7 +115,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			n, dcon::nation_id{}, dcon::nation_id{},
 			sys::message_base_type::major_event
 		});
-	} else if(n == state.local_player_nation) {
+	} else {
 		notification::post(state, notification::message{
 			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
@@ -210,7 +210,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			n, dcon::nation_id{}, dcon::nation_id{},
 			sys::message_base_type::major_event
 		});
-	} else if(n == state.local_player_nation) {
+	} else {
 		notification::post(state, notification::message{
 			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
@@ -282,29 +282,27 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		effect::execute(state, immediate, trigger::to_generic(p), trigger::to_generic(p), from_slot, r_lo, r_hi);
 	}
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
-	if(owner == state.local_player_nation) {
-		notification::post(state, notification::message{
-			[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
-				text::substitution_map m;
-				ui::populate_event_submap(state, m, ev);
+	notification::post(state, notification::message{
+		[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
+			text::substitution_map m;
+			ui::populate_event_submap(state, m, ev);
 
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-			},
-			"msg_p_event_title",
-			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
-		});
-	}
+			{
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_name(ev.e), m);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				text::add_line_break_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, state.world.provincial_event_get_description(ev.e), m);
+				text::close_layout_box(contents, box);
+			}
+		},
+		"msg_p_event_title",
+		owner, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::province_event
+	});
 	if(state.world.nation_get_is_player_controlled(owner)) {
 		pending_human_p_event new_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft};
 		state.pending_p_event.push_back(new_event);
@@ -353,29 +351,27 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		effect::execute(state, immediate, trigger::to_generic(p), trigger::to_generic(p), 0, r_lo, r_hi);
 	}
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
-	if(owner == state.local_player_nation) {
-		notification::post(state, notification::message{
-			[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
-				text::substitution_map m;
-				ui::populate_event_submap(state, m, ev);
+	notification::post(state, notification::message{
+		[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
+			text::substitution_map m;
+			ui::populate_event_submap(state, m, ev);
 
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-				{
-					auto box = text::open_layout_box(contents);
-					text::add_line_break_to_layout_box(state, contents, box);
-					text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
-					text::close_layout_box(contents, box);
-				}
-			},
-			"msg_p_event_title",
-			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
-		});
-	}
+			{
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_name(ev.e), m);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				text::add_line_break_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, state.world.free_provincial_event_get_description(ev.e), m);
+				text::close_layout_box(contents, box);
+			}
+		},
+		"msg_p_event_title",
+		owner, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::province_event
+	});
 	if(state.world.nation_get_is_player_controlled(owner)) {
 		pending_human_f_p_event new_event{r_lo, r_hi, e, p, state.current_date};
 		state.pending_f_p_event.push_back(new_event);
@@ -437,37 +433,45 @@ struct event_prov_pair {
 };
 
 void update_future_events(sys::state& state) {
-	uint32_t last_end_n = 0;
-	uint32_t last_end_p = 0;
 	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
-		bool fired = false;
+		bool fired_n = false;
 		uint32_t n_n_events = uint32_t(state.future_n_event.size());
-		while(last_end_n < n_n_events) {
-			auto const& e = state.future_n_event[last_end_n];
+		for(int32_t j = int32_t(n_n_events - 1); j >= 0; j--) {
+			auto const& e = state.future_n_event[j];
 			if(e.date <= state.current_date) {
 				trigger_national_event(state, e.e, e.n, e.r_lo, e.r_hi, e.primary_slot, e.pt, e.from_slot, e.ft);
-				std::swap(state.future_n_event[last_end_n], state.future_n_event[state.future_n_event.size() - 1]);
-				state.future_n_event.pop_back();
-				--n_n_events;
-				fired = true;
-			} else {
-				++last_end_n;
+				fired_n = true;
 			}
 		}
+		if(fired_n) {
+			for(int32_t j = int32_t(n_n_events - 1); j >= 0; j--) {
+				auto const& e = state.future_n_event[j];
+				if(e.date <= state.current_date) {
+					std::swap(state.future_n_event[j], state.future_n_event[state.future_n_event.size() - 1]);
+					state.future_n_event.pop_back();
+				}
+			}
+		}
+		//
+		bool fired_p = false;
 		uint32_t n_p_events = uint32_t(state.future_p_event.size());
-		while(last_end_p < n_p_events) {
-			auto const& e = state.future_p_event[last_end_p];
+		for(int32_t j = int32_t(n_p_events - 1); j >= 0; j--) {
+			auto const& e = state.future_p_event[j];
 			if(e.date <= state.current_date) {
 				trigger_provincial_event(state, e.e, e.p, e.r_lo, e.r_hi, e.from_slot, e.ft);
-				std::swap(state.future_p_event[last_end_p], state.future_p_event[state.future_p_event.size() - 1]);
-				state.future_p_event.pop_back();
-				--n_p_events;
-				fired = true;
-			} else {
-				++last_end_p;
+				fired_p = true;
 			}
 		}
-		if(!fired)
+		if(fired_p) {
+			for(int32_t j = int32_t(n_p_events - 1); j >= 0; j--) {
+				auto const& e = state.future_p_event[j];
+				if(e.date <= state.current_date) {
+					std::swap(state.future_p_event[j], state.future_p_event[state.future_p_event.size() - 1]);
+					state.future_p_event.pop_back();
+				}
+			}
+		}
+		if(!fired_p && !fired_n)
 			break;
 	}
 }
