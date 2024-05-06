@@ -581,6 +581,36 @@ void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32
 		text::close_layout_box(contents, box);
 	}
 
+	if(state.cheat_data.show_province_id_tooltip) {
+		auto box = text::open_layout_box(contents);
+		if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Province Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto phe = std::get<event::pending_human_n_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Nation Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Free Province Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto phe = std::get<event::pending_human_f_n_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Free Nation Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view("Legacy:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(state.world.free_national_event_get_legacy_id(phe.e)));
+		}
+		text::close_layout_box(contents, box);
+	}
+
 	if(std::holds_alternative<event::pending_human_p_event>(content) || std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, std::string_view("event_only_other_requirements"));
