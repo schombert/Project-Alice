@@ -643,25 +643,6 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 }
 
 void initialize(sys::state& state) {
-	state.world.nation_resize_domestic_market_pool(state.world.commodity_size());
-	state.world.nation_resize_real_demand(state.world.commodity_size());
-	state.world.nation_resize_stockpile_targets(state.world.commodity_size());
-	state.world.nation_resize_drawing_on_stockpiles(state.world.commodity_size());
-	state.world.nation_resize_life_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_everyday_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_luxury_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_imports(state.world.commodity_size());
-	state.world.nation_resize_army_demand(state.world.commodity_size());
-	state.world.nation_resize_navy_demand(state.world.commodity_size());
-	state.world.nation_resize_construction_demand(state.world.commodity_size());
-	state.world.nation_resize_private_construction_demand(state.world.commodity_size());
-	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
-	state.world.nation_resize_life_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_everyday_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_luxury_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_effective_prices(state.world.commodity_size());
-	state.world.commodity_resize_price_record(price_history_length);
-
 	initialize_artisan_distribution(state);
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {

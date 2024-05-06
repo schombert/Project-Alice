@@ -3001,6 +3001,25 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
 
+	world.nation_resize_domestic_market_pool(world.commodity_size());
+	world.nation_resize_real_demand(world.commodity_size());
+	world.nation_resize_stockpile_targets(world.commodity_size());
+	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
+	world.nation_resize_life_needs_costs(world.pop_type_size());
+	world.nation_resize_everyday_needs_costs(world.pop_type_size());
+	world.nation_resize_luxury_needs_costs(world.pop_type_size());
+	world.nation_resize_imports(world.commodity_size());
+	world.nation_resize_army_demand(world.commodity_size());
+	world.nation_resize_navy_demand(world.commodity_size());
+	world.nation_resize_construction_demand(world.commodity_size());
+	world.nation_resize_private_construction_demand(world.commodity_size());
+	world.nation_resize_demand_satisfaction(world.commodity_size());
+	world.nation_resize_life_needs_weights(world.commodity_size());
+	world.nation_resize_everyday_needs_weights(world.commodity_size());
+	world.nation_resize_luxury_needs_weights(world.commodity_size());
+	world.nation_resize_effective_prices(world.commodity_size());
+	world.commodity_resize_price_record(economy::price_history_length);
+
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
 	nations_by_military_score.resize(2000);
