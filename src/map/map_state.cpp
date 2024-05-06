@@ -220,14 +220,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 
-	int counter = 0;
-
 	for(auto p : state.world.in_province) {
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
 			continue;
 		visited[uint16_t(rid)] = true;
-		counter++;
 
 		auto n = p.get_nation_from_province_ownership();
 		n = get_top_overlord(state, n.id);
@@ -471,24 +468,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 		std::vector<size_t> good_centroids;
 		float min_cross = 1;
-
-		float base_distance = std::numeric_limits<float>::max();
-
-		float average_distance = 0;
-
-		float amount_of_links = 0;
-
-		for(size_t i = 0; i < num_of_clusters; i++)
-			for(size_t j = 0; j < num_of_clusters; j++) {
-				if(i == j) continue;
-				if(base_distance > glm::distance(centroids[i], centroids[j]))
-					base_distance = glm::distance(centroids[i], centroids[j]);
-
-				average_distance += glm::distance(centroids[i], centroids[j]);
-				amount_of_links += 1;
-			}
-
-		average_distance /= amount_of_links;
 
 		std::vector<glm::vec2> final_points;
 
