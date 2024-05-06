@@ -169,6 +169,20 @@ public:
 			return;
 
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+		if(state.ui_state.request_window)
+			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
+		if(state.ui_state.msg_window)
+			static_cast<ui::message_window*>(state.ui_state.msg_window)->messages.clear();
+		if(state.ui_state.request_topbar_listbox)
+			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
+		if(state.ui_state.msg_log_window)
+			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
+		for(const auto& win : provincial_event_window::event_pool)
+			win->set_visible(state, false);
+		for(const auto& win : national_event_window::event_pool)
+			win->set_visible(state, false);
+		for(const auto& win : national_major_event_window::event_pool)
+			win->set_visible(state, false);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;

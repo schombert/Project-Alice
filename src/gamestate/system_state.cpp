@@ -879,14 +879,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 				}
 
-				if(settings_bits & message_response::log) {
+				if((settings_bits & message_response::log) && ui_state.msg_log_window) {
 					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
 				}
 				if(settings_bits & message_response::popup) {
 					if(c6->source == local_player_nation && (base_type == message_base_type::major_event || base_type == message_base_type::national_event || base_type == message_base_type::province_event)) {
 						// do nothing -- covered by event window logic
 					} else {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(ui_state.msg_window) {
+							static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						}
 						if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
