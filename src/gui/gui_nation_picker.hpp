@@ -601,6 +601,15 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
+			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				auto map_pos = state.world.province_get_mid_point(cap);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
 			command::notify_start_game(state, state.local_player_nation);
 		}
 	}
