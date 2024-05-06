@@ -19,6 +19,8 @@ layout (location = 2) uniform float zoom;
 layout (location = 3) uniform vec2 map_size;
 layout (location = 5) uniform mat3 rotation;
 
+layout (location = 15) uniform float opaque;
+
 subroutine vec4 calc_gl_position_class(vec2 world_pos);
 subroutine uniform calc_gl_position_class calc_gl_position;
 
@@ -116,7 +118,10 @@ void main() {
 
 	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
     
-    opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
+    opacity = 1.f;    
+    if (opaque < 0.5f)
+        opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
+        
 	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
 
 	gl_Position = temp_result;
