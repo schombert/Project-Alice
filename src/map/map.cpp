@@ -714,11 +714,12 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		if(zoom < map::zoom_close && !text_line_vertices.empty()) {
+		if(/*zoom < map::zoom_very_close && */!text_line_vertices.empty()) {
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
-		} else if(state.cheat_data.province_names) {
+		} //else
+		if(state.cheat_data.province_names) {
 			glBindVertexArray(vao_array[vo_province_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
@@ -1640,7 +1641,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if((e.coeff[2] != 0) || (e.coeff[3] != 0)) {
 			is_linear = false;
 		}
-		//as our methods are quite unstable, forcefully clamp linear coef
+
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
@@ -1652,9 +1653,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 		};
 
-		if(e.text == "United Kingdom") {
-			bool is_chile = true;
-		}
 
 		//cutting box if graph goes outside
 
@@ -1687,15 +1685,8 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			continue;
 		}
 
-		// we want to compensate for float errors which lead to extended vertical labels
-		float collapse_coef = std::clamp(std::sqrt(1.f + abs(e.coeff[1]) * 0.7f), 1.f, 10.f);
-		collapse_coef = 1.f;
 		float result_interval = right - left;
 		float center = (right + left) / 2.f;
-		result_interval /= collapse_coef;
-		left = center - result_interval / 2.f;
-		right = center + result_interval / 2.f;
-		result_interval = right - left;
 
 		glm::vec2 ratio = e.ratio;
 		glm::vec2 basis = e.basis;
@@ -1718,6 +1709,21 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
 
+		// typography "golden ratio" steps
+
+		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
+
+		if(font_size_index > 45.f) {
+			font_size_index = 45.f;
+		}
+		if (font_size_index > 5.f)
+			font_size_index = 5.f * std::round(font_size_index / 5.f);
+
+		size = std::pow(1.618034f, font_size_index / 5.f);
+
+		// fixed step
+
+		/*
 		float size_step = 30.f;
 
 		if(size > size_step * 6.f) {
@@ -1736,6 +1742,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(size < size_step) {
 			continue;
 		}
+		*/
 
 		auto real_text_size = size / (size_x * 2.0f);
 

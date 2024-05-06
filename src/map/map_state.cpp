@@ -293,10 +293,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.empty())
 			continue;
 
-		bool is_interesting = false;
-		if(name == "United Kingdom") {
-			is_interesting = true;
-		}
 
 		float rough_box_left = std::numeric_limits<float>::max();
 		float rough_box_right = 0;
@@ -347,11 +343,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float counter_from_the_bottom = 0.f;
 		float best_y_length_real = 0.f;
 		float best_y_left_x = 0.f;
-		float height = 0.f;
 
+		// prepare points for a local grid
 		for(int j = 0; j < height_steps; j++) {
 			float y = rough_box_bottom + j * local_step.y;
-			float line_has_valid_points = false;
 
 			for(int i = 0; i < width_steps; i++) {
 				float x = rough_box_left + float(i) * local_step.x;
@@ -362,27 +357,18 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					for(auto visited_region : group_of_regions) {
 						if(fat_id.get_connected_region_id() == visited_region) {
 							points.push_back(candidate);
-							line_has_valid_points = true;
 						}
 					}
 				}
 			}
-
-			if(line_has_valid_points) {
-				height++;
-			}
 		}
 
-
-		//float prev_length = 0.f;
-		//float prev_left_x = 0.f;
 		float points_above = 0.f;
 
 		for(int j = 0; j < height_steps; j++) {
 			float y = rough_box_bottom + j * local_step.y;
 
 			float current_length = 0.f;
-			float line_has_valid_points = false;
 			float left_x = (float)(map_data.size_x);
 
 			for(int i = 0; i < width_steps; i++) {
@@ -397,7 +383,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						if(fat_id.get_connected_region_id() == visited_region) {
 							points_above++;
 							current_length += local_step.x;
-							line_has_valid_points = true;
 							if(x < left_x) {
 								left_x = x;
 							}
@@ -412,30 +397,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				best_y_left_x = left_x;
 				break;
 			}
-
-			/*
-			if(line_has_valid_points) {
-				counter_from_the_bottom++;
-			
-				current_length -= local_step.x;
-				float current_length_adjusted = std::min(current_length, prev_length)
-					/ (std::abs((height + 1) * 0.5f - counter_from_the_bottom) + 10.f)
-					/ (std::abs((height + 1) * 0.5f - counter_from_the_bottom) + 10.f);
-					// (std::abs(prev_length - current_length) + 1.f)
-					// (std::max(0.f, prev_left_x - left_x) + 0.5f)
-					// (std::max(0.f, -prev_left_x - prev_length + left_x + current_length) + 0.5f);
-
-				if(current_length_adjusted > best_y_length) {
-					best_y_length = current_length_adjusted;
-					best_y_length_real = current_length;
-					best_y = y;
-					best_y_left_x = left_x;
-				}
-			}
-
-			prev_length = current_length;
-			prev_left_x = left_x;
-			*/
 		}
 
 		if(points.size() < 2) {
@@ -578,9 +539,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					is_good = true;
 			}
 
-			if (is_interesting)
-				OutputDebugStringA((std::to_string(point.x) + ", " + std::to_string(point.y) + ", " + std::to_string(closest) + ", \n").c_str());
-
 			if (is_good) {
 				good_points.push_back(point);
 				sum_points += point;
@@ -602,6 +560,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		float mse = total_sum / points.size();
+		//ignore points beyond 3 std
 		float limit = mse * 3;
 
 		//calculate radius

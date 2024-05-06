@@ -8,6 +8,7 @@ layout (location = 5) in float thickness;
 
 out vec2 tex_coord;
 out float type;
+out float opacity;
 
 // Camera position
 layout (location = 0) uniform vec2 offset;
@@ -114,7 +115,9 @@ void main() {
 	//world_pos += offset * scale;
 
 	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
-	temp_result.z = 0.01f / (thickness * zoom);
+    
+    opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
+	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
 
 	gl_Position = temp_result;
 	tex_coord = texture_coord;
