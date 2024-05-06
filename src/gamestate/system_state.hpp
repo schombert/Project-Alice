@@ -367,7 +367,7 @@ struct user_settings_s {
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
-	uint8_t antialias_level = 0;
+	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
 	bool railroads_enabled = true;
