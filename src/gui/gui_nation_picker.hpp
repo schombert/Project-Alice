@@ -177,6 +177,10 @@ public:
 			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
 		if(state.ui_state.msg_log_window)
 			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
+		for(const auto& win : land_combat_end_popup::land_reports_pool)
+			win->set_visible(state, false);
+		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
+			win->set_visible(state, false);
 		for(const auto& win : provincial_event_window::event_pool)
 			win->set_visible(state, false);
 		for(const auto& win : national_event_window::event_pool)
