@@ -830,8 +830,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
@@ -847,8 +847,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
@@ -880,8 +880,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
