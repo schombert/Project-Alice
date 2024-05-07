@@ -391,12 +391,13 @@ uint32_t es_x_event_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto n : ws.world.in_nation) {
-				if(trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
+				if(n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					rlist.push_back(n.id);
 			}
 		} else {
 			for(auto n : ws.world.in_nation) {
-				rlist.push_back(n.id);
+				if(n != trigger::to_nation(primary_slot))
+					rlist.push_back(n.id);
 			}
 		}
 		if(rlist.size() != 0) {
