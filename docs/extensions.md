@@ -22,6 +22,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
+- `random_neighbor_country`: A random neighbouring country.
 
 ### New trigger conditions
 
