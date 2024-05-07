@@ -525,31 +525,7 @@ void update_events(sys::state& state) {
 							ids, adj_chance_16, some_exist);
 				}
 			});
-			if(bool(state.defines.alice_cleanup_tag_exception) && state.national_definitions.cleanup_tag) {
-				/*
-				For national events: the base factor (scaled to days) is multiplied with all modifiers that hold. If the value is
-				non positive, we take the probability of the event occurring as 0.000001. If the value is less than 0.001, the
-				event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
-				*/
-				auto const n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.cleanup_tag);
-				auto some_exist = t
-					? trigger::evaluate(state, t, trigger::to_generic(n), trigger::to_generic(n), 0)
-					: true;
-				if(some_exist) {
-					auto chances = mod ? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(n), trigger::to_generic(n), 0) : 1.f;
-					auto adj_chance = 1.0f - chances <= 1.0f ? 1.0f : 1.0f / chances;
-					auto adj_chance_2 = adj_chance * adj_chance;
-					auto adj_chance_4 = adj_chance_2 * adj_chance_2;
-					auto adj_chance_8 = adj_chance_4 * adj_chance_4;
-					auto adj_chance_16 = adj_chance_8 * adj_chance_8;
-					auto owned_range = state.world.nation_get_province_ownership(n);
-					if(some_exist && owned_range.begin() != owned_range.end()) {
-						if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= adj_chance_16) {
-							events_triggered.local().push_back(event_nation_pair{ n, id });
-						}
-					}
-				}
-			}
+			
 		}
 	});
 

@@ -784,43 +784,7 @@ void take_ai_decisions(sys::state& state) {
 			}
 		});
 	}
-	if(bool(state.defines.alice_cleanup_tag_exception) && state.national_definitions.cleanup_tag) {
-		auto n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.cleanup_tag);
-		if(!state.world.nation_get_is_player_controlled(n)) {
-			for(auto d : state.world.in_decision) {
-				auto e = d.get_effect();
-				if(!e)
-					continue;
-				auto potential = d.get_potential();
-				auto allow = d.get_allow();
-				auto ai_will_do = d.get_ai_will_do();
-				// empty allow assumed to be an "always = yes"
-				auto filter_b = allow
-					? trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), 0)
-					: true;
-				auto filter_c = filter_b && (ai_will_do
-					? (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(n), trigger::to_generic(n), 0) > 0.0f)
-					: true);
-				auto filter_d = filter_c && (potential
-					? trigger::evaluate(state, potential, trigger::to_generic(n), trigger::to_generic(n), 0)
-					: true);
-				if(filter_d) {
-					effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-						uint32_t(n.index() << 4 ^ d.id.index()));
-					notification::post(state, notification::message{
-						[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
-							text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
-							text::add_line(state, contents, "msg_decision_2");
-							ui::effect_description(state, contents, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(when.value), uint32_t(n.index() << 4 ^ did.index()));
-						},
-						"msg_decision_title",
-						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::decision
-					});
-				}
-			}
-		}
-	}
+	
 }
 
 float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {
