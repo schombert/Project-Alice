@@ -120,22 +120,22 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 	auto old_main = context.main_slot;
 	if(context.main_slot == trigger::slot_contents::nation) {
 		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
-			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
-		} else {
-			if(context.effect_is_for_event) {
-				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
-			} else {
-				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
-			}
-		}
-	} else {
-		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
 			context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::scope_has_limit));
 		} else {
 			if(context.effect_is_for_event) {
 				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::scope_has_limit));
 			} else {
 				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::scope_has_limit));
+			}
+		}
+	} else {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
 			}
 		}
 	}
@@ -159,9 +159,9 @@ void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_han
 	auto old_main = context.main_slot;
 	// TODO: Decision_scope_nation
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::scope_has_limit));
 	} else {
-		context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
 	}
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -182,9 +182,9 @@ void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effe
 
 	// TODO: event_scope_nation
 	if(context.main_slot == trigger::slot_contents::nation) {
-		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::scope_has_limit));
 	} else {
-		context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
 	}
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -206,22 +206,22 @@ void ef_scope_random_country(token_generator& gen, error_handler& err, effect_bu
 
 	if(context.main_slot == trigger::slot_contents::nation) {
 		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
-			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
-		} else {
-			if(context.effect_is_for_event) {
-				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::is_random_scope | effect::scope_has_limit));
-			} else {
-				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::is_random_scope | effect::scope_has_limit));
-			}
-		}
-	} else {
-		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
 			context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 		} else {
 			if(context.effect_is_for_event) {
 				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 			} else {
 				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+			}
+		}
+	} else {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::is_random_scope | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::is_random_scope | effect::scope_has_limit));
 			}
 		}
 	}
