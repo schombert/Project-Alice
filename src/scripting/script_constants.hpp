@@ -529,8 +529,10 @@ constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
 constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
 constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
 constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
+constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
+constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003F;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0041;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none

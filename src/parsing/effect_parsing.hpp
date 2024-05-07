@@ -1236,8 +1236,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1246,34 +1245,34 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_reb(value)) {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "---")) {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				return;
 			} else if(value.length() == 3) {
 				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 						it != context.outer_context.map_of_ident_names.end()) {
 					context.compiled_effect.push_back(uint16_t(effect::secede_province));
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
-					err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+					err.accumulated_warnings += "secede_province effect given an invalid tag '" + std::string(value) + "' will assume null (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
-				err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::state) {
@@ -1287,8 +1286,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-						", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1297,16 +1295,14 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-						", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_reb(value)) {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-						std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(value.length() == 3) {
@@ -1315,18 +1311,15 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state));
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
-					err.accumulated_errors +=
-							"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province effect given an invalid tag '" + std::string(value) + "' (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
-				err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "secede_province effect given an invalid value '"	+ std::string(value) + "' (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
-			err.accumulated_errors +=
-					"secede_province effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "secede_province effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}

@@ -2902,9 +2902,8 @@ TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 			[&ws](dcon::nation_id n) {
 				int32_t total = 0;
 				for(auto a : ws.world.nation_get_navy_control(n)) {
-					for(auto u : a.get_navy().get_navy_membership()) {
-						++total;
-					}
+					auto memb = a.get_navy().get_navy_membership();
+					total += int32_t(memb.end() - memb.begin());
 				}
 				return total;
 			},
