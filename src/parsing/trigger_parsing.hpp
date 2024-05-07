@@ -5905,7 +5905,13 @@ void tr_flashpoint_tag_scope(token_generator& gen, error_handler& err, trigger_b
 void tr_crisis_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_state_scope(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_variable(std::string_view name, token_generator& gen, error_handler& err, trigger_building_context& context);
+//extensions
 void tr_scope_any_country(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_state(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_substate(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_sphere_member(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_pop(token_generator& gen, error_handler& err, trigger_building_context& context);
+void tr_scope_all_greater_power(token_generator& gen, error_handler& err, trigger_building_context& context);
 void tr_scope_every_country(token_generator& gen, error_handler& err, trigger_building_context& context);
 
 void invert_trigger(uint16_t* source);

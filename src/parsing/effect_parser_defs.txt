@@ -323,6 +323,7 @@ effect_body
 	random_greater_power            extern      ef_scope_random_greater_power  discard
 	any_defined_country             extern      ef_scope_any_defined_country  discard
 	any_existing_country_except_scoped	extern	ef_scope_any_existing_country_except_scoped  discard
+	random_neighbor_country         extern      ef_scope_random_neighbor_country    discard
 	#any                            extern      ef_scope_variable           discard
 
 event_option
