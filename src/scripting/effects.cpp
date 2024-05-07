@@ -132,18 +132,14 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																										: p.get_connected_nations(0);
-
+				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1) : p.get_connected_nations(0);
 				if(trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					rlist.push_back(other.id);
 				}
 			}
 		} else {
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																										: p.get_connected_nations(0);
-
+				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1) : p.get_connected_nations(0);
 				rlist.push_back(other.id);
 			}
 		}
@@ -158,9 +154,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																										: p.get_connected_nations(0);
-
+				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1) : p.get_connected_nations(0);
 				if(trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
@@ -169,9 +163,7 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 		} else {
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1)
-																																										: p.get_connected_nations(0);
-
+				auto other = p.get_connected_nations(0) == trigger::to_nation(primary_slot) ? p.get_connected_nations(1) : p.get_connected_nations(0);
 				i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 			return i;
@@ -181,7 +173,6 @@ uint32_t es_x_neighbor_country_scope(EFFECT_PARAMTERS) {
 uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::nation_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto n : ws.world.in_nation) {

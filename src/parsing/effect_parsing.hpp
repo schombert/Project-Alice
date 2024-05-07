@@ -3723,6 +3723,7 @@ void ef_scope_else(token_generator& gen, error_handler& err, effect_building_con
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_random_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context);

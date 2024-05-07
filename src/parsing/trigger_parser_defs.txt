@@ -286,7 +286,7 @@ trigger_body
 	war_countries                extern tr_scope_war_countries          discard
 	any_greater_power            extern tr_scope_any_greater_power      discard
 	any_owned_province           extern tr_scope_any_owned_province     discard
-	any_owned           extern tr_scope_any_owned_province     discard
+	any_owned					 extern tr_scope_any_owned_province     discard
 	any_core                     extern tr_scope_any_core               discard
 	all_core                     extern tr_scope_all_core               discard
 	any_state                    extern tr_scope_any_state              discard
@@ -311,6 +311,12 @@ trigger_body
 	any_country                  extern tr_scope_any_country            discard
 	every_country                extern tr_scope_every_country          discard
 	all_war_countries            extern tr_scope_all_war_countries      discard
+	any_war_countries            extern tr_scope_war_countries          discard
+	all_state                    extern tr_scope_all_state              discard
+	all_substate                 extern tr_scope_all_substate           discard
+	all_sphere_member            extern tr_scope_all_sphere_member      discard
+	all_pop                      extern tr_scope_all_pop                discard
+	all_greater_power            extern tr_scope_all_greater_power      discard
 	#any                         extern tr_scope_variable               discard
 
 stored_condition

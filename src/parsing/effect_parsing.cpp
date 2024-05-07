@@ -94,6 +94,26 @@ void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, eff
 		return;
 	}
 }
+void ef_scope_random_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		auto old_limit_offset = context.limit_position;
+
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_country_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "any_neighbor_province effect scope used in an incorrect scope type (" + err.file_name + ")\n";
+		return;
+	}
+}
 
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
@@ -166,8 +186,7 @@ void ef_scope_random_country(token_generator& gen, error_handler& err, effect_bu
 	if(context.main_slot == trigger::slot_contents::nation)
 		context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
 	else
-		context.compiled_effect.push_back(
-				uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
