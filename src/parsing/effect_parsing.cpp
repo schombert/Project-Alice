@@ -157,7 +157,7 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
-	// TODO: Decision_scope_nation
+
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::scope_has_limit));
 	} else {
@@ -180,7 +180,6 @@ void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effe
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	// TODO: event_scope_nation
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::scope_has_limit));
 	} else {
@@ -286,8 +285,7 @@ void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(
-				uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
