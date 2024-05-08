@@ -52,8 +52,7 @@ void tr_scope_any_neighbor_province(token_generator& gen, error_handler& err, tr
 		context.compiled_trigger[payload_size_offset] = uint16_t(context.compiled_trigger.size() - payload_size_offset);
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "any_neighbor_province trigger scope used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		err.accumulated_errors += "any_neighbor_province trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
 		return;
 	}
 }
@@ -64,8 +63,7 @@ void tr_scope_any_neighbor_country(token_generator& gen, error_handler& err, tri
 		context.compiled_trigger.push_back(uint16_t(trigger::x_neighbor_country_scope_pop | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "any_neighbor_country trigger scope used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		err.accumulated_errors += "any_neighbor_country trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
 		return;
 	}
 	context.compiled_trigger.push_back(uint16_t(1));
@@ -160,8 +158,7 @@ void tr_scope_any_owned_province(token_generator& gen, error_handler& err, trigg
 		return;
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "any_owned_province trigger scope used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		err.accumulated_errors += "any_owned_province trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
 		return;
 	}
 	context.compiled_trigger.push_back(uint16_t(1));
@@ -276,8 +273,7 @@ void tr_scope_any_pop(token_generator& gen, error_handler& err, trigger_building
 		context.compiled_trigger.push_back(uint16_t(trigger::x_pop_scope_state | trigger::is_existence_scope));
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "any_pop trigger scope used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
+		err.accumulated_errors += "any_pop trigger scope used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ")\n";
 		return;
 	}
 	context.compiled_trigger.push_back(uint16_t(1));
@@ -958,8 +954,7 @@ void trigger_body::is_canal_enabled(association_type a, int32_t value, error_han
 		context.compiled_trigger.push_back(uint16_t(trigger::is_canal_enabled | association_to_bool_code(a)));
 		context.compiled_trigger.push_back(trigger::payload(uint16_t(value)).value);
 	} else {
-		err.accumulated_errors +=
-				"canal index " + std::to_string(value) + " out of range (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "canal index " + std::to_string(value) + " out of range (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
 }
@@ -968,8 +963,7 @@ void trigger_body::badboy(association_type a, float value, error_handler& err, i
 	if(context.main_slot == trigger::slot_contents::nation) {
 		context.compiled_trigger.push_back(uint16_t(trigger::badboy | association_to_trigger_code(a)));
 	} else {
-		err.accumulated_errors += "badboy trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) +
-															"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "badboy trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + "(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
 	context.add_float_to_payload(value * context.outer_context.state.defines.badboy_limit);
@@ -981,9 +975,7 @@ void trigger_body::ruling_party(association_type a, std::string_view value, erro
 
 		context.compiled_trigger.push_back(uint16_t(trigger::ruling_party | association_to_bool_code(a)));
 	} else {
-		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type " +
-															slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-															std::to_string(line) + ")\n";
+		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
 	auto name_id = text::find_or_add_key(context.outer_context.state, value);
