@@ -86,9 +86,7 @@ void container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexce
 }
 
 std::unique_ptr<element_base> container_base::remove_child(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 		auto temp = std::move(children.back());
@@ -99,17 +97,13 @@ std::unique_ptr<element_base> container_base::remove_child(element_base* child) 
 	return std::unique_ptr<element_base>{};
 }
 void container_base::move_child_to_front(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it != children.begin())
 			std::rotate(children.begin(), it, it + 1);
 	}
 }
 void container_base::move_child_to_back(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 	}
@@ -126,9 +120,7 @@ void container_base::add_child_to_back(std::unique_ptr<element_base> child) noex
 	children.emplace_back(std::move(child));
 }
 element_base* container_base::get_child_by_name(sys::state const& state, std::string_view name) noexcept {
-	if(auto it = std::find_if(children.begin(), children.end(),
-				 [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; }); it != children.end()) {
 		return it->get();
 	}
 	return nullptr;

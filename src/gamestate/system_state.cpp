@@ -37,6 +37,7 @@
 #include "gui_nation_picker.hpp"
 #include "gui_end_window.hpp"
 #include "gui_map_legend.hpp"
+#include "gui_unit_grid_box.hpp"
 
 #include "blake2.h"
 
