@@ -161,10 +161,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(88, land_defense_modifier, true, modifier_display_type::percent, "modifier_land_defense")                     \
 	MOD_LIST_ELEMENT(89, tariff_efficiency_modifier, true, modifier_display_type::percent, "modifier_tariff_efficiency")           \
 	MOD_LIST_ELEMENT(90, max_loan_modifier, true, modifier_display_type::percent, "modifier_max_loan_amount")                      \
-	MOD_LIST_ELEMENT(91, unciv_economic_modifier, true, modifier_display_type::percent, "modifier_unciv_economic")                 \
-	MOD_LIST_ELEMENT(92, unciv_military_modifier, true, modifier_display_type::percent, "modifier_unciv_military")                 \
-	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, true, modifier_display_type::percent, "modifier_self_unciv_economic")       \
-	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, true, modifier_display_type::percent, "modifier_self_unciv_military")       \
+	MOD_LIST_ELEMENT(91, unciv_economic_modifier, false, modifier_display_type::percent, "modifier_unciv_economic")                 \
+	MOD_LIST_ELEMENT(92, unciv_military_modifier, false, modifier_display_type::percent, "modifier_unciv_military")                 \
+	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, false, modifier_display_type::percent, "modifier_self_unciv_economic")       \
+	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, false, modifier_display_type::percent, "modifier_self_unciv_military")       \
 	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, true, modifier_display_type::percent, "commerce_tech_research_bonus")       \
 	MOD_LIST_ELEMENT(96, army_tech_research_bonus, true, modifier_display_type::percent, "army_tech_research_bonus")               \
 	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, true, modifier_display_type::percent, "industry_tech_research_bonus")       \
