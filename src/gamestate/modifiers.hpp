@@ -166,10 +166,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, true, modifier_display_type::percent, "modifier_self_unciv_economic")       \
 	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, true, modifier_display_type::percent, "modifier_self_unciv_military")       \
 	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, false, modifier_display_type::percent, "commerce_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(96, army_tech_research_bonus, false, modifier_display_type::percent, "army_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, false, modifier_display_type::percent, "industry_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, false, modifier_display_type::percent, "navy_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, false, modifier_display_type::percent, "culture_tech_research_bonus")         \
+	MOD_LIST_ELEMENT(96, army_tech_research_bonus, true, modifier_display_type::percent, "army_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, true, modifier_display_type::percent, "industry_tech_research_bonus")       \
+	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, true, modifier_display_type::percent, "navy_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, true, modifier_display_type::percent, "culture_tech_research_bonus")         \
 	MOD_LIST_ELEMENT(100, supply_limit, true, modifier_display_type::percent, "supply_limit_tech")                                 \
 	MOD_LIST_ELEMENT(101, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech")                     \
 	MOD_LIST_ELEMENT(102, max_national_focus, true, modifier_display_type::integer, "tech_max_focus")                              \
