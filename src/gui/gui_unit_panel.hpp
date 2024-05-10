@@ -7,6 +7,7 @@
 #include "prng.hpp"
 #include "gui_leader_tooltip.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_unit_grid_box.hpp"
 
 namespace ui {
 
@@ -15,10 +16,7 @@ enum class unitpanel_action : uint8_t { close, reorg, split, disband, changelead
 class unit_selection_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -33,8 +31,7 @@ public:
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg};
-		parent->impl_get(state, payload);
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -80,18 +77,13 @@ template<class T>
 class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				command::delete_army(state, state.local_player_nation, content);
-			} else {
-				command::delete_navy(state, state.local_player_nation, content);
-			}
-			Cyto::Any payload2 = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload2);
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			command::delete_army(state, state.local_player_nation, content);
+		} else {
+			command::delete_navy(state, state.local_player_nation, content);
 		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	void on_update(sys::state& state) noexcept override {
