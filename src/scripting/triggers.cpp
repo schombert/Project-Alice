@@ -213,13 +213,10 @@ TRIGGER_FUNCTION(apply_disjuctively) {
 
 	return_type result = return_type(false);
 	while(sub_units_start < tval + source_size) {
-		result = result | test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot,
-													this_slot, from_slot);
-
+		result = result | test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 		auto compressed_res = ve::compress_mask(result);
 		if(compare(compressed_res, full_mask<decltype(compressed_res)>::value))
 			return result;
-
 		sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 	}
 	return result;
@@ -231,13 +228,10 @@ TRIGGER_FUNCTION(apply_conjuctively) {
 
 	return_type result = return_type(true);
 	while(sub_units_start < tval + source_size) {
-		result = result & test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot,
-													this_slot, from_slot);
-
+		result = result & test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 		auto compressed_res = ve::compress_mask(result);
 		if(compare(compressed_res, empty_mask<decltype(compressed_res)>::value))
 			return result;
-
 		sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 	}
 	return result;
@@ -2320,7 +2314,7 @@ TRIGGER_FUNCTION(tf_prestige_this_pop) {
 	return compare_values(tval[0], ws.world.nation_get_prestige(to_nation(primary_slot)), ws.world.nation_get_prestige(owner));
 }
 TRIGGER_FUNCTION(tf_badboy) {
-	return compare_values(tval[0], ws.world.nation_get_infamy(to_nation(primary_slot)), read_float_from_payload(tval + 1));
+	return compare_values(tval[0], ws.world.nation_get_infamy(to_nation(primary_slot)), read_float_from_payload(tval + 1) * ws.defines.badboy_limit);
 }
 TRIGGER_FUNCTION(tf_has_building_fort) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) != 0);
