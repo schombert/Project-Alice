@@ -2314,7 +2314,7 @@ TRIGGER_FUNCTION(tf_prestige_this_pop) {
 	return compare_values(tval[0], ws.world.nation_get_prestige(to_nation(primary_slot)), ws.world.nation_get_prestige(owner));
 }
 TRIGGER_FUNCTION(tf_badboy) {
-	return compare_values(tval[0], ws.world.nation_get_infamy(to_nation(primary_slot)), read_float_from_payload(tval + 1) * ws.defines.badboy_limit);
+	return compare_values(tval[0], ws.world.nation_get_infamy(to_nation(primary_slot)), read_float_from_payload(tval + 1));
 }
 TRIGGER_FUNCTION(tf_has_building_fort) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::fort) != 0);

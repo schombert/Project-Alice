@@ -2786,7 +2786,7 @@ void tf_badboy(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "infamy"),
-			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
+			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_fort(TRIGGER_DISPLAY_PARAMS) {
