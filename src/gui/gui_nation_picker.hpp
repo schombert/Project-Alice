@@ -6,17 +6,6 @@
 
 namespace ui {
 
-class picker_flag : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, retrieve<dcon::nation_id>(state, parent));
-		return fat_id.get_identity_from_identity_holder();
-	}
-	void button_action(sys::state& state) noexcept override {
-
-	}
-};
-
 class nation_picker_poptypes_chart : public piechart<dcon::pop_type_id> {
 protected:
 	void on_update(sys::state& state) noexcept override {
@@ -63,7 +52,7 @@ class nation_details_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			return make_element_by_type<picker_flag>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "selected_nation_totalrank") {
@@ -464,7 +453,7 @@ public:
 			ptr->base_data.position.y = 0; // Nudge
 			return ptr;
 		} else if(name == "playable_countries_flag") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 9; // Nudge
 			ptr->base_data.position.y = 1; // Nudge
 			return ptr;
@@ -740,7 +729,7 @@ class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::na
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
