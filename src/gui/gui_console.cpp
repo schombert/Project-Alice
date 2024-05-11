@@ -58,6 +58,7 @@ struct command_info {
 		next_song,
 		add_population,
 		instant_army,
+		instant_navy,
 		instant_industry,
 		innovate,
 		daily_oos_check,
@@ -227,6 +228,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_army", command_info::type::instant_army, "Instantly builds all armies",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "instant_navy", command_info::type::instant_navy, "Instantly builds all navies",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
@@ -1814,6 +1818,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		log_to_console(state, parent, !state.cheat_data.instant_army ? "\x02" : "\x01");
 		command::c_instant_army(state, state.local_player_nation);
+		break;
+	}
+	case command_info::type::instant_navy:
+	{
+		log_to_console(state, parent, !state.cheat_data.instant_navy ? "\x02" : "\x01");
+		command::c_instant_navy(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_industry:
