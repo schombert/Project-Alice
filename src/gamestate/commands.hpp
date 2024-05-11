@@ -151,6 +151,7 @@ enum class command_type : uint8_t {
 	c_always_accept_deals = 155,
 	c_set_auto_choice_all = 156,
 	c_clear_auto_choice_all = 157,
+	c_instant_navy = 158,
 };
 
 struct national_focus_data {

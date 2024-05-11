@@ -351,9 +351,19 @@ void c_instant_army(sys::state& state, dcon::nation_id source) {
 	p.source = source;
 	add_to_command_queue(state, p);
 }
-
 void execute_c_instant_army(sys::state& state, dcon::nation_id source) {
 	state.cheat_data.instant_army = !state.cheat_data.instant_army;
+}
+
+void c_instant_navy(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_instant_navy;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_instant_navy(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.instant_navy = !state.cheat_data.instant_navy;
 }
 
 void c_instant_industry(sys::state& state, dcon::nation_id source) {

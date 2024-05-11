@@ -4251,19 +4251,19 @@ void resolve_constructions(sys::state& state) {
 	}
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
-		{
-			auto rng = state.world.province_get_province_naval_construction(p);
-			if(rng.begin() != rng.end()) {
-				auto c = *(rng.begin());
+		auto rng = state.world.province_get_province_naval_construction(p);
+		if(rng.begin() != rng.end()) {
+			auto c = *(rng.begin());
 
-				float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_naval_construction_get_nation(c));
-				float admin_cost_factor = 2.0f - admin_eff;
+			float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_naval_construction_get_nation(c));
+			float admin_cost_factor = 2.0f - admin_eff;
 
-				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+			auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
+			auto& current_purchased = c.get_purchased_goods();
+			float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
 
-				bool all_finished = true;
+			bool all_finished = true;
+			if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_navy)) {
 				for(uint32_t i = 0; i < commodity_set::set_size && all_finished; ++i) {
 					if(base_cost.commodity_type[i]) {
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
@@ -4273,27 +4273,27 @@ void resolve_constructions(sys::state& state) {
 						break;
 					}
 				}
+			}
 
-				if(all_finished) {
-					auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
-					auto a = fatten(state.world, state.world.create_navy());
-					a.set_controller_from_navy_control(c.get_nation());
-					a.set_location_from_navy_location(p);
-					state.world.try_create_navy_membership(new_ship, a);
-					military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
+			if(all_finished) {
+				auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
+				auto a = fatten(state.world, state.world.create_navy());
+				a.set_controller_from_navy_control(c.get_nation());
+				a.set_location_from_navy_location(p);
+				state.world.try_create_navy_membership(new_ship, a);
+				military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
-					if(c.get_nation() == state.local_player_nation) {
-						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
-								text::add_line(state, contents, "amsg_navy_built");
-							},
-							"amsg_navy_built",
-							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::navy_built
-						});
-					}
-
-					state.world.delete_province_naval_construction(c);
+				if(c.get_nation() == state.local_player_nation) {
+					notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "amsg_navy_built");
+						},
+						"amsg_navy_built",
+						state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::navy_built
+					});
 				}
+
+				state.world.delete_province_naval_construction(c);
 			}
 		}
 	});
