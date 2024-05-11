@@ -1135,13 +1135,12 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.for_each_ideology(
 			[&](dcon::ideology_id i) { state.world.nation_set_upper_house(n, i, state.world.nation_get_upper_house(base, i)); });
 	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
-		state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
-	}
-	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
-		state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
-	}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
+	//	state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
+	//}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
+	//	state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
+	//}
 	state.world.for_each_commodity([&](dcon::commodity_id t) {
 		state.world.nation_set_rgo_goods_output(n, t, state.world.nation_get_rgo_goods_output(base, t));
 		state.world.nation_set_factory_goods_output(n, t, state.world.nation_get_factory_goods_output(base, t));
@@ -1238,7 +1237,7 @@ void run_gc(sys::state& state) {
 	}
 }
 
- void cleanup_nation(sys::state& state, dcon::nation_id n) {
+void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
 	auto control = state.world.nation_get_province_control(n);
@@ -1298,8 +1297,28 @@ void run_gc(sys::state& state) {
 		state.world.delete_movement((*movements.begin()).get_movement());
 	}
 
+	// transfer flags and variables to new holder
+	std::vector<bool> tmp_flags(size_t(state.national_definitions.num_allocated_national_flags));
+	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
+		auto nid = dcon::national_flag_id{ dcon::national_flag_id::value_base_t(i) };
+		tmp_flags[i] = state.world.nation_get_flag_variables(n, nid);
+	}
+	std::vector<float> tmp_vars(size_t(state.national_definitions.num_allocated_national_variables));
+	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
+		auto nid = dcon::national_variable_id{ dcon::national_variable_id::value_base_t(i) };
+		tmp_vars[i] = state.world.nation_get_variables(n, nid);
+	}
 	state.world.delete_nation(n);
 	auto new_ident_holder = state.world.create_nation();
+	// transfer flags and variables to new holder
+	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
+		auto nid = dcon::national_flag_id{ dcon::national_flag_id::value_base_t(i) };
+		state.world.nation_set_flag_variables(new_ident_holder, nid, tmp_flags[i]);
+	}
+	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
+		auto nid = dcon::national_variable_id{ dcon::national_variable_id::value_base_t(i) };
+		state.world.nation_set_variables(new_ident_holder, nid, tmp_vars[i]);
+	}
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
 	for(auto o : state.world.in_nation) {

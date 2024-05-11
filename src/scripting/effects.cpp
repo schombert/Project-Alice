@@ -307,18 +307,15 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto p : neighbor_range) {
 				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
-				if(!other.get_nation_from_province_ownership() &&
-						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
+					: p.get_connected_provinces(0);
+				if(!other.get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					rlist.push_back(other.id);
 				}
 			}
 		} else {
 			for(auto p : neighbor_range) {
 				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
+					: p.get_connected_provinces(0);
 				if(!other.get_nation_from_province_ownership()) {
 					rlist.push_back(other.id);
 				}
@@ -336,8 +333,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
 				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
+					: p.get_connected_provinces(0);
 				if(!other.get_nation_from_province_ownership() &&
 						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
@@ -348,8 +344,7 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
 				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
+					: p.get_connected_provinces(0);
 				if(!other.get_nation_from_province_ownership()) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
