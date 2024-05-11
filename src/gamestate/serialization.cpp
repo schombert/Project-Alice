@@ -283,6 +283,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
 		ptr_in = deserialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		ptr_in = deserialize(ptr_in, state.province_definitions.combat_terrain_to_gfx_map);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.asia);
@@ -467,6 +468,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
 		ptr_in = serialize(ptr_in, state.province_definitions.canal_provinces);
 		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		ptr_in = serialize(ptr_in, state.province_definitions.combat_terrain_to_gfx_map);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.asia);
@@ -645,6 +647,7 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.province_definitions.canals);
 		sz += serialize_size(state.province_definitions.canal_provinces);
 		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
+		sz += serialize_size(state.province_definitions.combat_terrain_to_gfx_map);
 		sz += sizeof(state.province_definitions.first_sea_province);
 		sz += sizeof(state.province_definitions.europe);
 		sz += sizeof(state.province_definitions.asia);

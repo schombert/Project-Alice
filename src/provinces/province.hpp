@@ -21,6 +21,7 @@ struct global_provincial_state {
 	std::vector<dcon::province_adjacency_id> canals;
 	std::vector<dcon::province_id> canal_provinces;
 	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
+	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> combat_terrain_to_gfx_map;
 	std::vector<bool> connected_region_is_coastal;
 
 	dcon::province_id first_sea_province;

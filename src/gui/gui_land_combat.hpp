@@ -937,6 +937,35 @@ public:
 	}
 };
 
+class land_combat_terrain : public opaque_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, state.world.land_battle_get_location_from_land_battle_location(b));
+		auto terrain_id = fat_id.get_terrain().id;
+		auto terrain_image = state.province_definitions.combat_terrain_to_gfx_map[terrain_id];
+		if(base_data.get_element_type() == element_type::image) {
+			base_data.data.image.gfx_object = terrain_image;
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		auto fat_id = dcon::fatten(state.world, state.world.land_battle_get_location_from_land_battle_location(b));
+		auto name = fat_id.get_terrain().get_name();
+		if(bool(name)) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		auto mod_id = fat_id.get_terrain().id;
+		if(bool(mod_id))
+			modifier_description(state, contents, mod_id);
+	}
+};
+
 class land_combat_window : public window_element_base {
 public:
 	dcon::land_battle_id battle;
@@ -992,7 +1021,7 @@ public:
 		if(name == "combat_bg") {
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "combat_terrain1") {
-			return make_element_by_type<province_terrain_image>(state, id);
+			return make_element_by_type<land_combat_terrain>(state, id);
 		} else if(name == "label_battlename") {
 			return make_element_by_type<lbattle_name>(state, id);
 		} else if(name == "combat_retreat") {

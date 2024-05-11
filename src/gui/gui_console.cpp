@@ -1599,6 +1599,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		write_single_component(state, NATIVE("province_definitions.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.province_definitions.canals);
 			ptr_in = sys::serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+			ptr_in = sys::serialize(ptr_in, state.province_definitions.combat_terrain_to_gfx_map);
 			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.europe);
 			ptr_in = sys::memcpy_serialize(ptr_in, state.province_definitions.asia);
