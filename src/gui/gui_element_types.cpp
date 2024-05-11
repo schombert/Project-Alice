@@ -1952,20 +1952,12 @@ void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;
 }
 message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;

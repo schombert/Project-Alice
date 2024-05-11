@@ -423,7 +423,6 @@ public:
 					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(0 + first_child.index()));
 					auto ch_res = make_element_by_type<scrollbar_left>(state, child_tag);
 					left = ch_res.get();
-					left->hold_continous = true;
 					add_child_to_back(std::move(ch_res));
 
 					settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
@@ -439,7 +438,6 @@ public:
 					auto ch_res = make_element_by_type<scrollbar_right>(state, child_tag);
 					//ui::element_base* test = ch_res.get();
 					right = ch_res.get();
-					right->hold_continous = true;
 					add_child_to_back(std::move(ch_res));
 
 					if(step_size::twenty_five == step)
