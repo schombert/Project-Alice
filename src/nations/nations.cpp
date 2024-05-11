@@ -1236,11 +1236,11 @@ void run_gc(sys::state& state) {
 
 		//cleanup
 		for(const auto n : state.world.in_nation) {
-			if(n.get_government_type()) {
-				auto lprovs = n.get_province_ownership();
-				if(lprovs.begin() == lprovs.end()) {
+			if(n.get_marked_for_gc()) {
+				if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
 					nations::cleanup_nation(state, n);
 				}
+				n.set_marked_for_gc(false);
 			}
 		}
 	}
