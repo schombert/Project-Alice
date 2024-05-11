@@ -56,7 +56,7 @@ struct user_settings_s {
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
 		message_response::standard_pause,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_popup,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
@@ -161,7 +161,7 @@ struct user_settings_s {
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_log,//revolt = 0,
 		message_response::standard_log,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_log,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
