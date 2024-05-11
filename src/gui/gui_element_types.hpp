@@ -747,7 +747,6 @@ protected:
 class scrollbar_left : public button_element_base {
 public:
 	int32_t step_size = 1;
-	bool hold_continous = false;
 	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
 		return sound::get_click_left_sound(state);
 	}
@@ -771,7 +770,6 @@ public:
 class scrollbar_right : public button_element_base {
 public:
 	int32_t step_size = 1;
-	bool hold_continous = false;
 	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
 		return sound::get_click_right_sound(state);
 	}
