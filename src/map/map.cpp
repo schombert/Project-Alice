@@ -288,6 +288,10 @@ void display_data::create_meshes() {
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_unit_arrow]);
 	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_attack_unit_arrow], attack_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_retreat_unit_arrow], retreat_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
 	glBindVertexArray(vao_array[vo_province_text_line]);
@@ -397,8 +401,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glActiveTexture(GL_TEXTURE11);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
-	glActiveTexture(GL_TEXTURE12);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glActiveTexture(GL_TEXTURE14);
@@ -686,12 +688,32 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	if(zoom > map::zoom_close && !unit_arrow_vertices.empty()) { //only render if close enough
-		load_shader(shaders[shader_line_unit_arrow]);
+	if(zoom > map::zoom_close) { //only render if close enough
+		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()) {
+			load_shader(shaders[shader_line_unit_arrow]);
+		}
 		glUniform1f(4, 0.005f); // width
-		glBindVertexArray(vao_array[vo_unit_arrow]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		if(!unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
+			glBindVertexArray(vao_array[vo_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		}
+		if(!attack_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_attack_unit_arrow]);
+			glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_attack_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, attack_unit_arrow_starts.data(), attack_unit_arrow_counts.data(), (GLsizei)attack_unit_arrow_counts.size());
+		}
+		if(!retreat_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_retreat_unit_arrow]);
+			glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_retreat_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, retreat_unit_arrow_starts.data(), retreat_unit_arrow_counts.data(), (GLsizei)retreat_unit_arrow_counts.size());
+		}
 	}
 
 	if(!drag_box_vertices.empty()) {
@@ -2270,6 +2292,12 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_attack_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("attackarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_attack_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_retreat_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("retreatarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_retreat_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes
