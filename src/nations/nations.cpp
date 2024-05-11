@@ -1135,13 +1135,12 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.for_each_ideology(
 			[&](dcon::ideology_id i) { state.world.nation_set_upper_house(n, i, state.world.nation_get_upper_house(base, i)); });
 	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
-		state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
-	}
-	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
-		state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
-	}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
+	//	state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
+	//}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
+	//	state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
+	//}
 	state.world.for_each_commodity([&](dcon::commodity_id t) {
 		state.world.nation_set_rgo_goods_output(n, t, state.world.nation_get_rgo_goods_output(base, t));
 		state.world.nation_set_factory_goods_output(n, t, state.world.nation_get_factory_goods_output(base, t));
@@ -1235,10 +1234,19 @@ void run_gc(sys::state& state) {
 				state.world.delete_rebel_faction(rf);
 		}
 
+		//cleanup
+		for(const auto n : state.world.in_nation) {
+			if(n.get_government_type()) {
+				auto lprovs = n.get_province_ownership();
+				if(lprovs.begin() == lprovs.end()) {
+					nations::cleanup_nation(state, n);
+				}
+			}
+		}
 	}
 }
 
- void cleanup_nation(sys::state& state, dcon::nation_id n) {
+void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
 	auto control = state.world.nation_get_province_control(n);
@@ -1298,6 +1306,7 @@ void run_gc(sys::state& state) {
 		state.world.delete_movement((*movements.begin()).get_movement());
 	}
 
+	// transfer flags and variables to new holder
 	state.world.delete_nation(n);
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
