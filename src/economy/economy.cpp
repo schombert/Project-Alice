@@ -3215,7 +3215,7 @@ void daily_update(sys::state& state) {
 		/* collect and distribute money for private education */
 		auto edu_money = 0.f;
 		auto adm_money = 0.f;
-		auto const edu_adm_spending = 0.1f;
+		auto const edu_adm_spending = 0.05f;
 		auto const edu_adm_effect = 1.f - edu_adm_spending;
 		auto const education_ratio = 0.8f;
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -3237,7 +3237,7 @@ void daily_update(sys::state& state) {
 				if(local_teachers + local_managers > 0.f) {
 					for(auto pl : province.get_pop_location()) {
 						auto const pop_money = pl.get_pop().get_savings();
-						current += pop_money;
+						current += pop_money * edu_adm_spending;
 						pl.get_pop().set_savings(pop_money * edu_adm_effect);
 					}
 				}
