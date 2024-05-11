@@ -5061,6 +5061,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_always_accept_deals:
 	case command_type::c_always_allow_reforms:
 	case command_type::c_always_allow_wargoals:
+	case command_type::c_set_auto_choice_all:
+	case command_type::c_clear_auto_choice_all:
 		return true;
 	}
 	return false;
@@ -5506,6 +5508,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_always_allow_wargoals:
 		execute_c_always_allow_wargoals(state, c.source);
+		break;
+	case command_type::c_set_auto_choice_all:
+		execute_c_set_auto_choice_all(state, c.source);
+		break;
+	case command_type::c_clear_auto_choice_all:
+		execute_c_clear_auto_choice_all(state, c.source);
 		break;
 	}
 }
