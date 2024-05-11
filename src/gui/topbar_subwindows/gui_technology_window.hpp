@@ -939,7 +939,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "main_bg") {
-			return make_element_by_type<opaque_element_base>(state, id);
+			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "bg_tech") {
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "close_button") {
