@@ -1928,7 +1928,11 @@ public:
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "prod_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tab_factories") {
 			auto ptr = make_element_by_type<generic_tab_button<production_window_tab>>(state, id);

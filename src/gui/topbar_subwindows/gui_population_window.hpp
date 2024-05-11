@@ -2660,7 +2660,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "bg_pops") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pop_list") {
 			auto ptr = make_element_by_type<pop_listbox>(state, id);
