@@ -1362,6 +1362,7 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 	if(row_contents.size() > row_windows.size()) {
 		amount = is_reversed() ? -amount : amount;
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
+		state.ui_state.last_tooltip = nullptr; //force update of tooltip
 		update(state);
 	}
 	return message_result::consumed;
@@ -1374,6 +1375,7 @@ void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state)
 		list_size++;
 	}
 	list_scrollbar->update_raw_value(state, list_size);
+	state.ui_state.last_tooltip = nullptr; //force update of tooltip
 	update(state);
 }
 
