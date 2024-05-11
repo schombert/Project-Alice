@@ -873,7 +873,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		state.world.nation_get_owned_province_count(old_owner) -= uint16_t(1);
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
 		if(lprovs.begin() == lprovs.end()) {
-			state.world.nation_get_marked_for_gc(old_owner, true);
+			state.world.nation_set_marked_for_gc(old_owner, true);
 		}
 	}
 
