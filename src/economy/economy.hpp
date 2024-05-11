@@ -86,6 +86,8 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
+inline const float subsistence_factor = 0.45f;
+
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
 	float craftsmen_fraction = 0.8f;

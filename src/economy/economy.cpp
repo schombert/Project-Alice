@@ -2186,6 +2186,13 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 			assert(std::isfinite(everyday_needs_fraction));
 			assert(std::isfinite(luxury_needs_fraction));
 
+			//subsistence:
+			if(state.world.pop_type_get_is_paid_rgo_worker(t)) {
+				// unemployed rgo workers simply work on their own land instead of starving
+				float s = state.world.province_get_rgo_employment(p.get_province());
+				life_needs_fraction = life_needs_fraction * s + subsistence_factor * (1 - s);
+			}
+
 			state.world.pop_set_life_needs_satisfaction(pl.get_pop(), life_needs_fraction);
 			state.world.pop_set_everyday_needs_satisfaction(pl.get_pop(), everyday_needs_fraction);
 			state.world.pop_set_luxury_needs_satisfaction(pl.get_pop(), luxury_needs_fraction);
@@ -2468,20 +2475,19 @@ float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
 }
 
 float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return (1.0f * state.world.nation_get_life_needs_costs(n, state.culture_definitions.farmers)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.farmers)) * min_wage_factor;
+	return subsistence_factor * state.world.nation_get_life_needs_costs(n, state.culture_definitions.farmers)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.farmers) * min_wage_factor;
 }
 
 float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return (1.0f * state.world.nation_get_life_needs_costs(n, state.culture_definitions.laborers)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.laborers)) * min_wage_factor;
+	return subsistence_factor * state.world.nation_get_life_needs_costs(n, state.culture_definitions.laborers)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.laborers) * min_wage_factor;
 }
 
 float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return min_wage_factor * (
-		state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)
-	);
+	// factory workers do not have own any land, so their min wage doesn't have subsistence factor 
+	return (state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)) * min_wage_factor;
 }
 
 void populate_effective_prices(sys::state& state, dcon::nation_id n) {
