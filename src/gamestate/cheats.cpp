@@ -431,4 +431,47 @@ void execute_c_always_accept_deals(sys::state& state, dcon::nation_id source) {
 	state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
 }
 
+void c_set_auto_choice_all(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_set_auto_choice_all;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_set_auto_choice_all(sys::state& state, dcon::nation_id source) {
+	for(const auto e : state.world.in_national_event) {
+		e.set_auto_choice(1);
+	}
+	for(const auto e : state.world.in_free_national_event) {
+		e.set_auto_choice(1);
+	}
+	for(const auto e : state.world.in_provincial_event) {
+		e.set_auto_choice(1);
+	}
+	for(const auto e : state.world.in_free_provincial_event) {
+		e.set_auto_choice(1);
+	}
+}
+void c_clear_auto_choice_all(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_clear_auto_choice_all;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_clear_auto_choice_all(sys::state& state, dcon::nation_id source) {
+	for(const auto e : state.world.in_national_event) {
+		e.set_auto_choice(0);
+	}
+	for(const auto e : state.world.in_free_national_event) {
+		e.set_auto_choice(0);
+	}
+	for(const auto e : state.world.in_provincial_event) {
+		e.set_auto_choice(0);
+	}
+	for(const auto e : state.world.in_free_provincial_event) {
+		e.set_auto_choice(0);
+	}
+}
+
 }

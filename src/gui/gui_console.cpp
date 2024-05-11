@@ -67,6 +67,8 @@ struct command_info {
 		list_global_flags,
 		list_national_flags,
 		list_all_flags,
+		set_auto_choice_all,
+		clear_auto_choice_all,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -188,6 +190,12 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"ym", command_info::type::always_accept_deals, "AI always accepts our deals",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{ "saopt", command_info::type::set_auto_choice_all, "Set all events to auto choice",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "caopt", command_info::type::clear_auto_choice_all, "Clear all events from auto choice",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{"gi", command_info::type::game_info, "Shows general game information",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
@@ -1686,6 +1694,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::always_accept_deals:
 		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
 		command::c_always_accept_deals(state, state.local_player_nation);
+		break;
+	case command_info::type::set_auto_choice_all:
+		command::c_set_auto_choice_all(state, state.local_player_nation);
+		break;
+	case command_info::type::clear_auto_choice_all:
+		command::c_clear_auto_choice_all(state, state.local_player_nation);
 		break;
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
