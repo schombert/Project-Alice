@@ -1224,24 +1224,22 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 }
 
 void run_gc(sys::state& state) {
+	//cleanup (will set gc pending)
+	for(const auto n : state.world.in_nation) {
+		if(n.get_marked_for_gc()) {
+			if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
+				nations::cleanup_nation(state, n);
+			}
+			n.set_marked_for_gc(false);
+		}
+	}
 	if(state.national_definitions.gc_pending) {
 		state.national_definitions.gc_pending = false;
-
 		for(uint32_t i = state.world.rebel_faction_size(); i-- > 0; ) {
 			dcon::rebel_faction_id rf{dcon::rebel_faction_id::value_base_t(i) };
 			auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
 			if(!within)
 				state.world.delete_rebel_faction(rf);
-		}
-
-		//cleanup
-		for(const auto n : state.world.in_nation) {
-			if(n.get_government_type()) {
-				auto lprovs = n.get_province_ownership();
-				if(lprovs.begin() == lprovs.end()) {
-					nations::cleanup_nation(state, n);
-				}
-			}
 		}
 	}
 }
