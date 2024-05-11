@@ -1838,15 +1838,13 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto win1337 = make_element_by_type<budget_take_loan_window>(state,
-				state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
 		budget_take_loan_win = win1337.get();
 		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
-		auto win101 = make_element_by_type<budget_repay_loan_window>(state,
-				state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
 		budget_repay_loan_win = win101.get();
 		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
@@ -1868,16 +1866,17 @@ public:
 			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_value")->second.definition);
 			add_child_to_front(std::move(elm));
 		}
-
 		set_visible(state, false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "tariff_mid") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_budget") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "tariff_mid") {
 			return make_element_by_type<invisible_element>(state, id);
-		}
-
-		if(name == "close_button") {
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
 			return make_element_by_type<budget_tariff_percentage_text>(state, id);
