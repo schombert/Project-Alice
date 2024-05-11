@@ -71,19 +71,14 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
-				if(other.get_nation_from_province_ownership() &&
-						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
+				if(other.get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					rlist.push_back(other.id);
 				}
 			}
 		} else {
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(other.get_nation_from_province_ownership()) {
 					rlist.push_back(other.id);
 				}
@@ -100,11 +95,8 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
-				if(other.get_nation_from_province_ownership() &&
-						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
+				if(other.get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
@@ -112,9 +104,7 @@ uint32_t es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
 		} else {
 			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-																																										: p.get_connected_provinces(0);
-
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(other.get_nation_from_province_ownership()) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
@@ -192,22 +182,20 @@ uint32_t es_x_country_scope_nation(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n.get_owned_province_count() != 0)
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		}
+		return i;
 	}
 }
 uint32_t es_x_event_country_scope_nation(EFFECT_PARAMTERS) {
@@ -231,22 +219,20 @@ uint32_t es_x_event_country_scope_nation(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n != trigger::to_nation(primary_slot) && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n != trigger::to_nation(primary_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		}
+		return i;
 	}
 }
 uint32_t es_x_decision_country_scope_nation(EFFECT_PARAMTERS) {
@@ -270,22 +256,20 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0 && trigger::evaluate(ws, limit, trigger::to_generic(n.id), this_slot, from_slot))
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto n : ws.world.in_nation) {
 				if(n != trigger::to_nation(primary_slot) && n.get_owned_province_count() != 0)
 					i += apply_subeffects(tval, ws, trigger::to_generic(n.id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
-			return i;
 		}
+		return i;
 	}
 }
 uint32_t es_x_country_scope(EFFECT_PARAMTERS) {
@@ -299,23 +283,19 @@ uint32_t es_x_decision_country_scope(EFFECT_PARAMTERS) {
 }
 uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 	auto neighbor_range = ws.world.province_get_province_adjacency(trigger::to_prov(primary_slot));
-
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::province_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-					: p.get_connected_provinces(0);
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(!other.get_nation_from_province_ownership() && trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					rlist.push_back(other.id);
 				}
 			}
 		} else {
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-					: p.get_connected_provinces(0);
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(!other.get_nation_from_province_ownership()) {
 					rlist.push_back(other.id);
 				}
@@ -328,35 +308,30 @@ uint32_t es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-					: p.get_connected_provinces(0);
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(!other.get_nation_from_province_ownership() &&
 						trigger::evaluate(ws, limit, trigger::to_generic(other.id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto p : neighbor_range) {
-				auto other = p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? p.get_connected_provinces(1)
-					: p.get_connected_provinces(0);
+				auto other = p.get_connected_provinces(p.get_connected_provinces(0) == trigger::to_prov(primary_slot) ? 1 : 0);
 				if(!other.get_nation_from_province_ownership()) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(other.id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-			return i;
 		}
+		return i;
 	}
 }
 uint32_t es_x_greater_power_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::nation_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto& n : ws.great_nations) {
@@ -369,15 +344,14 @@ uint32_t es_x_greater_power_scope(EFFECT_PARAMTERS) {
 				rlist.push_back(n.nation);
 			}
 		}
-
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
-			uint32_t i = 0;
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto& n : ws.great_nations) {
 				if(trigger::evaluate(ws, limit, trigger::to_generic(n.nation), this_slot, from_slot)) {
@@ -386,8 +360,6 @@ uint32_t es_x_greater_power_scope(EFFECT_PARAMTERS) {
 			}
 			return i;
 		} else {
-			uint32_t i = 0;
-			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto& n : ws.great_nations) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(n.nation), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
@@ -396,20 +368,17 @@ uint32_t es_x_greater_power_scope(EFFECT_PARAMTERS) {
 	}
 }
 uint32_t es_poor_strata_scope_nation(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		uint32_t i = 0;
 		for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 			for(auto pop : p.get_province().get_pop_location()) {
-				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) &&
-						trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
 		}
-		return i;
 	} else {
-		uint32_t i = 0;
 		for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 			for(auto pop : p.get_province().get_pop_location()) {
 				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
@@ -417,62 +386,48 @@ uint32_t es_poor_strata_scope_nation(EFFECT_PARAMTERS) {
 				}
 			}
 		}
-		return i;
 	}
+	return i;
 }
 uint32_t es_poor_strata_scope_state(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) &&
-							trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
-		return i;
+		});
 	} else {
-		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
-		return i;
+		});
 	}
+	return i;
 }
 uint32_t es_poor_strata_scope_province(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		uint32_t i = 0;
 		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) &&
-					trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	} else {
-		uint32_t i = 0;
 		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
 			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::poor)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	}
+	return i;
 }
 uint32_t es_middle_strata_scope_nation(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
@@ -503,55 +458,44 @@ uint32_t es_middle_strata_scope_state(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle) &&
-							trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	} else {
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	}
 }
 uint32_t es_middle_strata_scope_province(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
-		uint32_t i = 0;
 		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
 			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle) &&
 					trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	} else {
-		uint32_t i = 0;
 		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
 			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::middle)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	}
+	return i;
 }
 uint32_t es_rich_strata_scope_nation(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
@@ -582,32 +526,23 @@ uint32_t es_rich_strata_scope_state(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich) &&
-							trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	} else {
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	}
 }
@@ -616,8 +551,7 @@ uint32_t es_rich_strata_scope_province(EFFECT_PARAMTERS) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		uint32_t i = 0;
 		for(auto pop : ws.world.province_get_pop_location(trigger::to_prov(primary_slot))) {
-			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich) &&
-					trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+			if(pop.get_pop().get_poptype().get_strata() == uint8_t(culture::pop_strata::rich) && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
@@ -635,7 +569,6 @@ uint32_t es_rich_strata_scope_province(EFFECT_PARAMTERS) {
 uint32_t es_x_pop_scope_nation(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::pop_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
@@ -652,16 +585,15 @@ uint32_t es_x_pop_scope_nation(EFFECT_PARAMTERS) {
 				}
 			}
 		}
-
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
 			for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					if(trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
@@ -669,47 +601,35 @@ uint32_t es_x_pop_scope_nation(EFFECT_PARAMTERS) {
 					}
 				}
 			}
-			return i;
 		} else {
-			uint32_t i = 0;
 			for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 				for(auto pop : p.get_province().get_pop_location()) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-			return i;
 		}
+		return i;
 	}
 }
 uint32_t es_x_pop_scope_state(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
 		std::vector<dcon::pop_id> rlist;
-
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-							rlist.push_back(pop.get_pop().id);
-						}
-					}
-				}
-			}
-		} else {
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					for(auto pop : p.get_province().get_pop_location()) {
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				for(auto pop : ws.world.province_get_pop_location(p)) {
+					if(trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 						rlist.push_back(pop.get_pop().id);
 					}
 				}
-			}
+			});
+		} else {
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				for(auto pop : ws.world.province_get_pop_location(p)) {
+					rlist.push_back(pop.get_pop().id);
+				}
+			});
 		}
-
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 			return 1 + apply_subeffects(tval, ws, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, els);
@@ -719,29 +639,21 @@ uint32_t es_x_pop_scope_state(EFFECT_PARAMTERS) {
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			uint32_t i = 0;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-							i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-						}
-					}
-				}
-			}
-			return i;
-		} else {
-			uint32_t i = 0;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					for(auto pop : p.get_province().get_pop_location()) {
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				for(auto pop : ws.world.province_get_pop_location(p)) {
+					if(trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 					}
 				}
-			}
+			});
+			return i;
+		} else {
+			uint32_t i = 0;
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				for(auto pop : ws.world.province_get_pop_location(p)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
+				}
+			});
 			return i;
 		}
 	}
@@ -838,23 +750,15 @@ uint32_t es_x_owned_scope_state(EFFECT_PARAMTERS) {
 
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
-						rlist.push_back(p.get_province().id);
-					}
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				if(trigger::evaluate(ws, limit, trigger::to_generic(p), this_slot, from_slot)) {
+					rlist.push_back(p);
 				}
-			}
+			});
 		} else {
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					rlist.push_back(p.get_province().id);
-				}
-			}
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				rlist.push_back(p);
+			});
 		}
 
 		if(rlist.size() != 0) {
@@ -863,30 +767,20 @@ uint32_t es_x_owned_scope_state(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
-			uint32_t i = 0;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				if(trigger::evaluate(ws, limit, trigger::to_generic(p), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
-			}
-			return i;
+			});
 		} else {
-			uint32_t i = 0;
-			auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-			auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-			for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-				if(p.get_province().get_nation_from_province_ownership() == o) {
-					i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
-				}
-			}
-			return i;
+			province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+				i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i, els);
+			});
 		}
+		return i;
 	}
 }
 uint32_t es_x_core_scope(EFFECT_PARAMTERS) {
@@ -1051,24 +945,20 @@ uint32_t es_x_substate_scope(EFFECT_PARAMTERS) {
 		}
 		return 0;
 	} else {
-		std::vector<dcon::nation_id> nlist;
-
+		uint32_t i = 0;
 		if((tval[0] & effect::scope_has_limit) != 0) {
 			auto limit = trigger::payload(tval[2]).tr_id;
 			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
-				if(si.get_subject().get_is_substate() && trigger::evaluate(ws, limit, trigger::to_generic(si.get_subject().id), this_slot, from_slot))
-					nlist.push_back(si.get_subject());
+				if(si.get_subject().get_is_substate() && trigger::evaluate(ws, limit, trigger::to_generic(si.get_subject().id), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(si.get_subject()), this_slot, from_slot, r_hi, r_lo + i, els);
+				}
 			}
 		} else {
 			for(auto si : ws.world.nation_get_overlord_as_ruler(trigger::to_nation(primary_slot))) {
-				if(si.get_subject().get_is_substate())
-					nlist.push_back(si.get_subject());
+				if(si.get_subject().get_is_substate()) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(si.get_subject()), this_slot, from_slot, r_hi, r_lo + i, els);
+				}
 			}
-		}
-
-		uint32_t i = 0;
-		for(auto p : nlist) {
-			i += apply_subeffects(tval, ws, trigger::to_generic(p), this_slot, from_slot, r_hi, r_lo + i, els);
 		}
 		return i;
 	}
@@ -1097,26 +987,22 @@ uint32_t es_random_scope(EFFECT_PARAMTERS) {
 	return 1;
 }
 uint32_t es_owner_scope_state(EFFECT_PARAMTERS) {
-	auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-	if(owner)
+	if(auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)); owner)
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
 }
 uint32_t es_owner_scope_province(EFFECT_PARAMTERS) {
-	auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot));
-	if(owner)
+	if(auto owner = ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)); owner)
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
 }
 uint32_t es_controller_scope(EFFECT_PARAMTERS) {
-	auto controller = ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot));
-	if(controller)
+	if(auto controller = ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)); controller)
 		return apply_subeffects(tval, ws, trigger::to_generic(controller), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
 }
 uint32_t es_location_scope(EFFECT_PARAMTERS) {
-	auto owner = ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot));
-	if(owner)
+	if(auto owner = ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot)); owner)
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo, els);
 	return 0;
 }
@@ -1204,17 +1090,15 @@ uint32_t es_sphere_owner_scope(EFFECT_PARAMTERS) {
 uint32_t es_independence_scope(EFFECT_PARAMTERS) {
 	auto rtag = ws.world.rebel_faction_get_defection_target(trigger::to_rebel(primary_slot));
 	auto rnation = ws.world.national_identity_get_nation_from_identity_holder(rtag);
-	if(rnation) {
+	if(rnation)
 		return apply_subeffects(tval, ws, trigger::to_generic(rnation), this_slot, from_slot, r_hi, r_lo, els);
-	}
 	return 0;
 }
 uint32_t es_flashpoint_tag_scope(EFFECT_PARAMTERS) {
 	auto ctag = ws.world.state_instance_get_flashpoint_tag(trigger::to_state(primary_slot));
 	auto rnation = ws.world.national_identity_get_nation_from_identity_holder(ctag);
-	if(rnation) {
+	if(rnation)
 		return apply_subeffects(tval, ws, trigger::to_generic(rnation), this_slot, from_slot, r_hi, r_lo, els);
-	}
 	return 0;
 }
 uint32_t es_crisis_state_scope(EFFECT_PARAMTERS) {
@@ -1256,7 +1140,6 @@ uint32_t es_integer_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		auto prov = trigger::payload(tval[3]).prov_id;
-
 		if(prov && trigger::evaluate(ws, limit, trigger::to_generic(prov), this_slot, from_slot))
 			return apply_subeffects(tval, ws, trigger::to_generic(prov), this_slot, from_slot, r_hi, r_lo, els);
 		return 0;
@@ -1268,24 +1151,19 @@ uint32_t es_integer_scope(EFFECT_PARAMTERS) {
 	}
 }
 uint32_t es_pop_type_scope_nation(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		auto type = trigger::payload(tval[3]).popt_id;
-
-		uint32_t i = 0;
 		for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 			for(auto pop : p.get_province().get_pop_location()) {
-				if(pop.get_pop().get_poptype() == type &&
-						trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+				if(pop.get_pop().get_poptype() == type && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
 					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
 		}
-		return i;
 	} else {
 		auto type = trigger::payload(tval[2]).popt_id;
-
-		uint32_t i = 0;
 		for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
 			for(auto pop : p.get_province().get_pop_location()) {
 				if(pop.get_pop().get_poptype() == type) {
@@ -1293,43 +1171,32 @@ uint32_t es_pop_type_scope_nation(EFFECT_PARAMTERS) {
 				}
 			}
 		}
-		return i;
 	}
+	return i;
 }
 uint32_t es_pop_type_scope_state(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		auto type = trigger::payload(tval[3]).popt_id;
-
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype() == type &&
-							trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype() == type && trigger::evaluate(ws, limit, trigger::to_generic(pop.get_pop().id), this_slot, from_slot)) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	} else {
 		auto type = trigger::payload(tval[2]).popt_id;
-
 		uint32_t i = 0;
-		auto d = ws.world.state_instance_get_definition(trigger::to_state(primary_slot));
-		auto o = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot));
-		for(auto p : ws.world.state_definition_get_abstract_state_membership(d)) {
-			if(p.get_province().get_nation_from_province_ownership() == o) {
-				for(auto pop : p.get_province().get_pop_location()) {
-					if(pop.get_pop().get_poptype() == type) {
-						i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
-					}
+		province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) {
+			for(auto pop : ws.world.province_get_pop_location(p)) {
+				if(pop.get_pop().get_poptype() == type) {
+					i += apply_subeffects(tval, ws, trigger::to_generic(pop.get_pop().id), this_slot, from_slot, r_hi, r_lo + i, els);
 				}
 			}
-		}
+		});
 		return i;
 	}
 }
@@ -1359,46 +1226,40 @@ uint32_t es_pop_type_scope_province(EFFECT_PARAMTERS) {
 	}
 }
 uint32_t es_region_scope(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto region = trigger::payload(tval[3]).state_id;
 		auto limit = trigger::payload(tval[2]).tr_id;
-
-		uint32_t i = 0;
 		for(auto p : ws.world.state_definition_get_abstract_state_membership(region)) {
 			if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	} else {
 		auto region = trigger::payload(tval[2]).state_id;
-		uint32_t i = 0;
 		for(auto p : ws.world.state_definition_get_abstract_state_membership(region)) {
 			i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
 		}
-		return i;
 	}
+	return i;
 }
 uint32_t es_region_proper_scope(EFFECT_PARAMTERS) {
+	uint32_t i = 0;
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto region = trigger::payload(tval[3]).reg_id;
 		auto limit = trigger::payload(tval[2]).tr_id;
-
-		uint32_t i = 0;
 		for(auto p : ws.world.region_get_region_membership(region)) {
 			if(trigger::evaluate(ws, limit, trigger::to_generic(p.get_province().id), this_slot, from_slot)) {
 				i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
 			}
 		}
-		return i;
 	} else {
 		auto region = trigger::payload(tval[2]).reg_id;
-		uint32_t i = 0;
 		for(auto p : ws.world.region_get_region_membership(region)) {
 			i += apply_subeffects(tval, ws, trigger::to_generic(p.get_province().id), this_slot, from_slot, r_hi, r_lo + i, els);
 		}
-		return i;
 	}
+	return i;
 }
 
 uint32_t ef_none(EFFECT_PARAMTERS) {
@@ -1417,8 +1278,7 @@ uint32_t ef_add_core_tag(EFFECT_PARAMTERS) {
 }
 uint32_t ef_add_core_tag_state(EFFECT_PARAMTERS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
-	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
-			[&](dcon::province_id p) { province::add_core(ws, p, tag); });
+	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot), [&](dcon::province_id p) { province::add_core(ws, p, tag); });
 	return 0;
 }
 uint32_t ef_add_core_int(EFFECT_PARAMTERS) {
@@ -1542,8 +1402,6 @@ uint32_t ef_remove_core_int(EFFECT_PARAMTERS) {
 	province::remove_core(ws, prov, tag);
 	return 0;
 }
-
-
 uint32_t ef_remove_core_nation_this_nation(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot));
 	for(auto p : ws.world.nation_get_province_ownership(trigger::to_nation(primary_slot))) {
@@ -1588,7 +1446,6 @@ uint32_t ef_remove_core_nation_reb(EFFECT_PARAMTERS) {
 	}
 	return 0;
 }
-
 uint32_t ef_remove_core_state_this_nation(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(this_slot));
 	province::for_each_province_in_state_instance(ws, trigger::to_state(primary_slot),
@@ -4060,130 +3917,98 @@ uint32_t ef_war_no_ally_from_province(EFFECT_PARAMTERS) {
 }
 uint32_t ef_country_event_this_nation(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
-	} else {
-		event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::nation);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::nation});
-	} else {
-		event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::nation);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::nation});
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::nation});
+	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
-	} else {
-		event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::state);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
+	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::state});
-	} else {
-		event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::state);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::state});
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::state});
+	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
-	} else {
-		event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::province);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_province(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
+	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::province});
-	} else {
-		event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::province);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_province(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::province});
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::province});
+	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
-	} else {
-		event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::pop);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
+	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
+	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
-	if(postpone > 0) {
-		auto future_date = ws.current_date + postpone;
-		ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::pop});
-	} else {
-		event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot,
-				event::slot_type::pop);
-	}
+	assert(postpone > 0);
+	auto future_date = ws.current_date + postpone;
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_province_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	auto future_date = ws.current_date + 0;
-	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), future_date, event::slot_type::pop});
+	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::pop});
+	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_country_event_province_this_nation(EFFECT_PARAMTERS) {
