@@ -28,12 +28,17 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	}
 
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "who")
-		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")) {
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "yes")) {
 		err.accumulated_warnings += err.file_name + " line " + std::to_string(line) + ": A tag which may conflict with a built-in 'who' or 'oob'\n";
 	}
 
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
+	// Recognize the cleanup utility tag
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
+		context.state.national_definitions.cleanup_tag = new_ident;
+	}
 
 	auto name_id = text::find_or_add_key(context.state, tag);
 	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
@@ -846,6 +851,7 @@ dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err
 dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context) {
 	effect_building_context e_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty};
+	e_context.effect_is_for_event = false;
 	return make_effect(gen, err, e_context);
 }
 
@@ -947,6 +953,7 @@ void scan_province_event(token_generator& gen, error_handler& err, scenario_buil
 		auto new_id = context.state.world.create_free_provincial_event();
 		auto fid = fatten(context.state.world, new_id);
 		fid.set_description(event_result.desc_);
+		fid.set_immediate_effect(event_result.immediate_);
 		fid.set_name(event_result.title_);
 		fid.set_mtth(event_result.mean_time_to_happen);
 		fid.set_only_once(event_result.fire_only_once);
@@ -1101,6 +1108,7 @@ void lambda_province_event(token_generator& gen, error_handler& err, effect_buil
 	auto id = context.outer_context.state.world.create_provincial_event();
 	auto fid = dcon::fatten(context.outer_context.state.world, id);
 	fid.set_description(event_result.desc_);
+	fid.set_immediate_effect(event_result.immediate_);
 	fid.set_name(event_result.title_);
 	fid.get_options() = event_result.options;
 	//Effect
@@ -1151,6 +1159,7 @@ dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, e
 }
 dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 	return make_effect(gen, err, e_context);
 }
 dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context) {
@@ -1163,6 +1172,7 @@ dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handl
 }
 sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 
 	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	e_context.compiled_effect.push_back(uint16_t(0));
@@ -1330,6 +1340,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 
 				auto fid = fatten(context.state.world, data_copy.id);
 				fid.set_description(event_result.desc_);
+				fid.set_immediate_effect(event_result.immediate_);
 				fid.set_name(event_result.title_);
 				fid.get_options() = event_result.options;
 

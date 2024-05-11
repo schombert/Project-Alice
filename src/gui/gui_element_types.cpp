@@ -86,9 +86,7 @@ void container_base::impl_render(sys::state& state, int32_t x, int32_t y) noexce
 }
 
 std::unique_ptr<element_base> container_base::remove_child(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 		auto temp = std::move(children.back());
@@ -99,17 +97,13 @@ std::unique_ptr<element_base> container_base::remove_child(element_base* child) 
 	return std::unique_ptr<element_base>{};
 }
 void container_base::move_child_to_front(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it != children.begin())
 			std::rotate(children.begin(), it, it + 1);
 	}
 }
 void container_base::move_child_to_back(element_base* child) noexcept {
-	if(auto it =
-					std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [child](std::unique_ptr<element_base>& p) { return p.get() == child; }); it != children.end()) {
 		if(it + 1 != children.end())
 			std::rotate(it, it + 1, children.end());
 	}
@@ -126,9 +120,7 @@ void container_base::add_child_to_back(std::unique_ptr<element_base> child) noex
 	children.emplace_back(std::move(child));
 }
 element_base* container_base::get_child_by_name(sys::state const& state, std::string_view name) noexcept {
-	if(auto it = std::find_if(children.begin(), children.end(),
-				 [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; });
-			it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; }); it != children.end()) {
 		return it->get();
 	}
 	return nullptr;
@@ -830,8 +822,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
@@ -847,8 +839,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
@@ -880,8 +872,8 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
 
 				auto map_pos = state.world.province_get_mid_point(prov);
 				map_pos.x /= float(state.map_state.map_data.size_x);
@@ -919,6 +911,8 @@ message_result multiline_text_element_base::test_mouse(sys::state& state, int32_
 		return message_result::unseen;
 	}
 	case mouse_probe_type::tooltip:
+		if(has_tooltip(state) != tooltip_behavior::no_tooltip)
+			return message_result::consumed;
 		return message_result::unseen;
 	case mouse_probe_type::scroll:
 		return message_result::unseen;
@@ -1368,6 +1362,7 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 	if(row_contents.size() > row_windows.size()) {
 		amount = is_reversed() ? -amount : amount;
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
+		state.ui_state.last_tooltip = nullptr; //force update of tooltip
 		update(state);
 	}
 	return message_result::consumed;
@@ -1380,6 +1375,7 @@ void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state)
 		list_size++;
 	}
 	list_scrollbar->update_raw_value(state, list_size);
+	state.ui_state.last_tooltip = nullptr; //force update of tooltip
 	update(state);
 }
 
@@ -1958,20 +1954,12 @@ void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;
 }
 message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;

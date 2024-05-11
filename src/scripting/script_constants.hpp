@@ -443,22 +443,26 @@ EFFECT_BYTECODE_ELEMENT(0x01A8, add_accepted_culture_from, 0) \
 EFFECT_BYTECODE_ELEMENT(0x01A9, add_accepted_culture_union_from, 0) \
 /* fused ops */ \
 EFFECT_BYTECODE_ELEMENT(0x01AA, fop_clr_global_flag_2, 2) \
-EFFECT_BYTECODE_ELEMENT(0x01AB, fop_clr_country_flag_2, 2) \
-EFFECT_BYTECODE_ELEMENT(0x01AC, fop_clr_global_flag_3, 3) \
-EFFECT_BYTECODE_ELEMENT(0x01AD, fop_clr_country_flag_3, 3) \
-EFFECT_BYTECODE_ELEMENT(0x01AE, fop_clr_global_flag_4, 4) \
-EFFECT_BYTECODE_ELEMENT(0x01AF, fop_clr_country_flag_4, 4) \
-EFFECT_BYTECODE_ELEMENT(0x01B0, fop_clr_global_flag_5, 5) \
-EFFECT_BYTECODE_ELEMENT(0x01B1, fop_clr_global_flag_6, 6) \
-EFFECT_BYTECODE_ELEMENT(0x01B2, fop_clr_global_flag_7, 7) \
-EFFECT_BYTECODE_ELEMENT(0x01B3, fop_clr_global_flag_8, 8) \
+EFFECT_BYTECODE_ELEMENT(0x01AB, fop_clr_global_flag_3, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01AC, fop_clr_global_flag_4, 4) \
+EFFECT_BYTECODE_ELEMENT(0x01AD, fop_clr_global_flag_5, 5) \
+EFFECT_BYTECODE_ELEMENT(0x01AE, fop_clr_global_flag_6, 6) \
+EFFECT_BYTECODE_ELEMENT(0x01AF, fop_clr_global_flag_7, 7) \
+EFFECT_BYTECODE_ELEMENT(0x01B0, fop_clr_global_flag_8, 8) \
+EFFECT_BYTECODE_ELEMENT(0x01B1, fop_clr_global_flag_9, 9) \
+EFFECT_BYTECODE_ELEMENT(0x01B2, fop_clr_global_flag_10, 10) \
+EFFECT_BYTECODE_ELEMENT(0x01B3, fop_clr_global_flag_11, 11) \
+EFFECT_BYTECODE_ELEMENT(0x01B4, fop_clr_global_flag_12, 12) \
+EFFECT_BYTECODE_ELEMENT(0x01B5, fop_change_province_name, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01B6, change_terrain_pop, 1) \
+EFFECT_BYTECODE_ELEMENT(0x01B7, change_terrain_province, 1) \
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 	EFFECT_BYTECODE_LIST
 #undef EFFECT_BYTECODE_ELEMENT
 
 // invalid
-constexpr inline uint16_t first_scope_code = 0x01B4;
+constexpr inline uint16_t first_scope_code = 0x01B8;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
@@ -513,7 +517,6 @@ constexpr inline uint16_t state_scope_province = first_scope_code + 0x0030;
 constexpr inline uint16_t x_substate_scope = first_scope_code + 0x0031;
 constexpr inline uint16_t capital_scope_province = first_scope_code + 0x0032;
 constexpr inline uint16_t x_core_scope_province = first_scope_code + 0x0033;
-
 // variable named scopes
 constexpr inline uint16_t tag_scope = first_scope_code + 0x0034;
 constexpr inline uint16_t integer_scope = first_scope_code + 0x0035;
@@ -524,8 +527,12 @@ constexpr inline uint16_t region_proper_scope = first_scope_code + 0x0039;
 constexpr inline uint16_t region_scope = first_scope_code + 0x003A;
 constexpr inline uint16_t if_scope = first_scope_code + 0x003B;
 constexpr inline uint16_t else_if_scope = first_scope_code + 0x003C;
+constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
+constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
+constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
+constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
 
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x003D;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0041;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
@@ -558,6 +565,22 @@ inline int32_t effect_scope_data_payload(uint16_t code) {
 inline bool effect_scope_has_single_member(uint16_t const* source) { // precondition: scope known to not be empty
 	auto const data_offset = 2 + effect_scope_data_payload(source[0]);
 	return get_effect_scope_payload_size(source) == data_offset + get_generic_effect_payload_size(source + data_offset);
+}
+
+template<typename T>
+uint16_t* recurse_over_effects(uint16_t* source, T const& f) {
+	f(source);
+	assert((source[0] & effect::code_mask) < effect::first_invalid_code || (source[0] & effect::code_mask) == effect::code_mask);
+	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
+		auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
+		auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+		while(sub_units_start < source + source_size) {
+			sub_units_start = recurse_over_effects(sub_units_start, f);
+		}
+		return source + source_size;
+	} else {
+		return source + 1 + effect::get_effect_non_scope_payload_size(source);
+	}
 }
 
 } // namespace effect

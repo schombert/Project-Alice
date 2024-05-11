@@ -89,7 +89,7 @@ class national_event_window : public window_element_base {
 public:
 	static std::vector<std::unique_ptr<national_event_window>> event_pool;
 	static int32_t pending_events;
-
+	event_image* image = nullptr;
 	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
 
 	void on_create(sys::state& state) noexcept override;
@@ -104,7 +104,7 @@ class national_major_event_window : public window_element_base {
 public:
 	static std::vector<std::unique_ptr<national_major_event_window>> event_pool;
 	static int32_t pending_events;
-
+	event_image* image = nullptr;
 	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
 
 	void on_create(sys::state& state) noexcept override;

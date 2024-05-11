@@ -110,6 +110,7 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_navy_built", // navy_built
 		"amsg_bankruptcy", //bankruptcy
 		"amsg_entered_automatic_alliance",//entered_automatic_alliance
+		"amsg_chat_message",//chat_message
 	};
 	return std::string{key_str[type]};
 }
@@ -273,7 +274,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(uint32_t i = 0; i <= 101; ++i)
+		for(uint32_t i = 0; i <= 102; ++i)
 			row_contents.push_back(i);
 		update(state);
 	}

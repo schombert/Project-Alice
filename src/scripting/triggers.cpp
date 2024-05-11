@@ -213,13 +213,10 @@ TRIGGER_FUNCTION(apply_disjuctively) {
 
 	return_type result = return_type(false);
 	while(sub_units_start < tval + source_size) {
-		result = result | test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot,
-													this_slot, from_slot);
-
+		result = result | test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 		auto compressed_res = ve::compress_mask(result);
 		if(compare(compressed_res, full_mask<decltype(compressed_res)>::value))
 			return result;
-
 		sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 	}
 	return result;
@@ -231,13 +228,10 @@ TRIGGER_FUNCTION(apply_conjuctively) {
 
 	return_type result = return_type(true);
 	while(sub_units_start < tval + source_size) {
-		result = result & test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot,
-													this_slot, from_slot);
-
+		result = result & test_trigger_generic<return_type, primary_type, this_type, from_type>(sub_units_start, ws, primary_slot, this_slot, from_slot);
 		auto compressed_res = ve::compress_mask(result);
 		if(compare(compressed_res, empty_mask<decltype(compressed_res)>::value))
 			return result;
-
 		sub_units_start += 1 + get_trigger_payload_size(sub_units_start);
 	}
 	return result;
@@ -2902,9 +2896,8 @@ TRIGGER_FUNCTION(tf_total_amount_of_ships) {
 			[&ws](dcon::nation_id n) {
 				int32_t total = 0;
 				for(auto a : ws.world.nation_get_navy_control(n)) {
-					for(auto u : a.get_navy().get_navy_membership()) {
-						++total;
-					}
+					auto memb = a.get_navy().get_navy_membership();
+					total += int32_t(memb.end() - memb.begin());
 				}
 				return total;
 			},
