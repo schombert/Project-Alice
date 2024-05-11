@@ -46,7 +46,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
 		if(FAILED(hr)) {
 			MessageBoxW(nullptr, L"failed to create graph builder", L"Audio error", MB_OK);
-			std::abort();
+			return;
 		}
 
 		std::thread creation_dispatch([pGraph, as_music, volume, window_handle, _this = this]() {
@@ -68,7 +68,6 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			if(as_music) {
 				IMediaEventEx* pEvent = nullptr;
 				hr = pGraph->QueryInterface(IID_IMediaEventEx, (void**)&pEvent);
-
 				if(FAILED(hr)) {
 					MessageBoxW(nullptr, L"failed to get event interface", L"Audio error", MB_OK);
 					std::abort();
@@ -108,8 +107,7 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 			}
 
 			LONGLONG new_position = 0;
-			hr =
-					((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+			hr = ((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
@@ -134,7 +132,6 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
 			}
 		}
-
 		if(control_interface) {
 			hr = control_interface->Run();
 			if(FAILED(hr)) {
@@ -231,8 +228,8 @@ void sound_impl::play_effect(audio_instance& s, float volume) {
 		return;
 
 	if(!current_effect || current_effect->is_playing() == false) {
-		s.play(volume, false, window_handle);
 		current_effect = &s;
+		s.play(volume, false, window_handle);
 	}
 }
 
@@ -329,7 +326,7 @@ void initialize_sound_system(sys::state& state) {
 		audio_instance* audio;
 		native_string_view name;
 	} vanilla_sound_table[] = {
-		{ &state.sound_ptr->click_sound, NATIVE("GI_ValidClick.wav") },
+		//{ &state.sound_ptr->click_sound, NATIVE("GI_ValidClick.wav") },
 		{ &state.sound_ptr->technology_finished_sound, NATIVE("UI_TechnologyFinished.wav") },
 		{ &state.sound_ptr->army_move_sound, NATIVE("GI_InfantryMove.wav") },
 		{ &state.sound_ptr->army_select_sound, NATIVE("GI_InfantrySelected.wav") },
@@ -374,8 +371,23 @@ void initialize_sound_system(sys::state& state) {
 		audio_instance* audio;
 		native_string_view name;
 	} new_sound_table[] = {
+		{ &state.sound_ptr->click_sound, NATIVE("NU_AltClick.wav") },
+		{ &state.sound_ptr->click_left_sound, NATIVE("NU_ClickL.wav") },
+		{ &state.sound_ptr->click_right_sound, NATIVE("NU_ClickR.wav") },
 		{ &state.sound_ptr->console_open_sound, NATIVE("NU_OpenConsole.wav") },
 		{ &state.sound_ptr->console_close_sound, NATIVE("NU_CloseConsole.wav") },
+		{ &state.sound_ptr->tab_budget_sound, NATIVE("NU_TabBudget.wav") },
+		{ &state.sound_ptr->tab_politics_sound, NATIVE("NU_TabPolitics.wav") },
+		{ &state.sound_ptr->tab_diplomacy_sound, NATIVE("NU_TabDiplomacy.wav") },
+		{ &state.sound_ptr->tab_military_sound, NATIVE("NU_TabMilitary.wav") },
+		{ &state.sound_ptr->tab_population_sound, NATIVE("NU_TabPopulation.wav") },
+		{ &state.sound_ptr->tab_production_sound, NATIVE("NU_TabProduction.wav") },
+		{ &state.sound_ptr->tab_technology_sound, NATIVE("NU_TabTechnology.wav") },
+		{ &state.sound_ptr->tab_military_sound, NATIVE("NU_TabMilitary.wav") },
+		{ &state.sound_ptr->event_sound, NATIVE("NU_Event.wav") },
+		{ &state.sound_ptr->decision_sound, NATIVE("NU_Decision.wav") },
+		{ &state.sound_ptr->pause_sound, NATIVE("NU_Pause.wav") },
+		{ &state.sound_ptr->unpause_sound, NATIVE("NU_Unpause.wav") },
 		{ &state.sound_ptr->province_select_sounds[0], NATIVE("NU_ProvSelect1.wav") },
 		{ &state.sound_ptr->province_select_sounds[1], NATIVE("NU_ProvSelect2.wav") },
 		{ &state.sound_ptr->province_select_sounds[2], NATIVE("NU_ProvSelect3.wav") },
@@ -453,6 +465,33 @@ void update_music_track(sys::state& state) {
 audio_instance& get_click_sound(sys::state& state) {
 	return state.sound_ptr->click_sound;
 }
+audio_instance& get_click_left_sound(sys::state& state) {
+	return state.sound_ptr->click_left_sound;
+}
+audio_instance& get_click_right_sound(sys::state& state) {
+	return state.sound_ptr->click_right_sound;
+}
+audio_instance& get_tab_budget_sound(sys::state& state) {
+	return state.sound_ptr->tab_budget_sound;
+}
+audio_instance& get_tab_politics_sound(sys::state& state) {
+	return state.sound_ptr->tab_politics_sound;
+}
+audio_instance& get_tab_diplomacy_sound(sys::state& state) {
+	return state.sound_ptr->tab_diplomacy_sound;
+}
+audio_instance& get_tab_military_sound(sys::state& state) {
+	return state.sound_ptr->tab_military_sound;
+}
+audio_instance& get_tab_population_sound(sys::state& state) {
+	return state.sound_ptr->tab_population_sound;
+}
+audio_instance& get_tab_production_sound(sys::state& state) {
+	return state.sound_ptr->tab_production_sound;
+}
+audio_instance& get_tab_technology_sound(sys::state& state) {
+	return state.sound_ptr->tab_technology_sound;
+}
 audio_instance& get_army_select_sound(sys::state& state) {
 	return state.sound_ptr->army_select_sound;
 }
@@ -524,6 +563,19 @@ audio_instance& get_console_open_sound(sys::state& state) {
 }
 audio_instance& get_console_close_sound(sys::state& state) {
 	return state.sound_ptr->console_close_sound;
+}
+
+audio_instance& get_event_sound(sys::state& state) {
+	return state.sound_ptr->event_sound;
+}
+audio_instance& get_decision_sound(sys::state& state) {
+	return state.sound_ptr->decision_sound;
+}
+audio_instance& get_pause_sound(sys::state& state) {
+	return state.sound_ptr->pause_sound;
+}
+audio_instance& get_unpause_sound(sys::state& state) {
+	return state.sound_ptr->unpause_sound;
 }
 
 audio_instance& get_random_land_battle_sound(sys::state& state) {

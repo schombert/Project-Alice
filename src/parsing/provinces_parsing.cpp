@@ -165,7 +165,6 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	context.state.world.state_definition_set_name(state_id, name_id);
 
 	state_def_building_context new_context{context, state_id};
-
 	parsers::parse_state_definition(gen, err, new_context);
 }
 void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
@@ -176,7 +175,6 @@ void make_region_definition(std::string_view name, token_generator& gen, error_h
 	context.state.world.region_set_name(rid, name_id);
 
 	region_building_context new_context{ context, rid };
-
 	parsers::parse_region_definition(gen, err, new_context);
 }
 
@@ -289,6 +287,9 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		if(context.outer_context.state.world.province_ownership_get_nation(context.outer_context.state.world.province_get_province_ownership(context.id))) {
+			err.accumulated_warnings += "Duplicate owner statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -298,6 +299,9 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		if(context.outer_context.state.world.province_control_get_nation(context.outer_context.state.world.province_get_province_control(context.id))) {
+			err.accumulated_warnings += "Duplicate controller statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -310,8 +314,7 @@ void province_history_file::terrain(association_type, std::string_view text, err
 			it != context.outer_context.map_of_terrain_types.end()) {
 		context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
 	} else {
-		err.accumulated_errors +=
-				std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid terrain '" + std::string(text) + "' (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -453,9 +456,15 @@ void parse_csv_province_history_file(sys::state& state, const char* start, const
 			}
 			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
 			province_file_context province_context{ context, p };
-			f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
-			f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
-			f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			if(!owner_text.empty()) {
+				f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
+			}
+			if(!controller_text.empty()) {
+				f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
+			}
+			if(!core_text.empty()) {
+				f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			}
 			f.trade_goods(parsers::association_type::eq_default, trade_goods_text, err, 0, province_context);
 			f.life_rating(parsers::association_type::eq_default, parsers::parse_int(life_rating_text, 0, err), err, 0, province_context);
 			f.colony(parsers::association_type::eq_default, parsers::parse_int(is_colonial_text, 0, err), err, 0, province_context);

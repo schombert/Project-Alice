@@ -6,13 +6,15 @@ add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc")
 else()
 add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map.cpp")
+	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp")
 endif()
 target_link_libraries(tests_project PRIVATE AliceCommon)
 

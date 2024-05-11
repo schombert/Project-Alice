@@ -172,7 +172,7 @@ void form_alliances(sys::state& state) {
 						},
 						"msg_entered_automatic_alliance_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::entered_automatic_alliance
 					});
 				}
 				nations::make_alliance(state, n, alliance_targets[0]);
@@ -767,8 +767,7 @@ void take_ai_decisions(sys::state& state) {
 							: true);
 						if(second_validity) {
 							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-										uint32_t(n.index() << 4 ^ d.id.index()));
-
+								uint32_t(n.index() << 4 ^ d.id.index()));
 							notification::post(state, notification::message{
 								[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
 									text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
@@ -785,6 +784,7 @@ void take_ai_decisions(sys::state& state) {
 			}
 		});
 	}
+	
 }
 
 float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {
@@ -893,7 +893,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, std::vect
 
 				float output_total = type.get_output_amount() * state.world.commodity_get_current_price(type.get_output());
 
-				float input_multiplier = std::max(0.1f, (economy::inputs_base_factor +
+				float input_multiplier = std::max(0.1f, (state.defines.alice_inputs_base_factor +
 					state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)));
 
 				float output_multiplier = state.world.nation_get_factory_goods_output(n, type.get_output()) +

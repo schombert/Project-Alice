@@ -1168,75 +1168,16 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		{
+		uint32_t row_count = uint32_t(state.defines.great_nations_count) / 2;
+		for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count); i++) {
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 0;
+			win->gp_num = int32_t(i);
 			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 0;
-			non_gp_elements[1] = win.get();
+			win->base_data.position.x += win->base_data.size.x * int16_t(i / row_count);
+			win->base_data.position.y += win->base_data.size.y * int16_t(i % row_count);
+			non_gp_elements[1 + i] = win.get();
 			add_child_to_front(std::move(win));
 		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 1;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 1;
-			non_gp_elements[2] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 2;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 2;
-			non_gp_elements[3] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 3;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 3;
-			non_gp_elements[4] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 4;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 0;
-			win->base_data.position.x += 157;
-			non_gp_elements[5] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 5;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 1;
-			win->base_data.position.x += 157;
-			non_gp_elements[6] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 6;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 2;
-			win->base_data.position.x += 157;
-			non_gp_elements[7] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 7;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 3;
-			win->base_data.position.x += 157;
-			non_gp_elements[8] = win.get();
-			add_child_to_front(std::move(win));
-		}
-
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1274,9 +1215,8 @@ public:
 		} else if(name == "nongp_extra_info_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			non_gp_elements[0] = ptr.get();
-			sub_window_top_left = ptr->base_data.position;
-			sub_window_top_left.x += 8;
-			sub_window_top_left.y += 12;
+			auto const& def = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_fact_pos")->second.definition];
+			sub_window_top_left = def.position;
 			return ptr;
 		} else if(name == "country_flag") {
 			return make_element_by_type<flag_button>(state, id);
@@ -1430,33 +1370,42 @@ public:
 
 		if(active_tab != diplomacy_window_tab::great_powers) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 		} else if(nations::is_great_power(state, content)) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		} else {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		}
 		
@@ -2267,8 +2216,10 @@ public:
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
 
-		Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.local_player_nation };
-		impl_get(state, payload);
+		if(state.great_nations.size() > 1) {
+			Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.great_nations[0].nation };
+			impl_get(state, payload);
+		}
 
 		set_visible(state, false);
 	}
@@ -2280,7 +2231,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_diplomacy") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "gp_info") {
 			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);

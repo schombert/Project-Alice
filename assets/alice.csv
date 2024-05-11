@@ -17,6 +17,7 @@ zoom_mode_panning;Panning;;;Panoramico;;;;;;;;;x
 zoom_mode_inverted;Inverted;;;Invertido;;;;;;;;;x
 zoom_mode_centered;Centered;;;Centrado;;;;;;;;;x
 zoom_mode_to_cursor;To cursor;;;Al cursor;;;;;;;;;x
+zoom_mode_away_from_cursor;Away from cursor;;;Alejandose
 zoom_speed_label;Zoom Acceleration
 river_label;Rivers;;;Rios;;;;;;;;;x
 mute_on_focus_lost_label;Mute On Focus Lost
@@ -25,6 +26,12 @@ vassal_color_label;Vassal coloring
 vassal_color_inherit;Inherit
 vassal_color_same;Same
 vassal_color_none;None
+color_blind_mode_label;Color blind
+color_blind_mode_none;None
+color_blind_mode_deutan;Deutan
+color_blind_mode_protan;Protan
+color_blind_mode_tritan;Tritan
+color_blind_mode_achroma;Achroma
 render_models_label;Render models
 fow_label;Fog of War;;;Neblina de guerra;;;;;;;;;x
 railroad_label;Railroad networks;;;Redes de ferrocarriles;;;;;;;;;x
@@ -134,6 +141,7 @@ alice_mmtt_42_1;Has land rally point?
 alice_mmtt_42_2;Has naval rally point?
 alice_mmtt_43;Workforce distrobution:
 alice_mmtt_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
+alice_mmtt_44_2;No possible regiments
 EVERY;Every;;;Cada;;;;;;;;;x
 ANY;Any;;;Cualqier;;;;;;;;;x
 RANDOM;A random;;;Al albur de;;;;;;;;;x
@@ -187,6 +195,8 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
+ett_change_pop_terrain_to;Change location terrain to $text$
+ett_change_province_terrain_to;Change terrain to $text$
 change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x
@@ -1095,6 +1105,9 @@ msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of 
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
 msg_entered_automatic_alliance_title;Entered alliance automatically
 msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
+msg_chat_message_title;Chat message
+msg_chat_message_1;$x$ says:
+msg_chat_message_2;$x$
 msg_n_event_title;National Event
 msg_p_event_title;Provincial Event
 msg_m_event_title;Major Event
@@ -1391,7 +1404,8 @@ amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;
 amsg_army_built;The nation built an army;;;;;;;;;;;;x
 amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
 amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
-amsg_entered_automatic_alliance_title;The nation is automatically allied by another
+amsg_entered_automatic_alliance;The nation is automatically allied by another
+amsg_chat_message;The nation sent a message in chat
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
 alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring

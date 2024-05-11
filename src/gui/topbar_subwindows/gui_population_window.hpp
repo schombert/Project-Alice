@@ -1385,7 +1385,9 @@ public:
 
 			std::vector<dcon::issue_option_id> distrib;
 			for(auto io : state.world.in_issue_option) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
@@ -1534,7 +1536,9 @@ public:
 
 			std::vector<dcon::ideology_id> distrib;
 			for(auto io : state.world.in_ideology) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
@@ -2459,7 +2463,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_employment()/a_fat_id.get_size() < b_fat_id.get_employment()/b_fat_id.get_size();
+				return a_fat_id.get_employment() / a_fat_id.get_size() < b_fat_id.get_employment() / b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::ideology:
@@ -2656,7 +2660,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_pops") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pop_list") {
 			auto ptr = make_element_by_type<pop_listbox>(state, id);

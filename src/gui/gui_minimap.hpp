@@ -753,6 +753,12 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
+class minimap_console_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		ui::console_window::show_toggle(state);
+	}
+};
 
 class minimap_msg_settings_button : public button_element_base {
 public:
@@ -889,6 +895,7 @@ class minimap_open_message_log_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, open_msg_log_data{});
+		set_visible(state, false);
 	}
 };
 class minimap_zoom_in_button : public button_element_base {
@@ -919,7 +926,6 @@ public:
 class minimap_container_window : public window_element_base {
 	const std::string_view mapmode_btn_prefix{"mapmode_"};
 	minimap_open_message_log_button* open_btn = nullptr;
-	minimap_open_message_log_button* close_btn = nullptr;
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "messagelog_window") {
@@ -939,6 +945,8 @@ public:
 			return make_element_by_type<minimap_menu_button>(state, id);
 		} else if(name == "button_macro") {
 			return make_element_by_type<minimap_macro_builder_button>(state, id);
+		} else if(name == "button_console") {
+			return make_element_by_type<minimap_console_button>(state, id);
 		} else if(name == "button_goto") {
 			return make_element_by_type<minimap_goto_button>(state, id);
 		} else if(name == "ledger_button") {

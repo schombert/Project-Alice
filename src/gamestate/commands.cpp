@@ -4345,10 +4345,15 @@ static void post_chat_message(sys::state& state, ui::chat_message& m) {
 		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
 		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
 			state.ui_state.chat_messages_index = 0;
-		if(state.sound_ptr.get()) {
-			// TODO: Perhaps move it to another place in the code? -- Doesn't seem fitting here! Or is it? Or was it?
-			sound::play_interface_sound(state, sound::get_chat_message_sound(state), state.user_settings.master_volume * state.user_settings.interface_volume);
-		}
+		notification::post(state, notification::message{
+			[&m](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_chat_message_1", text::variable_type::x, m.source);
+				text::add_line(state, contents, "msg_chat_message_2", text::variable_type::x, m.body);
+			},
+			"msg_chat_message_title",
+			m.source, dcon::nation_id{}, dcon::nation_id{},
+			sys::message_base_type::chat_message
+		});
 	}
 }
 
@@ -4645,6 +4650,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 			ai::remove_ai_data(state, n);
 	state.mode = sys::game_mode_type::in_game;
 	state.map_state.set_selected_province(dcon::province_id{});
+	state.map_state.unhandled_province_selection = true;
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -4658,6 +4664,7 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.mode = sys::game_mode_type::pick_nation;
 	state.map_state.set_selected_province(dcon::province_id{});
+	state.map_state.unhandled_province_selection = true;
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
@@ -5048,9 +5055,15 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_instant_research:
 	case command_type::c_add_population:
 	case command_type::c_instant_army:
+	case command_type::c_instant_navy:
 	case command_type::c_instant_industry:
 	case command_type::c_innovate:
 	case command_type::c_toggle_core:
+	case command_type::c_always_accept_deals:
+	case command_type::c_always_allow_reforms:
+	case command_type::c_always_allow_wargoals:
+	case command_type::c_set_auto_choice_all:
+	case command_type::c_clear_auto_choice_all:
 		return true;
 	}
 	return false;
@@ -5479,6 +5492,9 @@ void execute_command(sys::state& state, payload& c) {
 	case command_type::c_instant_army:
 		execute_c_instant_army(state, c.source);
 		break;
+	case command_type::c_instant_navy:
+		execute_c_instant_navy(state, c.source);
+		break;
 	case command_type::c_instant_industry:
 		execute_c_instant_industry(state, c.source);
 		break;
@@ -5487,6 +5503,21 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_toggle_core:
 		execute_c_toggle_core(state, c.source, c.data.cheat_location.prov, c.data.cheat_location.n);
+		break;
+	case command_type::c_always_accept_deals:
+		execute_c_always_accept_deals(state, c.source);
+		break;
+	case command_type::c_always_allow_reforms:
+		execute_c_always_allow_reforms(state, c.source);
+		break;
+	case command_type::c_always_allow_wargoals:
+		execute_c_always_allow_wargoals(state, c.source);
+		break;
+	case command_type::c_set_auto_choice_all:
+		execute_c_set_auto_choice_all(state, c.source);
+		break;
+	case command_type::c_clear_auto_choice_all:
+		execute_c_clear_auto_choice_all(state, c.source);
 		break;
 	}
 }

@@ -42,6 +42,15 @@ native_string get_current_track_name(sys::state& state);
 // returns the default click sound -- expect this list of functions to expand as
 //    we implement more of the fixed sound effects
 audio_instance& get_click_sound(sys::state& state);
+audio_instance& get_click_left_sound(sys::state& state);
+audio_instance& get_click_right_sound(sys::state& state);
+audio_instance& get_tab_budget_sound(sys::state& state);
+audio_instance& get_tab_politics_sound(sys::state& state);
+audio_instance& get_tab_diplomacy_sound(sys::state& state);
+audio_instance& get_tab_military_sound(sys::state& state);
+audio_instance& get_tab_population_sound(sys::state& state);
+audio_instance& get_tab_production_sound(sys::state& state);
+audio_instance& get_tab_technology_sound(sys::state& state);
 audio_instance& get_army_select_sound(sys::state& state);
 audio_instance& get_army_move_sound(sys::state& state);
 audio_instance& get_navy_select_sound(sys::state& state);
@@ -67,6 +76,10 @@ audio_instance& get_chat_message_sound(sys::state& state);
 //alice
 audio_instance& get_console_open_sound(sys::state& state);
 audio_instance& get_console_close_sound(sys::state& state);
+audio_instance& get_event_sound(sys::state& state);
+audio_instance& get_decision_sound(sys::state& state);
+audio_instance& get_pause_sound(sys::state& state);
+audio_instance& get_unpause_sound(sys::state& state);
 
 audio_instance& get_random_land_battle_sound(sys::state& state);
 audio_instance& get_random_naval_battle_sound(sys::state& state);

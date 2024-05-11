@@ -162,9 +162,11 @@ void gui_element_common::name(association_type, std::string_view txt, error_hand
 }
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
-	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")) {
+	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.5708")
+	|| is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "-1.570796")) {
 		target.flags |= uint8_t(ui::rotation::r90_right);
-	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.5708")) {
+	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.5708")
+		|| is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "1.570796")) {
 		target.flags |= uint8_t(ui::rotation::r90_left);
 	} else if(parse_float(txt, line, err) == 0.0f) {
 		target.flags |= uint8_t(ui::rotation::upright);
@@ -182,6 +184,18 @@ void gui_element_common::maxheight(association_type, int32_t v, error_handler& e
 void gui_element_common::maxsize(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
 	target.size.x = int16_t(pr.x);
 	target.size.y = int16_t(pr.y);
+}
+void gui_element_common::add_size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.size.x += int16_t(pr.x);
+	target.size.y += int16_t(pr.y);
+}
+void gui_element_common::add_position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.position.x += int16_t(pr.x);
+	target.position.y += int16_t(pr.y);
+}
+void gui_element_common::table_layout(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context) {
+	target.position.x += int16_t(target.size.x) * int16_t(pr.x);
+	target.position.y += int16_t(target.size.y) * int16_t(pr.y);
 }
 
 button::button() {

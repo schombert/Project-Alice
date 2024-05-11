@@ -1,5 +1,6 @@
 in vec2 tex_coord;
 in float type;
+in float opacity;
 layout (location = 0) out vec4 frag_color;
 
 layout (binding = 0) uniform sampler2D texture0;
@@ -15,7 +16,7 @@ vec4 gamma_correct(vec4 colour) {
 }
 
 void main() {
-	float border_size = 0.05;
+	float border_size = 0.055f;
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
 	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
 	vec4 color_in = vec4(0, 0, 0, 0);
@@ -38,5 +39,7 @@ void main() {
 		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
 		frag_color = vec4(outer_color, t * t * t);
 	}
+	frag_color.a *= 0.8f;
+    frag_color.a *= opacity;
 	frag_color = gamma_correct(frag_color);
 }

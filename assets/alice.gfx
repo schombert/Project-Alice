@@ -456,4 +456,11 @@ spriteTypes = {
 		effectFile = "gfx\\FX\\buttonstate.fx"
 		transparencecheck = yes
 	}
+	spriteType = {
+		name = "GFX_button_console"
+		texturefile = "assets\\button_console.dds"
+		noOfFrames = 1
+		effectFile = "gfx\\FX\\buttonstate.fx"
+		transparencecheck = yes
+	}
 }

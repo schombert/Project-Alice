@@ -543,8 +543,18 @@ public:
 		auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
 		if(sat < 0.5f) { // shortage
 			color = sys::pack_color(255, 196, 196);
+			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+				color = sys::pack_color(255, 100, 255); //remap to blue
+			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+				color = sys::pack_color(196, 196, 196);
+			}
 		} else if(sat >= 1.f) { // full fulfillment
 			color = sys::pack_color(196, 255, 196);
+			if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+				color = sys::pack_color(114, 150, 77); //remap to yellow
+			} else if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+				color = sys::pack_color(128, 128, 128);
+			}
 		} else {
 			color = sys::pack_color(255, 255, 255);
 		}
@@ -1576,7 +1586,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_trade") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "market_activity_list") {
 			auto ptr = make_element_by_type<trade_market_activity_listbox>(state, id);

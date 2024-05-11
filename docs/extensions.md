@@ -6,16 +6,82 @@ This document covers modding extensions that have been added to Project Alice in
 
 In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when the nation's prestige is greater than or equal to 5. If you want to test whether the value is less than 5, you would have to bury it inside a `NOT` scope. And testing for exact equality would be even more complicated. To simplify things, we support replacing the `=` with one of the following tokens: `==`, `!=`, `<`, `>`, `<=`, `>=`. `==` tests for exact equality, `!=` for inequality, and the rest have their ordinary meanings. We also support replacing `=` with `!=` in most situations. For example, `tag != USA` is the same as `NOT = { tag = USA }`.
 
-### New Effects
+### New effects
 
-- `kill_leader = "name of leader"` -- kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
-- `annex_to = null` -- this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
-- `secede_province = null` -- turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
+- `increment_variable = ...`: Shorthand to increment by 1
+- `decrement_variable = ...`: Shorthand to decrement by 1
+- `set_variable_to_zero = ...`: Shorthand to set a variable to 0
+- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
+- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
+- `kill_leader = "name of leader"`: kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
+- `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
+- `secede_province = null`: turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
+- `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
+- `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
+- `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
+- `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
+- `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
+- `random_neighbor_country`: A random neighbouring country.
 
-### New Trigger Conditions
+### New trigger conditions
 
-- `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
-- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
+- `test = name_of_scripted_trigger`: evaluates a scripted trigger (see below)
+- `any_country = { ... }`: tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
+- `has_global_flag = project_alice`: true if playing on Project Alice, false if not
+- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
+- `any_war_countries = { ... }`: Equivalent to `war_countries`
+- `all_state = { ... }`: All states must fulfill condition, similar to `any_state`
+- `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
+- `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
+- `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
+
+### Lambda events
+
+Define anonymous lambda events within events, no need to give them an ID.
+
+```
+country_event = {
+	id = 1000
+	# etc...
+	option = {
+		name = "Option A"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+	option = {
+		name = "Option B"
+		lambda_country_event = {
+			#No need to define ID
+			option = {
+				name = "Option A"
+				#...
+			}
+			option = {
+				name = "Option B"
+				#...
+			}
+		}
+	}
+}
+```
+
+This allows essentially to "inline" anonymous events, for example when doing a FAQ section event, or doing a long event chain for setup or "LARP choices" purpouses.
+
+These events can't be triggered with the `event` command, nor can they be referenced by other events, they never will trigger on their own and will always be treated as if they were `is_triggered_only = yes`.
+
+- `lambda_country_event`: Main slot is a `country`, inherits `FROM` and `THIS` slot types.
+- `lambda_province_event`: Main slot is a `province`, inherits `FROM` and `THIS` slot types.
 
 ### Scripted Triggers
 
@@ -120,6 +186,17 @@ These `else_if` statments are chained together, if the first runs, the second wi
 `size = { x = 5 y = 10 }` can be written as `size = { 5 10 }`, as can most places expecting an x and y pair.
 Additionally, `maxwidth = 5` and `maxheight = 10` can be written as `maxsize = { 5 10 }`
 
+### .gui layout extensions
+
+Laying out elements in the GUI can be a tedious process, while a WYSWYG editor would be ideal, it's not currently available at the moment.
+
+However, the following new extensions will make GUI editing way less painful:
+
+- `add_size = { x y }`: Adds the specified amount to the current `size`
+- `add_position = { x y }`: Adds the specified amount to the current `position`
+- `table_layout = { x y }`: Where `x` is the column and `y` is the row, this basically translates to `position.x = column * size.x`, and `position.y = row * size.y`. Useful for laying out elements in a table-like way
+
+
 ### New defines
 
 Alice adds a handful of new defines:
@@ -140,6 +217,24 @@ Alice adds a handful of new defines:
 - `alice_ev_needs_scale`: Scale multiplier for everyday needs
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
 - `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
+- `alice_needs_scaling_factor`: Scale factor multiplier for all needs
+- `alice_factory_per_level_employment`: Employment per factory level.
+- `alice_domestic_investment_multiplier`: Multiplier of domestic investment.
+- `alice_rgo_boost`: Boost given to RGOs (for example, 1.2 produces 120% more)
+- `alice_inputs_base_factor_artisans`: Artisan input base factor + modifiers.
+- `alice_output_base_factor_artisans`: See above.
+- `alice_inputs_base_factor`: See above, for factories.
+- `alice_rgo_overhire_multiplier`: Overhire multiplier for RGOs.
+- `alice_rgo_production_scale_neg_delta`: Scale delta for RGO production.
+- `alice_invest_capitalist`: % of total budget that capitalists will invest in the private investment pool
+- `alice_invest_aristocrat`: See above.
+- `alice_needs_lf_spend`: % of total budget dedicated to life needs
+- `alice_needs_ev_spend`: See above, but everyday needs
+- `alice_needs_lx_spend`: See above, but luxury needs
+- `alice_sat_delay_factor`: Satisfaction delay factor
+- `alice_need_drift_speed`: Drift speed of need weights for POPs
+- `alice_cleanup_tag_exception`: Set to 1 to activate the `CLN` tag exception, allowing AI to take decisions on the `CLN` tag even if it doesn't own any provinces, set to 0 to revert this behaviour
+- `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including non-existant and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behaviour, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
 
 ### Dense CSV pop listing
 
@@ -226,19 +321,6 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 - `$CRISISDEFENDER_CAPITAL$`: Capital of defender.
 - `$CRISISDEFENDER_CONTINENT$`: Continent of attacker, based from capital.
 
-### New triggers
-
-- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
-
-### New effects
-
-- `increment_variable = ...`: Shorthand to increment by 1
-- `decrement_variable = ...`: Shorthand to decrement by 1
-- `set_variable_to_zero = ...`: Shorthand to set a variable to 0
-- `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
-- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
-- `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
-
 ### Political party triggers
 
 Now you can turn on/off political parties, aside from the usual `start_date` and `end_date`. Remember that parties can be shared between countries.
@@ -257,6 +339,11 @@ party = {
 	}
 }
 ```
+
+## Extra on-actions
+
+- `on_election_started`: When an election starts
+- `on_election_finished`: When an election ends
 
 ## Government ruler-names
 

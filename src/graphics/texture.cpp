@@ -248,7 +248,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 			case 4:
 			{
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint32_t data = *(uint32_t*)(buffer + buffer_index + i);
+					uint32_t data = *(uint32_t const*)(buffer + buffer_index + i);
 					uint32_t r = (data & header.sPixelFormat.dwRBitMask) >> std::countr_zero(header.sPixelFormat.dwRBitMask);
 					uint32_t g = (data & header.sPixelFormat.dwGBitMask) >> std::countr_zero(header.sPixelFormat.dwGBitMask);
 					uint32_t b = (data & header.sPixelFormat.dwBBitMask) >> std::countr_zero(header.sPixelFormat.dwBBitMask);
@@ -273,7 +273,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 				uint16_t ma1 = uint16_t(header.sPixelFormat.dwAlphaBitMask >> std::countr_zero(header.sPixelFormat.dwAlphaBitMask));
 				float ma2 = ma1 == 0 ? 0.f : 255.f / float(ma1);
 				for(uint32_t i = 0; i < dds_full_size; i += block_size) {
-					uint16_t data = *(uint16_t*)(buffer + buffer_index + i);
+					uint16_t data = *(uint16_t const*)(buffer + buffer_index + i);
 					uint16_t r = (data & header.sPixelFormat.dwRBitMask) >> std::countr_zero(header.sPixelFormat.dwRBitMask);
 					uint16_t g = (data & header.sPixelFormat.dwGBitMask) >> std::countr_zero(header.sPixelFormat.dwGBitMask);
 					uint16_t b = (data & header.sPixelFormat.dwBBitMask) >> std::countr_zero(header.sPixelFormat.dwBBitMask);

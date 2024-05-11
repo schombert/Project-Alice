@@ -132,6 +132,8 @@ constexpr inline float list_text_right_align = 420.0f;
 
 static int32_t obj_under_mouse = -1;
 
+static bool game_dir_not_found = false;
+
 constexpr inline ui_active_rect ui_rects[] = {
 	ui_active_rect{ 880 - 31,  0 , 31, 31}, // close
 	ui_active_rect{ 30, 208, 21, 93}, // left
@@ -426,7 +428,7 @@ void make_mod_file() {
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
 			if(!err.accumulated_errors.empty()) {
-				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
+				auto fname = simple_fs::get_full_name(pdir) + NATIVE("\\scenario_errors.txt");
 				ShellExecuteW(
 					nullptr,
 					L"open",
@@ -1153,7 +1155,7 @@ static ::ogl::texture down_tex;
 static ::ogl::texture line_bg_tex;
 static ::ogl::texture big_l_button_tex;
 static ::ogl::texture big_r_button_tex;
-
+static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
 	float total = 0.0f;
@@ -1233,6 +1235,14 @@ void render() {
 			ui_rects[ui_obj_create_scenario].width,
 			ui_rects[ui_obj_create_scenario].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		if(game_dir_not_found) {
+			launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_create_scenario ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
+				ui_rects[ui_obj_create_scenario].x,
+				ui_rects[ui_obj_create_scenario].y,
+				44,
+				33,
+				warning_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
 		if(selected_scenario_file.empty()) {
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Create Scenario", 15, 22, font_collection.fonts[1]) / 2.0f;
@@ -1248,11 +1258,17 @@ void render() {
 			ui_rects[ui_obj_create_scenario].width,
 			ui_rects[ui_obj_create_scenario].height,
 			big_button_tex.get_texture_handle(), ui::rotation::upright, false);
+		if(game_dir_not_found) {
+			launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
+				ui_rects[ui_obj_create_scenario].x,
+				ui_rects[ui_obj_create_scenario].y,
+				44,
+				33,
+				warning_tex.get_texture_handle(), ui::rotation::upright, false);
+		}
 
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
 		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-
-
 	}
 
 	{
@@ -1497,6 +1513,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_up.png"), fs, up_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
+		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_warning.png"), fs, warning_tex, false);
+
+		game_dir_not_found = false;
+		{
+			auto f = simple_fs::peek_file(root, NATIVE("v2game.exe"));
+			if(!f) {
+				f = simple_fs::peek_file(root, NATIVE("victoria2.exe"));
+				if(!f) {
+					game_dir_not_found = true;
+				}
+			}
+		}
 
 		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
 		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
@@ -1834,7 +1862,7 @@ int WINAPI wWinMain(
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.lpszClassName = L"alice_launcher_class";
+	wcex.lpszClassName = NATIVE("alice_launcher_class");
 
 	if(RegisterClassEx(&wcex) == 0) {
 		std::abort();

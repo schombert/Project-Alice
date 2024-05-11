@@ -290,6 +290,8 @@ void display_data::create_meshes() {
 	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
+	glBindVertexArray(vao_array[vo_province_text_line]);
+	create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(0);
@@ -555,31 +557,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		}
-		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if((state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-				|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
-				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
-			}
-		} else if(state.map_state.selected_province) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
-			for(auto b : borders) {
-				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
-				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
-				if(p0 == state.map_state.selected_province || p1 == state.map_state.selected_province) {
-					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
-				}
-			}
-		}
 	} else {
 		if(zoom > map::zoom_very_close) { // Render province borders
 			glUniform1f(4, 0.0001f); // width
@@ -605,35 +582,96 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		{
 			glUniform1f(4, 0.0003f); // width
 			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
 				if((state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) == province::border::national_bit) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 				}
 			}
 		}
+	}
+	if(state.map_state.selected_province || (state.local_player_nation && state.mode == sys::game_mode_type::pick_nation)) {
+		glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 		if(state.local_player_nation && state.mode == sys::game_mode_type::pick_nation) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 				if((state.world.province_get_nation_from_province_ownership(p0) == state.local_player_nation
-				|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
+					|| state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation)
 				&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
 				}
 			}
-		} else if(state.map_state.selected_province) {
-			glUniform1f(4, 0.0005f); // width
-			glActiveTexture(GL_TEXTURE14);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
+		} else if(state.mode == sys::game_mode_type::select_states) {
+			auto owner = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
+			if(owner) {
+				auto siid = state.world.province_get_state_membership(state.map_state.selected_province);
+				//per state
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_state_membership(p0) == siid
+						|| state.world.province_get_state_membership(p1) == siid)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			}
+		} else {
 			for(auto b : borders) {
 				auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
 				auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
 				if(p0 == state.map_state.selected_province || p1 == state.map_state.selected_province) {
 					glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+				}
+			}
+		}
+	}
+	dcon::province_id prov{};
+	glm::vec2 map_pos;
+	if(state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
+		map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
+		auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
+		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
+			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
+			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
+			glUniform1f(4, zoom > map::zoom_close ? 0.0004f : 0.00085f); // width
+			glActiveTexture(GL_TEXTURE14);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
+			auto owner = state.world.province_get_nation_from_province_ownership(prov);
+			if(owner && state.mode == sys::game_mode_type::pick_nation) {
+				//per nation
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_nation_from_province_ownership(p0) == owner
+						|| state.world.province_get_nation_from_province_ownership(p1) == owner)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			} else if(owner && state.mode == sys::game_mode_type::select_states) {
+				auto siid = state.world.province_get_state_membership(prov);
+				//per state
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if((state.world.province_get_state_membership(p0) == siid
+						|| state.world.province_get_state_membership(p1) == siid)
+					&& (state.world.province_adjacency_get_type(b.adj) & (province::border::non_adjacent_bit | province::border::coastal_bit | province::border::state_bit | province::border::national_bit)) != 0) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
+				}
+			} else {
+				//per province
+				for(auto b : borders) {
+					auto p0 = state.world.province_adjacency_get_connected_provinces(b.adj, 0);
+					auto p1 = state.world.province_adjacency_get_connected_provinces(b.adj, 1);
+					if(p0 == prov || p1 == prov) {
+						glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count);
+					}
 				}
 			}
 		}
@@ -664,7 +702,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)drag_box_vertices.size());
 	}
 
-	if(state.user_settings.map_label != sys::map_label_mode::none && zoom < map::zoom_close && !text_line_vertices.empty()) {
+	if(state.user_settings.map_label != sys::map_label_mode::none) {
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		auto const& f = state.font_collection.fonts[2];
@@ -676,9 +714,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		glBindVertexArray(vao_array[vo_text_line]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-		glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
+			glUniform1f(15, 0.f);
+			glBindVertexArray(vao_array[vo_text_line]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+		} else if(state.cheat_data.province_names) {
+			glUniform1f(15, 1.f);
+			glBindVertexArray(vao_array[vo_province_text_line]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
+			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
+		}
 	}
 
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
@@ -920,6 +966,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				}
 			}
 		};
+
+		//ship wakes
 		render_ship(16, military::unit_type::big_ship, 2, 3.f * dist_step); //raider
 		render_ship(16, military::unit_type::transport, -1, 2.f * dist_step); //transport
 		render_ship(16, military::unit_type::big_ship, -1, dist_step); //manowar
@@ -927,7 +975,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		render_ship(16, military::unit_type::big_ship, 4, -dist_step); //battleship
 		render_ship(16, military::unit_type::light_ship, 3, -2.f * dist_step); //cruiser
 		render_ship(16, military::unit_type::big_ship, 3, -3.f * dist_step); //ironclad
-		//
+		//ship themselves
 		render_ship(37, military::unit_type::big_ship, 2, 3.f * dist_step); //raider
 		render_ship(14, military::unit_type::transport, -1, 2.f * dist_step); //transport
 		render_ship(13, military::unit_type::big_ship, -1, dist_step); //manowar
@@ -935,6 +983,38 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		render_ship(34, military::unit_type::big_ship, 4, -dist_step); //battleship
 		render_ship(35, military::unit_type::light_ship, 3, -2.f * dist_step); //cruiser
 		render_ship(36, military::unit_type::big_ship, 3, -3.f * dist_step); //ironclad
+
+		// Floating flags
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[38]);
+		for(uint32_t i = 0; i < state.world.province_size(); i++) {
+			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+			auto units = state.world.province_get_navy_location_as_location(p);
+			if(state.map_state.visible_provinces[province::to_map_id(p)]
+			&& units.begin() != units.end()) {
+				auto p1 = state.world.province_get_mid_point(p);
+				glUniform2f(12, p1.x, p1.x);
+				auto theta = glm::atan(0.f, 0.f);
+				glUniform1f(13, -theta);
+				glUniform1f(14, -0.75f);
+				glDrawArrays(GL_TRIANGLES, static_mesh_starts[38], static_mesh_counts[38]);
+			}
+		}
+		glActiveTexture(GL_TEXTURE14);
+		glBindTexture(GL_TEXTURE_2D, static_mesh_textures[39]);
+		for(uint32_t i = 0; i < state.world.province_size(); i++) {
+			dcon::province_id p = dcon::province_id(dcon::province_id::value_base_t(i));
+			auto units = state.world.province_get_navy_location_as_location(p);
+			if(state.map_state.visible_provinces[province::to_map_id(p)]
+			&& units.begin() != units.end()) {
+				auto p1 = state.world.province_get_mid_point(p);
+				glUniform2f(12, p1.x, p1.x);
+				auto theta = glm::atan(0.f, 0.f);
+				glUniform1f(13, -theta);
+				glUniform1f(14, -0.75f);
+				glDrawArrays(GL_TRIANGLES, static_mesh_starts[39], static_mesh_counts[39]);
+			}
+		}
 
 		for(uint32_t i = 0; i < 3 * 3; i++) {
 			auto index = 19 + i;
@@ -1558,6 +1638,189 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
+		bool is_linear = true;
+		if((e.coeff[2] != 0) || (e.coeff[3] != 0)) {
+			is_linear = false;
+		}
+
+		// y = a + bx + cx^2 + dx^3
+		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+		auto poly_fn = [&](float x) {
+			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
+			};
+		auto dpoly_fn = [&](float x) {
+			// y = a + 1bx^1 + 1cx^2 + 1dx^3
+			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
+			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+		};
+
+
+		//cutting box if graph goes outside
+
+		float left = 0.f;
+		float right = 1.f;
+
+		if(is_linear) {
+			if(e.coeff[1] > 0.01f) {
+				left = (-e.coeff[0]) / e.coeff[1];
+				right = (1.f - e.coeff[0]) / e.coeff[1];
+			} else if(e.coeff[1] < -0.01f) {
+				left = (1.f - e.coeff[0]) / e.coeff[1];
+				right = (- e.coeff[0]) / e.coeff[1];
+			}
+		} else {
+			while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
+				left += 1.f / 300.f;
+			}
+			while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
+				right -= 1.f / 300.f;
+			}
+		}
+
+
+		left = std::clamp(left, 0.f, 1.f);
+		right = std::clamp(right, 0.f, 1.f);
+
+
+		if(right <= left) {
+			continue;
+		}
+
+		float result_interval = right - left;
+		float center = (right + left) / 2.f;
+
+		glm::vec2 ratio = e.ratio;
+		glm::vec2 basis = e.basis;
+
+		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
+
+		auto& f = state.font_collection.fonts[2];
+		if(!f.loaded)
+			return;
+
+		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
+		assert(std::isfinite(text_length) && text_length != 0.f);
+		float x_step = (result_interval / float(e.text.length() * 32.f));
+		float curve_length = 0.f; //width of whole string polynomial
+		if(is_linear) {
+			float height = poly_fn(right) - poly_fn(left);
+			curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
+		} else for(float x = left; x <= right; x += x_step)
+			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+
+		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
+
+		// typography "golden ratio" steps
+
+		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
+
+		if(font_size_index > 45.f) {
+			font_size_index = 45.f;
+		}
+		if (font_size_index > 5.f)
+			font_size_index = 5.f * std::round(font_size_index / 5.f);
+
+		size = std::pow(1.618034f, font_size_index / 5.f);
+
+		// fixed step
+
+		/*
+		float size_step = 30.f;
+
+		if(size > size_step * 6.f) {
+			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
+		}
+
+		if(size > ratio.x / 2.f) {
+			size = ratio.x / 2.f;
+		}
+		if(size > ratio.y / 2.f) {
+			size = ratio.y / 2.f;
+		}
+		
+		size = std::round(size / size_step) * size_step;
+
+		if(size < size_step) {
+			continue;
+		}
+		*/
+
+		auto real_text_size = size / (size_x * 2.0f);
+
+		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
+		float letter_spacing = letter_spacing_map / size_x;
+
+		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
+
+
+		float x = left;
+
+		for(float accumulated_length = 0.f; ; x += x_step) {
+			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+			if(accumulated_length + added_distance >= margin) {
+				x += x_step * (margin - accumulated_length) / added_distance;
+				break;
+			}
+			accumulated_length += added_distance;
+		}
+
+		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
+			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
+				// Add up baseline and kerning offsets
+				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
+
+				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
+				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+				curr_dir.x *= 0.5f;
+				curr_normal_dir.x *= 0.5f;
+
+				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+
+				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
+				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
+				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
+				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
+
+				auto type = float(uint8_t(e.text[i]) >> 6);
+				float step = 1.f / 8.f;
+				float tx = float(e.text[i] & 7) * step;
+				float ty = float((e.text[i] & 63) >> 3) * step;
+
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+			}
+
+			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
+			for(float glyph_length = 0.f; ; x += x_step) {
+				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
+					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
+					break;
+				}
+				glyph_length += added_distance;
+			}
+		}
+	}
+	if(text_line_vertices.size() > 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+}
+
+void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	province_text_line_vertices.clear();
+	const auto map_x_scaling = float(size_x) / float(size_y);
+	for(const auto& e : data) {
+		// omit invalid, nan or infinite coefficients
+		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
+			continue;
+
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
 		auto& f = state.font_collection.fonts[2];
@@ -1580,13 +1843,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(size > 200.0f) {
 			size = 200.0f + (size - 200.0f) * 0.5f;
 		}
-
 		auto real_text_size = size / (size_x * 2.0f);
-
 		float margin = (curve_length - text_length * size) / 2.0f;
-
 		float x = 0.f;
-
 		for(float accumulated_length = 0.f; ; x += x_step) {
 			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
@@ -1623,13 +1882,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
 			}
 
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
@@ -1643,9 +1902,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			}
 		}
 	}
-	if(text_line_vertices.size() > 0) {
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
+	if(province_text_line_vertices.size() > 0) {
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * province_text_line_vertices.size(), &province_text_line_vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }
@@ -1702,14 +1961,14 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Fort_Early"), //8 -- fort
 		NATIVE("factory"), //9 -- factory
 		NATIVE("Blockade"), //10 -- blockade
-		NATIVE("generic_infantry"), //11 -- infantry
+		NATIVE("generic_euro_infantry"), //11 -- infantry
 		NATIVE("Generic_Frigate"), //12 -- frigate
 		NATIVE("Generic_Manowar"), //13 -- manowar
 		NATIVE("Generic_Transport_Ship"), //14 -- transport ship
 		NATIVE("Horse"), // 15 -- horse
 		NATIVE("wake"), // 16 -- ship wake
 		NATIVE("Infantry_shadowblob"), // 17 -- shadow blob
-		NATIVE("BritishArt_Interwar"), // 18 -- artillery
+		NATIVE("Generic_Euro_Infantry2"), // 18 -- artillery
 		NATIVE("buildings_01_1"), // 19 -- housing
 		NATIVE("buildings_01_2"), // 20
 		NATIVE("buildings_01_3"), // 21
@@ -1729,8 +1988,11 @@ void load_static_meshes(sys::state& state) {
 		NATIVE("Generic_Cruiser"), //35 -- cruiser
 		NATIVE("Generic_Ironclad"), //36 -- ironclad
 		NATIVE("Generic_Raider"), //37 -- raider
+		NATIVE("floating_flag"), //38 -- floating flag
+		NATIVE("flag"), //39 -- flag
 	};
 	static const std::array<float, display_data::max_static_meshes> scaling_factor = {
+		1.f, //0
 		1.f, //1
 		1.f, //2
 		1.f, //3
@@ -1739,25 +2001,25 @@ void load_static_meshes(sys::state& state) {
 		1.f, //6
 		1.f, //7
 		1.f, //8
-		1.f, //9
-		0.75f, //10
-		1.5f, //11
-		1.4f, //12
-		2.4f, //13
-		0.8f, //14
+		0.75f, //9
+		1.5f, //10
+		1.4f, //11
+		2.4f, //12
+		0.8f, //13
+		1.5f, //14
 		1.5f, //15
 		1.f, //16
 		1.f, //17
-		1.f, //18
-		0.7f, //19 -- housing
+		0.7f, //18 -- housing
+		0.7f, //19
 		0.7f, //20
-		0.7f, //21
+		0.68f, //21
 		0.68f, //22
 		0.68f, //23
-		0.68f, //24
+		0.66f, //24
 		0.66f, //25
 		0.66f, //26
-		0.66f, //27
+		1.0f, //27
 		1.0f, //28
 		1.0f, //29
 		1.0f, //30
@@ -1772,30 +2034,30 @@ void load_static_meshes(sys::state& state) {
 		1.0f, //39
 		1.0f, //40
 		1.0f, //41
-		1.0f, //42
 	};
 	constexpr float no_elim = 9999.f + 0.1f;
 	constexpr float quad_elim = 9999.f + 0.2f;
 	static const std::array<float, display_data::max_static_meshes> elim_factor = {
-		-0.1f, //1
+		-0.1f, //0
+		no_elim, //1
 		no_elim, //2
 		no_elim, //3
-		no_elim, //4
-		-0.1f, //5
-		quad_elim, //6
+		-0.1f, //4
+		quad_elim, //5
+		-0.1f, //6
 		-0.1f, //7
 		-0.1f, //8
-		-0.1f, //9
-		quad_elim, //10
+		quad_elim, //9
+		-0.1f, //10
 		-0.1f, //11
 		-0.1f, //12
 		-0.1f, //13
 		-0.1f, //14
-		-0.1f, //15
+		no_elim, //15
 		-0.1f, //16
 		-0.1f, //17
-		-0.1f, //18
-		-0.1f, //19 -- housing
+		-0.1f, //18 -- housing
+		-0.1f, //19
 		-0.1f, //20
 		-0.1f, //21
 		-0.1f, //22
@@ -1812,13 +2074,12 @@ void load_static_meshes(sys::state& state) {
 		-0.1f, //33
 		-0.1f, //34
 		-0.1f, //35
-		-0.1f, //36
+		no_elim, //36
 		-0.1f, //37
 		-0.1f, //38
 		-0.1f, //39
 		-0.1f, //40
 		-0.1f, //41
-		-0.1f, //42
 	};
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_anims = simple_fs::open_directory(root, NATIVE("gfx/anims"));
@@ -1836,16 +2097,6 @@ void load_static_meshes(sys::state& state) {
 			emfx::finish(context);
 
 			auto& texid = state.map_state.map_data.static_mesh_textures[k];
-			if(!texid) {
-				texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("Diffuse.dds"), 0);
-				if(!texid) {
-					texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE("_Diffuse.dds"), 0);
-					if(!texid) {
-						texid = load_dds_texture(gfx_anims, native_string(xac_model_names[k]) + NATIVE(".dds"), 0);
-					}
-				}
-			}
-
 			for(auto const& node : context.nodes) {
 				int32_t mesh_index = 0;
 				for(auto const& mesh : node.meshes) {

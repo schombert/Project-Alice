@@ -7,6 +7,7 @@
 #include "prng.hpp"
 #include "gui_leader_tooltip.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_unit_grid_box.hpp"
 
 namespace ui {
 
@@ -15,10 +16,7 @@ enum class unitpanel_action : uint8_t { close, reorg, split, disband, changelead
 class unit_selection_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -33,8 +31,7 @@ public:
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg};
-		parent->impl_get(state, payload);
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -80,18 +77,13 @@ template<class T>
 class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				command::delete_army(state, state.local_player_nation, content);
-			} else {
-				command::delete_navy(state, state.local_player_nation, content);
-			}
-			Cyto::Any payload2 = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload2);
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			command::delete_army(state, state.local_player_nation, content);
+		} else {
+			command::delete_navy(state, state.local_player_nation, content);
 		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -112,10 +104,14 @@ public:
 	}
 };
 
-class unit_selection_disband_too_small_button : public button_element_base {
+class unit_selection_disband_too_small_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));
+		color = sys::pack_color(255, 196, 196);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+			color = sys::pack_color(255, 255, 255); //remap to blue
+		}
 	}
 	void button_action(sys::state& state) noexcept override {
 		 command::disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));
@@ -470,6 +466,8 @@ public:
 
 template<class T>
 class unit_selection_panel : public window_element_base {
+	dcon::gfx_object_id disband_gfx{};
+	unit_selection_disband_too_small_button* disband_too_small_btn = nullptr;
 public:
 	window_element_base* reorg_window = nullptr;
 	window_element_base* combat_window = nullptr;
@@ -491,6 +489,9 @@ public:
 			}
 		}
 		window_element_base::on_create(state);
+		if(disband_too_small_btn && disband_gfx) {
+			disband_too_small_btn->base_data.data.button.button_image = disband_gfx;
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -516,12 +517,17 @@ public:
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<unit_selection_split_in_half_button<T>>(state, id);
 		} else if(name == "disbandbutton") {
-			return make_element_by_type<unit_selection_disband_button<T>>(state, id);
+			auto ptr = make_element_by_type<unit_selection_disband_button<T>>(state, id);
+			disband_gfx = ptr->base_data.data.button.button_image;
+			return ptr;
 		} else if(name == "disbandtoosmallbutton") {
-			if constexpr(std::is_same_v<T, dcon::army_id>)
-				return make_element_by_type<unit_selection_disband_too_small_button>(state, id);
-			else
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto ptr = make_element_by_type<unit_selection_disband_too_small_button>(state, id);
+				disband_too_small_btn = ptr.get();
+				return ptr;
+			} else {
 				return make_element_by_type<invisible_element>(state, id);
+			}
 		} else if(name == "str_bar") {
 			return make_element_by_type<unit_selection_str_bar<T>>(state, id);
 		} else if(name == "org_bar") {
@@ -1481,7 +1487,7 @@ public:
 	}
 };
 
-class whole_panel_button : public shift_button_element_base {
+class whole_panel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);

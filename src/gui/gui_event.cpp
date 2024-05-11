@@ -457,8 +457,7 @@ void event_image::on_update(sys::state& state) noexcept {
 	if(std::holds_alternative<event::pending_human_n_event>(content))
 		base_data.data.image.gfx_object = state.world.national_event_get_image(std::get<event::pending_human_n_event>(content).e);
 	else if(std::holds_alternative<event::pending_human_f_n_event>(content))
-		base_data.data.image.gfx_object =
-				state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
+		base_data.data.image.gfx_object = state.world.free_national_event_get_image(std::get<event::pending_human_f_n_event>(content).e);
 }
 
 void event_desc_text::on_create(sys::state& state) noexcept {
@@ -518,6 +517,26 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 					l.color = delegate->black_text ? text::text_color::black : text::text_color::white;
 			}
 		}
+	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
+		auto phe = std::get<event::pending_human_p_event>(content);
+		auto imm = state.world.provincial_event_get_immediate_effect(phe.e);
+		if(imm) {
+			effect_description(state, contents, imm, trigger::to_generic(phe.p), trigger::to_generic(phe.p), phe.from_slot, phe.r_lo, phe.r_hi);
+			for(auto& l : delegate->internal_layout.contents) {
+				if(l.color == (delegate->black_text ? text::text_color::white : text::text_color::black)) //Invert colours
+					l.color = delegate->black_text ? text::text_color::black : text::text_color::white;
+			}
+		}
+	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+		auto phe = std::get<event::pending_human_f_p_event>(content);
+		auto imm = state.world.free_provincial_event_get_immediate_effect(phe.e);
+		if(imm) {
+			effect_description(state, contents, imm, trigger::to_generic(phe.p), trigger::to_generic(phe.p), -1, phe.r_lo, phe.r_hi);
+			for(auto& l : delegate->internal_layout.contents) {
+				if(l.color == (delegate->black_text ? text::text_color::white : text::text_color::black)) //Invert colours
+					l.color = delegate->black_text ? text::text_color::black : text::text_color::white;
+			}
+		}
 	}
 
 	calibrate_scrollbar(state);
@@ -559,6 +578,36 @@ void event_requirements_icon::update_tooltip(sys::state& state, int32_t x, int32
 	{
 		auto box = text::open_layout_box(contents);
 		text::localised_format_box(state, contents, box, std::string_view("event_show_requirements"));
+		text::close_layout_box(contents, box);
+	}
+
+	if(state.cheat_data.show_province_id_tooltip) {
+		auto box = text::open_layout_box(contents);
+		if(std::holds_alternative<event::pending_human_p_event>(content)) {
+			auto phe = std::get<event::pending_human_p_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Province Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_n_event>(content)) {
+			auto phe = std::get<event::pending_human_n_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Nation Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
+			auto phe = std::get<event::pending_human_f_p_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Free Province Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
+			auto phe = std::get<event::pending_human_f_n_event>(content);
+			text::add_to_layout_box(state, contents, box, std::string_view("Free Nation Event ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(phe.e.value));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::string_view("Legacy:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(state.world.free_national_event_get_legacy_id(phe.e)));
+		}
 		text::close_layout_box(contents, box);
 	}
 
@@ -669,7 +718,9 @@ public:
 
 void national_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
-
+	if(image) {
+		move_child_to_front(image);
+	}
 	{
 		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 		ptr->base_data.position.y = 20;
@@ -682,7 +733,6 @@ void national_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.x += ptr->base_data.size.x * 2;
 		add_child_to_front(std::move(ptr));
 	}
-
 	{
 		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_country_option_start")->second.definition].position;
 		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
@@ -694,7 +744,9 @@ void national_event_window::on_create(sys::state& state) noexcept {
 
 void national_major_event_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
-
+	if(image) {
+		move_child_to_front(image);
+	}
 	{
 		auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 		ptr->base_data.position.y = 20;
@@ -707,9 +759,6 @@ void national_major_event_window::on_create(sys::state& state) noexcept {
 		ptr->base_data.position.x += ptr->base_data.size.x * 2;
 		add_child_to_front(std::move(ptr));
 	}
-
-	//auto s3 = IsMajor ? "event_major_optionbutton" : "event_country_optionbutton";
-
 	{
 		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_major_option_start")->second.definition].position;
 		auto ptr = make_element_by_type<nation_event_list>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
@@ -821,7 +870,9 @@ std::unique_ptr<element_base> national_event_window::make_child(sys::state& stat
 	} else if(name == "description") {
 		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "event_images") {
-		return make_element_by_type<event_image>(state, id);
+		auto ptr = make_element_by_type<event_image>(state, id);
+		image = ptr.get();
+		return ptr;
 	} else if(name == "date") {
 		return make_element_by_type<event_date_text>(state, id);
 	}
@@ -836,7 +887,9 @@ std::unique_ptr<element_base> national_major_event_window::make_child(sys::state
 	} else if(name == "description") {
 		return make_element_by_type<event_desc_text>(state, id);
 	} else if(name == "event_images") {
-		return make_element_by_type<event_image>(state, id);
+		auto ptr = make_element_by_type<event_image>(state, id);
+		image = ptr.get();
+		return ptr;
 	} else if(name == "date") {
 		return make_element_by_type<event_date_text>(state, id);
 	} else if(name == "country_flag1") {

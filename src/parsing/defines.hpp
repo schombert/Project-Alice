@@ -655,12 +655,38 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_threat_overestimate, 1.150000)                                                               \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_attack_target_radius, -0.996000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.950000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.950000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.950000)                                                             \
-	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000)														\
+	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.950000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.950000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.950000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 100000.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.6) \
+	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_overhire_multiplier, 10.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_capitalist, 0.125) \
+	LUA_DEFINES_LIST_ELEMENT(alice_invest_aristocrat, 0.025) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_lf_spend, 0.20) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_ev_spend, 0.40) \
+	LUA_DEFINES_LIST_ELEMENT(alice_needs_lx_spend, 0.40) \
+	LUA_DEFINES_LIST_ELEMENT(alice_sat_delay_factor, 0.95) \
+	LUA_DEFINES_LIST_ELEMENT(alice_need_drift_speed, 0.1) \
+	LUA_DEFINES_LIST_ELEMENT(alice_cleanup_tag_exception, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_disable_divergent_any_country_effect, 0.0) \
+
+// scales the needs values so that they are needs per this many pops
+// this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3
+// of the nominal life needs value for themselves. If we assume that there is supposed to be enough grain in the world
+// to feed everyone, and *every* the rgos was grain (and everyone farmed), the scaling factor would have to be about 60'000
+// if all rgos were equally common (there are about 20 of them), the scaling factor would have to be about
+// 1'200'000. Assuming that grain is slightly more prevalent, we arrive at the factor below as a nice round number
+//constexpr inline float needs_scaling_factor = 1'000'000.0f * 2.0f;
 
 namespace parsing {
 struct defines {

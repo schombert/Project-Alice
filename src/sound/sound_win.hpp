@@ -61,6 +61,15 @@ public:
 	bool global_pause = false;
 
 	audio_instance click_sound;
+	audio_instance click_left_sound;
+	audio_instance click_right_sound;
+	audio_instance tab_budget_sound;
+	audio_instance tab_politics_sound;
+	audio_instance tab_diplomacy_sound;
+	audio_instance tab_military_sound;
+	audio_instance tab_population_sound;
+	audio_instance tab_production_sound;
+	audio_instance tab_technology_sound;
 	audio_instance technology_finished_sound;
 	audio_instance army_move_sound;
 	audio_instance army_select_sound;
@@ -88,6 +97,10 @@ public:
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
 	audio_instance province_select_sounds[4];
+	audio_instance event_sound;
+	audio_instance decision_sound;
+	audio_instance pause_sound;
+	audio_instance unpause_sound;
 
 	std::vector<audio_instance> music_list;
 
