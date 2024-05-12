@@ -438,23 +438,30 @@ public:
 };
 class macro_builder_apply_button : public button_element_base {
 	std::vector<dcon::province_id> provinces;
-	std::vector<bool> marked;
-	void get_provinces(sys::state& state, dcon::province_id p) {
-		if(marked[p.index()])
-			return;
-		marked[p.index()] = true;
-		if(state.world.province_get_nation_from_province_control(p) == state.local_player_nation && state.world.province_get_nation_from_province_ownership(p) == state.local_player_nation) {
-			provinces.push_back(p);
-			for(const auto adj : state.world.province_get_province_adjacency_as_connected_provinces(p)) {
-				auto p2 = adj.get_connected_provinces(adj.get_connected_provinces(0) == p ? 1 : 0);
-				get_provinces(state, p2);
+	void get_provinces(sys::state& state, dcon::province_id p1, bool is_land) {
+		provinces.clear();
+		if(state.world.province_get_nation_from_province_ownership(p1) == state.local_player_nation) {
+			if(is_land) {
+				auto rid = state.world.province_get_connected_region_id(p1);
+				for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+					if(pc.get_province().get_connected_region_id() == rid
+					&& pc.get_province().get_province_control().get_nation() == state.local_player_nation) {
+						provinces.push_back(pc.get_province());
+					}
+				}
+			} else {
+				for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
+					if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
+					&& pc.get_province().get_is_coast()) {
+						provinces.push_back(pc.get_province());
+					}
+				}
 			}
 		}
 	}
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		marked.resize(state.world.province_size() + 1, false);
 	}
 	void on_update(sys::state& state) noexcept override {
 		disabled = (state.map_state.selected_province == dcon::province_id{});
@@ -465,12 +472,12 @@ public:
 		const auto template_province = state.map_state.selected_province;
 		uint8_t rem_to_build[sys::macro_builder_template::max_types];
 		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+
+		get_provinces(state, state.map_state.selected_province, is_land);
+		if(provinces.empty())
+			return;
+
 		if(is_land) {
-			provinces.clear();
-			marked.assign(marked.size(), false);
-			get_provinces(state, state.map_state.selected_province);
-			if(provinces.empty())
-				return;
 			// Have to queue commands [temporarily on UI side] or it may mess calculations up
 			struct build_queue_data {
 				dcon::province_id p;
@@ -509,15 +516,6 @@ public:
 			}
 			state.game_state_updated.store(true, std::memory_order::release);
 		} else {
-			provinces.clear();
-			for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-				if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
-				&& pc.get_province().get_is_coast()) {
-					provinces.push_back(pc.get_province());
-				}
-			}
-			if(provinces.empty())
-				return;
 			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
 				auto ab = state.world.province_get_province_naval_construction_as_province(a);
 				auto bb = state.world.province_get_province_naval_construction_as_province(b);
@@ -571,14 +569,14 @@ public:
 		const auto template_province = state.map_state.selected_province;
 		uint8_t rem_to_build[sys::macro_builder_template::max_types];
 		std::memcpy(rem_to_build, t.amounts, sizeof(rem_to_build));
+
+		get_provinces(state, state.map_state.selected_province, is_land);
+		if(provinces.empty()) {
+			text::add_line(state, contents, "macro_warn_invalid_province");
+			return;
+		}
+
 		if(is_land) {
-			provinces.clear();
-			marked.assign(marked.size(), false);
-			get_provinces(state, state.map_state.selected_province);
-			if(provinces.empty()) {
-				text::add_line(state, contents, "macro_warn_invalid_province");
-				return;
-			}
 			for(const auto prov : provinces) {
 				for(const auto p : state.world.province_get_pop_location_as_province(prov)) {
 					if(p.get_pop().get_poptype() != state.culture_definitions.soldiers)
@@ -604,17 +602,6 @@ public:
 				}
 			}
 		} else {
-			provinces.clear();
-			for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
-				if(pc.get_province().get_province_control().get_nation() == state.local_player_nation
-				&& pc.get_province().get_is_coast()) {
-					provinces.push_back(pc.get_province());
-				}
-			}
-			if(provinces.empty()) {
-				text::add_line(state, contents, "macro_warn_invalid_province");
-				return;
-			}
 			std::sort(provinces.begin(), provinces.end(), [&state](auto const a, auto const b) {
 				auto ab = state.world.province_get_province_naval_construction_as_province(a);
 				auto bb = state.world.province_get_province_naval_construction_as_province(b);
