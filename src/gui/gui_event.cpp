@@ -1,5 +1,6 @@
 #include "gui_event.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_politics_window.hpp"
 #include "triggers.hpp"
 
 namespace ui {
@@ -525,11 +526,11 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 	}
 }
 
-void event_issue_group_text::on_update(sys::state& state) noexcept {
+void event_subtitle_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		//auto e = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).e);
-		//set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
+		auto e = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).e);
+		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto e = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).e);
 		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
@@ -656,7 +657,7 @@ void base_event_window::on_create(sys::state& state) noexcept {
 		}
 		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(get_option_start_element_name())->second.definition].position;
 		if(get_pool_slot() == event_pool_slot::country_election) {
-			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find("alice_election_event_opts_list")->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y += 5;
 			add_child_to_front(std::move(ptr));
@@ -672,9 +673,7 @@ void base_event_window::on_create(sys::state& state) noexcept {
 class event_date_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-
 		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-
 		if(std::holds_alternative<event::pending_human_n_event>(content)) {
 			set_text(state, text::date_to_string(state, std::get<event::pending_human_n_event>(content).date));
 		} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
@@ -689,7 +688,6 @@ public:
 
 class major_event_right_flag : public flag_button {
 public:
-
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		dcon::gfx_object_id gid;
 		if(base_data.get_element_type() == element_type::image) {
@@ -707,7 +705,6 @@ public:
 		}
 		image_element_base::render(state, x, y);
 	}
-
 	void on_create(sys::state& state) noexcept override {
 		std::swap(base_data.size.x, base_data.size.y);
 		base_data.position.x += int16_t(24);
@@ -745,9 +742,7 @@ public:
 				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 				ui::rotation::r90_right, false);
 		}
-
 	}
-
 	void on_create(sys::state& state) noexcept override {
 		std::swap(base_data.size.x, base_data.size.y);
 		base_data.position.x += int16_t(21);
@@ -766,10 +761,8 @@ public:
 class event_province_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
-
 		color = text::text_color::dark_blue;
 		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-
 		if(std::holds_alternative<event::pending_human_p_event>(content)) {
 			set_text(state, text::produce_simple_string(state, state.world.province_get_name(std::get<event::pending_human_p_event>(content).p)));
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
@@ -778,8 +771,8 @@ public:
 	}
 
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		dcon::province_id prov;
 		event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
+		dcon::province_id prov{};
 		if(std::holds_alternative<event::pending_human_p_event>(content)) {
 			prov = std::get<event::pending_human_p_event>(content).p;
 		} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
@@ -791,22 +784,229 @@ public:
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 		state.map_state.set_selected_province(prov);
 		static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
-		if(state.map_state.get_zoom() < 8)
-			state.map_state.zoom = 8.0f;
-
+		if(state.map_state.get_zoom() < map::zoom_very_close)
+			state.map_state.zoom = map::zoom_very_close;
 		auto map_pos = state.world.province_get_mid_point(prov);
 		map_pos.x /= float(state.map_state.map_data.size_x);
 		map_pos.y /= float(state.map_state.map_data.size_y);
 		map_pos.y = 1.0f - map_pos.y;
 		state.map_state.set_pos(map_pos);
-
 		return message_result::consumed;
 	}
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return type == mouse_probe_type::scroll ? message_result::unseen : message_result::consumed;
 	}
 };
+
+class election_voter_issue_entry : public listbox_row_element_base<dcon::issue_option_id> {
+private:
+	simple_text_element_base* issname = nullptr;
+	simple_text_element_base* issvalue = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "issue_name") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			issname = ptr.get();
+			return ptr;
+		} else if(name == "voters_perc") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			issvalue = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		issname->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
+		auto total = state.world.nation_get_demographics(n, demographics::total);
+		if(total > 0.f) {
+			auto value = state.world.nation_get_demographics(n, demographics::to_key(state, content)) / total;
+			issvalue->set_text(state, text::format_percentage(value));
+		}
+	}
+};
+
+class election_voter_issues_listbox : public listbox_element_base<election_voter_issue_entry, dcon::issue_option_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "ew_issue_option_window";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+		auto content = retrieve<dcon::issue_id>(state, parent);
+		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
+			if(content == dcon::fatten(state.world, id).get_parent_issue().id) {
+				row_contents.push_back(id);
+			}
+		});
+		update(state);
+	}
+};
+class election_party_entry : public listbox_row_element_base<dcon::political_party_id> {
+	simple_text_element_base* partyname = nullptr;
+	simple_text_element_base* partyvalue = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_color") {
+			return make_element_by_type<ideology_plupp>(state, id);
+		} else if(name == "legend_title") {
+			return make_element_by_type<generic_name_text<dcon::political_party_id>>(state, id);
+		} else if(name == "legend_desc") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->base_data.position.x += 4;	// Nudge
+			partyvalue = ptr.get();
+			return ptr;
+		} else if(name == "legend_value") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto issid = retrieve<dcon::issue_id>(state, parent);
+		partyvalue->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_party_issues(issid).get_name()));
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			payload.emplace<dcon::ideology_id>(state.world.political_party_get_ideology(content));
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
+	}
+
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		return parent->impl_on_scroll(state, x, y, amount, mods);
+	}
+};
+
+class election_parties_listbox : public listbox_element_base<election_party_entry, dcon::political_party_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "eew_item";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		nations::get_active_political_parties(state, n).swap(row_contents);
+		update(state);
+	}
+};
+class election_popularity_entry : public listbox_row_element_base<dcon::political_party_id> {
+public:
+	simple_text_element_base* partyname = nullptr;
+	simple_text_element_base* partyvalue = nullptr;
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "legend_color") {
+			return make_element_by_type<ideology_plupp>(state, id);
+		} else if(name == "legend_title") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			partyname = ptr.get();
+			return ptr;
+		} else if(name == "legend_desc") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "legend_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			ptr->base_data.position.x += 3;	// Nudge
+			partyvalue = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto fat = dcon::fatten(state.world, content);
+		partyname->set_text(state, text::produce_simple_string(state, state.world.political_party_get_name(content)));
+		auto const total = state.world.nation_get_demographics(n, demographics::total);
+		if(total > 0.f) {
+			partyvalue->set_text(state, text::format_percentage(state.world.nation_get_demographics(n, demographics::to_key(state, fat.get_ideology().id)) / total, 0));
+		}
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::ideology_id>()) {
+			payload.emplace<dcon::ideology_id>(state.world.political_party_get_ideology(content));
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<dcon::political_party_id>::get(state, payload);
+	}
+};
+
+class election_popularity_listbox : public listbox_element_base<election_popularity_entry, dcon::political_party_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "eew_item";
+	}
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		nations::get_active_political_parties(state, n).swap(row_contents);
+		update(state);
+	}
+};
+
+class election_voter_ideology_piechart : public voter_ideology_piechart {
+public:
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.x -= base_data.size.x / int16_t(2);
+		base_data.position.x += int16_t(8);
+		base_data.size.x *= 2;
+		base_data.size.y *= 2;
+		on_create(state);
+	}
+};
+class party_popularity_piechart : public piechart<dcon::political_party_id> {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		distribution.clear();
+		auto total = state.world.nation_get_demographics(n, demographics::total);
+		if(total > 0.f) {
+			auto parties = nations::get_active_political_parties(state, n);
+			for(auto ppid : state.world.in_political_party) {
+				distribution.emplace_back(ppid.id, 0.0f);
+			}
+			for(auto ppid : parties) {
+				auto const dkey = demographics::to_key(state, state.world.political_party_get_ideology(ppid));
+				distribution[ppid.index()].value += state.world.nation_get_demographics(n, dkey) / total;
+			}
+		}
+		update_chart(state);
+	}
+	void on_create(sys::state& state) noexcept override {
+		piechart<dcon::political_party_id>::base_data.position.x -= piechart<dcon::political_party_id>::base_data.size.x / int16_t(2);
+		piechart<dcon::political_party_id>::base_data.position.x += int16_t(8);
+		piechart<dcon::political_party_id>::base_data.size.x *= 2;
+		piechart<dcon::political_party_id>::base_data.size.y *= 2;
+		piechart<dcon::political_party_id>::on_create(state);
+	}
+};
+
+std::unique_ptr<element_base> election_issue_support_item::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "issue_name") {
+		return make_element_by_type<generic_name_text<dcon::issue_option_id>>(state, id);
+	} else if(name == "people_perc") {
+		return make_element_by_type<issue_option_popular_support>(state, id);
+	} else if(name == "voters_perc") {
+		return make_element_by_type<issue_option_voter_support>(state, id);
+	} else {
+		return nullptr;
+	}
+}
+
+void elections_issue_option_listbox::on_update(sys::state& state) noexcept {
+	row_contents.clear();
+	auto iid = retrieve<dcon::issue_id>(state, parent);
+	for(const auto ioid : state.world.in_issue_option) {
+		if(ioid.get_parent_issue() == iid)
+			row_contents.push_back(ioid);
+	}
+	update(state);
+}
 
 std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "background") {
@@ -829,6 +1029,8 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 		return make_element_by_type<event_date_text>(state, id);
 	} else if(name == "state_name") {
 		return make_element_by_type<event_state_name_text>(state, id);
+	} else if(name == "subtitle") {
+		return make_element_by_type<event_subtitle_text>(state, id);
 	} else if(name == "population_amount") {
 		return make_element_by_type<event_population_amount_text>(state, id);
 	} else if(name == "country_flag1") {
@@ -837,6 +1039,32 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 		return make_element_by_type<major_event_right_flag>(state, id);
 	} else if(name == "province") {
 		return make_element_by_type<event_province_text>(state, id);
+	} else if(name == "perc_of_parlament") {
+		return make_element_by_type<nation_ruling_party_ideology_text>(state, id);
+	} else if(name == "parties_listbox") {
+		return make_element_by_type<election_parties_listbox>(state, id);
+	} else if(name == "chart_ideology") {
+		return make_element_by_type<election_voter_ideology_piechart>(state, id);
+	} else if(name == "chart_popularity") {
+		return make_element_by_type<party_popularity_piechart>(state, id);
+	} else if(name == "popularity_listbox") {
+		return make_element_by_type<election_popularity_listbox>(state, id);
+	} else if(name == "sort_by_issue_name") {
+		auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+		ptr->order = politics_issue_sort_order::name;
+		return ptr;
+	} else if(name == "sort_by_people") {
+		auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+		ptr->order = politics_issue_sort_order::popular_support;
+		return ptr;
+	} else if(name == "sort_by_voters") {
+		auto ptr = make_element_by_type<politics_issue_sort_button>(state, id);
+		ptr->order = politics_issue_sort_order::voter_support;
+		return ptr;
+	} else if(name == "issues_listbox") {
+		auto ptr = make_element_by_type<elections_issue_option_listbox>(state, id);
+		issues_listbox = ptr.get();
+		return ptr;
 	}
 	return nullptr;
 }
@@ -844,6 +1072,15 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 message_result base_event_window::get(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<dcon::nation_id>()) {
 		payload.emplace<dcon::nation_id>(state.local_player_nation);
+		return message_result::consumed;
+	} else if(payload.holds_type<dcon::issue_id>()) {
+		if(std::holds_alternative<event::pending_human_n_event>(event_data)) {
+			auto e = std::get<event::pending_human_n_event>(event_data).e;
+			payload.emplace<dcon::issue_id>(state.world.national_event_get_issue_group(e));
+		} else if(std::holds_alternative<event::pending_human_f_n_event>(event_data)) {
+			auto e = std::get<event::pending_human_f_n_event>(event_data).e;
+			payload.emplace<dcon::issue_id>(state.world.free_national_event_get_issue_group(e));
+		}
 		return message_result::consumed;
 	} else if(payload.holds_type<event_data_wrapper>()) {
 		if(std::holds_alternative<event::pending_human_n_event>(event_data))
@@ -863,6 +1100,38 @@ message_result base_event_window::get(sys::state& state, Cyto::Any& payload) noe
 			std::unique_ptr<base_event_window> ptr(static_cast<base_event_window*>(uptr.release()));
 			event_pool[slot].push_back(std::move(ptr));
 			--pending_events[slot];
+		}
+		return message_result::consumed;
+	} else if(payload.holds_type<politics_issue_sort_order>()) {
+		auto enum_val = any_cast<politics_issue_sort_order>(payload);
+		switch(enum_val) {
+		case politics_issue_sort_order::name:
+			std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+					auto a_name = text::get_name_as_string(state, dcon::fatten(state.world, a));
+					auto b_name = text::get_name_as_string(state, dcon::fatten(state.world, b));
+					return a_name < b_name;
+					});
+			issues_listbox->update(state);
+			break;
+		case politics_issue_sort_order::popular_support:
+			std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+					auto a_support = politics::get_popular_support(state, state.local_player_nation, a);
+					auto b_support = politics::get_popular_support(state, state.local_player_nation, b);
+					return a_support > b_support;
+					});
+			issues_listbox->update(state);
+			break;
+		case politics_issue_sort_order::voter_support:
+			std::sort(issues_listbox->row_contents.begin(), issues_listbox->row_contents.end(),
+					[&](dcon::issue_option_id a, dcon::issue_option_id b) {
+					auto a_support = politics::get_voter_support(state, state.local_player_nation, a);
+					auto b_support = politics::get_voter_support(state, state.local_player_nation, b);
+					return a_support > b_support;
+					});
+			issues_listbox->update(state);
+			break;
 		}
 		return message_result::consumed;
 	}
@@ -935,13 +1204,19 @@ void new_event_window(sys::state& state, event_data_wrapper dat) {
 	auto slot = event_pool_slot::country;
 	if(std::holds_alternative<event::pending_human_n_event>(dat)) {
 		slot = event_pool_slot::country;
-		if(auto e = std::get<event::pending_human_n_event>(dat).e; state.world.national_event_get_is_major(e)) {
+		auto e = std::get<event::pending_human_n_event>(dat).e;
+		if(state.world.national_event_get_is_major(e)) {
 			slot = event_pool_slot::country_major;
+		} else if(state.world.national_event_get_issue_group(e)) {
+			slot = event_pool_slot::country_election;
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(dat)) {
 		slot = event_pool_slot::country;
-		if(auto e = std::get<event::pending_human_f_n_event>(dat).e; state.world.free_national_event_get_is_major(e)) {
+		auto e = std::get<event::pending_human_f_n_event>(dat).e;
+		if(state.world.free_national_event_get_is_major(e)) {
 			slot = event_pool_slot::country_major;
+		} else if(state.world.free_national_event_get_issue_group(e)) {
+			slot = event_pool_slot::country_election;
 		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(dat)) {
 		slot = event_pool_slot::province;

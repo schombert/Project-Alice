@@ -81,7 +81,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
-class event_issue_group_text : public simple_text_element_base {
+class event_subtitle_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
 };
@@ -90,6 +90,18 @@ public:
 	void on_update(sys::state& state) noexcept override;
 };
 class event_population_amount_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class election_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+};
+class elections_issue_option_listbox : public listbox_element_base<election_issue_support_item, dcon::issue_option_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "ew_issue_option_window";
+	}
 public:
 	void on_update(sys::state& state) noexcept override;
 };
@@ -123,10 +135,11 @@ protected:
 class national_election_event_listbox : public base_event_option_listbox {
 protected:
 	std::string_view get_row_element_name() override {
-		return "eew_eventoptionbutton";
+		return "alice_election_event_button";
 	}
 };
 class base_event_window : public window_element_base {
+	elections_issue_option_listbox* issues_listbox = nullptr;
 public:
 	virtual std::string_view get_option_start_element_name() noexcept {
 		return "event_country_option_start";

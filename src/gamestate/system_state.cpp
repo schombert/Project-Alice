@@ -15,7 +15,6 @@
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-#include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
@@ -1461,11 +1460,6 @@ void state::on_create() {
 		ui_state.multi_unit_selection_window = mselection.get();
 		mselection->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(mselection));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");
-		ui_state.election_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(*this, "defaultdialog");
