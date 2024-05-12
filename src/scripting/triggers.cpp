@@ -388,15 +388,18 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
+					bool is_empty = true;
 					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
 						if((adj.get_type() & province::border::impassible_bit) == 0) {
 							auto other = (prov_tag == adj.get_connected_provinces(0)) ? adj.get_connected_provinces(1).id
-																																				: adj.get_connected_provinces(0).id;
+								: adj.get_connected_provinces(0).id;
+							is_empty = false;
 							accumulator.add_value(to_generic(other));
 						}
 					}
+					if(is_empty)
+						return false;
 					accumulator.flush();
-
 					return accumulator.result;
 				} else {
 					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
@@ -438,6 +441,9 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope_state) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
+					if(vadj.begin() == vadj.end())
+						return false;
+
 					for(auto p : vadj)
 						accumulator.add_value(to_generic(p));
 
@@ -463,15 +469,18 @@ TRIGGER_FUNCTION(tf_x_neighbor_country_scope_nation) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
+					bool is_empty = true;
 					for(auto adj : ws.world.nation_get_nation_adjacency(nid)) {
+						is_empty = false;
 						auto iid = (nid == adj.get_connected_nations(0)) ? adj.get_connected_nations(1).id : adj.get_connected_nations(0).id;
-
 						accumulator.add_value(to_generic(iid));
 						if(accumulator.result)
 							return true;
 					}
-					accumulator.flush();
+					if(is_empty)
+						return false;
 
+					accumulator.flush();
 					return accumulator.result;
 				} else {
 					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
@@ -503,16 +512,20 @@ TRIGGER_FUNCTION(tf_x_war_countries_scope_nation) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
+					bool is_empty = true;
 					for(auto wars_in : ws.world.nation_get_war_participant(nid)) {
 						auto is_attacker = wars_in.get_is_attacker();
 						for(auto o : wars_in.get_war().get_war_participant()) {
 							if(o.get_is_attacker() != is_attacker && o.get_nation() != nid) {
+								is_empty = false;
 								accumulator.add_value(to_generic(o.get_nation().id));
 								if(accumulator.result)
 									return true;
 							}
 						}
 					}
+					if(is_empty)
+						return false;
 
 					accumulator.flush();
 					return accumulator.result;
@@ -625,19 +638,22 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_state) {
 				if(*tval & trigger::is_existence_scope) {
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
+					bool is_empty = true;
 					for(auto p : state_def.get_abstract_state_membership()) {
 						if(p.get_province().get_nation_from_province_ownership() == owner) {
+							is_empty = false;
 							accumulator.add_value(to_generic(p.get_province().id));
 							if(accumulator.result)
 								return true;
 						}
 					}
+					if(is_empty)
+						return false;
 
 					accumulator.flush();
 					return accumulator.result;
 				} else {
 					auto accumulator = universal_accumulator(ws, tval, t_slot, f_slot);
-
 					for(auto p : state_def.get_abstract_state_membership()) {
 						if(p.get_province().get_nation_from_province_ownership() == owner) {
 							accumulator.add_value(to_generic(p.get_province().id));
@@ -658,6 +674,8 @@ TRIGGER_FUNCTION(tf_x_owned_province_scope_nation) {
 				auto nid = fatten(ws.world, to_nation(p_slot));
 
 				if(*tval & trigger::is_existence_scope) {
+					if(nid.get_province_ownership().begin() == nid.get_province_ownership().end())
+						return false;
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
 					for(auto p : nid.get_province_ownership()) {
@@ -689,6 +707,8 @@ TRIGGER_FUNCTION(tf_x_core_scope_province) {
 				dcon::province_fat_id pid = fatten(ws.world, to_prov(p_slot));
 
 				if(*tval & trigger::is_existence_scope) {
+					if(pid.get_core().begin() == pid.get_core().end())
+						return false;
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
 					for(auto p : pid.get_core()) {
@@ -727,6 +747,8 @@ TRIGGER_FUNCTION(tf_x_core_scope_nation) {
 				auto ident = nid.get_identity_holder_as_nation().get_identity();
 
 				if(*tval & trigger::is_existence_scope) {
+					if(ident.get_core().begin() == ident.get_core().end())
+						return false;
 					auto accumulator = existence_accumulator(ws, tval, t_slot, f_slot);
 
 					for(auto p : ident.get_core()) {
