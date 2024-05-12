@@ -1233,10 +1233,10 @@ void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)
 	for(const auto n : state.world.in_nation) {
 		if(n.get_marked_for_gc()) {
+			n.set_marked_for_gc(false);
 			if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
 				nations::cleanup_nation(state, n);
 			}
-			n.set_marked_for_gc(false);
 		}
 	}
 	if(state.national_definitions.gc_pending) {
