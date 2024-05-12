@@ -68,4 +68,6 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 void update_future_events(sys::state& state);
 void update_events(sys::state& state);
 
+dcon::issue_id is_election_event(sys::state& state, dcon::national_event_id e);
+
 } // namespace event

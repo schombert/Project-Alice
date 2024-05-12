@@ -18,14 +18,23 @@ struct triggered_modifier {
 };
 
 struct fixed_event {
-	int16_t chance;
-	dcon::national_event_id id;
-	dcon::trigger_key condition;
+	int16_t chance; //0,2
+	dcon::national_event_id id; //2,2
+	dcon::trigger_key condition; //4,2
+	uint16_t padding = 0; //6,2
+};
+struct fixed_election_event {
+	int16_t chance; //0,2
+	dcon::national_event_id id; //2,2
+	dcon::trigger_key condition; //4,2
+	dcon::issue_id issue_group; //6,1
+	uint8_t padding = 0; //7,1
 };
 struct fixed_province_event {
-	int16_t chance;
-	dcon::provincial_event_id id;
-	dcon::trigger_key condition;
+	int16_t chance; //0,2
+	dcon::provincial_event_id id; //2,2
+	dcon::trigger_key condition; //4,2
+	uint16_t padding = 0; //6,2
 };
 
 enum class focus_type : uint8_t {
@@ -116,7 +125,7 @@ struct global_national_state {
 	std::vector<fixed_event> on_surrender;
 	std::vector<fixed_event> on_new_great_nation;
 	std::vector<fixed_event> on_lost_great_nation;
-	std::vector<fixed_event> on_election_tick;
+	std::vector<fixed_election_event> on_election_tick;
 	std::vector<fixed_event> on_colony_to_state;
 	std::vector<fixed_event> on_state_conquest;
 	std::vector<fixed_event> on_colony_to_state_free_slaves;

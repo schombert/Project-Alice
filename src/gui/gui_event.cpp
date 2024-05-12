@@ -527,20 +527,8 @@ void event_odds_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, te
 }
 
 void event_subtitle_text::on_update(sys::state& state) noexcept {
-	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
-	if(std::holds_alternative<event::pending_human_n_event>(content)) {
-		auto e = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).e);
-		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
-	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
-		auto e = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).e);
-		set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
-	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
-		//auto e = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).e);
-		//set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
-	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
-		//auto e = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).e);
-		//set_text(state, text::produce_simple_string(state, e.get_issue_group().get_name()));
-	}
+	auto iid = retrieve<dcon::issue_id>(state, parent);
+	set_text(state, text::produce_simple_string(state, state.world.issue_get_name(iid)));
 }
 
 void event_state_name_text::on_update(sys::state& state) noexcept {
@@ -1076,10 +1064,8 @@ message_result base_event_window::get(sys::state& state, Cyto::Any& payload) noe
 	} else if(payload.holds_type<dcon::issue_id>()) {
 		if(std::holds_alternative<event::pending_human_n_event>(event_data)) {
 			auto e = std::get<event::pending_human_n_event>(event_data).e;
-			payload.emplace<dcon::issue_id>(state.world.national_event_get_issue_group(e));
-		} else if(std::holds_alternative<event::pending_human_f_n_event>(event_data)) {
-			auto e = std::get<event::pending_human_f_n_event>(event_data).e;
-			payload.emplace<dcon::issue_id>(state.world.free_national_event_get_issue_group(e));
+			auto iid = event::get_election_event_issue(state, e);
+			payload.emplace<dcon::issue_id>(iid);
 		}
 		return message_result::consumed;
 	} else if(payload.holds_type<event_data_wrapper>()) {
@@ -1207,7 +1193,7 @@ void new_event_window(sys::state& state, event_data_wrapper dat) {
 		auto e = std::get<event::pending_human_n_event>(dat).e;
 		if(state.world.national_event_get_is_major(e)) {
 			slot = event_pool_slot::country_major;
-		} else if(state.world.national_event_get_issue_group(e)) {
+		} else if(event::get_election_event_issue(state, e)) {
 			slot = event_pool_slot::country_election;
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(dat)) {
@@ -1215,8 +1201,6 @@ void new_event_window(sys::state& state, event_data_wrapper dat) {
 		auto e = std::get<event::pending_human_f_n_event>(dat).e;
 		if(state.world.free_national_event_get_is_major(e)) {
 			slot = event_pool_slot::country_major;
-		} else if(state.world.free_national_event_get_issue_group(e)) {
-			slot = event_pool_slot::country_election;
 		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(dat)) {
 		slot = event_pool_slot::province;

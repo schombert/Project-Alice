@@ -1898,12 +1898,12 @@ void s_on_election_tick::any_value(std::string_view chance, association_type, in
 	int32_t value = parse_int(chance, line, err);
 	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
 		context.state.national_definitions.on_election_tick.push_back(
-				nations::fixed_event{int16_t(value), it->second.id, dcon::trigger_key{}});
+				nations::fixed_election_event{ int16_t(value), it->second.id, dcon::trigger_key{}, dcon::issue_id{} });
 	} else {
 		auto id = context.state.world.create_national_event();
 		context.map_of_national_events.insert_or_assign(event,
 				pending_nat_event{id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
-		context.state.national_definitions.on_election_tick.push_back(nations::fixed_event{int16_t(value), id, dcon::trigger_key{}});
+		context.state.national_definitions.on_election_tick.push_back(nations::fixed_election_event{ int16_t(value), id, dcon::trigger_key{}, dcon::issue_id{} });
 	}
 }
 

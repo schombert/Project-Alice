@@ -745,4 +745,13 @@ void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_eve
 	}
 }
 
+dcon::issue_id get_election_event_issue(sys::state& state, dcon::national_event_id e) {
+	for(auto const& fe : state.national_definitions.on_election_tick) {
+		if(fe.id == e) {
+			return fe.issue_group;
+		}
+	}
+	return dcon::issue_id{};
+}
+
 } // namespace event
