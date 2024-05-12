@@ -586,7 +586,8 @@ public:
 			auto si = state.world.province_get_state_membership(pid);
 			if(si) {
 				province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
-					command::begin_province_building_construction(state, state.local_player_nation, p, Value);
+					if(command::can_begin_province_building_construction(state, state.local_player_nation, p, Value))
+						command::begin_province_building_construction(state, state.local_player_nation, p, Value);
 				});
 			}
 		}
@@ -595,7 +596,8 @@ public:
 		auto content = retrieve<dcon::province_id>(state, parent);
 		auto within_nation = state.world.province_get_nation_from_province_ownership(content);
 		for(auto p : state.world.nation_get_province_ownership(within_nation)) {
-			command::begin_province_building_construction(state, state.local_player_nation, p.get_province(), Value);
+			if(command::can_begin_province_building_construction(state, state.local_player_nation, p.get_province(), Value))
+				command::begin_province_building_construction(state, state.local_player_nation, p.get_province(), Value);
 		}
 	}
 
@@ -1584,6 +1586,15 @@ public:
 									disabled = false;
 									break;
 								}
+							}
+						}
+					} else {
+						//not disabled when there are constructions
+						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
+							auto lc = pl.get_pop().get_province_land_construction();
+							if(lc.begin() != lc.end()) {
+								disabled = false;
+								break;
 							}
 						}
 					}

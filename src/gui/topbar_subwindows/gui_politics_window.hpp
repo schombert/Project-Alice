@@ -467,7 +467,6 @@ protected:
 	std::string_view get_row_element_name() override {
 		return "issue_option_window";
 	}
-
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_element_base<politics_issue_support_item, dcon::issue_option_id>::on_create(state);
@@ -566,12 +565,8 @@ public:
 class politics_issue_sort_button : public button_element_base {
 public:
 	politics_issue_sort_order order = politics_issue_sort_order::name;
-
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = order;
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, order);
 	}
 };
 

@@ -394,13 +394,12 @@ std::vector<uint32_t> militancy_map_from(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
+	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto nation = fat_id.get_nation_from_province_ownership();
-
-		if(nation) {
+		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			float revolt_risk = province::revolt_risk(state, prov_id) / 10;
-
 			uint32_t color = ogl::color_gradient(revolt_risk,
 				sys::pack_color(247, 15, 15), // green
 				sys::pack_color(46, 247, 15) // red

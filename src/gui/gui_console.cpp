@@ -131,9 +131,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"elecwin", command_info::type::elecwin, "Shows/Hides Election Window",
-				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -725,11 +722,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				: state.ui_state.main_menu->set_visible(state, true);
 			state.ui_state.main_menu->impl_on_update(state);
 		}
-		break;
-	case command_info::type::elecwin:
-		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false)
-			: state.ui_state.election_window->set_visible(state, true);
-		state.ui_state.election_window->impl_on_update(state);
 		break;
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
