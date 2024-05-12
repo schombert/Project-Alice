@@ -959,7 +959,7 @@ public:
 		on_create(state);
 	}
 };
-class party_popularity_piechart : public piechart<dcon::political_party_id> {
+class election_party_popularity_piechart : public piechart<dcon::political_party_id> {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
@@ -1046,7 +1046,7 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 	} else if(name == "chart_ideology") {
 		return make_element_by_type<election_voter_ideology_piechart>(state, id);
 	} else if(name == "chart_popularity") {
-		return make_element_by_type<party_popularity_piechart>(state, id);
+		return make_element_by_type<election_party_popularity_piechart>(state, id);
 	} else if(name == "popularity_listbox") {
 		return make_element_by_type<election_popularity_listbox>(state, id);
 	} else if(name == "sort_by_issue_name") {
