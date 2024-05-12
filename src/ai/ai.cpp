@@ -3344,7 +3344,7 @@ void update_ships(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(n.get_is_player_controlled())
 			continue;
-		if(n.get_is_at_war() == false && nations::is_landlocked(state, n))
+		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					for(auto shp : v.get_navy().get_navy_membership()) {
