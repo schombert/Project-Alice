@@ -336,8 +336,9 @@ void update_industrial_scores(sys::state& state) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
 				float total_level = 0;
 				float worker_total =
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+
 				float total_factory_capacity = 0;
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
@@ -353,7 +354,12 @@ void update_industrial_scores(sys::state& state) {
 				sum += ur.get_foreign_investment() * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 			}
 		}
-		state.world.nation_set_industrial_score(n, uint16_t(sum));
+		float old_score = state.world.nation_get_industrial_score(n);
+		if(old_score == 0) {
+			state.world.nation_set_industrial_score(n, uint16_t(sum));
+		} else {
+			state.world.nation_set_industrial_score(n, uint16_t(0.1f * sum + 0.9f * old_score));
+		}
 	});
 }
 
