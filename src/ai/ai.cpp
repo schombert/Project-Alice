@@ -3341,18 +3341,25 @@ bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
 void update_ships(sys::state& state) {
 	static std::vector<dcon::ship_id> to_delete;
 	to_delete.clear();
-
 	for(auto n : state.world.in_nation) {
-		if(!n.get_is_player_controlled() && n.get_is_at_war() == false) {
+		if(n.get_is_player_controlled())
+			continue;
+		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
+			for(auto v : n.get_navy_control()) {
+				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+					for(auto shp : v.get_navy().get_navy_membership()) {
+						to_delete.push_back(shp.get_ship().id);
+					}
+				}
+			}
+		} else if(n.get_is_at_war() == false) {
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
 			dcon::unit_type_id best_big;
-
 			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
 				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
 					continue;
-
 				if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
 					if(!best_transport || state.military_definitions.unit_base_definitions[best_transport].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
 						best_transport = j;
@@ -3367,7 +3374,6 @@ void update_ships(sys::state& state) {
 					}
 				}
 			}
-
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					auto trange = v.get_navy().get_army_transport();
@@ -3391,7 +3397,6 @@ void update_ships(sys::state& state) {
 			}
 		}
 	}
-
 	for(auto s : to_delete) {
 		state.world.delete_ship(s);
 	}

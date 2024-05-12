@@ -215,6 +215,10 @@ bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	return state.world.diplomatic_relation_get_are_allied(rel);
 }
 
+bool is_landlocked(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_total_ports(n) == 0;
+}
+
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
 	auto fat_id = dcon::fatten(state.world, rel_id);
 	return fat_id.get_related_nations(0) == query ? fat_id.get_related_nations(1) : fat_id.get_related_nations(0);
