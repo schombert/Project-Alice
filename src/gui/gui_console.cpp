@@ -34,6 +34,8 @@ struct command_info {
 		event,
 		militancy,
 		dump_out_of_sync,
+		dump_event_graph,
+		ai_elligibility,
 		fog_of_war,
 		prestige,
 		force_ally,
@@ -56,6 +58,7 @@ struct command_info {
 		next_song,
 		add_population,
 		instant_army,
+		instant_navy,
 		instant_industry,
 		innovate,
 		daily_oos_check,
@@ -65,6 +68,8 @@ struct command_info {
 		list_global_flags,
 		list_national_flags,
 		list_all_flags,
+		set_auto_choice_all,
+		clear_auto_choice_all,
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -126,9 +131,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"elecwin", command_info::type::elecwin, "Shows/Hides Election Window",
-				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -152,6 +154,12 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"oos", command_info::type::dump_out_of_sync, "Dump an OOS save",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
+		command_info{"graph", command_info::type::dump_event_graph, "Dump an event graph",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
+		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
 		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -180,6 +188,12 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"ym", command_info::type::always_accept_deals, "AI always accepts our deals",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{ "saopt", command_info::type::set_auto_choice_all, "Set all events to auto choice",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "caopt", command_info::type::clear_auto_choice_all, "Clear all events from auto choice",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{"gi", command_info::type::game_info, "Shows general game information",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
@@ -211,6 +225,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_army", command_info::type::instant_army, "Instantly builds all armies",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "instant_navy", command_info::type::instant_navy, "Instantly builds all navies",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "instant_industry", command_info::type::instant_industry, "Instantly builds all industries",
@@ -617,6 +634,43 @@ void write_single_component(sys::state& state, native_string_view filename, F&& 
 	simple_fs::write_file(sdir, filename, reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
 }
 
+void print_graph_label(sys::state& state, std::string& text, std::string_view source, uint16_t* data) {
+	effect::recurse_over_effects(data, [&](uint16_t* data) {
+		dcon::text_sequence_id name;
+		if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_province_this_state
+			|| (data[0] & effect::code_mask) == effect::country_event_this_nation
+			|| (data[0] & effect::code_mask) == effect::country_event_this_pop
+			|| (data[0] & effect::code_mask) == effect::country_event_this_province
+			|| (data[0] & effect::code_mask) == effect::country_event_this_state) {
+			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
+			//province event
+		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_nation
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_pop
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_province
+			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_state
+			|| (data[0] & effect::code_mask) == effect::province_event_this_nation
+			|| (data[0] & effect::code_mask) == effect::province_event_this_pop
+			|| (data[0] & effect::code_mask) == effect::province_event_this_province
+			|| (data[0] & effect::code_mask) == effect::province_event_this_state) {
+			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
+		}
+		if(name && text.size() < 0xfffff) {
+			text += "\"" + std::string(source) + "\" -> \"" + text::produce_simple_string(state, name) + "\";\n";
+		}
+	});
+}
+
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
 	if(s.empty()) {
 		edit_box_update(state, s);
@@ -668,11 +722,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				: state.ui_state.main_menu->set_visible(state, true);
 			state.ui_state.main_menu->impl_on_update(state);
 		}
-		break;
-	case command_info::type::elecwin:
-		state.ui_state.election_window->is_visible() ? state.ui_state.election_window->set_visible(state, false)
-			: state.ui_state.election_window->set_visible(state, true);
-		state.ui_state.election_window->impl_on_update(state);
 		break;
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
@@ -1279,6 +1328,90 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	break;
+	case command_info::type::dump_event_graph:
+	{
+		std::string txt = "";
+		txt += "digraph {\n";
+		txt += "subgraph cluster_0 {\n";
+		txt += "label = \"National Events\";\n";
+		for(const auto e : state.world.in_national_event) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			if(e.get_immediate_effect())
+				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			auto const& opt = e.get_options();
+			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
+				if(opt[i].effect) {
+					auto const opt_name = std::string(name) + " #" + std::to_string(i);
+					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
+				}
+			}
+		}
+		txt += "}\n";
+		txt += "subgraph cluster_1 {\n";
+		txt += "label = \"Provincial Events\";\n";
+		for(const auto e : state.world.in_provincial_event) {
+			auto const name = text::produce_simple_string(state, e.get_name());
+			if(e.get_immediate_effect())
+				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			auto const& opt = e.get_options();
+			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
+				if(opt[i].effect) {
+					auto const opt_name = std::string(name) + " #" + std::to_string(i);
+					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
+				}
+			}
+		}
+		txt += "}\n";
+		txt += "subgraph cluster_3 {\n";
+		txt += "label = \"Free National Events\";\n";
+		for(const auto e : state.world.in_free_national_event) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			if(e.get_immediate_effect())
+				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			auto const& opt = e.get_options();
+			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
+				if(opt[i].effect) {
+					auto const opt_name = std::string(name) + " #" + std::to_string(i);
+					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
+				}
+			}
+		}
+		txt += "}\n";
+		txt += "subgraph cluster_4 {\n";
+		txt += "label = \"Free Provincial Events\";\n";
+		for(const auto e : state.world.in_free_provincial_event) {
+			auto const name = text::produce_simple_string(state, e.get_name());
+			if(e.get_immediate_effect())
+				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			auto const& opt = e.get_options();
+			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
+				if(opt[i].effect) {
+					auto const opt_name = std::string(name) + " #" + std::to_string(i);
+					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
+				}
+			}
+		}
+		txt += "}\n";
+		txt += "subgraph cluster_5 {\n";
+		txt += "label = \"Decisions\";\n";
+		for(const auto e : state.world.in_decision) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			if(e.get_effect())
+				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_effect().index() + 1]);
+		}
+		txt += "}\n";
+		txt += "}\n";
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("graph.txt"), txt.c_str(), uint32_t(txt.size()));
+	}
+	break;
+	case command_info::type::ai_elligibility:
+	{
+		auto const n = state.local_player_nation;
+		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
+		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "\x02" : "\x01");
+	}
+	break;
 	case command_info::type::dump_out_of_sync:
 		window::change_cursor(state, window::cursor_type::busy);
 		state.debug_save_oos_dump();
@@ -1547,12 +1680,22 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
 	case command_info::type::always_allow_wargoals:
-		state.cheat_data.always_allow_wargoals = !state.cheat_data.always_allow_wargoals;
-		log_to_console(state, parent, state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		state.cheat_data.always_allow_reforms = !state.cheat_data.always_allow_reforms;
-		log_to_console(state, parent, state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		command::c_always_allow_reforms(state, state.local_player_nation);
+		break;
+	case command_info::type::always_accept_deals:
+		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
+		command::c_always_accept_deals(state, state.local_player_nation);
+		break;
+	case command_info::type::set_auto_choice_all:
+		command::c_set_auto_choice_all(state, state.local_player_nation);
+		break;
+	case command_info::type::clear_auto_choice_all:
+		command::c_clear_auto_choice_all(state, state.local_player_nation);
 		break;
 	case command_info::type::complete_constructions:
 		command::c_complete_constructions(state, state.local_player_nation);
@@ -1568,10 +1711,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
-	case command_info::type::always_accept_deals:
-		state.cheat_data.always_accept_deals = !state.cheat_data.always_accept_deals;
-		log_to_console(state, parent, state.cheat_data.always_accept_deals ? "\x02" : "\x01");
-		break;
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
 		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
@@ -1673,6 +1812,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
+	case command_info::type::instant_navy:
+	{
+		log_to_console(state, parent, !state.cheat_data.instant_navy ? "\x02" : "\x01");
+		command::c_instant_navy(state, state.local_player_nation);
+		break;
+	}
 	case command_info::type::instant_industry:
 	{
 		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\x02" : "\x01");
@@ -1772,7 +1917,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(!found) {
 			log_to_console(state, parent, "Couldn't find innovation: " + searched_name);
 		}
-		//command::c_innovate(state, state.local_player_nation, )
 		break;
 	}
 	case command_info::type::none:

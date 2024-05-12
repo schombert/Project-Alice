@@ -288,6 +288,10 @@ void display_data::create_meshes() {
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_unit_arrow]);
 	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_attack_unit_arrow], attack_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_retreat_unit_arrow], retreat_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
 	glBindVertexArray(vao_array[vo_province_text_line]);
@@ -397,8 +401,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glActiveTexture(GL_TEXTURE11);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
-	glActiveTexture(GL_TEXTURE12);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glActiveTexture(GL_TEXTURE14);
@@ -631,7 +633,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	dcon::province_id prov{};
 	glm::vec2 map_pos;
-	if(state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
+	if(!state.ui_state.under_mouse && state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
 		map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
 		auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
@@ -686,12 +688,32 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	if(zoom > map::zoom_close && !unit_arrow_vertices.empty()) { //only render if close enough
-		load_shader(shaders[shader_line_unit_arrow]);
+	if(zoom > map::zoom_close) { //only render if close enough
+		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()) {
+			load_shader(shaders[shader_line_unit_arrow]);
+		}
 		glUniform1f(4, 0.005f); // width
-		glBindVertexArray(vao_array[vo_unit_arrow]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		if(!unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
+			glBindVertexArray(vao_array[vo_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		}
+		if(!attack_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_attack_unit_arrow]);
+			glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_attack_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, attack_unit_arrow_starts.data(), attack_unit_arrow_counts.data(), (GLsizei)attack_unit_arrow_counts.size());
+		}
+		if(!retreat_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_retreat_unit_arrow]);
+			glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_retreat_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, retreat_unit_arrow_starts.data(), retreat_unit_arrow_counts.data(), (GLsizei)retreat_unit_arrow_counts.size());
+		}
 	}
 
 	if(!drag_box_vertices.empty()) {
@@ -714,11 +736,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
-		if(zoom < map::zoom_close && !text_line_vertices.empty()) {
+		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
+			glUniform1f(15, 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
 		} else if(state.cheat_data.province_names) {
+			glUniform1f(15, 1.f);
 			glBindVertexArray(vao_array[vo_province_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
@@ -1636,7 +1660,61 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
-		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
+		bool is_linear = true;
+		if((e.coeff[2] != 0) || (e.coeff[3] != 0)) {
+			is_linear = false;
+		}
+
+		// y = a + bx + cx^2 + dx^3
+		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
+		auto poly_fn = [&](float x) {
+			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
+			};
+		auto dpoly_fn = [&](float x) {
+			// y = a + 1bx^1 + 1cx^2 + 1dx^3
+			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
+			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
+		};
+
+
+		//cutting box if graph goes outside
+
+		float left = 0.f;
+		float right = 1.f;
+
+		if(is_linear) {
+			if(e.coeff[1] > 0.01f) {
+				left = (-e.coeff[0]) / e.coeff[1];
+				right = (1.f - e.coeff[0]) / e.coeff[1];
+			} else if(e.coeff[1] < -0.01f) {
+				left = (1.f - e.coeff[0]) / e.coeff[1];
+				right = (- e.coeff[0]) / e.coeff[1];
+			}
+		} else {
+			while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
+				left += 1.f / 300.f;
+			}
+			while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
+				right -= 1.f / 300.f;
+			}
+		}
+
+
+		left = std::clamp(left, 0.f, 1.f);
+		right = std::clamp(right, 0.f, 1.f);
+
+
+		if(right <= left) {
+			continue;
+		}
+
+		float result_interval = right - left;
+		float center = (right + left) / 2.f;
+
+		glm::vec2 ratio = e.ratio;
+		glm::vec2 basis = e.basis;
+
+		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
 
 		auto& f = state.font_collection.fonts[2];
 		if(!f.loaded)
@@ -1644,29 +1722,63 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
-		// y = a + bx + cx^2 + dx^3
-		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
-		auto poly_fn = [&](float x) {
-			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
-		float x_step = (1.f / float(e.text.length() * 32.f));
+		float x_step = (result_interval / float(e.text.length() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
-		for(float x = 0.f; x <= 1.f; x += x_step)
-			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+		if(is_linear) {
+			float height = poly_fn(right) - poly_fn(left);
+			curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
+		} else for(float x = left; x <= right; x += x_step)
+			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 
-		float size = (curve_length / text_length) * 0.66f;
-		if(size > 200.0f) {
-			size = 200.0f + (size - 200.0f) * 0.5f;
+		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
+
+		// typography "golden ratio" steps
+
+		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
+
+		if(font_size_index > 45.f) {
+			font_size_index = 45.f;
 		}
+		if (font_size_index > 5.f)
+			font_size_index = 5.f * std::round(font_size_index / 5.f);
+
+		size = std::pow(1.618034f, font_size_index / 5.f);
+
+		// fixed step
+
+		/*
+		float size_step = 30.f;
+
+		if(size > size_step * 6.f) {
+			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
+		}
+
+		if(size > ratio.x / 2.f) {
+			size = ratio.x / 2.f;
+		}
+		if(size > ratio.y / 2.f) {
+			size = ratio.y / 2.f;
+		}
+		
+		size = std::round(size / size_step) * size_step;
+
+		if(size < size_step) {
+			continue;
+		}
+		*/
 
 		auto real_text_size = size / (size_x * 2.0f);
 
-		float margin = (curve_length - text_length * size) / 2.0f;
+		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
+		float letter_spacing = letter_spacing_map / size_x;
 
-		float x = 0.f;
+		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
+
+
+		float x = left;
 
 		for(float accumulated_length = 0.f; ; x += x_step) {
-			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
 				x += x_step * (margin - accumulated_length) / added_distance;
 				break;
@@ -1677,11 +1789,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
 			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
 				// Add up baseline and kerning offsets
-				auto dpoly_fn = [&](float x) {
-					// y = a + 1bx^1 + 1cx^2 + 1dx^3
-					// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
-					return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-					};
 				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
 
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
@@ -1689,9 +1796,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				curr_dir.x *= 0.5f;
 				curr_normal_dir.x *= 0.5f;
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(e.ratio.x, dpoly_fn(x) * e.ratio.y));
+				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
 
-				auto p0 = glm::vec2(x, poly_fn(x)) * e.ratio + e.basis;
+				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
 				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
@@ -1712,9 +1819,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 			for(float glyph_length = 0.f; ; x += x_step) {
-				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
-				if(glyph_length + added_distance >= glyph_advance) {
-					x += x_step * (glyph_advance - glyph_length) / added_distance;
+				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
+					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
 					break;
 				}
 				glyph_length += added_distance;
@@ -2185,6 +2292,12 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_attack_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("attackarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_attack_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_retreat_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("retreatarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_retreat_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes

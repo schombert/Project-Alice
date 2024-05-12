@@ -1586,7 +1586,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_trade") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "market_activity_list") {
 			auto ptr = make_element_by_type<trade_market_activity_listbox>(state, id);

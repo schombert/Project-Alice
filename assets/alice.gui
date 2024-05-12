@@ -2898,31 +2898,51 @@ guiTypes = {
 		scrollbartype = "standardlistbox_slider"
 		Orientation = "UPPER_LEFT"
 	}
-
 	windowType = {
 		name = "alice_nation_event_button"
 		position = { 0 0 }
 		size = { 512  28 }
-
 		guiButtonType = {
 			name = "opt_button"
 			position = { 0 -1}
 			quadTextureSprite ="GFX_event_country_button"
 			buttonFont = "vic_18_black"
 		}
-
 		guiButtonType = {
 			name = "auto_button"
 			position = { 482 -1 }
 			quadTextureSprite = "GFX_alice_event_auto"
 		}
 	}
-
 	listboxType = {
 		name = "alice_nation_event_opts_list"
 		position = {  0 0}
 		backGround=""
 		size = { 512  145 }
+		spacing = 1
+		scrollbartype = "standardlistbox_slider"
+		Orientation = "UPPER_LEFT"
+	}
+	windowType = {
+		name = "alice_election_event_button"
+		position = { 0 0 }
+		size = { 512 48 }
+		guiButtonType = {
+			name = "opt_button"
+			position = { 0 0 }
+			quadTextureSprite ="GFX_event_election_button"
+			buttonFont = "vic_18_black"
+		}
+		guiButtonType = {
+			name = "auto_button"
+			position = { 483 0 }
+			quadTextureSprite = "GFX_alice_election_event_auto"
+		}
+	}
+	listboxType = {
+		name = "alice_election_event_opts_list"
+		position = { 0 0 }
+		size = { 512 250 }
 		spacing = 1
 		scrollbartype = "standardlistbox_slider"
 		Orientation = "UPPER_LEFT"

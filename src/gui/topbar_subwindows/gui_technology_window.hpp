@@ -881,7 +881,7 @@ public:
 		std::vector<size_t> items_per_folder(state.culture_definitions.tech_folders.size(), 0);
 
 		xy_pair base_group_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
 		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
 
 		for(auto cat = culture::tech_category::army; cat != culture::tech_category(5);
@@ -920,11 +920,11 @@ public:
 				ptr->impl_set(state, payload);
 
 				ptr->base_data.position.x =
-						static_cast<int16_t>(base_group_offset.x + (folder_x_offset[folder_id] * ptr->base_data.size.x));
+					static_cast<int16_t>(base_group_offset.x + (folder_x_offset[folder_id] * ptr->base_data.size.x));
 				// 16px spacing between tech items, 109+16 base offset
 				ptr->base_data.position.y =
-						static_cast<int16_t>(base_group_offset.y + base_tech_offset.y +
-																 (static_cast<int16_t>(items_per_folder[folder_id]) * ptr->base_data.size.y));
+					static_cast<int16_t>(base_group_offset.y + base_tech_offset.y +
+															 (static_cast<int16_t>(items_per_folder[folder_id]) * ptr->base_data.size.y));
 				items_per_folder[folder_id]++;
 				add_child_to_front(std::move(ptr));
 			});
@@ -938,7 +938,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_tech") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "administration") {
 			return make_element_by_type<simple_body_text>(state, id);

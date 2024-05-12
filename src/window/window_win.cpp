@@ -468,11 +468,11 @@ void change_cursor(sys::state const& state, cursor_type type) {
 }
 
 void emit_error_message(std::string const& content, bool fatal) {
-	MessageBoxA(nullptr, content.c_str(),
-			fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:",
-			MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
+	static const char* msg1 = "Project Alice has encountered a fatal error";
+	static const char* msg2 = "Project Alice has encountered the following problems";
+	MessageBoxA(nullptr, content.c_str(), fatal ? msg1 : msg2, MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
 	if(fatal) {
-		std::terminate();
+		std::exit(EXIT_FAILURE);
 	}
 }
 } // namespace window

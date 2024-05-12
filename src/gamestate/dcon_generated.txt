@@ -3103,6 +3103,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ marked_for_gc }
+		type{ bitfield }
+	}
+	property{
 		name{ is_great_power }
 		type{ bitfield }
 	}

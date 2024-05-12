@@ -6,17 +6,6 @@
 
 namespace ui {
 
-class picker_flag : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, retrieve<dcon::nation_id>(state, parent));
-		return fat_id.get_identity_from_identity_holder();
-	}
-	void button_action(sys::state& state) noexcept override {
-
-	}
-};
-
 class nation_picker_poptypes_chart : public piechart<dcon::pop_type_id> {
 protected:
 	void on_update(sys::state& state) noexcept override {
@@ -63,7 +52,7 @@ class nation_details_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			return make_element_by_type<picker_flag>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "selected_nation_totalrank") {
@@ -169,6 +158,19 @@ public:
 			return;
 
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+		if(state.ui_state.request_window)
+			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
+		if(state.ui_state.msg_window)
+			static_cast<ui::message_window*>(state.ui_state.msg_window)->messages.clear();
+		if(state.ui_state.request_topbar_listbox)
+			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
+		if(state.ui_state.msg_log_window)
+			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
+		for(const auto& win : land_combat_end_popup::land_reports_pool)
+			win->set_visible(state, false);
+		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
+			win->set_visible(state, false);
+		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
@@ -446,7 +448,7 @@ public:
 			ptr->base_data.position.y = 0; // Nudge
 			return ptr;
 		} else if(name == "playable_countries_flag") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 9; // Nudge
 			ptr->base_data.position.y = 1; // Nudge
 			return ptr;
@@ -587,6 +589,15 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
+			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				auto map_pos = state.world.province_get_mid_point(cap);
+				map_pos.x /= float(state.map_state.map_data.size_x);
+				map_pos.y /= float(state.map_state.map_data.size_y);
+				map_pos.y = 1.0f - map_pos.y;
+				state.map_state.set_pos(map_pos);
+			}
 			command::notify_start_game(state, state.local_player_nation);
 		}
 	}
@@ -713,7 +724,7 @@ class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::na
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;

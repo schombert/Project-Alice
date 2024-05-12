@@ -1370,33 +1370,42 @@ public:
 
 		if(active_tab != diplomacy_window_tab::great_powers) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 		} else if(nations::is_great_power(state, content)) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		} else {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		}
 		
@@ -2222,7 +2231,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_diplomacy") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "gp_info") {
 			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);

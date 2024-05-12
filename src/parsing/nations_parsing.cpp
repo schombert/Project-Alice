@@ -28,12 +28,17 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	}
 
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "who")
-		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")) {
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "oob")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "yes")) {
 		err.accumulated_warnings += err.file_name + " line " + std::to_string(line) + ": A tag which may conflict with a built-in 'who' or 'oob'\n";
 	}
 
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
+	// Recognize the cleanup utility tag
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
+		context.state.national_definitions.cleanup_tag = new_ident;
+	}
 
 	auto name_id = text::find_or_add_key(context.state, tag);
 	auto adj_id = text::find_or_add_key(context.state, std::string(tag) + "_ADJ");
@@ -846,6 +851,7 @@ dcon::trigger_key make_decision_trigger(token_generator& gen, error_handler& err
 dcon::effect_key make_decision_effect(token_generator& gen, error_handler& err, decision_context& context) {
 	effect_building_context e_context{context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::nation,
 			trigger::slot_contents::empty};
+	e_context.effect_is_for_event = false;
 	return make_effect(gen, err, e_context);
 }
 
@@ -1170,6 +1176,7 @@ dcon::trigger_key make_event_trigger(token_generator& gen, error_handler& err, e
 }
 dcon::effect_key make_immediate_effect(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 	return make_effect(gen, err, e_context);
 }
 dcon::value_modifier_key make_event_mtth(token_generator& gen, error_handler& err, event_building_context& context) {
@@ -1182,6 +1189,7 @@ dcon::value_modifier_key make_option_ai_chance(token_generator& gen, error_handl
 }
 sys::event_option make_event_option(token_generator& gen, error_handler& err, event_building_context& context) {
 	effect_building_context e_context{context.outer_context, context.main_slot, context.this_slot, context.from_slot};
+	e_context.effect_is_for_event = true;
 
 	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
 	e_context.compiled_effect.push_back(uint16_t(0));
@@ -1272,6 +1280,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				for(auto& r : context.state.national_definitions.on_election_tick) {
 					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
+						r.issue_group = event_result.issue_group_;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_colony_to_state) {

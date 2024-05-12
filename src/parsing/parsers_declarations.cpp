@@ -278,25 +278,23 @@ void sea_list::free_value(int32_t value, error_handler& err, int32_t line, scena
 
 void state_definition::free_value(int32_t value, error_handler& err, int32_t line, state_def_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors +=
-				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
 		if(province_id && !context.outer_context.state.world.province_get_state_from_abstract_state_membership(province_id)) {
 			context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
 		} else if(province_id) {
-			err.accumulated_warnings += "province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region\n";
+			err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 }
 
 void region_definition::free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors +=
-			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		if(province_id ) {
+		if(province_id) {
 			context.outer_context.state.world.force_create_region_membership(province_id, context.id);
 		}
 	}
@@ -304,11 +302,15 @@ void region_definition::free_value(int32_t value, error_handler& err, int32_t li
 
 void continent_provinces::free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors +=
-				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		context.outer_context.state.world.province_set_continent(province_id, context.id);
+		if(province_id) {
+			if(context.outer_context.state.world.province_get_continent(province_id)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " (" + std::to_string(value) + ")" + " assigned to multiple continents (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			context.outer_context.state.world.province_set_continent(province_id, context.id);
+		}
 	}
 }
 
@@ -318,7 +320,12 @@ void climate_definition::free_value(int32_t value, error_handler& err, int32_t l
 				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		context.outer_context.state.world.province_set_climate(province_id, context.id);
+		if(province_id) {
+			if(context.outer_context.state.world.province_get_continent(province_id)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " (" + std::to_string(value) + ")" + " assigned to multiple climates (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			context.outer_context.state.world.province_set_climate(province_id, context.id);
+		}
 	}
 }
 
@@ -338,12 +345,10 @@ void commodity_set::any_value(std::string_view name, association_type, float val
 			commodity_type[num_added] = found_commodity->second;
 			++num_added;
 		} else {
-			err.accumulated_errors +=
-					"Too many items in a commodity set, in file " + err.file_name + " line " + std::to_string(line) + "\n";
+			err.accumulated_errors += "Too many items in a commodity set, in file " + err.file_name + " line " + std::to_string(line) + "\n";
 		}
 	} else {
-		err.accumulated_errors +=
-				"Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_errors += "Unknown commodity " + std::string(name) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
 }
 
@@ -352,8 +357,7 @@ void party::ideology(association_type, std::string_view text, error_handler& err
 			it != context.outer_context.map_of_ideologies.end()) {
 		context.outer_context.state.world.political_party_set_ideology(context.id, it->second.id);
 	} else {
-		err.accumulated_errors +=
-				std::string(text) + " is not a valid ideology (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += std::string(text) + " is not a valid ideology (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -1894,12 +1898,12 @@ void s_on_election_tick::any_value(std::string_view chance, association_type, in
 	int32_t value = parse_int(chance, line, err);
 	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
 		context.state.national_definitions.on_election_tick.push_back(
-				nations::fixed_event{int16_t(value), it->second.id, dcon::trigger_key{}});
+				nations::fixed_election_event{ int16_t(value), it->second.id, dcon::trigger_key{}, dcon::issue_id{} });
 	} else {
 		auto id = context.state.world.create_national_event();
 		context.map_of_national_events.insert_or_assign(event,
 				pending_nat_event{id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
-		context.state.national_definitions.on_election_tick.push_back(nations::fixed_event{int16_t(value), id, dcon::trigger_key{}});
+		context.state.national_definitions.on_election_tick.push_back(nations::fixed_election_event{ int16_t(value), id, dcon::trigger_key{}, dcon::issue_id{} });
 	}
 }
 
@@ -2216,28 +2220,28 @@ void rebel_body::demands_enforced_effect(dcon::effect_key value, error_handler& 
 void decision::potential(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_potential(context.id, value);
 	if(!value) {
-		err.accumulated_warnings += "Empty potential for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+		err.accumulated_warnings += "Empty potential for decision is implicit already (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
 void decision::allow(dcon::trigger_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_allow(context.id, value);
 	if(!value) {
-		err.accumulated_warnings += "Empty allow for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+		err.accumulated_warnings += "Empty allow for decision is implicit already (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
 void decision::effect(dcon::effect_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_effect(context.id, value);
 	if(!value) {
-		err.accumulated_warnings += "Empty effect for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+		err.accumulated_warnings += "Empty effect for decision is implicit already (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
 void decision::ai_will_do(dcon::value_modifier_key value, error_handler& err, int32_t line, decision_context& context) {
 	context.outer_context.state.world.decision_set_ai_will_do(context.id, value);
 	if(!value) {
-		err.accumulated_warnings += "Empty ai_will_do for decision is implicit already (" + err.file_name + "line " + std::to_string(line) + ")\n";
+		err.accumulated_warnings += "Empty ai_will_do for decision is implicit already (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -3033,12 +3037,24 @@ void generic_event::desc(association_type, std::string_view value, error_handler
 	desc_ = text::find_or_add_key(context.outer_context.state, value);
 }
 
+void generic_event::issue_group(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
+	if(auto it = context.outer_context.map_of_iissues.find(std::string(name)); it != context.outer_context.map_of_iissues.end()) {
+		issue_group_ = it->second;
+	} else {
+		err.accumulated_errors += "Invalid issue group " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
 void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {
 	if(last_option_added < sys::max_event_options) {
 		options[last_option_added] = value;
+		if(!value.name && !value.effect) {
+			options[last_option_added].name = text::find_or_add_key(context.outer_context.state, "alice_option_no_name");
+			err.accumulated_warnings += "Event with an option with no name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 		++last_option_added;
 	} else {
-		err.accumulated_warnings += "Event given too many options (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Event given too many options (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 

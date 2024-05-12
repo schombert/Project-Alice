@@ -14,18 +14,28 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
 - `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
-- `kill_leader = "name of leader"` -- kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
-- `annex_to = null` -- this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
-- `secede_province = null` -- turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
+- `kill_leader = "name of leader"`: kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
+- `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).
+- `secede_province = null`: turns the province in scope into an unowned province. This is to replace some of the tricks mods did to turn provinces unowned, such as seceding them to nonexistent tags, etc
 - `random_greater_power = { ... }`: Like `any_greater_power`, but only one random great power is scoped.
 - `any_empty_neighbor_province = { ... }`: Like `random_empty_neighbor_province`, but all of the empty adjacent provinces are scoped.
+- `change_terrain = terrain`: Changes the terrain of the province on scope, can be used on pop scopes too (will default to the location of the pop)
+- `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
+- `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
+- `random_neighbor_country`: A random neighbouring country.
 
 ### New trigger conditions
 
-- `test = name_of_scripted_trigger` -- evaluates a scripted trigger (see below)
-- `any_country = { ... }` -- tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
+- `test = name_of_scripted_trigger`: evaluates a scripted trigger (see below)
+- `any_country = { ... }`: tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
 - `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
-- `has_global_flag = project_alice` -- true if playing on Project Alice, false if not
+- `has_global_flag = project_alice`: true if playing on Project Alice, false if not
+- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
+- `any_war_countries = { ... }`: Equivalent to `war_countries`
+- `all_state = { ... }`: All states must fulfill condition, similar to `any_state`
+- `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
+- `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
+- `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
 
 ### Lambda events
 
@@ -223,6 +233,8 @@ Alice adds a handful of new defines:
 - `alice_needs_lx_spend`: See above, but luxury needs
 - `alice_sat_delay_factor`: Satisfaction delay factor
 - `alice_need_drift_speed`: Drift speed of need weights for POPs
+- `alice_cleanup_tag_exception`: Set to 1 to activate the `CLN` tag exception, allowing AI to take decisions on the `CLN` tag even if it doesn't own any provinces, set to 0 to revert this behaviour
+- `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including non-existant and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behaviour, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
 
 ### Dense CSV pop listing
 

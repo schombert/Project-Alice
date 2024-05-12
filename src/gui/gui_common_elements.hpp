@@ -1421,7 +1421,6 @@ protected:
 	}
 };
 
-
 class province_population_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {

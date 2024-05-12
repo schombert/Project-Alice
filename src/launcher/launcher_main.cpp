@@ -427,7 +427,7 @@ void make_mod_file() {
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
 			if(!err.accumulated_errors.empty()) {
-				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
+				auto fname = simple_fs::get_full_name(pdir) + NATIVE("\\scenario_errors.txt");
 				ShellExecuteW(
 					nullptr,
 					L"open",
@@ -1826,7 +1826,7 @@ int WINAPI wWinMain(
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.lpszClassName = L"alice_launcher_class";
+	wcex.lpszClassName = NATIVE("alice_launcher_class");
 
 	if(RegisterClassEx(&wcex) == 0) {
 		std::abort();

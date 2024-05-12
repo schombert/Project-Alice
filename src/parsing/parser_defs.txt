@@ -1057,7 +1057,7 @@ generic_event
 	fire_only_once                  value      bool                              member
 	allow_multiple_instances        value      bool                              discard
 	election                        value      bool                              discard
-	issue_group                     value      text                              discard
+	issue_group                     value      text                              member_fn
 
 event_file
 	country_event                   extern     scan_country_event                discard

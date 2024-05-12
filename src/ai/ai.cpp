@@ -172,7 +172,7 @@ void form_alliances(sys::state& state) {
 						},
 						"msg_entered_automatic_alliance_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::entered_automatic_alliance
 					});
 				}
 				nations::make_alliance(state, n, alliance_targets[0]);
@@ -767,8 +767,7 @@ void take_ai_decisions(sys::state& state) {
 							: true);
 						if(second_validity) {
 							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-										uint32_t(n.index() << 4 ^ d.id.index()));
-
+								uint32_t(n.index() << 4 ^ d.id.index()));
 							notification::post(state, notification::message{
 								[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
 									text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
@@ -785,6 +784,7 @@ void take_ai_decisions(sys::state& state) {
 			}
 		});
 	}
+	
 }
 
 float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {

@@ -15,7 +15,6 @@
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-#include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
@@ -37,6 +36,7 @@
 #include "gui_nation_picker.hpp"
 #include "gui_end_window.hpp"
 #include "gui_map_legend.hpp"
+#include "gui_unit_grid_box.hpp"
 
 #include "blake2.h"
 
@@ -483,6 +483,8 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				ui::console_window::show_toggle(*this);
 			} else if(keycode == virtual_key::HOME) {
 				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
+					if(map_state.get_zoom() < map::zoom_very_close)
+						map_state.zoom = map::zoom_very_close;
 					auto map_pos = world.province_get_mid_point(cap);
 					map_pos.x /= float(map_state.map_data.size_x);
 					map_pos.y /= float(map_state.map_data.size_y);
@@ -745,11 +747,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c1) {
 				auto auto_choice = world.national_event_get_auto_choice(c1->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c1);
 					if(world.national_event_get_is_major(c1->e)) {
-						ui::national_major_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -763,11 +764,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c2) {
 				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c2);
 					if(world.free_national_event_get_is_major(c2->e)) {
-						ui::national_major_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -781,7 +781,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c3) {
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c3);
+					ui::new_event_window(*this, *c3);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
@@ -794,7 +794,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c4) {
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c4);
+					ui::new_event_window(*this, *c4);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
@@ -806,14 +806,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 			{
 				auto* lr = land_battle_reports.front();
 				while(lr) {
-					if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
-						if(user_settings.notify_rebels_defeat) {
-							ui::land_combat_end_popup::make_new_report(*this, *lr);
+					if(local_player_nation) {
+						if(lr->player_on_winning_side == true && (!lr->attacking_nation || !lr->defending_nation)) {
+							if(user_settings.notify_rebels_defeat) {
+								ui::land_combat_end_popup::make_new_report(*this, *lr);
+							} else {
+								//do not pester user with defeat of rebels
+							}
 						} else {
-							//do not pester user with defeat of rebels
+							ui::land_combat_end_popup::make_new_report(*this, *lr);
 						}
-					} else {
-						ui::land_combat_end_popup::make_new_report(*this, *lr);
 					}
 					land_battle_reports.pop();
 					lr = land_battle_reports.front();
@@ -879,14 +881,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 				}
 
-				if(settings_bits & message_response::log) {
+				if((settings_bits & message_response::log) && ui_state.msg_log_window) {
 					static_cast<ui::message_log_window*>(ui_state.msg_log_window)->messages.push_back(*c6);
 				}
 				if(settings_bits & message_response::popup) {
 					if(c6->source == local_player_nation && (base_type == message_base_type::major_event || base_type == message_base_type::national_event || base_type == message_base_type::province_event)) {
 						// do nothing -- covered by event window logic
 					} else {
-						static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						if(ui_state.msg_window) {
+							static_cast<ui::message_window*>(ui_state.msg_window)->messages.push_back(*c6);
+						}
 						if((settings_bits & message_response::pause) != 0 && network_mode == sys::network_mode_type::single_player) {
 							ui_pause.store(true, std::memory_order_release);
 						}
@@ -945,6 +949,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 					case message_base_type::crisis_resolution_accepted:
 					case message_base_type::mil_access_start:
 						sound::play_effect(*this, sound::get_accept_sound(*this), user_settings.effects_volume * user_settings.master_volume);
+						break;
+					case message_base_type::chat_message:
+						sound::play_interface_sound(*this, sound::get_chat_message_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 						break;
 					case message_base_type::province_event:
 					case message_base_type::national_event:
@@ -1455,11 +1462,6 @@ void state::on_create() {
 		ui_state.root->add_child_to_front(std::move(mselection));
 	}
 	{
-		auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");
-		ui_state.election_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
 		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(*this, "defaultdialog");
 		ui_state.request_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
@@ -1923,15 +1925,14 @@ void list_pop_types(sys::state& state, parsers::scenario_building_context& conte
 }
 
 void state::open_diplomacy(dcon::nation_id target) {
-	Cyto::Any payload = ui::element_selection_wrapper<dcon::nation_id>{ target };
-	if(ui_state.diplomacy_subwindow != nullptr) {
+	if(ui_state.diplomacy_subwindow != nullptr && mode == sys::game_mode_type::in_game) {
 		if(ui_state.topbar_subwindow != nullptr) {
 			ui_state.topbar_subwindow->set_visible(*this, false);
 		}
 		ui_state.topbar_subwindow = ui_state.diplomacy_subwindow;
 		ui_state.diplomacy_subwindow->set_visible(*this, true);
 		ui_state.root->move_child_to_front(ui_state.diplomacy_subwindow);
-		ui_state.diplomacy_subwindow->impl_get(*this, payload);
+		send(*this, ui_state.diplomacy_subwindow, ui::element_selection_wrapper<dcon::nation_id>{ target });
 	}
 }
 
@@ -2248,16 +2249,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			err.accumulated_errors += "File common/event_modifiers.txt could not be opened\n";
 		}
 	}
-	// read defines.lua
+	// read *.lua, not being able to read the defines isn't fatal per se
 	{
-		auto defines_file = open_file(common, NATIVE("defines.lua"));
-		if(defines_file) {
-			auto content = view_contents(*defines_file);
-			err.file_name = "defines.lua";
-			defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
-		} else {
-			err.fatal = true;
-			err.accumulated_errors += "File common/defines.lua could not be opened\n";
+		// Default vanilla dates used if ones are not defined
+		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
+			auto opened_file = open_file(defines_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*opened_file));
+				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
+			}
 		}
 	}
 	// gather names of poptypes
@@ -2992,6 +2995,25 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
+
+	world.nation_resize_domestic_market_pool(world.commodity_size());
+	world.nation_resize_real_demand(world.commodity_size());
+	world.nation_resize_stockpile_targets(world.commodity_size());
+	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
+	world.nation_resize_life_needs_costs(world.pop_type_size());
+	world.nation_resize_everyday_needs_costs(world.pop_type_size());
+	world.nation_resize_luxury_needs_costs(world.pop_type_size());
+	world.nation_resize_imports(world.commodity_size());
+	world.nation_resize_army_demand(world.commodity_size());
+	world.nation_resize_navy_demand(world.commodity_size());
+	world.nation_resize_construction_demand(world.commodity_size());
+	world.nation_resize_private_construction_demand(world.commodity_size());
+	world.nation_resize_demand_satisfaction(world.commodity_size());
+	world.nation_resize_life_needs_weights(world.commodity_size());
+	world.nation_resize_everyday_needs_weights(world.commodity_size());
+	world.nation_resize_luxury_needs_weights(world.commodity_size());
+	world.nation_resize_effective_prices(world.commodity_size());
+	world.commodity_resize_price_record(economy::price_history_length);
 
 	nations_by_rank.resize(2000); // TODO: take this value directly from the data container: max number of nations
 	nations_by_industrial_score.resize(2000);
@@ -4133,11 +4155,8 @@ void state::game_loop() {
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
-
 			if(network_mode != sys::network_mode_type::host) { // prevent host from pausing the game with open event windows
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::province_event)] & message_response::pause) != 0 && ui::provincial_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::national_event)] & message_response::pause) != 0 && ui::national_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
+				upause = upause || ui::events_pause_test(*this);
 			}
 
 			if(speed <= 0 || upause || internally_paused || (mode != sys::game_mode_type::in_game && mode != sys::game_mode_type::select_states)) {

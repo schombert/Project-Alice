@@ -16,6 +16,7 @@ private:
 	IBasicAudio* audio_interface = nullptr;
 	IMediaSeeking* seek_interface = nullptr;
 	IMediaEventEx* event_interface = nullptr;
+	std::atomic<bool> interface_lock;
 public:
 	std::wstring filename;
 	float volume_multiplier = 1.0f;
