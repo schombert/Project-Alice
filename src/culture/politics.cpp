@@ -382,6 +382,12 @@ void change_government_type(sys::state& state, dcon::nation_id n, dcon::governme
 				}
 			}
 		}
+
+		// Cancel elections
+		// If a government which allows elections -> Will immediately start a new one
+		// Else, it will just leave it cancelled
+		state.world.nation_set_election_ends(n, sys::date{});
+
 		recalculate_upper_house(state, n);
 
 		// TODO: notify player ?
