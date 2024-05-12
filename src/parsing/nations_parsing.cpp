@@ -1256,6 +1256,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				for(auto& r : context.state.national_definitions.on_election_tick) {
 					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
+						r.issue_group = event_result.issue_group_;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_colony_to_state) {

@@ -33,6 +33,18 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override;
 };
+class event_option_button_row : public listbox_row_element_base<int32_t> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "opt_button") {
+			return make_element_by_type<event_option_button>(state, id);
+		} else if(name == "auto_button") {
+			return make_element_by_type<event_auto_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
 class event_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override;
@@ -69,59 +81,124 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
+class event_subtitle_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class event_state_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class event_population_amount_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+class election_issue_support_item : public listbox_row_element_base<dcon::issue_option_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+};
+class elections_issue_option_listbox : public listbox_element_base<election_issue_support_item, dcon::issue_option_id> {
+protected:
+	std::string_view get_row_element_name() override {
+		return "ew_issue_option_window";
+	}
+public:
+	void on_update(sys::state& state) noexcept override;
+};
+
 //
 // National events
 //
-class national_event_window : public window_element_base {
-public:
-	static std::vector<std::unique_ptr<national_event_window>> event_pool;
-	static int32_t pending_events;
-	event_image* image = nullptr;
-	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
-
-	void on_create(sys::state& state) noexcept override;
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	static void new_event(sys::state& state, event::pending_human_n_event const& dat);
-	static void new_event(sys::state& state, event::pending_human_f_n_event const& dat);
+enum event_pool_slot : uint8_t {
+	country,
+	country_election,
+	country_major,
+	province,
+	count
 };
-
-class national_major_event_window : public window_element_base {
+class base_event_option_listbox : public listbox_element_base<event_option_button_row, int32_t> {
 public:
-	static std::vector<std::unique_ptr<national_major_event_window>> event_pool;
-	static int32_t pending_events;
-	event_image* image = nullptr;
-	std::variant<std::monostate, event::pending_human_n_event, event::pending_human_f_n_event> event_data;
-
-	void on_create(sys::state& state) noexcept override;
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	static void new_event(sys::state& state, event::pending_human_n_event const& dat);
-	static void new_event(sys::state& state, event::pending_human_f_n_event const& dat);
+	void on_update(sys::state& state) noexcept;
 };
-
-//
-// Provincial events
-//
-class provincial_event_window : public window_element_base {
+class national_event_listbox : public base_event_option_listbox {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_nation_event_button";
+	}
+};
+class provincial_event_listbox : public base_event_option_listbox {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_prov_event_button";
+	}
+};
+class national_election_event_listbox : public base_event_option_listbox {
+protected:
+	std::string_view get_row_element_name() override {
+		return "alice_election_event_button";
+	}
+};
+class base_event_window : public window_element_base {
+	elections_issue_option_listbox* issues_listbox = nullptr;
 public:
-	static std::vector<std::unique_ptr<provincial_event_window>> event_pool;
-	static int32_t pending_events;
-
-	std::variant<std::monostate, event::pending_human_p_event, event::pending_human_f_p_event> event_data;
-
+	virtual std::string_view get_option_start_element_name() noexcept {
+		return "event_country_option_start";
+	}
+	virtual event_pool_slot get_pool_slot() noexcept {
+		return event_pool_slot::country;
+	}
+	event_image* image = nullptr;
+	event_data_wrapper event_data;
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 	void on_update(sys::state& state) noexcept override;
-	static void new_event(sys::state& state, event::pending_human_p_event const& dat);
-	static void new_event(sys::state& state, event::pending_human_f_p_event const& dat);
+};
+class national_election_event_window : public base_event_window {
+public:
+	static constexpr std::string_view window_element_name = "event_election_window";
+	std::string_view get_option_start_element_name() noexcept override {
+		return "eew_event_option_start";
+	}
+	event_pool_slot get_pool_slot() noexcept override {
+		return event_pool_slot::country_election;
+	}
+};
+class national_event_window : public base_event_window {
+public:
+	static constexpr std::string_view window_element_name = "event_country_window";
+	std::string_view get_option_start_element_name() noexcept override {
+		return "event_country_option_start";
+	}
+	event_pool_slot get_pool_slot() noexcept override {
+		return event_pool_slot::country;
+	}
+};
+class national_major_event_window : public base_event_window {
+public:
+	static constexpr std::string_view window_element_name = "event_major_window";
+	std::string_view get_option_start_element_name() noexcept override {
+		return "event_major_option_start";
+	}
+	event_pool_slot get_pool_slot() noexcept override {
+		return event_pool_slot::country_major;
+	}
+};
+class provincial_event_window : public base_event_window {
+public:
+	static constexpr std::string_view window_element_name = "event_province_window";
+	std::string_view get_option_start_element_name() noexcept override {
+		return "event_province_option_start";
+	}
+	event_pool_slot get_pool_slot() noexcept override {
+		return event_pool_slot::province;
+	}
 };
 
 void populate_event_submap(sys::state& state, text::substitution_map& sub, std::variant<event::pending_human_n_event, event::pending_human_f_n_event, event::pending_human_p_event, event::pending_human_f_p_event> const& phe) noexcept;
-
 void close_expired_event_windows(sys::state& state);
+void clear_event_windows(sys::state& state);
+bool events_pause_test(sys::state& state);
+void new_event_window(sys::state& state, event_data_wrapper dat);
 
 } // namespace ui

@@ -141,6 +141,11 @@ spriteTypes = {
 		noOfFrames = 1
 	}
 	spriteType = {
+		name = "GFX_alice_election_event_auto"
+		texturefile = "assets\\election_event_auto.png"
+		noOfFrames = 1
+	}
+	spriteType = {
 		name = "GFX_alice_frontend_campaign_entry"
 		texturefile = "assets\\alice_save_entry.png"
 		noOfFrames = 2

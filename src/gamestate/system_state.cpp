@@ -15,7 +15,6 @@
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-#include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
@@ -748,11 +747,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c1) {
 				auto auto_choice = world.national_event_get_auto_choice(c1->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c1);
 					if(world.national_event_get_is_major(c1->e)) {
-						ui::national_major_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -766,11 +764,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c2) {
 				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c2);
 					if(world.free_national_event_get_is_major(c2->e)) {
-						ui::national_major_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -784,7 +781,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c3) {
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c3);
+					ui::new_event_window(*this, *c3);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
@@ -797,7 +794,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c4) {
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c4);
+					ui::new_event_window(*this, *c4);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
@@ -1463,11 +1460,6 @@ void state::on_create() {
 		ui_state.multi_unit_selection_window = mselection.get();
 		mselection->set_visible(*this, false);
 		ui_state.root->add_child_to_front(std::move(mselection));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");
-		ui_state.election_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(*this, "defaultdialog");
@@ -4163,11 +4155,8 @@ void state::game_loop() {
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
-
 			if(network_mode != sys::network_mode_type::host) { // prevent host from pausing the game with open event windows
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::province_event)] & message_response::pause) != 0 && ui::provincial_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::national_event)] & message_response::pause) != 0 && ui::national_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
+				upause = upause || ui::events_pause_test(*this);
 			}
 
 			if(speed <= 0 || upause || internally_paused || (mode != sys::game_mode_type::in_game && mode != sys::game_mode_type::select_states)) {

@@ -1898,12 +1898,12 @@ void s_on_election_tick::any_value(std::string_view chance, association_type, in
 	int32_t value = parse_int(chance, line, err);
 	if(auto it = context.map_of_national_events.find(event); it != context.map_of_national_events.end()) {
 		context.state.national_definitions.on_election_tick.push_back(
-				nations::fixed_event{int16_t(value), it->second.id, dcon::trigger_key{}});
+				nations::fixed_election_event{ int16_t(value), it->second.id, dcon::trigger_key{}, dcon::issue_id{} });
 	} else {
 		auto id = context.state.world.create_national_event();
 		context.map_of_national_events.insert_or_assign(event,
 				pending_nat_event{id, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::empty});
-		context.state.national_definitions.on_election_tick.push_back(nations::fixed_event{int16_t(value), id, dcon::trigger_key{}});
+		context.state.national_definitions.on_election_tick.push_back(nations::fixed_election_event{ int16_t(value), id, dcon::trigger_key{}, dcon::issue_id{} });
 	}
 }
 
@@ -2938,6 +2938,14 @@ void generic_event::title(association_type, std::string_view value, error_handle
 void generic_event::desc(association_type, std::string_view value, error_handler& err, int32_t line,
 		event_building_context& context) {
 	desc_ = text::find_or_add_key(context.outer_context.state, value);
+}
+
+void generic_event::issue_group(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
+	if(auto it = context.outer_context.map_of_iissues.find(std::string(name)); it != context.outer_context.map_of_iissues.end()) {
+		issue_group_ = it->second;
+	} else {
+		err.accumulated_errors += "Invalid issue group " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
 }
 
 void generic_event::option(sys::event_option const& value, error_handler& err, int32_t line, event_building_context& context) {

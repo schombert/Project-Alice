@@ -170,12 +170,7 @@ public:
 			win->set_visible(state, false);
 		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
 			win->set_visible(state, false);
-		for(const auto& win : provincial_event_window::event_pool)
-			win->set_visible(state, false);
-		for(const auto& win : national_event_window::event_pool)
-			win->set_visible(state, false);
-		for(const auto& win : national_major_event_window::event_pool)
-			win->set_visible(state, false);
+		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
