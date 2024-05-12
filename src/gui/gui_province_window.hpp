@@ -1586,6 +1586,15 @@ public:
 								}
 							}
 						}
+					} else {
+						//not disabled when there are constructions
+						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
+							auto lc = pl.get_pop().get_province_land_construction();
+							if(lc.begin() != lc.end()) {
+								disabled = false;
+								break;
+							}
+						}
 					}
 					if(!disabled)
 						break;
