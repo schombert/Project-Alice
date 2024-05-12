@@ -956,7 +956,7 @@ public:
 		base_data.position.x += int16_t(8);
 		base_data.size.x *= 2;
 		base_data.size.y *= 2;
-		on_create(state);
+		voter_ideology_piechart::on_create(state);
 	}
 };
 class election_party_popularity_piechart : public piechart<dcon::political_party_id> {
