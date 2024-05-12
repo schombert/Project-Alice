@@ -3347,7 +3347,9 @@ void update_ships(sys::state& state) {
 		if(n.get_is_at_war() == false && nations::is_landlocked(state, n))
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
-					to_delete.push_back(v.get_ship().id);
+					for(auto shp : v.get_navy().get_navy_membership()) {
+						to_delete.push_back(shp.get_ship().id);
+					}
 				}
 			}
 		} else if(n.get_is_at_war() == false) {
