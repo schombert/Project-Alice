@@ -685,12 +685,15 @@ public:
 					if(c.is_active() && c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;
 						auto total = c.save_stream_size;
-						float progress = (float(total) / float(completed));
-						if(progress < 1.f) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-							set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						if(total > 0.f) {
+							float progress = float(completed) / float(total);
+							if(progress < 1.f) {
+								text::substitution_map sub{};
+								text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+								set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+							}
 						}
+						break;
 					}
 				}
 			}
