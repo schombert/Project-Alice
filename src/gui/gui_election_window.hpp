@@ -200,61 +200,42 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "background") {
 			return make_element_by_type<draggable_target>(state, id);
-
 		} else if(name == "title") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "subtitle") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "description") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "state_name") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ptr->set_text(state, text::produce_simple_string(state, dcon::fatten(state.world, state.local_player_nation).get_name()));
 			return ptr;
-
 		} else if(name == "population_amount") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			ptr->set_text(state, text::prettify(int64_t(state.world.nation_get_demographics(state.local_player_nation, demographics::total))));
 			return ptr;
-
 		} else if(name == "perc_of_parlament") {
 			return make_element_by_type<invisible_element>(state, id);
-
 		} else if(name == "ideology_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "parties_listbox") {
 			auto ptr = make_element_by_type<elecwin_parties_listbox>(state, id);
 			elecwin_parties = ptr.get();
 			return ptr;
-
 		} else if(name == "popularity_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "chart_popularity") {
 			return make_element_by_type<image_element_base>(state, id);
-
-		} else if(name == "popularity_overlay") {
-			return make_element_by_type<image_element_base>(state, id);
-
 		} else if(name == "popularity_listbox") {
 			return make_element_by_type<elecwin_popularity_listbox>(state, id);
-
 		} else if(name == "voter_issues_label") {
 			return make_element_by_type<simple_text_element_base>(state, id);
-
 		} else if(name == "sort_by_issue_name") {
 			return make_element_by_type<button_element_base>(state, id);
-
 		} else if(name == "sort_by_voters") {
 			return make_element_by_type<button_element_base>(state, id);
-
 		} else if(name == "issues_listbox") {
 			return make_element_by_type<elecwin_voter_issues_listbox>(state, id);
-
 		} else {
 			return nullptr;
 		}
