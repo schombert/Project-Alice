@@ -692,7 +692,6 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
@@ -704,23 +703,20 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 	}
 
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
-		text::add_space_to_layout_box(ws, layout, box);
-		if(primary_slot != -1)
-			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
-		else
-			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(primary_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
 }
 uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -1034,15 +1030,11 @@ uint32_t es_owner_scope_state(EFFECT_DISPLAY_PARAMS) {
 			this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
 }
 uint32_t es_owner_scope_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot)))
-													 : text::produce_simple_string(ws, "singular_province"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot))) : text::produce_simple_string(ws, "singular_province"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return display_subeffects(ws, tval, layout,
 			primary_slot != -1
