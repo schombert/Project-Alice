@@ -216,12 +216,7 @@ bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 }
 
 bool is_landlocked(sys::state& state, dcon::nation_id n) {
-	for(const auto pc : state.world.nation_get_province_ownership_as_nation(n)) {
-		if(pc.get_province().get_is_coast()) {
-			return true;
-		}
-	}
-	return false;
+	return state.world.nation_get_total_ports(n) == 0;
 }
 
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
