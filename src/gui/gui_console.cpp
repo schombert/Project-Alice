@@ -1308,6 +1308,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			dcon::provincial_event_id,
 			dcon::free_provincial_event_id,
 			dcon::decision_id,
+			dcon::cb_type_id,
+			dcon::rebel_type_id,
+			dcon::issue_option_id,
 			graph_event_option
 		>;
 		struct graph_node {
@@ -1356,6 +1359,20 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		for(const auto e : state.world.in_decision) {
 			auto name = text::produce_simple_string(state, e.get_name());
 			nodes.emplace_back(name, graph_node_data(e.id), e.get_effect(), 0);
+		}
+		for(const auto e : state.world.in_cb_type) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.emplace_back("(add) " + name, graph_node_data(e.id), e.get_on_add(), 0);
+			nodes.emplace_back("(accept) " + name, graph_node_data(e.id), e.get_on_po_accepted(), 0);
+		}
+		for(const auto e : state.world.in_rebel_type) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.emplace_back("(siege) " + name, graph_node_data(e.id), e.get_siege_won_effect(), 0);
+			nodes.emplace_back("(demands) " + name, graph_node_data(e.id), e.get_demands_enforced_effect(), 0);
+		}
+		for(const auto e : state.world.in_issue_option) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.emplace_back("(execute) " + name, graph_node_data(e.id), e.get_on_execute_effect(), 0);
 		}
 
 		std::string out_text = "digraph {\n";
@@ -1487,6 +1504,12 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=darkseagreen1, shape=trapezium];";
 				} else if(std::holds_alternative<graph_event_option>(d)) {
 					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=mediumturquoise];";
+				} else if(std::holds_alternative<dcon::cb_type_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lemonchiffon1, shape=diamond];";
+				} else if(std::holds_alternative<dcon::rebel_type_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightsalmon2, shape=diamond];";
+				} else if(std::holds_alternative<dcon::issue_option_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightgoldenrodyellow, shape=diamond];";
 				} else {
 					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=yellow];";
 				}
