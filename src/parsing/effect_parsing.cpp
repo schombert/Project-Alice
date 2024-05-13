@@ -1350,9 +1350,9 @@ int32_t simplify_effect(uint16_t* source) {
 				} else if((sub_units_start[0] & effect::code_mask) == effect::integer_scope
 					&& (sub_units_start[0] & effect::scope_has_limit) == 0
 					&& (sub_units_start[0] & effect::is_random_scope) == 0
-					&& sub_units_start[1] == 4) {
+					&& sub_units_start[1] == 4
+					&& effect::effect_scope_has_single_member(sub_units_start)) {
 					// sub sub
-					assert(effect::effect_scope_has_single_member(sub_units_start));
 					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
 					if(ss_units_start[0] == effect::change_province_name) {
 						auto const prov = sub_units_start[2]; //[code] [size] [province]
@@ -1390,8 +1390,40 @@ int32_t simplify_effect(uint16_t* source) {
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
 			}
+		} else if((source[0] & effect::code_mask) == effect::owner_scope_province
+		&& (source[0] & effect::scope_has_limit) == 0
+		&& (source[0] & effect::is_random_scope) == 0) {
+			bool can_elim = true;
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			while(sub_units_start < source + source_size && can_elim) {
+				switch(sub_units_start[0] & effect::code_mask) {
+				case effect::clr_global_flag:
+				case effect::set_global_flag:
+				case effect::fop_clr_global_flag_2:
+				case effect::fop_clr_global_flag_3:
+				case effect::fop_clr_global_flag_4:
+				case effect::fop_clr_global_flag_5:
+				case effect::fop_clr_global_flag_6:
+				case effect::fop_clr_global_flag_7:
+				case effect::fop_clr_global_flag_8:
+				case effect::fop_clr_global_flag_9:
+				case effect::fop_clr_global_flag_10:
+				case effect::fop_clr_global_flag_11:
+				case effect::fop_clr_global_flag_12:
+				case effect::fop_change_province_name:
+				case effect::integer_scope:
+					break;
+				default:
+					can_elim = false;
+					break;
+				}
+				sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
+			}
+			if(can_elim) { //eliminate
+				std::copy(source + 2, source + source_size, source);
+				source_size -= 2;
+			}
 		}
-
 		return source_size;
 	} else {
 		return 1 + effect::get_effect_non_scope_payload_size(source); // non scopes cannot be simplified
