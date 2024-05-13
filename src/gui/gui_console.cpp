@@ -1322,7 +1322,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
-				auto const opt_name = std::string(name) + " #" + std::to_string(i);
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
 				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
 			}
 		}
@@ -1331,7 +1331,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
-				auto const opt_name = std::string(name) + " #" + std::to_string(i);
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
 				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
 			}
 		}
@@ -1340,7 +1340,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
-				auto const opt_name = std::string(name) + " #" + std::to_string(i);
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
 				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
 			}
 		}
@@ -1349,7 +1349,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
-				auto const opt_name = std::string(name) + " #" + std::to_string(i);
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
 				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
 			}
 		}
@@ -1412,21 +1412,83 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			});
 		}
 		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			const auto& d1 = nodes[i].data;
+			if(std::holds_alternative<dcon::national_event_id>(d1)) {
+				auto id = std::get<dcon::national_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::national_event_id>(geo.parent)
+						&& std::get<dcon::national_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::free_national_event_id>(d1)) {
+				auto id = std::get<dcon::free_national_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::free_national_event_id>(geo.parent)
+						&& std::get<dcon::free_national_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::provincial_event_id>(d1)) {
+				auto id = std::get<dcon::provincial_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::provincial_event_id>(geo.parent)
+						&& std::get<dcon::provincial_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::free_provincial_event_id>(d1)) {
+				auto id = std::get<dcon::free_provincial_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::free_provincial_event_id>(geo.parent)
+						&& std::get<dcon::free_provincial_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+						}
+					}
+				}
+			}
+		}
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
 			const auto& node = nodes[i];
 			if(node.ref_count > 0) {
 				const auto& d = node.data;
 				if(std::holds_alternative<dcon::national_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=red];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=crimson, shape=box];";
 				} else if(std::holds_alternative<dcon::free_national_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=pink];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightcoral, shape=diamond];";
 				} else if(std::holds_alternative<dcon::provincial_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=blue];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=blue, shape=box];";
 				} else if(std::holds_alternative<dcon::free_provincial_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=cyan];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=deepskyblue, shape=diamond];";
 				} else if(std::holds_alternative<dcon::decision_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=green];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=darkseagreen1, shape=trapezium];";
+				} else if(std::holds_alternative<graph_event_option>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=mediumturquoise];";
 				} else {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", color=black];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=yellow];";
 				}
 			}
 		}
