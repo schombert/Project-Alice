@@ -1347,23 +1347,6 @@ int32_t simplify_effect(uint16_t* source) {
 						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
 							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
 					}
-				} else if((sub_units_start[0] & effect::code_mask) == effect::integer_scope
-					&& (sub_units_start[0] & effect::scope_has_limit) == 0
-					&& (sub_units_start[0] & effect::is_random_scope) == 0
-					&& sub_units_start[1] == 4
-					&& effect::effect_scope_has_single_member(sub_units_start)) {
-					// sub sub
-					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
-					if(ss_units_start[0] == effect::change_province_name) {
-						auto const prov = sub_units_start[2]; //[code] [size] [province]
-						auto const name_1 = ss_units_start[1];
-						auto const name_2 = ss_units_start[2];
-						sub_units_start[0] = effect::fop_change_province_name;
-						sub_units_start[1] = name_1; //name
-						sub_units_start[2] = name_2; //name
-						sub_units_start[3] = prov; //province
-						new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
-					}
 				}
 				if(new_size != old_size) { // has been simplified
 					assert(new_size < old_size);
@@ -1422,6 +1405,26 @@ int32_t simplify_effect(uint16_t* source) {
 			if(can_elim) { //eliminate
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
+			}
+		} else if((source[0] & effect::code_mask) == effect::integer_scope
+			&& (source[0] & effect::scope_has_limit) == 0
+			&& (source[0] & effect::is_random_scope) == 0
+			&& source[1] == 4
+			&& effect::effect_scope_has_single_member(source)) {
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+			if(sub_units_start[0] == effect::change_province_name) {
+				auto const prov = source[2]; //[code] [size] [province]
+				auto const name_1 = sub_units_start[1];
+				auto const name_2 = sub_units_start[2];
+				source[0] = effect::fop_change_province_name;
+				source[1] = name_1; //name
+				source[2] = name_2; //name
+				source[3] = prov; //province
+				auto const new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
+				assert(new_size < old_size);
+				std::copy(source + old_size, source + source_size, source + new_size);
+				source_size -= (old_size - new_size);
 			}
 		}
 		return source_size;
