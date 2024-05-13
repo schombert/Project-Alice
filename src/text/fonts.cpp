@@ -1329,6 +1329,7 @@ struct font_body {
 	uint32_t id = 0;
 	std::vector<std::string> valid_paths;
 	bool smallcaps = false;
+	std::string dyslexic;
 	void path(parsers::association_type, std::string_view value, parsers::error_handler& err, int32_t line, parsers::scenario_building_context& context) {
 		if(valid_paths.empty()) {
 			valid_paths.push_back(std::string(value));
@@ -1344,15 +1345,14 @@ struct font_body {
 	void finish(parsers::scenario_building_context& context) { }
 };
 struct font_file {
-	bool blackmapfont = true;
 	void font(font_body value, parsers::error_handler& err, int32_t line, parsers::scenario_building_context& context) {
 		auto root = simple_fs::get_root(context.state.common_fs);
+		auto feature = text::font_feature::none;
+		if(value.smallcaps)
+			feature = text::font_feature::small_caps;
 		for(const auto& path : value.valid_paths) {
 			if(auto f = simple_fs::open_file(root, simple_fs::utf8_to_native(path)); f) {
 				auto file_content = simple_fs::view_contents(*f);
-				auto feature = text::font_feature::none;
-				if(value.smallcaps)
-					feature = text::font_feature::small_caps;
 				context.state.font_collection.load_font(context.state.font_collection.fonts[value.id - 1], file_content.data, file_content.file_size, feature);
 				break;
 			}
@@ -1373,7 +1373,6 @@ void load_standard_fonts(sys::state& state) {
 		err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*f));
 		parsers::token_generator gen(content.data, content.data + content.file_size);
 		auto font = parse_font_file(gen, err, context);
-		state.font_collection.map_font_is_black = font.blackmapfont;
 	}
 }
 

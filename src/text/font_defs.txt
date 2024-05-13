@@ -1,9 +1,9 @@
 font_body
 	id				value		uint		member
 	smallcaps		value		bool		member
+	dyslexic		value		text		member
 	path			value		text		member_fn
 	fallback		value		text		member_fn
 
 font_file
 	font			group		font_body	member_fn
-	blackmapfont	value		bool		member
