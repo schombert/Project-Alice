@@ -1322,57 +1322,57 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		std::vector<graph_node> nodes;
 		for(const auto e : state.world.in_national_event) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
 				auto const opt_name = text::produce_simple_string(state, opt[i].name);
-				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
 		for(const auto e : state.world.in_provincial_event) {
 			auto const name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
 				auto const opt_name = text::produce_simple_string(state, opt[i].name);
-				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
 		for(const auto e : state.world.in_free_national_event) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
 				auto const opt_name = text::produce_simple_string(state, opt[i].name);
-				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
 		for(const auto e : state.world.in_free_provincial_event) {
 			auto const name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back(name, graph_node_data(e.id), e.get_immediate_effect(), 0);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
 			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
 				auto const opt_name = text::produce_simple_string(state, opt[i].name);
-				nodes.emplace_back(opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
 		for(const auto e : state.world.in_decision) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back(name, graph_node_data(e.id), e.get_effect(), 0);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_effect(), 0 });
 		}
 		for(const auto e : state.world.in_cb_type) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back("(add) " + name, graph_node_data(e.id), e.get_on_add(), 0);
-			nodes.emplace_back("(accept) " + name, graph_node_data(e.id), e.get_on_po_accepted(), 0);
+			nodes.push_back(graph_node{ "(add) " + name, graph_node_data(e.id), e.get_on_add(), 0 });
+			nodes.push_back(graph_node{ "(accept) " + name, graph_node_data(e.id), e.get_on_po_accepted(), 0 });
 		}
 		for(const auto e : state.world.in_rebel_type) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back("(siege) " + name, graph_node_data(e.id), e.get_siege_won_effect(), 0);
-			nodes.emplace_back("(demands) " + name, graph_node_data(e.id), e.get_demands_enforced_effect(), 0);
+			nodes.push_back(graph_node{ "(siege) " + name, graph_node_data(e.id), e.get_siege_won_effect(), 0 });
+			nodes.push_back(graph_node{ "(demands) " + name, graph_node_data(e.id), e.get_demands_enforced_effect(), 0 });
 		}
 		for(const auto e : state.world.in_issue_option) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			nodes.emplace_back("(execute) " + name, graph_node_data(e.id), e.get_on_execute_effect(), 0);
+			nodes.push_back(graph_node{ "(execute) " + name, graph_node_data(e.id), e.get_on_execute_effect(), 0 });
 		}
 
 		std::string out_text = "digraph {\n";
@@ -1497,7 +1497,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				} else if(std::holds_alternative<dcon::free_national_event_id>(d)) {
 					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightcoral, shape=diamond];";
 				} else if(std::holds_alternative<dcon::provincial_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=blue, shape=box];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=royalblue2, shape=box];";
 				} else if(std::holds_alternative<dcon::free_provincial_event_id>(d)) {
 					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=deepskyblue, shape=diamond];";
 				} else if(std::holds_alternative<dcon::decision_id>(d)) {
