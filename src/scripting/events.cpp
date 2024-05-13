@@ -568,11 +568,11 @@ void update_events(sys::state& state) {
 						*/
 						auto owners = state.world.province_get_nation_from_province_ownership(ids);
 						auto some_exist = t ? (owners != dcon::nation_id{}) &&
-							trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+							trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
 							: (owners != dcon::nation_id{});
 						if(ve::compress_mask(some_exist).v != 0) {
 							auto chances = mod
-								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0)
 								: ve::fp_vector{ 2.0f };
 							auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
 							auto adj_chance_2 = adj_chance * adj_chance;

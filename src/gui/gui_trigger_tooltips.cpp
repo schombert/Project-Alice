@@ -178,7 +178,6 @@ void tf_generic_scope(TRIGGER_DISPLAY_PARAMS) {
 			show_condition);
 }
 void tf_x_neighbor_province_scope(TRIGGER_DISPLAY_PARAMS) {
-
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
@@ -187,14 +186,12 @@ void tf_x_neighbor_province_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
 		text::close_layout_box(layout, box);
 	}
-
 	auto st_count = ui_count_subtriggers(ws, tval);
 	if(st_count > 1) {
 		auto box = text::open_layout_box(layout, indentation + indentation_amount);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
 		text::close_layout_box(layout, box);
 	}
-
 	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
 }
 void tf_x_neighbor_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
