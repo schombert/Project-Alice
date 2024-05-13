@@ -1349,8 +1349,10 @@ int32_t simplify_effect(uint16_t* source) {
 					}
 				} else if((sub_units_start[0] & effect::code_mask) == effect::integer_scope
 					&& (sub_units_start[0] & effect::scope_has_limit) == 0
-					&& (sub_units_start[0] & effect::is_random_scope) == 0) {
+					&& (sub_units_start[0] & effect::is_random_scope) == 0
+					&& sub_units_start[1] == 4) {
 					// sub sub
+					assert(effect::effect_scope_has_single_member(sub_units_start));
 					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
 					if(ss_units_start[0] == effect::change_province_name) {
 						auto const prov = sub_units_start[2]; //[code] [size] [province]
