@@ -52,8 +52,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
-		Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
-		parent->impl_get(state, newpayload);
+		send(state, parent, element_selection_wrapper<dcon::cb_type_id>{ content });
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -889,10 +888,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = diplomacy_action::add_wargoal;
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, diplomacy_action::add_wargoal);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1610,6 +1606,34 @@ public:
 		}
 		if(state.world.wargoal_get_ticking_war_score(wg) != 0) {
 			text::add_line(state, contents, "war_goal_5", text::variable_type::x, text::fp_one_place{state.world.wargoal_get_ticking_war_score(wg)});
+			{
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage{ state.defines.tws_fulfilled_idle_space });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ state.defines.tws_fulfilled_speed });
+				text::localised_format_box(state, contents, box, "war_goal_6", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(state.defines.tws_grace_period_days) });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ state.defines.tws_not_fulfilled_speed });
+				text::localised_format_box(state, contents, box, "war_goal_7", sub);
+				text::close_layout_box(contents, box);
+			}
+			auto const start_date = state.world.war_get_start_date(state.world.wargoal_get_war_from_wargoals_attached(wg));
+			auto const end_date = start_date + int32_t(state.defines.tws_grace_period_days);
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, start_date);
+			text::add_to_substitution_map(sub, text::variable_type::y, end_date);
+			if(end_date <= state.current_date) {
+				text::localised_format_box(state, contents, box, "war_goal_9", sub);
+			} else {
+				text::localised_format_box(state, contents, box, "war_goal_8", sub);
+			}
+			text::close_layout_box(contents, box);
 		}
 	}
 };
