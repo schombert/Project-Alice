@@ -696,8 +696,9 @@ public:
 		if(get_filter(state, outliner_filter::gp_influence)) {
 			row_contents.push_back(outliner_filter::gp_influence);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation,
-					[&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
+			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation, [&](dcon::gp_relationship_id grid) {
+				row_contents.push_back(grid);
+			});
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}

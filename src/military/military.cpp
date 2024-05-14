@@ -509,6 +509,22 @@ bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 	return false;
 }
 
+void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
+	std::vector<dcon::war_id> wars;
+	for(auto wa : state.world.nation_get_war_participant(a)) {
+		auto is_attacker = wa.get_is_attacker();
+		for(auto o : wa.get_war().get_war_participant()) {
+			if(o.get_nation() == b) {
+				wars.push_back(wa.get_war());
+			}
+		}
+	}
+	for(const auto w : wars) {
+		military::remove_from_war(state, w, a, false);
+		military::remove_from_war(state, w, b, false);
+	}
+}
+
 struct participation {
 	dcon::war_id w;
 	war_role role = war_role::none;
