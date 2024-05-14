@@ -745,6 +745,14 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		ui::console_window::show_toggle(state);
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "button_console_tt");
+		text::close_layout_box(contents, box);
+	}
 };
 
 class minimap_msg_settings_button : public button_element_base {
