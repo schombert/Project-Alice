@@ -35,6 +35,7 @@ struct command_info {
 		militancy,
 		dump_out_of_sync,
 		dump_event_graph,
+		dump_tooltip,
 		ai_elligibility,
 		fog_of_war,
 		prestige,
@@ -155,6 +156,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"graph", command_info::type::dump_event_graph, "Dump an event graph",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
+		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
@@ -1289,6 +1293,29 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			nid = smart_get_national_identity_from_tag(state, parent, tag);
 			command::c_force_ally(state, state.local_player_nation, state.world.national_identity_get_nation_from_identity_holder(nid));
 		}
+	}
+	break;
+	case command_info::type::dump_tooltip:
+	{
+		std::string out_text = "#Tooltip data\n";
+		if(state.ui_state.last_tooltip) {
+			auto container = text::create_columnar_layout(state.ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 16, 16, 32762, 32762, state.ui_state.tooltip_font, 0,
+				text::alignment::left, text::text_color::white, true }, 10);
+			state.ui_state.last_tooltip->update_tooltip(state, 0, 0, container);
+			populate_shortcut_tooltip(state, *state.ui_state.last_tooltip, container);
+			int16_t old_y = 0;
+			for(const auto& e : container.base_layout.contents) {
+				if(e.y != old_y) {
+					out_text += "\n";
+					old_y = e.y;
+				}
+				out_text += " ";
+				out_text += e.win1250chars;
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
 	case command_info::type::dump_event_graph:
