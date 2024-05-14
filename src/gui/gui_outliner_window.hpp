@@ -697,19 +697,7 @@ public:
 			row_contents.push_back(outliner_filter::gp_influence);
 			auto old_size = row_contents.size();
 			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation, [&](dcon::gp_relationship_id grid) {
-				switch(state.world.gp_relationship_get_status(grid) & nations::influence::level_mask) {
-				case nations::influence::level_neutral:
-				case nations::influence::level_opposed:
-				case nations::influence::level_hostile:
-					break;
-				case nations::influence::level_cordial:
-				case nations::influence::level_friendly:
-				case nations::influence::level_in_sphere:
-					row_contents.push_back(grid);
-					break;
-				default:
-					break;
-				}
+				row_contents.push_back(grid);
 			});
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
