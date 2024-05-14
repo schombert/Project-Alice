@@ -1664,6 +1664,7 @@ alice_nf_controls;即Left-click劬 to select or replace\n即Right-click劬 to remove
 alice_utt_controls_1;即Left-click劬 select (deselecting everything else)
 alice_utt_controls_2;即SHIFT-Left-click劬 add to selection
 alice_utt_controls_3;即Right-click on a province劬 partial retreat (佈cycling/rotation劬) to province
+button_console_tt;Open the command console
 alice_demobilize;Demobilize
 alice_mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
