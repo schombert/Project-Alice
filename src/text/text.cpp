@@ -1102,13 +1102,22 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	auto tmp_color = color;
 
-	if(!dest.fixed_parameters.suppress_hyperlinks &&
-			(std::holds_alternative<dcon::nation_id>(source) || std::holds_alternative<dcon::province_id>(source) ||
-					std::holds_alternative<dcon::state_instance_id>(source) || std::holds_alternative<dcon::state_definition_id>(source))) {
-		if(color != text_color::black) {
-			tmp_color = text_color::light_blue;
+	if(std::holds_alternative<dcon::nation_id>(source)
+	|| std::holds_alternative<dcon::province_id>(source)
+	|| std::holds_alternative<dcon::state_instance_id>(source)
+	|| std::holds_alternative<dcon::state_definition_id>(source)) {
+		if(!dest.fixed_parameters.suppress_hyperlinks) {
+			if(color != text_color::black) {
+				tmp_color = text_color::light_blue;
+			} else {
+				tmp_color = text_color::dark_blue;
+			}
 		} else {
-			tmp_color = text_color::dark_blue;
+			if(color != text_color::black) {
+				tmp_color = text_color::yellow;
+			} else {
+				tmp_color = text_color::orange;
+			}
 		}
 	}
 
