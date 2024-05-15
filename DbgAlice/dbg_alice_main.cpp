@@ -88,6 +88,12 @@ static void minidump_generate(HANDLE hProcess) {
 				| MiniDumpWithModuleHeaders
 				| MiniDumpWithTokenInformation),
 			NULL, NULL, NULL);
+		if(bResult == FALSE) {
+			// Pre-6.1 minidump
+			bResult = MiniDumpWriteDump(hProcess, GetProcessId(hProcess), file_handle,
+				MINIDUMP_TYPE(MiniDumpWithFullMemory),
+				NULL, NULL, NULL);
+		}
 		if(bResult == TRUE) {
 			std::wstring full_message = L"The program has aborted and a crash dump has been generated\n";
 			full_message += L"It will be saved on ";
@@ -96,11 +102,11 @@ static void minidump_generate(HANDLE hProcess) {
 			full_message += L"Compress the crash dump with an archiver of your choice\n";
 			full_message += L"Send the crash dump and report the bug\n";
 			full_message += L"We're sorry for the inconvenience\n";
-			MessageBoxW(NULL,
-				full_message.c_str(),
-				L"Crash dump", MB_OK);
+			MessageBoxW(NULL, full_message.c_str(), L"Crash dump", MB_OK);
 		} else {
-			wprintf(L"Failed to make mini dump!\n");
+			std::wstring full_message = L"The program has aborted and a crash dump can't be generated\n";
+			full_message += L"We're sorry for the inconvenience\n";
+			MessageBoxW(NULL, full_message.c_str(), L"Crash dump", MB_OK);
 		}
 		CloseHandle(file_handle);
 	} else {
