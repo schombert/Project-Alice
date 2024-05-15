@@ -210,7 +210,7 @@ static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_a
 
 static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_address, const char *ip_address) {
 	struct addrinfo hints;
-	ZeroMemory(&hints, sizeof(hints));
+	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
