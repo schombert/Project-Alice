@@ -485,11 +485,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
 					if(map_state.get_zoom() < map::zoom_very_close)
 						map_state.zoom = map::zoom_very_close;
-					auto map_pos = world.province_get_mid_point(cap);
-					map_pos.x /= float(map_state.map_data.size_x);
-					map_pos.y /= float(map_state.map_data.size_y);
-					map_pos.y = 1.0f - map_pos.y;
-					map_state.set_pos(map_pos);
+					map_state.center_map_on_province(*this, cap);
 				}
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());

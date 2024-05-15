@@ -1404,18 +1404,12 @@ class lc_goto_location_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
 		military::land_battle_report* report = retrieve< military::land_battle_report*>(state, parent);
 		auto prov = report->location;
-		if(prov) {
+		if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 			state.map_state.set_selected_province(prov);
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
-			if(state.map_state.get_zoom() < 8)
-				state.map_state.zoom = 8.0f;
-
-			auto map_pos = state.world.province_get_mid_point(prov);
-			map_pos.x /= float(state.map_state.map_data.size_x);
-			map_pos.y /= float(state.map_state.map_data.size_y);
-			map_pos.y = 1.0f - map_pos.y;
-			state.map_state.set_pos(map_pos);
+			if(state.map_state.get_zoom() < map::zoom_very_close)
+				state.map_state.zoom = map::zoom_very_close;
+			state.map_state.center_map_on_province(state, prov);
 		}
 	}
 };
