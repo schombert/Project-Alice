@@ -127,7 +127,7 @@ save_rgo
 	employment			group		none				discard
 	last_income			value		date				discard
 
-save_army_path
+save_unit_path
 	#free				value		int					member_fn
 
 save_regiment
@@ -146,7 +146,7 @@ save_army
 	name				value		text				member_fn
 	previous			value		int					member_fn
 	movement_progress	value		float				member_fn
-	path				group		save_army_path		member_fn
+	path				group		save_unit_path		member_fn
 	location			value		int					member_fn
 	dig_in_last_date	value		date				member_fn
 	supplies			value		float				member_fn
@@ -155,7 +155,6 @@ save_army
 save_ship
 	id					group		save_typed_id		member_fn
 	name				value		text				member_fn
-	pop					group		save_typed_id		member_fn
 	organisation		value		float				member_fn
 	strength			value		float				member_fn
 	experience			value		float				member_fn
@@ -167,11 +166,10 @@ save_navy
 	name				value		text				member_fn
 	previous			value		int					member_fn
 	movement_progress	value		float				member_fn
-	path				group		save_army_path		member_fn
+	path				group		save_unit_path		member_fn
 	location			value		int					member_fn
-	dig_in_last_date	value		date				member_fn
 	supplies			value		float				member_fn
-	regiment			group		save_ship			member_fn
+	ship				group		save_ship			member_fn
 
 save_province
 	name					value		text				member_fn
@@ -293,4 +291,4 @@ save_file
 	news_collector		group		none				discard
 	crisis_manager		group		none				discard
 	region				group		none				discard
-	#any				group		none				discard
+	#any				group		save_province		discard

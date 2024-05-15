@@ -2758,55 +2758,12 @@ struct tutorial_file {
 
 void make_leader_images(scenario_building_context& outer_context);
 
-struct save_parser_context {
-	sys::state& state;
-	dcon::nation_id current;
-	save_parser_context(sys::state& state);
-};
-struct save_tax {
-	float current = 0.f;
-	void finish(save_parser_context& context) { }
-};
-struct save_relations {
-	float value = 0.f;
-	void finish(save_parser_context& context) { }
-};
-struct save_country {
-	void rich_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void middle_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void poor_tax(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void education_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void crime_fighting(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void social_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void military_spending(association_type, save_tax& v, error_handler& err, int32_t line, save_parser_context& context);
-	void leadership(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void revanchism(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void plurality(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void diplomatic_points(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void badboy(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void suppression(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void ruling_party(association_type, int32_t v, error_handler& err, int32_t line, save_parser_context& context);
-	void research_points(association_type, float v, error_handler& err, int32_t line, save_parser_context& context);
-	void civilized(association_type, bool v, error_handler& err, int32_t line, save_parser_context& context);
-	void money(association_type, int32_t v, error_handler& err, int32_t line, save_parser_context& context);
-	void primary_culture(association_type, std::string_view v, error_handler& err, int32_t line, save_parser_context& context);
-	void religion(association_type, std::string_view v, error_handler& err, int32_t line, save_parser_context& context);
-	void last_election(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, save_parser_context& context);
-	void last_bankrupt(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, save_parser_context& context);
-	void any_group(std::string_view name, save_relations, error_handler& err, int32_t line, save_parser_context& context);
-};
-struct save_file {
-	void date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, save_parser_context& context);
-	void player(association_type, uint32_t v, error_handler& err, int32_t line, save_parser_context& context);
-	void government(association_type, int32_t v, error_handler& err, int32_t line, save_parser_context& context);
-	void finish(save_parser_context& context) { }
-};
-
 } // namespace parsers
 
 #include "trigger_parsing.hpp"
 #include "effect_parsing.hpp"
 #include "cultures_parsing.hpp"
+#include "save_parsing.hpp"
 #include "parser_defs_generated.hpp"
 #include "tutorial_parser_defs_generated.hpp"
 #include "news_parser_defs_generated.hpp"
