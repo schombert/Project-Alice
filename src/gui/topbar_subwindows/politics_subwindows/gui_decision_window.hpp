@@ -168,6 +168,27 @@ public:
 		text::add_to_layout_box(state, contents, box, state.world.decision_get_name(id), m);
 		text::close_layout_box(contents, box);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto const id = retrieve<dcon::decision_id>(state, parent);
+		auto const description = state.world.decision_get_description(id);
+		if(state.cheat_data.show_province_id_tooltip) {
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, std::string_view("Decision ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(id.value));
+			text::close_layout_box(contents, box);
+		}
+		auto box = text::open_layout_box(contents);
+		text::substitution_map m;
+		produce_decision_substitutions(state, m, state.local_player_nation);
+		text::add_to_layout_box(state, contents, box, description, m);
+		text::close_layout_box(contents, box);
+	}
 };
 
 // --------------

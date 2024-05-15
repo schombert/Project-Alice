@@ -163,8 +163,8 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
-constexpr inline float ui_scales[] = {0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
-constexpr inline uint32_t ui_scales_count = 8;
+constexpr inline float ui_scales[] = {0.25f, 0.30f, 0.35f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
+constexpr inline uint32_t ui_scales_count = 12;
 
 enum class autosave_frequency : uint8_t {
 	none = 0,
@@ -302,6 +302,7 @@ enum class message_setting_type : uint8_t {
 	navy_built = 99, // added
 	bankruptcy = 100,
 	entered_automatic_alliance = 101,
+	chat_message = 102,
 	count = 128
 };
 
@@ -379,7 +380,8 @@ enum class message_base_type : uint8_t {
 	navy_built = 70, // added
 	bankruptcy = 71,
 	entered_automatic_alliance = 72,
-	count = 73
+	chat_message = 73,
+	count = 74
 };
 
 struct msg_setting_entry {
@@ -501,6 +503,7 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
 	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
 	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
+	msg_setting_entry{ message_setting_type::chat_message, message_setting_type::count, message_setting_type::count },//chat_message = 73,
 };
 
 namespace  message_response {

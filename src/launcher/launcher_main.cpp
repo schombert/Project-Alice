@@ -229,13 +229,11 @@ void create_opengl_context() {
 	glewExperimental = GL_TRUE;
 
 	if(glewInit() != 0) {
-		MessageBoxW(m_hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
-		std::abort();
+		window::emit_error_message("GLEW failed to initialize", true);
 	}
 
 	if(!wglewIsSupported("WGL_ARB_create_context")) {
-		MessageBoxW(m_hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
 	// Explicitly request for OpenGL 4.5
@@ -243,8 +241,7 @@ void create_opengl_context() {
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
 	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 	if(opengl_context == nullptr) {
-		MessageBoxW(m_hwnd, L"Unable to create WGL context", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("Unable to create WGL context", true);
 	}
 
 	wglMakeCurrent(window_dc, HGLRC(opengl_context));
@@ -427,7 +424,7 @@ void make_mod_file() {
 			simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
 
 			if(!err.accumulated_errors.empty()) {
-				auto fname = simple_fs::get_full_name(pdir) + L"\\scenario_errors.txt";
+				auto fname = simple_fs::get_full_name(pdir) + NATIVE("\\scenario_errors.txt");
 				ShellExecuteW(
 					nullptr,
 					L"open",
@@ -1275,9 +1272,8 @@ void render() {
 		Create a new scenario file
 		for the selected mods
 		*/
-		auto xoffset = 830.0f - base_text_extent("Create a new scenario file", 26, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("Create a new scenario file", 26, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-
+		auto xoffset = 830.0f - base_text_extent("Create a new scenario", 21, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("Create a new scenario", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
 		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
@@ -1826,10 +1822,10 @@ int WINAPI wWinMain(
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.lpszClassName = L"alice_launcher_class";
+	wcex.lpszClassName = NATIVE("alice_launcher_class");
 
 	if(RegisterClassEx(&wcex) == 0) {
-		std::abort();
+		window::emit_error_message("Unable to register window class", true);
 	}
 
 	// Use by default the name of the computer

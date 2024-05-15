@@ -257,6 +257,7 @@ void restore_unsaved_values(sys::state& state); // must run after determining co
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
+void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);

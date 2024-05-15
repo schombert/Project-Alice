@@ -2244,6 +2244,7 @@ struct generic_event {
 	dcon::gfx_object_id picture_;
 	dcon::text_sequence_id title_;
 	dcon::text_sequence_id desc_;
+	dcon::issue_id issue_group_;
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void desc(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
@@ -2252,6 +2253,7 @@ struct generic_event {
 		if(!bool(immediate_))
 			immediate_ = value;
 	}
+	void issue_group(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void picture(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);
 	void finish(event_building_context& context) {
 		if(!picture_) {

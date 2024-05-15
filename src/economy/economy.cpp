@@ -643,25 +643,6 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 }
 
 void initialize(sys::state& state) {
-	state.world.nation_resize_domestic_market_pool(state.world.commodity_size());
-	state.world.nation_resize_real_demand(state.world.commodity_size());
-	state.world.nation_resize_stockpile_targets(state.world.commodity_size());
-	state.world.nation_resize_drawing_on_stockpiles(state.world.commodity_size());
-	state.world.nation_resize_life_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_everyday_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_luxury_needs_costs(state.world.pop_type_size());
-	state.world.nation_resize_imports(state.world.commodity_size());
-	state.world.nation_resize_army_demand(state.world.commodity_size());
-	state.world.nation_resize_navy_demand(state.world.commodity_size());
-	state.world.nation_resize_construction_demand(state.world.commodity_size());
-	state.world.nation_resize_private_construction_demand(state.world.commodity_size());
-	state.world.nation_resize_demand_satisfaction(state.world.commodity_size());
-	state.world.nation_resize_life_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_everyday_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_luxury_needs_weights(state.world.commodity_size());
-	state.world.nation_resize_effective_prices(state.world.commodity_size());
-	state.world.commodity_resize_price_record(price_history_length);
-
 	initialize_artisan_distribution(state);
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -2205,6 +2186,13 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 			assert(std::isfinite(everyday_needs_fraction));
 			assert(std::isfinite(luxury_needs_fraction));
 
+			//subsistence:
+			if(state.world.pop_type_get_is_paid_rgo_worker(t)) {
+				// unemployed rgo workers simply work on their own land instead of starving
+				float s = state.world.province_get_rgo_employment(p.get_province());
+				life_needs_fraction = life_needs_fraction * s + subsistence_factor * (1 - s);
+			}
+
 			state.world.pop_set_life_needs_satisfaction(pl.get_pop(), life_needs_fraction);
 			state.world.pop_set_everyday_needs_satisfaction(pl.get_pop(), everyday_needs_fraction);
 			state.world.pop_set_luxury_needs_satisfaction(pl.get_pop(), luxury_needs_fraction);
@@ -2487,20 +2475,19 @@ float pop_min_wage_factor(sys::state& state, dcon::nation_id n) {
 }
 
 float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return (1.0f * state.world.nation_get_life_needs_costs(n, state.culture_definitions.farmers)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.farmers)) * min_wage_factor;
+	return subsistence_factor * state.world.nation_get_life_needs_costs(n, state.culture_definitions.farmers)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.farmers) * min_wage_factor;
 }
 
 float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return (1.0f * state.world.nation_get_life_needs_costs(n, state.culture_definitions.laborers)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.laborers)) * min_wage_factor;
+	return subsistence_factor * state.world.nation_get_life_needs_costs(n, state.culture_definitions.laborers)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.laborers) * min_wage_factor;
 }
 
 float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor) {
-	return min_wage_factor * (
-		state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
-		+ 0.05f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)
-	);
+	// factory workers do not have own any land, so their min wage doesn't have subsistence factor 
+	return (state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
+		+ 0.2f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)) * min_wage_factor;
 }
 
 void populate_effective_prices(sys::state& state, dcon::nation_id n) {
@@ -3228,7 +3215,7 @@ void daily_update(sys::state& state) {
 		/* collect and distribute money for private education */
 		auto edu_money = 0.f;
 		auto adm_money = 0.f;
-		auto const edu_adm_spending = 0.1f;
+		auto const edu_adm_spending = 0.05f;
 		auto const edu_adm_effect = 1.f - edu_adm_spending;
 		auto const education_ratio = 0.8f;
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -3250,7 +3237,7 @@ void daily_update(sys::state& state) {
 				if(local_teachers + local_managers > 0.f) {
 					for(auto pl : province.get_pop_location()) {
 						auto const pop_money = pl.get_pop().get_savings();
-						current += pop_money;
+						current += pop_money * edu_adm_spending;
 						pl.get_pop().set_savings(pop_money * edu_adm_effect);
 					}
 				}
@@ -4270,19 +4257,19 @@ void resolve_constructions(sys::state& state) {
 	}
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
-		{
-			auto rng = state.world.province_get_province_naval_construction(p);
-			if(rng.begin() != rng.end()) {
-				auto c = *(rng.begin());
+		auto rng = state.world.province_get_province_naval_construction(p);
+		if(rng.begin() != rng.end()) {
+			auto c = *(rng.begin());
 
-				float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_naval_construction_get_nation(c));
-				float admin_cost_factor = 2.0f - admin_eff;
+			float admin_eff = state.world.nation_get_administrative_efficiency(state.world.province_naval_construction_get_nation(c));
+			float admin_cost_factor = 2.0f - admin_eff;
 
-				auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
-				auto& current_purchased = c.get_purchased_goods();
-				float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
+			auto& base_cost = state.military_definitions.unit_base_definitions[c.get_type()].build_cost;
+			auto& current_purchased = c.get_purchased_goods();
+			float construction_time = float(state.military_definitions.unit_base_definitions[c.get_type()].build_time);
 
-				bool all_finished = true;
+			bool all_finished = true;
+			if(!(c.get_nation().get_is_player_controlled() && state.cheat_data.instant_navy)) {
 				for(uint32_t i = 0; i < commodity_set::set_size && all_finished; ++i) {
 					if(base_cost.commodity_type[i]) {
 						if(current_purchased.commodity_amounts[i] < base_cost.commodity_amounts[i] * admin_cost_factor) {
@@ -4292,27 +4279,27 @@ void resolve_constructions(sys::state& state) {
 						break;
 					}
 				}
+			}
 
-				if(all_finished) {
-					auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
-					auto a = fatten(state.world, state.world.create_navy());
-					a.set_controller_from_navy_control(c.get_nation());
-					a.set_location_from_navy_location(p);
-					state.world.try_create_navy_membership(new_ship, a);
-					military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
+			if(all_finished) {
+				auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
+				auto a = fatten(state.world, state.world.create_navy());
+				a.set_controller_from_navy_control(c.get_nation());
+				a.set_location_from_navy_location(p);
+				state.world.try_create_navy_membership(new_ship, a);
+				military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
 
-					if(c.get_nation() == state.local_player_nation) {
-						notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
-								text::add_line(state, contents, "amsg_navy_built");
-							},
-							"amsg_navy_built",
-							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::navy_built
-						});
-					}
-
-					state.world.delete_province_naval_construction(c);
+				if(c.get_nation() == state.local_player_nation) {
+					notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
+							text::add_line(state, contents, "amsg_navy_built");
+						},
+						"amsg_navy_built",
+						state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
+						sys::message_base_type::navy_built
+					});
 				}
+
+				state.world.delete_province_naval_construction(c);
 			}
 		}
 	});

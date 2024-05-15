@@ -1057,7 +1057,7 @@ generic_event
 	fire_only_once                  value      bool                              member
 	allow_multiple_instances        value      bool                              discard
 	election                        value      bool                              discard
-	issue_group                     value      text                              discard
+	issue_group                     value      text                              member_fn
 
 event_file
 	country_event                   extern     scan_country_event                discard
@@ -1217,8 +1217,10 @@ dependencies_list
 	#free          value      text      member_fn
 
 mod_file
-	name                            value      text                              member_fn
-	path                            value      text                              member_fn
-	user_dir                        value      text                              discard
-	replace_path                    value      text                              member_fn
-	dependencies            group       dependencies_list       member_fn
+	name							value		text					member_fn
+	path							value		text					member_fn
+	replace_path					value		text					member_fn
+	user_dir						value		text					discard
+	extend							value		text					discard
+	replace							value		text					member_fn (replace_path)
+	dependencies					group		dependencies_list		member_fn

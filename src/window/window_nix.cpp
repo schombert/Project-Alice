@@ -331,7 +331,7 @@ void change_cursor(sys::state const& state, cursor_type type) {
 void emit_error_message(std::string const& content, bool fatal) {
 	std::fprintf(stderr, "%s", content.c_str());
 	if(fatal) {
-		std::terminate();
+		std::exit(EXIT_FAILURE);
 	}
 }
 

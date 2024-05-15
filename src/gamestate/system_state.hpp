@@ -56,7 +56,7 @@ struct user_settings_s {
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
 		message_response::standard_pause,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_popup,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
@@ -156,11 +156,12 @@ struct user_settings_s {
 		message_response::standard_log,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
 		message_response::standard_popup,//entered_automatic_alliance = 101,
+		message_response::standard_log,//chat_message = 102,
 	};
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_log,//revolt = 0,
 		message_response::standard_log,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_log,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
@@ -260,6 +261,7 @@ struct user_settings_s {
 		message_response::ignore,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
 		message_response::ignore,//entered_automatic_alliance = 101,
+		message_response::standard_log,//chat_message = 102,
 	};
 	uint8_t other_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::ignore,//revolt = 0,
@@ -364,10 +366,11 @@ struct user_settings_s {
 		message_response::ignore,//navy_built = 99,
 		message_response::standard_popup,//bankruptcy = 100,
 		message_response::ignore,//entered_automatic_alliance = 101,
+		message_response::standard_log,//chat_message = 102,
 	};
 	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
-	uint8_t antialias_level = 0;
+	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
 	bool railroads_enabled = true;
@@ -399,6 +402,7 @@ struct cheat_data_s {
 	std::vector<dcon::nation_id> instant_research_nations;
 	bool daily_oos_check = false;
 	bool province_names = false;
+	bool instant_navy = false;
 };
 
 struct crisis_member_def {
@@ -566,8 +570,8 @@ struct alignas(64) state {
 	std::vector<dcon::navy_id> selected_navies;
 
 	//control groups
-	std::array<std::vector<dcon::army_id>, 9> ctrl_armies;
-	std::array<std::vector<dcon::navy_id>, 9> ctrl_navies;
+	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;
+	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
 
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;

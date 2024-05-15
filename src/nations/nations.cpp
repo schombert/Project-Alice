@@ -215,6 +215,10 @@ bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	return state.world.diplomatic_relation_get_are_allied(rel);
 }
 
+bool is_landlocked(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_total_ports(n) == 0;
+}
+
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
 	auto fat_id = dcon::fatten(state.world, rel_id);
 	return fat_id.get_related_nations(0) == query ? fat_id.get_related_nations(1) : fat_id.get_related_nations(0);
@@ -336,8 +340,9 @@ void update_industrial_scores(sys::state& state) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
 				float total_level = 0;
 				float worker_total =
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+
 				float total_factory_capacity = 0;
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
@@ -353,7 +358,12 @@ void update_industrial_scores(sys::state& state) {
 				sum += ur.get_foreign_investment() * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 			}
 		}
-		state.world.nation_set_industrial_score(n, uint16_t(sum));
+		float old_score = state.world.nation_get_industrial_score(n);
+		if(old_score == 0) {
+			state.world.nation_set_industrial_score(n, uint16_t(sum));
+		} else {
+			state.world.nation_set_industrial_score(n, uint16_t(0.1f * sum + 0.9f * old_score));
+		}
 	});
 }
 
@@ -912,7 +922,7 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
+	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
 }
 
 void update_revanchism(sys::state& state) {
@@ -1135,13 +1145,12 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	state.world.for_each_ideology(
 			[&](dcon::ideology_id i) { state.world.nation_set_upper_house(n, i, state.world.nation_get_upper_house(base, i)); });
 	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
-		state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
-	}
-	state.world.nation_set_is_substate(n, false);
-	for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
-		state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
-	}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_flags; ++i) {
+	//	state.world.nation_set_flag_variables(n, dcon::national_flag_id{dcon::national_flag_id::value_base_t(i)}, false);
+	//}
+	//for(int32_t i = 0; i < state.national_definitions.num_allocated_national_variables; ++i) {
+	//	state.world.nation_set_variables(n, dcon::national_variable_id{dcon::national_variable_id::value_base_t(i)}, 0.0f);
+	//}
 	state.world.for_each_commodity([&](dcon::commodity_id t) {
 		state.world.nation_set_rgo_goods_output(n, t, state.world.nation_get_rgo_goods_output(base, t));
 		state.world.nation_set_factory_goods_output(n, t, state.world.nation_get_factory_goods_output(base, t));
@@ -1225,20 +1234,27 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 }
 
 void run_gc(sys::state& state) {
+	//cleanup (will set gc pending)
+	for(const auto n : state.world.in_nation) {
+		if(n.get_marked_for_gc()) {
+			n.set_marked_for_gc(false);
+			if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
+				nations::cleanup_nation(state, n);
+			}
+		}
+	}
 	if(state.national_definitions.gc_pending) {
 		state.national_definitions.gc_pending = false;
-
 		for(uint32_t i = state.world.rebel_faction_size(); i-- > 0; ) {
 			dcon::rebel_faction_id rf{dcon::rebel_faction_id::value_base_t(i) };
 			auto within = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
 			if(!within)
 				state.world.delete_rebel_faction(rf);
 		}
-
 	}
 }
 
- void cleanup_nation(sys::state& state, dcon::nation_id n) {
+void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto old_ident = state.world.nation_get_identity_from_identity_holder(n);
 
 	auto control = state.world.nation_get_province_control(n);
@@ -1298,6 +1314,7 @@ void run_gc(sys::state& state) {
 		state.world.delete_movement((*movements.begin()).get_movement());
 	}
 
+	// transfer flags and variables to new holder
 	state.world.delete_nation(n);
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);

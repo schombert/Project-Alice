@@ -29,10 +29,13 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, std::string_view("Nation ID: "));
-		text::add_to_layout_box(state, contents, box, std::to_string(state.local_player_nation.value));
-		text::close_layout_box(contents, box);
+		if(state.cheat_data.show_province_id_tooltip) {
+			auto box = text::open_layout_box(contents);
+			text::add_to_layout_box(state, contents, box, std::string_view("Nation ID:"));
+			text::add_space_to_layout_box(state, contents, box);
+			text::add_to_layout_box(state, contents, box, std::to_string(state.local_player_nation.value));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -923,9 +926,7 @@ public:
 			disabled = true;
 		} else {
 			disabled = state.internally_paused || state.ui_pause.load(std::memory_order::acquire);
-			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::province_event)] & sys::message_response::pause) != 0 && provincial_event_window::pending_events > 0);
-			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::national_event)] & sys::message_response::pause) != 0 && national_event_window::pending_events > 0);
-			disabled = disabled || ((state.user_settings.self_message_settings[int32_t(sys::message_setting_type::major_event)] & sys::message_response::pause) != 0 && national_major_event_window::pending_events > 0);
+			disabled = disabled || ui::events_pause_test(state);
 		}
 	}
 

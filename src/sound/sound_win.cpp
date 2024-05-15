@@ -45,100 +45,84 @@ void audio_instance::play(float volume, bool as_music, void* window_handle) {
 
 		HRESULT hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&pGraph);
 		if(FAILED(hr)) {
-			MessageBoxW(nullptr, L"failed to create graph builder", L"Audio error", MB_OK);
-			std::abort();
+			window::emit_error_message("failed to create graph builder", false);
+			return;
 		}
 
-		std::thread creation_dispatch([pGraph, as_music, volume, window_handle, _this = this]() {
-			HRESULT hr = pGraph->RenderFile((wchar_t const*)(_this->filename.c_str()), nullptr);
+		hr = pGraph->RenderFile((wchar_t const*)(filename.c_str()), nullptr);
+		if(FAILED(hr)) {
+			window::emit_error_message("unable to play audio file", false);
+			volume_multiplier = 0.0f;
+			return;
+		}
+		IMediaControl* pControl = nullptr;
+		hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to get control interface", false);
+			return;
+		}
+		if(as_music) {
+			IMediaEventEx* pEvent = nullptr;
+			hr = pGraph->QueryInterface(IID_IMediaEventEx, (void**)&pEvent);
 			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"unable to play audio file", L"Audio error", MB_OK);
-				_this->volume_multiplier = 0.0f;
+				window::emit_error_message("failed to get event interface", false);
 				return;
 			}
-
-			IMediaControl* pControl = nullptr;
-			hr = pGraph->QueryInterface(IID_IMediaControl, (void**)&pControl);
-
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to get control interface", L"Audio error", MB_OK);
-				std::abort();
+			auto const res_b = pEvent->SetNotifyWindow((OAHWND)window_handle, WM_GRAPHNOTIFY, NULL);
+			if(FAILED(res_b)) {
+				window::emit_error_message("failed to set notification window", false);
+				return;
 			}
-
-			if(as_music) {
-				IMediaEventEx* pEvent = nullptr;
-				hr = pGraph->QueryInterface(IID_IMediaEventEx, (void**)&pEvent);
-
-				if(FAILED(hr)) {
-					MessageBoxW(nullptr, L"failed to get event interface", L"Audio error", MB_OK);
-					std::abort();
-				}
-				auto const res_b = pEvent->SetNotifyWindow((OAHWND)window_handle, WM_GRAPHNOTIFY, NULL);
-				if(FAILED(res_b)) {
-					MessageBoxW(nullptr, L"failed to set notification window", L"Audio error", MB_OK);
-					std::abort();
-				}
-				_this->event_interface = pEvent;
-			}
-
-			IBasicAudio* pAudio = nullptr;
-			hr = pGraph->QueryInterface(IID_IBasicAudio, (void**)&pAudio);
-
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to get audio interface", L"Audio error", MB_OK);
-				std::abort();
-			}
-
-			IMediaSeeking* pSeek = nullptr;
-			hr = pGraph->QueryInterface(IID_IMediaSeeking, (void**)&pSeek);
-
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to get seeking interface", L"Audio error", MB_OK);
-				std::abort();
-			}
-
-			_this->graph_interface = pGraph;
-			_this->control_interface = pControl;
-			_this->audio_interface = pAudio;
-			_this->seek_interface = pSeek;
-
-			hr = ((IBasicAudio*)pAudio)->put_Volume(volume_function(volume * _this->volume_multiplier));
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to put_Volume", L"Audio error", MB_OK);
-			}
-
-			LONGLONG new_position = 0;
-			hr =
-					((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
-			}
-			hr = ((IMediaControl*)pControl)->Run();
-			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to Run", L"Audio error", MB_OK);
-			}
-		});
-		creation_dispatch.detach();
+			event_interface = pEvent;
+		}
+		IBasicAudio* pAudio = nullptr;
+		hr = pGraph->QueryInterface(IID_IBasicAudio, (void**)&pAudio);
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to get audio interface", false);
+			return;
+		}
+		IMediaSeeking* pSeek = nullptr;
+		hr = pGraph->QueryInterface(IID_IMediaSeeking, (void**)&pSeek);
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to get seeking interface", false);
+			return;
+		}
+		graph_interface = pGraph;
+		control_interface = pControl;
+		audio_interface = pAudio;
+		seek_interface = pSeek;
+		hr = ((IBasicAudio*)pAudio)->put_Volume(volume_function(volume * volume_multiplier));
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to put_Volume", false);
+		}
+		LONGLONG new_position = 0;
+		hr = ((IMediaSeeking*)pSeek)->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to SetPositions", false);
+		}
+		hr = ((IMediaControl*)pControl)->Run();
+		if(FAILED(hr)) {
+			window::emit_error_message("failed to Run", false);
+		}
 	} else {
 		HRESULT hr;
 		if(audio_interface) {
 			hr = audio_interface->put_Volume(volume_function(volume * volume_multiplier));
 			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to put_Volume", L"Audio error", MB_OK);
+				window::emit_error_message("failed to put_Volume", false);
 			}
 		}
 		if(seek_interface) {
 			LONGLONG new_position = 0;
 			hr = seek_interface->SetPositions(&new_position, AM_SEEKING_AbsolutePositioning, nullptr, AM_SEEKING_NoPositioning);
 			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to SetPositions", L"Audio error", MB_OK);
+				window::emit_error_message("failed to SetPositions", false);
 			}
 		}
-
 		if(control_interface) {
 			hr = control_interface->Run();
 			if(FAILED(hr)) {
-				MessageBoxW(nullptr, L"failed to Run", L"Audio error", MB_OK);
+				window::emit_error_message("failed to Run", false);
 			}
 		}
 	}
@@ -231,8 +215,8 @@ void sound_impl::play_effect(audio_instance& s, float volume) {
 		return;
 
 	if(!current_effect || current_effect->is_playing() == false) {
-		s.play(volume, false, window_handle);
 		current_effect = &s;
+		s.play(volume, false, window_handle);
 	}
 }
 

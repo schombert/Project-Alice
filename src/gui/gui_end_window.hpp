@@ -13,7 +13,7 @@ public:
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_flag") {
-			return make_element_by_type<picker_flag>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "country_flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "score") {

@@ -55,10 +55,9 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id e, dcon::province_id p, uint32_t r_hi,
 		uint32_t r_lo);
 
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, slot_type pt,
-		dcon::nation_id this_slot, int32_t from_slot, slot_type ft);
-void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov,
-		int32_t from_slot, slot_type ft);
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_event> const& v, int32_t primary_slot, slot_type pt, dcon::nation_id this_slot, int32_t from_slot, slot_type ft);
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_election_event> const& v, int32_t primary_slot, slot_type pt, dcon::nation_id this_slot, int32_t from_slot, slot_type ft);
+void fire_fixed_event(sys::state& state, std::vector<nations::fixed_province_event> const& v, dcon::province_id prov, int32_t from_slot, slot_type ft);
 
 void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt);
 void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t opt);
@@ -67,5 +66,7 @@ void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t op
 
 void update_future_events(sys::state& state);
 void update_events(sys::state& state);
+
+dcon::issue_id get_election_event_issue(sys::state& state, dcon::national_event_id e);
 
 } // namespace event

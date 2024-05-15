@@ -195,6 +195,8 @@ remove_x_core;Remove $adj$ core;;;Remover nucleo $adj$;;;;;;;;;x
 remove_core_from;Remove core from;;;Remover nucleo de;;;;;;;;;x
 flashpoint_tension_label;Flashpoint tension;;;;;;;;;;;;x
 change_name_to;Change name to $text$;;;Cambiar nombre a $text$;;;;;;;;;x
+ett_change_pop_terrain_to;Change location terrain to $text$
+ett_change_province_terrain_to;Change terrain to $text$
 change_rgo_production_to;Change RGO production to $text$;;;Cambiar produccion de RGO a $text$;;;;;;;;;x
 make_accepted_culture;$text$ becomes an accepted culture;;;$text$ se vuelve una cultura aceptada;;;;;;;;;x
 primary_culture_changes_to;Primary culture changes to $text$;;;La cultura primaria cambia a $text$;;;;;;;;;x
@@ -852,6 +854,10 @@ war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
 war_goal_4;Secondary target: $x$
 war_goal_5;Ticking war score: $x$
+war_goal_6;If we occupy §Y$x$§! of the the provinces, we will gain §Y$y$§! ticking war score (relative to the fraction of occupied provinces)
+war_goal_7;We have a grace period of §Y$x$§! days to occupy, otherwise we will lose §Y$y$§! ticking war score daily
+war_goal_8;War started in §Y$x$§!, we should fullfill by §Y$y$§!, before the grace period §Rruns out§!
+war_goal_9;The grace period §Rhas ran out§! (period was from §Y$x$§! to §Y$y$§!)
 utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
 utt_noleader;no leader;;;
 war_score_1;From occupation: $x$
@@ -1103,6 +1109,9 @@ msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of 
 msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
 msg_entered_automatic_alliance_title;Entered alliance automatically
 msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
+msg_chat_message_title;Chat message
+msg_chat_message_1;$x$ says:
+msg_chat_message_2;$x$
 msg_n_event_title;National Event
 msg_p_event_title;Provincial Event
 msg_m_event_title;Major Event
@@ -1399,7 +1408,8 @@ amsg_crisis_voluntary_join;The nation joins a crisis without an offer;;;;;;;;;;;
 amsg_army_built;The nation built an army;;;;;;;;;;;;x
 amsg_navy_built;The nation built a navy;;;;;;;;;;;;x
 amsg_bankruptcy;Nation goes bankrupt;;;;;;;;;;;;x
-amsg_entered_automatic_alliance_title;The nation is automatically allied by another
+amsg_entered_automatic_alliance;The nation is automatically allied by another
+amsg_chat_message;The nation sent a message in chat
 alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see §Ggreen§W lines go up, and §Rred§W lines go down, as per usual I'm §Ynot§W a line graph so I mostly go unnoticed :)
 alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... §ROR ELSE§W
 alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a §Ydifferent§W dialogue and that's just boring
@@ -1587,6 +1597,11 @@ alice_budget_scaled_9;Administration: §R$value$
 alice_budget_scaled_10;Social spending: §R$value$
 alice_budget_scaled_11;Military spending: §R$value$
 alice_budget_scaled_12;Domestic investments: §R$value$
+alice_budget_scaled_13;Overseas spending: §R$value$
+alice_budget_scaled_14;Stockpile filling: §R$value$
+alice_budget_scaled_15;War subsidies: §R$value$
+alice_budget_scaled_16;Diplomatic interest: §G$value$
+alice_budget_scaled_17;Gold production: §G$value$
 alice_budget_scaled_net;Net revenue: §Y$value$
 alice_budget_setting_percent;Set at $perc$.
 alice_spending_land_construction;Land construction in $name$: §R$cost$§W
@@ -1653,6 +1668,7 @@ alice_nf_controls;§YLeft-click§W to select or replace\n§YRight-click§W to remove
 alice_utt_controls_1;§YLeft-click§W select (deselecting everything else)
 alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
 alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
+button_console_tt;Open the command console
 alice_demobilize;Demobilize
 alice_mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.

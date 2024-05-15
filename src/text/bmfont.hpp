@@ -53,6 +53,7 @@ struct char_descriptor {
 
 class bm_font {
 public:
+	bm_font() { }
 	bm_font(sys::state& state, simple_fs::file& font_metrics, simple_fs::file& font_image) {
 		auto font_result = ogl::make_font_texture(font_image);
 		ftexid = font_result.handle;

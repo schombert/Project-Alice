@@ -29,7 +29,14 @@ void c_change_controller(sys::state& state, dcon::nation_id source, dcon::provin
 void c_instant_research(sys::state& state, dcon::nation_id source);
 void c_add_population(sys::state& state, dcon::nation_id source, int32_t ammount);
 void c_instant_army(sys::state& state, dcon::nation_id source);
+void c_instant_navy(sys::state& state, dcon::nation_id source);
 void c_instant_industry(sys::state& state, dcon::nation_id source);
 void c_innovate(sys::state& state, dcon::nation_id source, dcon::invention_id invention);
 void c_toggle_core(sys::state& state, dcon::nation_id source, dcon::province_id p, dcon::nation_id n);
+void c_always_allow_wargoals(sys::state& state, dcon::nation_id source);
+void c_always_allow_reforms(sys::state& state, dcon::nation_id source);
+void c_always_accept_deals(sys::state& state, dcon::nation_id source);
+void c_set_auto_choice_all(sys::state& state, dcon::nation_id source);
+void c_clear_auto_choice_all(sys::state& state, dcon::nation_id source);
+
 } // namespace command

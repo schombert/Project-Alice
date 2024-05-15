@@ -559,8 +559,8 @@ public:
 		for(auto si : state.world.nation_get_state_ownership(n)) {
 			float total_level = 0;
 			float worker_total =
-				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
-				si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
+				si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
 			float total_factory_capacity = 0;
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto f : state.world.province_get_factory_location(p)) {
@@ -1420,7 +1420,6 @@ protected:
 		update_chart(state);
 	}
 };
-
 
 class province_population_text : public simple_text_element_base {
 public:

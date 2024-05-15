@@ -2315,7 +2315,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 25000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -3101,6 +3101,10 @@ object {
 		name{ is_civilized }
 		type{ bitfield }
 		tag{ save }
+	}
+	property{
+		name{ marked_for_gc }
+		type{ bitfield }
 	}
 	property{
 		name{ is_great_power }
@@ -4531,6 +4535,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ immediate_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
@@ -4644,6 +4653,11 @@ object {
 	property{
 		name{ mtth }
 		type{ value_modifier_key }
+		tag{ scenario }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
 		tag{ scenario }
 	}
 	property{

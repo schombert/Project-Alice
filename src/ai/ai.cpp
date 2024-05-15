@@ -172,7 +172,7 @@ void form_alliances(sys::state& state) {
 						},
 						"msg_entered_automatic_alliance_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::entered_automatic_alliance
 					});
 				}
 				nations::make_alliance(state, n, alliance_targets[0]);
@@ -767,8 +767,7 @@ void take_ai_decisions(sys::state& state) {
 							: true);
 						if(second_validity) {
 							effect::execute(state, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(state.current_date.value),
-										uint32_t(n.index() << 4 ^ d.id.index()));
-
+								uint32_t(n.index() << 4 ^ d.id.index()));
 							notification::post(state, notification::message{
 								[e, n, did = d.id, when = state.current_date](sys::state& state, text::layout_base& contents) {
 									text::add_line(state, contents, "msg_decision_1", text::variable_type::x, n, text::variable_type::y, state.world.decision_get_name(did));
@@ -785,6 +784,7 @@ void take_ai_decisions(sys::state& state) {
 			}
 		});
 	}
+	
 }
 
 float estimate_pop_party_support(sys::state& state, dcon::nation_id n, dcon::political_party_id pid) {
@@ -3341,18 +3341,25 @@ bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
 void update_ships(sys::state& state) {
 	static std::vector<dcon::ship_id> to_delete;
 	to_delete.clear();
-
 	for(auto n : state.world.in_nation) {
-		if(!n.get_is_player_controlled() && n.get_is_at_war() == false) {
+		if(n.get_is_player_controlled())
+			continue;
+		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
+			for(auto v : n.get_navy_control()) {
+				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+					for(auto shp : v.get_navy().get_navy_membership()) {
+						to_delete.push_back(shp.get_ship().id);
+					}
+				}
+			}
+		} else if(n.get_is_at_war() == false) {
 			dcon::unit_type_id best_transport;
 			dcon::unit_type_id best_light;
 			dcon::unit_type_id best_big;
-
 			for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
 				dcon::unit_type_id j{ dcon::unit_type_id::value_base_t(i) };
 				if(!n.get_active_unit(j) && !state.military_definitions.unit_base_definitions[j].active)
 					continue;
-
 				if(state.military_definitions.unit_base_definitions[j].type == military::unit_type::transport) {
 					if(!best_transport || state.military_definitions.unit_base_definitions[best_transport].defence_or_hull < state.military_definitions.unit_base_definitions[j].defence_or_hull) {
 						best_transport = j;
@@ -3367,7 +3374,6 @@ void update_ships(sys::state& state) {
 					}
 				}
 			}
-
 			for(auto v : n.get_navy_control()) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					auto trange = v.get_navy().get_army_transport();
@@ -3391,7 +3397,6 @@ void update_ships(sys::state& state) {
 			}
 		}
 	}
-
 	for(auto s : to_delete) {
 		state.world.delete_ship(s);
 	}

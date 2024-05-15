@@ -52,8 +52,7 @@ int main(int argc, char **argv) {
 		}
 
 		network::init(game_state);
-	}
-	else {
+	} else {
 		if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
 			parsers::error_handler err{ "" };
