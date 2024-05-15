@@ -47,7 +47,7 @@ save_war_dated_history
 	add_defender		value		text					member_fn
 
 save_war_history
-	#any				group		save_war_dated_history		member_fn
+	#any				group		save_war_dated_history	member_fn
 
 save_wargoal
 	casus_belli			value		text				member_fn
@@ -211,7 +211,7 @@ save_tax
 	min_tax				value		int					discard
 
 save_relations
-	value				value		float				discard
+	value				value		float				member
 
 save_country
 	flags					group		save_flags			member_fn
@@ -243,15 +243,15 @@ save_country
 	nationalvalue			value		text				member_fn
 	civilized				value		bool				member_fn
 	badboy					value		float				member_fn
-	domestic_supply_pool	group		none				member_fn
-	domestic_demand_pool	group		none				member_fn
-	actual_sold_domestic	group		none				member_fn
-	saved_country_supply	group		none				member_fn
-	max_bought				group		none				member_fn
-	national_focus			group		none				member_fn
-	expenses				group		none				member_fn
-	incomes					group		none				member_fn
 	suppression				value		float				member_fn
+	domestic_supply_pool	group		none				discard
+	domestic_demand_pool	group		none				discard
+	actual_sold_domestic	group		none				discard
+	saved_country_supply	group		none				discard
+	max_bought				group		none				discard
+	national_focus			group		none				discard
+	expenses				group		none				discard
+	incomes					group		none				discard
 	tax_base				value		float				discard
 	active_party			value		int					discard
 	auto_assign_leaders		value		bool				discard
