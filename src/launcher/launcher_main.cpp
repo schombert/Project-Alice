@@ -229,13 +229,11 @@ void create_opengl_context() {
 	glewExperimental = GL_TRUE;
 
 	if(glewInit() != 0) {
-		MessageBoxW(m_hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
-		std::abort();
+		window::emit_error_message("GLEW failed to initialize", true);
 	}
 
 	if(!wglewIsSupported("WGL_ARB_create_context")) {
-		MessageBoxW(m_hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
 	// Explicitly request for OpenGL 4.5
@@ -243,8 +241,7 @@ void create_opengl_context() {
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
 	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 	if(opengl_context == nullptr) {
-		MessageBoxW(m_hwnd, L"Unable to create WGL context", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("Unable to create WGL context", true);
 	}
 
 	wglMakeCurrent(window_dc, HGLRC(opengl_context));
@@ -1828,7 +1825,7 @@ int WINAPI wWinMain(
 	wcex.lpszClassName = NATIVE("alice_launcher_class");
 
 	if(RegisterClassEx(&wcex) == 0) {
-		std::abort();
+		window::emit_error_message("Unable to register window class", true);
 	}
 
 	// Use by default the name of the computer
