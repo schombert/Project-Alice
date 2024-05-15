@@ -146,33 +146,29 @@ static void socket_shutdown(socket_t socket_fd) {
 	}
 }
 
-static socket_t socket_init_server(struct sockaddr_in& server_address) {
-	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
-
+static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_address) {
+	socket_t socket_fd = static_cast<socket_t>(socket(as_v6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP));
 #ifdef _WIN64
-	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET))
-		std::abort();
+	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
+		window::emit_error_message("Network socket error: " + get_last_error_msg(), true);
+	}
 #else
 	if(socket_fd < 0)
 		std::abort();
 #endif
-
 	struct timeval timeout;
 	timeout.tv_sec = 60;
 	timeout.tv_usec = 0;
 	int opt = 1;
 #ifdef _WIN64
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
-		MessageBoxA(NULL, ("Network setsockopt error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
+		window::emit_error_message("Network setsockopt [reuseaddr] error: " + get_last_error_msg(), true);
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
+		window::emit_error_message("Network setsockopt [rcvtimeo] error: " + get_last_error_msg(), true);
 	}
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
+		window::emit_error_message("Network setsockopt [sndtimeo] error: " + get_last_error_msg(), true);
 	}
 #else
 	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
@@ -185,81 +181,24 @@ static socket_t socket_init_server(struct sockaddr_in& server_address) {
 		std::abort();
 	}
 #endif
-	server_address.sin_addr.s_addr = INADDR_ANY;
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(default_server_port);
-	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network bind error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
+	if(as_v6) {
+		struct sockaddr_in6 v6_server_address;
+		v6_server_address.sin6_addr = IN6ADDR_ANY_INIT;
+		v6_server_address.sin6_family = AF_INET6;
+		v6_server_address.sin6_port = htons(default_server_port);
+		std::memcpy(&server_address, &v6_server_address, sizeof(v6_server_address));
+	} else {
+		struct sockaddr_in v4_server_address;
+		v4_server_address.sin_addr.s_addr = INADDR_ANY;
+		v4_server_address.sin_family = AF_INET;
+		v4_server_address.sin_port = htons(default_server_port);
+		std::memcpy(&server_address, &v4_server_address, sizeof(v4_server_address));
 	}
-	if(listen(socket_fd, 3) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network listen error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
+	if(bind(socket_fd, (struct sockaddr*)&server_address, as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)) < 0) {
+		window::emit_error_message("Network bind error: " + get_last_error_msg(), true);
 	}
-#ifdef _WIN64
-	u_long mode = 1; // 1 to enable non-blocking socket
-	ioctlsocket(socket_fd, FIONBIO, &mode);
-#endif
-	return socket_fd;
-}
-
-static socket_t socket_init_server(struct sockaddr_in6& server_address) {
-	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
-
-#ifdef _WIN64
-	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET))
-		std::abort();
-#else
-	if(socket_fd < 0)
-		std::abort();
-#endif
-
-	struct timeval timeout;
-	timeout.tv_sec = 60;
-	timeout.tv_usec = 0;
-	int opt = 1;
-#ifdef _WIN64
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt))) {
-		MessageBoxA(NULL, ("Network setsockpt error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
-	}
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [rcvtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
-	}
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(timeout)) < 0) {
-		MessageBoxA(NULL, ("Network setsockopt [sndtimeo] error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
-	}
-#else
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
-		std::abort();
-	}
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-		std::abort();
-	}
-	if(setsockopt(socket_fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
-		std::abort();
-	}
-#endif
-	server_address.sin6_addr = IN6ADDR_ANY_INIT;
-	server_address.sin6_family = AF_INET6;
-	server_address.sin6_port = htons(default_server_port);
-	if(bind(socket_fd, (struct sockaddr*)&server_address, sizeof(server_address)) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network bind error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
-	}
-	if(listen(socket_fd, 3) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network listen error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
+	if(listen(socket_fd, SOMAXCONN) < 0) {
+		window::emit_error_message("Network listen error: " + get_last_error_msg(), true);
 	}
 #ifdef _WIN64
 	u_long mode = 1; // 1 to enable non-blocking socket
@@ -268,65 +207,43 @@ static socket_t socket_init_server(struct sockaddr_in6& server_address) {
 	return socket_fd;
 }
 
-static socket_t socket_init_client(struct sockaddr_in& client_address, const char *ip_address) {
-	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET, SOCK_STREAM, 0));
-
+static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_address, const char *ip_address) {
+	struct addrinfo hints;
+	ZeroMemory(&hints, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	struct addrinfo* result = NULL;
+	if(getaddrinfo(ip_address, "1984", &hints, &result) != 0) {
+		window::emit_error_message("Network getaddrinfo error: " + get_last_error_msg(), true);
+	}
+	as_v6 = false;
+	bool found = false;
+	for(struct addrinfo* ptr = result; ptr != NULL; ptr = ptr->ai_next) {
+		if(ptr->ai_socktype == SOCK_STREAM && ptr->ai_protocol == IPPROTO_TCP) {
+			if(ptr->ai_family == AF_INET || ptr->ai_family == AF_INET6) {
+				as_v6 = ptr->ai_family == AF_INET6;
+				std::memcpy(&client_address, ptr->ai_addr, sizeof(sockaddr));
+				found = true;
+			}
+		}
+	}
+	freeaddrinfo(result);
+	if(!found) {
+		window::emit_error_message("No suitable host found", true);
+	}
+	socket_t socket_fd = static_cast<socket_t>(socket(as_v6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP));
 #ifdef _WIN64
 	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
-		MessageBoxA(NULL, ("Network socket error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
+		window::emit_error_message("Network socket error: " + get_last_error_msg(), true);
 	}
 #else
 	if(socket_fd < 0) {
-		std::abort();
+		window::emit_error_message("Network socket error: " + get_last_error_msg(), true);
 	}
 #endif
-
-	
-	client_address.sin_family = AF_INET;
-	client_address.sin_port = htons(default_server_port);
-
-	if(inet_pton(AF_INET, ip_address, &client_address.sin_addr) <= 0) { //ipv4 fallback
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network inet_pton error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
-	}
-	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network connect error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
-	}
-	return socket_fd;
-}
-
-static socket_t socket_init_client(struct sockaddr_in6& client_address, const char* ip_address) {
-	socket_t socket_fd = static_cast<socket_t>(socket(AF_INET6, SOCK_STREAM, 0));
-
-#ifdef _WIN64
-	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
-		MessageBoxA(NULL, ("Network socket error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-	}
-#else
-	if(socket_fd < 0) {
-		std::abort();
-	}
-#endif
-
-	client_address.sin6_addr = IN6ADDR_ANY_INIT;
-	client_address.sin6_family = AF_INET6;
-	client_address.sin6_port = htons(default_server_port);
-	if(inet_pton(AF_INET6, ip_address, &client_address.sin6_addr) <= 0) { //ipv4 fallback
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network inet_pton error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
-	}
-	if(connect(socket_fd, (struct sockaddr*)&client_address, sizeof(client_address)) < 0) {
-#ifdef _WIN64
-		MessageBoxA(NULL, ("Network connect error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-#endif
-		std::abort();
+	if(connect(socket_fd, (const struct sockaddr*)&client_address, as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)) < 0) {
+		window::emit_error_message("Network connect error: " + get_last_error_msg(), true);
 	}
 	return socket_fd;
 }
@@ -362,24 +279,14 @@ void init(sys::state& state) {
 #ifdef _WIN64
     WSADATA data;
 	if(WSAStartup(MAKEWORD(2, 2), &data) != 0) {
-		MessageBoxA(NULL, ("WSA startup error: " + get_last_error_msg()).c_str(), "Network error", MB_OK);
-		std::abort();
+		window::emit_error_message("WSA startup error: " + get_last_error_msg(), true);
 	}
 #endif
-	if(state.network_state.as_v6) {
-		if(state.network_mode == sys::network_mode_type::host) {
-			state.network_state.socket_fd = socket_init_server(state.network_state.v6_address);
-		} else {
-			assert(state.network_state.ip_address.size() > 0);
-			state.network_state.socket_fd = socket_init_client(state.network_state.v6_address, state.network_state.ip_address.c_str());
-		}
+	if(state.network_mode == sys::network_mode_type::host) {
+		state.network_state.socket_fd = socket_init_server(state.network_state.as_v6, state.network_state.address);
 	} else {
-		if(state.network_mode == sys::network_mode_type::host) {
-			state.network_state.socket_fd = socket_init_server(state.network_state.v4_address);
-		} else {
-			assert(state.network_state.ip_address.size() > 0);
-			state.network_state.socket_fd = socket_init_client(state.network_state.v4_address, state.network_state.ip_address.c_str());
-		}
+		assert(state.network_state.ip_address.size() > 0);
+		state.network_state.socket_fd = socket_init_client(state.network_state.as_v6, state.network_state.address, state.network_state.ip_address.c_str());
 	}
 
 	// Host must have an already selected nation, to prevent issues...
@@ -435,12 +342,14 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 
 bool client_data::is_banned(sys::state& state) const {
 	if(state.network_state.as_v6) {
+		auto sa = (struct sockaddr_in6*)&address;
 		return std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const& a) {
-			return std::memcmp(&v6_address.sin6_addr, &a, sizeof(a)) == 0;
+			return std::memcmp(&sa->sin6_addr, &a, sizeof(a)) == 0;
 		}) != state.network_state.v6_banlist.end();
 	} else {
+		auto sa = (struct sockaddr_in*)&address;
 		return std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const& a) {
-			return std::memcmp(&v4_address.sin_addr, &a, sizeof(a)) == 0;
+			return std::memcmp(&sa->sin_addr, &a, sizeof(a)) == 0;
 		}) != state.network_state.v4_banlist.end();
 	}
 }
@@ -690,13 +599,8 @@ static void accept_new_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active())
 			continue;
-		if(state.network_state.as_v6) {
-			socklen_t addr_len = sizeof(client.v6_address);
-			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.v6_address, &addr_len);
-		} else {
-			socklen_t addr_len = sizeof(client.v4_address);
-			client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.v4_address, &addr_len);
-		}
+		socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
+		client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
 		if(client.is_banned(state)) {
 			disconnect_client(state, client, false);
 			break;
@@ -832,10 +736,7 @@ void send_and_receive_commands(sys::state& state) {
 						}
 					}
 					if(!found_match) {
-#ifdef _WIN64
-						MessageBoxA(NULL, "Could not find a scenario with a matching checksum! This is most likely a false positive, so just ask the host for their scenario file and it should work. Or you haven't clicked on \"Make scenario\"!", "Network error", MB_OK);
-#endif
-						std::abort();
+						window::emit_error_message("Could not find a scenario with a matching checksum! This is most likely a false positive, so just ask the host for their scenario file and it should work. Or you haven't clicked on \"Make scenario\"!", true);
 					}
 				}
 				state.session_host_checksum = state.network_state.s_hshake.save_checksum;
@@ -997,9 +898,11 @@ void ban_player(sys::state& state, client_data& client) {
 	socket_shutdown(client.socket_fd);
 	client.socket_fd = 0;
 	if(state.network_state.as_v6) {
-		state.network_state.v6_banlist.push_back(client.v6_address.sin6_addr);
+		auto sa = (struct sockaddr_in6*)&client.address;
+		state.network_state.v6_banlist.push_back(sa->sin6_addr);
 	} else {
-		state.network_state.v4_banlist.push_back(client.v4_address.sin_addr);
+		auto sa = (struct sockaddr_in*)&client.address;
+		state.network_state.v4_banlist.push_back(sa->sin_addr);
 	}
 }
 
