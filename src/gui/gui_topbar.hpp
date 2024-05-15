@@ -1538,17 +1538,13 @@ public:
 			if(index >= uint32_t(provinces.size())) {
 				index = 0;
 			}
-			if(auto prov = provinces[index]; prov) {
+			if(auto prov = provinces[index]; prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
-				auto map_pos = state.world.province_get_mid_point(prov);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				state.map_state.center_map_on_province(state, prov);
 			}
 		}
 	}
