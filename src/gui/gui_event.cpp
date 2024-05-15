@@ -610,6 +610,7 @@ void base_event_window::on_create(sys::state& state) noexcept {
 		move_child_to_front(image);
 	}
 	if(get_pool_slot() == event_pool_slot::province) {
+		image->set_visible(state, false);
 		{
 			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
 			ptr->base_data.position.y = int16_t(355);
