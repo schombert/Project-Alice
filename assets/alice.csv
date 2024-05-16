@@ -852,12 +852,13 @@ alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
-war_goal_4;Secondary target: $x$
+war_goal_4;Secondary nation: $x$
 war_goal_5;Ticking war score: $x$
 war_goal_6;If we occupy §Y$x$§! of the the provinces, we will gain §Y$y$§! ticking war score (relative to the fraction of occupied provinces)
 war_goal_7;We have a grace period of §Y$x$§! days to occupy, otherwise we will lose §Y$y$§! ticking war score daily
 war_goal_8;War started in §Y$x$§!, we should fullfill by §Y$y$§!, before the grace period §Rruns out§!
 war_goal_9;The grace period §Rhas ran out§! (period was from §Y$x$§! to §Y$y$§!)
+war_goal_8;Secondary tag: $x$
 utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
 utt_noleader;no leader;;;
 war_score_1;From occupation: $x$
