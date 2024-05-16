@@ -2393,8 +2393,6 @@ void update_crisis(sys::state& state) {
 
 			cleanup_crisis(state);
 
-			state.world.war_set_is_crisis_war(war, true);
-
 			if(state.military_definitions.great_wars_enabled) {
 				int32_t gp_attackers = 0;
 				int32_t gp_defenders = 0;

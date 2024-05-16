@@ -2444,11 +2444,6 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ is_crisis_war }
-		type{ bitfield }
-		tag{ save }
-	}
-	property {
 		name{ number_of_battles }
 		type{ uint16_t }
 		tag{ save }

@@ -1530,7 +1530,7 @@ public:
 
 				text::add_line_with_condition(state, contents, "intervene_17", inf == nations::influence::level_friendly);
 
-				text::add_line_with_condition(state, contents, "intervene_7", !state.world.war_get_is_crisis_war(w));
+				text::add_line_with_condition(state, contents, "intervene_7", !military::is_crisis_war(state, w));
 				text::add_line_with_condition(state, contents, "intervene_9", !B);
 				text::add_line_with_condition(state, contents, "intervene_10", !military::defenders_have_non_status_quo_wargoal(state, w));
 				text::add_line_with_condition(state, contents, "intervene_11", military::primary_warscore(state, w) >= -state.defines.min_warscore_to_intervene, text::variable_type::x, int64_t(-state.defines.min_warscore_to_intervene));
@@ -1739,7 +1739,7 @@ class war_bg : public image_element_base {
 		auto war = retrieve<dcon::war_id>(state, parent);
 		if(state.world.war_get_is_great(war)) {
 			frame = 2;
-		} else if(state.world.war_get_is_crisis_war(war)) {
+		} else if(military::is_crisis_war(state, war)) {
 			frame = 1;
 		} else {
 			frame = 0;

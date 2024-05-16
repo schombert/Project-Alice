@@ -466,7 +466,7 @@ public:
 		for(auto war_par : state.world.nation_get_war_participant(asker)) {
 			if(!military::is_civil_war(state, war_par.get_war())
 				&& military::standard_war_joining_is_possible(state, war_par.get_war(), target, military::is_attacker(state, war_par.get_war(), asker))
-				&& (!war_par.get_war().get_is_crisis_war() || state.military_definitions.great_wars_enabled)) {
+				&& (!military::is_crisis_war(state, war_par.get_war()) || state.military_definitions.great_wars_enabled)) {
 
 				possible_war = true;
 				if(!state.world.nation_get_is_player_controlled(target)) {
@@ -816,7 +816,7 @@ public:
 
 			auto war = military::find_war_between(state, source, target);
 
-			if(state.world.war_get_is_crisis_war(war)) {
+			if(military::is_crisis_war(state, war)) {
 				bool both_wl = (state.world.war_get_primary_attacker(war) == source && state.world.war_get_primary_defender(war) == target) || (state.world.war_get_primary_attacker(war) == target || state.world.war_get_primary_defender(war) == source);
 				text::add_line_with_condition(state, contents, "peace_explain_4", both_wl);
 			} else {

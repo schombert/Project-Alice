@@ -2572,7 +2572,7 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result) {
 	auto par = state.world.war_get_war_participant(w);
 	state.military_definitions.pending_blackflag_update = true;
 
-	if(state.world.war_get_is_crisis_war(w)) {
+	if(military::is_crisis_war(state, w)) {
 		nations::cleanup_crisis(state);
 	}
 
@@ -7160,6 +7160,10 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 		&& pop.get_poptype() != state.culture_definitions.slaves
 		&& pop.get_is_primary_or_accepted_culture()
 		&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor);
+}
+
+bool is_crisis_war(sys::state& state, dcon::war_id war) {
+	return war && state.crisis_war == war;
 }
 
 } // namespace military

@@ -1679,7 +1679,7 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 	*/
 	if(!military::joining_war_does_not_violate_constraints(state, source, w, for_attacker))
 		return false;
-	if(state.world.war_get_is_crisis_war(w) && !state.world.war_get_is_great(w))
+	if(military::is_crisis_war(state, w) && !state.world.war_get_is_great(w))
 		return false;
 	if(for_attacker && military::joining_as_attacker_would_break_truce(state, source, w))
 		return false;
@@ -2435,7 +2435,7 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(!military::standard_war_joining_is_possible(state, w, target, military::is_attacker(state, w, asker)))
 		return false;
 
-	if(state.world.war_get_is_crisis_war(w) && !state.military_definitions.great_wars_enabled)
+	if(military::is_crisis_war(state, w) && !state.military_definitions.great_wars_enabled)
 		return false;
 
 	return true;
@@ -2828,7 +2828,7 @@ bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nati
 		return false;
 	}
 
-	if(state.world.war_get_is_crisis_war(war)) {
+	if(military::is_crisis_war(state, war)) {
 		if((state.world.war_get_primary_attacker(war) != source || state.world.war_get_primary_defender(war) != target) &&
 				(state.world.war_get_primary_attacker(war) != target || state.world.war_get_primary_defender(war) != source)) {
 
