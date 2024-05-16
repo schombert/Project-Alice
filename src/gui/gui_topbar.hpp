@@ -933,18 +933,19 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.network_mode == sys::network_mode_type::client) {
-			text::add_line(state, contents, box, "alice_only_host_speed");
+			text::add_line(state, contents, "alice_only_host_speed");
 		} else {
-			text::add_line(state, contents, box, "topbar_pause_speed");
+			text::add_line(state, contents, "topbar_pause_speed");
 		}
 
 		auto ymd = state.current_date.to_ymd(state.start_date);
 		if(sys::is_leap_year(ymd.year)) {
-			text::add_line(state, contents, box, "topbar_date_leap");
+			text::add_line(state, contents, "topbar_date_leap");
 		} else {
-			text::add_line(state, contents, box, "topbar_date_not_leap");
+			text::add_line(state, contents, "topbar_date_not_leap");
 		}
 
 		float nh_temp = 15.f;
