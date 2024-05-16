@@ -2837,14 +2837,17 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 
 	if((bits & cb_flag::po_transfer_provinces) != 0) {
 		auto target_tag = state.world.nation_get_identity_from_identity_holder(target);
-		auto holder = state.world.national_identity_get_nation_from_identity_holder(wargoal_t);
-		if(!holder) {
-			holder = state.world.create_nation();
-			state.world.nation_set_identity_from_identity_holder(holder, wargoal_t);
-		}
-		auto lprovs = state.world.nation_get_province_ownership(holder);
-		if(lprovs.begin() == lprovs.end()) {
-			nations::create_nation_based_on_template(state, holder, from);
+		// No defined wargoal_t leads to defaulting to the from nation
+		dcon::nation_id holder = from;
+		if(wargoal_t) {
+			auto holder = state.world.national_identity_get_nation_from_identity_holder(wargoal_t);
+			if(!holder) {
+				holder = state.world.create_nation();
+				state.world.nation_set_identity_from_identity_holder(holder, wargoal_t);
+			}
+			if(auto lprovs = state.world.nation_get_province_ownership(holder); lprovs.begin() == lprovs.end()) {
+				nations::create_nation_based_on_template(state, holder, from);
+			}
 		}
 
 		add_truce(state, holder, target, 365);
