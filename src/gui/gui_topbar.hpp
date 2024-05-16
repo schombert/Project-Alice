@@ -941,7 +941,7 @@ public:
 			text::localised_format_box(state, contents, box, std::string_view("topbar_pause_speed"));
 		}
 
-		auto ymd = state.current_date.to_ymd();
+		auto ymd = state.current_date.to_ymd(state.start_date);
 		if(sys::is_leap_year(ymd.year)) {
 			text::localised_format_box(state, contents, box, std::string_view("topbar_date_leap"));
 		} else {

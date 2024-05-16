@@ -50,7 +50,7 @@ int32_t days_difference(year_month_day start, year_month_day end) {
 }
 
 bool is_leap_year(int16_t year) {
-	return (d.year % 400 == 0) || ((d.year % 4 == 0) && (d.year % 100 == 0));
+	return (year % 400 == 0) || ((year % 4 == 0) && (year % 100 == 0));
 }
 
 } // namespace sys
