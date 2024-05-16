@@ -934,20 +934,18 @@ public:
 		return tooltip_behavior::tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			text::localised_format_box(state, contents, box, std::string_view("alice_only_host_speed"));
+			text::add_line(state, contents, box, "alice_only_host_speed");
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("topbar_pause_speed"));
+			text::add_line(state, contents, box, "topbar_pause_speed");
 		}
 
 		auto ymd = state.current_date.to_ymd(state.start_date);
 		if(sys::is_leap_year(ymd.year)) {
-			text::localised_format_box(state, contents, box, std::string_view("topbar_date_leap"));
+			text::add_line(state, contents, box, "topbar_date_leap");
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("topbar_date_not_leap"));
+			text::add_line(state, contents, box, "topbar_date_not_leap");
 		}
-		text::close_layout_box(contents, box);
 
 		float nh_temp = 15.f;
 		std::string nh_season;
