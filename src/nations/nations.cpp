@@ -1321,6 +1321,14 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
+			notification::post(state, notification::message{
+				[o, n](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, n, text::variable_type::y, o);
+				},
+				"msg_rem_sphere_title",
+				n, o, dcon::nation_id{},
+				sys::message_base_type::rem_sphere
+			});
 			o.set_in_sphere_of(dcon::nation_id{});
 		}
 	}
