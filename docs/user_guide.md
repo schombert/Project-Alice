@@ -56,10 +56,12 @@ Please refer to this before opening a tech support ticket.
 - Shift-0, Shift-1, ..., Shift-9: Append select the units in control group #1, #2, ..., #9
 - Tilde (~): Open console
 - Arrow keys: Move on the map
+- WASD: Move the map (only if WASD movement is turned on in settings)
+- Holding shift + Arrow keys: Move faster on the map
+- Holding shift + WASD: Same thing but only if WASD is enabled
 - PgDown/PgUp: Zoom in and zoom out
 - Puase/Spacebar: Pause or unpause the game
 - Escape: Open up the main menu
-- WASD: Move the map (only if WASD movement is turned on in settings)
 - F1: Open production tab
 - F2: Open budget tab
 - F3: Open technology tab
