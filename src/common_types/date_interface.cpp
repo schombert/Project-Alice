@@ -49,4 +49,8 @@ int32_t days_difference(year_month_day start, year_month_day end) {
 	return days_from_civil(end.year, end.month, end.day) - days_from_civil(start.year, start.month, start.day);
 }
 
+bool is_leap_year(int16_t year) {
+	return (d.year % 400 == 0) || ((d.year % 4 == 0) && (d.year % 100 == 0));
+}
+
 } // namespace sys

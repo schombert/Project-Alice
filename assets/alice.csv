@@ -1635,8 +1635,16 @@ colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
 topbar_pause_speed;Pauses the game, click again to unpause
+topbar_date_leap;We're on a §Yleap§! year
+topbar_date_not_leap;We're on a §Ynormal§! year
+topbar_date_season_nh;Northern hemisphere season: §Y$x$§!
+topbar_date_season_sh;Southern hemisphere season: §Y$x$§!
+topbar_date_season_spring;Spring
+topbar_date_season_summer;Summer
+topbar_date_season_fall;Fall
+topbar_date_season_winter;Winter
 att_call_no_allies;You don't have any allies!
-att_truce_with;Truce with $text$ until $y$
+att_truce_with;Truce with $text$ until §Y$y$§!
 domestic_investment_label;Domestic investment:
 att_call_allies_effect;Call allies of this nation into its current wars
 modifier_min_domestic_investment;Minimum domestic investment rate

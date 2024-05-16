@@ -940,7 +940,44 @@ public:
 		} else {
 			text::localised_format_box(state, contents, box, std::string_view("topbar_pause_speed"));
 		}
+
+		auto ymd = state.current_date.to_ymd();
+		if(sys::is_leap_year(ymd.year)) {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_date_leap"));
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("topbar_date_not_leap"));
+		}
 		text::close_layout_box(contents, box);
+
+		float nh_temp = 15.f;
+		std::string nh_season;
+		if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+		} else if(ymd.month >= 3 && ymd.month <= 5) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+		} else if(ymd.month >= 6 && ymd.month <= 8) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+		} else if(ymd.month >= 9 && ymd.month <= 11) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+		}
+		text::add_line(state, contents, "topbar_date_season_nh", text::variable_type::x, std::string_view(nh_season));
+
+		std::string sh_season;
+		if(ymd.month >= 6 && ymd.month <= 8) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+		} else if(ymd.month >= 9 && ymd.month <= 11) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+		} else if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+		} else if(ymd.month >= 3 && ymd.month <= 5) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+		}
+		text::add_line(state, contents, "topbar_date_season_sh", text::variable_type::x, std::string_view(sh_season));
+
+		//auto r = ((float(rng::reduce(state.game_seed, 4096)) / 4096.f) * 8.f) - 4.f;
+		//float avg_temp = (nh_temp + sh_temp + r) / 2.f;
+		//text::add_line(state, contents, "topbar_date_temperature", text::variable_type::x, text::fp_two_places{ avg_temp }, text::variable_type::y, text::fp_two_places{ (avg_temp * (9.f / 5.f)) + 32.f });
+		//topbar_date_temperature;Average temperature: §Y$x$°C§! / §Y$y$°F§!
 	}
 };
 
