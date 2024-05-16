@@ -1014,8 +1014,6 @@ float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
 	return t != 0.f ? sum / t : 0.f;
 }
 
-inline constexpr float ideology_change_rate = 0.10f;
-
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf) {
 	/*
 	For ideologies after their enable date (actual discovery / activation is irrelevant), and not restricted to civs only for pops
@@ -1089,7 +1087,7 @@ void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, id
 				auto current = state.world.pop_get_demographics(ids, i_key);
 
 				state.world.pop_set_demographics(ids, i_key,
-						ve::select(ttotal > 0.0f, ideology_change_rate * avalue + (1.0f - ideology_change_rate) * current, current));
+					ve::select(ttotal > 0.0f, state.defines.alice_ideology_base_change_rate * avalue + (1.0f - state.defines.alice_ideology_base_change_rate) * current, current));
 			});
 		}
 	});
