@@ -123,11 +123,6 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::decision_id>(state, parent);
 		disabled = !command::can_take_decision(state, state.local_player_nation, content);
-		/*
-		auto condition = state.world.decision_get_allow(id);
-		disabled = condition && !trigger::evaluate(state, condition, trigger::to_generic(state.local_player_nation),
-		trigger::to_generic(state.local_player_nation), 0);
-		*/
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -147,8 +142,8 @@ public:
 		auto ef = fat_id.get_effect();
 		if(bool(ef))
 			effect_description(state, contents, ef, trigger::to_generic(state.local_player_nation),
-					trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
-					uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
+				trigger::to_generic(state.local_player_nation), -1, uint32_t(state.current_date.value),
+				uint32_t(state.local_player_nation.index() << 4 ^ id.index()));
 	}
 
 };
@@ -329,8 +324,12 @@ private:
 		auto n = state.local_player_nation;
 		for(uint32_t i = state.world.decision_size(); i-- > 0;) {
 			dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
-			auto lim = state.world.decision_get_potential(did);
-			if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+			if(!state.cheat_data.always_potential_decisions) {
+				auto lim = state.world.decision_get_potential(did);
+				if(!lim || trigger::evaluate(state, lim, trigger::to_generic(n), trigger::to_generic(n), 0)) {
+					list.push_back(did);
+				}
+			} else {
 				list.push_back(did);
 			}
 		}

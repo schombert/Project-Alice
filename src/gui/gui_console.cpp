@@ -44,6 +44,8 @@ struct command_info {
 		toggle_ai,
 		always_allow_wargoals,
 		always_allow_reforms,
+		always_allow_decisions,
+		always_potential_decisions,
 		always_accept_deals,
 		complete_constructions,
 		instant_research,
@@ -181,6 +183,12 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}}, */
 		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"dida", command_info::type::always_allow_decisions, "Always allow taking decisions",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"didp", command_info::type::always_potential_decisions, "Always showing all decisions",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"cc", command_info::type::complete_constructions, "Complete all current constructions",
@@ -1835,6 +1843,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::always_allow_reforms:
 		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
 		command::c_always_allow_reforms(state, state.local_player_nation);
+		break;
+	case command_info::type::always_allow_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "\x02" : "\x01");
+		command::c_always_allow_decisions(state, state.local_player_nation);
+		break;
+	case command_info::type::always_potential_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "\x02" : "\x01");
+		command::c_always_potential_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
 		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
