@@ -2016,16 +2016,12 @@ void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id 
 	add_to_command_queue(state, p);
 }
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
-	{
-		if(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_potential_decisions)
-			return true;
+	if(!(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_potential_decisions)) {
 		auto condition = state.world.decision_get_potential(d);
 		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
 			return false;
 	}
-	{
-		if(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_allow_decisions)
-			return true;
+	if(!(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_allow_decisions)) {
 		auto condition = state.world.decision_get_allow(d);
 		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
 			return false;
