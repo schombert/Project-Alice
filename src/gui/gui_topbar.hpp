@@ -931,7 +931,7 @@ public:
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
