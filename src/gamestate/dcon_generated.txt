@@ -4516,6 +4516,11 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ allow_multiple_instances }
+		type{ bitfield }
+		tag{ scenario }
+	}
 }
 
 object {

@@ -448,6 +448,20 @@ struct event_prov_pair {
 	}
 };
 
+bool would_be_duplicate_instance(sys::state& state, dcon::national_event_id e, dcon::nation_id n, sys::date date) {
+	if(state.world.national_event_get_allow_multiple_instances(e))
+		return false;
+	for(int32_t i = 0; i < int32_t(state.future_n_event.size()); i++) {
+		auto const& nev = state.future_n_event[i];
+		if(nev.e == e
+		&& nev.n == n
+		&& nev.date == date) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void update_future_events(sys::state& state) {
 	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
 		bool fired_n = false;

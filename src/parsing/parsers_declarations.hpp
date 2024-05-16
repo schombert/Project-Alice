@@ -2241,6 +2241,7 @@ struct generic_event {
 	dcon::effect_key immediate_;
 	bool major = false;
 	bool fire_only_once = false;
+	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
 	dcon::text_sequence_id title_;
 	dcon::text_sequence_id desc_;
