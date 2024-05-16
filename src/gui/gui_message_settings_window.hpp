@@ -400,7 +400,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(state.ui_state.menubar_window)
 			state.ui_state.menubar_window->impl_on_update(state);
-		generic_close_button::on_update(state);
+		generic_close_button::button_action(state);
 	}
 };
 
