@@ -46,6 +46,37 @@ Please refer to this before opening a tech support ticket.
 
 **Missing audio/music**: You may lack the proper MP3 decoders to playback the MP3 files, consider using [The Codec Guide](https://codecguide.com/download_kl.htm) or, if that fails, [LAV Filters](https://github.com/Nevcairiel/LAVFilters/releases/download/0.79.2/LAVFilters-0.79.2-Installer.exe)
 
+## Controls
+
+- Drag mouse: This will show a drag box with a white outline, selecting units, prioritizing armies over navies
+- Hold Ctrl while dragging mouse: Prioritize navies over armies
+- HOME: Go to your capital
+- Ctrl-0, Ctrl-1, ..., Ctrl-9: Add units to the control group #1, #2, ..., #9. Will show in outliner between parenthesis for the unit, one unit may be on multiple groups
+- 0, 1, ..., 9: Select the units in control group #1, #2, ..., #9
+- Shift-0, Shift-1, ..., Shift-9: Append select the units in control group #1, #2, ..., #9
+- Tilde (~): Open console
+- Arrow keys: Move on the map
+- PgDown/PgUp: Zoom in and zoom out
+- Puase/Spacebar: Pause or unpause the game
+- Escape: Open up the main menu
+- WASD: Move the map (only if WASD movement is turned on in settings)
+- F1: Open production tab
+- F2: Open budget tab
+- F3: Open technology tab
+- F4: Open politics tab
+- F5: Open population tab
+- F6: Open trade tab
+- F7: Open diplomacy tab
+- F8: Open military tab
+- F9: Open ledger
+- F10: Open macro builder
+- Numpad +: Increase speed
+- Numpad -: Decrease speed
+- s: Split unit
+- r: Reorganize unit (create new unit from existing)
+
+Other controls are described directly on the tooltip (for example, right clicking to add a technology to the queue).
+
 ## Multiplayer Instructions
 
 ### Joining a game
