@@ -2460,24 +2460,43 @@ void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, 
 }
 
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
-		auto locs = state.world.pop_get_province_from_pop_location(ids);
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
-					if(pbuf.amounts.get(p) > 0.0f) {
-						//auto o = nations::owner_of_pop(state, p);
-						auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
-						auto rel = dac
-							? state.world.nation_get_religion(nations::owner_of_pop(state, p))
-							: state.world.province_get_dominant_religion(l);
-						assert(state.world.pop_get_poptype(p));
-						auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), state.world.pop_get_literacy(p));
-						state.world.pop_get_size(p) -= pbuf.amounts.get(p);
-						state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
-					}
-				},
-				ids, locs, state.world.province_get_dominant_accepted_culture(locs));
-	});
+	if(bool(state.defines.alice_nurture_religion_assimilation)) {
+		auto exec_fn = [&](auto ids) {
+			auto locs = state.world.pop_get_province_from_pop_location(ids);
+			ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
+				if(pbuf.amounts.get(p) > 0.0f) {
+					//auto o = nations::owner_of_pop(state, p);
+					auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
+					auto rel = state.world.pop_get_religion(p);
+					assert(state.world.pop_get_poptype(p));
+					auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), state.world.pop_get_literacy(p));
+					state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+					state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				}
+			},
+			ids, locs, state.world.province_get_dominant_accepted_culture(locs));
+		};
+		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), exec_fn);
+	} else {
+		auto exec_fn = [&](auto ids) {
+			auto locs = state.world.pop_get_province_from_pop_location(ids);
+			ve::apply([&](dcon::pop_id p, dcon::province_id l, dcon::culture_id dac) {
+				if(pbuf.amounts.get(p) > 0.0f) {
+					//auto o = nations::owner_of_pop(state, p);
+					auto cul = dac ? dac : state.world.province_get_dominant_culture(l);
+					auto rel = dac
+						? state.world.nation_get_religion(nations::owner_of_pop(state, p))
+						: state.world.province_get_dominant_religion(l);
+					assert(state.world.pop_get_poptype(p));
+					auto target_pop = impl::find_or_make_pop(state, l, cul, rel, state.world.pop_get_poptype(p), state.world.pop_get_literacy(p));
+					state.world.pop_get_size(p) -= pbuf.amounts.get(p);
+					state.world.pop_get_size(target_pop) += pbuf.amounts.get(p);
+				}
+			},
+			ids, locs, state.world.province_get_dominant_accepted_culture(locs));
+			};
+		execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), exec_fn);
+	}
 }
 
 void apply_conversion(sys::state& state, uint32_t offset, uint32_t divisions, conversion_buffer& pbuf) {
