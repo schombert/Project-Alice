@@ -2315,7 +2315,6 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 
 	if(military::are_at_war(state, asker, target))
 		return false;
-
 	return true;
 }
 void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
