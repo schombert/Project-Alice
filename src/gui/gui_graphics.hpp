@@ -422,6 +422,7 @@ struct state {
 	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
+	element_base* menubar_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
 	element_base* r_chat_window = nullptr;

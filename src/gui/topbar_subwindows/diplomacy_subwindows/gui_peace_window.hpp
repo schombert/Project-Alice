@@ -356,9 +356,7 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::war_id>()) {
-			Cyto::Any n_payload = dcon::nation_id{};
-			parent->impl_get(state, n_payload);
-			const dcon::nation_id n = any_cast<dcon::nation_id>(n_payload);
+			const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 			const dcon::war_id w = military::find_war_between(state, state.local_player_nation, n);
 			payload.emplace<dcon::war_id>(w);
 			return message_result::consumed;
@@ -398,7 +396,6 @@ public:
 				if(twg.added) {
 					auto wg = fatten(state.world, twg.wg);
 					if(military::get_role(state, war, wg.get_added_by()) == (attacker_filter ? military::war_role::attacker : military::war_role::defender)) {
-
 						total += military::peace_cost(state, war, wg.get_type(), wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 					}
 				}
@@ -409,23 +406,18 @@ public:
 		} else if(payload.holds_type<send_offer>()) {
 			auto target = retrieve<dcon::nation_id>(state, parent);
 			auto war = military::find_war_between(state, state.local_player_nation, target);
-
 			command::start_peace_offer(state, state.local_player_nation, target, war, is_concession);
-
 			bool attacker_filter = (military::is_attacker(state, war, state.local_player_nation) != is_concession);
 			for(auto& twg : wargoals) {
 				if(twg.added) {
 					auto wg = fatten(state.world, twg.wg);
 					if(military::get_role(state, war, wg.get_added_by()) == (attacker_filter ? military::war_role::attacker : military::war_role::defender)) {
-
 						command::add_to_peace_offer(state, state.local_player_nation, twg.wg);
 					}
 				}
 			}
-
 			command::send_peace_offer(state, state.local_player_nation);
 			set_visible(state, false);
-
 			return message_result::consumed;
 		} else if(payload.holds_type<test_acceptance>()) { // test_acceptance
 			auto target = retrieve<dcon::nation_id>(state, parent);
