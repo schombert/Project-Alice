@@ -598,10 +598,7 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		float total_invest = 0.f;
-		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			total_invest += ur.get_foreign_investment();
-		}
+		float total_invest = nations::get_foreign_investment(state, n);
 		if(total_invest > 0.f) {
 			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
 			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
