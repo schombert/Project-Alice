@@ -253,7 +253,7 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "dmap", command_info::type::dump_map, "Dumps the map in a MS Paint friendly format",
-				{command_info::argument_info{}, command_info::argument_info{},
+				{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
 			{command_info::argument_info{}, command_info::argument_info{},
@@ -2004,13 +2004,53 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::dump_map:
 	{
+		bool opt_sea_lines = true;
+		bool opt_province_lines = true;
+		bool opt_blend = true;
+		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
+			log_to_console(state, parent, "Valid options: nosealine, noblend, nosealine2");
+			log_to_console(state, parent, "Ex: \"dmap nosealine2\"");
+			break;
+		}
+		auto type = std::get<std::string>(pstate.arg_slots[0]);
+		if(type == "nosealine") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+		} else if(type == "noblend") {
+			opt_blend = false;
+		} else if(type == "nosealine2") {
+			opt_sea_lines = false;
+		}
+
 		auto total_px = state.map_state.map_data.size_x * state.map_state.map_data.size_y;
 		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_px * 3]);
+		auto blend_fn = [&](uint32_t idx, bool sea_a, bool sea_b, dcon::province_id pa, dcon::province_id pb) {
+			if(sea_a != sea_b) {
+				buffer[idx * 3 + 0] = 0;
+				buffer[idx * 3 + 1] = 0;
+				buffer[idx * 3 + 2] = 0;
+			}
+			if(pa != pb) {
+				if(opt_sea_lines
+				|| !sea_a && sea_b
+				|| (opt_province_lines && !sea_a && !sea_b)) {
+					if(opt_blend) {
+						buffer[idx * 3 + 0] &= 0x7f;
+						buffer[idx * 3 + 1] &= 0x7f;
+						buffer[idx * 3 + 2] &= 0x7f;
+					} else {
+						buffer[idx * 3 + 0] = 0;
+						buffer[idx * 3 + 1] = 0;
+						buffer[idx * 3 + 2] = 0;
+					}
+				}
+			}
+		};
 		for(uint32_t y = 0; y < uint32_t(state.map_state.map_data.size_y); y++) {
 			for(uint32_t x = 0; x < uint32_t(state.map_state.map_data.size_x); x++) {
 				auto idx = y * uint32_t(state.map_state.map_data.size_x) + x;
 				auto p = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
-				bool p_is_sea = p.value >= state.province_definitions.first_sea_province.value;
+				bool p_is_sea = state.map_state.map_data.province_id_map[idx] >= province::to_map_id(state.province_definitions.first_sea_province);
 				if(p_is_sea) {
 					buffer[idx * 3 + 0] = 128;
 					buffer[idx * 3 + 1] = 128;
@@ -2032,30 +2072,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					auto br_idx = idx + uint32_t(state.map_state.map_data.size_x);
 					if(br_idx < total_px) {
 						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[br_idx]);
-						bool br_is_sea = br_p.value >= state.province_definitions.first_sea_province.value;
-						if(br_is_sea != p_is_sea) {
-							buffer[idx * 3 + 0] = 0;
-							buffer[idx * 3 + 1] = 0;
-							buffer[idx * 3 + 2] = 0;
-						} else if(br_p != p) {
-							buffer[idx * 3 + 0] &= 0x7f;
-							buffer[idx * 3 + 1] &= 0x7f;
-							buffer[idx * 3 + 2] &= 0x7f;
-						}
+						bool br_is_sea = state.map_state.map_data.province_id_map[br_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
 					}
 					auto rs_idx = idx + 1;
 					if(rs_idx < total_px) {
 						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[rs_idx]);
-						bool br_is_sea = br_p.value >= state.province_definitions.first_sea_province.value;
-						if(br_is_sea != p_is_sea) {
-							buffer[idx * 3 + 0] = 0;
-							buffer[idx * 3 + 1] = 0;
-							buffer[idx * 3 + 2] = 0;
-						} else if(br_p != p) {
-							buffer[idx * 3 + 0] &= 0x3f;
-							buffer[idx * 3 + 1] &= 0x3f;
-							buffer[idx * 3 + 2] &= 0x3f;
-						}
+						bool br_is_sea = state.map_state.map_data.province_id_map[br_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
 					}
 				}
 			}
