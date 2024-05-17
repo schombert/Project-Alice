@@ -1,5 +1,5 @@
 national_identity_file
-	dynamic_tags   value      none       discard
+	dynamic_tags   value      bool       member_fn
 	#any           value      text       member_fn
 
 color_from_3f

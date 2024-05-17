@@ -1838,3 +1838,21 @@ Has to be our vassal, and not be at war.
 #### Effect
 
 Makes them no longer our vassal - alliances are kept through.
+
+## Dominions
+
+Dominions will appear only on:
+
+- Colonial states
+- Owned by nation
+- Controlled by onwer
+
+There must be a state selected for them by the user, in the original game, the state was random, this is terrible, the user should be able to say which state they want it on.
+
+Once liberated, the dominions will receive any provinces that:
+
+- Are colonial
+- Are owned by nation
+- Are controlled by nation
+
+The `$REGION$` substitution, will take the state definition from the capital of the dominion, and use the name of said region for the substitution in the name.

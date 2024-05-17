@@ -57,6 +57,7 @@ struct global_national_state {
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
 
 	dcon::nation_id rebel_id;
+	dcon::national_identity_id first_dynamic_tag;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -353,6 +354,7 @@ void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace);
 void accept_crisis_peace_offer(sys::state& state, dcon::nation_id from, dcon::nation_id to, dcon::peace_offer_id peace);
 
 void update_pop_acceptance(sys::state& state, dcon::nation_id n);
+void liberate_dominion_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from, dcon::state_definition_id sdef);
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from);
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated,
 		dcon::nation_id from); // difference from liberate: only non-cores can be lost with release

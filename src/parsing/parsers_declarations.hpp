@@ -405,6 +405,7 @@ struct scenario_building_context {
 };
 
 struct national_identity_file {
+	void national_identity_file::dynamic_tags(association_type, bool v, error_handler & err, int32_t line, scenario_building_context & context);
 	void any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err, int32_t line,
 			scenario_building_context& context);
 	void finish(scenario_building_context& context) { }

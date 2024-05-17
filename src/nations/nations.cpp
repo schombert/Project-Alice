@@ -190,8 +190,8 @@ void generate_initial_state_instances(sys::state& state) {
 
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
 	auto target_nation = state.world.national_identity_get_nation_from_identity_holder(releasable);
-	if(!state.world.national_identity_get_is_not_releasable(releasable) &&
-			state.world.nation_get_owned_province_count(target_nation) == 0) {
+	if(!state.world.national_identity_get_is_not_releasable(releasable)
+	&& state.world.nation_get_owned_province_count(target_nation) == 0) {
 		bool owns_a_core = false;
 		bool not_on_capital = true;
 		state.world.national_identity_for_each_core(releasable, [&](dcon::core_id core) {
@@ -200,9 +200,8 @@ bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::nat
 			not_on_capital &= state.world.nation_get_capital(n) != province;
 		});
 		return owns_a_core && not_on_capital && !state.world.nation_get_is_at_war(n);
-	} else {
-		return false;
 	}
+	return false;
 }
 
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident) {
@@ -2614,6 +2613,34 @@ void update_pop_acceptance(sys::state& state, dcon::nation_id n) {
 	}
 }
 
+void liberate_dominion_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from, dcon::state_definition_id sdef) {
+	if(!liberated)
+		return;
+	auto holder = state.world.national_identity_get_nation_from_identity_holder(liberated);
+	if(!holder) {
+		holder = state.world.create_nation();
+		state.world.nation_set_identity_from_identity_holder(holder, liberated);
+	}
+	auto lprovs = state.world.nation_get_province_ownership(holder);
+	if(lprovs.begin() == lprovs.end()) {
+		nations::create_nation_based_on_template(state, holder, from);
+	}
+	if(liberated.value >= state.national_definitions.first_dynamic_tag.value) {
+		for(const auto po : state.world.state_definition_get_abstract_state_membership(sdef)) {
+			if(po.get_province().get_province_ownership().get_nation() == from
+			&& po.get_province().get_province_control().get_nation() == from
+			&& po.get_province() != state.world.nation_get_capital(from)
+			&& po.get_province().get_is_colonial()) {
+				province::change_province_owner(state, po.get_province(), holder);
+			}
+		}
+	}
+	state.world.nation_set_capital(holder, province::pick_capital(state, holder));
+	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
+		state.world.nation_set_capital(from, province::pick_capital(state, from));
+	}
+}
+
 void liberate_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
 	if(!liberated)
 		return;
@@ -2626,6 +2653,7 @@ void liberate_nation_from(sys::state& state, dcon::national_identity_id liberate
 	if(lprovs.begin() == lprovs.end()) {
 		nations::create_nation_based_on_template(state, holder, from);
 	}
+
 	for(auto c : state.world.national_identity_get_core(liberated)) {
 		if(c.get_province().get_nation_from_province_ownership() == from) {
 			province::change_province_owner(state, c.get_province(), holder);
