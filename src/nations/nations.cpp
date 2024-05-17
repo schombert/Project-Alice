@@ -1632,7 +1632,7 @@ void update_influence(sys::state& state) {
 					float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target()))
 																			? state.defines.neighbour_bonus_influence_percent
 																			: 0.0f;
-					float sphere_neighbor_factor = has_sphere_neighbor(state, n, target)
+					float sphere_neighbor_factor = nations::has_sphere_neighbour(state, n, rel.get_influence_target())
 						? state.defines.sphere_neighbour_bonus_influence_percent
 						: 0.0f;
 					float continent_factor = n.get_capital().get_continent() != rel.get_influence_target().get_capital().get_continent()
