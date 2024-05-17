@@ -1207,8 +1207,7 @@ float font_manager::text_extent(sys::state& state, char const* codepoints, uint3
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
 	} else {
-		return float(
-				fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
+		return float(fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
 	}
 }
 

@@ -135,20 +135,16 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language) {
 	auto to_lower_temp = lowercase_str(key);
 	auto sequence_record = create_text_sequence(state, content);
 
+	const auto nh = state.languages[language].text_sequences.size();
+	state.languages[language].text_sequences.push_back(sequence_record);
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-		// maybe report an error here -- repeated definition
-		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
-		//leave previous in place
-		//state.text_sequences[it->second] = sequence_record;
+		//err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
 		return it->second;
 	} else {
-		const auto nh = state.text_sequences.size();
-		state.text_sequences.push_back(sequence_record);
-
 		auto main_key = state.add_to_pool_lowercase(key);
 		dcon::text_sequence_id new_k{ dcon::text_sequence_id::value_base_t(nh) };
 		state.key_to_text_sequence.insert_or_assign(main_key, new_k);
@@ -156,19 +152,27 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	}
 }
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
+void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
 	auto start = (file_size != 0 && file_content[0] == '#')
-									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
-									 : file_content;
+		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
+		: file_content;
 	while(start < file_content + file_size) {
-		start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';',
-				[&state, &err](std::string_view key, std::string_view content) {
-					create_text_entry(state, key, content, err);
-				});
+		auto parse_fn = [&state, &err](std::string_view key, std::string_view content, uint32_t column) {
+			create_text_entry(state, key, content, err, column);
+		};
+		start = parsers::parse_first_and_fixed_amount_csv_values<6>(start, file_content + file_size, ';', parse_fn);
+	}
+	//Normalize all text sequences
+	uint32_t seq_size = 0;
+	for(const auto& l : state.languages) {
+		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
+	}
+	for(auto& l : state.languages) {
+		l.text_sequences.resize(size_t(seq_size));
 	}
 }
 
-void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
+void load_text_data(sys::state& state, parsers::error_handler& err) {
 	auto root_dir = get_root(state.common_fs);
 
 	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
@@ -176,7 +180,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err);
 		}
 	}
 	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
@@ -184,7 +188,7 @@ void load_text_data(sys::state& state, uint32_t language, parsers::error_handler
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err);
 		}
 	}
 }
@@ -684,10 +688,10 @@ char16_t win1250toUTF16(char in) {
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id) {
 	std::string result;
 
-	if(!id)
+	if(!id || size_t(id.value) >= state.languages[state.user_settings.current_language].text_sequences.size())
 		return result;
 
-	auto& seq = state.text_sequences[id];
+	auto& seq = state.languages[state.user_settings.current_language].text_sequences[id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
 		if(state.text_components[i + seq.starting_component].type == text::text_component_type::text_key) {
@@ -724,7 +728,11 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
-		return create_text_entry(state, local_key_copy, txt, err);
+		dcon::text_sequence_id seq{};
+		for(uint32_t i = 0; i < uint32_t(state.languages.size()); i++) {
+			seq = create_text_entry(state, local_key_copy, txt, err, i);
+		}
+		return seq;
 	}
 	return key;
 }
@@ -1282,7 +1290,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
-	auto seq = state.text_sequences[source_text];
+	auto seq = state.languages[state.user_settings.current_language].text_sequences[source_text];
 	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
 		if(state.text_components[i].type == text::text_component_type::text_key) {
 			auto tkey = state.text_components[i].data.text_key;
@@ -1622,7 +1630,7 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 	std::string result;
 
 	if(source_text) {
-		auto seq = state.text_sequences[source_text];
+		auto seq = state.languages[state.user_settings.current_language].text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
 			if(state.text_components[i].type == text::text_component_type::text_key) {
 				auto tkey = state.text_components[i].data.text_key;

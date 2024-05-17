@@ -42,6 +42,7 @@ struct command_info {
 		force_ally,
 		win_wars,
 		toggle_ai,
+		change_language,
 		always_allow_wargoals,
 		always_allow_reforms,
 		always_allow_decisions,
@@ -176,6 +177,9 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"tai", command_info::type::toggle_ai, "Toggles ON/OFF AI for countries",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"lang", command_info::type::change_language, "Change language",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		/* doesn't work, removed until someone fixes it
@@ -1794,10 +1798,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			ptr_in = sys::serialize(ptr_in, state.text_components);
 			return ptr_in;
 		});
-		write_single_component(state, NATIVE("text_sequences.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_sequences);
-			return ptr_in;
-		});
 		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
 			return ptr_in;
@@ -1835,6 +1835,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::toggle_ai:
 		for(auto n : state.world.in_nation)
 			command::c_toggle_ai(state, state.local_player_nation, n);
+		break;
+	case command_info::type::change_language:
+		state.user_settings.current_language++;
 		break;
 	case command_info::type::always_allow_wargoals:
 		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");

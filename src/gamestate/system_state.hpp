@@ -387,6 +387,7 @@ struct user_settings_s {
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
 	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
+	uint32_t current_language = 3;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -481,9 +482,8 @@ struct alignas(64) state {
 
 	std::vector<char> text_data; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components;
-	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
-			key_to_text_sequence;
+	std::array<text::language_table, sys::max_languages> languages;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
