@@ -858,7 +858,7 @@ war_goal_6;If we occupy §Y$x$§! of the the provinces, we will gain §Y$y$§! ticki
 war_goal_7;We have a grace period of §Y$x$§! days to occupy, otherwise we will lose §Y$y$§! ticking war score daily
 war_goal_8;War started in §Y$x$§!, we should fullfill by §Y$y$§!, before the grace period §Rruns out§!
 war_goal_9;The grace period §Rhas ran out§! (period was from §Y$x$§! to §Y$y$§!)
-war_goal_8;Secondary tag: $x$
+war_goal_10;Secondary tag: $x$
 utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
 utt_noleader;no leader;;;
 war_score_1;From occupation: $x$

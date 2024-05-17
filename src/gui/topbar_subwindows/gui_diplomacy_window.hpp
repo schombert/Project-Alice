@@ -1574,7 +1574,7 @@ public:
 			text::add_line(state, contents, "war_goal_3", text::variable_type::x, state.world.wargoal_get_associated_state(wg));
 		}
 		if(state.world.wargoal_get_associated_tag(wg)) {
-			text::add_line(state, contents, "war_goal_8", text::variable_type::x, state.world.wargoal_get_associated_tag(wg));
+			text::add_line(state, contents, "war_goal_10", text::variable_type::x, state.world.wargoal_get_associated_tag(wg));
 		} else if(state.world.wargoal_get_secondary_nation(wg)) {
 			text::add_line(state, contents, "war_goal_4", text::variable_type::x, state.world.wargoal_get_secondary_nation(wg));
 		}
