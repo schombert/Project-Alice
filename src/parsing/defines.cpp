@@ -8,6 +8,22 @@
 
 void parsing::defines::assign_define(sys::state& state, int32_t line, std::string_view text, float v,
 		parsers::error_handler& err) {
+	if(text.empty())
+		return;
+	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "ai")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "economy")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "military")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "diplomacy")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "defines")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "alice")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "pops")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "country")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "graphics")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "{")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "}")
+	|| parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), "},"))
+		return;
+	
 #define LUA_DEFINES_LIST_ELEMENT(key, const_value) \
 	if(parsers::is_fixed_token_ci(text.data(), text.data() + text.length(), #key)) { key = v; return; }
 	LUA_DEFINES_LIST
