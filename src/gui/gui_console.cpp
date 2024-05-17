@@ -2061,9 +2061,9 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			}
 		}
 		stbi_flip_vertically_on_write(true);
-		auto func = [](void* context, void* data, int size) -> void {
+		auto func = [](void*, void* ptr_in, int size) -> void {
 			auto sdir = simple_fs::get_or_create_oos_directory();
-			simple_fs::write_file(sdir, NATIVE("map.png"), static_cast<const char*>(data), uint32_t(size));
+			simple_fs::write_file(sdir, NATIVE("map.png"), static_cast<const char*>(ptr_in), uint32_t(size));
 		};
 		stbi_write_png_to_func(func, nullptr, int(state.map_state.map_data.size_x), int(state.map_state.map_data.size_y), 3, buffer.get(), 0);
 		break;
