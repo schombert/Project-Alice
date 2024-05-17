@@ -491,6 +491,7 @@ public:
 						continue;
 					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
 					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					used += int32_t(p.get_pop().get_province_land_construction_as_pop().end() - p.get_pop().get_province_land_construction_as_pop().begin());
 					int32_t avail = possible - used;
 					if(possible > 0 && avail > 0) {
 						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
@@ -583,6 +584,7 @@ public:
 						continue;
 					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
 					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					used += int32_t(p.get_pop().get_province_land_construction_as_pop().end() - p.get_pop().get_province_land_construction_as_pop().begin());
 					int32_t avail = possible - used;
 					if(possible > 0 && avail > 0) {
 						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
