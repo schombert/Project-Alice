@@ -3066,7 +3066,8 @@ void run_gc(sys::state& state) {
 		}
 		bool non_sq_war_goal = false;
 		for(auto wg : w.get_wargoals_attached()) {
-			if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_status_quo) != 0) {
+			// Has to truly be a status quo, not a pseudo status quo like the american cb on GFM
+			if(wg.get_wargoal().get_type().get_type_bits() == cb_flag::po_status_quo) {
 				// ignore status quo
 			} else {
 				non_sq_war_goal = true;
