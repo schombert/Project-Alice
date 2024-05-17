@@ -1620,12 +1620,9 @@ void update_influence(sys::state& state) {
 					if(base_shares <= 0.0f)
 						continue; // skip calculations for priority zero nations
 
-					float total_fi = 0.0f;
-					for(auto i : rel.get_influence_target().get_unilateral_relationship_as_target()) {
-						total_fi += i.get_foreign_investment();
-					}
+					float total_fi = nations::get_foreign_investment(state, rel.get_influence_target());
 					auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
-							state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
+						state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
 
 					float discredit_factor =
 							(rel.get_status() & influence::is_discredited) != 0 ? state.defines.discredit_influence_gain_factor : 0.0f;
