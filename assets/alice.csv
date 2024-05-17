@@ -1549,18 +1549,20 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
-alice_shortcut_tooltip;Shortcut: §Y$x$§W
-alice_filter_all;Show §Yall§W relevant nations.
-alice_filter_allies;Filter by nations we have an §Yalliance§W with.
-alice_filter_allies_right;§YRight-click§W to filter by nations which want to ally us.
-alice_filter_enemies;Filter by nations that are either §Yenemies or at war with us§W.
-alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§W.
-alice_filter_neighbors;Filter by nations we share a §Yborder§W with.
-alice_filter_best_guess;Filter using a §Ybest guess§W by relevancy, this includes all §Yallies§W, §Yenemies§W, §Yspherelings§W and nations we share a §Yborder§W with.
-alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§W.
-alice_invention_chance;The chance of discovering this §Yinvention§W are as follows:
-is_primary_culture;§Y$NAME$§W is primary culture.
-is_primary_religion;§Y$NAME$§W is primary religion.
+alice_shortcut_tooltip;Shortcut: §Y$x$§!
+alice_filter_all;Show §Yall§! relevant nations.
+alice_filter_allies;Filter by nations we have an §Yalliance§! with.
+alice_filter_allies_right;§YRight-click§! to filter by nations which want to ally us.
+alice_filter_enemies;Filter by nations that are either §Yenemies or at war with us§!.
+alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§!.
+alice_filter_sphere_right;§YRight-click§! to filter by nations which we are influencing but not on our sphere.
+alice_filter_neighbors;Filter by nations we share a §Yborder§! with.
+alice_filter_neighbors_right;§YRight-click§! to filter by nations we share a §Yborder§! and are not §Yvassals§!.
+alice_filter_best_guess;Filter using a §Ybest guess§! by relevancy, this includes all §Yallies§!, §Yenemies§!, §Yspherelings§! and nations we share a §Yborder§! with.
+alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§!.
+alice_invention_chance;The chance of discovering this §Yinvention§! are as follows:
+is_primary_culture;§Y$NAME$§! is the primary culture.
+is_primary_religion;§Y$NAME$§! is the primary religion.
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
