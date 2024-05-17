@@ -2008,7 +2008,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		bool opt_province_lines = true;
 		bool opt_blend = true;
 		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
-			log_to_console(state, parent, "Valid options: nosealine, noblend, nosealine2");
+			log_to_console(state, parent, "Valid options: nosealine, noblend, nosealine2, blendnosea, vanilla");
 			log_to_console(state, parent, "Ex: \"dmap nosealine2\"");
 			break;
 		}
@@ -2020,6 +2020,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			opt_blend = false;
 		} else if(type == "nosealine2") {
 			opt_sea_lines = false;
+		} else if(type == "blendnosea") {
+			opt_sea_lines = false;
+			opt_blend = false;
+		} else if(type == "vanilla") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+			opt_blend = false;
 		}
 
 		auto total_px = state.map_state.map_data.size_x * state.map_state.map_data.size_y;
@@ -2031,8 +2038,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				buffer[idx * 3 + 2] = 0;
 			}
 			if(pa != pb) {
-				if(opt_sea_lines
-				|| !sea_a && sea_b
+				if(((sea_a || sea_b) && opt_sea_lines)
+				|| sea_a != sea_b
 				|| (opt_province_lines && !sea_a && !sea_b)) {
 					if(opt_blend) {
 						buffer[idx * 3 + 0] &= 0x7f;
@@ -2078,7 +2085,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					auto rs_idx = idx + 1;
 					if(rs_idx < total_px) {
 						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[rs_idx]);
-						bool br_is_sea = state.map_state.map_data.province_id_map[br_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						bool br_is_sea = state.map_state.map_data.province_id_map[rs_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
 						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
 					}
 				}
