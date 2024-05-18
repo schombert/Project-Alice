@@ -395,6 +395,15 @@ enum class message_settings_category : uint8_t {
 	all, combat, diplomacy, units, provinces, events, others, count
 };
 
+class message_log_close_button : public generic_close_button {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.menubar_window)
+			state.ui_state.menubar_window->impl_on_update(state);
+		generic_close_button::button_action(state);
+	}
+};
+
 template<message_settings_category Filter>
 class message_log_filter_checkbox : public checkbox_button {
 	static std::string_view get_filter_text_key(message_settings_category f) noexcept {

@@ -3602,7 +3602,7 @@ uint32_t ef_this_remove_casus_belli_tag(EFFECT_PARAMTERS) {
 uint32_t ef_this_remove_casus_belli_int(EFFECT_PARAMTERS) {
 	auto type = trigger::payload(tval[1]).cb_id;
 
-	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::payload(tval[1]).prov_id);
+	auto holder = ws.world.province_get_nation_from_province_ownership(trigger::payload(tval[2]).prov_id);
 	if(holder) {
 		auto cbs = ws.world.nation_get_available_cbs(holder);
 		for(uint32_t i = cbs.size(); i-- > 0;) {
@@ -3788,17 +3788,28 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 		return 0;
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
-	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
+	if(target == trigger::to_nation(primary_slot))
 		return 0;
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
+	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
+	if(!war) {
+		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
 			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
-	if(trigger::payload(tval[2]).cb_id) {
+	} else {
+		if(trigger::payload(tval[5]).cb_id) { //attacker
+			military::add_wargoal(ws, war, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
+				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
+				trigger::payload(tval[7]).tag_id,
+				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
+		}
+	}
+	if(trigger::payload(tval[2]).cb_id) { //defender
 		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[2]).cb_id,
-				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id),
-				trigger::payload(tval[4]).tag_id,
-				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
+			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id),
+			trigger::payload(tval[4]).tag_id,
+			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	military::call_attacker_allies(ws, war);
@@ -3808,17 +3819,28 @@ uint32_t ef_war_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
-	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
+	if(target == trigger::to_nation(primary_slot))
 		return 0;
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
+	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
+	if(!war) {
+		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
 			trigger::payload(tval[6]).tag_id,
 			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
-	if(trigger::payload(tval[1]).cb_id) {
+	} else {
+		if(trigger::payload(tval[4]).cb_id) { //attacker
+			military::add_wargoal(ws, war, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
+				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
+				trigger::payload(tval[6]).tag_id,
+				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
+		}
+	}
+	if(trigger::payload(tval[1]).cb_id) { //defender
 		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[1]).cb_id,
-				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id),
-				trigger::payload(tval[3]).tag_id,
-				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
+			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id),
+			trigger::payload(tval[3]).tag_id,
+			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	military::call_attacker_allies(ws, war);
@@ -3853,19 +3875,28 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 		return 0;
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
-	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
-		return 0;
 	if(target == trigger::to_nation(primary_slot))
 		return 0;
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
+	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
+	if(!war) {
+		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
 			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
-	if(trigger::payload(tval[2]).cb_id) {
+	} else {
+		if(trigger::payload(tval[5]).cb_id) { //attacker
+			military::add_wargoal(ws, war, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
+				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
+				trigger::payload(tval[7]).tag_id,
+				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[7]).tag_id));
+		}
+	}
+	if(trigger::payload(tval[2]).cb_id) { //defender
 		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[2]).cb_id,
-				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id),
-				trigger::payload(tval[4]).tag_id,
-				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
+			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[3]).prov_id),
+			trigger::payload(tval[4]).tag_id,
+			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[4]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	return 0;
@@ -3874,19 +3905,28 @@ uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 	auto target = trigger::to_nation(this_slot);
 	if(ws.world.nation_get_owned_province_count(target) == 0 || ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0)
 		return 0;
-	if(military::are_in_common_war(ws, target, trigger::to_nation(primary_slot)))
-		return 0;
 	if(target == trigger::to_nation(primary_slot))
 		return 0;
-	auto war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
-			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
-			trigger::payload(tval[6]).tag_id,
-			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
-	if(trigger::payload(tval[1]).cb_id) {
+	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
+	if(!war) {
+		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
+		   ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
+		   trigger::payload(tval[6]).tag_id,
+		   ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
+	} else {
+		if(trigger::payload(tval[4]).cb_id) { //attacker
+			military::add_wargoal(ws, war, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
+				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
+				trigger::payload(tval[6]).tag_id,
+				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[6]).tag_id));
+		}
+	}
+	if(trigger::payload(tval[1]).cb_id) { //defender
 		military::add_wargoal(ws, war, target, trigger::to_nation(primary_slot), trigger::payload(tval[1]).cb_id,
-				ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id),
-				trigger::payload(tval[3]).tag_id,
-				ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
+			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[2]).prov_id),
+			trigger::payload(tval[3]).tag_id,
+			ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[3]).tag_id));
 	}
 	military::call_defender_allies(ws, war);
 	return 0;
@@ -3919,12 +3959,13 @@ uint32_t ef_country_event_this_nation(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
 	assert(postpone > 0);
 	auto future_date = ws.current_date + postpone;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_nation(EFFECT_PARAMTERS) {
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
-	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
 	return 0;
 }
 uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
@@ -3936,19 +3977,19 @@ uint32_t ef_province_event_this_nation(EFFECT_PARAMTERS) {
 }
 uint32_t ef_province_event_immediate_this_nation(EFFECT_PARAMTERS) {
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::nation});
-	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::nation);
 	return 0;
 }
 uint32_t ef_country_event_this_state(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
 	assert(postpone > 0);
 	auto future_date = ws.current_date + postpone;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_state(EFFECT_PARAMTERS) {
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
-	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
 	return 0;
 }
 uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
@@ -3960,19 +4001,19 @@ uint32_t ef_province_event_this_state(EFFECT_PARAMTERS) {
 }
 uint32_t ef_province_event_immediate_this_state(EFFECT_PARAMTERS) {
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::state});
-	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::state);
 	return 0;
 }
 uint32_t ef_country_event_this_province(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
 	assert(postpone > 0);
 	auto future_date = ws.current_date + postpone;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_province(EFFECT_PARAMTERS) {
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
-	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
 	return 0;
 }
 uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
@@ -3984,19 +4025,19 @@ uint32_t ef_province_event_this_province(EFFECT_PARAMTERS) {
 }
 uint32_t ef_province_event_immediate_this_province(EFFECT_PARAMTERS) {
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::province});
-	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::province);
 	return 0;
 }
 uint32_t ef_country_event_this_pop(EFFECT_PARAMTERS) {
 	auto postpone = int32_t(tval[2]);
 	assert(postpone > 0);
 	auto future_date = ws.current_date + postpone;
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), future_date, event::slot_type::nation, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_country_event_immediate_this_pop(EFFECT_PARAMTERS) {
-	ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
-	//event::trigger_national_event(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
+	if(!event::would_be_duplicate_instance(ws, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date))
+		ws.future_n_event.push_back(event::pending_human_n_event {r_lo + 1, r_hi, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
 	return 0;
 }
 uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
@@ -4008,7 +4049,6 @@ uint32_t ef_province_event_this_pop(EFFECT_PARAMTERS) {
 }
 uint32_t ef_province_event_immediate_this_pop(EFFECT_PARAMTERS) {
 	ws.future_p_event.push_back(event::pending_human_p_event {r_lo + 1, r_hi, this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::pop});
-	//event::trigger_provincial_event(ws, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), r_lo + 1, r_hi, this_slot, event::slot_type::pop);
 	return 0;
 }
 uint32_t ef_country_event_province_this_nation(EFFECT_PARAMTERS) {

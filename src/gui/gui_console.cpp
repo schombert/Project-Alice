@@ -5,6 +5,9 @@
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION 1
+#include "stb_image_write.h"
+
 struct command_info {
 	static constexpr uint32_t max_arg_slots = 4;
 
@@ -35,6 +38,7 @@ struct command_info {
 		militancy,
 		dump_out_of_sync,
 		dump_event_graph,
+		dump_tooltip,
 		ai_elligibility,
 		fog_of_war,
 		prestige,
@@ -43,6 +47,8 @@ struct command_info {
 		toggle_ai,
 		always_allow_wargoals,
 		always_allow_reforms,
+		always_allow_decisions,
+		always_potential_decisions,
 		always_accept_deals,
 		complete_constructions,
 		instant_research,
@@ -62,6 +68,7 @@ struct command_info {
 		instant_industry,
 		innovate,
 		daily_oos_check,
+		dump_map,
 		province_names,
 		color_blind_mode,
 		list_national_variables,
@@ -157,6 +164,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"graph", command_info::type::dump_event_graph, "Dump an event graph",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
+		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
@@ -177,6 +187,12 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}}, */
 		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"dida", command_info::type::always_allow_decisions, "Always allow taking decisions",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"didp", command_info::type::always_potential_decisions, "Always showing all decisions",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"cc", command_info::type::complete_constructions, "Complete all current constructions",
@@ -235,6 +251,9 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "dmap", command_info::type::dump_map, "Dumps the map in a MS Paint friendly format",
+				{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
 			{command_info::argument_info{}, command_info::argument_info{},
@@ -1291,6 +1310,29 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	break;
+	case command_info::type::dump_tooltip:
+	{
+		std::string out_text = "#Tooltip data\n";
+		if(state.ui_state.last_tooltip) {
+			auto container = text::create_columnar_layout(state.ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 16, 16, 32762, 32762, state.ui_state.tooltip_font, 0,
+				text::alignment::left, text::text_color::white, true }, 10);
+			state.ui_state.last_tooltip->update_tooltip(state, 0, 0, container);
+			populate_shortcut_tooltip(state, *state.ui_state.last_tooltip, container);
+			int16_t old_y = 0;
+			for(const auto& e : container.base_layout.contents) {
+				if(e.y != old_y) {
+					out_text += "\n";
+					old_y = e.y;
+				}
+				out_text += " ";
+				out_text += e.win1250chars;
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
+	}
+	break;
 	case command_info::type::dump_event_graph:
 	{
 		struct graph_event_option {
@@ -1374,6 +1416,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			auto name = text::produce_simple_string(state, e.get_name());
 			nodes.push_back(graph_node{ "(execute) " + name, graph_node_data(e.id), e.get_on_execute_effect(), 0 });
 		}
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			auto& node = nodes[i];
+			for(auto& c : node.name) {
+				if(c == '\\' || c == '"')
+					c = '\'';
+			}
+		}
 
 		std::string out_text = "digraph {\n";
 		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
@@ -1440,7 +1489,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						&& std::get<dcon::national_event_id>(geo.parent) == id) {
 							nodes[i].ref_count++;
 							nodes[j].ref_count++;
-							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
 						}
 					}
 				}
@@ -1454,7 +1503,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						&& std::get<dcon::free_national_event_id>(geo.parent) == id) {
 							nodes[i].ref_count++;
 							nodes[j].ref_count++;
-							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
 						}
 					}
 				}
@@ -1468,7 +1517,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						&& std::get<dcon::provincial_event_id>(geo.parent) == id) {
 							nodes[i].ref_count++;
 							nodes[j].ref_count++;
-							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
 						}
 					}
 				}
@@ -1482,7 +1531,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 						&& std::get<dcon::free_provincial_event_id>(geo.parent) == id) {
 							nodes[i].ref_count++;
 							nodes[j].ref_count++;
-							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";";
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
 						}
 					}
 				}
@@ -1493,25 +1542,25 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			if(node.ref_count > 0) {
 				const auto& d = node.data;
 				if(std::holds_alternative<dcon::national_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=crimson, shape=box];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=crimson, shape=box];\n";
 				} else if(std::holds_alternative<dcon::free_national_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightcoral, shape=diamond];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightcoral, shape=diamond];\n";
 				} else if(std::holds_alternative<dcon::provincial_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=royalblue2, shape=box];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=royalblue2, shape=box];\n";
 				} else if(std::holds_alternative<dcon::free_provincial_event_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=deepskyblue, shape=diamond];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=deepskyblue, shape=diamond];\n";
 				} else if(std::holds_alternative<dcon::decision_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=darkseagreen1, shape=trapezium];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=darkseagreen1, shape=trapezium];\n";
 				} else if(std::holds_alternative<graph_event_option>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=mediumturquoise];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=mediumturquoise];\n";
 				} else if(std::holds_alternative<dcon::cb_type_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lemonchiffon1, shape=diamond];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lemonchiffon1, shape=diamond];\n";
 				} else if(std::holds_alternative<dcon::rebel_type_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightsalmon2, shape=diamond];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightsalmon2, shape=diamond];\n";
 				} else if(std::holds_alternative<dcon::issue_option_id>(d)) {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightgoldenrodyellow, shape=diamond];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightgoldenrodyellow, shape=diamond];\n";
 				} else {
-					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=yellow];";
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=yellow];\n";
 				}
 			}
 		}
@@ -1802,6 +1851,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
+	case command_info::type::always_allow_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "\x02" : "\x01");
+		command::c_always_allow_decisions(state, state.local_player_nation);
+		break;
+	case command_info::type::always_potential_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "\x02" : "\x01");
+		command::c_always_potential_decisions(state, state.local_player_nation);
+		break;
 	case command_info::type::always_accept_deals:
 		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
 		command::c_always_accept_deals(state, state.local_player_nation);
@@ -1943,6 +2000,103 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
 		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::dump_map:
+	{
+		bool opt_sea_lines = true;
+		bool opt_province_lines = true;
+		bool opt_blend = true;
+		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
+			log_to_console(state, parent, "Valid options: nosealine, noblend, nosealine2, blendnosea, vanilla");
+			log_to_console(state, parent, "Ex: \"dmap nosealine2\"");
+			break;
+		}
+		auto type = std::get<std::string>(pstate.arg_slots[0]);
+		if(type == "nosealine") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+		} else if(type == "noblend") {
+			opt_blend = false;
+		} else if(type == "nosealine2") {
+			opt_sea_lines = false;
+		} else if(type == "blendnosea") {
+			opt_sea_lines = false;
+			opt_blend = false;
+		} else if(type == "vanilla") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+			opt_blend = false;
+		}
+
+		auto total_px = state.map_state.map_data.size_x * state.map_state.map_data.size_y;
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_px * 3]);
+		auto blend_fn = [&](uint32_t idx, bool sea_a, bool sea_b, dcon::province_id pa, dcon::province_id pb) {
+			if(sea_a != sea_b) {
+				buffer[idx * 3 + 0] = 0;
+				buffer[idx * 3 + 1] = 0;
+				buffer[idx * 3 + 2] = 0;
+			}
+			if(pa != pb) {
+				if(((sea_a || sea_b) && opt_sea_lines)
+				|| sea_a != sea_b
+				|| (opt_province_lines && !sea_a && !sea_b)) {
+					if(opt_blend) {
+						buffer[idx * 3 + 0] &= 0x7f;
+						buffer[idx * 3 + 1] &= 0x7f;
+						buffer[idx * 3 + 2] &= 0x7f;
+					} else {
+						buffer[idx * 3 + 0] = 0;
+						buffer[idx * 3 + 1] = 0;
+						buffer[idx * 3 + 2] = 0;
+					}
+				}
+			}
+		};
+		for(uint32_t y = 0; y < uint32_t(state.map_state.map_data.size_y); y++) {
+			for(uint32_t x = 0; x < uint32_t(state.map_state.map_data.size_x); x++) {
+				auto idx = y * uint32_t(state.map_state.map_data.size_x) + x;
+				auto p = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
+				bool p_is_sea = state.map_state.map_data.province_id_map[idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+				if(p_is_sea) {
+					buffer[idx * 3 + 0] = 128;
+					buffer[idx * 3 + 1] = 128;
+					buffer[idx * 3 + 2] = 255;
+				} else {
+					auto owner = state.world.province_get_nation_from_province_ownership(p);
+					if(owner) {
+						auto owner_color = state.world.nation_get_color(owner);
+						buffer[idx * 3 + 0] = uint8_t(owner_color & 0xff);
+						buffer[idx * 3 + 1] = uint8_t((owner_color >> 8) & 0xff) & 0xff;
+						buffer[idx * 3 + 2] = uint8_t((owner_color >> 16) & 0xff) & 0xff;
+					} else {
+						buffer[idx * 3 + 0] = 170;
+						buffer[idx * 3 + 1] = 170;
+						buffer[idx * 3 + 2] = 170;
+					}
+				}
+				if(x < uint32_t(state.map_state.map_data.size_x - 1)) {
+					auto br_idx = idx + uint32_t(state.map_state.map_data.size_x);
+					if(br_idx < total_px) {
+						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[br_idx]);
+						bool br_is_sea = state.map_state.map_data.province_id_map[br_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
+					}
+					auto rs_idx = idx + 1;
+					if(rs_idx < total_px) {
+						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[rs_idx]);
+						bool br_is_sea = state.map_state.map_data.province_id_map[rs_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
+					}
+				}
+			}
+		}
+		stbi_flip_vertically_on_write(true);
+		auto func = [](void*, void* ptr_in, int size) -> void {
+			auto sdir = simple_fs::get_or_create_oos_directory();
+			simple_fs::write_file(sdir, NATIVE("map.png"), static_cast<const char*>(ptr_in), uint32_t(size));
+		};
+		stbi_write_png_to_func(func, nullptr, int(state.map_state.map_data.size_x), int(state.map_state.map_data.size_y), 3, buffer.get(), 0);
 		break;
 	}
 	case command_info::type::province_names:

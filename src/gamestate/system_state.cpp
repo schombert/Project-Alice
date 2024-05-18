@@ -485,11 +485,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
 					if(map_state.get_zoom() < map::zoom_very_close)
 						map_state.zoom = map::zoom_very_close;
-					auto map_pos = world.province_get_mid_point(cap);
-					map_pos.x /= float(map_state.map_data.size_x);
-					map_pos.y /= float(map_state.map_data.size_y);
-					map_pos.y = 1.0f - map_pos.y;
-					map_state.set_pos(map_pos);
+					map_state.center_map_on_province(*this, cap);
 				}
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
@@ -1434,6 +1430,7 @@ void state::on_create() {
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "alice_menubar");
+		ui_state.menubar_window = new_elm.get();
 		ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
@@ -2307,12 +2304,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	// parse super_region.txt
 	{
-		auto region_file = open_file(map, NATIVE("super_region.txt"));
-		if(region_file) {
-			auto content = view_contents(*region_file);
+		auto super_region_file = open_file(map, NATIVE("super_region.txt"));
+		if(super_region_file) {
+			auto content = view_contents(*super_region_file);
 			err.file_name = "super_region.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_superregion_file(gen, err, context);
+			parsers::parse_region_file(gen, err, context);
 		} else {
 			// OK for this file to be missing
 		}

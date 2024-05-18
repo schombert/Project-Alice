@@ -2138,6 +2138,21 @@ void update_cb_fabrication(sys::state& state) {
 }
 
 bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as_attacker) {
+	/* Forbid war between uncivs against civs of other continent except if they are a sphereling or substate */
+	if(bool(state.defines.alice_unciv_civ_forbid_war) && !state.world.nation_get_is_civilized(n)
+	&& !state.world.nation_get_is_substate(n) && !state.world.nation_get_in_sphere_of(n)
+	&& !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n))) {
+		auto pa = state.world.war_get_primary_attacker(w);
+		auto pd = state.world.war_get_primary_defender(w);
+		auto pa_cap = state.world.nation_get_capital(pa);
+		auto pd_cap = state.world.nation_get_capital(pd);
+		auto cap = state.world.nation_get_capital(n);
+		if(state.world.province_get_continent(pa_cap) != state.world.province_get_continent(cap))
+			return false;
+		if(state.world.province_get_continent(pd_cap) != state.world.province_get_continent(cap))
+			return false;
+	}
+
 	if(!as_attacker)
 		return true;
 	for(auto par : state.world.war_get_war_participant(w)) {

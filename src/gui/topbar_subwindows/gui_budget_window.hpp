@@ -493,9 +493,7 @@ public:
 			}
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		if(state.ui_state.drag_target == nullptr && state.ui_state.left_mouse_hold_target != left && state.ui_state.left_mouse_hold_target != right) {
-			commit_changes(state);
-		}
+		commit_changes(state);
 	}
 
 	void on_update(sys::state& state) noexcept final {

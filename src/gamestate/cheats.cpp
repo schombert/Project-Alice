@@ -484,4 +484,26 @@ void execute_c_clear_auto_choice_all(sys::state& state, dcon::nation_id source) 
 	}
 }
 
+void c_always_allow_decisions(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_allow_decisions;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_allow_decisions(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_allow_decisions = !state.cheat_data.always_allow_decisions;
+}
+
+void c_always_potential_decisions(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_potential_decisions;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_potential_decisions(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_potential_decisions = !state.cheat_data.always_potential_decisions;
+}
+
 }

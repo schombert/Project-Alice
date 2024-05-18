@@ -931,16 +931,52 @@ public:
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
+		return tooltip_behavior::variable_tooltip;
 	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			text::localised_format_box(state, contents, box, std::string_view("alice_only_host_speed"));
+			text::add_line(state, contents, "alice_only_host_speed");
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("topbar_pause_speed"));
+			text::add_line(state, contents, "topbar_pause_speed");
 		}
-		text::close_layout_box(contents, box);
+
+		auto ymd = state.current_date.to_ymd(state.start_date);
+		if(sys::is_leap_year(ymd.year)) {
+			text::add_line(state, contents, "topbar_date_leap");
+		} else {
+			text::add_line(state, contents, "topbar_date_not_leap");
+		}
+
+		float nh_temp = 15.f;
+		std::string nh_season;
+		if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+		} else if(ymd.month >= 3 && ymd.month <= 5) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+		} else if(ymd.month >= 6 && ymd.month <= 8) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+		} else if(ymd.month >= 9 && ymd.month <= 11) {
+			nh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+		}
+		text::add_line(state, contents, "topbar_date_season_nh", text::variable_type::x, std::string_view(nh_season));
+
+		std::string sh_season;
+		if(ymd.month >= 6 && ymd.month <= 8) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+		} else if(ymd.month >= 9 && ymd.month <= 11) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+		} else if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+		} else if(ymd.month >= 3 && ymd.month <= 5) {
+			sh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+		}
+		text::add_line(state, contents, "topbar_date_season_sh", text::variable_type::x, std::string_view(sh_season));
+
+		//auto r = ((float(rng::reduce(state.game_seed, 4096)) / 4096.f) * 8.f) - 4.f;
+		//float avg_temp = (nh_temp + sh_temp + r) / 2.f;
+		//text::add_line(state, contents, "topbar_date_temperature", text::variable_type::x, text::fp_two_places{ avg_temp }, text::variable_type::y, text::fp_two_places{ (avg_temp * (9.f / 5.f)) + 32.f });
+		//topbar_date_temperature;Average temperature: §Y$x$°C§! / §Y$y$°F§!
 	}
 };
 
@@ -1538,17 +1574,13 @@ public:
 			if(index >= uint32_t(provinces.size())) {
 				index = 0;
 			}
-			if(auto prov = provinces[index]; prov) {
+			if(auto prov = provinces[index]; prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-				if(state.map_state.get_zoom() < 8)
-					state.map_state.zoom = 8.0f;
-				auto map_pos = state.world.province_get_mid_point(prov);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				state.map_state.center_map_on_province(state, prov);
 			}
 		}
 	}

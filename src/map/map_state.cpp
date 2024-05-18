@@ -907,6 +907,8 @@ void map_state::update(sys::state& state) {
 		}
 		arrow_key_velocity_vector = glm::normalize(arrow_key_velocity_vector);
 		arrow_key_velocity_vector *= 0.175f;
+		if(shift_key_down)
+			arrow_key_velocity_vector *= glm::e<float>();
 		pos_velocity += arrow_key_velocity_vector;
 	}
 
@@ -1051,6 +1053,9 @@ void map_state::on_key_down(sys::virtual_key keycode, sys::key_modifiers mod) {
 	case sys::virtual_key::NEXT:
 		pgdn_key_down = true;
 		break;
+	case sys::virtual_key::SHIFT:
+		shift_key_down = true;
+		break;
 	default:
 		break;
 	}
@@ -1075,6 +1080,9 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 		break;
 	case sys::virtual_key::NEXT:
 		pgdn_key_down = false;
+		break;
+	case sys::virtual_key::SHIFT:
+		shift_key_down = false;
 		break;
 	default:
 		break;

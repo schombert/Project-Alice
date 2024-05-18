@@ -1962,14 +1962,14 @@ uint32_t ef_research_points(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_tech_school(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_tech_school", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_tech_school", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
 	return 0;
 }
 uint32_t ef_government(EFFECT_DISPLAY_PARAMS) {
@@ -2930,25 +2930,25 @@ uint32_t ef_plurality(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_remove_province_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "remove_prov_mod", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "remove_prov_mod", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_remove_country_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "remove_nat_mod", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "remove_nat_mod", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_create_alliance(EFFECT_DISPLAY_PARAMS) {
@@ -3149,25 +3149,25 @@ uint32_t ef_clr_global_flag(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_nationalvalue_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_national_value", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_national_value", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_nationalvalue_nation(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_national_value", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_national_value", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_civilized_yes(EFFECT_DISPLAY_PARAMS) {
@@ -3791,49 +3791,49 @@ uint32_t ef_relation_from_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_add_province_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_province_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
@@ -6231,26 +6231,26 @@ uint32_t ef_set_country_flag_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_add_country_modifier_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "o_add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "o_add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier_province_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "o_add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "o_add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_relation_province(EFFECT_DISPLAY_PARAMS) {
@@ -6610,6 +6610,9 @@ uint32_t ef_change_terrain_pop(EFFECT_DISPLAY_PARAMS) {
 	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
 	text::localised_format_box(ws, layout, box, "ett_change_pop_terrain_to", m);
 	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
+	}
 	return 0;
 }
 uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
@@ -6618,6 +6621,9 @@ uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
 	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
 	text::localised_format_box(ws, layout, box, "ett_change_province_terrain_to", m);
 	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
+	}
 	return 0;
 }
 

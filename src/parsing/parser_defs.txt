@@ -444,13 +444,7 @@ state_definition
 	#free          value      int                       member_fn
 
 region_file
-	#any           extern     make_state_definition     discard
-
-region_definition
-	#free          value      int                       member_fn
-
-superregion_file
-	#any           extern     make_region_definition     discard
+	#any			extern     make_state_definition     discard
 
 continent_provinces
 	#free          value      int                       member_fn
@@ -1055,7 +1049,7 @@ generic_event
 	major                           value      bool                              member
 	picture                         value      text                              member_fn
 	fire_only_once                  value      bool                              member
-	allow_multiple_instances        value      bool                              discard
+	allow_multiple_instances        value      bool                              member
 	election                        value      bool                              discard
 	issue_group                     value      text                              member_fn
 

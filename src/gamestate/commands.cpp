@@ -2016,12 +2016,12 @@ void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id 
 	add_to_command_queue(state, p);
 }
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
-	{
+	if(!(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_potential_decisions)) {
 		auto condition = state.world.decision_get_potential(d);
 		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
 			return false;
 	}
-	{
+	if(!(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_allow_decisions)) {
 		auto condition = state.world.decision_get_allow(d);
 		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
 			return false;
@@ -2315,7 +2315,6 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 
 	if(military::are_at_war(state, asker, target))
 		return false;
-
 	return true;
 }
 void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
@@ -5064,6 +5063,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 	case command_type::c_always_allow_wargoals:
 	case command_type::c_set_auto_choice_all:
 	case command_type::c_clear_auto_choice_all:
+	case command_type::c_always_allow_decisions:
+	case command_type::c_always_potential_decisions:
 		return true;
 	}
 	return false;
@@ -5518,6 +5519,12 @@ void execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::c_clear_auto_choice_all:
 		execute_c_clear_auto_choice_all(state, c.source);
+		break;
+	case command_type::c_always_allow_decisions:
+		execute_c_always_allow_decisions(state, c.source);
+		break;
+	case command_type::c_always_potential_decisions:
+		execute_c_always_potential_decisions(state, c.source);
 		break;
 	}
 }

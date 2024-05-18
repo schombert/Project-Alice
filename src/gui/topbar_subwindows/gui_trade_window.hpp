@@ -1398,9 +1398,7 @@ public:
 		float a = std::pow(10.0f, float(v) * (6.0f / 2000.0f)) - 1.0f;
 		send(state, parent, stockpile_target_change{a});
 
-		if(state.ui_state.drag_target == nullptr) {
-			commit_changes(state);
-		}
+		commit_changes(state);
 	}
 
 	void on_update(sys::state& state) noexcept final {

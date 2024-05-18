@@ -64,6 +64,7 @@ void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t op
 void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt);
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt);
 
+bool would_be_duplicate_instance(sys::state& state, dcon::national_event_id e, dcon::nation_id n, sys::date date);
 void update_future_events(sys::state& state);
 void update_events(sys::state& state);
 

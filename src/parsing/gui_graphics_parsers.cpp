@@ -412,23 +412,7 @@ std::string lowercase_str(std::string_view sv) {
 }
 
 void button::buttontext(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	auto it = context.full_state.key_to_text_sequence.find(lowercase_str(txt));
-	if(it != context.full_state.key_to_text_sequence.end()) {
-		target.data.button.txt = it->second;
-	} else {
-		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.emplace_back(new_key);
-		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
-			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
-		}
-
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
-		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
-		target.data.button.txt = new_id;
-		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
-	}
+	target.data.button.txt = text::find_or_add_key(context.full_state, txt);
 }
 
 void button::buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -446,7 +430,7 @@ void button::format(association_type, std::string_view t, error_handler& err, in
 	} else if(is_fixed_token_ci(t.data(), t.data() + t.length(), "justified")) {
 		target.data.button.flags |= uint8_t(ui::alignment::justified);
 	} else {
-		err.accumulated_errors += "tried to parse  " + std::string(t) + " as an alignment on line " + std::to_string(line) +
+		err.accumulated_errors += "tried to parse " + std::string(t) + " as an alignment on line " + std::to_string(line) +
 															" of file " + err.file_name + "\n";
 	}
 }
@@ -523,23 +507,7 @@ void textbox::format(association_type, std::string_view t, error_handler& err, i
 	}
 }
 void textbox::text(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	auto it = context.full_state.key_to_text_sequence.find(lowercase_str(txt));
-	if(it != context.full_state.key_to_text_sequence.end()) {
-		target.data.text.txt = it->second;
-	} else {
-		auto new_key = context.full_state.add_to_pool_lowercase(txt);
-		auto component_sz = context.full_state.text_components.size();
-		context.full_state.text_components.emplace_back(new_key);
-		if(context.full_state.text_components.size() >= std::numeric_limits<uint32_t>::max()) {
-			err.accumulated_errors += "registered too many text components on line " + std::to_string(line) + " " + err.file_name + "\n";
-		}
-
-		auto seq_size = context.full_state.text_sequences.size();
-		context.full_state.text_sequences.push_back(text::text_sequence{uint32_t(component_sz), uint16_t(1)});
-		auto new_id = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(seq_size));
-		target.data.text.txt = new_id;
-		context.full_state.key_to_text_sequence.insert_or_assign(new_key, new_id);
-	}
+	target.data.text.txt = text::find_or_add_key(context.full_state, txt);
 }
 void textbox::texturefile(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(t.length() == 0) {
