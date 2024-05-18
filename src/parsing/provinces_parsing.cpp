@@ -158,24 +158,27 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 }
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_key(context.state, name);
-	auto state_id = context.state.world.create_state_definition();
-
-	context.map_of_state_names.insert_or_assign(std::string(name), state_id);
-	context.state.world.state_definition_set_name(state_id, name_id);
-
-	state_def_building_context new_context{context, state_id};
-	parsers::parse_state_definition(gen, err, new_context);
-}
-void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name);
-	auto rid = context.state.world.create_region();
-
-	context.map_of_region_names.insert_or_assign(std::string(name), rid);
-	context.state.world.region_set_name(rid, name_id);
-
-	region_building_context new_context{ context, rid };
-	parsers::parse_region_definition(gen, err, new_context);
+	dcon::state_definition_id sdef;
+	dcon::region_id rdef;
+	state_def_building_context new_context{context};
+	parsers::parse_state_definition(gen, err, new_context);
+	for(const auto prov : new_context.provinces) {
+		assert(prov);
+		if(!context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+			if(!sdef) {
+				sdef = context.state.world.create_state_definition();
+				context.map_of_state_names.insert_or_assign(std::string(name), sdef);
+			}
+			context.state.world.force_create_abstract_state_membership(prov, sdef);
+		} else {
+			if(!rdef) {
+				rdef = context.state.world.create_region();
+				context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+			}
+			context.state.world.force_create_region_membership(prov, rdef);
+		}
+	}
 }
 
 void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err,

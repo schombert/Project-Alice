@@ -444,72 +444,7 @@ state_definition
 	#free          value      int                       member_fn
 
 region_file
-	all_sea_provinces				extern     make_region_definition    discard
-	all_lake_provinces				extern     make_region_definition    discard
-	all_land_provinces				extern     make_region_definition    discard
-	any_sea_province				extern     make_region_definition    discard
-	any_lake_province				extern     make_region_definition    discard
-	any_land_province				extern     make_region_definition    discard
-	explanation_banner_2			extern     make_region_definition    discard
-	oil_state_1						extern     make_region_definition    discard
-	gems_state_1					extern     make_region_definition    discard
-	gold_state_1					extern     make_region_definition    discard
-	rubber_state_1					extern     make_region_definition    discard
-	pearls_state_1					extern     make_region_definition    discard
-	sugar_state_1					extern     make_region_definition    discard
-	election_tool_tip				extern     make_region_definition    discard
-	election_tool_tip_muted			extern     make_region_definition    discard
-	override_tool_tip				extern     make_region_definition    discard
-	french_schooling_tool_tip		extern     make_region_definition    discard
-	mediterranean_sea_coast			extern     make_region_definition    discard
-	black_sea_coast					extern     make_region_definition    discard
-	baltic_sea_coast		extern     make_region_definition    discard
-	south_atlantic_coast_americas		extern     make_region_definition    discard
-	louisiana_territory		extern     make_region_definition    discard
-	big_texas		extern     make_region_definition    discard
-	small_texas		extern     make_region_definition    discard
-	alta_california		extern     make_region_definition    discard
-	arg_cuyo		extern     make_region_definition    discard
-	arg_mesopotamia		extern     make_region_definition    discard
-	arg_misiones		extern     make_region_definition    discard
-	arg_northeast		extern     make_region_definition    discard
-	greater_chaco		extern     make_region_definition    discard
-	pampas_dry		extern     make_region_definition    discard
-	pampas_wet		extern     make_region_definition    discard
-	bol_la_paz_claims		extern     make_region_definition    discard
-	bol_chuquisaca_region		extern     make_region_definition    discard
-	bol_potosi_region		extern     make_region_definition    discard
-	bol_oruro_region		extern     make_region_definition    discard
-	greater_tarija_region		extern     make_region_definition    discard
-	sudetenland_region		extern     make_region_definition    discard
-	rhineland_region		extern     make_region_definition    discard
-	upper_rio_grande		extern     make_region_definition    discard
-	asian_plantations		extern     make_region_definition    discard
-	gold_not_1890		extern     make_region_definition    discard
-	gold_1848_not_1900		extern     make_region_definition    discard
-	gold_1861_not_1920		extern     make_region_definition    discard
-	gold_1893		extern     make_region_definition    discard
-	diamonds_not_1910		extern     make_region_definition    discard
-	diamonds_1867_not_1920		extern     make_region_definition    discard
-	rubber_1880		extern     make_region_definition    discard
-	rubber_1890		extern     make_region_definition    discard
-	oil_1870		extern     make_region_definition    discard
-	oil_1882		extern     make_region_definition    discard
-	oil_1883				extern     make_region_definition    discard
-	oil_1885						extern     make_region_definition    discard
-	oil_1886						extern     make_region_definition    discard
-	oil_1893						extern     make_region_definition    discard
-	oil_1896						extern     make_region_definition    discard
-	oil_1910						extern     make_region_definition    discard
-	oil_1917						extern     make_region_definition    discard
-	big_ukrainian_breadbasket		extern     make_region_definition    discard
-	#any							extern     make_state_definition     discard
-
-region_definition
-	#free          value      int                       member_fn
-
-superregion_file
-	#any           extern     make_region_definition     discard
+	#any			extern     make_state_definition     discard
 
 continent_provinces
 	#free          value      int                       member_fn

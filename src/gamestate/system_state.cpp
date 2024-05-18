@@ -2304,12 +2304,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	// parse super_region.txt
 	{
-		auto region_file = open_file(map, NATIVE("super_region.txt"));
-		if(region_file) {
-			auto content = view_contents(*region_file);
+		auto super_region_file = open_file(map, NATIVE("super_region.txt"));
+		if(super_region_file) {
+			auto content = view_contents(*super_region_file);
 			err.file_name = "super_region.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_superregion_file(gen, err, context);
+			parsers::parse_region_file(gen, err, context);
 		} else {
 			// OK for this file to be missing
 		}
