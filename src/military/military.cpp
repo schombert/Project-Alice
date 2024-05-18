@@ -514,7 +514,8 @@ void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::
 	for(auto wa : state.world.nation_get_war_participant(a)) {
 		auto is_attacker = wa.get_is_attacker();
 		for(auto o : wa.get_war().get_war_participant()) {
-			if(o.get_nation() == b) {
+			if(o.get_nation() == b
+			&& o.get_is_attacker() == is_attacker) {
 				wars.push_back(wa.get_war());
 			}
 		}
@@ -3207,10 +3208,11 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 	}
 
 	bool contains_sq = false;
+	//implementation order matters
 	for(auto wg_offered : state.world.peace_offer_get_peace_offer_item(offer)) {
 		auto wg = wg_offered.get_wargoal();
 		implement_war_goal(state, state.world.peace_offer_get_war_from_war_settlement(offer), wg.get_type(),
-				wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
+			wg.get_added_by(), wg.get_target_nation(), wg.get_secondary_nation(), wg.get_associated_state(), wg.get_associated_tag());
 		if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
 			contains_sq = true;
 	}

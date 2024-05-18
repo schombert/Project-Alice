@@ -715,10 +715,10 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	auto pmods = state.world.province_get_current_modifiers(id);
 	pmods.clear();
 
-	bool will_be_colonial = state.world.province_get_is_colonial(id) ||
-													(old_owner && state.world.nation_get_is_civilized(old_owner) == false &&
-															state.world.nation_get_is_civilized(new_owner) == true) ||
-													(!old_owner);
+	bool will_be_colonial = state.world.province_get_is_colonial(id)
+		|| (old_owner && state.world.nation_get_is_civilized(old_owner) == false
+		&& state.world.nation_get_is_civilized(new_owner) == true)
+		|| (!old_owner);
 	if(old_si) {
 		if(state.world.province_get_building_level(id, economy::province_building_type::naval_base) > 0) {
 			state.world.state_instance_set_naval_base_is_taken(old_si, false);
@@ -826,21 +826,34 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 		}
 	}
 
-	for(auto p : state.world.province_get_pop_location(id)) {
-		rebel::remove_pop_from_movement(state, p.get_pop());
-		rebel::remove_pop_from_rebel_faction(state, p.get_pop());
-
-		{
-			auto rng = p.get_pop().get_regiment_source();
-			while(rng.begin() != rng.end()) {
-				state.world.delete_regiment_source(*(rng.begin()));
+	
+	if(new_owner) {
+		for(auto p : state.world.province_get_pop_location(id)) {
+			rebel::remove_pop_from_movement(state, p.get_pop());
+			rebel::remove_pop_from_rebel_faction(state, p.get_pop());
+			if(new_owner) {
+				for(const auto src : p.get_pop().get_regiment_source()) {
+					if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
+					&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
+					&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()) {
+						auto new_u = fatten(state.world, state.world.create_army());
+						new_u.set_controller_from_army_control(new_owner);
+						new_u.set_location_from_army_location(id);
+						new_u.set_black_flag(src.get_regiment().get_army_from_army_membership().get_black_flag());
+						src.get_regiment().set_army_from_army_membership(new_u);
+					} else {
+						src.get_regiment().set_strength(0.f);
+					}
+				}
+			} else {
+				auto regs = p.get_pop().get_regiment_source();
+				while(regs.begin() != regs.end()) {
+					state.world.delete_regiment_source(*(regs.begin()));
+				}
 			}
-		}
-
-		{
-			auto rng = p.get_pop().get_province_land_construction();
-			while(rng.begin() != rng.end()) {
-				state.world.delete_province_land_construction(*(rng.begin()));
+			auto lc = p.get_pop().get_province_land_construction();
+			while(lc.begin() != lc.end()) {
+				state.world.delete_province_land_construction(*(lc.begin()));
 			}
 		}
 	}
@@ -855,7 +868,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	military::update_blackflag_status(state, id);
 
 	state.world.province_set_is_owner_core(id,
-			bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
+		bool(state.world.get_core_by_prov_tag_key(id, state.world.nation_get_identity_from_identity_holder(new_owner))));
 
 	if(old_si) {
 		dcon::province_id a_province;
