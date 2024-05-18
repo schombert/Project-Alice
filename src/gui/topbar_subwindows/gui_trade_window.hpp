@@ -1397,8 +1397,8 @@ public:
 	void on_value_change(sys::state& state, int32_t v) noexcept final {
 		float a = std::pow(10.0f, float(v) * (6.0f / 2000.0f)) - 1.0f;
 		send(state, parent, stockpile_target_change{a});
-
-		commit_changes(state);
+		if(state.ui_state.drag_target != slider)
+			commit_changes(state);
 	}
 
 	void on_update(sys::state& state) noexcept final {

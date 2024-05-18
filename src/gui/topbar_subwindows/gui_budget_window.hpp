@@ -493,7 +493,8 @@ public:
 			}
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		commit_changes(state);
+		if(state.ui_state.drag_target != slider)
+			commit_changes(state);
 	}
 
 	void on_update(sys::state& state) noexcept final {
