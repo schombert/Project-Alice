@@ -461,7 +461,6 @@ region_file
 	election_tool_tip_muted			extern     make_region_definition    discard
 	override_tool_tip				extern     make_region_definition    discard
 	french_schooling_tool_tip		extern     make_region_definition    discard
-	french_schooling_tool_tip		extern     make_region_definition    discard
 	mediterranean_sea_coast			extern     make_region_definition    discard
 	black_sea_coast					extern     make_region_definition    discard
 	baltic_sea_coast		extern     make_region_definition    discard
