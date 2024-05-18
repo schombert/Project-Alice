@@ -838,9 +838,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 					&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()) {
 						auto new_u = fatten(state.world, state.world.create_army());
 						new_u.set_controller_from_army_control(new_owner);
-						new_u.set_location_from_army_location(id);
-						new_u.set_black_flag(src.get_regiment().get_army_from_army_membership().get_black_flag());
 						src.get_regiment().set_army_from_army_membership(new_u);
+						military::army_arrives_in_province(state, new_u, id, military::crossing_type::none);
 					} else {
 						src.get_regiment().set_strength(0.f);
 					}
