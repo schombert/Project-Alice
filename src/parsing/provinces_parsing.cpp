@@ -163,20 +163,24 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	dcon::region_id rdef;
 	state_def_building_context new_context{context};
 	parsers::parse_state_definition(gen, err, new_context);
+	bool is_region = false;
 	for(const auto prov : new_context.provinces) {
-		assert(prov);
-		if(!context.state.world.province_get_state_from_abstract_state_membership(prov)) {
-			if(!sdef) {
-				sdef = context.state.world.create_state_definition();
-				context.map_of_state_names.insert_or_assign(std::string(name), sdef);
-			}
-			context.state.world.force_create_abstract_state_membership(prov, sdef);
-		} else {
-			if(!rdef) {
-				rdef = context.state.world.create_region();
-				context.map_of_region_names.insert_or_assign(std::string(name), rdef);
-			}
+		if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+			is_region = true;
+			break;
+		}
+	}
+	if(is_region) {
+		auto rdef = context.state.world.create_region();
+		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef);
+		}
+	} else {
+		auto sdef = context.state.world.create_state_definition();
+		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_abstract_state_membership(prov, sdef);
 		}
 	}
 }
