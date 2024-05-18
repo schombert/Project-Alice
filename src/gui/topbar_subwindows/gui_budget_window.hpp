@@ -493,7 +493,8 @@ public:
 			}
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		commit_changes(state);
+		if(state.ui_state.drag_target != slider)
+			commit_changes(state);
 	}
 
 	void on_update(sys::state& state) noexcept final {
@@ -2042,6 +2043,8 @@ public:
 				move_child_to_front(budget_repay_loan_win);
 			}
 			return message_result::consumed;
+		} else if(payload.holds_type<budget_slider_signal>()) {
+			impl_set(state, payload);
 		}
 
 		return message_result::unseen;
