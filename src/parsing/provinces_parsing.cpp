@@ -163,11 +163,24 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 	dcon::region_id rdef;
 	state_def_building_context new_context{context};
 	parsers::parse_state_definition(gen, err, new_context);
+	if(new_context.provinces.empty())
+		return; //empty, tooltip metaregions
+
+	bool is_state = false;
 	bool is_region = false;
 	for(const auto prov : new_context.provinces) {
 		if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
 			is_region = true;
-			break;
+		} else {
+			is_state = true;
+		}
+	}
+	if(is_state && is_region) {
+		err.accumulated_warnings += "State " + std::string(name) + " mixes assigned and unassigned provinces (" + err.file_name + ")\n";
+		for(const auto prov : new_context.provinces) {
+			if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.prov_id_to_original_id_map[prov].id) + " on state " + std::string(name) + " is already assigned to a state (" + err.file_name + ")\n";
+			}
 		}
 	}
 	if(is_region) {
