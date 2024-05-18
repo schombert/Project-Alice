@@ -2043,6 +2043,8 @@ public:
 				move_child_to_front(budget_repay_loan_win);
 			}
 			return message_result::consumed;
+		} else if(payload.holds_type<budget_slider_signal>()) {
+			impl_set(state, payload);
 		}
 
 		return message_result::unseen;
