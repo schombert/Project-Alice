@@ -22,6 +22,18 @@ Output into SVG (using -o will cause encoding issues):
 Output to PNG (will be scaled, unreadable, but cool for screenshots):
 `dot -x -Grankdir=LR -Tpng graph.txt -o out.png`
 
+### Generate world map PNG
+
+A nice new feature! It's in the form of a console command:
+
+`dmap blendnosealine`
+
+Use `help dmap`, or type `dmap` to see more map generation options!
+
+![](./images/map.png)
+
+The saved map will be put in `My Documents\Project Alice\oos`
+
 ### Mod compatibility
 
 Work has been done towards mod compatibility, not ensuring a 1:1 replica, but rather that the scripted effects and triggers evaluate and execute as expected.
@@ -81,6 +93,14 @@ Some users reported being unable to access the console via (~ or \), so we just 
 ### Validator
 
 New features added to Alice's internal validator, now it also validates `news` and `tutorial` folders!
+
+### Miscellaneous
+
+- Hold shift to move faster on the map!
+- Better validation for defines
+- Cheat codes to always be able to take decisions and to always see decisions even if their triggers are not met (`dida` and `didp`)
+- Less scary error messages
+- Domain names supported! Now you don't have to manually resolve the IP of domain names in MP!
 
 ### That's all for now!
 
