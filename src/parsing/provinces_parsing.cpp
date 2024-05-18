@@ -159,8 +159,6 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name);
-	dcon::state_definition_id sdef;
-	dcon::region_id rdef;
 	state_def_building_context new_context{context};
 	parsers::parse_state_definition(gen, err, new_context);
 	if(new_context.provinces.empty())
