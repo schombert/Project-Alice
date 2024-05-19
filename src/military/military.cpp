@@ -2411,7 +2411,6 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 			if(std::find(targets.begin(), targets.end(), owner) == targets.end()) {
 				for(auto par : state.world.war_get_war_participant(wfor)) {
 					if(par.get_nation() == owner && par.get_is_attacker() != for_attacker) {
-
 						auto new_wg = fatten(state.world, state.world.create_wargoal());
 						new_wg.set_added_by(added_by);
 						new_wg.set_associated_state(sd);
@@ -2420,7 +2419,6 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 						new_wg.set_target_nation(owner);
 						new_wg.set_type(type);
 						new_wg.set_war_from_wargoals_attached(wfor);
-
 						targets.push_back(owner.id);
 					}
 				}
@@ -6985,8 +6983,16 @@ bool war_goal_would_be_duplicate(sys::state& state, dcon::nation_id source, dcon
 	// ensure no exact duplicate
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		if(wg.get_wargoal().get_type() == cb_type && wg.get_wargoal().get_associated_state() == cb_state && wg.get_wargoal().get_associated_tag() == cb_tag && wg.get_wargoal().get_secondary_nation() == cb_secondary_nation && wg.get_wargoal().get_target_nation() == target) {
-
 			return true;
+		}
+	}
+
+	// annexing a state... but we already added for annexing the whole nation
+	if((state.world.cb_type_get_type_bits(cb_type) & cb_flag::po_demand_state) != 0) {
+		for(auto wg : state.world.war_get_wargoals_attached(w)) {
+			if((wg.get_wargoal().get_type().get_type_bits() & cb_flag::po_annex) != 0 && wg.get_wargoal().get_target_nation() == target) {
+				return true;
+			}
 		}
 	}
 
