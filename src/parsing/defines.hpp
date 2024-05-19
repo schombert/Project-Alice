@@ -684,7 +684,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_nurture_religion_assimilation, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_surrender_on_cores_lost, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_dont_add_redundant_wargoals, 0.0) \
-
+	LUA_DEFINES_LIST_ELEMENT(alice_artificial_gp_limitant, 0.0) \
+ 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3
 // of the nominal life needs value for themselves. If we assume that there is supposed to be enough grain in the world
