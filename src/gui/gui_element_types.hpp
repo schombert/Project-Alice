@@ -116,26 +116,26 @@ public:
 };
 
 class partially_transparent_image : public opaque_element_base {
-	uint8_t* texture = nullptr;
-	int32_t size_x = 0, size_y = 0;
+	dcon::texture_id texture_id;
 public:
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
-			if( // texture memory layout RGBA accessed through uint8_t pointer
-				texture[
-					(
-						((x * (int32_t)state.user_settings.ui_scale) % size_x)
-						+
-						((y * (int32_t)state.user_settings.ui_scale) * size_x)
-					) * 4 + 3
-				] == 0x00
-			) {
-				return message_result::unseen;
+			auto& texhandle = state.open_gl.asset_textures[texture_id];
+			uint8_t* texture = texhandle.data;
+			int32_t size_x = texhandle.size_x;
+			int32_t size_y = texhandle.size_y;
+			int32_t channels = texhandle.channels;
+			if(texture && channels == 4) {
+				auto x_offs = (x * (int32_t)state.user_settings.ui_scale) % size_x;
+				auto y_offs = (y * (int32_t)state.user_settings.ui_scale) % size_y;
+				// texture memory layout RGBA accessed through uint8_t pointer
+				if(texture[(x_offs + (y_offs * size_x)) * 4 + 3] == 0x00) {
+					return message_result::unseen;
+				}
 			}
 			return message_result::consumed;
-		} else {
-			return message_result::unseen;
 		}
+		return message_result::unseen;
 	}
 
 	void on_create(sys::state& state) noexcept override {
@@ -147,12 +147,10 @@ public:
 			gid = base_data.data.button.button_image;
 		}
 		assert(gid);
-		dcon::texture_id tid = state.ui_defs.gfx[gid].primary_texture_handle;
-		auto& texhandle = state.open_gl.asset_textures[tid];
-		texture = texhandle.data;
-		size_x = texhandle.size_x;
-		size_y = texhandle.size_y;
-		assert(texture);
+		texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
+		if(tid) {
+
+		}
 	}
 
 	// MAYBE this function has to be changed when make_element_by_type() is changed

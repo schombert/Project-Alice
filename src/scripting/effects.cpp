@@ -3792,7 +3792,7 @@ uint32_t ef_war_tag(EFFECT_PARAMTERS) {
 		return 0;
 	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
 	if(!war) {
-		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		military::remove_from_common_allied_wars(ws, trigger::to_nation(primary_slot), target);
 		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3823,7 +3823,7 @@ uint32_t ef_war_this_nation(EFFECT_PARAMTERS) {
 		return 0;
 	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
 	if(!war) {
-		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		military::remove_from_common_allied_wars(ws, trigger::to_nation(primary_slot), target);
 		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
 			trigger::payload(tval[6]).tag_id,
@@ -3879,7 +3879,7 @@ uint32_t ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 		return 0;
 	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
 	if(!war) {
-		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		military::remove_from_common_allied_wars(ws, trigger::to_nation(primary_slot), target);
 		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[5]).cb_id,
 			ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[6]).prov_id),
 			trigger::payload(tval[7]).tag_id,
@@ -3909,7 +3909,7 @@ uint32_t ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 		return 0;
 	auto war = military::find_war_between(ws, trigger::to_nation(primary_slot), target);
 	if(!war) {
-		military::remove_from_common_allied_wars(ws, target, trigger::to_nation(primary_slot));
+		military::remove_from_common_allied_wars(ws, trigger::to_nation(primary_slot), target);
 		war = military::create_war(ws, trigger::to_nation(primary_slot), target, trigger::payload(tval[4]).cb_id,
 		   ws.world.province_get_state_from_abstract_state_membership(trigger::payload(tval[5]).prov_id),
 		   trigger::payload(tval[6]).tag_id,

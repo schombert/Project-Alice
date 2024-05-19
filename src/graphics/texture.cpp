@@ -336,6 +336,7 @@ GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint3
 
 texture::~texture() {
 	STBI_FREE(data);
+	data = nullptr;
 }
 
 texture::texture(texture&& other) noexcept {
@@ -365,8 +366,7 @@ GLuint texture::get_texture_handle() const {
 	return texture_handle;
 }
 
-GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture,
-		bool keep_data) {
+GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data) {
 	auto name_length = native_name.length();
 
 	auto root = get_root(fs);
@@ -395,7 +395,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 				if(keep_data) {
 					asset_texture.data = static_cast<uint8_t*>(STBI_MALLOC(4 * w * h));
 					glGetTextureImage(asset_texture.texture_handle, 0, GL_RGBA, GL_UNSIGNED_BYTE, static_cast<int32_t>(4 * w * h),
-							asset_texture.data);
+						asset_texture.data);
 				}
 				return asset_texture.texture_handle;
 			}
@@ -409,7 +409,7 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 		int32_t file_channels = 4;
 
 		asset_texture.data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size),
-				&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
+			&(asset_texture.size_x), &(asset_texture.size_y), &file_channels, 4);
 
 		asset_texture.channels = 4;
 		asset_texture.loaded = true;
@@ -609,6 +609,7 @@ data_texture::data_texture(int32_t sz, int32_t ch) {
 
 data_texture::~data_texture() {
 	delete[] data;
+	data = nullptr;
 }
 
 uint32_t data_texture::handle() {
@@ -653,15 +654,9 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 	auto content = simple_fs::view_contents(f);
 
 	int32_t file_channels = 4;
-
-	uint8_t* data = nullptr;
 	int32_t size_x = 0;
 	int32_t size_y = 0;
-	int32_t channels = 4;
-
-	data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &(size_x), &(size_y),
-			&file_channels, 4);
-
+	uint8_t* data = stbi_load_from_memory(reinterpret_cast<uint8_t const*>(content.data), int32_t(content.file_size), &(size_x), &(size_y), &file_channels, 4);
 	uint32_t ftexid = 0;
 
 	glGenTextures(1, &ftexid);
