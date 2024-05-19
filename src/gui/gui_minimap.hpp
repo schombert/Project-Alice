@@ -954,8 +954,6 @@ public:
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
 		} else if(name == "menubar_bg") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
-		} else if(name == "menubar_bg") {
-			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "chat_window"
 			|| name == "menubar_mail_bg"
 			|| name == "menubar_msg_settings"
