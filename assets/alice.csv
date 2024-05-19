@@ -1011,7 +1011,7 @@ msg_inv_title;Invention Discovered
 msg_inv_1;$x$ has been discovered, with the following effects:
 msg_fab_discovered_title;Fabrication Discovered
 msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in §R$x$§! infamy.
-msg_fab_discovered_2;$x$ has been discovered fabricating a cb on $y$
+msg_fab_discovered_2;$x$ has been discovered fabricating a casus belli on $y$
 msg_fab_canceled_title;Fabrication Canceled
 msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
 msg_fab_finished_title;Fabrication Complete
