@@ -2266,7 +2266,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	}
 
 	add_to_war(state, new_war, primary_attacker, true, true);
-	add_to_war(state, new_war, real_target, false, false);
+	add_to_war(state, new_war, real_target, false, true);
 
 	if(primary_wargoal) {
 		add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag,
@@ -2282,6 +2282,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 
 	if(state.world.nation_get_is_player_controlled(primary_attacker) == false)
 		ai::add_free_ai_cbs_to_war(state, primary_attacker, new_war);
+	if(state.world.nation_get_is_player_controlled(primary_defender) == false)
+		ai::add_free_ai_cbs_to_war(state, primary_defender, new_war);
 
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
