@@ -724,7 +724,7 @@ void add_to_substitution_map(substitution_map& mp, variable_type key, std::strin
 
 void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err);
 variable_type variable_type_from_name(std::string_view);
-void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err);
+void load_text_data(sys::state& state, parsers::error_handler& err);
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
@@ -789,5 +789,10 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
+
+struct language_table {
+	std::vector<char> iso_code;
+	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
+};
 
 } // namespace text
