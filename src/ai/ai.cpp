@@ -289,6 +289,19 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
 
+	if(bool(state.defines.alice_artificial_gp_limitant) && state.world.nation_get_is_great_power(target)) {
+		int32_t gp_count = 0;
+		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
+			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
+			if(rel.get_are_allied() && n.get_is_great_power()) {
+				++gp_count;
+				if(gp_count >= 2) {
+					return false;
+				}
+			}
+		}
+	}
+
 	if(ai_has_mutual_enemy(state, from, target))
 		return true;
 
