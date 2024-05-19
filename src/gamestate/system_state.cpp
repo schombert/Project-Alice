@@ -780,7 +780,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated && mode != sys::game_mode_type::pick_nation && !ui_state.lazy_load_in_game) {
+		window::change_cursor(*this, window::cursor_type::busy);
 		ui::create_in_game_windows(*this);
+		window::change_cursor(*this, window::cursor_type::normal);
 	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
