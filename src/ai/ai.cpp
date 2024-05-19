@@ -2596,19 +2596,12 @@ bool has_cores_occupied(sys::state& state, dcon::nation_id n) {
 		for(auto c : cores) {
 			if(c.get_province().get_nation_from_province_ownership() == n) {
 				has_owned_cores = true;
-				break;
+			} if(c.get_province().get_nation_from_province_control() == n) {
+				return false;
 			}
-		}
-		if(has_owned_cores) {
-			for(auto c : cores) {
-				if(c.get_province().get_nation_from_province_control() == n) {
-					return false;
-				}
-			}
-			return true;
 		}
 		auto pc = state.world.nation_get_province_control(n); //no cores or some cores are occupied but some are not
-		return pc.begin() == pc.end(); //controls anything?
+		return has_owned_cores || pc.begin() == pc.end(); //controls anything?
 	}
 	return false;
 }
