@@ -2591,10 +2591,21 @@ void add_gw_goals(sys::state& state) {
 bool has_cores_occupied(sys::state& state, dcon::nation_id n) {
 	if(bool(state.defines.alice_surrender_on_cores_lost)) {
 		auto i = state.world.nation_get_identity_from_identity_holder(n);
-		for(auto c : state.world.national_identity_get_core(i)) {
-			if(c.get_province().get_nation_from_province_control() == n) {
-				return false;
+		auto cores = state.world.national_identity_get_core(i);
+		bool has_owned_cores = false;
+		for(auto c : cores) {
+			if(c.get_province().get_nation_from_province_ownership() == n) {
+				has_owned_cores = true;
+				break;
 			}
+		}
+		if(has_owned_cores) {
+			for(auto c : cores) {
+				if(c.get_province().get_nation_from_province_control() == n) {
+					return false;
+				}
+			}
+			return true;
 		}
 		auto pc = state.world.nation_get_province_control(n); //no cores or some cores are occupied but some are not
 		return pc.begin() == pc.end(); //controls anything?
