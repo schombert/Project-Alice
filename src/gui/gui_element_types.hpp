@@ -126,8 +126,8 @@ public:
 			int32_t size_y = texhandle.size_y;
 			int32_t channels = texhandle.channels;
 			if(texture && channels == 4) {
-				auto x_offs = (x * (int32_t)state.user_settings.ui_scale) % size_x;
-				auto y_offs = (y * (int32_t)state.user_settings.ui_scale) % size_y;
+				auto x_offs = (x * int32_t(state.user_settings.ui_scale)) % size_x;
+				auto y_offs = (y * int32_t(state.user_settings.ui_scale)) % size_y;
 				// texture memory layout RGBA accessed through uint8_t pointer
 				if(texture[(x_offs + (y_offs * size_x)) * 4 + 3] == 0x00) {
 					return message_result::unseen;
@@ -148,9 +148,6 @@ public:
 		}
 		assert(gid);
 		texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
-		if(tid) {
-
-		}
 	}
 
 	// MAYBE this function has to be changed when make_element_by_type() is changed
