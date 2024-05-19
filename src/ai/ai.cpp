@@ -2480,6 +2480,7 @@ void add_free_ai_cbs_to_war(sys::state& state, dcon::nation_id n, dcon::war_id w
 		sort_avilable_cbs(potential, state, n, w);
 		for(auto& p : potential) {
 			if(!military::war_goal_would_be_duplicate(state, n, w, p.target, p.cb, p.state_def, p.associated_tag, p.secondary_nation)) {
+				assert(command::can_add_war_goal(state, n, w, p.target, p.cb, p.state_def, p.associated_tag, p.secondary_nation));
 				military::add_wargoal(state, w, n, p.target, p.cb, p.state_def, p.associated_tag, p.secondary_nation);
 				nations::adjust_relationship(state, n, p.target, state.defines.addwargoal_relation_on_accept);
 				added = true;
@@ -2583,6 +2584,7 @@ void add_wg_to_great_war(sys::state& state, dcon::nation_id n, dcon::war_id w) {
 	result.clear();
 	place_instance_in_result_war(state, result, n, target, w, cb, target_states);
 	if(result[0].target) {
+		assert(command::can_add_war_goal(state, n, w, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation));
 		military::add_wargoal(state, w, n, target, cb, result[0].state_def, result[0].associated_tag, result[0].secondary_nation);
 		nations::adjust_relationship(state, n, target, state.defines.addwargoal_relation_on_accept);
 		state.world.nation_get_infamy(n) += military::cb_infamy(state, cb) * state.defines.gw_justify_cb_badboy_impact;
