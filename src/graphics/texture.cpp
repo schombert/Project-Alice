@@ -42,8 +42,8 @@ namespace ogl {
 #define ALICE_DDSCAPS_TEXTURE 0x00001000
 #define ALICE_DDSCAPS_MIPMAP 0x00400000
 
-/*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
-	set to one or more of the following values.		*/
+	/*	The dwCaps2 member of the ALICE_DDSCAPS2 structure can be
+		set to one or more of the following values.		*/
 #define ALICE_DDSCAPS2_CUBEMAP 0x00000200
 #define ALICE_DDSCAPS2_CUBEMAP_POSITIVEX 0x00000400
 #define ALICE_DDSCAPS2_CUBEMAP_NEGATIVEX 0x00000800
@@ -443,19 +443,17 @@ GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::
 
 GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, culture::flag_type type) {
 	auto const offset = culture::get_remapped_flag_type(state, type);
-	dcon::texture_id id = dcon::texture_id{
-			dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset)};
-
+	dcon::texture_id id = dcon::texture_id{ dcon::texture_id::value_base_t(state.ui_defs.textures.size() + (1 + nat_id.index()) * state.flag_types.size() + offset) };
 	if(state.open_gl.asset_textures[id].loaded) {
 		return state.open_gl.asset_textures[id].texture_handle;
 	} else { // load from file
-
 		native_string file_str;
 		file_str += NATIVE("gfx");
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += NATIVE("flags");
 		file_str += NATIVE_DIR_SEPARATOR;
 		file_str += simple_fs::win1250_to_native(nations::int_to_tag(state.world.national_identity_get_identifying_int(nat_id)));
+		native_string default_file_str = file_str + NATIVE(".tga");
 		switch(type) {
 		case culture::flag_type::communist:
 			file_str += NATIVE("_communist");
@@ -472,7 +470,7 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		case culture::flag_type::republic:
 			file_str += NATIVE("_republic");
 			break;
-		// Non-vanilla
+			// Non-vanilla
 		case culture::flag_type::theocracy:
 			file_str += NATIVE("_theocracy");
 			break;
@@ -565,8 +563,11 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 			break;
 		}
 		file_str += NATIVE(".tga");
-
-		return load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+		GLuint p_tex = load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+		if(!p_tex) {
+			return load_file_and_return_handle(default_file_str, state.common_fs, state.open_gl.asset_textures[id], false);
+		}
+		return p_tex;
 	}
 }
 
@@ -674,7 +675,7 @@ font_texture_result make_font_texture(simple_fs::file& f) {
 
 	STBI_FREE(data);
 
-	return font_texture_result{ftexid, uint32_t(size_x)};
+	return font_texture_result{ ftexid, uint32_t(size_x) };
 }
 
 } // namespace ogl
