@@ -2596,10 +2596,8 @@ bool has_cores_occupied(sys::state& state, dcon::nation_id n) {
 				return false;
 			}
 		}
-		//no cores or some cores are occupied but some are not
-		auto pc = state.world.nation_get_province_control(n);
-		if(pc.begin() == pc.end())
-			return true;
+		auto pc = state.world.nation_get_province_control(n); //no cores or some cores are occupied but some are not
+		return pc.begin() == pc.end(); //controls anything?
 	}
 	return false;
 }
