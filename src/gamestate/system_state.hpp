@@ -621,8 +621,7 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
-	dcon::gfx_object_id bg_gfx_id{};
-
+	
 	// graphics data
 	ogl::data open_gl;
 
