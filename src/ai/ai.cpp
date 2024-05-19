@@ -2589,16 +2589,20 @@ void add_gw_goals(sys::state& state) {
 }
 
 bool has_cores_occupied(sys::state& state, dcon::nation_id n) {
-	auto i = state.world.nation_get_identity_from_identity_holder(n);
-	for(auto c : state.world.national_identity_get_core(i)) {
-		if(c.get_province().get_nation_from_province_control() == n) {
-			return false;
+	if(bool(state.defines.alice_surrender_on_cores_lost)) {
+		auto i = state.world.nation_get_identity_from_identity_holder(n);
+		auto cores = state.world.national_identity_get_core(i);
+		bool has_owned_cores = false;
+		for(auto c : cores) {
+			if(c.get_province().get_nation_from_province_ownership() == n) {
+				has_owned_cores = true;
+			} if(c.get_province().get_nation_from_province_control() == n) {
+				return false;
+			}
 		}
+		auto pc = state.world.nation_get_province_control(n); //no cores or some cores are occupied but some are not
+		return has_owned_cores || pc.begin() == pc.end(); //controls anything?
 	}
-	//no cores or some cores are occupied but some are not
-	auto pc = state.world.nation_get_province_control(n);
-	if(pc.begin() == pc.end())
-		return true;
 	return false;
 }
 
@@ -2705,10 +2709,6 @@ bool will_accept_peace_offer_value(sys::state& state,
 	int32_t target_personal_po_value, int32_t potential_peace_score_against,
 	int32_t my_side_against_target, int32_t my_side_peace_cost,
 	int32_t war_duration, bool contains_sq) {
-	//will accept anything
-	if(has_cores_occupied(state, n))
-		return true;
-
 	bool is_attacking = !offer_from_attacker;
 
 	auto overall_score = primary_warscore;
@@ -2773,14 +2773,14 @@ bool will_accept_peace_offer_value(sys::state& state,
 				return true;
 		}
 	}
+
+	//will accept anything
+	if(has_cores_occupied(state, n))
+		return true;
 	return false;
 }
 
 bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_id from, dcon::peace_offer_id p) {
-	//will accept anything
-	if(has_cores_occupied(state, n))
-		return true;
-
 	auto w = state.world.peace_offer_get_war_from_war_settlement(p);
 	auto prime_attacker = state.world.war_get_primary_attacker(w);
 	auto prime_defender = state.world.war_get_primary_defender(w);
@@ -2892,6 +2892,10 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 				return true;
 		}
 	}
+
+	//will accept anything
+	if(has_cores_occupied(state, n))
+		return true;
 	return false;
 }
 

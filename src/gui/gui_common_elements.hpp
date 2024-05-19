@@ -2141,7 +2141,19 @@ public:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto filter_settings = retrieve<country_filter_setting>(state, parent);
-		disabled = filter_settings.general_category != category;
+		auto t_category = filter_settings.general_category;
+		switch(t_category) {
+		case country_list_filter::influenced:
+			t_category = country_list_filter::sphere;
+			break;
+		case country_list_filter::find_allies:
+			t_category = country_list_filter::allies;
+			break;
+		case country_list_filter::neighbors_no_vassals:
+			t_category = country_list_filter::neighbors;
+			break;
+		}
+		disabled = t_category != category;
 		button_element_base::render(state, x, y);
 		disabled = false;
 	}
