@@ -231,8 +231,8 @@ void government_type::any_value(std::string_view text, association_type, bool va
 }
 
 void cb_list::free_value(std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
-	//dcon::cb_type_id new_id = context.state.world.create_cb_type();
-	//context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{token_generator{}, new_id});
+	dcon::cb_type_id new_id = context.state.world.create_cb_type();
+	context.map_of_cb_types.insert_or_assign(std::string(text), pending_cb_content{token_generator{}, new_id});
 }
 
 void trait::organisation(association_type, float value, error_handler& err, int32_t line, trait_context& context) {
@@ -280,22 +280,11 @@ void state_definition::free_value(int32_t value, error_handler& err, int32_t lin
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
-		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		if(province_id && !context.outer_context.state.world.province_get_state_from_abstract_state_membership(province_id)) {
-			context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
-		} else if(province_id) {
-			err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
-	}
-}
-
-void region_definition::free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context) {
-	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	} else {
-		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		if(province_id) {
-			context.outer_context.state.world.force_create_region_membership(province_id, context.id);
+		auto prov = context.outer_context.original_id_to_prov_id_map[value];
+		if(prov) {
+			context.provinces.push_back(prov);
+		} else {
+			err.accumulated_warnings += "Province id " + std::to_string(value) + " was not found (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 }

@@ -3915,7 +3915,7 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	add_to_command_queue(state, p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) && !state.world.army_get_navy_from_army_transport(a)  &&
+	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) && !state.world.army_get_navy_from_army_transport(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
 void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {

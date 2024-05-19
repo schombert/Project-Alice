@@ -492,7 +492,12 @@ public:
 				auto culture_id = state.world.pop_get_culture(content.pop_info);
 				auto culture_content = text::produce_simple_string(state, culture_id.get_name());
 				auto unit_type_name = text::produce_simple_string(state, udef.name);
-				if(unit_name) unit_name->set_text(state, "(" + std::to_string(content.num_possible) + ") " + culture_content + " " + unit_type_name);
+				if(unit_name) {
+					std::string num_txt = content.num_possible > 1
+						? ("(" + std::to_string(content.num_possible) + ") ")
+						: "";
+					unit_name->set_text(state, num_txt + culture_content + " " + unit_type_name);
+				}
 			} else {
 				if(build_button) build_button->frame = 1;
 				if(unit_name) unit_name->set_text(state, text::produce_simple_string(state, udef.name));
@@ -574,8 +579,10 @@ public:
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
 									info.pop_info = pl.get_pop();
 									info.num_possible = int16_t(military::regiments_possible_from_pop(state, pl.get_pop()));
-									const auto lc = pl.get_pop().get_province_land_construction();
+									const auto lc = pl.get_pop().get_province_land_construction_as_pop();
 									info.num_possible -= int16_t(lc.end() - lc.begin());
+									const auto ar = pl.get_pop().get_regiment_source();
+									info.num_possible -= int16_t(ar.end() - ar.begin());
 									break;
 								}
 							}
@@ -953,8 +960,10 @@ public:
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
 									info.pop_info = pl.get_pop();
 									info.num_possible = int16_t(military::regiments_possible_from_pop(state, pl.get_pop()));
-									const auto lc = pl.get_pop().get_province_land_construction();
+									const auto lc = pl.get_pop().get_province_land_construction_as_pop();
 									info.num_possible -= int16_t(lc.end() - lc.begin());
+									const auto ar = pl.get_pop().get_regiment_source();
+									info.num_possible -= int16_t(ar.end() - ar.begin());
 									break;
 								}
 							}
