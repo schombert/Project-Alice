@@ -90,6 +90,18 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.retreat_unit_arrow_counts.clear();
 	map_data.retreat_unit_arrow_starts.clear();
 
+	map_data.strategy_unit_arrow_vertices.clear();
+	map_data.strategy_unit_arrow_counts.clear();
+	map_data.strategy_unit_arrow_starts.clear();
+
+	map_data.objective_unit_arrow_vertices.clear();
+	map_data.objective_unit_arrow_counts.clear();
+	map_data.objective_unit_arrow_starts.clear();
+
+	map_data.other_objective_unit_arrow_vertices.clear();
+	map_data.other_objective_unit_arrow_counts.clear();
+	map_data.other_objective_unit_arrow_starts.clear();
+
 	for(auto selected_army : state.selected_armies) {
 		if(auto ps = state.world.army_get_path(selected_army); ps.size() > 0) {
 			auto dest_controller = state.world.province_get_nation_from_province_control(ps[0]);
@@ -98,6 +110,18 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 				map_data.retreat_unit_arrow_starts.push_back(GLint(old_size));
 				map::make_army_path(state, map_data.retreat_unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
 				map_data.retreat_unit_arrow_counts.push_back(GLsizei(map_data.retreat_unit_arrow_vertices.size() - old_size));
+			} else if(state.world.army_get_is_ai_controlled(selected_army)) {
+				if(state.local_player_nation && dest_controller && military::are_at_war(state, dest_controller, state.local_player_nation)) {
+					auto old_size = map_data.other_objective_unit_arrow_vertices.size();
+					map_data.other_objective_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_army_path(state, map_data.other_objective_unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+					map_data.other_objective_unit_arrow_counts.push_back(GLsizei(map_data.other_objective_unit_arrow_vertices.size() - old_size));
+				} else {
+					auto old_size = map_data.objective_unit_arrow_vertices.size();
+					map_data.objective_unit_arrow_starts.push_back(GLint(old_size));
+					map::make_army_path(state, map_data.objective_unit_arrow_vertices, selected_army, float(map_data.size_x), float(map_data.size_y));
+					map_data.objective_unit_arrow_counts.push_back(GLsizei(map_data.objective_unit_arrow_vertices.size() - old_size));
+				}
 			} else if(state.local_player_nation && dest_controller && military::are_at_war(state, dest_controller, state.local_player_nation)) {
 				auto old_size = map_data.attack_unit_arrow_vertices.size();
 				map_data.attack_unit_arrow_starts.push_back(GLint(old_size));
@@ -136,6 +160,18 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 	if(!map_data.retreat_unit_arrow_vertices.empty()) {
 		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_retreat_unit_arrow]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.retreat_unit_arrow_vertices.size(), map_data.retreat_unit_arrow_vertices.data(), GL_STATIC_DRAW);
+	}
+	if(!map_data.strategy_unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_strategy_unit_arrow]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.strategy_unit_arrow_vertices.size(), map_data.strategy_unit_arrow_vertices.data(), GL_STATIC_DRAW);
+	}
+	if(!map_data.objective_unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_objective_unit_arrow]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.objective_unit_arrow_vertices.size(), map_data.objective_unit_arrow_vertices.data(), GL_STATIC_DRAW);
+	}
+	if(!map_data.other_objective_unit_arrow_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_other_objective_unit_arrow]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(curved_line_vertex) * map_data.other_objective_unit_arrow_vertices.size(), map_data.other_objective_unit_arrow_vertices.data(), GL_STATIC_DRAW);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
