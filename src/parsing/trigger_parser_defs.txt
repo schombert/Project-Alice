@@ -42,6 +42,9 @@ tr_can_build_railway_in_capital
 tr_work_available
     worker           value           text               member_fn
 
+tr_news_data_parameters
+	#free			value			text				member_fn
+
 trigger_body
 	total_sunk_by_us    value     int      member_fn
 	have_core_in   value   text       member_fn
@@ -309,6 +312,25 @@ trigger_body
 	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
+	tags_eq						 extern tr_tags_eq						member_fn
+	values_eq					 extern tr_values_eq					member_fn
+	strings_eq					 extern tr_strings_eq					member_fn
+	dates_eq					 extern tr_dates_eq						member_fn
+	tags_greater				 group tr_news_data_parameters			member_fn
+	values_greater				 group tr_news_data_parameters			member_fn
+	strings_greater				 group tr_news_data_parameters			member_fn
+	dates_greater				 group tr_news_data_parameters			member_fn
+	tags_match					 group tr_news_data_parameters			member_fn
+	values_match				 group tr_news_data_parameters			member_fn
+	strings_match				 group tr_news_data_parameters			member_fn
+	dates_match					 group tr_news_data_parameters			member_fn
+	tags_contains				 group tr_news_data_parameters			member_fn
+	values_contains				 group tr_news_data_parameters			member_fn
+	strings_contains			 group tr_news_data_parameters			member_fn
+	dates_contains				 group tr_news_data_parameters			member_fn
+	length_greater				 group tr_news_data_parameters			member_fn
+	news_printing_count			 value int								member_fn
+	news_printing_count			 value int								member_fn
 	any_country                  extern tr_scope_any_country            discard
 	any_known_country            extern tr_scope_any_country            discard
 	every_country                extern tr_scope_every_country          discard
