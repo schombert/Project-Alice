@@ -403,6 +403,8 @@ struct cheat_data_s {
 	bool daily_oos_check = false;
 	bool province_names = false;
 	bool instant_navy = false;
+	bool always_allow_decisions = false;
+	bool always_potential_decisions = false;
 };
 
 struct crisis_member_def {
@@ -619,8 +621,7 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
-	dcon::gfx_object_id bg_gfx_id{};
-
+	
 	// graphics data
 	ogl::data open_gl;
 

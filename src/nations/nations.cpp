@@ -215,6 +215,10 @@ bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 	return state.world.diplomatic_relation_get_are_allied(rel);
 }
 
+bool is_landlocked(sys::state& state, dcon::nation_id n) {
+	return state.world.nation_get_total_ports(n) == 0;
+}
+
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query) {
 	auto fat_id = dcon::fatten(state.world, rel_id);
 	return fat_id.get_related_nations(0) == query ? fat_id.get_related_nations(1) : fat_id.get_related_nations(0);
@@ -322,6 +326,14 @@ void update_research_points(sys::state& state) {
 	});
 }
 
+float get_foreign_investment(sys::state& state, dcon::nation_id n) {
+	float v = 0.0f;
+	for(auto i : state.world.nation_get_unilateral_relationship_as_target(n)) {
+		v += i.get_foreign_investment();
+	}
+	return v;
+}
+
 void update_industrial_scores(sys::state& state) {
 	/*
 	Is the sum of the following two components:
@@ -336,8 +348,9 @@ void update_industrial_scores(sys::state& state) {
 			for(auto si : state.world.nation_get_state_ownership(n)) {
 				float total_level = 0;
 				float worker_total =
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.primary_factory_worker)) +
-						si.get_state().get_demographics(demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker)) +
+					si.get_state().get_demographics(demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
+
 				float total_factory_capacity = 0;
 				province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 					for(auto f : state.world.province_get_factory_location(p)) {
@@ -349,11 +362,15 @@ void update_industrial_scores(sys::state& state) {
 				if(total_factory_capacity > 0)
 					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
-			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-				sum += ur.get_foreign_investment() * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
-			}
+			sum += nations::get_foreign_investment(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
+	
 		}
-		state.world.nation_set_industrial_score(n, uint16_t(sum));
+		float old_score = state.world.nation_get_industrial_score(n);
+		if(old_score == 0) {
+			state.world.nation_set_industrial_score(n, uint16_t(sum));
+		} else {
+			state.world.nation_set_industrial_score(n, uint16_t(0.1f * sum + 0.9f * old_score));
+		}
 	});
 }
 
@@ -912,7 +929,7 @@ void monthly_adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nat
 		rel = state.world.force_create_diplomatic_relation(a, b);
 	}
 	auto& val = state.world.diplomatic_relation_get_value(rel);
-	val = std::clamp(val + delta, -200.0f, std::min(val, 100.0f));
+	val = std::clamp(val + delta, -200.0f, std::max(val, 100.0f));
 }
 
 void update_revanchism(sys::state& state) {
@@ -1227,10 +1244,10 @@ void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)
 	for(const auto n : state.world.in_nation) {
 		if(n.get_marked_for_gc()) {
+			n.set_marked_for_gc(false);
 			if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
 				nations::cleanup_nation(state, n);
 			}
-			n.set_marked_for_gc(false);
 		}
 	}
 	if(state.national_definitions.gc_pending) {
@@ -1311,6 +1328,14 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
+			notification::post(state, notification::message{
+				[o, n](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_rem_sphere_1", text::variable_type::x, n, text::variable_type::y, o);
+				},
+				"msg_rem_sphere_title",
+				n, o, dcon::nation_id{},
+				sys::message_base_type::rem_sphere
+			});
 			o.set_in_sphere_of(dcon::nation_id{});
 		}
 	}
@@ -1506,6 +1531,32 @@ bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::
 	return true;
 }
 
+float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares) {
+	if(total_influence_shares == 0)
+		return 0.f;
+	switch(state.world.gp_relationship_get_status(gp) & influence::priority_mask) {
+	case influence::priority_one:
+		return total_gain / float(total_influence_shares);
+	case influence::priority_two:
+		return 2.0f * total_gain / float(total_influence_shares);
+	case influence::priority_three:
+		return 3.0f * total_gain / float(total_influence_shares);
+	default:
+	case influence::priority_zero:
+		return 0.0f;
+	}
+}
+
+bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	for(auto g : state.world.nation_get_nation_adjacency(target)) {
+		if(g.get_connected_nations(0) != target && g.get_connected_nations(0).get_in_sphere_of() == n)
+			return true;
+		if(g.get_connected_nations(1) != target && g.get_connected_nations(1).get_in_sphere_of() == n)
+			return true;
+	}
+	return false;
+}
+
 void update_influence(sys::state& state) {
 	for(auto rel : state.world.in_gp_relationship) {
 		if(rel.get_penalty_expires_date() == state.current_date) {
@@ -1545,8 +1596,8 @@ void update_influence(sys::state& state) {
 			in proportion to their priority (so a target with priority 2 receives 2 shares instead of 1, etc).
 			*/
 			float total_gain = state.defines.base_greatpower_daily_influence *
-												 (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)) *
-												 (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
+				(1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)) *
+				(1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
 
 			/*
 			This influence value does not translate directly into influence with the target nation. Instead it is first multiplied
@@ -1565,46 +1616,22 @@ void update_influence(sys::state& state) {
 
 			for(auto rel : n.get_gp_relationship_as_great_power()) {
 				if(can_accumulate_influence_with(state, n, rel.get_influence_target(), rel)) {
-					float base_shares = [&]() {
-						switch(rel.get_status() & influence::priority_mask) {
-						case influence::priority_one:
-							return total_gain / float(total_influence_shares);
-						case influence::priority_two:
-							return 2.0f * total_gain / float(total_influence_shares);
-						case influence::priority_three:
-							return 3.0f * total_gain / float(total_influence_shares);
-						default:
-						case influence::priority_zero:
-							return 0.0f;
-						}
-					}();
-
+					float base_shares = get_base_shares(state, rel, total_gain, total_influence_shares);
 					if(base_shares <= 0.0f)
 						continue; // skip calculations for priority zero nations
 
-					bool has_sphere_neighbor = [&]() {
-						for(auto g : rel.get_influence_target().get_nation_adjacency()) {
-							if(g.get_connected_nations(0) != rel.get_influence_target() && g.get_connected_nations(0).get_in_sphere_of() == n)
-								return true;
-							if(g.get_connected_nations(1) != rel.get_influence_target() && g.get_connected_nations(1).get_in_sphere_of() == n)
-								return true;
-						}
-						return false;
-					}();
-
-					float total_fi = 0.0f;
-					for(auto i : rel.get_influence_target().get_unilateral_relationship_as_target()) {
-						total_fi += i.get_foreign_investment();
-					}
+					float total_fi = nations::get_foreign_investment(state, rel.get_influence_target());
 					auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
-							state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
+						state.world.get_unilateral_relationship_by_unilateral_pair(rel.get_influence_target(), n));
 
 					float discredit_factor =
 							(rel.get_status() & influence::is_discredited) != 0 ? state.defines.discredit_influence_gain_factor : 0.0f;
 					float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, rel.get_influence_target()))
 																			? state.defines.neighbour_bonus_influence_percent
 																			: 0.0f;
-					float sphere_neighbor_factor = has_sphere_neighbor ? state.defines.sphere_neighbour_bonus_influence_percent : 0.0f;
+					float sphere_neighbor_factor = nations::has_sphere_neighbour(state, n, rel.get_influence_target())
+						? state.defines.sphere_neighbour_bonus_influence_percent
+						: 0.0f;
 					float continent_factor = n.get_capital().get_continent() != rel.get_influence_target().get_capital().get_continent()
 																			 ? state.defines.other_continent_bonus_influence_percent
 																			 : 0.0f;

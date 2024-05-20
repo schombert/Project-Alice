@@ -48,8 +48,7 @@ struct server_handshake_data {
 struct client_data {
 	dcon::nation_id playing_as{};
 	socket_t socket_fd = 0;
-	struct sockaddr_in6 v6_address;
-	struct sockaddr_in v4_address;
+	struct sockaddr_storage address;
 
 	client_handshake_data hshake_buffer;
 	command::payload recv_buffer;
@@ -73,8 +72,7 @@ struct network_state {
 	server_handshake_data s_hshake;
 	sys::player_name nickname;
 	sys::checksum_key current_save_checksum;
-	struct sockaddr_in6 v6_address;
-	struct sockaddr_in v4_address;
+	struct sockaddr_storage address;
 	rigtorp::SPSCQueue<command::payload> outgoing_commands;
 	std::array<client_data, 128> clients;
 	std::vector<struct in6_addr> v6_banlist;

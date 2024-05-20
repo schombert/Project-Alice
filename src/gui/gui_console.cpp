@@ -5,6 +5,9 @@
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION 1
+#include "stb_image_write.h"
+
 struct command_info {
 	static constexpr uint32_t max_arg_slots = 4;
 
@@ -35,6 +38,7 @@ struct command_info {
 		militancy,
 		dump_out_of_sync,
 		dump_event_graph,
+		dump_tooltip,
 		ai_elligibility,
 		fog_of_war,
 		prestige,
@@ -43,6 +47,8 @@ struct command_info {
 		toggle_ai,
 		always_allow_wargoals,
 		always_allow_reforms,
+		always_allow_decisions,
+		always_potential_decisions,
 		always_accept_deals,
 		complete_constructions,
 		instant_research,
@@ -62,6 +68,7 @@ struct command_info {
 		instant_industry,
 		innovate,
 		daily_oos_check,
+		dump_map,
 		province_names,
 		color_blind_mode,
 		list_national_variables,
@@ -157,6 +164,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"graph", command_info::type::dump_event_graph, "Dump an event graph",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
+		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
@@ -177,6 +187,12 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}}, */
 		command_info{"ar", command_info::type::always_allow_reforms, "Always allow enacting reforms",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"dida", command_info::type::always_allow_decisions, "Always allow taking decisions",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}}},
+		command_info{"didp", command_info::type::always_potential_decisions, "Always showing all decisions",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"cc", command_info::type::complete_constructions, "Complete all current constructions",
@@ -235,6 +251,9 @@ inline constexpr command_info possible_commands[] = {
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "doos", command_info::type::daily_oos_check, "Toggle daily OOS check",
 				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
+		command_info{ "dmap", command_info::type::dump_map, "Dumps the map in a MS Paint friendly format",
+				{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
 			{command_info::argument_info{}, command_info::argument_info{},
@@ -632,43 +651,6 @@ void write_single_component(sys::state& state, native_string_view filename, F&& 
 	auto buffer_position = func(buffer.get(), state);
 	size_t total_size_used = reinterpret_cast<uint8_t*>(buffer_position) - buffer.get();
 	simple_fs::write_file(sdir, filename, reinterpret_cast<char*>(buffer.get()), uint32_t(total_size_used));
-}
-
-void print_graph_label(sys::state& state, std::string& text, std::string_view source, uint16_t* data) {
-	effect::recurse_over_effects(data, [&](uint16_t* data) {
-		dcon::text_sequence_id name;
-		if((data[0] & effect::code_mask) == effect::country_event_immediate_province_this_nation
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_pop
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_province
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_province_this_state
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_nation
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_pop
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_province
-			|| (data[0] & effect::code_mask) == effect::country_event_immediate_this_state
-			|| (data[0] & effect::code_mask) == effect::country_event_province_this_nation
-			|| (data[0] & effect::code_mask) == effect::country_event_province_this_pop
-			|| (data[0] & effect::code_mask) == effect::country_event_province_this_province
-			|| (data[0] & effect::code_mask) == effect::country_event_province_this_state
-			|| (data[0] & effect::code_mask) == effect::country_event_this_nation
-			|| (data[0] & effect::code_mask) == effect::country_event_this_pop
-			|| (data[0] & effect::code_mask) == effect::country_event_this_province
-			|| (data[0] & effect::code_mask) == effect::country_event_this_state) {
-			name = state.world.national_event_get_name(trigger::payload(data[1]).nev_id);
-			//province event
-		} else if((data[0] & effect::code_mask) == effect::province_event_immediate_this_nation
-			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_pop
-			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_province
-			|| (data[0] & effect::code_mask) == effect::province_event_immediate_this_state
-			|| (data[0] & effect::code_mask) == effect::province_event_this_nation
-			|| (data[0] & effect::code_mask) == effect::province_event_this_pop
-			|| (data[0] & effect::code_mask) == effect::province_event_this_province
-			|| (data[0] & effect::code_mask) == effect::province_event_this_state) {
-			name = state.world.provincial_event_get_name(trigger::payload(data[1]).pev_id);
-		}
-		if(name && text.size() < 0xfffff) {
-			text += "\"" + std::string(source) + "\" -> \"" + text::produce_simple_string(state, name) + "\";\n";
-		}
-	});
 }
 
 void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
@@ -1328,81 +1310,263 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	break;
+	case command_info::type::dump_tooltip:
+	{
+		std::string out_text = "#Tooltip data\n";
+		if(state.ui_state.last_tooltip) {
+			auto container = text::create_columnar_layout(state.ui_state.tooltip->internal_layout,
+				text::layout_parameters{ 16, 16, 32762, 32762, state.ui_state.tooltip_font, 0,
+				text::alignment::left, text::text_color::white, true }, 10);
+			state.ui_state.last_tooltip->update_tooltip(state, 0, 0, container);
+			populate_shortcut_tooltip(state, *state.ui_state.last_tooltip, container);
+			int16_t old_y = 0;
+			for(const auto& e : container.base_layout.contents) {
+				if(e.y != old_y) {
+					out_text += "\n";
+					old_y = e.y;
+				}
+				out_text += " ";
+				out_text += e.win1250chars;
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
+	}
+	break;
 	case command_info::type::dump_event_graph:
 	{
-		std::string txt = "";
-		txt += "digraph {\n";
-		txt += "subgraph cluster_0 {\n";
-		txt += "label = \"National Events\";\n";
+		struct graph_event_option {
+			std::variant<
+				dcon::national_event_id,
+				dcon::free_national_event_id,
+				dcon::provincial_event_id,
+				dcon::free_provincial_event_id
+			> parent;
+			uint8_t index = 0;
+		};
+		using graph_node_data = std::variant<
+			dcon::national_event_id,
+			dcon::free_national_event_id,
+			dcon::provincial_event_id,
+			dcon::free_provincial_event_id,
+			dcon::decision_id,
+			dcon::cb_type_id,
+			dcon::rebel_type_id,
+			dcon::issue_option_id,
+			graph_event_option
+		>;
+		struct graph_node {
+			std::string name;
+			graph_node_data data;
+			dcon::effect_key e;
+			uint32_t ref_count;
+		};
+		std::vector<graph_node> nodes;
 		for(const auto e : state.world.in_national_event) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			if(e.get_immediate_effect())
-				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
-			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
-				if(opt[i].effect) {
-					auto const opt_name = std::string(name) + " #" + std::to_string(i);
-					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
-				}
+			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
-		txt += "}\n";
-		txt += "subgraph cluster_1 {\n";
-		txt += "label = \"Provincial Events\";\n";
 		for(const auto e : state.world.in_provincial_event) {
 			auto const name = text::produce_simple_string(state, e.get_name());
-			if(e.get_immediate_effect())
-				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
-			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
-				if(opt[i].effect) {
-					auto const opt_name = std::string(name) + " #" + std::to_string(i);
-					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
-				}
+			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
-		txt += "}\n";
-		txt += "subgraph cluster_3 {\n";
-		txt += "label = \"Free National Events\";\n";
 		for(const auto e : state.world.in_free_national_event) {
 			auto name = text::produce_simple_string(state, e.get_name());
-			if(e.get_immediate_effect())
-				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
-			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
-				if(opt[i].effect) {
-					auto const opt_name = std::string(name) + " #" + std::to_string(i);
-					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
-				}
+			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
 			}
 		}
-		txt += "}\n";
-		txt += "subgraph cluster_4 {\n";
-		txt += "label = \"Free Provincial Events\";\n";
 		for(const auto e : state.world.in_free_provincial_event) {
 			auto const name = text::produce_simple_string(state, e.get_name());
-			if(e.get_immediate_effect())
-				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_immediate_effect().index() + 1]);
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_immediate_effect(), 0 });
 			auto const& opt = e.get_options();
-			for(uint32_t i = 0; i < uint32_t(opt.size()); i++) {
-				if(opt[i].effect) {
-					auto const opt_name = std::string(name) + " #" + std::to_string(i);
-					print_graph_label(state, txt, opt_name, state.effect_data.data() + state.effect_data_indices[opt[i].effect.index() + 1]);
+			for(uint8_t i = 0; i < uint8_t(opt.size()); i++) {
+				auto const opt_name = text::produce_simple_string(state, opt[i].name);
+				nodes.push_back(graph_node{ opt_name, graph_node_data(graph_event_option{ e.id, i }), opt[i].effect, 0 });
+			}
+		}
+		for(const auto e : state.world.in_decision) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.push_back(graph_node{ name, graph_node_data(e.id), e.get_effect(), 0 });
+		}
+		for(const auto e : state.world.in_cb_type) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.push_back(graph_node{ "(add) " + name, graph_node_data(e.id), e.get_on_add(), 0 });
+			nodes.push_back(graph_node{ "(accept) " + name, graph_node_data(e.id), e.get_on_po_accepted(), 0 });
+		}
+		for(const auto e : state.world.in_rebel_type) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.push_back(graph_node{ "(siege) " + name, graph_node_data(e.id), e.get_siege_won_effect(), 0 });
+			nodes.push_back(graph_node{ "(demands) " + name, graph_node_data(e.id), e.get_demands_enforced_effect(), 0 });
+		}
+		for(const auto e : state.world.in_issue_option) {
+			auto name = text::produce_simple_string(state, e.get_name());
+			nodes.push_back(graph_node{ "(execute) " + name, graph_node_data(e.id), e.get_on_execute_effect(), 0 });
+		}
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			auto& node = nodes[i];
+			for(auto& c : node.name) {
+				if(c == '\\' || c == '"')
+					c = '\'';
+			}
+		}
+
+		std::string out_text = "digraph {\n";
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			const auto& node = nodes[i];
+			uint16_t* efd = state.effect_data.data() + state.effect_data_indices[node.e.index() + 1];
+			effect::recurse_over_effects(efd, [&](uint16_t* tval) {
+				if((tval[0] & effect::code_mask) == effect::country_event_immediate_province_this_nation
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_province_this_pop
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_province_this_province
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_province_this_state
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_this_nation
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_this_pop
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_this_province
+					|| (tval[0] & effect::code_mask) == effect::country_event_immediate_this_state
+					|| (tval[0] & effect::code_mask) == effect::country_event_province_this_nation
+					|| (tval[0] & effect::code_mask) == effect::country_event_province_this_pop
+					|| (tval[0] & effect::code_mask) == effect::country_event_province_this_province
+					|| (tval[0] & effect::code_mask) == effect::country_event_province_this_state
+					|| (tval[0] & effect::code_mask) == effect::country_event_this_nation
+					|| (tval[0] & effect::code_mask) == effect::country_event_this_pop
+					|| (tval[0] & effect::code_mask) == effect::country_event_this_province
+					|| (tval[0] & effect::code_mask) == effect::country_event_this_state) {
+					auto ev = trigger::payload(tval[1]).nev_id;
+					for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+						if(std::holds_alternative<dcon::national_event_id>(nodes[j].data)
+						&& std::get<dcon::national_event_id>(nodes[j].data) == ev) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+							break;
+						}
+					}
+					//province event
+				} else if((tval[0] & effect::code_mask) == effect::province_event_immediate_this_nation
+					|| (tval[0] & effect::code_mask) == effect::province_event_immediate_this_pop
+					|| (tval[0] & effect::code_mask) == effect::province_event_immediate_this_province
+					|| (tval[0] & effect::code_mask) == effect::province_event_immediate_this_state
+					|| (tval[0] & effect::code_mask) == effect::province_event_this_nation
+					|| (tval[0] & effect::code_mask) == effect::province_event_this_pop
+					|| (tval[0] & effect::code_mask) == effect::province_event_this_province
+					|| (tval[0] & effect::code_mask) == effect::province_event_this_state) {
+					auto ev = trigger::payload(tval[1]).pev_id;
+					for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+						if(std::holds_alternative<dcon::provincial_event_id>(nodes[j].data)
+						&& std::get<dcon::provincial_event_id>(nodes[j].data) == ev) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+							break;
+						}
+					}
+				}
+			});
+		}
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			const auto& d1 = nodes[i].data;
+			if(std::holds_alternative<dcon::national_event_id>(d1)) {
+				auto id = std::get<dcon::national_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::national_event_id>(geo.parent)
+						&& std::get<dcon::national_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::free_national_event_id>(d1)) {
+				auto id = std::get<dcon::free_national_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::free_national_event_id>(geo.parent)
+						&& std::get<dcon::free_national_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::provincial_event_id>(d1)) {
+				auto id = std::get<dcon::provincial_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::provincial_event_id>(geo.parent)
+						&& std::get<dcon::provincial_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+						}
+					}
+				}
+			} else if(std::holds_alternative<dcon::free_provincial_event_id>(d1)) {
+				auto id = std::get<dcon::free_provincial_event_id>(d1);
+				for(uint32_t j = 0; j < uint32_t(nodes.size()); j++) {
+					const auto& d2 = nodes[j].data;
+					if(nodes[j].ref_count > 0 && std::holds_alternative<graph_event_option>(d2)) {
+						auto geo = std::get<graph_event_option>(d2);
+						if(std::holds_alternative<dcon::free_provincial_event_id>(geo.parent)
+						&& std::get<dcon::free_provincial_event_id>(geo.parent) == id) {
+							nodes[i].ref_count++;
+							nodes[j].ref_count++;
+							out_text += "A_" + std::to_string(i) + " -> A_" + std::to_string(j) + ";\n";
+						}
+					}
 				}
 			}
 		}
-		txt += "}\n";
-		txt += "subgraph cluster_5 {\n";
-		txt += "label = \"Decisions\";\n";
-		for(const auto e : state.world.in_decision) {
-			auto name = text::produce_simple_string(state, e.get_name());
-			if(e.get_effect())
-				print_graph_label(state, txt, name, state.effect_data.data() + state.effect_data_indices[e.get_effect().index() + 1]);
+		for(uint32_t i = 0; i < uint32_t(nodes.size()); i++) {
+			const auto& node = nodes[i];
+			if(node.ref_count > 0) {
+				const auto& d = node.data;
+				if(std::holds_alternative<dcon::national_event_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=crimson, shape=box];\n";
+				} else if(std::holds_alternative<dcon::free_national_event_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightcoral, shape=diamond];\n";
+				} else if(std::holds_alternative<dcon::provincial_event_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=royalblue2, shape=box];\n";
+				} else if(std::holds_alternative<dcon::free_provincial_event_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=deepskyblue, shape=diamond];\n";
+				} else if(std::holds_alternative<dcon::decision_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=darkseagreen1, shape=trapezium];\n";
+				} else if(std::holds_alternative<graph_event_option>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=mediumturquoise];\n";
+				} else if(std::holds_alternative<dcon::cb_type_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lemonchiffon1, shape=diamond];\n";
+				} else if(std::holds_alternative<dcon::rebel_type_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightsalmon2, shape=diamond];\n";
+				} else if(std::holds_alternative<dcon::issue_option_id>(d)) {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=lightgoldenrodyellow, shape=diamond];\n";
+				} else {
+					out_text += "A_" + std::to_string(i) + " [label=\"" + node.name + "\", style=\"filled\", fillcolor=yellow];\n";
+				}
+			}
 		}
-		txt += "}\n";
-		txt += "}\n";
+		out_text += "}\n";
 		auto sdir = simple_fs::get_or_create_oos_directory();
-		simple_fs::write_file(sdir, NATIVE("graph.txt"), txt.c_str(), uint32_t(txt.size()));
+		simple_fs::write_file(sdir, NATIVE("graph.txt"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
 	case command_info::type::ai_elligibility:
@@ -1687,6 +1851,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
+	case command_info::type::always_allow_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "\x02" : "\x01");
+		command::c_always_allow_decisions(state, state.local_player_nation);
+		break;
+	case command_info::type::always_potential_decisions:
+		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "\x02" : "\x01");
+		command::c_always_potential_decisions(state, state.local_player_nation);
+		break;
 	case command_info::type::always_accept_deals:
 		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
 		command::c_always_accept_deals(state, state.local_player_nation);
@@ -1828,6 +2000,103 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
 		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::dump_map:
+	{
+		bool opt_sea_lines = true;
+		bool opt_province_lines = true;
+		bool opt_blend = true;
+		if(!std::holds_alternative<std::string>(pstate.arg_slots[0])) {
+			log_to_console(state, parent, "Valid options: nosealine, noblend, nosealine2, blendnosea, vanilla");
+			log_to_console(state, parent, "Ex: \"dmap nosealine2\"");
+			break;
+		}
+		auto type = std::get<std::string>(pstate.arg_slots[0]);
+		if(type == "nosealine") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+		} else if(type == "noblend") {
+			opt_blend = false;
+		} else if(type == "nosealine2") {
+			opt_sea_lines = false;
+		} else if(type == "blendnosea") {
+			opt_sea_lines = false;
+			opt_blend = false;
+		} else if(type == "vanilla") {
+			opt_sea_lines = false;
+			opt_province_lines = false;
+			opt_blend = false;
+		}
+
+		auto total_px = state.map_state.map_data.size_x * state.map_state.map_data.size_y;
+		auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[total_px * 3]);
+		auto blend_fn = [&](uint32_t idx, bool sea_a, bool sea_b, dcon::province_id pa, dcon::province_id pb) {
+			if(sea_a != sea_b) {
+				buffer[idx * 3 + 0] = 0;
+				buffer[idx * 3 + 1] = 0;
+				buffer[idx * 3 + 2] = 0;
+			}
+			if(pa != pb) {
+				if(((sea_a || sea_b) && opt_sea_lines)
+				|| sea_a != sea_b
+				|| (opt_province_lines && !sea_a && !sea_b)) {
+					if(opt_blend) {
+						buffer[idx * 3 + 0] &= 0x7f;
+						buffer[idx * 3 + 1] &= 0x7f;
+						buffer[idx * 3 + 2] &= 0x7f;
+					} else {
+						buffer[idx * 3 + 0] = 0;
+						buffer[idx * 3 + 1] = 0;
+						buffer[idx * 3 + 2] = 0;
+					}
+				}
+			}
+		};
+		for(uint32_t y = 0; y < uint32_t(state.map_state.map_data.size_y); y++) {
+			for(uint32_t x = 0; x < uint32_t(state.map_state.map_data.size_x); x++) {
+				auto idx = y * uint32_t(state.map_state.map_data.size_x) + x;
+				auto p = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
+				bool p_is_sea = state.map_state.map_data.province_id_map[idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+				if(p_is_sea) {
+					buffer[idx * 3 + 0] = 128;
+					buffer[idx * 3 + 1] = 128;
+					buffer[idx * 3 + 2] = 255;
+				} else {
+					auto owner = state.world.province_get_nation_from_province_ownership(p);
+					if(owner) {
+						auto owner_color = state.world.nation_get_color(owner);
+						buffer[idx * 3 + 0] = uint8_t(owner_color & 0xff);
+						buffer[idx * 3 + 1] = uint8_t((owner_color >> 8) & 0xff) & 0xff;
+						buffer[idx * 3 + 2] = uint8_t((owner_color >> 16) & 0xff) & 0xff;
+					} else {
+						buffer[idx * 3 + 0] = 170;
+						buffer[idx * 3 + 1] = 170;
+						buffer[idx * 3 + 2] = 170;
+					}
+				}
+				if(x < uint32_t(state.map_state.map_data.size_x - 1)) {
+					auto br_idx = idx + uint32_t(state.map_state.map_data.size_x);
+					if(br_idx < total_px) {
+						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[br_idx]);
+						bool br_is_sea = state.map_state.map_data.province_id_map[br_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
+					}
+					auto rs_idx = idx + 1;
+					if(rs_idx < total_px) {
+						auto br_p = province::from_map_id(state.map_state.map_data.province_id_map[rs_idx]);
+						bool br_is_sea = state.map_state.map_data.province_id_map[rs_idx] >= province::to_map_id(state.province_definitions.first_sea_province);
+						blend_fn(idx, br_is_sea, p_is_sea, br_p, p);
+					}
+				}
+			}
+		}
+		stbi_flip_vertically_on_write(true);
+		auto func = [](void*, void* ptr_in, int size) -> void {
+			auto sdir = simple_fs::get_or_create_oos_directory();
+			simple_fs::write_file(sdir, NATIVE("map.png"), static_cast<const char*>(ptr_in), uint32_t(size));
+		};
+		stbi_write_png_to_func(func, nullptr, int(state.map_state.map_data.size_x), int(state.map_state.map_data.size_y), 3, buffer.get(), 0);
 		break;
 	}
 	case command_info::type::province_names:

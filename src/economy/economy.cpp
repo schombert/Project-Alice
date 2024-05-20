@@ -739,7 +739,7 @@ void initialize(sys::state& state) {
 	});
 }
 
-float sphere_leader_share_factor(sys::state const& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
+float sphere_leader_share_factor(sys::state& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
 	/*
 	Share factor : If the nation is a civ and is a secondary power start with define : SECOND_RANK_BASE_SHARE_FACTOR, and
 	otherwise start with define : CIV_BASE_SHARE_FACTOR.Also calculate the sphere owner's foreign investment in the nation as a
@@ -750,16 +750,11 @@ float sphere_leader_share_factor(sys::state const& state, dcon::nation_id sphere
 	*/
 	if(state.world.nation_get_is_civilized(sphere_member)) {
 		float base = state.world.nation_get_rank(sphere_member) <= state.defines.colonial_rank
-										 ? state.defines.second_rank_base_share_factor
-										 : state.defines.civ_base_share_factor;
-		float total_investment = 0;
-		float sl_investment = 0;
-		for(auto gp : state.world.nation_get_unilateral_relationship_as_target(sphere_member)) {
-			if(gp.get_source() == sphere_leader) {
-				sl_investment = gp.get_foreign_investment();
-			}
-			total_investment += gp.get_foreign_investment();
-		}
+			? state.defines.second_rank_base_share_factor
+			: state.defines.civ_base_share_factor;
+		auto const ul = state.world.get_unilateral_relationship_by_unilateral_pair(sphere_member, sphere_leader);
+		float sl_investment = state.world.unilateral_relationship_get_foreign_investment(ul);
+		float total_investment = nations::get_foreign_investment(state, sphere_member);
 		float investment_fraction = total_investment > 0.0001f ? sl_investment / total_investment : 0.0f;
 		return base + (1.0f - base) * investment_fraction;
 	} else {
@@ -1551,7 +1546,7 @@ void update_province_rgo_consumption(sys::state& state, dcon::province_id p, dco
 void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto amount = state.world.province_get_rgo_actual_production(p);
 	auto c = state.world.province_get_rgo(p);
-	assert(c);
+	//assert(c);
 	if(!c)
 		return;
 

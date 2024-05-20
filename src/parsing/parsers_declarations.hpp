@@ -1268,7 +1268,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 struct state_def_building_context {
 	scenario_building_context& outer_context;
-	dcon::state_definition_id id;
+	std::vector<dcon::province_id> provinces;
 };
 
 struct state_definition {
@@ -1282,22 +1282,6 @@ struct region_file {
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
-struct region_building_context {
-	scenario_building_context& outer_context;
-	dcon::region_id id;
-};
-
-struct region_definition {
-	void free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context);
-	void finish(region_building_context&) { }
-};
-
-struct superregion_file {
-	void finish(scenario_building_context&) { }
-};
-
-void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
-
 struct continent_building_context {
 	scenario_building_context& outer_context;
 	dcon::modifier_id id;
@@ -1310,6 +1294,7 @@ struct continent_provinces {
 
 struct continent_definition : public modifier_base {
 	continent_provinces provinces;
+	void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context);
 	void finish(continent_building_context&) { }
 };
 
@@ -2246,6 +2231,7 @@ struct generic_event {
 	dcon::effect_key immediate_;
 	bool major = false;
 	bool fire_only_once = false;
+	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
 	dcon::text_sequence_id title_;
 	dcon::text_sequence_id desc_;

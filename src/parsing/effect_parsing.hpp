@@ -3170,7 +3170,7 @@ struct effect_body {
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_province : effect::war_no_ally_this_province);
 			else if(context.this_slot == trigger::slot_contents::state)
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_state : effect::war_no_ally_this_state);
-			else if(context.this_slot == trigger::slot_contents::province)
+			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_pop : effect::war_no_ally_this_pop);
 			else {
 				err.accumulated_errors +=

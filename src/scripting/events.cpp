@@ -448,6 +448,20 @@ struct event_prov_pair {
 	}
 };
 
+bool would_be_duplicate_instance(sys::state& state, dcon::national_event_id e, dcon::nation_id n, sys::date date) {
+	if(state.world.national_event_get_allow_multiple_instances(e))
+		return false;
+	for(int32_t i = 0; i < int32_t(state.future_n_event.size()); i++) {
+		auto const& nev = state.future_n_event[i];
+		if(nev.e == e
+		&& nev.n == n
+		&& nev.date == date) {
+			return true;
+		}
+	}
+	return false;
+}
+
 void update_future_events(sys::state& state) {
 	for(uint32_t i = 0; i < uint32_t(state.defines.alice_max_event_iterations); i++) {
 		bool fired_n = false;
@@ -568,11 +582,11 @@ void update_events(sys::state& state) {
 						*/
 						auto owners = state.world.province_get_nation_from_province_ownership(ids);
 						auto some_exist = t ? (owners != dcon::nation_id{}) &&
-							trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+							trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
 							: (owners != dcon::nation_id{});
 						if(ve::compress_mask(some_exist).v != 0) {
 							auto chances = mod
-								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(owners), 0)
+								? trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0)
 								: ve::fp_vector{ 2.0f };
 							auto adj_chance = 1.0f - ve::select(chances <= 2.0f, 1.0f, 2.0f / chances);
 							auto adj_chance_2 = adj_chance * adj_chance;

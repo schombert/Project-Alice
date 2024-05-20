@@ -128,7 +128,7 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 37;
+constexpr inline uint32_t save_file_version = 38;
 constexpr inline uint32_t scenario_file_version = 126 + save_file_version;
 
 struct scenario_header {

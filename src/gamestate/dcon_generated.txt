@@ -1628,7 +1628,7 @@ object {
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 10000 }
+	size{ 16000 }
 	tag{ save }
 
 	property{
@@ -1724,7 +1724,7 @@ object {
 object {
 	name{ navy }
 	storage_type{ erasable }
-	size{ 2000 }
+	size{ 6000 }
 	tag{ save }
 
 	property{
@@ -2315,7 +2315,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 25000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -4539,6 +4539,11 @@ object {
 	property{
 		name{ news_picture }
 		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+	property{
+		name{ allow_multiple_instances }
+		type{ bitfield }
 		tag{ scenario }
 	}
 }

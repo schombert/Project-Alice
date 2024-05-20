@@ -1030,6 +1030,7 @@ void lambda_country_event(token_generator& gen, error_handler& err, effect_build
 	fid.set_description(event_result.desc_);
 	fid.set_name(event_result.title_);
 	fid.set_image(event_result.picture_);
+	fid.set_allow_multiple_instances(event_result.allow_multiple_instances);
 	fid.set_immediate_effect(event_result.immediate_);
 	fid.set_news_title(event_result.news_title_);
 	fid.set_news_picture(event_result.news_picture_);
@@ -1250,6 +1251,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.set_news_medium_desc(event_result.news_medium_desc_);
 				fid.set_news_short_desc(event_result.news_short_desc_);
 				fid.set_is_major(event_result.major);
+				fid.set_allow_multiple_instances(event_result.allow_multiple_instances);
 				fid.get_options() = event_result.options;
 
 				for(auto& r : context.state.national_definitions.on_yearly_pulse) {

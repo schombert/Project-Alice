@@ -347,6 +347,10 @@ enum class budget_slider_target : uint8_t {
 	//
 	overseas,
 	stockpile_filling,
+	diplomatic_interest,
+	interest,
+	subsidies,
+	gold_income,
 	//
 	target_count
 };
@@ -489,9 +493,8 @@ public:
 			}
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		if(state.ui_state.drag_target == nullptr && state.ui_state.left_mouse_hold_target != left && state.ui_state.left_mouse_hold_target != right) {
+		if(state.ui_state.drag_target != slider)
 			commit_changes(state);
-		}
 	}
 
 	void on_update(sys::state& state) noexcept final {
@@ -1160,6 +1163,12 @@ public:
 					case budget_slider_target::tariffs:
 						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_4", text::variable_type::value, text::fp_currency{ v });
 						break;
+					case budget_slider_target::gold_income:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_17", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::diplomatic_interest:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_16", text::variable_type::value, text::fp_currency{ v });
+						break;
 					default:
 						break;
 					}
@@ -1199,6 +1208,15 @@ public:
 						break;
 					case budget_slider_target::domestic_investment:
 						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_12", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::overseas:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_13", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::stockpile_filling:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_14", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::subsidies:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_15", text::variable_type::value, text::fp_currency{ v });
 						break;
 					default:
 						break;
@@ -1298,7 +1316,7 @@ public:
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
 		vals[uint8_t(budget_slider_target::rich_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 	}
 };
 
@@ -1316,14 +1334,13 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] = 0;
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_domestic_investment(state, state.local_player_nation)
+		vals[uint8_t(budget_slider_target::domestic_investment)] = economy::estimate_domestic_investment(state, state.local_player_nation)
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::interest_payment(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::subsidies)] = economy::estimate_subsidy_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::overseas)] = economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::stockpile_filling)] = economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::interest)] = economy::interest_payment(state, state.local_player_nation);
 	}
 };
 
@@ -1337,7 +1354,7 @@ public:
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
 		vals[uint8_t(budget_slider_target::rich_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 
 		// spend
 		vals[uint8_t(budget_slider_target::construction_stock)] =
@@ -1345,21 +1362,18 @@ public:
 		vals[uint8_t(budget_slider_target::army_stock)] = -economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = -economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = -economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation)
+		vals[uint8_t(budget_slider_target::education)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::subsidies)] = -economy::estimate_subsidy_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::overseas)] = -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::stockpile_filling)] = -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::domestic_investment)] = -economy::estimate_domestic_investment(state, state.local_player_nation)
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		// balance
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] -= economy::interest_payment(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::diplomatic_interest)] = economy::estimate_diplomatic_balance(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::interest)] = -economy::interest_payment(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
 	}
 };
@@ -2029,6 +2043,8 @@ public:
 				move_child_to_front(budget_repay_loan_win);
 			}
 			return message_result::consumed;
+		} else if(payload.holds_type<budget_slider_signal>()) {
+			impl_set(state, payload);
 		}
 
 		return message_result::unseen;

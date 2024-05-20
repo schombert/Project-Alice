@@ -280,27 +280,30 @@ void state_definition::free_value(int32_t value, error_handler& err, int32_t lin
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
-		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		if(province_id && !context.outer_context.state.world.province_get_state_from_abstract_state_membership(province_id)) {
-			context.outer_context.state.world.force_create_abstract_state_membership(province_id, context.id);
-		} else if(province_id) {
-			err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " was assigned to more than one state/region (" + err.file_name + " line " + std::to_string(line) + ")\n";
-		}
-	}
-}
-
-void region_definition::free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context) {
-	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	} else {
-		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		if(province_id) {
-			context.outer_context.state.world.force_create_region_membership(province_id, context.id);
+		auto prov = context.outer_context.original_id_to_prov_id_map[value];
+		if(prov) {
+			context.provinces.push_back(prov);
+		} else {
+			err.accumulated_warnings += "Province id " + std::to_string(value) + " was not found (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
 }
 
 void continent_provinces::free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
+	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	} else {
+		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		if(province_id) {
+			if(context.outer_context.state.world.province_get_continent(province_id)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " (" + std::to_string(value) + ")" + " assigned to multiple continents (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			context.outer_context.state.world.province_set_continent(province_id, context.id);
+		}
+	}
+}
+
+void continent_definition::free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
