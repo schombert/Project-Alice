@@ -303,6 +303,20 @@ void continent_provinces::free_value(int32_t value, error_handler& err, int32_t 
 	}
 }
 
+void continent_definition::free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context) {
+	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	} else {
+		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		if(province_id) {
+			if(context.outer_context.state.world.province_get_continent(province_id)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.outer_context.prov_id_to_original_id_map.safe_get(province_id).id) + " (" + std::to_string(value) + ")" + " assigned to multiple continents (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			context.outer_context.state.world.province_set_continent(province_id, context.id);
+		}
+	}
+}
+
 void climate_definition::free_value(int32_t value, error_handler& err, int32_t line, climate_building_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors +=

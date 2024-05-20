@@ -452,6 +452,7 @@ continent_provinces
 continent_definition
 	#base          modifier_base
 	provinces      group      continent_provinces       member
+	#free          value      int                       member_fn
 
 continent_file
 	#any           extern     make_continent_definition discard
