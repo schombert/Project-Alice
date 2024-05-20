@@ -4958,43 +4958,6 @@ object {
 	}
 }
 
-object {
-	name{ news_article }
-	storage_type{ contiguous }
-	size{ 64 }
-	tag{ save }
-	property{
-		name{ picture }
-		type{ dcon::gfx_object_id }
-		tag{ save }
-	}
-	property{
-		name{ title }
-		type{ text_sequence_id }
-		tag{ save }
-	}
-	property{
-		name{ desc }
-		type{ text_sequence_id }
-		tag{ save }
-	}
-	property{
-		name{ strings }
-		type{ std::array<std::array<text_sequence_id,3>,3> }
-		tag{ save }
-	}
-	property{
-		name{ values }
-		type{ std::array<std::array<float,3>,3> }
-		tag{ save }
-	}
-	property{
-		name{ tags }
-		type{ std::array<std::array<national_identity_id,3>,3> }
-		tag{ save }
-	}
-}
-
 load_save{
 	name{store_scenario}
 	only_objects{scenario}

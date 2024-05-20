@@ -39,6 +39,12 @@ struct news_generator_selector {
 };
 struct news_generate_article {
 	uint8_t flags = 0;
+	int32_t last_picture_case = 0;
+	int32_t last_title_case = 0;
+	int32_t last_desc_case = 0;
+	std::array<sys::news_picture_case, sys::max_news_generator_cases> picture_cases;
+	std::array<sys::news_text_case, sys::max_news_generator_cases> title_cases;
+	std::array<sys::news_text_case, sys::max_news_generator_cases> desc_cases;
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, news_context& context);
 	void size(association_type, std::string_view value, error_handler& err, int32_t line, news_context& context);
 	void picture_case(association_type, news_picture_case value, error_handler& err, int32_t line, news_context& context);

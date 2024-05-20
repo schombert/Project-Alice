@@ -98,17 +98,35 @@ void news_generate_article::size(association_type, std::string_view value, error
 }
 
 void news_generate_article::picture_case(association_type, news_picture_case value, error_handler& err, int32_t line, news_context& context) {
-
+	if(last_picture_case >= sys::max_news_generator_cases) {
+		err.accumulated_errors += "Too many picture cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+	} else {
+		picture_cases[last_picture_case] = value;
+		++last_picture_case;
+	}
 }
 void news_generate_article::title_case(association_type, news_title_case value, error_handler& err, int32_t line, news_context& context) {
-
+	if(last_title_case >= sys::max_news_generator_cases) {
+		err.accumulated_errors += "Too many title cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+	} else {
+		title_cases[last_title_case] = value;
+		++last_title_case;
+	}
 }
 void news_generate_article::description_case(association_type, news_desc_case value, error_handler& err, int32_t line, news_context& context) {
-
+	if(last_desc_case >= sys::max_news_generator_cases) {
+		err.accumulated_errors += "Too many description cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+	} else {
+		desc_cases[last_desc_case] = value;
+		++last_desc_case;
+	}
 }
 
 void news_generate_article::finish(news_context& context) {
 	auto id = state.world.create_news_generator();
+	state.world.news_generator_set_picture_case(picture_cases);
+	state.world.news_generator_set_title_case(title_cases);
+	state.world.news_generator_set_desc_case(desc_cases);
 }
 
 void news_text_add::free_value(std::string_view value, error_handler& err, int32_t line, news_context& context) {

@@ -312,10 +312,10 @@ trigger_body
 	flashpoint_tag_scope         extern tr_flashpoint_tag_scope         discard
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
-	tags_eq						 extern tr_tags_eq						member_fn
-	values_eq					 extern tr_values_eq					member_fn
-	strings_eq					 extern tr_strings_eq					member_fn
-	dates_eq					 extern tr_dates_eq						member_fn
+	tags_eq						 group tr_news_data_parameters			member_fn
+	values_eq					 group tr_news_data_parameters			member_fn
+	strings_eq					 group tr_news_data_parameters			member_fn
+	dates_eq					 group tr_news_data_parameters			member_fn
 	tags_greater				 group tr_news_data_parameters			member_fn
 	values_greater				 group tr_news_data_parameters			member_fn
 	strings_greater				 group tr_news_data_parameters			member_fn
