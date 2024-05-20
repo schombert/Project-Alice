@@ -1294,6 +1294,7 @@ struct continent_provinces {
 
 struct continent_definition : public modifier_base {
 	continent_provinces provinces;
+	void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context);
 	void finish(continent_building_context&) { }
 };
 
