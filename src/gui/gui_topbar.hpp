@@ -950,7 +950,7 @@ public:
 
 		float nh_temp = 15.f;
 		std::string nh_season;
-		if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+		if(ymd.month == 12 || ymd.month <= 2) {
 			nh_season = text::produce_simple_string(state, "topbar_date_season_winter");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
 			nh_season = text::produce_simple_string(state, "topbar_date_season_spring");
@@ -966,7 +966,7 @@ public:
 			sh_season = text::produce_simple_string(state, "topbar_date_season_winter");
 		} else if(ymd.month >= 9 && ymd.month <= 11) {
 			sh_season = text::produce_simple_string(state, "topbar_date_season_spring");
-		} else if(ymd.month == 12 || (ymd.month >= 0 && ymd.month <= 2)) {
+		} else if(ymd.month == 12 || ymd.month <= 2) {
 			sh_season = text::produce_simple_string(state, "topbar_date_season_summer");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
 			sh_season = text::produce_simple_string(state, "topbar_date_season_fall");

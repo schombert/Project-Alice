@@ -343,12 +343,12 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 
 bool client_data::is_banned(sys::state& state) const {
 	if(state.network_state.as_v6) {
-		auto sa = (struct sockaddr_in6*)&address;
+		auto sa = (struct sockaddr_in6 const*)&address;
 		return std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const& a) {
 			return std::memcmp(&sa->sin6_addr, &a, sizeof(a)) == 0;
 		}) != state.network_state.v6_banlist.end();
 	} else {
-		auto sa = (struct sockaddr_in*)&address;
+		auto sa = (struct sockaddr_in const*)&address;
 		return std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const& a) {
 			return std::memcmp(&sa->sin_addr, &a, sizeof(a)) == 0;
 		}) != state.network_state.v4_banlist.end();
