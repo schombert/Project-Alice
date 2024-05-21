@@ -5728,42 +5728,27 @@ struct trigger_body {
 		context.compiled_trigger.push_back(trigger::payload(value.pop_type_list[0]).value);
 	}
 
-	void tags_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(value.list.size() < 3) {
-			err.accumulated_errors += "tags_eq trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.compiled_trigger.push_back(uint16_t(trigger::tags_eq));
-		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
-		context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
-		if(auto it = context.outer_context.map_of_ident_names.find(parse_tag(value.list[2], line, err));
-			it != context.outer_context.map_of_ident_names.end()) {
-			context.compiled_trigger.push_back(trigger::payload(it->second).value);
-		} else {
-			err.accumulated_errors += "tags_eq trigger supplied with an invalid tag \"" + std::string(value.list[2]) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-		}
-	}
-	void strings_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(value.list.size() < 3) {
-			err.accumulated_errors += "strings_eq trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.compiled_trigger.push_back(uint16_t(trigger::strings_eq));
-		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
-		context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
-		auto tkey = text::find_or_add_key(context.outer_context.state, value.list[2]);
-		context.add_int32_t_to_payload(tkey.index());
-	}
-	void values_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		if(value.list.size() < 3) {
-			err.accumulated_errors += "values_eq trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
-			return;
-		}
-		context.compiled_trigger.push_back(uint16_t(trigger::values_eq));
-		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
-		context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
-		context.add_int32_t_to_payload(parse_int(value.list[2], line, err));
-	}
+	// news xxx_eq
+	void tags_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_greater
+	void tags_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_match
+	void tags_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_greater
+	void tags_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void length_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
 
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
