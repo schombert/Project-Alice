@@ -202,15 +202,33 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, province_id);
-		auto name = fat_id.get_terrain().get_name();
-		if(bool(name)) {
+		//terrain
+		if(auto name = fat_id.get_terrain().get_name(); name) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
-		auto mod_id = fat_id.get_terrain().id;
-		if(bool(mod_id))
+		if(auto mod_id = fat_id.get_terrain().id; mod_id) {
 			modifier_description(state, contents, mod_id);
+		}
+		//climate
+		if(auto name = fat_id.get_climate().get_name(); name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		if(auto mod_id = fat_id.get_climate().id; mod_id) {
+			modifier_description(state, contents, mod_id);
+		}
+		//continent
+		if(auto name = fat_id.get_continent().get_name(); name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		if(auto mod_id = fat_id.get_continent().id; mod_id) {
+			modifier_description(state, contents, mod_id);
+		}
 	}
 };
 
