@@ -1664,8 +1664,44 @@ void effect_body::define_admiral(ef_define_admiral const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
-void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line,
+void effect_body::change_province_name(association_type t, std::string_view value, error_handler & err, int32_t line,
 		effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_province_name));
+	} else {
+		err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+	}
+}
+void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::state) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_state));
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
+	} else {
+		err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+	}
+}
+void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {
 		context.compiled_effect.push_back(uint16_t(effect::enable_canal));
 		context.compiled_effect.push_back(trigger::payload(uint16_t(value)).value);

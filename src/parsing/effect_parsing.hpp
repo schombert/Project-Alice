@@ -826,20 +826,7 @@ struct effect_body {
 			}
 		}
 	}
-	void change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::state) {
-			context.compiled_effect.push_back(uint16_t(effect::change_region_name_state));
-		} else if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
-		} else {
-			err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
-			return;
-		}
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	}
+	void change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void trade_goods(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_commodity_names.find(std::string(value));
@@ -2093,18 +2080,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void change_province_name(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::change_province_name));
-		} else {
-			err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
-			return;
-		}
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	}
+	void change_province_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void set_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
