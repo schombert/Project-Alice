@@ -246,17 +246,13 @@ void infrastructure_map_tt_box(sys::state& state, text::columnar_layout& content
 
 void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    // Done
 	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, fat.get_abstract_state_membership().get_state().get_name(), text::text_color::white);
 		if(fat.get_is_coast()) {
-			text::add_to_layout_box(state, contents, box, std::string_view(" - "));
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::val,
-			std::string_view(text::format_float(province::direct_distance(state, dcon::fatten(state.world, state.local_player_nation).get_capital().id, prov), 0))
-			);
-			//text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "colonial_range"), sub);
+			text::add_to_substitution_map(sub, text::variable_type::val, std::string_view(text::format_float(province::direct_distance(state, dcon::fatten(state.world, state.local_player_nation).get_capital().id, prov), 0)));
 			text::localised_format_box(state, contents, box, std::string_view("colonial_range"), sub);
 		}
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -291,8 +287,6 @@ void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 		}
 
 		text::close_layout_box(contents, box4);
-	} else {
-		country_name_box(state, contents, prov);
 	}
 }
 
@@ -316,6 +310,7 @@ void recruitment_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 
 		auto max_regiments = military::regiments_max_possible_from_province(state, prov);
 		auto created_regiments = military::regiments_created_from_province(state, prov);
+		created_regiments += military::regiments_under_construction_in_province(state, prov);
 
 		if(fat.get_nation_from_province_ownership().id.value == state.local_player_nation.value) {
 			if(max_regiments == 0) {
@@ -1281,8 +1276,8 @@ void mobilization_map_tt_box(sys::state& state, text::columnar_layout& contents,
 	auto fat = dcon::fatten(state.world, prov);
 	country_name_box(state, contents, prov);
 	if(prov.value < state.province_definitions.first_sea_province.value) {
-		auto max = military::regiments_max_possible_from_province(state, prov);
-		auto used = military::regiments_created_from_province(state, prov);
+		auto max = military::mobilized_regiments_possible_from_province(state, prov);
+		auto used = military::mobilized_regiments_created_from_province(state, prov);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
 		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ max });
