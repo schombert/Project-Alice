@@ -301,6 +301,13 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 			}
 		}
 	}
+	if(bool(state.defines.alice_spherelings_only_ally_sphere)) {
+		auto spherelord = state.world.nation_get_in_sphere_of(from);
+		//If no spherelord -> Then must not ally spherelings
+		//If spherelord -> Then must not ally non-spherelings
+		if(state.world.nation_get_in_sphere_of(target) != spherelord && target != spherelord)
+			return false;
+	}
 
 	if(ai_has_mutual_enemy(state, from, target))
 		return true;
