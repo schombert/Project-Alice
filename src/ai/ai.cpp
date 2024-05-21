@@ -294,10 +294,10 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
 			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
 			if(rel.get_are_allied() && n.get_is_great_power()) {
-				++gp_count;
 				if(gp_count >= 2) {
 					return false;
 				}
+				++gp_count;
 			}
 		}
 	}
