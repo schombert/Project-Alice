@@ -588,7 +588,12 @@ void play_previous_track(sys::state& state) {
 native_string get_current_track_name(sys::state& state) {
 	if(state.sound_ptr->last_music == -1)
 		return NATIVE("");
-	return state.sound_ptr->music_list[state.sound_ptr->last_music].filename;
+	auto fname = state.sound_ptr->music_list[state.sound_ptr->last_music].filename;
+	auto f = simple_fs::peek_file(simple_fs::get_root(state.common_fs), fname);
+	if(f) {
+		return simple_fs::get_file_name(*f);
+	}
+	return fname;
 }
 
 } // namespace sound

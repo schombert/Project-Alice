@@ -294,12 +294,19 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
 			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
 			if(rel.get_are_allied() && n.get_is_great_power()) {
-				++gp_count;
 				if(gp_count >= 2) {
 					return false;
 				}
+				++gp_count;
 			}
 		}
+	}
+	if(bool(state.defines.alice_spherelings_only_ally_sphere)) {
+		auto spherelord = state.world.nation_get_in_sphere_of(from);
+		//If no spherelord -> Then must not ally spherelings
+		//If spherelord -> Then must not ally non-spherelings
+		if(state.world.nation_get_in_sphere_of(target) != spherelord && target != spherelord)
+			return false;
 	}
 
 	if(ai_has_mutual_enemy(state, from, target))
