@@ -330,7 +330,6 @@ trigger_body
 	dates_contains				 group tr_news_data_parameters			member_fn
 	length_greater				 group tr_news_data_parameters			member_fn
 	news_printing_count			 value int								member_fn
-	news_printing_count			 value int								member_fn
 	any_country                  extern tr_scope_any_country            discard
 	any_known_country            extern tr_scope_any_country            discard
 	every_country                extern tr_scope_every_country          discard
