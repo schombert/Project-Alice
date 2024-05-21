@@ -1259,7 +1259,6 @@ sfx_file
 	major_event				group	sfx_definition		discard
 	revolt					group	sfx_definition		discard
 	election_event			group	sfx_definition		discard
-	country_event			group	sfx_definition		discard
 	diplomaticfailure		group	sfx_definition		discard
 	diplomaticoffer			group	sfx_definition		discard
 	diplomaticsuccess		group	sfx_definition		discard
