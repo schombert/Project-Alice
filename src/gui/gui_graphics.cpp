@@ -42,12 +42,21 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 
 		auto all_files = list_files(interfc, NATIVE(".gfx"));
 		for(auto& file : all_files) {
-			auto ofile = open_file(file);
-			if(ofile) {
+			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_gfx_files(gen, err, context);
+			}
+		}
+
+		auto all_sfx_files = list_files(interfc, NATIVE(".sfx"));
+		for(auto& file : all_files) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_sfx_file(gen, err, context);
 			}
 		}
 	}

@@ -2827,6 +2827,18 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+	// load battleplan settings
+	{
+		auto bp_dir = open_directory(root, NATIVE("battleplans"));
+		for(auto file : list_files(bp_dir, NATIVE(".txt"))) {
+			if(auto f = open_file(file); f) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*f));
+				auto content = view_contents(*f);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_battleplan_settings_file(gen, err, context);
+			}
+		}
+	}
 
 	// load oob
 	{

@@ -2742,6 +2742,23 @@ struct tutorial_file {
 	void finish(scenario_building_context& context) { }
 };
 
+struct battleplan_option {
+	void finish(scenario_building_context& context) { }
+};
+struct battleplan_tool_type {
+	void finish(scenario_building_context& context) { }
+};
+struct battleplan_settings_file {
+	void finish(scenario_building_context& context) { }
+};
+
+struct sfx_definition {
+	void finish(building_gfx_context& context) { }
+};
+struct sfx_file {
+	void finish(building_gfx_context& context) { }
+};
+
 void make_leader_images(scenario_building_context& outer_context);
 
 } // namespace parsers
