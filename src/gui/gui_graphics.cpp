@@ -56,7 +56,7 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_sfx_files(gen, err, context.outer_context);
+				parsers::parse_sfx_file(gen, err, context.outer_context);
 			}
 		}
 	}
