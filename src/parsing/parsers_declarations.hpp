@@ -2753,10 +2753,10 @@ struct battleplan_settings_file {
 };
 
 struct sfx_definition {
-	void finish(scenario_building_context& context) { }
+	void finish(building_gfx_context& context) { }
 };
 struct sfx_file {
-	void finish(scenario_building_context& context) { }
+	void finish(building_gfx_context& context) { }
 };
 
 void make_leader_images(scenario_building_context& outer_context);
