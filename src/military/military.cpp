@@ -5105,8 +5105,8 @@ void update_land_battles(sys::state& state) {
 		auto defender_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
-		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +  int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 19)];
-		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +  int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus) + 3, 0, 19)];
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +  int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 18)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +  int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus) + 3, 0, 18)];
 
 		float defender_fort = 1.0f;
 		auto local_control = state.world.province_get_nation_from_province_control(location);
@@ -5589,8 +5589,8 @@ void update_naval_battles(sys::state& state) {
 		auto defender_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
-		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 19)];
-		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 19)];
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 18)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 18)];
 
 		for(uint32_t j = slots.size(); j-- > 0;) {
 			auto ship_owner =
