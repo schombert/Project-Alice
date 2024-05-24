@@ -51,7 +51,7 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 		}
 
 		auto all_sfx_files = list_files(interfc, NATIVE(".sfx"));
-		for(auto& file : all_files) {
+		for(auto& file : all_sfx_files) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
