@@ -68,7 +68,7 @@ public:
 		auto fat_id = dcon::fatten(state.world, content);
 		if(fat_id.get_can_use()) {
 			text::add_line(state, contents, "tt_can_use_nation");
-			trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(target));
 		}
 		if(auto allowed_substates = fat_id.get_allowed_substate_regions(); allowed_substates) {
 			text::add_line_with_condition(state, contents, "is_substate", state.world.nation_get_is_substate(target));
@@ -711,7 +711,7 @@ public:
 
 		if(auto can_use = state.world.cb_type_get_can_use(c); can_use) {
 			text::add_line(state, contents, "alice_wg_usage_trigger");
-			ui::trigger_description(state, contents, can_use, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			ui::trigger_description(state, contents, can_use, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(n));
 		}
 		if(auto allowed_states = state.world.cb_type_get_allowed_states(c); allowed_states) {
 			bool described = false;

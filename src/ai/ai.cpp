@@ -2205,11 +2205,11 @@ void place_instance_in_result_war(sys::state& state, std::vector<possible_cb>& r
 		if(!state.world.nation_get_is_substate(target))
 			return;
 		auto ruler = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(ruler))) {
 			return;
 		}
 	} else {
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(target))) {
 			return;
 		}
 	}
@@ -2351,11 +2351,11 @@ void place_instance_in_result(sys::state & state, std::vector<possible_cb>&resul
 		if(!state.world.nation_get_is_substate(target))
 			return;
 		auto ruler = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(ruler))) {
 			return;
 		}
 	} else {
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(target))) {
 			return;
 		}
 	}

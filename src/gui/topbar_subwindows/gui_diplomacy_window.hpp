@@ -70,7 +70,7 @@ public:
 		}
 		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, target, content));
 		text::add_line(state, contents, "alice_wg_usage_trigger");
-		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(content), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(content), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(target));
 	}
 };
 
@@ -673,7 +673,7 @@ public:
 
 		auto conditions = state.world.cb_type_get_can_use(cb.cb_type);
 		if(conditions) {
-			disabled = !trigger::evaluate(state, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			disabled = !trigger::evaluate(state, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(retrieve<dcon::nation_id>(state, parent)));
 		} else {
 			disabled = false;
 		}
@@ -693,7 +693,7 @@ public:
 		if(conditions) {
 			text::add_line_break_to_layout(state, contents);
 			text::add_line(state, contents, "cb_conditions_header");
-			ui::trigger_description(state, contents, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			ui::trigger_description(state, contents, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(retrieve<dcon::nation_id>(state, parent)));
 		}
 	}
 };
