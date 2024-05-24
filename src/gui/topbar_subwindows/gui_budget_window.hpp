@@ -1892,7 +1892,7 @@ public:
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
 			auto ptr = make_element_by_type<budget_tariff_percentage_text>(state, id);
-			ptr->base_data.position.x += int16_t(16); //nudge
+			ptr->base_data.position.x += int16_t(10); //nudge
 			return ptr;
 		} else if(name == "total_funds_val") {
 			return make_element_by_type<nation_budget_funds_text>(state, id);
