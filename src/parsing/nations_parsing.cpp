@@ -5,6 +5,12 @@
 #include "effect_parsing.hpp"
 
 namespace parsers {
+
+void national_identity_file::dynamic_tags(association_type, bool v, error_handler& err, int32_t line, scenario_building_context& context) {
+	auto sz = context.state.world.national_identity_size();
+	context.state.national_definitions.first_dynamic_tag = dcon::national_identity_id(dcon::national_identity_id::value_base_t(sz));
+}
+
 void national_identity_file::any_value(std::string_view tag, association_type, std::string_view txt, error_handler& err,
 		int32_t line, scenario_building_context& context) {
 	if(tag.length() != 3) {
