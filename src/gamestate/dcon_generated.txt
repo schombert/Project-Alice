@@ -1592,7 +1592,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 25000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
