@@ -56,11 +56,18 @@ struct ship_in_battle {
 	uint16_t target_slot = 0;
 	uint16_t flags = 0;
 };
+static_assert(sizeof(ship_in_battle) ==
+	sizeof(ship_in_battle::ship)
+	+ sizeof(ship_in_battle::target_slot)
+	+ sizeof(ship_in_battle::flags));
 
 struct mobilization_order {
-	dcon::province_id where;
-	sys::date when;
+	sys::date when; //2
+	dcon::province_id where; //2
 };
+static_assert(sizeof(mobilization_order) ==
+	sizeof(mobilization_order::where)
+	+ sizeof(mobilization_order::when));
 
 struct reserve_regiment {
 	static constexpr uint16_t is_attacking = 0x0001;
@@ -73,6 +80,9 @@ struct reserve_regiment {
 	dcon::regiment_id regiment;
 	uint16_t flags = 0;
 };
+static_assert(sizeof(reserve_regiment) ==
+	sizeof(reserve_regiment::regiment)
+	+ sizeof(reserve_regiment::flags));
 
 constexpr inline uint8_t defender_bonus_crossing_mask = 0xC0;
 constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
@@ -156,10 +166,10 @@ struct global_military_state {
 };
 
 struct available_cb {
-	dcon::nation_id target;
-	sys::date expiration;
-	dcon::cb_type_id cb_type;
-	uint8_t padding = 0;
+	sys::date expiration; //2
+	dcon::nation_id target; //2
+	dcon::cb_type_id cb_type; //1
+	uint8_t padding = 0; //1
 };
 static_assert(sizeof(available_cb) ==
 	+ sizeof(available_cb::target)

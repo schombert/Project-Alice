@@ -731,7 +731,7 @@ public:
 		for(auto cb : state.world.in_cb_type) {
 			if((cb.get_type_bits() & military::cb_flag::always) != 0) {
 				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb))
-					row_contents.push_back(military::available_cb{content, sys::date{}, cb});
+					row_contents.push_back(military::available_cb{ sys::date{}, content, cb});
 			}
 		}
 		update(state);
