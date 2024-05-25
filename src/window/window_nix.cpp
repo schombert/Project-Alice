@@ -125,6 +125,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		break;
 	case GLFW_REPEAT:
 		switch(virtual_key) {
+		case sys::virtual_key::RETURN: [[fallthrough]];
 		case sys::virtual_key::BACK: [[fallthrough]];
 		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
 		case sys::virtual_key::LEFT: [[fallthrough]];
