@@ -2108,25 +2108,25 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
-			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft}, e.opt_choice);
+			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
-	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.date, e.e, source}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date, e.ft}, e.opt_choice);
+	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.date, e.e, e.p}, e.opt_choice);
 	event::update_future_events(state);
 }
 

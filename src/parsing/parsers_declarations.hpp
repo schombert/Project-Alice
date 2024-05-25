@@ -2283,14 +2283,14 @@ struct oob_file_navy_context {
 	dcon::nation_id nation_for;
 };
 struct oob_leader {
-	void finish(oob_file_context&) { }
+	float prestige = 0.0f;
 	dcon::unit_name_id name_;
 	sys::date date_;
-	bool is_general = true;
 	dcon::leader_trait_id personality_;
 	dcon::leader_trait_id background_;
-	float prestige = 0.0f;
+	bool is_general = true;
 
+	void finish(oob_file_context&) { }
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context);
 	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context);
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {

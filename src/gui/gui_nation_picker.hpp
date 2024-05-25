@@ -132,8 +132,8 @@ public:
 struct save_item {
 	native_string file_name;
 	uint64_t timestamp = 0;
-	dcon::national_identity_id save_flag;
 	sys::date save_date;
+	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
 
@@ -366,7 +366,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), 0, dcon::national_identity_id{ }, sys::date(0), dcon::government_type_id{ }, true });
+		row_contents.push_back(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -377,7 +377,7 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.tag, h.d, h.cgov, false });
+					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false });
 				}
 			}
 		}

@@ -1263,8 +1263,7 @@ void update_cbs(sys::state& state) {
 
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
 	auto current_cbs = state.world.nation_get_available_cbs(n);
-	current_cbs.push_back(
-			military::available_cb{target, state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, cb});
+	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb });
 }
 
 float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
@@ -6797,7 +6796,7 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 		if(mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
 			continue;
 
-		schedule_array.push_back(mobilization_order{pr.get_province().id, sys::date{}});
+		schedule_array.push_back(mobilization_order{ sys::date{}, pr.get_province().id });
 	}
 
 	std::sort(schedule_array.begin(), schedule_array.end(),
