@@ -2220,6 +2220,20 @@ float get_estimated_colonial_migration(sys::state& state, dcon::pop_id ids) {
 	return std::min(pop_size, std::ceil(amounts));
 }
 
+bool can_immigrate(sys::state& state, dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float pop_size) {
+	if(!owner)
+		return false; // early exit
+	if(state.world.nation_get_is_civilized(owner) == false)
+		return false; // early exit
+	if(state.world.province_get_is_colonial(location))
+		return false; // early exit
+	if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
+		return false; // early exit
+	if(state.world.culture_group_get_is_overseas(state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p))) == false)
+		return false; // early exit
+	return true;
+}
+
 void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf) {
 	pbuf.update(state.world.pop_size());
 
@@ -2244,36 +2258,17 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 			* ve::max(impush, 1.0f)
 			* state.defines.immigration_scale;
 
-		ve::apply(
-				[&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+		ve::apply([&](dcon::pop_id p, dcon::province_id location, dcon::nation_id owner, float amount, float pop_size) {
+			if(amount <= 0.0f)
+				return; // early exit
+			if(!can_immigrate(state, p, location, owner, pop_size))
+				return;
 
-					if(amount <= 0.0f)
-						return; // early exit
-					if(!owner)
-						return; // early exit
-					if(state.world.nation_get_is_civilized(owner) == false)
-						return; // early exit
-					if(state.world.province_get_is_colonial(location))
-						return; // early exit
-					if(state.world.pop_get_poptype(p) == state.culture_definitions.slaves)
-						return; // early exit
-					if(state.world.culture_group_get_is_overseas(
-								 state.world.culture_get_group_from_culture_group_membership(state.world.pop_get_culture(p))) == false) {
-						return; // early exit
-					}
-
-					//if(pop_size < small_pop_size) {
-					//	pbuf.amounts.set(p, pop_size);
-					//} else {
-						pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
-					//}
-
-					auto ndest = impl::get_immigration_target(state, owner, p, state.current_date);
-					auto dest = impl::get_province_target_in_nation(state, ndest, p);
-
-					pbuf.destinations.set(p, dest);
-				},
-				ids, loc, owners, amounts, pop_sizes);
+			pbuf.amounts.set(p, std::min(pop_size, std::ceil(amount)));
+			auto ndest = impl::get_immigration_target(state, owner, p, state.current_date);
+			auto dest = impl::get_province_target_in_nation(state, ndest, p);
+			pbuf.destinations.set(p, dest);
+		}, ids, loc, owners, amounts, pop_sizes);
 	});
 }
 
@@ -2288,10 +2283,11 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 	auto month_start = sys::year_month_day{ ymd_date.year, ymd_date.month, uint16_t(1) };
 	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
-
 	for(auto ids : state.world.in_pop) {
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
+		if(!can_immigrate(state, ids, loc, owners, state.world.pop_get_size(ids)))
+			continue;
 
 		auto section = uint64_t(ids.id.index()) / 16;
 		auto tranche = int32_t(section / days_in_month);
@@ -2302,14 +2298,10 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 		auto est_amount = get_estimated_emigration(state, ids);
 		if(est_amount > 0.0f) {
 			auto target = impl::get_immigration_target(state, owners, ids, state.current_date + day_adjustment);
-			if(owners == n) {
-				if(target && uint32_t(target.index()) < sz) {
-					national_amounts[uint32_t(target.index())] -= est_amount;
-				}
+			if(owners == n && target) {
+				national_amounts[uint32_t(target.index())] -= est_amount;
 			} else if(target == n) {
-				if(uint32_t(owners.index()) < sz) {
-					national_amounts[uint32_t(owners.index())] += est_amount;
-				}
+				national_amounts[uint32_t(owners.index())] += est_amount;
 			}
 		}
 	}

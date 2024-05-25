@@ -9,13 +9,13 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 	if(selected_province) {
 		auto searched_rgo = state.world.province_get_rgo(selected_province);
 		float max_rgo_size = 0.f;
-		state.world.for_each_province([&](dcon::province_id prov_id) {
+		province::for_each_land_province(state, [&](dcon::province_id prov_id) {
 			auto prov_rgo = state.world.province_get_rgo(prov_id);
 			if(searched_rgo == prov_rgo) {
 				max_rgo_size = std::max(max_rgo_size, province::rgo_size(state, prov_id));
 			}
 		});
-		state.world.for_each_province([&](dcon::province_id prov_id) {
+		province::for_each_land_province(state, [&](dcon::province_id prov_id) {
 			auto i = province::to_map_id(prov_id);
 			auto prov_rgo = state.world.province_get_rgo(prov_id);
 			if(searched_rgo == prov_rgo) {
@@ -31,7 +31,7 @@ std::vector<uint32_t> rgo_output_map_from(sys::state& state) {
 			}
 		});
 	} else {
-		state.world.for_each_province([&](dcon::province_id prov_id) {
+		province::for_each_land_province(state, [&](dcon::province_id prov_id) {
 			auto const color = state.world.commodity_get_color(state.world.province_get_rgo(prov_id));
 			auto i = province::to_map_id(prov_id);
 			prov_color[i] = color;
