@@ -51,9 +51,9 @@ std::vector<uint32_t> migration_map_from(sys::state& state) {
 			}
 			for(auto n : state.world.in_nation) {
 				if(nation_totals[n.id.index()] < 0.0f) {
-					nation_totals[n.id.index()] = 0.5f - 0.5f * nation_totals[i] / least_neg;
+					nation_totals[n.id.index()] = 0.5f - 0.5f * nation_totals[n.id.index()] / least_neg;
 				} else if(nation_totals[n.id.index()] > 0.0f) {
-					nation_totals[n.id.index()] = 0.5f + 0.5f * nation_totals[i] / greatest_pos;
+					nation_totals[n.id.index()] = 0.5f + 0.5f * nation_totals[n.id.index()] / greatest_pos;
 				} else {
 					nation_totals[n.id.index()] = 0.5f;
 				}

@@ -5,6 +5,7 @@
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
 #include "province.hpp"
+#include "province_templates.hpp"
 #include "nations.hpp"
 #include <unordered_map>
 
