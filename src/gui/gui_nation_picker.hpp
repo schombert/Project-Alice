@@ -137,6 +137,10 @@ struct save_item {
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
 
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
+
 	bool operator==(save_item const& o) const {
 		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
 	}
@@ -252,12 +256,11 @@ protected:
 public:
 	void button_action(sys::state& state) noexcept override { }
 
-
 	void on_update(sys::state& state) noexcept  override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		auto tag = i->save_flag;
 		auto gov = i->as_gov;
-		visible = !i->is_new_game;
+		visible = !i->is_new_game && !i->is_bookmark();
 
 		if(!visible)
 			return;
@@ -312,6 +315,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		if(i->is_new_game) {
+			set_text(state, text::produce_simple_string(state, "fe_new_game"));
+		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
 		} else {
 			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
@@ -383,6 +388,8 @@ protected:
 		}
 
 		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
+			if(a.is_bookmark() != b.is_bookmark())
+				return a.is_bookmark();
 			return a.timestamp > b.timestamp;
 		});
 

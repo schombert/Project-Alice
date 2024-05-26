@@ -260,8 +260,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
 	auto ymd = parse_date(name, 0, err);
-	auto block_date = sys::date(ymd, context.outer_context.state.start_date);
-	if(block_date.to_raw_value() > 1) { // is after the start date
+	if(sys::date(ymd, context.outer_context.state.start_date) >= context.outer_context.state.current_date) { // is after the start date
 		gen.discard_group();
 	} else {
 		parse_province_history_file(gen, err, context);

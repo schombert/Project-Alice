@@ -1432,11 +1432,12 @@ void make_substate(token_generator& gen, error_handler& err, scenario_building_c
 	}
 }
 
-void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err,
-		country_history_context& context) {
+void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context) {
 	auto ymd = parse_date(label, 0, err);
-	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+	if(sys::date(ymd, context.outer_context.state.start_date) <= context.outer_context.state.current_date) {
+		context.in_dated_block = true;
 		parse_country_history_file(gen, err, context);
+		context.in_dated_block = false;
 	} else {
 		gen.discard_group();
 	}

@@ -331,7 +331,6 @@ struct scenario_building_context {
 	building_gfx_context gfx_context;
 
 	sys::state& state;
-
 	ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
 	tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
@@ -2487,6 +2486,7 @@ struct country_history_context {
 	dcon::national_identity_id nat_ident;
 	dcon::nation_id holder_id;
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>>& pending_decisions;
+	bool in_dated_block = false;
 };
 
 struct govt_flag_block {
@@ -2518,6 +2518,8 @@ struct foreign_investment_block {
 };
 
 struct country_history_file {
+	foreign_investment_block foreign_investment;
+	upper_house_block upper_house;
 	void finish(country_history_context&) { }
 	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
@@ -2535,10 +2537,6 @@ struct country_history_file {
 	void nationalvalue(association_type, std::string_view value, error_handler& err, int32_t line,
 			country_history_context& context);
 	void schools(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
-
-	foreign_investment_block foreign_investment;
-	upper_house_block upper_house;
-
 	void civilized(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
 	void is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
 	void literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
@@ -2762,6 +2760,24 @@ struct sfx_file {
 };
 
 void make_leader_images(scenario_building_context& outer_context);
+
+struct bookmark_context {
+	std::vector<sys::year_month_day> bookmark_dates;
+};
+struct bookmark_definition {
+	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, bookmark_context& context) {
+		context.bookmark_dates.push_back(value);
+	}
+	void finish(bookmark_context& context) { }
+};
+struct bookmark_file {
+	void bookmark(bookmark_definition value, error_handler& err, int32_t line, bookmark_context& context) {}
+	void finish(bookmark_context& context) {
+		if(context.bookmark_dates.empty()) {
+			context.bookmark_dates.push_back(sys::year_month_day{ 1836, 1, 1 });
+		}
+	}
+};
 
 } // namespace parsers
 
