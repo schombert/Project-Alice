@@ -1753,9 +1753,9 @@ public:
 			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::bank);
 			last_update = state.ui_date;
 		}
-
 		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::color3f color(0.f, 0.f, 0.f);
+		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 
@@ -1770,8 +1770,8 @@ public:
 			last_update = state.ui_date;
 		}
 
-		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::color3f color(0.f, 0.f, 0.f);
+		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 

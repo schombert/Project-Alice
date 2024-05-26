@@ -1824,9 +1824,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
 		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 		for(unsigned int i = 0; i < glyph_count; i++) {
+			f.make_glyph(glyph_info[i].codepoint);
+		}
+		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
-			f.make_glyph(glyphid);
-
 			// Add up baseline and kerning offsets
 			glm::vec2 glyph_positions{ f.glyph_positions[glyphid].x / 64.f, -f.glyph_positions[glyphid].y / 64.f };
 
@@ -1842,7 +1843,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 			p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-			auto type = float(glyphid >> 6);
+			auto type = float((glyphid >> 6) % std::extent_v<decltype(textures)>);
 			float step = 1.f / 8.f;
 			float tx = float(glyphid & 7) * step;
 			float ty = float((glyphid & 63) >> 3) * step;

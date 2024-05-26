@@ -1136,20 +1136,6 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	}
 	auto gp = gpos::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
 	fnt.type_2_kerning_tables = gpos::find_kerning_type2_subtables(gp);
-
-	// load all glyph metrics
-	for(int32_t i = 0; i < 256; ++i) {
-		auto utf16_c = fnt.convert_win1252 ? win1250toUTF16(char(i)) : i;
-		auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, utf16_c);
-		if(index_in_this_font) {
-			auto sc_index_in_this_font = index_in_this_font;
-			if(fnt.gs && f == font_feature::small_caps) {
-				sc_index_in_this_font = gsub::perform_glyph_subs(fnt.gs, fnt.substitution_indices, index_in_this_font);
-			}
-			FT_Load_Glyph(fnt.font_face, sc_index_in_this_font, FT_LOAD_TARGET_NORMAL);
-			fnt.glyph_advances[index_in_this_font] = float(fnt.font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
-		}
-	}
 }
 
 float font::kerning(char32_t codepoint_first, char32_t codepoint_second)  {
@@ -1215,15 +1201,18 @@ void font::make_glyph(char32_t ch_in) {
 	auto sc_index_in_this_font = index_in_this_font;
 	if(sc_index_in_this_font && gs && features == font_feature::small_caps) {
 		sc_index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
+		if(!sc_index_in_this_font) {
+			sc_index_in_this_font = index_in_this_font;
+		}
 	}
 	// load all glyph metrics
-	if(index_in_this_font) {
+	if(sc_index_in_this_font) {
 		FT_Load_Glyph(font_face, sc_index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
 		FT_Glyph g_result;
 		FT_Get_Glyph(font_face->glyph, &g_result);
 
-		auto texture_number = ch_in >> 6;
+		auto texture_number = (ch_in >> 6) % std::extent_v<decltype(textures)>;
 		if(textures[texture_number] == 0) {
 			glGenTextures(1, &textures[texture_number]);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);

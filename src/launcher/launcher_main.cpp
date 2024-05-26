@@ -1107,23 +1107,6 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void render_character(char codepoint, color_modification enabled, float x, float y, float size, ::text::font& f) {
-	f.make_glyph(codepoint);
-
-	glBindVertexBuffer(0, sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoint) >> 6]);
-
-	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
-	glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
-
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-}
-
 void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
 	hb_buffer_t* buf = hb_buffer_create();
 	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
@@ -1134,10 +1117,12 @@ void internal_text_render(char const* codepoints, uint32_t count, float x, float
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
+		f.make_glyph(glyph_info[i].codepoint);
+	}
+	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		hb_position_t x_advance = glyph_pos[i].x_advance;
 		auto scale_factor = size / (64.0f * 64.f * 4.f);
-		f.make_glyph(glyphid);
 		glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, f.textures[glyphid >> 6]);
