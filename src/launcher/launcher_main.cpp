@@ -1108,43 +1108,46 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 }
 
 void render_character(char codepoint, color_modification enabled, float x, float y, float size, ::text::font& f) {
-	if(::text::win1250toUTF16(codepoint) != ' ') {
-		// f.make_glyph(codepoint);
+	f.make_glyph(codepoint);
 
-		glBindVertexBuffer(0, sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoint) >> 6]);
+	glBindVertexBuffer(0, sub_square_buffers[uint8_t(codepoint) & 63], 0, sizeof(GLfloat) * 4);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoint) >> 6]);
 
-		glUniform4f(parameters::drawing_rectangle, x, y, size, size);
-		glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
-		glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
+	glUniform4f(parameters::drawing_rectangle, x, y, size, size);
+	glUniform3f(parameters::inner_color, 0.0f, 0.0f, 0.0f);
+	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
-		GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
-		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_filter };
+	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	}
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size,
-		::text::font& f) {
-	for(uint32_t i = 0; i < count; ++i) {
-		if(::text::win1250toUTF16(codepoints[i]) != ' ') {
-			glBindVertexBuffer(0, sub_square_buffers[uint8_t(codepoints[i]) & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[uint8_t(codepoints[i]) >> 6]);
-			glUniform4f(parameters::drawing_rectangle, x + f.glyph_positions[uint8_t(codepoints[i])].x * size / 64.0f,
-						baseline_y + f.glyph_positions[uint8_t(codepoints[i])].y * size / 64.0f, size, size);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-			x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f +
-				((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
-
-		} else {
-			x += f.glyph_advances[uint8_t(codepoints[i])] * size / 64.0f +
-				((i != count - 1) ? f.kerning(codepoints[i], codepoints[i + 1]) * size / 64.0f : 0.0f);
-		}
+void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
+	hb_buffer_t* buf = hb_buffer_create();
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_guess_segment_properties(buf);
+	hb_shape(f.hb_font_face, buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+	float total = 0.0f;
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		hb_position_t x_advance = glyph_pos[i].x_advance;
+		auto scale_factor = size / (64.0f * 64.f * 4.f);
+		f.make_glyph(glyphid);
+		glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, f.textures[glyphid >> 6]);
+		hb_position_t x_offset = glyph_pos[i].x_offset;
+		hb_position_t y_offset = glyph_pos[i].y_offset;
+		glUniform4f(parameters::drawing_rectangle, x + float(x_offset) * scale_factor, baseline_y + float(y_offset) * scale_factor, size, size);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		x += float(x_advance) * scale_factor;
 	}
+	hb_buffer_destroy(buf);
 }
 
 void render_new_text(char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
@@ -1174,12 +1177,23 @@ static ::ogl::texture big_l_button_tex;
 static ::ogl::texture big_r_button_tex;
 static ::ogl::texture warning_tex;
 
-float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& fnt) {
+float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
+	hb_buffer_t* buf = hb_buffer_create();
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_guess_segment_properties(buf);
+	hb_shape(f.hb_font_face, buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
-	for(uint32_t i = 0; i < count; i++) {
-		auto c = uint8_t(codepoints[i]);
-		total += fnt.glyph_advances[c] * size / 64.0f + ((i != 0) ? fnt.kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		auto kerning = (i != glyph_count - 1)
+			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
+			: 0;
+		total += (f.glyph_advances[glyphid] + kerning) * size / 64.f;
 	}
+	hb_buffer_destroy(buf);
 	return total;
 }
 

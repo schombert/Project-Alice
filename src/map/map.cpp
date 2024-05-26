@@ -1802,7 +1802,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
 
-
 		float x = left;
 
 		for(float accumulated_length = 0.f; ; x += x_step) {
@@ -1814,38 +1813,52 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			accumulated_length += added_distance;
 		}
 
-		for(int32_t i = 0; i < int32_t(e.text.length()); i++) {
-			if(e.text[i] != ' ') { // skip spaces, only leaving a , well, space!
-				// Add up baseline and kerning offsets
-				glm::vec2 glyph_positions{ f.glyph_positions[uint8_t(e.text[i])].x / 64.f, -f.glyph_positions[uint8_t(e.text[i])].y / 64.f };
+		hb_buffer_t* buf = hb_buffer_create();
 
-				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-				curr_dir.x *= 0.5f;
-				curr_normal_dir.x *= 0.5f;
+		// TODO: convert to win1252, make copy of codepoints?
+		// convert_win1252 ? char32_t(win1250toUTF16(char(ch_in))) : ch_in
+		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.size()), 0, -1);
+		hb_buffer_guess_segment_properties(buf);
+		hb_shape(f.hb_font_face, buf, NULL, 0);
+		unsigned int glyph_count = 0;
+		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
+		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = glyph_info[i].codepoint;
+			f.make_glyph(glyphid);
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+			// Add up baseline and kerning offsets
+			glm::vec2 glyph_positions{ f.glyph_positions[glyphid].x / 64.f, -f.glyph_positions[glyphid].y / 64.f };
 
-				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
-				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
-				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
+			glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
+			glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+			curr_dir.x *= 0.5f;
+			curr_normal_dir.x *= 0.5f;
 
-				auto type = float(uint8_t(e.text[i]) >> 6);
-				float step = 1.f / 8.f;
-				float tx = float(e.text[i] & 7) * step;
-				float ty = float((e.text[i] & 63) >> 3) * step;
+			glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+			auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
+			p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
+			p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
+			p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-			}
+			auto type = float(glyphid >> 6);
+			float step = 1.f / 8.f;
+			float tx = float(glyphid & 7) * step;
+			float ty = float((glyphid & 63) >> 3) * step;
 
-			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
+			text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+			text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
+			text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+
+			text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+			text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
+			text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+
+			auto k = (i != glyph_count - 1)
+				? f.kerning(glyphid, glyph_info[i + 1].codepoint)
+				: 0;
+			float glyph_advance = (f.glyph_advances[glyphid] + k) * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
@@ -1855,6 +1868,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				glyph_length += added_distance;
 			}
 		}
+		hb_buffer_destroy(buf);
 	}
 	if(text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
@@ -1941,7 +1955,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
 			}
 
-			float glyph_advance = ((f.glyph_advances[uint8_t(e.text[i])] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
+			float glyph_advance = ((f.glyph_advances[e.text[i]] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 				if(glyph_length + added_distance >= glyph_advance) {

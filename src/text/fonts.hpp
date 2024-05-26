@@ -41,7 +41,7 @@ private:
 public:
 	FT_Face font_face;
 	hb_font_t* hb_font_face = nullptr;
-	ankerl::unordered_dense::map<uint16_t, float> kernings;
+	ankerl::unordered_dense::map<uint64_t, float> kernings;
 	std::vector<uint16_t> substitution_indices;
 	std::vector<uint8_t const*> type_2_kerning_tables;
 	uint8_t const* gs = nullptr;
@@ -53,22 +53,23 @@ public:
 
 	font_feature features = font_feature::none;
 	bool loaded = false;
+	bool convert_win1252 = false;
 
-	float glyph_advances[256] = {0.0f};
-	uint32_t textures[4] = {0, 0, 0, 0};
-	bool glyph_loaded[256] = {false};
-	glyph_sub_offset glyph_positions[256] = {};
+	uint32_t textures[256] = {0};
+	ankerl::unordered_dense::map<char32_t, float> glyph_advances;
+	ankerl::unordered_dense::map<char32_t, bool> glyph_loaded;
+	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
 
 	std::unique_ptr<FT_Byte[]> file_data;
 
 	~font();
 
-	void make_glyph(char ch_in);
+	void make_glyph(char32_t ch_in);
 	float line_height(int32_t size) const;
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
-	float kerning(char codepoint_first, char codepoint_second);
+	float kerning(char32_t codepoint_first, char32_t codepoint_second);
 	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size);
 
 	friend class font_manager;

@@ -1018,8 +1018,7 @@ constexpr int magnification_factor = 4;
 constexpr int dr_size = 64 * magnification_factor;
 constexpr float rt_2 = 1.41421356237309504f;
 
-void init_in_map(bool in_map[dr_size * dr_size], uint8_t* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width,
-		uint32_t height, uint32_t pitch) {
+void init_in_map(bool in_map[dr_size * dr_size], uint8_t const* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
 	for(int32_t j = 0; j < dr_size; ++j) {
 		for(int32_t i = 0; i < dr_size; ++i) {
 			auto const boff = transform_offset_b(i, j, btmap_x_off, btmap_y_off, width, height, pitch);
@@ -1120,7 +1119,7 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
-	FT_Set_Pixel_Sizes(fnt.font_face, 0, 64 * magnification_factor);
+	FT_Set_Pixel_Sizes(fnt.font_face, 0, dr_size);
 	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
 	fnt.loaded = true;
 
@@ -1139,53 +1138,45 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	fnt.type_2_kerning_tables = gpos::find_kerning_type2_subtables(gp);
 
 	// load all glyph metrics
-
 	for(int32_t i = 0; i < 256; ++i) {
-		auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(i)));
-		if(fnt.gs && f == font_feature::small_caps) {
-			index_in_this_font = gsub::perform_glyph_subs(fnt.gs, fnt.substitution_indices, index_in_this_font);
-		}
+		auto utf16_c = fnt.convert_win1252 ? win1250toUTF16(char(i)) : i;
+		auto index_in_this_font = FT_Get_Char_Index(fnt.font_face, utf16_c);
 		if(index_in_this_font) {
-			FT_Load_Glyph(fnt.font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
-			fnt.glyph_advances[i] = float(fnt.font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
+			auto sc_index_in_this_font = index_in_this_font;
+			if(fnt.gs && f == font_feature::small_caps) {
+				sc_index_in_this_font = gsub::perform_glyph_subs(fnt.gs, fnt.substitution_indices, index_in_this_font);
+			}
+			FT_Load_Glyph(fnt.font_face, sc_index_in_this_font, FT_LOAD_TARGET_NORMAL);
+			fnt.glyph_advances[index_in_this_font] = float(fnt.font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
 		}
 	}
 }
 
-float font::kerning(char codepoint_first, char codepoint_second)  {
-	if(auto it = kernings.find(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second))); it != kernings.end()) {
+float font::kerning(char32_t codepoint_first, char32_t codepoint_second)  {
+	if(auto it = kernings.find(uint64_t(codepoint_first) << 32 | uint64_t(codepoint_second)); it != kernings.end()) {
 		return it->second;
 	}
 
-	auto utf16_first = win1250toUTF16(codepoint_first);
-	auto utf16_second = win1250toUTF16(codepoint_second);
-	auto index_a = FT_Get_Char_Index(font_face, utf16_first);
-	auto index_b = FT_Get_Char_Index(font_face, utf16_second);
-
-	if(index_a && gs && features == font_feature::small_caps) {
-		index_a = gsub::perform_glyph_subs(gs, substitution_indices, index_a);
+	if(codepoint_first && gs && features == font_feature::small_caps) {
+		codepoint_first = gsub::perform_glyph_subs(gs, substitution_indices, codepoint_first);
 	}
-	if(index_b && gs && features == font_feature::small_caps) {
-		index_b = gsub::perform_glyph_subs(gs, substitution_indices, index_b);
+	if(codepoint_second && gs && features == font_feature::small_caps) {
+		codepoint_second = gsub::perform_glyph_subs(gs, substitution_indices, codepoint_second);
 	}
 
-	if((index_a == 0) || (index_b == 0)) {
-		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), 0.0f);
-		return 0.0f;
-	}
-
-	if(FT_HAS_KERNING(font_face)) {
+	float res = 0.f;
+	if(codepoint_first == 0 || codepoint_second == 0) {
+		// nothing -- stays as 0.0f
+	} else if(FT_HAS_KERNING(font_face)) {
 		FT_Vector kerning;
-		FT_Get_Kerning(font_face, index_a, index_b, FT_KERNING_DEFAULT, &kerning);
-		auto res = static_cast<float>(kerning.x) / static_cast<float>((1 << 6) * magnification_factor);
-		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), res);
-		return res;
+		FT_Get_Kerning(font_face, codepoint_first, codepoint_second, FT_KERNING_DEFAULT, &kerning);
+		res = float(kerning.x) / float((1 << 6) * magnification_factor);
 	} else {
-		auto rval = gpos::net_kerning(type_2_kerning_tables, index_a, index_b);
-		auto res = rval * float(64)  / float(font_face->units_per_EM);
-		kernings.insert_or_assign(uint16_t((uint16_t(codepoint_first) << 8) | uint16_t(codepoint_second)), res);
-		return res;
+		auto rval = gpos::net_kerning(type_2_kerning_tables, codepoint_first, codepoint_second);
+		res = rval * 64.f / float(font_face->units_per_EM);
 	}
+	kernings.insert_or_assign(uint64_t(codepoint_first) << 32 | uint64_t(codepoint_second), res);
+	return res;
 }
 
 float font::line_height(int32_t size) const {
@@ -1216,20 +1207,14 @@ float font_manager::text_extent(sys::state& state, char const* codepoints, uint3
 	}
 }
 
-void font::make_glyph(char ch_in) {
-	if(glyph_loaded[uint8_t(ch_in)])
+void font::make_glyph(char32_t ch_in) {
+	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
 		return;
-	glyph_loaded[uint8_t(ch_in)] = true;
-
-	auto codepoint = win1250toUTF16(ch_in);
-	if(codepoint == ' ')
-		return;
-	auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
-
+	glyph_loaded.insert_or_assign(ch_in, true);
+	auto index_in_this_font = ch_in;
 	if(index_in_this_font && gs && features == font_feature::small_caps) {
 		index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
 	}
-
 	// load all glyph metrics
 	if(index_in_this_font) {
 		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
@@ -1237,15 +1222,12 @@ void font::make_glyph(char ch_in) {
 		FT_Glyph g_result;
 		FT_Get_Glyph(font_face->glyph, &g_result);
 
-		auto texture_number = uint8_t(ch_in) >> 6;
-
+		auto texture_number = ch_in >> 6;
 		if(textures[texture_number] == 0) {
 			glGenTextures(1, &textures[texture_number]);
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
-
 			// glClearTexImage(textures[texture_number], 0, GL_RED, GL_FLOAT, nullptr);
-
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -1254,52 +1236,43 @@ void font::make_glyph(char ch_in) {
 			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
 		}
 
-		FT_Bitmap& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
+		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
-		float const hb_x = static_cast<float>(font_face->glyph->metrics.horiBearingX) / static_cast<float>(1 << 6);
-		float const hb_y = static_cast<float>(font_face->glyph->metrics.horiBearingY) / static_cast<float>(1 << 6);
+		float const hb_x = float(font_face->glyph->metrics.horiBearingX) / float(1 << 6);
+		float const hb_y = float(font_face->glyph->metrics.horiBearingY) / float(1 << 6);
 
-		auto sub_index = (uint8_t(ch_in) & 63);
-
-		uint8_t pixel_buffer[64 * 64];
-		memset(pixel_buffer, 0, 64 * 64);
+		auto sub_index = ch_in & 63;
+		uint8_t pixel_buffer[64 * 64] = { 0 };
 
 		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
-		glyph_positions[uint8_t(ch_in)].x =
-				(hb_x - static_cast<float>(btmap_x_off)) * 1.0f / static_cast<float>(magnification_factor);
-		glyph_positions[uint8_t(ch_in)].y =
-				(-hb_y - static_cast<float>(btmap_y_off)) * 1.0f / static_cast<float>(magnification_factor);
+		glyph_sub_offset gso;
+		gso.x = (hb_x - float(btmap_x_off)) * 1.0f / float(magnification_factor);
+		gso.y = (-hb_y - float(btmap_y_off)) * 1.0f / float(magnification_factor);
+		glyph_positions.insert_or_assign(ch_in, gso);
 
 		bool in_map[dr_size * dr_size] = {false};
 		float distance_map[dr_size * dr_size] = {0.0f};
-
-		init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, (uint32_t)bitmap.pitch);
+		init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, uint32_t(bitmap.pitch));
 		dead_reckoning(distance_map, in_map);
-
 		for(int y = 0; y < 64; ++y) {
 			for(int x = 0; x < 64; ++x) {
-
-				const size_t index = static_cast<size_t>(x + y * 64);
+				const size_t index = size_t(x + y * 64);
 				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) + (y * magnification_factor + magnification_factor / 2) * dr_size] / static_cast<float>(magnification_factor * 64);
-				int const int_value = static_cast<int>(distance_value * -255.0f + 128.0f);
-				const uint8_t small_value = static_cast<uint8_t>(std::min(255, std::max(0, int_value)));
-
+				int const int_value = int(distance_value * -255.0f + 128.0f);
+				const uint8_t small_value = uint8_t(std::min(255, std::max(0, int_value)));
 				pixel_buffer[index] = small_value;
 			}
 		}
-
-		glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE,
-				pixel_buffer);
-
+		glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
 		FT_Done_Glyph(g_result);
 	}
 }
 
 float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
 	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
 	hb_buffer_guess_segment_properties(buf);
 	hb_shape(hb_font_face, buf, NULL, 0);
 	unsigned int glyph_count = 0;
@@ -1307,33 +1280,13 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_position_t x_advance = glyph_pos[i].x_advance;
-		total += float(x_advance) * size / (64.0f * 64.f * 4.f);
+		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		auto k = (i != glyph_count - 1)
+			? kerning(glyphid, glyph_info[i + 1].codepoint)
+			: 0;
+		total += (glyph_advances[glyphid] + k) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
-
-	/*float total = 0.0f;
-	for(uint32_t i = 0; i < count; i++) {
-		auto c = uint8_t(codepoints[i]);
-		if(c == 0x01 || c == 0x02) {
-			total += size;
-			continue;
-		} else if(c == 0x03 || c == 0x04) {
-			total += size * 1.25f;
-			continue;
-		} else if(uint8_t(codepoints[i]) == 0x40) {
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			if(ogl::display_tag_is_valid(state, tag)) {
-				i += 3;
-				total += size * 1.5f;
-				continue;
-			}
-		}
-		total += (this->glyph_advances[c] + ((i != 0) ? kerning(codepoints[i - 1], c) : 0.0f)) * size / 64.0f;
-	}*/
 	return total;
 }
 
@@ -1397,7 +1350,9 @@ void load_bmfonts(sys::state& state) { }
 void font_manager::load_all_glyphs() {
 	for(uint32_t j = 0; j < 3; ++j) {
 		for(uint32_t i = 0; i < 256; ++i) {
-			fonts[j].make_glyph(char(i));
+			auto codepoint = char32_t(win1250toUTF16(char(i)));
+			auto index = FT_Get_Char_Index(fonts[j].font_face, codepoint);
+			fonts[j].make_glyph(index);
 		}
 	}
 }

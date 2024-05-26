@@ -663,6 +663,11 @@ public:
 			}
 			text::close_layout_box(contents, box);
 		}
+
+		auto box = text::open_layout_box(contents, 0);
+		//text::add_to_layout_box(state, contents, box, std::string_view("在标准状况下，镓元素是质地柔软的银色金属，在液态下则为银白色。如果对镓施加太多力，它就可能形成贝壳状断口。自1875年发现以来，镓一直被用于制造低熔点合金。它还用于半导体基材的掺杂剂。镓的熔点可作为温度参考点。镓合金亦可应用于温度计，作为代替汞的无毒和环保的替用品，并且可以承受比汞更高的温度。镓铟锡合金（62–95％镓，5–22％铟和0–16％锡）具有远低于水凝固点的凝固点−19 °C（−2 °F），但这也可能是过冷的凝固点。"));
+		text::add_to_layout_box(state, contents, box, std::string_view("在标准状况下 medžuslovjansky jezyk ?"));
+		text::close_layout_box(contents, box);
 	}
 };
 
