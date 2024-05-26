@@ -107,7 +107,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 
 	if(state.world.national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
-			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, state.current_date, e, n, pt, ft}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -129,7 +129,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
-			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_n_event{r_lo, r_hi + 1, primary_slot, from_slot, state.current_date, e, n, pt, ft}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -155,7 +155,7 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 		effect::execute(state, immediate, primary_slot, trigger::to_generic(n), from_slot, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, from_slot, e, n, state.current_date, pt, ft};
+		pending_human_n_event new_event{r_lo, r_hi + 1, primary_slot, from_slot, state.current_date, e, n, pt, ft};
 		state.pending_n_event.push_back(new_event);
 		if(n == state.local_player_nation)
 			state.new_n_event.push(new_event);
@@ -202,7 +202,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 	state.world.free_national_event_set_has_been_triggered(e, true);
 	if(state.world.free_national_event_get_is_major(e)) {
 		notification::post(state, notification::message{
-			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_f_n_event{r_lo, r_hi + 1, state.current_date, e, n}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -224,7 +224,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
-			[ev = pending_human_f_n_event{r_lo, r_hi + 1, e, n, state.current_date}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_f_n_event{r_lo, r_hi + 1, state.current_date, e, n}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -249,7 +249,7 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 		effect::execute(state, immediate, trigger::to_generic(n), trigger::to_generic(n), 0, r_lo, r_hi);
 	}
 	if(state.world.nation_get_is_player_controlled(n)) {
-		pending_human_f_n_event new_event{r_lo, r_hi + 1, e, n, state.current_date};
+		pending_human_f_n_event new_event{r_lo, r_hi + 1, state.current_date, e, n};
 		state.pending_f_n_event.push_back(new_event);
 		if(n == state.local_player_nation)
 			state.new_f_n_event.push(new_event);
@@ -296,7 +296,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(owner == state.local_player_nation) {
 		notification::post(state, notification::message{
-			[ev = pending_human_p_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_p_event{r_lo, r_hi, from_slot, state.current_date, e, p, ft}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -318,7 +318,7 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		pending_human_p_event new_event{r_lo, r_hi, from_slot, e, p, state.current_date, ft};
+		pending_human_p_event new_event{r_lo, r_hi, from_slot, state.current_date, e, p, ft};
 		state.pending_p_event.push_back(new_event);
 		if(owner == state.local_player_nation)
 			state.new_p_event.push(new_event);
@@ -367,7 +367,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 	auto owner = state.world.province_get_nation_from_province_ownership(p);
 	if(owner == state.local_player_nation) {
 		notification::post(state, notification::message{
-			[ev = pending_human_f_p_event{r_lo, r_hi, e, p, state.current_date}](sys::state& state, text::layout_base& contents) {
+			[ev = pending_human_f_p_event{r_lo, r_hi, state.current_date, e, p}](sys::state& state, text::layout_base& contents) {
 				text::substitution_map m;
 				ui::populate_event_submap(state, m, ev);
 
@@ -389,7 +389,7 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
-		pending_human_f_p_event new_event{r_lo, r_hi, e, p, state.current_date};
+		pending_human_f_p_event new_event{r_lo, r_hi, state.current_date, e, p};
 		state.pending_f_p_event.push_back(new_event);
 		if(owner == state.local_player_nation)
 			state.new_f_p_event.push(new_event);

@@ -289,6 +289,28 @@ bool ai_will_accept_alliance(sys::state& state, dcon::nation_id target, dcon::na
 	if(state.world.nation_get_ai_rival(target) == from || state.world.nation_get_ai_rival(from) == target)
 		return false;
 
+	if(bool(state.defines.alice_artificial_gp_limitant) && state.world.nation_get_is_great_power(target)) {
+		int32_t gp_count = 0;
+		for(const auto rel : state.world.nation_get_diplomatic_relation(from)) {
+			auto n = rel.get_related_nations(rel.get_related_nations(0) == from ? 1 : 0);
+			if(rel.get_are_allied() && n.get_is_great_power()) {
+				if(gp_count >= 2) {
+					return false;
+				}
+				++gp_count;
+			}
+		}
+	}
+	if(bool(state.defines.alice_spherelings_only_ally_sphere)) {
+		auto spherelord = state.world.nation_get_in_sphere_of(from);
+		//If no spherelord -> Then must not ally spherelings
+		//If spherelord -> Then must not ally non-spherelings
+		if(state.world.nation_get_in_sphere_of(target) != spherelord && target != spherelord)
+			return false;
+		if(target == spherelord)
+			return true; //always ally spherelord
+	}
+
 	if(ai_has_mutual_enemy(state, from, target))
 		return true;
 
@@ -2183,11 +2205,11 @@ void place_instance_in_result_war(sys::state& state, std::vector<possible_cb>& r
 		if(!state.world.nation_get_is_substate(target))
 			return;
 		auto ruler = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(ruler))) {
 			return;
 		}
 	} else {
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(target))) {
 			return;
 		}
 	}
@@ -2329,11 +2351,11 @@ void place_instance_in_result(sys::state & state, std::vector<possible_cb>&resul
 		if(!state.world.nation_get_is_substate(target))
 			return;
 		auto ruler = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(ruler), trigger::to_generic(n), trigger::to_generic(ruler))) {
 			return;
 		}
 	} else {
-		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(n))) {
+		if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(n), trigger::to_generic(target))) {
 			return;
 		}
 	}
@@ -4386,7 +4408,7 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
 		auto n = state.world.army_get_controller_from_army_control(a);
 		if(!n)
-			n = state.national_definitions.rebel_id;
+			n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 		auto back = state.world.leader_get_background(gen);
 		auto pers = state.world.leader_get_personality(gen);
 		float morale = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::org_regain)
@@ -4416,7 +4438,7 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
 		auto n = state.world.army_get_controller_from_army_control(a);
 		if(!n)
-			n = state.national_definitions.rebel_id;
+			n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 		auto back = state.world.leader_get_background(gen);
 		auto pers = state.world.leader_get_personality(gen);
 		float morale = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::org_regain)

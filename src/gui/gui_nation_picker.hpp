@@ -132,10 +132,14 @@ public:
 struct save_item {
 	native_string file_name;
 	uint64_t timestamp = 0;
-	dcon::national_identity_id save_flag;
 	sys::date save_date;
+	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
+
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
 
 	bool operator==(save_item const& o) const {
 		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
@@ -252,18 +256,17 @@ protected:
 public:
 	void button_action(sys::state& state) noexcept override { }
 
-
 	void on_update(sys::state& state) noexcept  override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		auto tag = i->save_flag;
 		auto gov = i->as_gov;
-		visible = !i->is_new_game;
+		visible = !i->is_new_game && !i->is_bookmark();
 
 		if(!visible)
 			return;
 
 		if(!bool(tag))
-			tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+			tag = state.national_definitions.rebel_id;
 
 		culture::flag_type ft = culture::flag_type::default_flag;
 		if(gov) {
@@ -312,6 +315,8 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		if(i->is_new_game) {
+			set_text(state, text::produce_simple_string(state, "fe_new_game"));
+		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
 		} else {
 			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
@@ -366,7 +371,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), 0, dcon::national_identity_id{ }, sys::date(0), dcon::government_type_id{ }, true });
+		row_contents.push_back(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true });
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -377,12 +382,14 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.tag, h.d, h.cgov, false });
+					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false });
 				}
 			}
 		}
 
 		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
+			if(a.is_bookmark() != b.is_bookmark())
+				return a.is_bookmark();
 			return a.timestamp > b.timestamp;
 		});
 

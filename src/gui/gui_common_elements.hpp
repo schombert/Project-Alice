@@ -2152,6 +2152,8 @@ public:
 		case country_list_filter::neighbors_no_vassals:
 			t_category = country_list_filter::neighbors;
 			break;
+		default:
+			break;
 		}
 		disabled = t_category != category;
 		button_element_base::render(state, x, y);

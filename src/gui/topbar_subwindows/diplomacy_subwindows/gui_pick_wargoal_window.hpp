@@ -68,7 +68,7 @@ public:
 		auto fat_id = dcon::fatten(state.world, content);
 		if(fat_id.get_can_use()) {
 			text::add_line(state, contents, "tt_can_use_nation");
-			trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			trigger_description(state, contents, fat_id.get_can_use(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(target));
 		}
 		if(auto allowed_substates = fat_id.get_allowed_substate_regions(); allowed_substates) {
 			text::add_line_with_condition(state, contents, "is_substate", state.world.nation_get_is_substate(target));
@@ -83,7 +83,21 @@ public:
 		text::add_line(state, contents, "et_on_po_accepted");
 		auto windx = 0;//wargoal.index()
 		effect_description(state, contents, fat_id.get_on_po_accepted(), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation),
-				uint32_t((state.current_date.value << 8) ^ target.index()), uint32_t(state.local_player_nation.index() ^ (windx << 3)));
+			uint32_t((state.current_date.value << 8) ^ target.index()), uint32_t(state.local_player_nation.index() ^ (windx << 3)));
+
+		if(auto allowed_states = fat_id.get_allowed_states(); allowed_states) {
+			bool described = false;
+			for(auto si : state.world.nation_get_state_ownership(target)) {
+				if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation))) {
+					ui::trigger_description(state, contents, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+					described = true;
+					break;
+				}
+			}
+			if(!described) {
+				ui::trigger_description(state, contents, allowed_states, -1, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			}
+		}
 	}
 };
 
@@ -697,7 +711,7 @@ public:
 
 		if(auto can_use = state.world.cb_type_get_can_use(c); can_use) {
 			text::add_line(state, contents, "alice_wg_usage_trigger");
-			ui::trigger_description(state, contents, can_use, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			ui::trigger_description(state, contents, can_use, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(n));
 		}
 		if(auto allowed_states = state.world.cb_type_get_allowed_states(c); allowed_states) {
 			bool described = false;
@@ -1481,24 +1495,20 @@ private:
 				if(v.get_subject().get_is_substate()) {
 					for(auto si : state.world.nation_get_state_ownership(target)) {
 						if(trigger::evaluate(state, allowed_substate_regions, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
-							auto def = si.get_state().get_definition().id;
-							if(std::find(seldata.selectable_states.begin(), seldata.selectable_states.end(), def) == seldata.selectable_states.end()) {
-								seldata.selectable_states.push_back(def);
-							}
+							seldata.selectable_states.push_back(si.get_state().get_definition().id);
 						}
 					}
 				}
 			}
 		} else {
 			auto allowed_states = state.world.cb_type_get_allowed_states(cb);
-			if(auto ac = state.world.cb_type_get_allowed_countries(cb); ac) {
+			if(auto allowed_countries = state.world.cb_type_get_allowed_countries(cb); allowed_countries) {
 				auto in_nation = state.world.national_identity_get_nation_from_identity_holder(secondary_tag);
 				for(auto si : state.world.nation_get_state_ownership(target)) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(in_nation))) {
 						seldata.selectable_states.push_back(si.get_state().get_definition().id);
 					}
 				}
-
 			} else {
 				for(auto si : state.world.nation_get_state_ownership(target)) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {

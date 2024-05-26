@@ -316,6 +316,9 @@ struct dated_modifier {
 	sys::date expiration;
 	dcon::modifier_id mod_id;
 };
+static_assert(sizeof(dated_modifier) ==
+	sizeof(dated_modifier::expiration)
+	+ sizeof(dated_modifier::mod_id));
 
 // restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);

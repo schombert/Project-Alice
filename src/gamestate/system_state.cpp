@@ -1948,16 +1948,15 @@ void state::open_diplomacy(dcon::nation_id target) {
 	}
 }
 
-void state::load_scenario_data(parsers::error_handler& err) {
+void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date) {
+	auto root = get_root(common_fs);
+	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
 
 	text::load_text_data(*this, err);
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
-
-	auto root = get_root(common_fs);
-	auto common = open_directory(root, NATIVE("common"));
 
 	auto map = open_directory(root, NATIVE("map"));
 	// parse default.map
@@ -2265,7 +2264,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	{
 		// Default vanilla dates used if ones are not defined
 		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
-		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1935, 12, 31 });
 		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
 			auto opened_file = open_file(defines_file);
 			if(opened_file) {
@@ -2274,6 +2273,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
 			}
 		}
+		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
 	// gather names of poptypes
 	list_pop_types(*this, context);
@@ -2564,9 +2564,8 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// load pop history files
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
-		auto startdate = sys::date(0).to_ymd(start_date);
-		auto start_dir_name =
-			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+		auto startdate = current_date.to_ymd(start_date);
+		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 		// NICK: 
 		// Attempts to look through the start date as defined by the mod.
@@ -2596,6 +2595,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+
 	// load poptype definitions
 	{
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
@@ -2827,13 +2827,27 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+	// load battleplan settings
+	{
+		auto bp_dir = open_directory(root, NATIVE("battleplans"));
+		for(auto file : list_files(bp_dir, NATIVE(".txt"))) {
+			if(auto f = open_file(file); f) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*f));
+				auto content = view_contents(*f);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_battleplan_settings_file(gen, err, context);
+			}
+		}
+	}
 
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
+		
 		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
-
+			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
+				continue;
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
@@ -2843,18 +2857,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					break;
 				}
 			}
-
-			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
-				continue;
-
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
-						it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{ context, holder };
-
 						auto opened_file = open_file(oob_file);
 						if(opened_file) {
 							err.file_name = utf8name;
@@ -2863,7 +2871,43 @@ void state::load_scenario_data(parsers::error_handler& err) {
 							parsers::parse_oob_file(gen, err, new_context);
 						}
 					} else {
-						// dead tag
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+					}
+				} else {
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+				}
+			}
+		}
+
+		auto startdate = current_date.to_ymd(start_date);
+		auto start_dir_name = std::to_string(startdate.year);
+		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
+		for(auto oob_file : list_files(date_directory, NATIVE(".txt"))) {
+			auto file_name = get_full_name(oob_file);
+			auto last = file_name.c_str() + file_name.length();
+			auto first = file_name.c_str();
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			if(last - start_of_name >= 3) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+					if(holder) {
+						parsers::oob_file_context new_context{ context, holder };
+						auto opened_file = open_file(oob_file);
+						if(opened_file) {
+							err.file_name = utf8name;
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_oob_file(gen, err, new_context);
+						}
+					} else {
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
 				} else {
 					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
@@ -2915,6 +2959,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 					if(!holder) {
 						holder = world.create_nation();
+						world.nation_set_diplomatic_points(holder, 1.0f);
 						world.try_create_identity_holder(holder, it->second);
 					}
 
@@ -2929,8 +2974,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					}
 
 				} else {
-					err.accumulated_warnings +=
-						"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}
 		}
@@ -2958,31 +3002,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
-
-	world.for_each_ideology([&](dcon::ideology_id id) {
-		if(!bool(world.ideology_get_activation_date(id))) {
-			world.ideology_set_enabled(id, true);
-		}
-	});
-
-	for(auto n : world.in_nation) {
-		n.set_diplomatic_points(1.0f);
-	}
-
-	// fix worker types
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
-
-		// fix pop types
-		for(auto pop : world.province_get_pop_location(p)) {
-			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
-				pop.get_pop().set_poptype(culture_definitions.laborers);
-			}
-			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
-				pop.get_pop().set_poptype(culture_definitions.farmers);
-			}
-		}
-	});
 
 	// add dummy nations for unheld tags
 	world.for_each_national_identity([&](dcon::national_identity_id id) {
@@ -3058,11 +3077,9 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto frel = fatten(world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
-		if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
-				prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
-		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
-							prov_b.id.index() < province_definitions.first_sea_province.index()) {
+		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
@@ -3163,7 +3180,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
@@ -3177,20 +3193,26 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	// minimum discipline for land units
-	for(auto& u : military_definitions.unit_base_definitions) {
-		if(u.is_land) {
-			if(u.discipline_or_evasion <= 0.0f)
-				u.discipline_or_evasion = 1.0f;
+	// fix worker types
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
+		// fix pop types
+		for(auto pop : world.province_get_pop_location(p)) {
+			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+				pop.get_pop().set_poptype(culture_definitions.laborers);
+			}
+			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+				pop.get_pop().set_poptype(culture_definitions.farmers);
+			}
 		}
-	}
+	});
 
 	bool gov_error = false;
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		if(!g && n.get_owned_province_count() != 0) {
 			auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-			err.accumulated_errors += name + " exists but has no governmentnt (THIS WILL RESULT IN A CRASH)\n";
+			err.accumulated_errors += name + " exists but has no governmentnt (This will result in a crash)\n";
 			gov_error = true;
 		}
 	}
@@ -3214,6 +3236,26 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto p = a.get_army_location().get_location();
 		if(p.id.index() >= province_definitions.first_sea_province.index()) {
 			err.accumulated_errors += "Army defined in " + text::produce_simple_string(*this, p.get_name()) + " which is a sea province\n";
+		}
+	}
+
+	//Fixup armies defined on a different place
+	for(auto p : world.in_pop_location) {
+		for(const auto src : p.get_pop().get_regiment_source()) {
+			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership())
+				continue;
+			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
+			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
+			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
+			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
+			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
+				auto new_u = world.create_army();
+				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
+				src.get_regiment().set_army_from_army_membership(new_u);
+				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
+			} else {
+				src.get_regiment().set_strength(0.f);
+			}
 		}
 	}
 
@@ -3254,30 +3296,19 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-	world.for_each_national_identity([&](dcon::national_identity_id n) {
-		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(n));
-		if(tag == "REB")
-			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
-	});
-
 	// fix slaves in non-slave owning nations
 	for(auto p : world.in_province) {
 		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		auto rgo = this->world.province_get_rgo(p);
-		if(!rgo) {
-			auto name = this->world.province_get_name(p);
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
 		}
 	});
 
-	
-
-	if(err.accumulated_errors.size() == 0)
-		economy::presimulate(*this);
-	
+	economy::presimulate(*this);
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
@@ -4079,15 +4110,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this, true);
+		write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	default:
 		break;

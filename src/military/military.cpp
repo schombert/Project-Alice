@@ -110,8 +110,7 @@ bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w) {
 
 	auto can_use = state.world.cb_type_get_can_use(cb);
-	if(can_use &&
-			!trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(target))) {
 		return false;
 	}
 
@@ -255,7 +254,7 @@ bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::na
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb) {
 	auto can_use = state.world.cb_type_get_can_use(cb);
-	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(target))) {
 		return false;
 	}
 
@@ -326,8 +325,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 		dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary) {
 
 	auto can_use = state.world.cb_type_get_can_use(cb);
-	if(can_use &&
-			!trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(actor))) {
+	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(target))) {
 		return false;
 	}
 
@@ -1265,8 +1263,7 @@ void update_cbs(sys::state& state) {
 
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target) {
 	auto current_cbs = state.world.nation_get_available_cbs(n);
-	current_cbs.push_back(
-			military::available_cb{target, state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, cb});
+	current_cbs.push_back(military::available_cb{ state.current_date + int32_t(state.defines.created_cb_valid_time) * 30, target, cb });
 }
 
 float cb_infamy(sys::state const& state, dcon::cb_type_id t) {
@@ -2266,7 +2263,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	}
 
 	add_to_war(state, new_war, primary_attacker, true, true);
-	add_to_war(state, new_war, real_target, false, false);
+	add_to_war(state, new_war, real_target, false, true);
 
 	if(primary_wargoal) {
 		add_wargoal(state, new_war, primary_attacker, primary_defender, primary_wargoal, primary_wargoal_state, primary_wargoal_tag,
@@ -2282,6 +2279,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 
 	if(state.world.nation_get_is_player_controlled(primary_attacker) == false)
 		ai::add_free_ai_cbs_to_war(state, primary_attacker, new_war);
+	if(state.world.nation_get_is_player_controlled(primary_defender) == false)
+		ai::add_free_ai_cbs_to_war(state, primary_defender, new_war);
 
 	notification::post(state, notification::message{
 		[primary_attacker, primary_defender, w = new_war.id](sys::state& state, text::layout_base& contents) {
@@ -2846,8 +2845,14 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				nations::create_nation_based_on_template(state, holder, from);
 			}
 		}
-
-		add_truce(state, holder, target, 365);
+		// add to sphere if not existed
+		if(!target_existed && state.world.nation_get_is_great_power(from)) {
+			auto sr = state.world.force_create_gp_relationship(holder, from);
+			auto& flags = state.world.gp_relationship_get_status(sr);
+			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
+			state.world.nation_set_in_sphere_of(holder, from);
+		}
+		add_truce(state, holder, target, int32_t(state.defines.base_truce_months) * 30);
 
 		if((bits & cb_flag::all_allowed_states) == 0) {
 			for(auto prov : state.world.state_definition_get_abstract_state_membership(wargoal_state)) {
@@ -4799,7 +4804,7 @@ dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r)
 	auto ruler = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
 	if(ruler)
 		return ruler;
-	return state.national_definitions.rebel_id;
+	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
@@ -5097,8 +5102,8 @@ void update_land_battles(sys::state& state) {
 		auto defender_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
-		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +  int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 19)];
-		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +  int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus) + 3, 0, 19)];
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + crossing_adjustment +  int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + 3, 0, 18)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + dig_in_value +  int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus) + 3, 0, 18)];
 
 		float defender_fort = 1.0f;
 		auto local_control = state.world.province_get_nation_from_province_control(location);
@@ -5581,8 +5586,8 @@ void update_naval_battles(sys::state& state) {
 		auto defender_org_bonus =
 				1.0f + state.world.leader_trait_get_organisation(defender_per) + state.world.leader_trait_get_organisation(defender_bg);
 
-		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 19)];
-		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 19)];
+		auto attacker_mod = combat_modifier_table[std::clamp(attacker_dice + attack_bonus + 3, 0, 18)];
+		auto defender_mod = combat_modifier_table[std::clamp(defender_dice + defence_bonus + 3, 0, 18)];
 
 		for(uint32_t j = slots.size(); j-- > 0;) {
 			auto ship_owner =
@@ -6791,7 +6796,7 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 		if(mobilized_regiments_possible_from_province(state, pr.get_province()) <= 0)
 			continue;
 
-		schedule_array.push_back(mobilization_order{pr.get_province().id, sys::date{}});
+		schedule_array.push_back(mobilization_order{ sys::date{}, pr.get_province().id });
 	}
 
 	std::sort(schedule_array.begin(), schedule_array.end(),

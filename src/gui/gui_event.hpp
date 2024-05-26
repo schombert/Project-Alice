@@ -118,7 +118,7 @@ enum event_pool_slot : uint8_t {
 };
 class base_event_option_listbox : public listbox_element_base<event_option_button_row, int32_t> {
 public:
-	void on_update(sys::state& state) noexcept;
+	void on_update(sys::state& state) noexcept override;
 };
 class national_event_listbox : public base_event_option_listbox {
 protected:

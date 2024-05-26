@@ -1892,7 +1892,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
 		break;
 	case command_info::type::spectate:
-		command::c_switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id));
+		command::c_switch_nation(state, state.local_player_nation, state.national_definitions.rebel_id);
 		break;
 	case command_info::type::conquer_tag:
 	{

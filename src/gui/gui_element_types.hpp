@@ -125,11 +125,11 @@ public:
 			int32_t size_x = texhandle.size_x;
 			int32_t size_y = texhandle.size_y;
 			int32_t channels = texhandle.channels;
+			size_t size_m = (texhandle.size_x * texhandle.size_y) * 4;
 			if(texture && channels == 4) {
-				auto x_offs = (x * int32_t(state.user_settings.ui_scale)) % size_x;
-				auto y_offs = (y * int32_t(state.user_settings.ui_scale)) % size_y;
 				// texture memory layout RGBA accessed through uint8_t pointer
-				if(texture[(x_offs + (y_offs * size_x)) * 4 + 3] == 0x00) {
+				size_t index = (x + (y * size_x)) * 4 + 3;
+				if(index < size_m && texture[index] == 0x00) {
 					return message_result::unseen;
 				}
 			}

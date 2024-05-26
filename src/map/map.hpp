@@ -130,6 +130,18 @@ public:
 	std::vector<GLint> retreat_unit_arrow_starts;
 	std::vector<GLsizei> retreat_unit_arrow_counts;
 	//
+	std::vector<curved_line_vertex> strategy_unit_arrow_vertices;
+	std::vector<GLint> strategy_unit_arrow_starts;
+	std::vector<GLsizei> strategy_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> objective_unit_arrow_vertices;
+	std::vector<GLint> objective_unit_arrow_starts;
+	std::vector<GLsizei> objective_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> other_objective_unit_arrow_vertices;
+	std::vector<GLint> other_objective_unit_arrow_starts;
+	std::vector<GLsizei> other_objective_unit_arrow_counts;
+	//
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -159,7 +171,10 @@ public:
 	static constexpr uint32_t vo_province_text_line = 9;
 	static constexpr uint32_t vo_attack_unit_arrow = 10;
 	static constexpr uint32_t vo_retreat_unit_arrow = 11;
-	static constexpr uint32_t vo_count = 12;
+	static constexpr uint32_t vo_strategy_unit_arrow = 12;
+	static constexpr uint32_t vo_objective_unit_arrow = 13;
+	static constexpr uint32_t vo_other_objective_unit_arrow = 14;
+	static constexpr uint32_t vo_count = 15;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -184,7 +199,10 @@ public:
 	static constexpr uint32_t texture_railroad = 18;
 	static constexpr uint32_t texture_attack_unit_arrow = 19;
 	static constexpr uint32_t texture_retreat_unit_arrow = 20;
-	static constexpr uint32_t texture_count = 21;
+	static constexpr uint32_t texture_strategy_unit_arrow = 21;
+	static constexpr uint32_t texture_objective_unit_arrow = 22;
+	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
+	static constexpr uint32_t texture_count = 24;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;

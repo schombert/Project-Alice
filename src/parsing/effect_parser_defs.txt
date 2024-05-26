@@ -170,6 +170,8 @@ effect_body
 	set_country_flag                value       text                member_fn
 	clr_country_flag                value       text                member_fn
 	remove_country_flag                value       text                member_fn (clr_country_flag)
+	set_news_flag                value       text                member_fn (set_country_flag)
+	clear_news_flag                value       text                member_fn (clr_country_flag)
 	country_event                   value       int                 member_fn
 	province_event                  value       int                 member_fn
 	military_access                 value       text                member_fn
