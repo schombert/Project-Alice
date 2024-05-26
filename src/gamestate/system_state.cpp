@@ -2565,8 +2565,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
 		auto startdate = current_date.to_ymd(start_date);
-		auto start_dir_name =
-			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 		// NICK: 
 		// Attempts to look through the start date as defined by the mod.
@@ -2844,9 +2843,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
+		
 		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
-
+			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
+				continue;
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
@@ -2856,18 +2857,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					break;
 				}
 			}
-
-			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
-				continue;
-
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
-						it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{ context, holder };
-
 						auto opened_file = open_file(oob_file);
 						if(opened_file) {
 							err.file_name = utf8name;
@@ -2876,7 +2871,43 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 							parsers::parse_oob_file(gen, err, new_context);
 						}
 					} else {
-						// dead tag
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+					}
+				} else {
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+				}
+			}
+		}
+
+		auto startdate = current_date.to_ymd(start_date);
+		auto start_dir_name = std::to_string(startdate.year);
+		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
+		for(auto oob_file : list_files(date_directory, NATIVE(".txt"))) {
+			auto file_name = get_full_name(oob_file);
+			auto last = file_name.c_str() + file_name.length();
+			auto first = file_name.c_str();
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			if(last - start_of_name >= 3) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+					if(holder) {
+						parsers::oob_file_context new_context{ context, holder };
+						auto opened_file = open_file(oob_file);
+						if(opened_file) {
+							err.file_name = utf8name;
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_oob_file(gen, err, new_context);
+						}
+					} else {
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
 				} else {
 					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
