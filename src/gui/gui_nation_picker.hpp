@@ -263,7 +263,7 @@ public:
 			return;
 
 		if(!bool(tag))
-			tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+			tag = state.national_definitions.rebel_id;
 
 		culture::flag_type ft = culture::flag_type::default_flag;
 		if(gov) {

@@ -46,7 +46,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 
 	auto controller = army.get_controller_from_army_control();
 	if(!controller) {
-		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+		controller = dcon::fatten(state.world, state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
 	}
 
 	float total_cost = 0.f;
@@ -93,7 +93,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 
 	auto controller = navy.get_controller_from_navy_control();
 	if(!controller) {
-		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+		controller = dcon::fatten(state.world, state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
 	}
 
 	float total_cost = 0.f;

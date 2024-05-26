@@ -1747,7 +1747,7 @@ void flag_button2::on_update(sys::state& state) noexcept {
 		return;
 	}
 
-	auto reb_tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	auto reb_tag = state.national_definitions.rebel_id;
 	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, culture::flag_type::default_flag);
 }
 
@@ -1804,7 +1804,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
 	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+		ident = state.national_definitions.rebel_id;
 
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
