@@ -2265,7 +2265,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	{
 		// Default vanilla dates used if ones are not defined
 		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
-		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1935, 12, 31 });
 		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
 			auto opened_file = open_file(defines_file);
 			if(opened_file) {
@@ -2596,6 +2596,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+
 	// load poptype definitions
 	{
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
@@ -2927,6 +2928,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 					if(!holder) {
 						holder = world.create_nation();
+						world.nation_set_diplomatic_points(holder, 1.0f);
 						world.try_create_identity_holder(holder, it->second);
 					}
 
@@ -2941,8 +2943,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					}
 
 				} else {
-					err.accumulated_warnings +=
-						"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}
 		}
@@ -2970,31 +2971,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
-
-	world.for_each_ideology([&](dcon::ideology_id id) {
-		if(!bool(world.ideology_get_activation_date(id))) {
-			world.ideology_set_enabled(id, true);
-		}
-	});
-
-	for(auto n : world.in_nation) {
-		n.set_diplomatic_points(1.0f);
-	}
-
-	// fix worker types
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
-
-		// fix pop types
-		for(auto pop : world.province_get_pop_location(p)) {
-			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
-				pop.get_pop().set_poptype(culture_definitions.laborers);
-			}
-			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
-				pop.get_pop().set_poptype(culture_definitions.farmers);
-			}
-		}
-	});
 
 	// add dummy nations for unheld tags
 	world.for_each_national_identity([&](dcon::national_identity_id id) {
@@ -3070,11 +3046,9 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto frel = fatten(world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
-		if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
-				prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
-		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
-							prov_b.id.index() < province_definitions.first_sea_province.index()) {
+		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
@@ -3175,7 +3149,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
@@ -3189,20 +3162,26 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	// minimum discipline for land units
-	for(auto& u : military_definitions.unit_base_definitions) {
-		if(u.is_land) {
-			if(u.discipline_or_evasion <= 0.0f)
-				u.discipline_or_evasion = 1.0f;
+	// fix worker types
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
+		// fix pop types
+		for(auto pop : world.province_get_pop_location(p)) {
+			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+				pop.get_pop().set_poptype(culture_definitions.laborers);
+			}
+			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+				pop.get_pop().set_poptype(culture_definitions.farmers);
+			}
 		}
-	}
+	});
 
 	bool gov_error = false;
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		if(!g && n.get_owned_province_count() != 0) {
 			auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-			err.accumulated_errors += name + " exists but has no governmentnt (THIS WILL RESULT IN A CRASH)\n";
+			err.accumulated_errors += name + " exists but has no governmentnt (This will result in a crash)\n";
 			gov_error = true;
 		}
 	}
@@ -3266,30 +3245,19 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-	world.for_each_national_identity([&](dcon::national_identity_id n) {
-		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(n));
-		if(tag == "REB")
-			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
-	});
-
 	// fix slaves in non-slave owning nations
 	for(auto p : world.in_province) {
 		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		auto rgo = this->world.province_get_rgo(p);
-		if(!rgo) {
-			auto name = this->world.province_get_name(p);
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
 		}
 	});
 
-	
-
-	if(err.accumulated_errors.size() == 0)
-		economy::presimulate(*this);
-	
+	economy::presimulate(*this);
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
