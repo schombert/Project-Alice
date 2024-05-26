@@ -38,6 +38,8 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	// Recognize the cleanup utility tag
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
 		context.state.national_definitions.cleanup_tag = new_ident;
+	} else if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
+		context.state.national_definitions.rebel_id = new_ident;
 	}
 
 	auto name_id = text::find_or_add_key(context.state, tag);

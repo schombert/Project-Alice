@@ -355,6 +355,14 @@ void commodity_set::any_value(std::string_view name, association_type, float val
 	}
 }
 
+void unit_definition::finish(scenario_building_context&) {
+	// minimum discipline for land units
+	if(is_land) {
+		if(discipline_or_evasion <= 0.0f)
+			discipline_or_evasion = 1.0f;
+	}
+}
+
 void party::ideology(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
 	if(auto it = context.outer_context.map_of_ideologies.find(std::string(text));
 			it != context.outer_context.map_of_ideologies.end()) {
@@ -634,6 +642,12 @@ void poptype_file::everyday_needs_income(income const& value, error_handler& err
 void poptype_file::luxury_needs_income(income const& value, error_handler& err, int32_t line, poptype_context& context) {
 	// context.outer_context.state.world.pop_type_set_luxury_needs_income_weight(context.id, value.weight);
 	context.outer_context.state.world.pop_type_set_luxury_needs_income_type(context.id, uint8_t(value.itype));
+}
+
+void individual_ideology::finish(individual_ideology_context& context) {
+	if(!bool(context.outer_context.state.world.ideology_get_activation_date(context.id))) {
+		context.outer_context.state.world.ideology_set_enabled(context.id, true);
+	}
 }
 
 void individual_ideology::can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line,

@@ -904,7 +904,7 @@ public:
 				if(bool(rf)) {
 					n = state.world.rebellion_within_get_ruler(state.world.rebel_faction_get_rebellion_within(rf));
 					if(!bool(n))
-						n = state.national_definitions.rebel_id;
+						n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 				}
 				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
 				tag_str += " " + rebel::rebel_name(state, rf);

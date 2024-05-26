@@ -4804,7 +4804,7 @@ dcon::nation_id tech_nation_for_regiment(sys::state& state, dcon::regiment_id r)
 	auto ruler = state.world.rebel_faction_get_ruler_from_rebellion_within(rf);
 	if(ruler)
 		return ruler;
-	return state.national_definitions.rebel_id;
+	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {

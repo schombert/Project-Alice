@@ -1365,8 +1365,7 @@ struct commodity_set : public economy::commodity_set {
 };
 
 struct unit_definition : public military::unit_definition {
-	void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line,
-			scenario_building_context& context) {
+	void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
 		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "support"))
 			type = military::unit_type::support;
 		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "big_ship"))
@@ -1381,17 +1380,20 @@ struct unit_definition : public military::unit_definition {
 			type = military::unit_type::special;
 		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infantry"))
 			type = military::unit_type::infantry;
+		else {
+			err.accumulated_errors += std::string(value) + " is not a valid unit type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 	}
 	void type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
-		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land"))
+		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land")) {
 			is_land = true;
-		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval"))
+		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval")) {
 			is_land = false;
-		else
-			err.accumulated_errors +=
-					std::string(value) + " is not a valid unit type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		} else {
+			err.accumulated_errors += std::string(value) + " is not a valid land/naval type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 	}
-	void finish(scenario_building_context&) { }
+	void finish(scenario_building_context&);
 };
 
 struct unit_file {
@@ -1613,7 +1615,7 @@ struct individual_ideology_context {
 };
 
 struct individual_ideology {
-	void finish(individual_ideology_context&) { }
+	void finish(individual_ideology_context&);
 	void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void civilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
