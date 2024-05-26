@@ -172,9 +172,43 @@ void consume_csv_file(sys::state& state, char const* file_content, uint32_t file
 	}
 }
 
+void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, uint32_t language) {
+	auto start = (file_size != 0 && file_content[0] == '#')
+		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
+		: file_content;
+	while(start < file_content + file_size) {
+		auto parse_fn = [&state, &err](std::string_view key, std::string_view content, uint32_t column) {
+			create_text_entry(state, key, content, err, column);
+		};
+		start = parsers::parse_first_and_fixed_amount_csv_values<1>(start, file_content + file_size, ';', parse_fn);
+	}
+	//Normalize all text sequences
+	uint32_t seq_size = 0;
+	for(const auto& l : state.languages) {
+		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
+	}
+	for(auto& l : state.languages) {
+		l.text_sequences.resize(size_t(seq_size));
+	}
+}
+
 void load_text_data(sys::state& state, parsers::error_handler& err) {
 	auto root_dir = get_root(state.common_fs);
 
+	//ISO 639-1, aka. two letters
+	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
+	std::string_view fixed_iso_codes[] = {
+		"en", "fr", "de", "pl", "es", "it", "sv", "cz", "hu", "nl", "po", "ru", "fi"
+	};
+	uint8_t last_language = 0;
+	for(uint32_t i = 0; i < std::extent_v<decltype(fixed_iso_codes)>; i++) {
+		auto key = fixed_iso_codes[i];
+		state.languages[i].iso_code.resize(key.size());
+		std::copy(key.begin(), key.end(), state.languages[i].iso_code);
+		++last_language;
+	}
+
+	//Always parsed as windows-1252
 	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
 	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
 		if(auto ofile = open_file(file); ofile) {
@@ -189,6 +223,53 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
 			consume_csv_file(state, content.data, content.file_size, err);
+		}
+	}
+
+	uint8_t first_new_language = 0;
+	auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt"));
+	if(file) {
+		if(auto ofile = open_file(*file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
+			auto start = (content.file_size != 0 && content.data[0] == '#')
+				? parsers::csv_advance_to_next_line(content.data, content.data + content.file_size)
+				: content.data;
+			while(start < content.data + content.file_size) {
+				auto parse_fn = [&state, &err, &last_language](std::string_view key, std::string_view value, uint32_t column) {
+					state.languages[last_language].iso_code.resize(key.size());
+					std::copy(key.begin(), key.end(), state.languages[last_language].iso_code);
+					if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "gb18030")) {
+						state.languages[last_language].encoding = text::language_encoding::gb18030;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "win1252")) {
+						state.languages[last_language].encoding = text::language_encoding::win1252;
+					}
+					++last_language;
+				};
+				start = parsers::parse_first_and_fixed_amount_csv_values<1>(start, content.data + content.file_size, ';', parse_fn);
+			}
+		}
+	}
+
+	for(uint32_t i = first_new_language; i < last_language; i++) {
+		auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[last_language].iso_code.begin(), state.languages[last_language].iso_code.end() });
+		auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+		for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
+			}
+		}
+		auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+		for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
+			}
 		}
 	}
 }
@@ -1072,7 +1153,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 } // namespace impl
 
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1082,7 +1163,7 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 	impl::lb_finish_line(dest, box, line_height);
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1092,7 +1173,7 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	dest.y_cursor += line_height;
 }
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1283,7 +1364,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		return;
 
 	auto current_color = dest.fixed_parameters.color;
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];

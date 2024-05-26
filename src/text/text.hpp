@@ -791,9 +791,16 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
 
+enum class language_encoding : uint8_t {
+	win1252,
+	utf8,
+	gb18030
+};
+
 struct language_table {
 	std::vector<char> iso_code;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
+	language_encoding encoding;
 };
 
 } // namespace text

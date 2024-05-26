@@ -316,7 +316,7 @@ void initialize_opengl(sys::state& state) {
 	state.map_state.load_map(state);
 
 	load_special_icons(state);
-	state.font_collection.load_all_glyphs();
+	state.font_collection.load_all_glyphs(state);
 
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
@@ -938,8 +938,7 @@ void render_text(sys::state& state, char const* codepoints, uint32_t count, colo
 	if(state.user_settings.use_classic_fonts) {
 		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
 	} else {
-		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c,
-				state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
+		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
 	}
 }
 

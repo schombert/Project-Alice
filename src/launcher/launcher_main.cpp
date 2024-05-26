@@ -1515,7 +1515,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
 		}
 
-		font_collection.load_all_glyphs();
+		font_collection.load_all_glyphs(state);
 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_left.png"), fs, left_tex, false);

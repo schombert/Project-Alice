@@ -61,7 +61,7 @@ public:
 
 	~font();
 
-	void make_glyph(char ch_in);
+	void make_glyph(text::language_encoding enc, char ch_in);
 	float line_height(int32_t size) const;
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
@@ -78,13 +78,13 @@ public:
 	~font_manager();
 
 	bool map_font_is_black = false;
-	font fonts[3];
+	font fonts[128];
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f);
-	void load_all_glyphs();
+	void load_all_glyphs(sys::state& state);
 
 	float line_height(sys::state& state, uint16_t font_id) const;
 	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id);

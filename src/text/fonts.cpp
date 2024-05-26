@@ -974,7 +974,8 @@ uint16_t name_into_font_id(sys::state& state, std::string_view txt) {
 }
 
 int32_t size_from_font_id(uint16_t id) {
-	if(font_index_from_font_id(id) == 2)
+	auto index = uint32_t(((id >> 7) & 0x01) + 1);
+	if(index == 2)
 		return (int32_t(id & 0x3F) * 3) / 4;
 	else
 		return (int32_t(id & 0x3F) * 5) / 6;
@@ -983,8 +984,9 @@ int32_t size_from_font_id(uint16_t id) {
 bool is_black_from_font_id(uint16_t id) {
 	return ((id >> 6) & 0x01) != 0;
 }
-uint32_t font_index_from_font_id(uint16_t id) {
-	return uint32_t(((id >> 7) & 0x01) + 1);
+uint32_t font_index_from_font_id(sys::state& state, uint16_t id) {
+	uint32_t offset = uint8_t(state.languages[state.user_settings.current_language].encoding);
+	return uint32_t(((id >> 7) & 0x01) + 1) + (offset * 3);
 }
 
 font_manager::font_manager() {
@@ -1200,27 +1202,42 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_height();
 	} else {
-		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
+		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
 float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
 	} else {
-		return float(fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
+		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
 	}
 }
 
-void font::make_glyph(char ch_in) {
+void font::make_glyph(text::language_encoding enc, char ch_in) {
 	if(glyph_loaded[uint8_t(ch_in)])
 		return;
 	glyph_loaded[uint8_t(ch_in)] = true;
 
-	auto codepoint = win1250toUTF16(ch_in);
-	if(codepoint == ' ')
-		return;
-
-	auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+	FT_UInt index_in_this_font = 0;
+	switch(enc) {
+	case text::language_encoding::gb18030:
+		{
+			auto codepoint = char16_t(u'\x4E00') + char16_t(ch_in);
+			if(codepoint == ' ')
+				return;
+			index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+		}
+		break;
+	case text::language_encoding::win1252:
+	default:
+		{
+			auto codepoint = win1250toUTF16(ch_in);
+			if(codepoint == ' ')
+				return;
+			index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
+		}
+		break;
+	}
 
 	if(index_in_this_font && gs && features == font_feature::small_caps) {
 		index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
@@ -1378,10 +1395,17 @@ void load_standard_fonts(sys::state& state) {
 
 void load_bmfonts(sys::state& state) { }
 
-void font_manager::load_all_glyphs() {
-	for(uint32_t j = 0; j < sizeof(fonts) / sizeof(fonts[0]); ++j) {
-		for(uint32_t i = 0; i < 256; ++i)
-			fonts[j].make_glyph(char(i));
+void font_manager::load_all_glyphs(sys::state&) {
+	for(uint32_t j = 0; j < 3; ++j) {
+		for(uint32_t i = 0; i < 256; ++i) {
+			fonts[0 + j].make_glyph(text::language_encoding::win1252, char(i));
+		}
+		for(uint32_t i = 0; i < 256; ++i) {
+			fonts[3 + j].make_glyph(text::language_encoding::utf8, char(i));
+		}
+		for(uint32_t i = 0; i < 256; ++i) {
+			fonts[6 + j].make_glyph(text::language_encoding::gb18030, char(i));
+		}
 	}
 }
 
