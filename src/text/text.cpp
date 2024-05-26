@@ -831,31 +831,31 @@ std::string prettify_currency(float num) {
 		1'000'000'000'000'000'000.0
 	};
 	constexpr static char const* sufx_two[] = {
-		"%.2f \xA4",
-		"%.2fK \xA4",
-		"%.2fM \xA4",
-		"%.2fB \xA4",
-		"%.2fT \xA4",
-		"%.2fP \xA4",
-		"%.2fZ \xA4"
+		"%.2f €",
+		"%.2fK €",
+		"%.2fM €",
+		"%.2fB €",
+		"%.2fT €",
+		"%.2fP €",
+		"%.2fZ €"
 	};
 	constexpr static char const* sufx_one[] = {
-		"%.1f \xA4",
-		"%.1fK \xA4",
-		"%.1fM \xA4",
-		"%.1fB \xA4",
-		"%.1fT \xA4",
-		"%.1fP \xA4",
-		"%.1fZ \xA4"
+		"%.1f €",
+		"%.1fK €",
+		"%.1fM €",
+		"%.1fB €",
+		"%.1fT €",
+		"%.1fP €",
+		"%.1fZ €"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.0f \xA4",
-		"%.0fK \xA4",
-		"%.0fM \xA4",
-		"%.0fB \xA4",
-		"%.0fT \xA4",
-		"%.0fP \xA4",
-		"%.0fZ \xA4"
+		"%.0f €",
+		"%.0fK €",
+		"%.0fM €",
+		"%.0fB €",
+		"%.0fT €",
+		"%.0fP €",
+		"%.0fZ €"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -1329,7 +1329,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 		/// fp_currency, pretty_integer, fp_percentage, int_percentage
 	} else if(std::holds_alternative<fp_currency>(sub)) {
 		char buffer[200] = {0};
-		snprintf(buffer, 200, " %.2f \xA4", std::get<fp_currency>(sub).value);
+		snprintf(buffer, 200, " %.2f €", std::get<fp_currency>(sub).value);
 		return std::string(buffer);
 	} else if(std::holds_alternative<pretty_integer>(sub)) {
 		return prettify(std::get<pretty_integer>(sub).value);
@@ -1542,14 +1542,11 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
-
-
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
 	}
-
 
 	text::add_space_to_layout_box(state, dest, box);
 
@@ -1562,12 +1559,10 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
-
-
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1583,12 +1578,10 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
-
-
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1608,9 +1601,9 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 
 
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);

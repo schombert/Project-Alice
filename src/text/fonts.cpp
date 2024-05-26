@@ -1212,12 +1212,13 @@ void font::make_glyph(char32_t ch_in) {
 		return;
 	glyph_loaded.insert_or_assign(ch_in, true);
 	auto index_in_this_font = ch_in;
-	if(index_in_this_font && gs && features == font_feature::small_caps) {
-		index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
+	auto sc_index_in_this_font = index_in_this_font;
+	if(sc_index_in_this_font && gs && features == font_feature::small_caps) {
+		sc_index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
 	}
 	// load all glyph metrics
 	if(index_in_this_font) {
-		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
+		FT_Load_Glyph(font_face, sc_index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
 		FT_Glyph g_result;
 		FT_Get_Glyph(font_face->glyph, &g_result);
@@ -1250,7 +1251,8 @@ void font::make_glyph(char32_t ch_in) {
 		glyph_sub_offset gso;
 		gso.x = (hb_x - float(btmap_x_off)) * 1.0f / float(magnification_factor);
 		gso.y = (-hb_y - float(btmap_y_off)) * 1.0f / float(magnification_factor);
-		glyph_positions.insert_or_assign(ch_in, gso);
+		glyph_positions.insert_or_assign(index_in_this_font, gso);
+		glyph_advances.insert_or_assign(index_in_this_font, float(font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor));
 
 		bool in_map[dr_size * dr_size] = {false};
 		float distance_map[dr_size * dr_size] = {0.0f};

@@ -151,10 +151,10 @@ void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
 
 			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(ws, layout, box, std::string_view("\x02"), text::text_color::green);
+				text::add_to_layout_box(ws, layout, box, std::string_view("✔"), text::text_color::green);
 				text::add_space_to_layout_box(ws, layout, box);
 			} else {
-				text::add_to_layout_box(ws, layout, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(ws, layout, box, std::string_view("✘"), text::text_color::red);
 				text::add_space_to_layout_box(ws, layout, box);
 			}
 
@@ -8492,10 +8492,10 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
 			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x02"), text::text_color::green);
+				text::add_to_layout_box(state, layout, box, std::string_view("✔"), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view("✘"), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 
@@ -8546,10 +8546,10 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
 			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x02"), text::text_color::green);
+				text::add_to_layout_box(state, layout, box, std::string_view("✔"), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view("✘"), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 

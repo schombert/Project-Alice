@@ -1290,9 +1290,9 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+				text::add_to_layout_box(state, contents, box, std::string_view("✔"), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view("✘"), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
@@ -1359,9 +1359,9 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+				text::add_to_layout_box(state, contents, box, std::string_view("✔"), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view("✘"), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,

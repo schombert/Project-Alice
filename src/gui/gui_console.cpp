@@ -1577,7 +1577,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto const n = state.local_player_nation;
 		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
-		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "\x02" : "\x01");
+		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "✔" : "✘");
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
@@ -1835,7 +1835,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::fog_of_war:
 		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
 		state.map_state.map_data.update_fog_of_war(state);
-		log_to_console(state, parent, state.user_settings.fow_enabled ? "\x02" : "\x01");
+		log_to_console(state, parent, state.user_settings.fow_enabled ? "✔" : "✘");
 		break;
 	case command_info::type::win_wars:
 		break;
@@ -1847,23 +1847,23 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		state.user_settings.current_language++;
 		break;
 	case command_info::type::always_allow_wargoals:
-		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "✔" : "✘");
 		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "✔" : "✘");
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_decisions:
-		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "✔" : "✘");
 		command::c_always_allow_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_potential_decisions:
-		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "✔" : "✘");
 		command::c_always_potential_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
-		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "✔" : "✘");
 		command::c_always_accept_deals(state, state.local_player_nation);
 		break;
 	case command_info::type::set_auto_choice_all:
@@ -1882,14 +1882,14 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				has_us = true;
 				break;
 			}
-		log_to_console(state, parent, !has_us ? "\x02" : "\x01");
+		log_to_console(state, parent, !has_us ? "✔" : "✘");
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
-		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
-		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
+		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "✔" : "✘"));
+		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "✔" : "✘"));
 		break;
 	case command_info::type::spectate:
 		command::c_switch_nation(state, state.local_player_nation, state.national_definitions.rebel_id);
@@ -1960,13 +1960,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_id_tooltip:
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
-		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::wasd:
 	{
 		state.user_settings.wasd_for_map_movement = not state.user_settings.wasd_for_map_movement;
-		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "\x02" : "\x01");
+		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "✔" : "✘");
 		state.save_user_settings();
 		break;
 	}
@@ -1983,26 +1983,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::instant_army:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_army ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_army ? "✔" : "✘");
 		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_navy:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_navy ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_navy ? "✔" : "✘");
 		command::c_instant_navy(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_industry:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_industry ? "✔" : "✘");
 		command::c_instant_industry(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::daily_oos_check:
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
-		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::dump_map:
@@ -2105,7 +2105,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_names:
 	{
 		state.cheat_data.province_names = not state.cheat_data.province_names;
-		log_to_console(state, parent, state.cheat_data.province_names ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.province_names ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::color_blind_mode:
@@ -2114,7 +2114,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		if(uint8_t(state.user_settings.color_blind_mode) > 4) {
 			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
 		}
-		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "\x02" : "\x01");
+		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::list_national_variables:
