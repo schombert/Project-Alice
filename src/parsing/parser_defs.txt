@@ -1285,3 +1285,13 @@ sfx_file
 	new_land_unit			group	sfx_definition		discard
 	new_naval_unit			group	sfx_definition		discard
 	news_printed			group	sfx_definition		discard
+
+bookmark_definition
+	date				value	date					member_fn
+	name				value	text					discard
+	desc				value	text					discard
+	camerax				value	uint					discard
+	cameray				value	uint					discard
+
+bookmark_file
+	bookmark			group	bookmark_definition		member_fn

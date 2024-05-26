@@ -2563,7 +2563,7 @@ void vassal_description::second(association_type, std::string_view tag, error_ha
 }
 
 void vassal_description::start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
-	if(context.state.start_date < sys::absolute_time_point(ymd))
+	if(sys::date(ymd, context.state.start_date) <= context.state.current_date)
 		invalid = true;
 }
 
@@ -2609,18 +2609,20 @@ void foreign_investment_block::any_value(std::string_view tag, association_type,
 }
 
 void country_history_file::set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(!context.holder_id)
+		return;
 	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
-		if(context.holder_id)
-			context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, true);
+		context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, true);
 	} else {
 		// unused flag variable: ignore
 	}
 }
 
 void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(!context.holder_id)
+		return;
 	if(auto it = context.outer_context.map_of_global_flags.find(std::string(value)); it != context.outer_context.map_of_global_flags.end()) {
-		if(context.holder_id)
-			context.outer_context.state.national_definitions.set_global_flag_variable(it->second, true);
+		context.outer_context.state.national_definitions.set_global_flag_variable(it->second, true);
 	} else {
 		// unused flag variable: ignore
 	}
@@ -2633,11 +2635,11 @@ void country_history_file::colonial_points(association_type, int32_t value, erro
 void country_history_file::capital(association_type, int32_t value, error_handler& err, int32_t line,
 		country_history_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
-		err.accumulated_errors +=
-				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		context.outer_context.state.world.national_identity_set_capital(context.nat_ident, province_id);
+		if(!context.in_dated_block)
+			context.outer_context.state.world.national_identity_set_capital(context.nat_ident, province_id);
 		if(context.holder_id)
 			context.outer_context.state.world.nation_set_capital(context.holder_id, province_id);
 	}
@@ -2682,7 +2684,8 @@ void country_history_file::primary_culture(association_type, std::string_view va
 		country_history_context& context) {
 	if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
 			it != context.outer_context.map_of_culture_names.end()) {
-		context.outer_context.state.world.national_identity_set_primary_culture(context.nat_ident, it->second);
+		if(!context.in_dated_block)
+			context.outer_context.state.world.national_identity_set_primary_culture(context.nat_ident, it->second);
 		if(context.holder_id)
 			context.outer_context.state.world.nation_set_primary_culture(context.holder_id, it->second);
 	} else {
@@ -2707,9 +2710,9 @@ void country_history_file::culture(association_type, std::string_view value, err
 
 void country_history_file::religion(association_type, std::string_view value, error_handler& err, int32_t line,
 		country_history_context& context) {
-	if(auto it = context.outer_context.map_of_religion_names.find(std::string(value));
-			it != context.outer_context.map_of_religion_names.end()) {
-		context.outer_context.state.world.national_identity_set_religion(context.nat_ident, it->second);
+	if(auto it = context.outer_context.map_of_religion_names.find(std::string(value)); it != context.outer_context.map_of_religion_names.end()) {
+		if(!context.in_dated_block)
+			context.outer_context.state.world.national_identity_set_religion(context.nat_ident, it->second);
 		if(context.holder_id)
 			context.outer_context.state.world.nation_set_religion(context.holder_id, it->second);
 	} else {
@@ -2874,7 +2877,7 @@ void country_history_file::ruling_party(association_type, std::string_view value
 			return;
 		}
 	}
-	// alright, it didn't bleong to that nation -- try checking everything to help broken mods work anyways
+	// alright, it didn't belong to that nation -- try checking everything to help broken mods work anyways
 	err.accumulated_warnings += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	for(auto p : context.outer_context.state.world.in_political_party) {
 		auto name = p.get_name();
@@ -2887,7 +2890,6 @@ void country_history_file::ruling_party(association_type, std::string_view value
 			return;
 		}
 	}
-
 	err.accumulated_errors += "globally invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
@@ -3222,7 +3224,7 @@ void war_block::rem_defender(association_type, std::string_view tag, error_handl
 
 void enter_war_dated_block(std::string_view label, token_generator& gen, error_handler& err, war_history_context& context) {
 	auto ymd = parse_date(label, 0, err);
-	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+	if(sys::date(ymd, context.outer_context.state.start_date) <= context.outer_context.state.current_date) {
 		parse_war_block(gen, err, context);
 	} else {
 		gen.discard_group();

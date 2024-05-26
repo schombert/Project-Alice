@@ -1948,16 +1948,15 @@ void state::open_diplomacy(dcon::nation_id target) {
 	}
 }
 
-void state::load_scenario_data(parsers::error_handler& err) {
+void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date) {
+	auto root = get_root(common_fs);
+	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
 
 	text::load_text_data(*this, 2, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
-
-	auto root = get_root(common_fs);
-	auto common = open_directory(root, NATIVE("common"));
 
 	auto map = open_directory(root, NATIVE("map"));
 	// parse default.map
@@ -2274,6 +2273,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
 			}
 		}
+		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
 	// gather names of poptypes
 	list_pop_types(*this, context);
@@ -2564,7 +2564,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// load pop history files
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
-		auto startdate = sys::date(0).to_ymd(start_date);
+		auto startdate = current_date.to_ymd(start_date);
 		auto start_dir_name =
 			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
@@ -4059,15 +4059,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this, true);
+		write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	default:
 		break;

@@ -26,7 +26,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 	if (!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		// scenario making functions
 		parsers::error_handler err("");
-		game_state->load_scenario_data(err);
+		game_state->load_scenario_data(err, sys::year_month_day{ 1836, 1, 1 });
 		sys::write_scenario_file(*game_state, NATIVE("tests_scenario.bin"), 1);
 	} else {
 		game_state->fill_unsaved_data();
