@@ -204,7 +204,8 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	for(uint32_t i = 0; i < std::extent_v<decltype(fixed_iso_codes)>; i++) {
 		auto key = fixed_iso_codes[i];
 		state.languages[i].iso_code.resize(key.size());
-		std::copy(key.begin(), key.end(), state.languages[i].iso_code);
+		std::copy(key.begin(), key.end(), state.languages[i].iso_code.begin());
+		state.languages[i].encoding = text::language_encoding::win1252;
 		++last_language;
 	}
 
@@ -238,7 +239,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			while(start < content.data + content.file_size) {
 				auto parse_fn = [&state, &err, &last_language](std::string_view key, std::string_view value, uint32_t column) {
 					state.languages[last_language].iso_code.resize(key.size());
-					std::copy(key.begin(), key.end(), state.languages[last_language].iso_code);
+					std::copy(key.begin(), key.end(), state.languages[last_language].iso_code.begin());
 					if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
 						state.languages[last_language].encoding = text::language_encoding::utf8;
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "gb18030")) {
@@ -253,7 +254,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		}
 	}
 
-	for(uint32_t i = first_new_language; i < last_language; i++) {
+	/*for(uint32_t i = first_new_language; i < last_language; i++) {
 		auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[last_language].iso_code.begin(), state.languages[last_language].iso_code.end() });
 		auto text_lang_dir = open_directory(text_dir, lang_dir_name);
 		for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
@@ -271,7 +272,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				consume_new_csv_file(state, content.data, content.file_size, err, i);
 			}
 		}
-	}
+	}*/
 }
 
 template<size_t N>
@@ -1153,7 +1154,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 } // namespace impl
 
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1163,7 +1164,7 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 	impl::lb_finish_line(dest, box, line_height);
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1173,7 +1174,7 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	dest.y_cursor += line_height;
 }
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1364,7 +1365,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		return;
 
 	auto current_color = dest.fixed_parameters.color;
-	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];

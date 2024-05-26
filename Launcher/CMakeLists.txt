@@ -30,5 +30,6 @@ target_link_libraries(launch_alice PRIVATE dbghelp)
 target_link_libraries(launch_alice INTERFACE libglew_static)
 target_link_libraries(launch_alice INTERFACE stb_image)
 target_link_libraries(launch_alice INTERFACE freetype)
+target_link_libraries(launch_alice INTERFACE harfbuzz)
 
 target_precompile_headers(launch_alice REUSE_FROM Alice)

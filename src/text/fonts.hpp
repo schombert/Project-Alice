@@ -1,10 +1,11 @@
 #pragma once
 
-#include "ft2build.h"
+//#include "ft2build.h"
 #include "freetype/freetype.h"
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
 #include "bmfont.hpp"
+#include "hb.h"
 
 namespace sys {
 struct state;
@@ -39,6 +40,7 @@ private:
 
 public:
 	FT_Face font_face;
+	hb_font_t* hb_font_face = nullptr;
 	ankerl::unordered_dense::map<uint16_t, float> kernings;
 	std::vector<uint16_t> substitution_indices;
 	std::vector<uint8_t const*> type_2_kerning_tables;
@@ -61,7 +63,7 @@ public:
 
 	~font();
 
-	void make_glyph(text::language_encoding enc, char ch_in);
+	void make_glyph(char ch_in);
 	float line_height(int32_t size) const;
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
@@ -77,14 +79,14 @@ public:
 	font_manager();
 	~font_manager();
 
-	bool map_font_is_black = false;
-	font fonts[128];
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
+	font fonts[3];
+	bool map_font_is_black = false;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f);
-	void load_all_glyphs(sys::state& state);
+	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
 	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id);

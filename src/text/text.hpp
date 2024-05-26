@@ -728,7 +728,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err);
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err);
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language);
 dcon::text_sequence_id find_key(sys::state& state, std::string_view txt);
 dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 std::string date_to_string(sys::state const& state, sys::date date);
@@ -792,6 +792,7 @@ std::string resolve_string_substitution(sys::state& state, std::string_view key,
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
 
 enum class language_encoding : uint8_t {
+	none = 0,
 	win1252,
 	utf8,
 	gb18030

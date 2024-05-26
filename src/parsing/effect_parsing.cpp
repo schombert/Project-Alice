@@ -1679,7 +1679,11 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		std::string new_key_str = std::string("renaming_") + std::string(value);
 		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
 		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
 		context.add_int32_t_to_payload(name.index());
 	}
 }
@@ -1699,7 +1703,11 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		std::string new_key_str = std::string("renaming_") + std::string(value);
 		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
 		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
 		context.add_int32_t_to_payload(name.index());
 	}
 }

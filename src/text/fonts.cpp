@@ -1,6 +1,9 @@
 #include <cmath>
 #include <bit>
 
+#include "hb.h"
+#include "hb-ft.h"
+
 #include "fonts.hpp"
 #include "parsers.hpp"
 #include "simple_fs.hpp"
@@ -984,9 +987,8 @@ int32_t size_from_font_id(uint16_t id) {
 bool is_black_from_font_id(uint16_t id) {
 	return ((id >> 6) & 0x01) != 0;
 }
-uint32_t font_index_from_font_id(sys::state& state, uint16_t id) {
-	uint32_t offset = uint8_t(state.languages[state.user_settings.current_language].encoding);
-	return uint32_t(((id >> 7) & 0x01) + 1) + (offset * 3);
+uint32_t font_index_from_font_id(uint16_t id) {
+	return uint32_t(((id >> 7) & 0x01) + 1);
 }
 
 font_manager::font_manager() {
@@ -1119,11 +1121,12 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
 	FT_Set_Pixel_Sizes(fnt.font_face, 0, 64 * magnification_factor);
+	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
 	fnt.loaded = true;
 
-	fnt.internal_line_height = static_cast<float>(fnt.font_face->size->metrics.height) / static_cast<float>((1 << 6) * magnification_factor);
-	fnt.internal_ascender = static_cast<float>(fnt.font_face->size->metrics.ascender) / static_cast<float>((1 << 6) * magnification_factor);
-	fnt.internal_descender = -static_cast<float>(fnt.font_face->size->metrics.descender) / static_cast<float>((1 << 6) * magnification_factor);
+	fnt.internal_line_height = float(fnt.font_face->size->metrics.height) / float((1 << 6) * magnification_factor);
+	fnt.internal_ascender = float(fnt.font_face->size->metrics.ascender) / float((1 << 6) * magnification_factor);
+	fnt.internal_descender = -float(fnt.font_face->size->metrics.descender) / float((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
 
 	fnt.gs = gsub::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
@@ -1144,7 +1147,7 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 		}
 		if(index_in_this_font) {
 			FT_Load_Glyph(fnt.font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL);
-			fnt.glyph_advances[i] = static_cast<float>(fnt.font_face->glyph->metrics.horiAdvance) / static_cast<float>((1 << 6) * magnification_factor);
+			fnt.glyph_advances[i] = float(fnt.font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
 		}
 	}
 }
@@ -1202,42 +1205,26 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) const {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_height();
 	} else {
-		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].line_height(text::size_from_font_id(font_id)));
+		return float(fonts[text::font_index_from_font_id(font_id) - 1].line_height(text::size_from_font_id(font_id)));
 	}
 }
 float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
 	} else {
-		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
+		return float(fonts[text::font_index_from_font_id(font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
 	}
 }
 
-void font::make_glyph(text::language_encoding enc, char ch_in) {
+void font::make_glyph(char ch_in) {
 	if(glyph_loaded[uint8_t(ch_in)])
 		return;
 	glyph_loaded[uint8_t(ch_in)] = true;
 
-	FT_UInt index_in_this_font = 0;
-	switch(enc) {
-	case text::language_encoding::gb18030:
-		{
-			auto codepoint = char16_t(u'\x4E00') + char16_t(ch_in);
-			if(codepoint == ' ')
-				return;
-			index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
-		}
-		break;
-	case text::language_encoding::win1252:
-	default:
-		{
-			auto codepoint = win1250toUTF16(ch_in);
-			if(codepoint == ' ')
-				return;
-			index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
-		}
-		break;
-	}
+	auto codepoint = win1250toUTF16(ch_in);
+	if(codepoint == ' ')
+		return;
+	auto index_in_this_font = FT_Get_Char_Index(font_face, codepoint);
 
 	if(index_in_this_font && gs && features == font_feature::small_caps) {
 		index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
@@ -1311,10 +1298,23 @@ void font::make_glyph(text::language_encoding enc, char ch_in) {
 }
 
 float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
+	hb_buffer_t* buf = hb_buffer_create();
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_guess_segment_properties(buf);
+	hb_shape(hb_font_face, buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_position_t x_advance = glyph_pos[i].x_advance;
+		total += float(x_advance) * size / (64.0f * 64.f * 4.f);
+	}
+	hb_buffer_destroy(buf);
+
+	/*float total = 0.0f;
 	for(uint32_t i = 0; i < count; i++) {
 		auto c = uint8_t(codepoints[i]);
-
 		if(c == 0x01 || c == 0x02) {
 			total += size;
 			continue;
@@ -1331,10 +1331,9 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 				total += size * 1.5f;
 				continue;
 			}
-		} 
-
-		total += this->glyph_advances[c] * size / 64.0f + ((i != 0) ? kerning(codepoints[i - 1], c) * size / 64.0f : 0.0f);
-	}
+		}
+		total += (this->glyph_advances[c] + ((i != 0) ? kerning(codepoints[i - 1], c) : 0.0f)) * size / 64.0f;
+	}*/
 	return total;
 }
 
@@ -1395,16 +1394,10 @@ void load_standard_fonts(sys::state& state) {
 
 void load_bmfonts(sys::state& state) { }
 
-void font_manager::load_all_glyphs(sys::state&) {
+void font_manager::load_all_glyphs() {
 	for(uint32_t j = 0; j < 3; ++j) {
 		for(uint32_t i = 0; i < 256; ++i) {
-			fonts[0 + j].make_glyph(text::language_encoding::win1252, char(i));
-		}
-		for(uint32_t i = 0; i < 256; ++i) {
-			fonts[3 + j].make_glyph(text::language_encoding::utf8, char(i));
-		}
-		for(uint32_t i = 0; i < 256; ++i) {
-			fonts[6 + j].make_glyph(text::language_encoding::gb18030, char(i));
+			fonts[j].make_glyph(char(i));
 		}
 	}
 }

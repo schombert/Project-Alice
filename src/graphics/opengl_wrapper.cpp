@@ -316,7 +316,7 @@ void initialize_opengl(sys::state& state) {
 	state.map_state.load_map(state);
 
 	load_special_icons(state);
-	state.font_collection.load_all_glyphs(state);
+	state.font_collection.load_all_glyphs();
 
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
