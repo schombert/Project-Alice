@@ -3239,6 +3239,26 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+	//Fixup armies defined on a different place
+	for(auto p : world.in_pop_location) {
+		for(const auto src : p.get_pop().get_regiment_source()) {
+			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership())
+				continue;
+			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
+			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
+			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
+			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
+			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
+				auto new_u = world.create_army();
+				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
+				src.get_regiment().set_army_from_army_membership(new_u);
+				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
+			} else {
+				src.get_regiment().set_strength(0.f);
+			}
+		}
+	}
+
 	nations::update_revanchism(*this);
 	fill_unsaved_data(); // we need this to run triggers
 
