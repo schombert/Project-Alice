@@ -1200,7 +1200,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1210,7 +1210,7 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1220,7 +1220,7 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1411,7 +1411,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto current_color = dest.fixed_parameters.color;
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;

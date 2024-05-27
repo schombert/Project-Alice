@@ -8490,7 +8490,7 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
 			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(ws, layout.fixed_parameters.font_id)].get_conditional_indicator(r);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id)].get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
@@ -8546,7 +8546,7 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
 			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.fonts[text::font_index_from_font_id(ws, layout.fixed_parameters.font_id)].get_conditional_indicator(r);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id)].get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
