@@ -1198,7 +1198,7 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 } // namespace impl
 
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1208,7 +1208,7 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 	impl::lb_finish_line(dest, box, line_height);
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1218,7 +1218,7 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	dest.y_cursor += line_height;
 }
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];
@@ -1409,7 +1409,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		return;
 
 	auto current_color = dest.fixed_parameters.color;
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 	assert(font_index >= 1 && font_index <= 3);
 	auto& font = state.font_collection.fonts[font_index - 1];

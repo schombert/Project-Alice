@@ -915,7 +915,7 @@ void render_text(sys::state& state, char const* codepoints, uint32_t count, colo
 	if(state.user_settings.use_classic_fonts) {
 		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
 	} else {
-		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(font_id) - 1]);
+		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1]);
 	}
 }
 

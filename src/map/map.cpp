@@ -752,7 +752,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
-		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
+		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		glActiveTexture(GL_TEXTURE0);
@@ -1675,7 +1675,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 	text_line_vertices.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
 	assert(f.loaded);
 
 	for(const auto& e : data) {
@@ -1875,7 +1875,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
 	assert(f.loaded);
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients

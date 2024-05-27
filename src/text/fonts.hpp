@@ -18,7 +18,7 @@ inline constexpr uint32_t max_texture_layers = 256;
 uint16_t name_into_font_id(sys::state& state, std::string_view text);
 int32_t size_from_font_id(uint16_t id);
 bool is_black_from_font_id(uint16_t id);
-uint32_t font_index_from_font_id(uint16_t id);
+uint32_t font_index_from_font_id(sys::state& state, uint16_t id);
 
 struct glyph_sub_offset {
 	float x = 0.0f;
@@ -88,7 +88,7 @@ public:
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
-	font fonts[3];
+	font fonts[9];
 	bool map_font_is_black = false;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f);
