@@ -516,6 +516,9 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.ui_state.units_root->impl_on_reset_text(state);
 	state.ui_state.rgos_root->impl_on_reset_text(state);
 	state.ui_state.root->impl_on_reset_text(state);
+	state.ui_state.nation_picker->impl_on_reset_text(state);
+	state.ui_state.select_states_legend->impl_on_reset_text(state);
+	state.ui_state.end_screen->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
 

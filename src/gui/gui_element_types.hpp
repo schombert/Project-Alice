@@ -194,10 +194,10 @@ public:
 
 class button_element_base : public opaque_element_base {
 protected:
-
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
+	bool using_default = true;
 
 public:
 	button_element_base() {
@@ -352,7 +352,7 @@ class simple_text_element_base : public element_base {
 protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
-
+	bool using_default = true;
 public:
 	bool black_text = true;
 	int32_t data = 0;
@@ -883,6 +883,7 @@ public:
 	int32_t visible_lines = 0;
 	text::layout internal_layout;
 
+	void on_reset_text(sys::state& state) noexcept;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };

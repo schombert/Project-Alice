@@ -151,13 +151,16 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language) {
 	auto to_lower_temp = lowercase_str(key);
 	auto sequence_record = create_text_sequence(state, content, state.languages[language].encoding);
-
-	const auto nh = state.languages[language].text_sequences.size();
-	state.languages[language].text_sequences.push_back(sequence_record);
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
 		//err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
+		if(state.languages[language].text_sequences.size() <= size_t(it->second.value)) {
+			state.languages[language].text_sequences.resize(size_t(it->second.value) + 1);
+		}
+		state.languages[language].text_sequences[it->second] = sequence_record;
 		return it->second;
 	} else {
+		const auto nh = state.languages[language].text_sequences.size();
+		state.languages[language].text_sequences.push_back(sequence_record);
 		auto main_key = state.add_to_pool_lowercase(key);
 		dcon::text_sequence_id new_k{ dcon::text_sequence_id::value_base_t(nh) };
 		state.key_to_text_sequence.insert_or_assign(main_key, new_k);
@@ -190,8 +193,8 @@ void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t 
 		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 		: file_content;
 	while(start < file_content + file_size) {
-		auto parse_fn = [&state, &err](std::string_view key, std::string_view content, uint32_t column) {
-			create_text_entry(state, key, content, err, column);
+		auto parse_fn = [&state, &err, language](std::string_view key, std::string_view content, uint32_t column) {
+			create_text_entry(state, key, content, err, language);
 		};
 		start = parsers::parse_first_and_fixed_amount_csv_values<1>(start, file_content + file_size, ';', parse_fn);
 	}
@@ -241,8 +244,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	}
 
 	uint8_t first_new_language = 0;
-	auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt"));
-	if(file) {
+	if(auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt")); file) {
 		if(auto ofile = open_file(*file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
@@ -267,25 +269,27 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		}
 	}
 
-	/*for(uint32_t i = first_new_language; i < last_language; i++) {
-		auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[last_language].iso_code.begin(), state.languages[last_language].iso_code.end() });
-		auto text_lang_dir = open_directory(text_dir, lang_dir_name);
-		for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
-			if(auto ofile = open_file(file); ofile) {
-				auto content = view_contents(*ofile);
-				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-				consume_new_csv_file(state, content.data, content.file_size, err, i);
+	for(uint32_t i = first_new_language; i < last_language; i++) {
+		if(state.languages[i].encoding != text::language_encoding::none) {
+			auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.end() });
+			auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+			for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+				if(auto ofile = open_file(file); ofile) {
+					auto content = view_contents(*ofile);
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+					consume_new_csv_file(state, content.data, content.file_size, err, i);
+				}
+			}
+			auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+			for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+				if(auto ofile = open_file(file); ofile) {
+					auto content = view_contents(*ofile);
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+					consume_new_csv_file(state, content.data, content.file_size, err, i);
+				}
 			}
 		}
-		auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
-		for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
-			if(auto ofile = open_file(file); ofile) {
-				auto content = view_contents(*ofile);
-				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-				consume_new_csv_file(state, content.data, content.file_size, err, i);
-			}
-		}
-	}*/
+	}
 }
 
 template<size_t N>
