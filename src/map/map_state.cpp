@@ -228,6 +228,9 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
+	auto& f = state.font_collection.fonts[2];
+	assert(f.loaded);
+
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
 	std::vector<bool> visited(65536, false);
@@ -370,10 +373,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.starts_with("The ")) {
 			name.erase(0, 4);
 		}
+		//name = "在标准状况下";
+		//name = "Test";
 		if(name.empty())
 			continue;
-		name = "在标准状况下镓元素是质地柔软的银色金属在液态";
-		//name = "Test";
 
 		float rough_box_left = std::numeric_limits<float>::max();
 		float rough_box_right = 0;
@@ -721,7 +724,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
-		auto& f = state.font_collection.fonts[2];
 		float name_extent = f.text_extent(state, name.c_str(), uint32_t(name.length()), 1);
 
 		bool use_quadratic = false;

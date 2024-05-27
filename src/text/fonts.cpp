@@ -1238,12 +1238,11 @@ void font::make_glyph(char32_t ch_in) {
 
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
-		float const hb_x = float(font_face->glyph->metrics.horiBearingX) / float(1 << 6);
-		float const hb_y = float(font_face->glyph->metrics.horiBearingY) / float(1 << 6);
+		float const hb_x = float(font_face->glyph->metrics.horiBearingX) / 64.f;
+		float const hb_y = float(font_face->glyph->metrics.horiBearingY) / 64.f;
 
 		auto sub_index = ch_in & 63;
 		uint8_t pixel_buffer[64 * 64] = { 0 };
-
 		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
@@ -1260,7 +1259,7 @@ void font::make_glyph(char32_t ch_in) {
 		for(int y = 0; y < 64; ++y) {
 			for(int x = 0; x < 64; ++x) {
 				const size_t index = size_t(x + y * 64);
-				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) + (y * magnification_factor + magnification_factor / 2) * dr_size] / static_cast<float>(magnification_factor * 64);
+				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) + (y * magnification_factor + magnification_factor / 2) * dr_size] / float(magnification_factor * 64);
 				int const int_value = int(distance_value * -255.0f + 128.0f);
 				const uint8_t small_value = uint8_t(std::min(255, std::max(0, int_value)));
 				pixel_buffer[index] = small_value;
@@ -1411,13 +1410,13 @@ void load_standard_fonts(sys::state& state) {
 void load_bmfonts(sys::state& state) { }
 
 void font_manager::load_all_glyphs() {
-	for(uint32_t j = 0; j < 3; ++j) {
-		for(uint32_t i = 0; i < 256; ++i) {
-			auto codepoint = char32_t(win1250toUTF16(char(i)));
-			auto index = FT_Get_Char_Index(fonts[j].font_face, codepoint);
-			fonts[j].make_glyph(index);
-		}
-	}
+	//for(uint32_t j = 0; j < 3; ++j) {
+	//	for(uint32_t i = 0; i < 256; ++i) {
+	//		auto codepoint = char32_t(win1250toUTF16(char(i)));
+	//		auto index = FT_Get_Char_Index(fonts[j].font_face, codepoint);
+	//		fonts[j].make_glyph(index);
+	//	}
+	//}
 }
 
 } // namespace text

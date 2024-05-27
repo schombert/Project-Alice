@@ -1675,6 +1675,8 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 	text_line_vertices.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
+	auto& f = state.font_collection.fonts[2];
+	assert(f.loaded);
 
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
@@ -1736,10 +1738,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		glm::vec2 basis = e.basis;
 
 		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
-
-		auto& f = state.font_collection.fonts[2];
-		if(!f.loaded)
-			return;
 
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
@@ -1807,9 +1805,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 
 		hb_buffer_t* buf = hb_buffer_create();
-
-		// TODO: convert to win1252, make copy of codepoints?
-		// convert_win1252 ? char32_t(win1250toUTF16(char(ch_in))) : ch_in
 		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.length()), 0, -1);
 		hb_buffer_guess_segment_properties(buf);
 		hb_shape(f.hb_font_face, buf, NULL, 0);
@@ -1876,16 +1871,14 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
+	auto& f = state.font_collection.fonts[2];
+	assert(f.loaded);
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
-
-		auto& f = state.font_collection.fonts[2];
-		if(!f.loaded)
-			return;
 
 		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
