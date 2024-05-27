@@ -752,7 +752,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
-		auto const& f = state.font_collection.fonts[2];
+		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		glActiveTexture(GL_TEXTURE0);
@@ -1675,7 +1675,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 	text_line_vertices.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[2];
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
 	assert(f.loaded);
 
 	for(const auto& e : data) {
@@ -1746,9 +1746,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		if(is_linear) {
 			float height = poly_fn(right) - poly_fn(left);
 			curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
-		} else for(float x = left; x <= right; x += x_step)
+		} else for(float x = left; x <= right; x += x_step) {
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
-
+		}
 		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
 
 		// typography "golden ratio" steps
@@ -1790,6 +1790,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
 		float letter_spacing = letter_spacing_map / size_x;
+		if(state.languages[state.user_settings.current_language].no_spacing) {
+			letter_spacing_map = 0.f;
+			letter_spacing = 0.f; //no spacing
+		}
 
 		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
 
@@ -1871,7 +1875,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[2];
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
 	assert(f.loaded);
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients

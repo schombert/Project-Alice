@@ -1290,7 +1290,7 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.fonts[1].get_conditional_indicator(r);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(contents.fixed_parameters.font_id)].get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
@@ -1360,7 +1360,7 @@ public:
 		{
 			auto box = text::open_layout_box(contents);
 			auto r = num_factories < int32_t(state.defines.factories_per_state);
-			auto str = state.font_collection.fonts[1].get_conditional_indicator(r);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(contents.fixed_parameters.font_id)].get_conditional_indicator(r);
 			if(r) {
 				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {

@@ -228,7 +228,7 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
-	auto& f = state.font_collection.fonts[2];
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(0x80)];
 	assert(f.loaded);
 
 	// retroscipt
@@ -373,7 +373,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.starts_with("The ")) {
 			name.erase(0, 4);
 		}
-		name = "在标准状况下";
+		name = "جُمْهُورِيَّة ٱلْعِرَاق";
+		//name = "在标准状况下";
 		//name = "Test";
 		if(name.empty())
 			continue;

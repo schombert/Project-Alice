@@ -798,10 +798,21 @@ enum class language_encoding : uint8_t {
 	gb18030
 };
 
+enum class language_script : uint8_t {
+	latin = 0,
+	arabic,
+	chinese,
+	japanese,
+	korean,
+};
+
 struct language_table {
 	std::vector<char> iso_code;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
 	language_encoding encoding;
+	language_script script;
+	bool rtl = false;
+	bool no_spacing = false;
 };
 
 } // namespace text

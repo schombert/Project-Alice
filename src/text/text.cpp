@@ -211,10 +211,10 @@ void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t 
 void load_text_data(sys::state& state, parsers::error_handler& err) {
 	auto root_dir = get_root(state.common_fs);
 
-	//ISO 639-1, aka. two letters
+	//ISO 639-1, aka. two letters + a hypen + region locale
 	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
 	std::string_view fixed_iso_codes[] = {
-		"en", "fr", "de", "pl", "es", "it", "sv", "cz", "hu", "nl", "po", "ru", "fi"
+		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
 	};
 	uint8_t last_language = 0;
 	for(uint32_t i = 0; i < std::extent_v<decltype(fixed_iso_codes)>; i++) {
@@ -255,7 +255,34 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				auto parse_fn = [&state, &err, &last_language](std::string_view key, std::string_view value, uint32_t column) {
 					state.languages[last_language].iso_code.resize(key.size());
 					std::copy(key.begin(), key.end(), state.languages[last_language].iso_code.begin());
-					if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
+					if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_linked")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_linked_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "arabic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+						state.languages[last_language].script = text::language_script::arabic;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "chinese")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::chinese;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "korean")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::korean;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "japan")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::japanese;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "latin")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::latin;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
 						state.languages[last_language].encoding = text::language_encoding::utf8;
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "gb18030")) {
 						state.languages[last_language].encoding = text::language_encoding::gb18030;
