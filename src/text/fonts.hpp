@@ -13,6 +13,8 @@ struct state;
 
 namespace text {
 
+inline constexpr uint32_t max_texture_layers = 256;
+
 uint16_t name_into_font_id(sys::state& state, std::string_view text);
 int32_t size_from_font_id(uint16_t id);
 bool is_black_from_font_id(uint16_t id);
@@ -56,7 +58,6 @@ public:
 	bool convert_win1252 = false;
 
 	uint32_t texture_array = 0;
-	uint32_t textures[32] = {0};
 	ankerl::unordered_dense::map<char32_t, float> glyph_advances;
 	ankerl::unordered_dense::map<char32_t, bool> glyph_loaded;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;

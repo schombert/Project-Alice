@@ -9,10 +9,12 @@ layout (location = 0) out vec4 frag_color;
 
 layout (binding = 0) uniform sampler2D texture_sampler;
 layout (binding = 1) uniform sampler2D secondary_texture_sampler;
+layout (binding = 2) uniform sampler2DArray texture_atlas_sampler;
 layout (location = 2) uniform vec4 d_rect;
 layout (location = 6) uniform float border_size;
 layout (location = 7) uniform vec3 inner_color;
 layout (location = 10) uniform vec4 subrect;
+layout (location = 18) uniform float atlas_index;
 
 layout (location = 11) uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
@@ -21,7 +23,7 @@ vec4 gamma_correct(vec4 colour) {
 
 layout(index = 0) subroutine(font_function_class)
 vec4 border_filter(vec2 tc) {
-	vec4 color_in = texture(texture_sampler, tc);
+	vec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));
 	if(color_in.r > 0.5) {
 		return vec4(inner_color, 1.0);
 	} else if(color_in.r > 0.5 - border_size) {
@@ -35,7 +37,7 @@ vec4 border_filter(vec2 tc) {
 
 layout(index = 1) subroutine(font_function_class)
 vec4 color_filter(vec2 tc) {
-	vec4 color_in = texture(texture_sampler, tc);
+	vec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));
 	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);
 	return vec4(inner_color, sm_val);
 }

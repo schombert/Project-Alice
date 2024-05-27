@@ -1265,27 +1265,12 @@ void font::make_glyph(char32_t ch_in) {
 				pixel_buffer[index] = small_value;
 			}
 		}
-		//The separate texture atlas (todo: delete this!!!)
-		auto texture_number = (ch_in >> 6) % std::extent_v<decltype(textures)>;
-		if(textures[texture_number] == 0) {
-			glGenTextures(1, &textures[texture_number]);
-			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
-			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		} else {
-			glBindTexture(GL_TEXTURE_2D, textures[texture_number]);
-		}
-		if(textures[texture_number]) {
-			glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
-		}
 		//The array
+		auto texture_number = (ch_in >> 6) % text::max_texture_layers;
 		if(texture_array == 0) {
 			glGenTextures(1, &texture_array);
 			glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
-			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 64 * 8, 64 * 8, GLsizei(std::extent_v<decltype(textures)>));
+			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 64 * 8, 64 * 8, GLsizei(text::max_texture_layers));
 			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

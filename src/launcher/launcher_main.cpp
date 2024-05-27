@@ -1125,7 +1125,7 @@ void internal_text_render(char const* codepoints, uint32_t count, float x, float
 		auto scale_factor = size / (64.0f * 64.f * 4.f);
 		glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[glyphid >> 6]);
+		//glBindTexture(GL_TEXTURE_2D, f.textures[glyphid >> 6]);
 		hb_position_t x_offset = glyph_pos[i].x_offset;
 		hb_position_t y_offset = glyph_pos[i].y_offset;
 		glUniform4f(parameters::drawing_rectangle, x + float(x_offset) * scale_factor, baseline_y + float(y_offset) * scale_factor, size, size);

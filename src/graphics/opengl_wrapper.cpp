@@ -727,6 +727,7 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		f.make_glyph(glyph_info[i].codepoint);
 	}
+
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
@@ -769,9 +770,10 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 		}
 		if(!draw_icon && glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[(glyphid >> 6) % std::extent_v<decltype(f.textures)>]);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
 			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
+			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		auto k = (i != glyph_count - 1)

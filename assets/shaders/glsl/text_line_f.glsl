@@ -1,9 +1,8 @@
 in vec3 tex_coord;
 in float opacity;
+layout (binding = 0) uniform sampler2DArray texture_atlas_sampler;
 layout (location = 0) out vec4 frag_color;
 layout (location = 12) uniform float is_black;
-layout (binding = 0) uniform sampler2DArray texture_atlas;
-
 layout (location = 11) uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
@@ -14,7 +13,7 @@ void main() {
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
 	vec3 outer_color = inner_color;//vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
 	
-	vec4 color_in = texture(texture_atlas, tex_coord);
+	vec4 color_in = texture(texture_atlas_sampler, tex_coord);
 	if(color_in.r > 0.505) {
 		frag_color = vec4(inner_color, 1.0f);
 	} else if(color_in.r > 0.50) {

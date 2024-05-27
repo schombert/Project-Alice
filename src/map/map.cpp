@@ -1832,7 +1832,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
 				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-				auto type = float((glyphid >> 6) % std::extent_v<decltype(textures)>);
+				float type = float((glyphid >> 6) % text::max_texture_layers);
 				float step = 1.f / 8.f;
 				float tx = float(glyphid & 7) * step;
 				float ty = float((glyphid & 63) >> 3) * step;
