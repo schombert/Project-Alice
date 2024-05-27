@@ -66,7 +66,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 		bool colour_esc = false;
 		if(uint8_t(*pos) == 0xA7) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			pos += 1;
@@ -75,14 +76,16 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
 							is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			section_start = pos += 3;
 			colour_esc = true;
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			pos += 1;
@@ -90,7 +93,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 			colour_esc = true;
 		} else if(*pos == '$') {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			const char* vend = pos + 1;
@@ -102,7 +106,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			state.text_components.emplace_back(line_break{});
@@ -121,7 +126,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 	}
 
 	if(section_start < seq_end) {
-		auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
+		auto sv = simple_fs::win1250_to_utf8(std::string_view(section_start, seq_end - section_start));
+		auto added_key = state.add_to_pool(sv);
 		state.text_components.emplace_back(added_key);
 	}
 

@@ -434,6 +434,18 @@ native_string win1250_to_native(std::string_view data_in) {
 	return result;
 }
 
+std::string win1250_to_utf8(std::string_view data_in) {
+	std::string result;
+	for(auto ch : data_in) {
+		auto wc = char16_t(text::win1250toUTF16(ch));
+		result += uint8_t(wc & 0xff);
+		if((wc & 0xff00) != 0) {
+			result += uint8_t(wc >> 8);
+		}
+	}
+	return result;
+}
+
 native_string utf8_to_native(std::string_view str) {
 	auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
 	auto chars_written = MultiByteToWideChar(CP_UTF8, MB_PRECOMPOSED, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
