@@ -1787,6 +1787,7 @@ void state::save_user_settings() const {
 	US_SAVE(wasd_for_map_movement);
 	US_SAVE(notify_rebels_defeat);
 	US_SAVE(color_blind_mode);
+	US_SAVE(current_language);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1853,6 +1854,7 @@ void state::load_user_settings() {
 			US_LOAD(wasd_for_map_movement);
 			US_LOAD(notify_rebels_defeat);
 			US_LOAD(color_blind_mode);
+			US_LOAD(current_language);
 #undef US_LOAD
 		} while(false);
 

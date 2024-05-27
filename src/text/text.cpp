@@ -1231,6 +1231,10 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {
+	if(dest.fixed_parameters.align == alignment::left && state.languages[state.user_settings.current_language].rtl) {
+		dest.fixed_parameters.align = alignment::right;
+	}
+
 	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 

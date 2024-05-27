@@ -47,6 +47,7 @@ public:
 	std::vector<uint16_t> substitution_indices;
 	std::vector<uint8_t const*> type_2_kerning_tables;
 	uint8_t const* gs = nullptr;
+	hb_buffer_t* hb_buf = nullptr;
 
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;

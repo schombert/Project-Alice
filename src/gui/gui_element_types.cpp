@@ -576,8 +576,9 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			float(base_data.size.y), ogl::get_texture_handle(state, definitions::tiles_dialog, true), ui::rotation::upright, false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
+		auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, state.ui_state.tooltip_font)];
 		ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
-				float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
+			float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
 	}
 }
 
@@ -804,6 +805,7 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		for(auto& t : internal_layout.contents) {
+			auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, state.ui_state.tooltip_font)];
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
