@@ -459,7 +459,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if(ch >= 32 && ch != '`') {
+		if(ch >= 32 && ch != '`' && ch != 127) {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
 			set_text(state, s);
@@ -508,7 +508,19 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			}
 			break;
 		case sys::virtual_key::BACK:
-			if(edit_index > 0 && edit_index <= int32_t(s.length())) {
+			if(mods == sys::key_modifiers::modifiers_ctrl && edit_index > 0 && edit_index <= int32_t(s.length())) {
+				int32_t index = edit_index - 1;
+				bool skip = false;
+				while(index > 0 && (s.at(index) != ' ' || !skip)) {
+					if(s.at(index) != ' ')
+						skip = true;
+					--index;
+				}
+				s.erase(index, edit_index);
+				set_text(state, s);
+				edit_index = index;
+				edit_box_update(state, s);
+			} else if(edit_index > 0 && edit_index <= int32_t(s.length())) {
 				s.erase(edit_index - 1, 1);
 				set_text(state, s);
 				edit_index--;
