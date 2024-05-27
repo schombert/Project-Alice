@@ -1542,10 +1542,12 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
+
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1559,10 +1561,12 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
+
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1578,10 +1582,12 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 }
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
+
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1599,11 +1605,11 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("✔"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("✘"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);

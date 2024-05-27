@@ -674,77 +674,6 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void internal_text_render(sys::state const& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
-	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
-	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, NULL, 0);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
-	// Preload glyphs
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		f.make_glyph(glyph_info[i].codepoint);
-	}
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		/*
-		if(glyphid == FT_Get_Char_Index(f.font_face, '\x40')) {
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-			if(flag_texture_handle != 0) {
-				bind_vertices_by_rotation(state, ui::rotation::upright, false);
-				glActiveTexture(GL_TEXTURE0);
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-				glUniform4f(parameters::drawing_rectangle, x, baseline_y + f.glyph_positions[0x4D].y * size / 64.0f, size * 1.5f, size);
-				glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-				x += size * 1.5f;
-				i += 3;
-				continue;
-			}
-		} else if(glyphid == FT_Get_Char_Index(f.font_face, '✔')
-		|| glyphid == FT_Get_Char_Index(f.font_face, '✘')) {
-			bind_vertices_by_rotation(state, ui::rotation::upright, false);
-			glActiveTexture(GL_TEXTURE0);
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-			glBindTexture(GL_TEXTURE_2D, codepoints[i] == '✘' ? ((state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
-			glUniform4f(parameters::drawing_rectangle, x, baseline_y + f.glyph_positions[glyphid].y * size / 64.0f, size, size);
-			glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-		} else if(glyphid == FT_Get_Char_Index(f.font_face, '\x03')
-			|| glyphid == FT_Get_Char_Index(f.font_face, '\x04')) {
-			bind_vertices_by_rotation(state, ui::rotation::upright, false);
-			glActiveTexture(GL_TEXTURE0);
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);
-			glBindTexture(GL_TEXTURE_2D, codepoints[i] == '\x03' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
-			glUniform4f(parameters::drawing_rectangle, x - size * 0.125f, baseline_y - size * 0.25f + f.glyph_positions[0x4D].y * size / 64.0f, size * 1.5f, size * 1.5f);
-			glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-		} else
-		*/
-		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[(glyphid >> 6) % std::extent_v<decltype(f.textures)>]);
-			auto gso = f.glyph_positions[glyphid];
-			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-		auto k = (i != glyph_count - 1)
-			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
-			: 0;
-		x += (f.glyph_advances[glyphid] + k) * size / 64.f;
-	}
-	hb_buffer_destroy(buf);
-}
 
 GLuint get_flag_texture_handle_from_tag(sys::state& state, char tag[3]) {
 	tag[0] = char(toupper(tag[0]));
@@ -784,6 +713,73 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 			ident = id;
 	});
 	return bool(ident);
+}
+
+void internal_text_render(sys::state& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
+	hb_buffer_t* buf = hb_buffer_create();
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_guess_segment_properties(buf);
+	hb_shape(f.hb_font_face, buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+	// Preload glyphs
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		f.make_glyph(glyph_info[i].codepoint);
+	}
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		auto gso = f.glyph_positions[glyphid];
+
+		bool draw_icon = false;
+		bool draw_flag = false;
+		if(glyphid == FT_Get_Char_Index(f.font_face, '@')) {
+			char tag[3] = { 0, 0, 0 };
+			tag[0] = (i + 1 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 1].codepoint) : 0;
+			tag[1] = (i + 2 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 2].codepoint) : 0;
+			tag[2] = (i + 3 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
+			if(tag[0] == '(' && tag[2] == ')') {
+				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
+					bind_vertices_by_rotation(state, ui::rotation::upright, false);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, tag[1] == 'F' ? ((state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
+					draw_icon = true;
+				} else { //(A)rmy or (N)avy
+					bind_vertices_by_rotation(state, ui::rotation::upright, false);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, tag[1] == 'A' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
+					draw_icon = true;
+				}
+			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
+				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
+				bind_vertices_by_rotation(state, ui::rotation::upright, false);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+				draw_icon = true;
+				draw_flag = true;
+			}
+			if(draw_icon) {
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
+				glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.0f, size * (draw_flag ? 1.5f : 1.f), size);
+				glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
+				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
+				i += 3;
+			}
+		}
+		if(!draw_icon && glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
+			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, f.textures[(glyphid >> 6) % std::extent_v<decltype(f.textures)>]);
+			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		auto k = (i != glyph_count - 1)
+			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
+			: 0;
+		x += (f.glyph_advances[glyphid] + k) * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+	}
+	hb_buffer_destroy(buf);
 }
 
 void render_new_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {

@@ -1193,6 +1193,30 @@ float font_manager::text_extent(sys::state& state, char const* codepoints, uint3
 	}
 }
 
+bool font::can_display(char32_t ch_in) const {
+	return FT_Get_Char_Index(font_face, ch_in) != 0;
+}
+
+std::string font::get_conditional_indicator(bool v) const {
+	if(v) {
+		if(can_display('✔')) {
+			return "✔";
+		}
+		if(can_display('✓')) {
+			return "✓";
+		}
+		return "@(T)";
+	} else {
+		if(can_display('✘')) {
+			return "✘";
+		}
+		if(can_display('✗')) {
+			return "✗";
+		}
+		return "@(F)";
+	}
+}
+
 void font::make_glyph(char32_t ch_in) {
 	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
 		return;
@@ -1261,6 +1285,14 @@ void font::make_glyph(char32_t ch_in) {
 	}
 }
 
+char font::codepoint_to_alnum(char32_t codepoint) {
+	std::string_view alnum_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789()";
+	for(const auto c : alnum_table)
+		if(codepoint == FT_Get_Char_Index(font_face, c))
+			return c;
+	return 0;
+}
+
 float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
 	hb_buffer_t* buf = hb_buffer_create();
 	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
@@ -1272,10 +1304,31 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		bool draw_icon = false;
+		bool draw_flag = false;
+		if(glyphid == FT_Get_Char_Index(font_face, '@')) {
+			char tag[3] = { 0, 0, 0 };
+			tag[0] = (i + 1 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 1].codepoint) : 0;
+			tag[1] = (i + 2 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 2].codepoint) : 0;
+			tag[2] = (i + 3 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
+			if(tag[0] == '(' && tag[2] == ')') {
+				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
+					draw_icon = true;
+				} else { //(A)rmy or (N)avy
+					draw_icon = true;
+				}
+			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
+				draw_icon = true;
+				draw_flag = true;
+			}
+			if(draw_icon) {
+				i += 3;
+			}
+		}
 		auto k = (i != glyph_count - 1)
 			? kerning(glyphid, glyph_info[i + 1].codepoint)
 			: 0;
-		total += (glyph_advances[glyphid] + k) * size / 64.f;
+		total += (glyph_advances[glyphid] + k) * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 	return total;

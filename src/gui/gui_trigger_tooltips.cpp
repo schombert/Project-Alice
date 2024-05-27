@@ -149,20 +149,18 @@ void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
 
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
-
-			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(ws, layout, box, std::string_view("✔"), text::text_color::green);
-				text::add_space_to_layout_box(ws, layout, box);
-			} else {
-				text::add_to_layout_box(ws, layout, box, std::string_view("✘"), text::text_color::red);
-				text::add_space_to_layout_box(ws, layout, box);
-			}
-
+		auto r = trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
+		auto str = ws.font_collection.fonts[1].get_conditional_indicator(r); //TODO use layout font??
+		if(r) {
+			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::green);
+			text::add_space_to_layout_box(ws, layout, box);
+		} else {
+			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::red);
+			text::add_space_to_layout_box(ws, layout, box);
+		}
 	} else {
-
-		text::add_to_layout_box(ws, layout, box, std::string_view("\x95"), text::text_color::white);
+		text::add_to_layout_box(ws, layout, box, std::string_view("•"), text::text_color::white);
 		text::add_space_to_layout_box(ws, layout, box);
-
 	}
 }
 
@@ -8491,11 +8489,13 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
-			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("✔"), text::text_color::green);
+			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
+			auto str = state.font_collection.fonts[1].get_conditional_indicator(r); //TODO use layout font??
+			if(r) {
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("✘"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 
@@ -8545,11 +8545,13 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
-			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("✔"), text::text_color::green);
+			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
+			auto str = state.font_collection.fonts[1].get_conditional_indicator(r); //TODO use layout font??
+			if(r) {
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("✘"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 

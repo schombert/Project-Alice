@@ -64,6 +64,9 @@ public:
 
 	~font();
 
+	char codepoint_to_alnum(char32_t codepoint);
+	bool can_display(char32_t ch_in) const;
+	std::string get_conditional_indicator(bool v) const;
 	void make_glyph(char32_t ch_in);
 	float line_height(int32_t size) const;
 	float ascender(int32_t size) const;
