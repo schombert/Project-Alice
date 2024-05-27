@@ -753,17 +753,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
+		auto const& f = state.font_collection.fonts[2];
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
-		auto const& f = state.font_collection.fonts[2];
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[0]);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, f.textures[1]);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, f.textures[2]);
-		glActiveTexture(GL_TEXTURE3);
-		glBindTexture(GL_TEXTURE_2D, f.textures[3]);
+		for(uint8_t i = 0; i < std::extent_v<decltype(f.textures)>; i++) {
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, f.textures[i]);
+		}
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
 			glUniform1f(15, 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
@@ -1817,7 +1813,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		// TODO: convert to win1252, make copy of codepoints?
 		// convert_win1252 ? char32_t(win1250toUTF16(char(ch_in))) : ch_in
-		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.size()), 0, -1);
+		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.length()), 0, -1);
 		hb_buffer_guess_segment_properties(buf);
 		hb_shape(f.hb_font_face, buf, NULL, 0);
 		unsigned int glyph_count = 0;

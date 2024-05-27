@@ -1303,6 +1303,9 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
+		make_glyph(glyph_info[i].codepoint);
+	}
+	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		bool draw_icon = false;
 		bool draw_flag = false;

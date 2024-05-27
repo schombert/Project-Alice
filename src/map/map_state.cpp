@@ -372,7 +372,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 		if(name.empty())
 			continue;
-
+		name = "在标准状况下镓元素是质地柔软的银色金属在液态";
+		//name = "Test";
 
 		float rough_box_left = std::numeric_limits<float>::max();
 		float rough_box_right = 0;
@@ -720,6 +721,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
+		auto& f = state.font_collection.fonts[2];
+		float name_extent = f.text_extent(state, name.c_str(), uint32_t(name.length()), 1);
+
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
@@ -768,7 +772,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto regularisation_grad = [&]() {
 				return glm::vec4(0, 0, mo[2] / 4.f, mo[3] / 6.f);
 			};
-			float xstep = (1.f / float(name.length() * 2.f));
+
+			float xstep = (1.f / float(name_extent * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -814,7 +819,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return mo[1] * l_1 + 2.f * mo[2] * x * l_2;
 			};
-			float xstep = (1.f / float(name.length() * 2.f));
+			float xstep = (1.f / float(name_extent * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
