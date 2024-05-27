@@ -1,0 +1,2 @@
+zh;utf8
+ar;utf8

@@ -199,9 +199,8 @@ void create_text_line_vbo(GLuint vbo) {
 	// Set up vertex attribute format for the direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
-	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, type_));
-	glVertexAttribFormat(5, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glVertexAttribFormat(3, 3, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -756,10 +755,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		auto const& f = state.font_collection.fonts[2];
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
-		for(uint8_t i = 0; i < std::extent_v<decltype(f.textures)>; i++) {
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D, f.textures[i]);
-		}
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
 			glUniform1f(15, 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
@@ -1824,33 +1821,35 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
-			// Add up baseline and kerning offsets
-			glm::vec2 glyph_positions{ f.glyph_positions[glyphid].x / 64.f, -f.glyph_positions[glyphid].y / 64.f };
+			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
+				// Add up baseline and kerning offsets
+				glm::vec2 glyph_positions{ f.glyph_positions[glyphid].x / 64.f, -f.glyph_positions[glyphid].y / 64.f };
 
-			glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-			glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-			curr_dir.x *= 0.5f;
-			curr_normal_dir.x *= 0.5f;
+				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
+				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
+				curr_dir.x *= 0.5f;
+				curr_normal_dir.x *= 0.5f;
 
-			glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
 
-			auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
-			p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-			p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
-			p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
+				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
+				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
+				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
+				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
 
-			auto type = float((glyphid >> 6) % std::extent_v<decltype(textures)>);
-			float step = 1.f / 8.f;
-			float tx = float(glyphid & 7) * step;
-			float ty = float((glyphid & 63) >> 3) * step;
+				auto type = float((glyphid >> 6) % std::extent_v<decltype(textures)>);
+				float step = 1.f / 8.f;
+				float tx = float(glyphid & 7) * step;
+				float ty = float((glyphid & 63) >> 3) * step;
 
-			text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-			text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
-			text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
 
-			text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
-			text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
-			text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
+			}
 
 			auto k = (i != glyph_count - 1)
 				? f.kerning(glyphid, glyph_info[i + 1].codepoint)
@@ -1943,13 +1942,13 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 				float tx = float(e.text[i] & 7) * step;
 				float ty = float((e.text[i] & 63) >> 3) * step;
 
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(tx, ty + step), type, real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
 
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(tx + step, ty + step), type, real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(tx + step, ty), type, real_text_size);
-				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(tx, ty), type, real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
+				province_text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
 			}
 
 			float glyph_advance = ((f.glyph_advances[e.text[i]] / 64.f) + ((i != int32_t(e.text.length() - 1)) ? f.kerning(e.text[i], e.text[i + 1]) / 64.f : 0)) * size;

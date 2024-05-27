@@ -55,7 +55,8 @@ public:
 	bool loaded = false;
 	bool convert_win1252 = false;
 
-	uint32_t textures[16] = {0};
+	uint32_t texture_array = 0;
+	uint32_t textures[32] = {0};
 	ankerl::unordered_dense::map<char32_t, float> glyph_advances;
 	ankerl::unordered_dense::map<char32_t, bool> glyph_loaded;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
