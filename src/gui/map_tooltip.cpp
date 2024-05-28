@@ -222,7 +222,8 @@ void region_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::state, fat.get_state_from_abstract_state_membership().get_name());
+		std::string state_name = text::get_dynamic_state_name(state, fat.get_state_membership().id);
+		text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
 		text::add_to_substitution_map(sub, text::variable_type::continentname, fat.get_continent().get_name());
 		text::localised_format_box(state, contents, box, std::string_view("mtt_state_entry"), sub);
 		text::close_layout_box(contents, box);
