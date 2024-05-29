@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
-
+#include <fstream>
 
 #include "window.hpp"
 #include "constants.hpp"
@@ -402,6 +402,12 @@ struct cheat_data_s {
 	std::vector<dcon::nation_id> instant_research_nations;
 	bool daily_oos_check = false;
 	bool province_names = false;
+	bool ecodump = false;
+	std::ofstream national_economy_dump_file;
+	std::ofstream prices_dump_file;
+	std::ofstream demand_dump_file;
+	std::ofstream supply_dump_file;
+	std::ofstream demand_by_category_dump_file;
 	bool instant_navy = false;
 };
 

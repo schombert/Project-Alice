@@ -2998,6 +2998,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 	world.nation_resize_domestic_market_pool(world.commodity_size());
 	world.nation_resize_real_demand(world.commodity_size());
+	world.nation_resize_intermediate_demand(world.commodity_size());
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
 	world.nation_resize_life_needs_costs(world.pop_type_size());
@@ -3826,7 +3827,7 @@ void state::single_game_tick() {
 		}
 	});
 
-	economy::daily_update(*this);
+	economy::daily_update(*this, true);
 
 	military::recover_org(*this);
 	military::update_siege_progress(*this);

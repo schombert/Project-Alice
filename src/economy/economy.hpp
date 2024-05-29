@@ -86,7 +86,14 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
-inline const float subsistence_factor = 0.45f;
+// base subsistence
+inline constexpr float subsistence_factor = 10.0f;
+inline constexpr float subsistence_score_life = 20.0f;
+inline constexpr float subsistence_score_everyday = 30.0f;
+inline constexpr float subsistence_score_luxury = 40.0f;
+inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday + subsistence_score_luxury;
+
+float local_subsistence_factor(sys::state const& state, dcon::province_id p);
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
@@ -110,8 +117,10 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 
 constexpr inline dcon::commodity_id money(0);
 
-inline constexpr float production_scale_delta = 0.001f;
+inline constexpr float production_scale_delta = 0.1f;
+inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
+inline constexpr float rgo_owners_cut = 0.75f;
 
 void presimulate(sys::state& state);
 
@@ -163,7 +172,7 @@ float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dc
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
-void daily_update(sys::state& state);
+void daily_update(sys::state& state, bool initiate_building);
 void resolve_constructions(sys::state& state);
 
 float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);

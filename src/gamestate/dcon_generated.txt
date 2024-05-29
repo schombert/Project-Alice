@@ -3556,6 +3556,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ intermediate_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ imports }
 		type{ array{commodity_id}{float} }
 		tag{ save }

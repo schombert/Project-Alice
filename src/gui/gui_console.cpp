@@ -1,6 +1,8 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <fstream>
+#include <filesystem>
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
@@ -70,6 +72,7 @@ struct command_info {
 		list_all_flags,
 		set_auto_choice_all,
 		clear_auto_choice_all,
+		economy_dump
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -260,7 +263,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
 				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
-						
+		command_info{ "ecodump", command_info::type::economy_dump, "Starts writing economy info to the disk. Could deteriorate performance.",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -1834,6 +1839,49 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.province_names = not state.cheat_data.province_names;
 		log_to_console(state, parent, state.cheat_data.province_names ? "\x02" : "\x01");
+		break;
+	}
+	case command_info::type::economy_dump:
+	{
+		auto data_dumps_directory = simple_fs::get_or_create_data_dumps_directory();
+		auto path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("economy_dump.txt"));
+		auto prices_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("prices_dump.txt"));
+		auto demand_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("demand_dump.txt"));
+		auto supply_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("supply_dump.txt"));
+		auto demand_by_category_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("demand_by_category_dump.txt"));
+		if((path_string)&&(prices_path_string)&&(demand_path_string)&&(supply_path_string)&&(demand_by_category_path_string)) {
+			auto path = std::filesystem::path(path_string.value());
+			auto prices_path = std::filesystem::path(prices_path_string.value());
+			auto demand_path = std::filesystem::path(demand_path_string.value());
+			auto supply_path = std::filesystem::path(supply_path_string.value());
+
+			auto demand_by_category_path = std::filesystem::path(demand_by_category_path_string.value());
+
+			if(state.cheat_data.ecodump) {
+				state.cheat_data.ecodump = false;
+			} else {
+				state.cheat_data.ecodump = true;
+				state.cheat_data.national_economy_dump_file.open(path);
+				state.cheat_data.prices_dump_file.open(prices_path);
+				state.cheat_data.demand_dump_file.open(demand_path);
+				state.cheat_data.supply_dump_file.open(supply_path);
+				state.cheat_data.demand_by_category_dump_file.open(demand_by_category_path);
+
+				state.world.for_each_commodity([&](dcon::commodity_id c) {
+					state.cheat_data.prices_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
+					state.cheat_data.demand_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
+					state.cheat_data.supply_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
+				});
+
+				state.cheat_data.prices_dump_file << "\n";
+				state.cheat_data.demand_dump_file << "\n";
+				state.cheat_data.supply_dump_file << "\n";
+			}
+			log_to_console(state, parent, state.cheat_data.ecodump ? "\x02" : "\x01");
+		} else {
+			log_to_console(state, parent, "Command error");
+		}
+		
 		break;
 	}
 	case command_info::type::color_blind_mode:

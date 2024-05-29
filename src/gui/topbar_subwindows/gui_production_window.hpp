@@ -1074,7 +1074,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::production_scale_delta;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
