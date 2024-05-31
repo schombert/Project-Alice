@@ -2355,6 +2355,21 @@ void oob_navy::location(association_type, int32_t value, error_handler& err, int
 		context.outer_context.state.world.force_create_navy_location(context.id, province_id);
 	}
 }
+void oob_navy::leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_navy_context& context) {
+	if(!value.is_general) {
+		auto l_id = fatten(context.outer_context.state.world, context.outer_context.state.world.create_leader());
+		l_id.set_background(value.background_);
+		l_id.set_personality(value.personality_);
+		l_id.set_prestige(value.prestige);
+		l_id.set_since(value.date_);
+		l_id.set_name(value.name_);
+		l_id.set_is_admiral(false);
+		context.outer_context.state.world.force_create_leader_loyalty(context.nation_for, l_id);
+		context.outer_context.state.world.force_create_navy_leadership(context.id, l_id);
+	} else {
+		err.accumulated_errors += "Cannot attach an general to a navy (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
 
 void oob_ship::name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_ship_context& context) {
 	context.outer_context.state.world.ship_set_name(context.id, context.outer_context.state.add_unit_name(value));

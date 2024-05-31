@@ -2331,6 +2331,7 @@ struct oob_navy {
 	void finish(oob_file_navy_context&) { }
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context);
 	void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_navy_context& context);
+	void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_navy_context& context);
 };
 struct oob_ship {
 	void finish(oob_file_ship_context&) { }
@@ -2358,6 +2359,7 @@ struct oob_file {
 };
 
 oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context);
+oob_leader make_navy_leader(token_generator& gen, error_handler& err, oob_file_navy_context& context);
 void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context);
 void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context);
 void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context);
@@ -2765,20 +2767,32 @@ struct sfx_file {
 
 void make_leader_images(scenario_building_context& outer_context);
 
-struct bookmark_context {
-	std::vector<sys::year_month_day> bookmark_dates;
-};
+struct bookmark_context;
+
 struct bookmark_definition {
-	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, bookmark_context& context) {
+	sys::year_month_day date_ = sys::year_month_day{ 1836, 1, 1 };
+	std::string name_ = "fe_new_game";
+
+	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, bookmark_context& ) {
+		date_ = value;
+	}
+	void name(association_type, std::string_view value, error_handler& err, int32_t line, bookmark_context& ) {
+		name_ = std::string(value);
+	}
+	void finish(bookmark_context& ) { }
+};
+
+struct bookmark_context {
+	std::vector<bookmark_definition> bookmark_dates;
+};
+
+struct bookmark_file {
+	void bookmark(bookmark_definition const& value, error_handler& err, int32_t line, bookmark_context& context) {
 		context.bookmark_dates.push_back(value);
 	}
-	void finish(bookmark_context& context) { }
-};
-struct bookmark_file {
-	void bookmark(bookmark_definition value, error_handler& err, int32_t line, bookmark_context& context) {}
 	void finish(bookmark_context& context) {
 		if(context.bookmark_dates.empty()) {
-			context.bookmark_dates.push_back(sys::year_month_day{ 1836, 1, 1 });
+			context.bookmark_dates.push_back(bookmark_definition{ sys::year_month_day{ 1836, 1, 1 }, std::string("fe_new_game") });
 		}
 	}
 };

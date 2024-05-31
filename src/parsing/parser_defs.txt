@@ -1093,6 +1093,7 @@ oob_navy
 	name                            value      text                              member_fn
 	location                        value      int                               member_fn
 	ship                            extern     make_oob_ship                     discard
+	leader                          extern     make_navy_leader                  member_fn
 
 oob_file
 	#any                            extern     make_oob_relationship             discard
@@ -1288,7 +1289,7 @@ sfx_file
 
 bookmark_definition
 	date				value	date					member_fn
-	name				value	text					discard
+	name				value	text					member_fn
 	desc				value	text					discard
 	camerax				value	uint					discard
 	cameray				value	uint					discard

@@ -1001,7 +1001,7 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state, save_type type) {
+void write_save_file(sys::state& state, save_type type, std::string const& name) {
 	save_header header;
 	header.count = state.scenario_counter;
 	//header.timestamp = state.scenario_time_stamp;
@@ -1011,6 +1011,13 @@ void write_save_file(sys::state& state, save_type type) {
 	header.tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 	header.d = state.current_date;
+
+	memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(31)));
+	if(name.length() < 31) {
+		header.save_name[name.length()] = 0;
+	} else {
+		header.save_name[31] = 0;
+	}
 
 	size_t save_space = sizeof_save_section(state);
 
