@@ -598,9 +598,8 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 			}
 		}
 
-		state.world.nation_get_stockpiles(source, economy::money) -= amount;
-		state.world.nation_get_stockpiles(state.world.state_instance_get_nation_from_state_ownership(location), economy::money) += amount;
-		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), amount);
+		auto eff_amount = std::clamp(state.world.nation_get_stockpiles(source, economy::money), 0.f, amount);
+		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), eff_amount);
 	}
 }
 
