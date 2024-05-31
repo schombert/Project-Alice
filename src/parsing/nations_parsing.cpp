@@ -1407,7 +1407,7 @@ void make_oob_relationship(std::string_view tag, token_generator& gen, error_han
 void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_alliance(gen, err, context);
 
-	if(!a.first_ || !a.second_)
+	if(a.invalid || !a.first_ || !a.second_)
 		return;
 
 	auto rel = context.state.world.get_diplomatic_relation_by_diplomatic_pair(a.first_, a.second_);

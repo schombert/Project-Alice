@@ -136,6 +136,7 @@ struct save_item {
 	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
+	std::string name = "fe_new_game";
 
 	bool is_bookmark() const {
 		return file_name.starts_with(NATIVE("bookmark_"));
@@ -317,7 +318,7 @@ public:
 		if(i->is_new_game) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
 		} else if(i->is_bookmark()) {
-			set_text(state, text::produce_simple_string(state, "fe_new_game"));
+			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
 			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
 			set_text(state, text::produce_simple_string(state, name));
@@ -333,10 +334,10 @@ public:
 	}
 };
 
-class save_game_item : public listbox_row_element_base<save_item> {
+class save_game_item : public listbox_row_element_base<std::shared_ptr<save_item>> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<save_item>::on_create(state);
+		listbox_row_element_base<std::shared_ptr<save_item>>::on_create(state);
 		base_data.position.x += 9; // Nudge
 		base_data.position.y += 7; // Nudge
 	}
@@ -356,14 +357,14 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
 		if(payload.holds_type<save_item*>()) {
-			payload.emplace<save_item*>(&content);
+			payload.emplace<save_item*>(content.get());
 			return message_result::consumed;
 		}
-		return listbox_row_element_base<save_item>::get(state, payload);
+		return listbox_row_element_base<std::shared_ptr<save_item>>::get(state, payload);
 	}
 };
 
-class saves_listbox : public listbox_element_base<save_game_item, save_item> {
+class saves_listbox : public listbox_element_base<save_game_item, std::shared_ptr<save_item>> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "alice_savegameentry";
@@ -371,7 +372,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true });
+		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -382,15 +383,15 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false });
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, std::string(h.save_name) }));
 				}
 			}
 		}
 
-		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			if(a.is_bookmark() != b.is_bookmark())
-				return a.is_bookmark();
-			return a.timestamp > b.timestamp;
+		std::sort(row_contents.begin() + 1, row_contents.end(), [](std::shared_ptr<save_item> const& a, std::shared_ptr<save_item> const& b) {
+			if(a->is_bookmark() != b->is_bookmark())
+				return a->is_bookmark();
+			return a->timestamp > b->timestamp;
 		});
 
 		update(state);
@@ -401,7 +402,7 @@ public:
 		base_data.size.x -= 20; //nudge
 		base_data.size.y += base_data.position.y;
 		base_data.position.y = 0;
-		listbox_element_base<save_game_item, save_item>::on_create(state);
+		listbox_element_base<save_game_item, std::shared_ptr<save_item>>::on_create(state);
 		update_save_list(state);
 	}
 

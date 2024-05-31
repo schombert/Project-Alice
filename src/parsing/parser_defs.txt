@@ -1093,6 +1093,7 @@ oob_navy
 	name                            value      text                              member_fn
 	location                        value      int                               member_fn
 	ship                            extern     make_oob_ship                     discard
+	leader                          extern     make_navy_leader                  member_fn
 
 oob_file
 	#any                            extern     make_oob_relationship             discard
@@ -1135,13 +1136,13 @@ production_types_file
 alliance
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
-	start_date                      value      date                              discard
+	end_date                        value      date                              member_fn
+	start_date                      value      date                              member_fn
 
 vassal_description
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
+	end_date                        value      date                              member_fn
 	start_date                      value      date                              member_fn
 
 diplomacy_file
@@ -1288,7 +1289,7 @@ sfx_file
 
 bookmark_definition
 	date				value	date					member_fn
-	name				value	text					discard
+	name				value	text					member_fn
 	desc				value	text					discard
 	camerax				value	uint					discard
 	cameray				value	uint					discard

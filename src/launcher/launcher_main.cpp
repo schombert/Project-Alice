@@ -399,10 +399,10 @@ void make_mod_file() {
 	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
 	auto path = produce_mod_path();
 	std::thread file_maker([path]() {
-		auto fake_game_state = std::make_unique<sys::state>();
-		simple_fs::restore_state(fake_game_state->common_fs, path);
+		simple_fs::file_system fs_root;
+		simple_fs::restore_state(fs_root, path);
 		parsers::error_handler err("");
-		auto root = get_root(fake_game_state->common_fs);
+		auto root = get_root(fs_root);
 		auto common = open_directory(root, NATIVE("common"));
 		parsers::bookmark_context bookmark_context;
 		if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
@@ -416,14 +416,14 @@ void make_mod_file() {
 		}
 
 		sys::checksum_key scenario_key;
-		//^^^stupid shit hack to make bookmarks work when the fucking scenario doesnt match
+
 		for(uint32_t date_index = 0; date_index < uint32_t(bookmark_context.bookmark_dates.size()); date_index++) {
 			err.accumulated_errors.clear();
 			err.accumulated_warnings.clear();
 			//
 			auto game_state = std::make_unique<sys::state>();
 			simple_fs::restore_state(game_state->common_fs, path);
-			game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index]);
+			game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);
 			if(err.fatal)
 				break;
 			if(date_index == 0) {
@@ -453,7 +453,7 @@ void make_mod_file() {
 				sys::write_scenario_file(*game_state, std::to_wstring(date_index) + NATIVE(".bin"), 0);
 #endif
 				game_state->scenario_checksum = scenario_key;
-				sys::write_save_file(*game_state, sys::save_type::bookmark);
+				sys::write_save_file(*game_state, sys::save_type::bookmark, bookmark_context.bookmark_dates[date_index].name_);
 			}
 		}
 
