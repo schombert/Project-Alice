@@ -494,6 +494,9 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 		case sys::virtual_key::TILDA:
 			edit_box_backtick(state);
 			break;
+		case sys::virtual_key::BACK_SLASH:
+			edit_box_back_slash(state);
+			break;
 		case sys::virtual_key::LEFT:
 			edit_index = std::max<int32_t>(edit_index - 1, 0);
 			break;

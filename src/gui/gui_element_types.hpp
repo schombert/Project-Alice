@@ -400,6 +400,7 @@ public:
 	virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
 	virtual void edit_box_backtick(sys::state& state) noexcept { }
+	virtual void edit_box_back_slash(sys::state& state) noexcept { }
 	virtual void edit_index_position(sys::state& state, int32_t index) noexcept {
 		edit_index = index;
 	}
