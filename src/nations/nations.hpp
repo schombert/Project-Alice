@@ -338,6 +338,7 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id i);
 
 float get_foreign_investment(sys::state& state, dcon::nation_id n);
+float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
 float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
 bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
