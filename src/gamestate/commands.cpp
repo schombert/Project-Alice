@@ -420,12 +420,11 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 		auto& base_cost = state.economy_definitions.building_definitions[int32_t(type)].cost;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
-				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
 			} else {
 				break;
 			}
 		}
-
 		nations::adjust_foreign_investment(state, source, state.world.province_get_nation_from_province_ownership(p), amount);
 	}
 
@@ -589,17 +588,14 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
 		float amount = 0.0f;
 		auto& base_cost = state.world.factory_type_get_construction_costs(type);
-
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
-				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
 			} else {
 				break;
 			}
 		}
-
-		auto eff_amount = std::clamp(state.world.nation_get_stockpiles(source, economy::money), 0.f, amount);
-		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), eff_amount);
+		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), amount);
 	}
 }
 
