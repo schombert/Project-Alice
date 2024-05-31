@@ -2533,6 +2533,14 @@ void alliance::second(association_type, std::string_view tag, error_handler& err
 				"invalid tag " + std::string(tag) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
+void alliance::start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
+	if(sys::absolute_time_point(context.state.current_date.to_ymd(context.state.start_date)) < sys::absolute_time_point(ymd))
+		invalid = true;
+}
+void alliance::end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
+	if(sys::absolute_time_point(ymd) <= sys::absolute_time_point(context.state.current_date.to_ymd(context.state.start_date)))
+		invalid = true;
+}
 
 void vassal_description::first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(tag.length() == 3) {
@@ -2563,7 +2571,11 @@ void vassal_description::second(association_type, std::string_view tag, error_ha
 }
 
 void vassal_description::start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
-	if(sys::date(ymd, context.state.start_date) <= context.state.current_date)
+	if(sys::absolute_time_point(context.state.current_date.to_ymd(context.state.start_date)) < sys::absolute_time_point(ymd))
+		invalid = true;
+}
+void vassal_description::end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context) {
+	if(sys::absolute_time_point(ymd) <= sys::absolute_time_point(context.state.current_date.to_ymd(context.state.start_date)))
 		invalid = true;
 }
 

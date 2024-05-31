@@ -2458,10 +2458,13 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 struct alliance {
 	dcon::nation_id first_;
 	dcon::nation_id second_;
+	bool invalid = false;
 
 	void finish(scenario_building_context&) { }
 	void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
+	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 struct vassal_description {
 	dcon::nation_id first_;
@@ -2471,6 +2474,7 @@ struct vassal_description {
 	void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
+	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 
 struct diplomacy_file {

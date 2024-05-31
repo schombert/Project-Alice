@@ -1135,13 +1135,13 @@ production_types_file
 alliance
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
-	start_date                      value      date                              discard
+	end_date                        value      date                              member_fn
+	start_date                      value      date                              member_fn
 
 vassal_description
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
+	end_date                        value      date                              member_fn
 	start_date                      value      date                              member_fn
 
 diplomacy_file
