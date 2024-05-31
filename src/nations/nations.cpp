@@ -334,6 +334,14 @@ float get_foreign_investment(sys::state& state, dcon::nation_id n) {
 	return v;
 }
 
+float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n) {
+	float v = 0.0f;
+	for(auto i : state.world.nation_get_unilateral_relationship_as_gp(n)) {
+		v += i.get_foreign_investment();
+	}
+	return v;
+}
+
 void update_industrial_scores(sys::state& state) {
 	/*
 	Is the sum of the following two components:
@@ -362,7 +370,7 @@ void update_industrial_scores(sys::state& state) {
 				if(total_factory_capacity > 0)
 					sum += 4.0f * total_level * std::max(std::min(1.0f, worker_total / total_factory_capacity), 0.05f);
 			}
-			sum += nations::get_foreign_investment(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
+			sum += nations::get_foreign_investment_as_gp(state, n) * iweight; /* investment factor is already multiplied by 0.05f on scenario creation */
 	
 		}
 		float old_score = state.world.nation_get_industrial_score(n);

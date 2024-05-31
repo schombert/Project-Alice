@@ -588,7 +588,6 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 
 	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
 		float amount = 0.0f;
-
 		auto& base_cost = state.world.factory_type_get_construction_costs(type);
 
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
@@ -599,8 +598,8 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 			}
 		}
 
-		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location),
-				amount);
+		state.world.nation_get_stockpiles(source, economy::money) -= amount;
+		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), amount);
 	}
 }
 
