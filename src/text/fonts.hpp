@@ -89,7 +89,7 @@ public:
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
 	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
-	font fonts[9];
+	font fonts[12];
 	bool map_font_is_black = false;
 
 	void load_font(font& fnt, char const* file_data, uint32_t file_size, font_feature f);

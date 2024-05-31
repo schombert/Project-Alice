@@ -288,6 +288,9 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 						state.languages[last_language].encoding = text::language_encoding::gb18030;
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "win1252")) {
 						state.languages[last_language].encoding = text::language_encoding::win1252;
+					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "cyrillic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::cyrillic;
 					}
 					++last_language;
 				};

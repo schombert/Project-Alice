@@ -804,6 +804,7 @@ enum class language_script : uint8_t {
 	chinese,
 	japanese,
 	korean,
+	cyrillic,
 };
 
 struct language_table {

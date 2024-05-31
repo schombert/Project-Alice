@@ -996,6 +996,9 @@ uint32_t font_index_from_font_id(sys::state& state, uint16_t id) {
 	case text::language_script::arabic:
 		offset += 6;
 		break;
+	case text::language_script::cyrillic:
+		offset += 9;
+		break;
 	default:
 		break;
 	}
