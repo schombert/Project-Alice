@@ -336,7 +336,7 @@ float get_foreign_investment(sys::state& state, dcon::nation_id n) {
 
 float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n) {
 	float v = 0.0f;
-	for(auto i : state.world.nation_get_unilateral_relationship_as_gp(n)) {
+	for(auto i : state.world.nation_get_unilateral_relationship_as_source(n)) {
 		v += i.get_foreign_investment();
 	}
 	return v;
