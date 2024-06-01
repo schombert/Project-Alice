@@ -158,24 +158,42 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 }
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_key(context.state, name);
-	auto state_id = context.state.world.create_state_definition();
-
-	context.map_of_state_names.insert_or_assign(std::string(name), state_id);
-	context.state.world.state_definition_set_name(state_id, name_id);
-
-	state_def_building_context new_context{context, state_id};
-	parsers::parse_state_definition(gen, err, new_context);
-}
-void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name);
-	auto rid = context.state.world.create_region();
+	state_def_building_context new_context{ context, std::vector<dcon::province_id>{} };
+	parsers::parse_state_definition(gen, err, new_context);
+	if(new_context.provinces.empty())
+		return; //empty, tooltip metaregions
 
-	context.map_of_region_names.insert_or_assign(std::string(name), rid);
-	context.state.world.region_set_name(rid, name_id);
-
-	region_building_context new_context{ context, rid };
-	parsers::parse_region_definition(gen, err, new_context);
+	bool is_state = false;
+	bool is_region = false;
+	for(const auto prov : new_context.provinces) {
+		if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+			is_region = true;
+		} else {
+			is_state = true;
+		}
+	}
+	if(is_state && is_region) {
+		err.accumulated_warnings += "State " + std::string(name) + " mixes assigned and unassigned provinces (" + err.file_name + ")\n";
+		for(const auto prov : new_context.provinces) {
+			if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.prov_id_to_original_id_map[prov].id) + " on state " + std::string(name) + " is already assigned to a state (" + err.file_name + ")\n";
+			}
+		}
+	}
+	if(is_region) {
+		auto rdef = context.state.world.create_region();
+		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_region_membership(prov, rdef);
+		}
+	} else {
+		auto sdef = context.state.world.create_state_definition();
+		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_abstract_state_membership(prov, sdef);
+		}
+	}
 }
 
 void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err,
@@ -242,8 +260,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
 	auto ymd = parse_date(name, 0, err);
-	auto block_date = sys::date(ymd, context.outer_context.state.start_date);
-	if(block_date.to_raw_value() > 1) { // is after the start date
+	if(sys::date(ymd, context.outer_context.state.start_date) >= context.outer_context.state.current_date) { // is after the start date
 		gen.discard_group();
 	} else {
 		parse_province_history_file(gen, err, context);

@@ -20,6 +20,7 @@ public:
 	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override;
 	void edit_box_backtick(sys::state& state) noexcept override;
+	void edit_box_back_slash(sys::state& state) noexcept override;
 	void edit_box_up(sys::state& state) noexcept override;
 	void edit_box_down(sys::state& state) noexcept override;
 	void add_to_history(sys::state& state, std::string s) noexcept {

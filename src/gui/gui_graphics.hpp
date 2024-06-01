@@ -371,7 +371,8 @@ struct state {
 	uint16_t fps_timer = 0;
 	std::chrono::time_point<std::chrono::steady_clock> last_render_time{};
 	bool scrollbar_continuous_movement = false;
-	float last_fps;
+	float last_fps = 0.f;
+	bool lazy_load_in_game = false;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
 	element_base* edit_target = nullptr;
@@ -416,13 +417,13 @@ struct state {
 	element_base* outliner_window = nullptr;
 	element_base* technology_subwindow = nullptr;
 	element_base* military_subwindow = nullptr;
-	element_base* election_window = nullptr;
 	element_base* request_window = nullptr;
 	unit_details_window<dcon::army_id>* army_status_window = nullptr;
 	unit_details_window<dcon::navy_id>* navy_status_window = nullptr;
 	element_base* multi_unit_selection_window = nullptr;
 	element_base* msg_log_window = nullptr;
 	element_base* msg_window = nullptr;
+	element_base* menubar_window = nullptr;
 	element_base* main_menu_win = nullptr; // The actual main menu
 	element_base* chat_window = nullptr;
 	element_base* r_chat_window = nullptr;
@@ -446,6 +447,9 @@ struct state {
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
 	uint8_t chat_messages_index = 0;
+
+	dcon::gfx_object_id bg_gfx_id{};
+	dcon::gfx_object_id load_screens_gfx_id[8];
 
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
@@ -478,4 +482,6 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 void show_main_menu(sys::state& state);
 int32_t ui_width(sys::state const& state);
 int32_t ui_height(sys::state const& state);
+void create_in_game_windows(sys::state& state);
+
 } // namespace ui

@@ -56,7 +56,7 @@ struct user_settings_s {
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_pause,//revolt = 0,
 		message_response::standard_pause,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_popup,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
@@ -161,7 +161,7 @@ struct user_settings_s {
 	uint8_t interesting_message_settings[int32_t(sys::message_setting_type::count)] = {
 		message_response::standard_log,//revolt = 0,
 		message_response::standard_log,//war_on_nation = 1,
-		message_response::ignore,//war_by_nation = 2,
+		message_response::standard_log,//war_by_nation = 2,
 		message_response::standard_log,//wargoal_added = 3,
 		message_response::ignore,//siegeover_by_nation = 4,
 		message_response::ignore,//siegeover_on_nation = 5,
@@ -403,6 +403,8 @@ struct cheat_data_s {
 	bool daily_oos_check = false;
 	bool province_names = false;
 	bool instant_navy = false;
+	bool always_allow_decisions = false;
+	bool always_potential_decisions = false;
 };
 
 struct crisis_member_def {
@@ -619,8 +621,7 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
-	dcon::gfx_object_id bg_gfx_id{};
-
+	
 	// graphics data
 	ogl::data open_gl;
 
@@ -693,7 +694,7 @@ struct alignas(64) state {
 	void load_user_settings();
 	void update_ui_scale(float new_scale);
 
-	void load_scenario_data(parsers::error_handler& err);   // loads all scenario files other than map data
+	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void preload(); // clears data that will be later reconstructed from saved values
 

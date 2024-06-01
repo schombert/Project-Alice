@@ -394,13 +394,12 @@ std::vector<uint32_t> militancy_map_from(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 
 	std::vector<uint32_t> prov_color(texture_size * 2);
+	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto fat_id = dcon::fatten(state.world, prov_id);
 		auto nation = fat_id.get_nation_from_province_ownership();
-
-		if(nation) {
+		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			float revolt_risk = province::revolt_risk(state, prov_id) / 10;
-
 			uint32_t color = ogl::color_gradient(revolt_risk,
 				sys::pack_color(247, 15, 15), // green
 				sys::pack_color(46, 247, 15) // red
@@ -591,7 +590,8 @@ std::vector<uint32_t> ctc_map_from(sys::state& state) {
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto total_pw = state.world.province_get_demographics(prov_id, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
 			auto total_sw = state.world.province_get_demographics(prov_id, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-			auto value = total_pw / std::max(1.f, total_pw + total_sw);
+			auto total = total_pw + total_sw;
+			auto value = (total_pw == 0.f || total_sw == 0.f) ? 0.f : total_pw / (total_pw + total_sw);
 			value = 1.f - (state.economy_definitions.craftsmen_fraction - value);
 			uint32_t color = ogl::color_gradient(value,
 				sys::pack_color(46, 247, 15), // green
@@ -609,9 +609,12 @@ std::vector<uint32_t> crime_map_from(sys::state& state) {
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
 	state.world.for_each_province([&](dcon::province_id prov_id) {
-		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		dcon::crime_id cmp_crime;
+		if(state.map_state.get_selected_province()) {
+			cmp_crime = state.world.province_get_crime(state.map_state.get_selected_province());
+		}
 		auto i = province::to_map_id(prov_id);
-		if(auto crime = state.world.province_get_crime(prov_id); crime) {
+		if(auto crime = state.world.province_get_crime(prov_id); crime && (!cmp_crime || crime == cmp_crime)) {
 			prov_color[i] = ogl::get_ui_color(state, crime);
 			prov_color[i + texture_size] = ogl::get_ui_color(state, crime);
 		} else {

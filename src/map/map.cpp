@@ -288,6 +288,16 @@ void display_data::create_meshes() {
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_unit_arrow]);
 	create_unit_arrow_vbo(vbo_array[vo_unit_arrow], unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_attack_unit_arrow], attack_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_retreat_unit_arrow], retreat_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_strategy_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_strategy_unit_arrow], strategy_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_objective_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_objective_unit_arrow], objective_unit_arrow_vertices);
+	glBindVertexArray(vao_array[vo_other_objective_unit_arrow]);
+	create_unit_arrow_vbo(vbo_array[vo_other_objective_unit_arrow], other_objective_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
 	glBindVertexArray(vao_array[vo_province_text_line]);
@@ -397,8 +407,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_highlight]);
 	glActiveTexture(GL_TEXTURE11);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_stripes]);
-	glActiveTexture(GL_TEXTURE12);
-	glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
 	glActiveTexture(GL_TEXTURE13);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_province_fow]);
 	glActiveTexture(GL_TEXTURE14);
@@ -631,7 +639,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 	dcon::province_id prov{};
 	glm::vec2 map_pos;
-	if(state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
+	if(!state.ui_state.under_mouse && state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
 		map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
 		auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
@@ -686,12 +694,54 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, coastal_starts.data(), coastal_counts.data(), GLsizei(coastal_starts.size()));
 	}
 
-	if(zoom > map::zoom_close && !unit_arrow_vertices.empty()) { //only render if close enough
-		load_shader(shaders[shader_line_unit_arrow]);
+	if(zoom > map::zoom_close) { //only render if close enough
+		if(!unit_arrow_vertices.empty() || !attack_unit_arrow_vertices.empty() || !retreat_unit_arrow_vertices.empty()
+		|| !strategy_unit_arrow_vertices.empty() || !objective_unit_arrow_vertices.empty() || !other_objective_unit_arrow_vertices.empty()) {
+			load_shader(shaders[shader_line_unit_arrow]);
+		}
 		glUniform1f(4, 0.005f); // width
-		glBindVertexArray(vao_array[vo_unit_arrow]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
-		glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		if(!unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_unit_arrow]);
+			glBindVertexArray(vao_array[vo_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, unit_arrow_starts.data(), unit_arrow_counts.data(), (GLsizei)unit_arrow_counts.size());
+		}
+		if(!attack_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_attack_unit_arrow]);
+			glBindVertexArray(vao_array[vo_attack_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_attack_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, attack_unit_arrow_starts.data(), attack_unit_arrow_counts.data(), (GLsizei)attack_unit_arrow_counts.size());
+		}
+		if(!retreat_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_retreat_unit_arrow]);
+			glBindVertexArray(vao_array[vo_retreat_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_retreat_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, retreat_unit_arrow_starts.data(), retreat_unit_arrow_counts.data(), (GLsizei)retreat_unit_arrow_counts.size());
+		}
+		if(!strategy_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_strategy_unit_arrow]);
+			glBindVertexArray(vao_array[vo_strategy_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_strategy_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, strategy_unit_arrow_starts.data(), strategy_unit_arrow_counts.data(), (GLsizei)strategy_unit_arrow_counts.size());
+		}
+		if(!objective_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_objective_unit_arrow]);
+			glBindVertexArray(vao_array[vo_objective_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_objective_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, objective_unit_arrow_starts.data(), objective_unit_arrow_counts.data(), (GLsizei)objective_unit_arrow_counts.size());
+		}
+		if(!other_objective_unit_arrow_vertices.empty()) {
+			glActiveTexture(GL_TEXTURE12);
+			glBindTexture(GL_TEXTURE_2D, textures[texture_other_objective_unit_arrow]);
+			glBindVertexArray(vao_array[vo_other_objective_unit_arrow]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_other_objective_unit_arrow]);
+			glMultiDrawArrays(GL_TRIANGLE_STRIP, other_objective_unit_arrow_starts.data(), other_objective_unit_arrow_counts.data(), (GLsizei)retreat_unit_arrow_counts.size());
+		}
 	}
 
 	if(!drag_box_vertices.empty()) {
@@ -1123,7 +1173,7 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1, 0);
 	if(state.mode == sys::game_mode_type::pick_nation) {
-		for(const auto pc : state.world.nation_get_province_control_as_nation(state.local_player_nation)) {
+		for(const auto pc : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 			province_highlights[province::to_map_id(pc.get_province())] = 0x2B2B2B2B;
 		}
 	} else {
@@ -2191,8 +2241,10 @@ void load_static_meshes(sys::state& state) {
 		}
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(static_mesh_vertex) * static_mesh_vertices.size(), &static_mesh_vertices[0], GL_STATIC_DRAW);
+	if(!static_mesh_vertices.empty()) {
+		glBindBuffer(GL_ARRAY_BUFFER, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(static_mesh_vertex) * static_mesh_vertices.size(), &static_mesh_vertices[0], GL_STATIC_DRAW);
+	}
 	glBindVertexArray(state.map_state.map_data.vao_array[state.map_state.map_data.vo_static_mesh]);
 	glBindVertexBuffer(0, state.map_state.map_data.vbo_array[state.map_state.map_data.vo_static_mesh], 0, sizeof(static_mesh_vertex)); // Bind the VBO to 0 of the VAO
 	glVertexAttribFormat(0, 3, GL_FLOAT, GL_FALSE, offsetof(static_mesh_vertex, position_)); // Set up vertex attribute format for the position
@@ -2270,6 +2322,21 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_attack_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("attackarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_attack_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_retreat_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("retreatarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_retreat_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_strategy_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("stratarrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_strategy_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_objective_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("objectivearrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_objective_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
+
+	textures[texture_other_objective_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("otherobjectivearrow.tga"));
+	ogl::set_gltex_parameters(textures[texture_other_objective_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
 
 	// Get the province_color handle
 	// province_color is an array of 2 textures, one for province and the other for stripes

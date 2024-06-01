@@ -219,7 +219,7 @@ struct data {
 	bool msaa_enabled = false;
 };
 
-void notify_user_of_fatal_opengl_error(std::string message); // this function calls std::abort
+void notify_user_of_fatal_opengl_error(std::string message);
 
 void create_opengl_context(sys::state& state); // you shouldn't call this directly; only initialize_opengl should call it
 void initialize_opengl(sys::state& state);

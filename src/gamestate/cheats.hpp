@@ -38,5 +38,7 @@ void c_always_allow_reforms(sys::state& state, dcon::nation_id source);
 void c_always_accept_deals(sys::state& state, dcon::nation_id source);
 void c_set_auto_choice_all(sys::state& state, dcon::nation_id source);
 void c_clear_auto_choice_all(sys::state& state, dcon::nation_id source);
+void c_always_allow_decisions(sys::state& state, dcon::nation_id source);
+void c_always_potential_decisions(sys::state& state, dcon::nation_id source);
 
 } // namespace command

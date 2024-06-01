@@ -459,7 +459,7 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 
 void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if(ch >= 32 && ch != '`') {
+		if(ch >= 32 && ch != '`' && ch != 127) {
 			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
 			edit_index++;
 			set_text(state, s);
@@ -494,6 +494,9 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 		case sys::virtual_key::TILDA:
 			edit_box_backtick(state);
 			break;
+		case sys::virtual_key::BACK_SLASH:
+			edit_box_back_slash(state);
+			break;
 		case sys::virtual_key::LEFT:
 			edit_index = std::max<int32_t>(edit_index - 1, 0);
 			break;
@@ -508,7 +511,19 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 			}
 			break;
 		case sys::virtual_key::BACK:
-			if(edit_index > 0 && edit_index <= int32_t(s.length())) {
+			if(mods == sys::key_modifiers::modifiers_ctrl && edit_index > 0 && edit_index <= int32_t(s.length())) {
+				int32_t index = edit_index - 1;
+				bool skip = false;
+				while(index > 0 && (s.at(index) != ' ' || !skip)) {
+					if(s.at(index) != ' ')
+						skip = true;
+					--index;
+				}
+				s.erase(index, edit_index);
+				set_text(state, s);
+				edit_index = index;
+				edit_box_update(state, s);
+			} else if(edit_index > 0 && edit_index <= int32_t(s.length())) {
 				s.erase(edit_index - 1, 1);
 				set_text(state, s);
 				edit_index--;
@@ -817,36 +832,24 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			}
 		} else if(std::holds_alternative<dcon::province_id>(chunk->source)) {
 			auto prov = std::get<dcon::province_id>(chunk->source);
-			if(prov) {
+			if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
-
-				auto map_pos = state.world.province_get_mid_point(prov);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				state.map_state.center_map_on_province(state, prov);
 			}
 		} else if(std::holds_alternative<dcon::state_instance_id>(chunk->source)) {
 			auto s = std::get<dcon::state_instance_id>(chunk->source);
 			auto prov = state.world.state_instance_get_capital(s);
-			if(prov) {
+			if(prov && prov.id.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
-
-				auto map_pos = state.world.province_get_mid_point(prov);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				state.map_state.center_map_on_province(state, prov);
 			}
 		} else if(std::holds_alternative<dcon::national_identity_id>(chunk->source)) {
 			auto id = std::get<dcon::national_identity_id>(chunk->source);
@@ -867,19 +870,13 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto s = std::get<dcon::state_definition_id>(chunk->source);
 			auto prov_rng = state.world.state_definition_get_abstract_state_membership(s);
 			dcon::province_id prov = prov_rng.begin() != prov_rng.end() ? (*prov_rng.begin()).get_province().id : dcon::province_id{ };
-			if(prov) {
+			if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 				state.map_state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
-
-				auto map_pos = state.world.province_get_mid_point(prov);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				state.map_state.center_map_on_province(state, prov);
 			}
 		}
 		return message_result::consumed;
@@ -1362,6 +1359,7 @@ message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& sta
 	if(row_contents.size() > row_windows.size()) {
 		amount = is_reversed() ? -amount : amount;
 		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
+		state.ui_state.last_tooltip = nullptr; //force update of tooltip
 		update(state);
 	}
 	return message_result::consumed;
@@ -1374,6 +1372,7 @@ void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state)
 		list_size++;
 	}
 	list_scrollbar->update_raw_value(state, list_size);
+	state.ui_state.last_tooltip = nullptr; //force update of tooltip
 	update(state);
 }
 
@@ -1763,7 +1762,7 @@ void flag_button2::on_update(sys::state& state) noexcept {
 		return;
 	}
 
-	auto reb_tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+	auto reb_tag = state.national_definitions.rebel_id;
 	flag_texture_handle = ogl::get_flag_handle(state, reb_tag, culture::flag_type::default_flag);
 }
 
@@ -1820,7 +1819,7 @@ void flag_button2::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void flag_button::set_current_nation(sys::state& state, dcon::national_identity_id ident) noexcept {
 	if(!bool(ident))
-		ident = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+		ident = state.national_definitions.rebel_id;
 
 	auto fat_id = dcon::fatten(state.world, ident);
 	auto nation = fat_id.get_nation_from_identity_holder();
@@ -1952,20 +1951,12 @@ void scrollbar_right::button_shift_right_action(sys::state& state) noexcept {
 
 message_result scrollbar_right::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;
 }
 message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexcept {
 	if(payload.holds_type<scrollbar_settings>()) {
-		if(hold_continous) {
-			button_action(state);
-		}
-
 		return message_result::consumed;
 	}
 	return message_result::unseen;

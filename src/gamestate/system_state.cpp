@@ -1,11 +1,12 @@
+#include <algorithm>
+#include <functional>
+#include <thread>
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
 #include "gui_element_base.hpp"
-#include <algorithm>
-#include <functional>
 #include "parsers_declarations.hpp"
 #include "gui_console.hpp"
 #include "gui_minimap.hpp"
@@ -15,7 +16,6 @@
 #include "gui_outliner_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
-#include "gui_election_window.hpp"
 #include "gui_diplomacy_request_window.hpp"
 #include "gui_message_window.hpp"
 #include "gui_naval_combat.hpp"
@@ -27,8 +27,6 @@
 #include "map_tooltip.hpp"
 #include "unit_tooltip.hpp"
 #include "demographics.hpp"
-#include <algorithm>
-#include <thread>
 #include "rebels.hpp"
 #include "ai.hpp"
 #include "effects.hpp"
@@ -38,8 +36,200 @@
 #include "gui_end_window.hpp"
 #include "gui_map_legend.hpp"
 #include "gui_unit_grid_box.hpp"
-
 #include "blake2.h"
+
+namespace ui {
+void create_in_game_windows(sys::state& state) {
+	state.ui_state.lazy_load_in_game = true;
+
+	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
+	state.ui_state.unit_details_box->set_visible(state, false);
+	//
+	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
+	state.ui_state.end_screen = std::make_unique<ui::container_base>();
+	{
+		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find("back_end")->second.definition);
+		state.ui_state.end_screen->add_child_to_front(std::move(ewin));
+	}
+	{
+		auto window = ui::make_element_by_type<ui::console_window>(state, "console_wnd");
+		state.ui_state.console_window = window.get();
+		window->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(window));
+	}
+	state.world.for_each_province([&](dcon::province_id id) {
+		if(state.world.province_get_port_to(id)) {
+			auto ptr = ui::make_element_by_type<ui::port_window>(state, "alice_port_icon");
+			static_cast<ui::port_window*>(ptr.get())->set_province(state, id);
+			state.ui_state.units_root->add_child_to_front(std::move(ptr));
+		}
+	});
+	state.world.for_each_province([&](dcon::province_id id) {
+		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(state, "alice_map_unit");
+		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
+		state.ui_state.units_root->add_child_to_front(std::move(ptr));
+	});
+	state.world.for_each_province([&](dcon::province_id id) {
+		auto ptr = ui::make_element_by_type<ui::rgo_icon>(state, "alice_rgo_mapicon");
+		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
+		state.ui_state.rgos_root->add_child_to_front(std::move(ptr));
+	});
+	province::for_each_land_province(state, [&](dcon::province_id id) {
+		auto ptr = ui::make_element_by_type<ui::province_details_container>(state, "alice_province_values");
+		static_cast<ui::province_details_container*>(ptr.get())->prov = id;
+		state.ui_state.province_details_root->add_child_to_front(std::move(ptr));
+	});
+	{
+		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(state, "chat_list");
+		new_elm->base_data.position.x += 156; // nudge
+		new_elm->base_data.position.y += 24; // nudge
+		new_elm->impl_on_update(state);
+		state.ui_state.tl_chat_list = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::outliner_window>(state, "outliner");
+		state.ui_state.outliner_window = new_elm.get();
+		new_elm->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+		// Has to be created AFTER the outliner window
+		// The topbar has this button within, however since the button isn't properly displayed, it is better to make
+		// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
+		// the window is resized for example.
+		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
+			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+			if(state.to_string_view(state.ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
+				auto new_bg = ui::make_element_by_type<ui::outliner_button>(state, gdef);
+				state.ui_state.root->add_child_to_front(std::move(new_bg));
+				break;
+			}
+		}
+		// Then create button atop
+		for(size_t i = state.ui_defs.gui.size(); i-- > 0;) {
+			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
+			if(state.to_string_view(state.ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
+				auto new_btn = ui::make_element_by_type<ui::outliner_button>(state, gdef);
+				new_btn->impl_on_update(state);
+				state.ui_state.root->add_child_to_front(std::move(new_btn));
+				break;
+			}
+		}
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(state, "alice_menubar");
+		state.ui_state.menubar_window = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(state, "minimap_pic");
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::province_view_window>(state, "province_view");
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(state, "sup_unit_status");
+		state.ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
+		new_elm_army->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(new_elm_army));
+
+		auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(state, "sup_unit_status");
+		state.ui_state.navy_status_window = static_cast<ui::unit_details_window<dcon::navy_id>*>(new_elm_navy.get());
+		new_elm_navy->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(new_elm_navy));
+	}
+	{
+		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(state, "alice_multi_unitpanel");
+		state.ui_state.multi_unit_selection_window = mselection.get();
+		mselection->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(mselection));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(state, "defaultdialog");
+		state.ui_state.request_window = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::message_window>(state, "defaultpopup");
+		state.ui_state.msg_window = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(state, "alice_leader_selection_panel");
+		state.ui_state.change_leader_window = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(state, "endofnavalcombatpopup");
+		new_elm->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(state, "alice_naval_combat");
+		new_elm->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(state, "alice_land_combat");
+		new_elm->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
+		new_elm->impl_on_update(state);
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(state, "alice_map_legend_gradient_window");
+		state.ui_state.map_gradient_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_civ_level>(state, "alice_map_legend_civ_level");
+		state.ui_state.map_civ_level_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_col>(state, "alice_map_legend_colonial");
+		state.ui_state.map_col_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_dip>(state, "alice_map_legend_diplomatic");
+		state.ui_state.map_dip_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rr>(state, "alice_map_legend_infrastructure");
+		state.ui_state.map_rr_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_nav>(state, "alice_map_legend_naval");
+		state.ui_state.map_nav_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rank>(state, "alice_map_legend_rank");
+		state.ui_state.map_rank_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{
+		auto legend_win = ui::make_element_by_type<ui::map_legend_rec>(state, "alice_map_legend_rec");
+		state.ui_state.map_rec_legend = legend_win.get();
+		state.ui_state.root->add_child_to_front(std::move(legend_win));
+	}
+	{ // And the other on the normal in game UI
+		auto new_elm = ui::make_element_by_type<ui::chat_window>(state, "ingame_lobby_window");
+		new_elm->set_visible(state, !(state.network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
+		state.ui_state.chat_window = new_elm.get(); // Default for singleplayer is the in-game one, lobby one is useless in sp
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	state.ui_state.rgos_root->impl_on_update(state);
+	state.ui_state.units_root->impl_on_update(state);
+}
+}
 
 namespace sys {
 
@@ -52,7 +242,9 @@ void state::start_state_selection(state_selection_data& data) {
 	stored_map_mode = map_state.active_map_mode;
 	map_mode::set_map_mode(*this, map_mode::mode::state_select);
 	map_state.set_selected_province(dcon::province_id{});
-	ui_state.select_states_legend->impl_on_update(*this);
+	if(ui_state.select_states_legend) {
+		ui_state.select_states_legend->impl_on_update(*this);
+	}
 }
 
 void state::finish_state_selection() {
@@ -236,7 +428,9 @@ void state::on_lbutton_up(int32_t x, int32_t y, key_modifiers mod) {
 				world.nation_set_is_player_controlled(local_player_nation, false);
 				local_player_nation = owner;
 				world.nation_set_is_player_controlled(local_player_nation, true);
-				ui_state.nation_picker->impl_on_update(*this);
+				if(ui_state.nation_picker) {
+					ui_state.nation_picker->impl_on_update(*this);
+				}
 			} else if(command::can_notify_player_picks_nation(*this, local_player_nation, owner)) {
 				command::notify_player_picks_nation(*this, local_player_nation, owner);
 			}
@@ -392,9 +586,9 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	if(win_state != window::window_state::minimized) {
 		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
 		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
-
-		if(ui_state.outliner_window)
+		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
+		}
 	}
 }
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
@@ -452,7 +646,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 			map_state.on_key_down(keycode, mod);
 		}
 	} else if(mode == sys::game_mode_type::select_states) {
-		if(ui_state.nation_picker->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
+		if(ui_state.select_states_legend->impl_on_key_down(*this, keycode, mod) != ui::message_result::consumed) {
 			map_state.on_key_down(keycode, mod);
 			if(keycode == virtual_key::ESCAPE) {
 				mode = sys::game_mode_type::in_game;
@@ -486,11 +680,7 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 				if(auto cap = world.nation_get_capital(local_player_nation); cap) {
 					if(map_state.get_zoom() < map::zoom_very_close)
 						map_state.zoom = map::zoom_very_close;
-					auto map_pos = world.province_get_mid_point(cap);
-					map_pos.x /= float(map_state.map_data.size_x);
-					map_pos.y /= float(map_state.map_data.size_y);
-					map_pos.y = 1.0f - map_pos.y;
-					map_state.set_pos(map_pos);
+					map_state.center_map_on_province(*this, cap);
 				}
 			} else if(keycode == virtual_key::TAB) {
 				ui_state.chat_window->set_visible(*this, !ui_state.chat_window->is_visible());
@@ -589,6 +779,11 @@ inline constexpr int32_t tooltip_width = 400;
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
+	if(game_state_was_updated && mode != sys::game_mode_type::pick_nation && !ui_state.lazy_load_in_game) {
+		window::change_cursor(*this, window::cursor_type::busy);
+		ui::create_in_game_windows(*this);
+		window::change_cursor(*this, window::cursor_type::normal);
+	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
 		if(user_settings.map_label != sys::map_label_mode::none)
@@ -748,11 +943,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c1) {
 				auto auto_choice = world.national_event_get_auto_choice(c1->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c1);
 					if(world.national_event_get_is_major(c1->e)) {
-						ui::national_major_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c1);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -766,11 +960,10 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c2) {
 				auto auto_choice = world.free_national_event_get_auto_choice(c2->e);
 				if(auto_choice == 0) {
+					ui::new_event_window(*this, *c2);
 					if(world.free_national_event_get_is_major(c2->e)) {
-						ui::national_major_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					} else {
-						ui::national_event_window::new_event(*this, *c2);
 						sound::play_effect(*this, sound::get_major_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 					}
 				} else {
@@ -784,7 +977,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c3) {
 				auto auto_choice = world.provincial_event_get_auto_choice(c3->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c3);
+					ui::new_event_window(*this, *c3);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c3, uint8_t(auto_choice - 1));
@@ -797,7 +990,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c4) {
 				auto auto_choice = world.free_provincial_event_get_auto_choice(c4->e);
 				if(auto_choice == 0) {
-					ui::provincial_event_window::new_event(*this, *c4);
+					ui::new_event_window(*this, *c4);
 					sound::play_effect(*this, sound::get_minor_event_sound(*this), user_settings.effects_volume * user_settings.master_volume);
 				} else {
 					command::make_event_choice(*this, *c4, uint8_t(auto_choice - 1));
@@ -993,14 +1186,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 			}
 		}
 		root_elm->impl_on_update(*this);
-		if(mode != sys::game_mode_type::end_screen) {
+		if(mode != sys::game_mode_type::pick_nation && mode != sys::game_mode_type::end_screen) {
 			map_mode::update_map_mode(*this);
-			if(ui_state.unit_details_box->is_visible())
+			if(ui_state.unit_details_box && ui_state.unit_details_box->is_visible()) {
 				ui_state.unit_details_box->impl_on_update(*this);
+			}
 			ui::close_expired_event_windows(*this);
-			ui_state.rgos_root->impl_on_update(*this);
-			ui_state.units_root->impl_on_update(*this);
-			if(ui_state.ctrl_held_down && map_state.get_zoom() >= ui::big_counter_cutoff) {
+			if(ui_state.rgos_root) {
+				ui_state.rgos_root->impl_on_update(*this);
+			}
+			if(ui_state.units_root) {
+				ui_state.units_root->impl_on_update(*this);
+			}
+			if(ui_state.ctrl_held_down && map_state.get_zoom() >= ui::big_counter_cutoff && ui_state.province_details_root) {
 				ui_state.province_details_root->impl_on_update(*this);
 			}
 			if(selected_armies.size() + selected_navies.size() > 1) {
@@ -1198,7 +1396,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	if(bg_gfx_id) {
+	if(ui_state.bg_gfx_id) {
 		// Render default background
 		glUseProgram(open_gl.ui_shader_program);
 		glUniform1f(ogl::parameters::screen_width, float(x_size) / user_settings.ui_scale);
@@ -1208,11 +1406,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glViewport(0, 0, x_size, y_size);
 		glDepthRange(-1.0f, 1.0f);
-		auto& gfx_def = ui_defs.gfx[bg_gfx_id];
+		auto& gfx_def = ui_defs.gfx[ui_state.bg_gfx_id];
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
-					ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					ui::rotation::upright, gfx_def.is_vertically_flipped());
+				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+				ui::rotation::upright, gfx_def.is_vertically_flipped());
 		}
 	}
 
@@ -1242,15 +1440,17 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 		if(map_state.get_zoom() > map::zoom_close) {
 			if(!ui_state.ctrl_held_down) {
-				if(map_state.active_map_mode == map_mode::mode::rgo_output) {
+				if(ui_state.rgos_root && map_state.active_map_mode == map_mode::mode::rgo_output) {
 					ui_state.rgos_root->impl_render(*this, 0, 0);
 				} else {
-					ui_state.units_root->impl_render(*this, 0, 0);
-					if(ui_state.unit_details_box->is_visible()) {
+					if(ui_state.units_root) {
+						ui_state.units_root->impl_render(*this, 0, 0);
+					}
+					if(ui_state.unit_details_box && ui_state.unit_details_box->is_visible()) {
 						ui_state.unit_details_box->impl_render(*this, ui_state.unit_details_box->base_data.position.x, ui_state.unit_details_box->base_data.position.y);
 					}
 				}
-			} else if(map_state.get_zoom() >= ui::big_counter_cutoff) {
+			} else if(map_state.get_zoom() >= ui::big_counter_cutoff && ui_state.province_details_root) {
 				ui_state.province_details_root->impl_render(*this, 0, 0);
 			}
 		}
@@ -1302,6 +1502,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		tooltip_timer = std::chrono::steady_clock::now();
 	}
 }
+
 void state::on_create() {
 	// Clear "center" property so they don't look messed up!
 	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
@@ -1351,224 +1552,27 @@ void state::on_create() {
 	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.y = 0;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
-	bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
-
-	ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(*this, ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
-	ui_state.unit_details_box->set_visible(*this, false);
+	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
-	ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(*this, ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
-
-	ui_state.end_screen = std::make_unique<ui::container_base>();
-	{
-		auto ewin = ui::make_element_by_type<ui::end_window>(*this, ui_state.defs_by_name.find("back_end")->second.definition);
-		ui_state.end_screen->add_child_to_front(std::move(ewin));
-	}
-	world.for_each_province([&](dcon::province_id id) {
-		if(world.province_get_port_to(id)) {
-			auto ptr = ui::make_element_by_type<ui::port_window>(*this, "alice_port_icon");
-			static_cast<ui::port_window*>(ptr.get())->set_province(*this, id);
-			ui_state.units_root->add_child_to_front(std::move(ptr));
-		}
-	});
-	world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::unit_counter_window>(*this, "alice_map_unit");
-		static_cast<ui::unit_counter_window*>(ptr.get())->prov = id;
-		ui_state.units_root->add_child_to_front(std::move(ptr));
-	});
-	world.for_each_province([&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::rgo_icon>(*this, "alice_rgo_mapicon");
-		static_cast<ui::rgo_icon*>(ptr.get())->content = id;
-		ui_state.rgos_root->add_child_to_front(std::move(ptr));
-	});
-	province::for_each_land_province(*this, [&](dcon::province_id id) {
-		auto ptr = ui::make_element_by_type<ui::province_details_container>(*this, "alice_province_values");
-		static_cast<ui::province_details_container*>(ptr.get())->prov = id;
-		ui_state.province_details_root->add_child_to_front(std::move(ptr));
-	});
-
-	{
-		auto new_elm = ui::make_element_by_type<ui::chat_message_listbox<false>>(*this, "chat_list");
-		new_elm->base_data.position.x += 156; // nudge
-		new_elm->base_data.position.y += 24; // nudge
-		new_elm->impl_on_update(*this);
-		ui_state.tl_chat_list = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
-		ui_state.console_window = window.get();
-		window->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(window));
-	}
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window_r = window.get();
 		window->set_visible(*this, false);
 		ui_state.nation_picker->add_child_to_front(std::move(window));
 	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::outliner_window>(*this, "outliner");
-		ui_state.outliner_window = new_elm.get();
-		new_elm->impl_on_update(*this);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-		// Has to be created AFTER the outliner window
-		// The topbar has this button within, however since the button isn't properly displayed, it is better to make
-		// it into an independent element of it's own, living freely on the UI root so it can be flexibly moved around when
-		// the window is resized for example.
-		for(size_t i = ui_defs.gui.size(); i-- > 0;) {
-			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton_bg") {
-				auto new_bg = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
-				ui_state.root->add_child_to_front(std::move(new_bg));
-				break;
-			}
-		}
-		// Then create button atop
-		for(size_t i = ui_defs.gui.size(); i-- > 0;) {
-			auto gdef = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i));
-			if(to_string_view(ui_defs.gui[gdef].name) == "topbar_outlinerbutton") {
-				auto new_btn = ui::make_element_by_type<ui::outliner_button>(*this, gdef);
-				new_btn->impl_on_update(*this);
-				ui_state.root->add_child_to_front(std::move(new_btn));
-				break;
-			}
-		}
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_container_window>(*this, "alice_menubar");
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::minimap_picture_window>(*this, "minimap_pic");
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::province_view_window>(*this, "province_view");
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm_army = ui::make_element_by_type<ui::unit_details_window<dcon::army_id>>(*this, "sup_unit_status");
-		ui_state.army_status_window = static_cast<ui::unit_details_window<dcon::army_id>*>(new_elm_army.get());
-		new_elm_army->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm_army));
-
-		auto new_elm_navy = ui::make_element_by_type<ui::unit_details_window<dcon::navy_id>>(*this, "sup_unit_status");
-		ui_state.navy_status_window = static_cast<ui::unit_details_window<dcon::navy_id>*>(new_elm_navy.get());
-		new_elm_navy->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm_navy));
-	}
-	{
-		auto mselection = ui::make_element_by_type<ui::mulit_unit_selection_panel>(*this, "alice_multi_unitpanel");
-		ui_state.multi_unit_selection_window = mselection.get();
-		mselection->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(mselection));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::election_event_window>(*this, "event_election_window");
-		ui_state.election_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::diplomacy_request_window>(*this, "defaultdialog");
-		ui_state.request_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::message_window>(*this, "defaultpopup");
-		ui_state.msg_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::leader_selection_window>(*this, "alice_leader_selection_panel");
-		ui_state.change_leader_window = new_elm.get();
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_end_popup>(*this, "endofnavalcombatpopup");
-		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::naval_combat_window>(*this, "alice_naval_combat");
-		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(*this, "alice_land_combat");
-		new_elm->set_visible(*this, false);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-	{
-		auto new_elm = ui::make_element_by_type<ui::topbar_window>(*this, "topbar");
-		new_elm->impl_on_update(*this);
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(*this, "alice_map_legend_gradient_window");
-		ui_state.map_gradient_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_civ_level>(*this, "alice_map_legend_civ_level");
-		ui_state.map_civ_level_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_col>(*this, "alice_map_legend_colonial");
-		ui_state.map_col_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_dip>(*this, "alice_map_legend_diplomatic");
-		ui_state.map_dip_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rr>(*this, "alice_map_legend_infrastructure");
-		ui_state.map_rr_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_nav>(*this, "alice_map_legend_naval");
-		ui_state.map_nav_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rank>(*this, "alice_map_legend_rank");
-		ui_state.map_rank_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-	{
-		auto legend_win = ui::make_element_by_type<ui::map_legend_rec>(*this, "alice_map_legend_rec");
-		ui_state.map_rec_legend = legend_win.get();
-		ui_state.root->add_child_to_front(std::move(legend_win));
-	}
-
 	{ // One on the lobby
 		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
 		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
 		ui_state.r_chat_window = new_elm.get();
 		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
 	}
-	{ // And the other on the normal in game UI
-		auto new_elm = ui::make_element_by_type<ui::chat_window>(*this, "ingame_lobby_window");
-		new_elm->set_visible(*this, !(network_mode == sys::network_mode_type::single_player)); // Hidden in singleplayer by default
-		ui_state.chat_window = new_elm.get(); // Default for singleplayer is the in-game one, lobby one is useless in sp
-		ui_state.root->add_child_to_front(std::move(new_elm));
-	}
-
 	map_mode::set_map_mode(*this, map_mode::mode::political);
-
 	if(user_settings.use_classic_fonts) {
 		ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
 	} else {
 		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	}
-
-	ui_state.rgos_root->impl_on_update(*this);
-	ui_state.units_root->impl_on_update(*this);
 }
 //
 // string pool functions
@@ -1944,16 +1948,15 @@ void state::open_diplomacy(dcon::nation_id target) {
 	}
 }
 
-void state::load_scenario_data(parsers::error_handler& err) {
+void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date) {
+	auto root = get_root(common_fs);
+	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
 
 	text::load_text_data(*this, 2, err); // 2 = English
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
-
-	auto root = get_root(common_fs);
-	auto common = open_directory(root, NATIVE("common"));
 
 	auto map = open_directory(root, NATIVE("map"));
 	// parse default.map
@@ -2261,7 +2264,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	{
 		// Default vanilla dates used if ones are not defined
 		start_date = sys::absolute_time_point(sys::year_month_day{ 1836, 1, 1 });
-		end_date = sys::absolute_time_point(sys::year_month_day{ 1936, 1, 1 });
+		end_date = sys::absolute_time_point(sys::year_month_day{ 1935, 12, 31 });
 		for(auto defines_file : simple_fs::list_files(common, NATIVE(".lua"))) {
 			auto opened_file = open_file(defines_file);
 			if(opened_file) {
@@ -2270,6 +2273,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 				defines.parse_file(*this, std::string_view(content.data, content.data + content.file_size), err);
 			}
 		}
+		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
 	// gather names of poptypes
 	list_pop_types(*this, context);
@@ -2315,12 +2319,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	}
 	// parse super_region.txt
 	{
-		auto region_file = open_file(map, NATIVE("super_region.txt"));
-		if(region_file) {
-			auto content = view_contents(*region_file);
+		auto super_region_file = open_file(map, NATIVE("super_region.txt"));
+		if(super_region_file) {
+			auto content = view_contents(*super_region_file);
 			err.file_name = "super_region.txt";
 			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_superregion_file(gen, err, context);
+			parsers::parse_region_file(gen, err, context);
 		} else {
 			// OK for this file to be missing
 		}
@@ -2560,9 +2564,8 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	// load pop history files
 	{
 		auto pop_history = open_directory(history, NATIVE("pops"));
-		auto startdate = sys::date(0).to_ymd(start_date);
-		auto start_dir_name =
-			std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
+		auto startdate = current_date.to_ymd(start_date);
+		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
 		// NICK: 
 		// Attempts to look through the start date as defined by the mod.
@@ -2592,6 +2595,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+
 	// load poptype definitions
 	{
 		auto poptypes = open_directory(root, NATIVE("poptypes"));
@@ -2823,13 +2827,27 @@ void state::load_scenario_data(parsers::error_handler& err) {
 			}
 		}
 	}
+	// load battleplan settings
+	{
+		auto bp_dir = open_directory(root, NATIVE("battleplans"));
+		for(auto file : list_files(bp_dir, NATIVE(".txt"))) {
+			if(auto f = open_file(file); f) {
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*f));
+				auto content = view_contents(*f);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_battleplan_settings_file(gen, err, context);
+			}
+		}
+	}
 
 	// load oob
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
+		
 		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
 			auto file_name = get_full_name(oob_file);
-
+			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
+				continue;
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
 			auto start_of_name = last;
@@ -2839,18 +2857,12 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					break;
 				}
 			}
-
-			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
-				continue;
-
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2]));
-						it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						parsers::oob_file_context new_context{ context, holder };
-
 						auto opened_file = open_file(oob_file);
 						if(opened_file) {
 							err.file_name = utf8name;
@@ -2859,7 +2871,43 @@ void state::load_scenario_data(parsers::error_handler& err) {
 							parsers::parse_oob_file(gen, err, new_context);
 						}
 					} else {
-						// dead tag
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+					}
+				} else {
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+				}
+			}
+		}
+
+		auto startdate = current_date.to_ymd(start_date);
+		auto start_dir_name = std::to_string(startdate.year);
+		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
+		for(auto oob_file : list_files(date_directory, NATIVE(".txt"))) {
+			auto file_name = get_full_name(oob_file);
+			auto last = file_name.c_str() + file_name.length();
+			auto first = file_name.c_str();
+			auto start_of_name = last;
+			for(; start_of_name >= first; --start_of_name) {
+				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
+					++start_of_name;
+					break;
+				}
+			}
+			if(last - start_of_name >= 3) {
+				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
+					if(holder) {
+						parsers::oob_file_context new_context{ context, holder };
+						auto opened_file = open_file(oob_file);
+						if(opened_file) {
+							err.file_name = utf8name;
+							auto content = view_contents(*opened_file);
+							parsers::token_generator gen(content.data, content.data + content.file_size);
+							parsers::parse_oob_file(gen, err, new_context);
+						}
+					} else {
+						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
 				} else {
 					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
@@ -2911,6 +2959,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 
 					if(!holder) {
 						holder = world.create_nation();
+						world.nation_set_diplomatic_points(holder, 1.0f);
 						world.try_create_identity_holder(holder, it->second);
 					}
 
@@ -2925,8 +2974,7 @@ void state::load_scenario_data(parsers::error_handler& err) {
 					}
 
 				} else {
-					err.accumulated_warnings +=
-						"invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
+					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning country history files\n";
 				}
 			}
 		}
@@ -2954,31 +3002,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 	world.nation_resize_variables(uint32_t(national_definitions.num_allocated_national_variables));
 	world.pop_resize_demographics(pop_demographics::size(*this));
 	national_definitions.global_flag_variables.resize((national_definitions.num_allocated_global_flags + 7) / 8, dcon::bitfield_type{ 0 });
-
-	world.for_each_ideology([&](dcon::ideology_id id) {
-		if(!bool(world.ideology_get_activation_date(id))) {
-			world.ideology_set_enabled(id, true);
-		}
-	});
-
-	for(auto n : world.in_nation) {
-		n.set_diplomatic_points(1.0f);
-	}
-
-	// fix worker types
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
-
-		// fix pop types
-		for(auto pop : world.province_get_pop_location(p)) {
-			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
-				pop.get_pop().set_poptype(culture_definitions.laborers);
-			}
-			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
-				pop.get_pop().set_poptype(culture_definitions.farmers);
-			}
-		}
-	});
 
 	// add dummy nations for unheld tags
 	world.for_each_national_identity([&](dcon::national_identity_id id) {
@@ -3054,11 +3077,9 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		auto frel = fatten(world, id);
 		auto prov_a = frel.get_connected_provinces(0);
 		auto prov_b = frel.get_connected_provinces(1);
-		if(prov_a.id.index() < province_definitions.first_sea_province.index() &&
-				prov_b.id.index() >= province_definitions.first_sea_province.index()) {
+		if(prov_a.id.index() < province_definitions.first_sea_province.index() && prov_b.id.index() >= province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
-		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() &&
-							prov_b.id.index() < province_definitions.first_sea_province.index()) {
+		} else if(prov_a.id.index() >= province_definitions.first_sea_province.index() && prov_b.id.index() < province_definitions.first_sea_province.index()) {
 			frel.get_type() |= province::border::coastal_bit;
 		}
 		if(prov_a.get_state_from_abstract_state_membership() != prov_b.get_state_from_abstract_state_membership()) {
@@ -3159,7 +3180,6 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-
 	// make ports
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
 		for(auto adj : world.province_get_province_adjacency(p)) {
@@ -3173,20 +3193,26 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	});
 
-	// minimum discipline for land units
-	for(auto& u : military_definitions.unit_base_definitions) {
-		if(u.is_land) {
-			if(u.discipline_or_evasion <= 0.0f)
-				u.discipline_or_evasion = 1.0f;
+	// fix worker types
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		bool is_mine = world.commodity_get_is_mine(world.province_get_rgo(p));
+		// fix pop types
+		for(auto pop : world.province_get_pop_location(p)) {
+			if(is_mine && pop.get_pop().get_poptype() == culture_definitions.farmers) {
+				pop.get_pop().set_poptype(culture_definitions.laborers);
+			}
+			if(!is_mine && pop.get_pop().get_poptype() == culture_definitions.laborers) {
+				pop.get_pop().set_poptype(culture_definitions.farmers);
+			}
 		}
-	}
+	});
 
 	bool gov_error = false;
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		if(!g && n.get_owned_province_count() != 0) {
 			auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-			err.accumulated_errors += name + " exists but has no governmentnt (THIS WILL RESULT IN A CRASH)\n";
+			err.accumulated_errors += name + " exists but has no governmentnt (This will result in a crash)\n";
 			gov_error = true;
 		}
 	}
@@ -3213,8 +3239,44 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
+	//Fixup armies defined on a different place
+	for(auto p : world.in_pop_location) {
+		for(const auto src : p.get_pop().get_regiment_source()) {
+			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership())
+				continue;
+			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
+			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
+			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
+			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
+			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
+				auto new_u = world.create_army();
+				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
+				src.get_regiment().set_army_from_army_membership(new_u);
+				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
+			} else {
+				src.get_regiment().set_strength(0.f);
+			}
+		}
+	}
+
 	nations::update_revanchism(*this);
 	fill_unsaved_data(); // we need this to run triggers
+
+	for(auto n : world.in_nation) {
+		auto g = n.get_government_type();
+		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
+		if(!(n.get_owned_province_count() == 0 || world.government_type_is_valid(g))) {
+			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
+		}
+	}
+	for(auto g : world.in_government_type) {
+		for(auto rt : world.in_rebel_type) {
+			auto ng = rt.get_government_change(g);
+			if(!(!ng || uint32_t(ng.id.index()) < world.government_type_size())) {
+				err.accumulated_errors += "Government change for rebel type '" + text::produce_simple_string(*this, rt.get_name()) + "' with government '" + text::produce_simple_string(*this, g.get_name()) + "' is not valid\n";
+			}
+		}
+	}
 
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
@@ -3250,30 +3312,19 @@ void state::load_scenario_data(parsers::error_handler& err) {
 		}
 	}
 
-	world.for_each_national_identity([&](dcon::national_identity_id n) {
-		auto tag = nations::int_to_tag(world.national_identity_get_identifying_int(n));
-		if(tag == "REB")
-			national_definitions.rebel_id = world.national_identity_get_nation_from_identity_holder(n);
-	});
-
 	// fix slaves in non-slave owning nations
 	for(auto p : world.in_province) {
 		culture::fix_slaves_in_province(*this, p.get_nation_from_province_ownership(), p);
 	}
 
 	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		auto rgo = this->world.province_get_rgo(p);
-		if(!rgo) {
-			auto name = this->world.province_get_name(p);
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
 		}
 	});
 
-	
-
-	if(err.accumulated_errors.size() == 0)
-		economy::presimulate(*this);
-	
+	economy::presimulate(*this);
 
 	ai::identify_focuses(*this);
 	ai::initialize_ai_tech_weights(*this);
@@ -3500,7 +3551,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
 
-#ifndef  NDEBUG
+#ifndef NDEBUG
 	for(auto p : world.in_pop) {
 		float total = 0.0f;
 		for(auto i : world.in_ideology) {
@@ -3519,17 +3570,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		}
 	}
 	military::run_gc(*this);
-	for(auto n : world.in_nation) {
-		auto g = n.get_government_type();
-		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-		assert(n.get_owned_province_count() == 0 || world.government_type_is_valid(g));
-	}
-	for(auto g : world.in_government_type) {
-		for(auto rt : world.in_rebel_type) {
-			auto ng = rt.get_government_change(g);
-			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
-		}
-	}
 	for(auto a : world.in_army) {
 		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
 			a.set_arrival_time(current_date + 1);
@@ -4075,15 +4115,15 @@ void state::single_game_tick() {
 	case autosave_frequency::none:
 		break;
 	case autosave_frequency::daily:
-		write_save_file(*this, true);
+		write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::monthly:
 		if(ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	case autosave_frequency::yearly:
 		if(ymd_date.month == 1 && ymd_date.day == 1)
-			write_save_file(*this, true);
+			write_save_file(*this, sys::save_type::autosave);
 		break;
 	default:
 		break;
@@ -4163,11 +4203,8 @@ void state::game_loop() {
 		} else {
 			auto speed = actual_game_speed.load(std::memory_order::acquire);
 			auto upause = ui_pause.load(std::memory_order::acquire);
-
 			if(network_mode != sys::network_mode_type::host) { // prevent host from pausing the game with open event windows
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::province_event)] & message_response::pause) != 0 && ui::provincial_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::national_event)] & message_response::pause) != 0 && ui::national_event_window::pending_events > 0);
-				upause = upause || ((user_settings.self_message_settings[int32_t(message_setting_type::major_event)] & message_response::pause) != 0 && ui::national_major_event_window::pending_events > 0);
+				upause = upause || ui::events_pause_test(*this);
 			}
 
 			if(speed <= 0 || upause || internally_paused || (mode != sys::game_mode_type::in_game && mode != sys::game_mode_type::select_states)) {

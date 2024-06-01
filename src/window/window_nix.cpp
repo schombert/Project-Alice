@@ -125,6 +125,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		break;
 	case GLFW_REPEAT:
 		switch(virtual_key) {
+		case sys::virtual_key::RETURN: [[fallthrough]];
 		case sys::virtual_key::BACK: [[fallthrough]];
 		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
 		case sys::virtual_key::LEFT: [[fallthrough]];
@@ -331,7 +332,7 @@ void change_cursor(sys::state const& state, cursor_type type) {
 void emit_error_message(std::string const& content, bool fatal) {
 	std::fprintf(stderr, "%s", content.c_str());
 	if(fatal) {
-		std::terminate();
+		std::exit(EXIT_FAILURE);
 	}
 }
 

@@ -171,6 +171,7 @@ trigger_body
 	has_accepted_culture      value      text               member_fn (accepted_culture)
 	brigades_compare      value      float              member_fn
 	has_country_flag      value      text               member_fn
+	has_news_flag			value		text			member_fn (has_country_flag)
 	has_province_flag     value      text               discard
 	has_culture_core      value      bool               member_fn
 	has_pop_religion      value      text               member_fn
@@ -309,6 +310,7 @@ trigger_body
 	crisis_state_scope           extern tr_crisis_state_scope           discard
 	state_scope                  extern tr_state_scope                  discard
 	any_country                  extern tr_scope_any_country            discard
+	any_known_country            extern tr_scope_any_country            discard
 	every_country                extern tr_scope_every_country          discard
 	all_war_countries            extern tr_scope_all_war_countries      discard
 	any_war_countries            extern tr_scope_war_countries          discard

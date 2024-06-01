@@ -132,10 +132,15 @@ public:
 struct save_item {
 	native_string file_name;
 	uint64_t timestamp = 0;
-	dcon::national_identity_id save_flag;
 	sys::date save_date;
+	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
+	std::string name = "fe_new_game";
+
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
 
 	bool operator==(save_item const& o) const {
 		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
@@ -170,12 +175,7 @@ public:
 			win->set_visible(state, false);
 		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
 			win->set_visible(state, false);
-		for(const auto& win : provincial_event_window::event_pool)
-			win->set_visible(state, false);
-		for(const auto& win : national_event_window::event_pool)
-			win->set_visible(state, false);
-		for(const auto& win : national_major_event_window::event_pool)
-			win->set_visible(state, false);
+		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
@@ -257,18 +257,17 @@ protected:
 public:
 	void button_action(sys::state& state) noexcept override { }
 
-
 	void on_update(sys::state& state) noexcept  override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		auto tag = i->save_flag;
 		auto gov = i->as_gov;
-		visible = !i->is_new_game;
+		visible = !i->is_new_game && !i->is_bookmark();
 
 		if(!visible)
 			return;
 
 		if(!bool(tag))
-			tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+			tag = state.national_definitions.rebel_id;
 
 		culture::flag_type ft = culture::flag_type::default_flag;
 		if(gov) {
@@ -318,6 +317,8 @@ public:
 		save_item* i = retrieve< save_item*>(state, parent);
 		if(i->is_new_game) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
+		} else if(i->is_bookmark()) {
+			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
 			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
 			set_text(state, text::produce_simple_string(state, name));
@@ -333,10 +334,10 @@ public:
 	}
 };
 
-class save_game_item : public listbox_row_element_base<save_item> {
+class save_game_item : public listbox_row_element_base<std::shared_ptr<save_item>> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<save_item>::on_create(state);
+		listbox_row_element_base<std::shared_ptr<save_item>>::on_create(state);
 		base_data.position.x += 9; // Nudge
 		base_data.position.y += 7; // Nudge
 	}
@@ -356,14 +357,14 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
 		if(payload.holds_type<save_item*>()) {
-			payload.emplace<save_item*>(&content);
+			payload.emplace<save_item*>(content.get());
 			return message_result::consumed;
 		}
-		return listbox_row_element_base<save_item>::get(state, payload);
+		return listbox_row_element_base<std::shared_ptr<save_item>>::get(state, payload);
 	}
 };
 
-class saves_listbox : public listbox_element_base<save_game_item, save_item> {
+class saves_listbox : public listbox_element_base<save_game_item, std::shared_ptr<save_item>> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "alice_savegameentry";
@@ -371,7 +372,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), 0, dcon::national_identity_id{ }, sys::date(0), dcon::government_type_id{ }, true });
+		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -382,13 +383,15 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.tag, h.d, h.cgov, false });
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, std::string(h.save_name) }));
 				}
 			}
 		}
 
-		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			return a.timestamp > b.timestamp;
+		std::sort(row_contents.begin() + 1, row_contents.end(), [](std::shared_ptr<save_item> const& a, std::shared_ptr<save_item> const& b) {
+			if(a->is_bookmark() != b->is_bookmark())
+				return a->is_bookmark();
+			return a->timestamp > b->timestamp;
 		});
 
 		update(state);
@@ -399,7 +402,7 @@ public:
 		base_data.size.x -= 20; //nudge
 		base_data.size.y += base_data.position.y;
 		base_data.position.y = 0;
-		listbox_element_base<save_game_item, save_item>::on_create(state);
+		listbox_element_base<save_game_item, std::shared_ptr<save_item>>::on_create(state);
 		update_save_list(state);
 	}
 
@@ -597,11 +600,7 @@ public:
 			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
-				auto map_pos = state.world.province_get_mid_point(cap);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
-				state.map_state.set_pos(map_pos);
+				state.map_state.center_map_on_province(state, cap);
 			}
 			command::notify_start_game(state, state.local_player_nation);
 		}
@@ -690,12 +689,15 @@ public:
 					if(c.is_active() && c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;
 						auto total = c.save_stream_size;
-						float progress = (float(total) / float(completed));
-						if(progress < 1.f) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-							set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						if(total > 0.f) {
+							float progress = float(completed) / float(total);
+							if(progress < 1.f) {
+								text::substitution_map sub{};
+								text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+								set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+							}
 						}
+						break;
 					}
 				}
 			}

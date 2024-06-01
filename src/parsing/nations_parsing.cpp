@@ -38,6 +38,8 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	// Recognize the cleanup utility tag
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
 		context.state.national_definitions.cleanup_tag = new_ident;
+	} else if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
+		context.state.national_definitions.rebel_id = new_ident;
 	}
 
 	auto name_id = text::find_or_add_key(context.state, tag);
@@ -1021,6 +1023,7 @@ void lambda_country_event(token_generator& gen, error_handler& err, effect_build
 	fid.set_description(event_result.desc_);
 	fid.set_name(event_result.title_);
 	fid.set_image(event_result.picture_);
+	fid.set_allow_multiple_instances(event_result.allow_multiple_instances);
 	fid.set_immediate_effect(event_result.immediate_);
 	fid.set_is_major(event_result.major);
 	fid.get_options() = event_result.options;
@@ -1226,6 +1229,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				fid.set_image(event_result.picture_);
 				fid.set_immediate_effect(event_result.immediate_);
 				fid.set_is_major(event_result.major);
+				fid.set_allow_multiple_instances(event_result.allow_multiple_instances);
 				fid.get_options() = event_result.options;
 
 				for(auto& r : context.state.national_definitions.on_yearly_pulse) {
@@ -1256,6 +1260,7 @@ void commit_pending_events(error_handler& err, scenario_building_context& contex
 				for(auto& r : context.state.national_definitions.on_election_tick) {
 					if(r.id == data_copy.id) {
 						r.condition = event_result.trigger;
+						r.issue_group = event_result.issue_group_;
 					}
 				}
 				for(auto& r : context.state.national_definitions.on_colony_to_state) {
@@ -1402,7 +1407,7 @@ void make_oob_relationship(std::string_view tag, token_generator& gen, error_han
 void make_alliance(token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto a = parse_alliance(gen, err, context);
 
-	if(!a.first_ || !a.second_)
+	if(a.invalid || !a.first_ || !a.second_)
 		return;
 
 	auto rel = context.state.world.get_diplomatic_relation_by_diplomatic_pair(a.first_, a.second_);
@@ -1427,11 +1432,12 @@ void make_substate(token_generator& gen, error_handler& err, scenario_building_c
 	}
 }
 
-void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err,
-		country_history_context& context) {
+void enter_country_file_dated_block(std::string_view label, token_generator& gen, error_handler& err, country_history_context& context) {
 	auto ymd = parse_date(label, 0, err);
-	if(sys::absolute_time_point(ymd) <= context.outer_context.state.start_date) {
+	if(sys::date(ymd, context.outer_context.state.start_date) <= context.outer_context.state.current_date) {
+		context.in_dated_block = true;
 		parse_country_history_file(gen, err, context);
+		context.in_dated_block = false;
 	} else {
 		gen.discard_group();
 	}

@@ -390,8 +390,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 
 					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
 						if((adj.get_type() & province::border::impassible_bit) == 0) {
-							auto other = (prov_tag == adj.get_connected_provinces(0)) ? adj.get_connected_provinces(1).id
-																																				: adj.get_connected_provinces(0).id;
+							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
 							accumulator.add_value(to_generic(other));
 						}
 					}
@@ -403,8 +402,7 @@ TRIGGER_FUNCTION(tf_x_neighbor_province_scope) {
 
 					for(auto adj : ws.world.province_get_province_adjacency(prov_tag)) {
 						if((adj.get_type() & province::border::impassible_bit) == 0) {
-							auto other = (prov_tag == adj.get_connected_provinces(0)) ? adj.get_connected_provinces(1).id
-																																				: adj.get_connected_provinces(0).id;
+							auto other = adj.get_connected_provinces(prov_tag == adj.get_connected_provinces(0) ? 1 : 0).id;
 							accumulator.add_value(to_generic(other));
 						}
 					}

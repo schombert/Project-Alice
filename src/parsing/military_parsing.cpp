@@ -210,5 +210,9 @@ oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_a
 	oob_file_context new_context{context.outer_context, context.nation_for};
 	return parse_oob_leader(gen, err, new_context);
 }
+oob_leader make_navy_leader(token_generator& gen, error_handler& err, oob_file_navy_context& context) {
+	oob_file_context new_context{ context.outer_context, context.nation_for };
+	return parse_oob_leader(gen, err, new_context);
+}
 
 } // namespace parsers

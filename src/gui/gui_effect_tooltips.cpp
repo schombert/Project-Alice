@@ -692,7 +692,6 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-
 				auto box = text::open_layout_box(layout, indentation);
 				text::add_to_layout_box(ws, layout, box, rlist[r]);
 				text::close_layout_box(layout, box);
@@ -704,23 +703,20 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		}
 	}
 
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
-		text::add_space_to_layout_box(ws, layout, box);
-		if(primary_slot != -1)
-			text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
-		else
-			text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval[0])));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
+	text::add_space_to_layout_box(ws, layout, box);
+	if(primary_slot != -1)
+		text::add_to_layout_box(ws, layout, box, trigger::to_nation(primary_slot));
+	else
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_nation"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-
 	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
+		indentation + indentation_amount);
 }
 uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -1034,15 +1030,11 @@ uint32_t es_owner_scope_state(EFFECT_DISPLAY_PARAMS) {
 			this_slot, from_slot, r_hi, r_lo, indentation + indentation_amount);
 }
 uint32_t es_owner_scope_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
-		text::add_space_to_layout_box(ws, layout, box);
-		text::add_to_layout_box(ws, layout, box,
-				primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot)))
-													 : text::produce_simple_string(ws, "singular_province"));
-		text::close_layout_box(layout, box);
-	}
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, primary_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(primary_slot))) : text::produce_simple_string(ws, "singular_province"));
+	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return display_subeffects(ws, tval, layout,
 			primary_slot != -1
@@ -1970,14 +1962,14 @@ uint32_t ef_research_points(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_tech_school(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_tech_school", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_tech_school", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
 	return 0;
 }
 uint32_t ef_government(EFFECT_DISPLAY_PARAMS) {
@@ -2938,25 +2930,25 @@ uint32_t ef_plurality(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_remove_province_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "remove_prov_mod", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "remove_prov_mod", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_remove_country_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "remove_nat_mod", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "remove_nat_mod", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_create_alliance(EFFECT_DISPLAY_PARAMS) {
@@ -3157,25 +3149,25 @@ uint32_t ef_clr_global_flag(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_nationalvalue_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_national_value", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_national_value", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_nationalvalue_nation(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "change_national_value", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "change_national_value", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_civilized_yes(EFFECT_DISPLAY_PARAMS) {
@@ -3799,49 +3791,49 @@ uint32_t ef_relation_from_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_add_province_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_province_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_casus_belli_tag(EFFECT_DISPLAY_PARAMS) {
@@ -5178,7 +5170,7 @@ uint32_t ef_country_event_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5190,7 +5182,7 @@ uint32_t ef_country_event_immediate_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5204,7 +5196,7 @@ uint32_t ef_province_event_this_nation(EFFECT_DISPLAY_PARAMS) {
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::nation});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::nation});
 
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
@@ -5218,7 +5210,7 @@ uint32_t ef_province_event_immediate_this_nation(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::nation});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5230,7 +5222,7 @@ uint32_t ef_country_event_this_state(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5242,7 +5234,7 @@ uint32_t ef_country_event_immediate_this_state(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5255,7 +5247,7 @@ uint32_t ef_province_event_this_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::state});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5268,7 +5260,7 @@ uint32_t ef_province_event_immediate_this_state(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::state});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5280,7 +5272,7 @@ uint32_t ef_country_event_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5292,7 +5284,7 @@ uint32_t ef_country_event_immediate_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5305,7 +5297,7 @@ uint32_t ef_province_event_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::province});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5318,7 +5310,7 @@ uint32_t ef_province_event_immediate_this_province(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::province});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5330,7 +5322,7 @@ uint32_t ef_country_event_this_pop(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5342,7 +5334,7 @@ uint32_t ef_country_event_immediate_this_pop(EFFECT_DISPLAY_PARAMS) {
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
-		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
+		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1, primary_slot, this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5355,7 +5347,7 @@ uint32_t ef_province_event_this_pop(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::pop});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5368,7 +5360,7 @@ uint32_t ef_province_event_immediate_this_pop(EFFECT_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(m, text::variable_type::text,
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_p_event {r_lo, r_hi + 1,
-			this_slot, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), ws.current_date, event::slot_type::pop});
+			this_slot, ws.current_date, trigger::payload(tval[1]).pev_id, trigger::to_prov(primary_slot), event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5382,7 +5374,7 @@ uint32_t ef_country_event_province_this_nation(EFFECT_DISPLAY_PARAMS) {
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5396,7 +5388,7 @@ uint32_t ef_country_event_immediate_province_this_nation(EFFECT_DISPLAY_PARAMS) 
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::nation});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::nation});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5410,7 +5402,7 @@ uint32_t ef_country_event_province_this_state(EFFECT_DISPLAY_PARAMS) {
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5424,7 +5416,7 @@ uint32_t ef_country_event_immediate_province_this_state(EFFECT_DISPLAY_PARAMS) {
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::state});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::state});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5438,7 +5430,7 @@ uint32_t ef_country_event_province_this_province(EFFECT_DISPLAY_PARAMS) {
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5452,7 +5444,7 @@ uint32_t ef_country_event_immediate_province_this_province(EFFECT_DISPLAY_PARAMS
 				ws.world.national_event_get_name(trigger::payload(tval[1]).nev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::province});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::province});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5466,7 +5458,7 @@ uint32_t ef_country_event_province_this_pop(EFFECT_DISPLAY_PARAMS) {
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -5480,7 +5472,7 @@ uint32_t ef_country_event_immediate_province_this_pop(EFFECT_DISPLAY_PARAMS) {
 				ws.world.provincial_event_get_name(trigger::payload(tval[1]).pev_id));
 		populate_event_submap(ws, m, event::pending_human_n_event {r_lo, r_hi + 1,
 			trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot))),
-			this_slot, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), ws.current_date, event::slot_type::nation, event::slot_type::pop});
+			this_slot, ws.current_date, trigger::payload(tval[1]).nev_id, trigger::to_nation(primary_slot), event::slot_type::nation, event::slot_type::pop});
 		text::localised_format_box(ws, layout, box, "event_fires", m);
 		text::close_layout_box(layout, box);
 	}
@@ -6239,26 +6231,26 @@ uint32_t ef_set_country_flag_province(EFFECT_DISPLAY_PARAMS) {
 	return 0;
 }
 uint32_t ef_add_country_modifier_province(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
-		text::localised_format_box(ws, layout, box, "o_add_modifier_until", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::add_to_substitution_map(m, text::variable_type::date, ws.current_date + trigger::payload(tval[2]).signed_value);
+	text::localised_format_box(ws, layout, box, "o_add_modifier_until", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_add_country_modifier_province_no_duration(EFFECT_DISPLAY_PARAMS) {
-	{
-		auto box = text::open_layout_box(layout, indentation);
-		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
-		text::localised_format_box(ws, layout, box, "o_add_modifier", m);
-		text::close_layout_box(layout, box);
+	auto box = text::open_layout_box(layout, indentation);
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
+	text::localised_format_box(ws, layout, box, "o_add_modifier", m);
+	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	}
-	modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
 	return 0;
 }
 uint32_t ef_relation_province(EFFECT_DISPLAY_PARAMS) {
@@ -6618,6 +6610,9 @@ uint32_t ef_change_terrain_pop(EFFECT_DISPLAY_PARAMS) {
 	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
 	text::localised_format_box(ws, layout, box, "ett_change_pop_terrain_to", m);
 	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
+	}
 	return 0;
 }
 uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
@@ -6626,6 +6621,9 @@ uint32_t ef_change_terrain_province(EFFECT_DISPLAY_PARAMS) {
 	text::add_to_substitution_map(m, text::variable_type::text, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
 	text::localised_format_box(ws, layout, box, "ett_change_province_terrain_to", m);
 	text::close_layout_box(layout, box);
+	if(ws.user_settings.spoilers) {
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + indentation_amount);
+	}
 	return 0;
 }
 
