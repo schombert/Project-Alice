@@ -359,6 +359,8 @@ void presimulate(sys::state& state) {
 		auto fp = fatten(state.world, p);
 		auto n = fp.get_nation_from_province_ownership();
 		auto c = state.world.province_get_rgo(p);
+		if(!c)
+			return;
 		bool is_mine = state.world.commodity_get_is_mine(c);
 
 		//currently working pops there
