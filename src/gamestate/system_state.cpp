@@ -3266,14 +3266,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
 		if(!(n.get_owned_province_count() == 0 || world.government_type_is_valid(g))) {
-			err.accumulated_warnings += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
+			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
 		}
 	}
 	for(auto g : world.in_government_type) {
 		for(auto rt : world.in_rebel_type) {
 			auto ng = rt.get_government_change(g);
 			if(!(!ng || uint32_t(ng.id.index()) < world.government_type_size())) {
-				err.accumulated_warnings += "Government change for rebel type '" + text::produce_simple_string(*this, rt.get_name()) + "' with government '" + text::produce_simple_string(*this, g.get_name()) + "' is not valid\n";
+				err.accumulated_errors += "Government change for rebel type '" + text::produce_simple_string(*this, rt.get_name()) + "' with government '" + text::produce_simple_string(*this, g.get_name()) + "' is not valid\n";
 			}
 		}
 	}
