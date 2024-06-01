@@ -3262,6 +3262,22 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	nations::update_revanchism(*this);
 	fill_unsaved_data(); // we need this to run triggers
 
+	for(auto n : world.in_nation) {
+		auto g = n.get_government_type();
+		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
+		if(!(n.get_owned_province_count() == 0 || world.government_type_is_valid(g))) {
+			err.accumulated_warnings += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
+		}
+	}
+	for(auto g : world.in_government_type) {
+		for(auto rt : world.in_rebel_type) {
+			auto ng = rt.get_government_change(g);
+			if(!(!ng || uint32_t(ng.id.index()) < world.government_type_size())) {
+				err.accumulated_warnings += "Government change for rebel type '" + text::produce_simple_string(*this, rt.get_name()) + "' with government '" + text::produce_simple_string(*this, g.get_name()) + "' is not valid\n";
+			}
+		}
+	}
+
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
 		dcon::nation_id n = pending_decision.first;
@@ -3535,7 +3551,7 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 	military_definitions.pending_blackflag_update = true;
 	military::update_blackflag_status(*this);
 
-#ifndef  NDEBUG
+#ifndef NDEBUG
 	for(auto p : world.in_pop) {
 		float total = 0.0f;
 		for(auto i : world.in_ideology) {
@@ -3554,17 +3570,6 @@ void state::fill_unsaved_data() { // reconstructs derived values that are not di
 		}
 	}
 	military::run_gc(*this);
-	for(auto n : world.in_nation) {
-		auto g = n.get_government_type();
-		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
-		assert(n.get_owned_province_count() == 0 || world.government_type_is_valid(g));
-	}
-	for(auto g : world.in_government_type) {
-		for(auto rt : world.in_rebel_type) {
-			auto ng = rt.get_government_change(g);
-			assert(!ng || uint32_t(ng.id.index()) < world.government_type_size());
-		}
-	}
 	for(auto a : world.in_army) {
 		if(a.get_arrival_time() && a.get_arrival_time() <= current_date) {
 			a.set_arrival_time(current_date + 1);
