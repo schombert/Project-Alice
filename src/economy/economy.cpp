@@ -29,11 +29,17 @@ void register_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id co
 void register_intermediate_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id commodity_type, float amount, economy_reason reason) {
 	register_demand(state, n, commodity_type, amount, reason);
 	state.world.nation_get_intermediate_demand(n, commodity_type) += amount;
+	state.world.nation_get_gdp(n) -= amount * state.world.commodity_get_current_price(commodity_type);
 }
 
 // it's registered as a demand separately
 void register_construction_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id commodity_type, float amount) {
 	state.world.nation_get_construction_demand(n, commodity_type) += amount;
+}
+
+void register_domestic_supply(sys::state& state, dcon::nation_id n, dcon::commodity_id commodity_type, float amount, economy_reason reason) {
+	state.world.nation_get_domestic_market_pool(n, commodity_type) += amount;
+	state.world.nation_get_gdp(n) += amount * state.world.commodity_get_current_price(commodity_type);
 }
 
 template void for_each_new_factory<std::function<void(new_factory)>>(sys::state&, dcon::state_instance_id, std::function<void(new_factory)>&&);
@@ -1586,8 +1592,7 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 		auto money_made = state.world.factory_get_full_profit(f);
 
 		state.world.factory_set_actual_production(f, amount);
-		state.world.nation_get_domestic_market_pool(n, fac_type.get_output()) += amount;
-
+		register_domestic_supply(state, n, fac_type.get_output(), amount, economy_reason::factory);
 		
 		if(!fac.get_subsidized()) {
 			state.world.factory_set_full_profit(f, money_made);
@@ -1796,7 +1801,7 @@ void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon
 	if(!c)
 		return;
 
-	state.world.nation_get_domestic_market_pool(n, c) += amount;
+	register_domestic_supply(state, n, c, amount, economy_reason::rgo);
 	assert(amount >= 0);
 	assert(state.world.commodity_get_current_price(c) >= 0);
 	assert(amount * state.world.commodity_get_current_price(c) >= 0);
@@ -1911,7 +1916,7 @@ void update_national_artisan_production(sys::state& state, dcon::nation_id n) {
 
 				auto amount = min_input * production;
 				state.world.nation_set_artisan_actual_production(n, cid, amount);
-				state.world.nation_get_domestic_market_pool(n, cid) += amount;
+				register_domestic_supply(state, n, cid, amount, economy_reason::artisan);
 			}
 		}
 	}
@@ -2971,6 +2976,10 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 	for(auto n : state.nations_by_rank) {
 		if(!n) // test for running out of sorted nations
 			break;
+
+		// reset gdp
+		state.world.nation_set_gdp(n, 0.f);
+
 		/*
 		### Calculate effective prices
 		We will use the real demand from the *previous* day to determine how much of the purchasing will be done from the domestic
@@ -3102,8 +3111,6 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 		perform actual consumption / purchasing subject to availability
 		*/
 
-		float gdp = 0.f;
-
 		for(uint32_t i = 1; i < total_commodities; ++i) {
 			dcon::commodity_id c{dcon::commodity_id::value_base_t(i)};
 
@@ -3119,11 +3126,6 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 			auto new_sat = rd > 0.0001f ? total_supply / rd : total_supply;
 			auto adj_sat = old_sat * state.defines.alice_sat_delay_factor + new_sat * (1.0f - state.defines.alice_sat_delay_factor);
 			state.world.nation_set_demand_satisfaction(n, c, std::min(1.0f, adj_sat));
-
-			//update gdp
-			float price = state.world.commodity_get_current_price(c);
-			gdp += dom_pool * price;
-			gdp -= state.world.nation_get_intermediate_demand(n, c) * std::min(1.0f, adj_sat) * price;
 
 			if(global_price_multiplier >= 1.0f) { // prefer domestic
 				state.world.nation_set_domestic_market_pool(n, c, std::max(0.0f, dom_pool - rd));
@@ -3168,7 +3170,7 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 			state.cheat_data.national_economy_dump_file
 				<< tag << ","
 				<< name << ","
-				<< gdp << ","
+				<< state.world.nation_get_gdp(n) << ","
 				<< life_costs << ","
 				<< state.world.nation_get_demographics(n, demographics::total) << ","
 				<< state.current_date.value << "\n";

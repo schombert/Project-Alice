@@ -660,6 +660,32 @@ public:
 	}
 };
 
+class nation_ppp_gdp_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		float costs =
+			state.world.nation_get_life_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_everyday_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_luxury_needs_costs(nation_id, state.culture_definitions.primary_factory_worker);
+
+		return text::format_float(state.world.nation_get_gdp(nation_id) / costs);
+	}
+};
+
+class nation_ppp_gdp_per_capita_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		float costs =
+			state.world.nation_get_life_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_everyday_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_luxury_needs_costs(nation_id, state.culture_definitions.primary_factory_worker);
+
+		float population = state.world.nation_get_demographics(nation_id, demographics::total);
+
+		return text::format_float(state.world.nation_get_gdp(nation_id) / costs / population * 10000.f);
+	}
+};
+
 class nation_prestige_rank_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
