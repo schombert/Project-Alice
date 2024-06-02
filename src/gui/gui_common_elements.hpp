@@ -12,6 +12,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "triggers.hpp"
 #include <unordered_map>
 #include <vector>
 
