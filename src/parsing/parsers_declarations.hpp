@@ -805,7 +805,6 @@ public:
 		}
 	}
 	MOD_NAT_FUNCTION(colonial_life_rating)
-	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
 	template<typename T>

@@ -789,7 +789,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto local_mod = (pmod + omod) + cmod;
 
 		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
-				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 						state.defines.mil_non_accepted);
 		auto ln_mod = ve::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 		auto en_mod_a =
@@ -832,7 +832,7 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	float local_mod = (pmod + omod) + cmod;
 
 	float sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
-			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 					state.defines.mil_non_accepted);
 	float ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 	float en_mod_a =
