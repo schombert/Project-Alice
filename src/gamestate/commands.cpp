@@ -130,6 +130,10 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 					return false;
 				}
 			}
+			auto prov = state.world.state_instance_get_capital(target_state);
+			auto k = state.world.national_focus_get_limit(focus);
+			if(k && !trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(state_owner), -1))
+				return false;
 			return num_focuses_set < num_focuses_total || bool(state.world.state_instance_get_owner_focus(target_state));
 		} else {
 			auto pc = state.world.nation_get_primary_culture(source);
