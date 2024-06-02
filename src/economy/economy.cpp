@@ -1079,7 +1079,7 @@ void update_factory_employment(sys::state& state) {
 			return a.index() < b.index();
 		});
 
-		float employment_shift_speed = 0.05f;
+		float employment_shift_speed = 0.001f;
 
 		float primary_pool_copy = primary_pool;
 		float secondary_pool_copy = secondary_pool;
