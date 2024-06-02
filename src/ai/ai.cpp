@@ -693,31 +693,46 @@ void update_focuses(sys::state& state) {
 		});
 		bool threatened = n.get_ai_is_threatened() || n.get_is_at_war();
 		for(uint32_t i = 0; num_focuses_total > 0 && i < ordered_states.size(); ++i) {
+			auto prov = state.world.state_instance_get_capital(ordered_states[i]);
 			if(max_clergy) {
 				if(threatened) {
-					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.soldier_focus);
-					--num_focuses_total;
+					auto nf = state.national_definitions.soldier_focus;
+					auto k = state.world.national_focus_get_limit(nf);
+					if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+						assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.soldier_focus);
+						--num_focuses_total;
+					}
 				} else {
 					auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 					auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / total;
-					auto pwfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.primary_factory_worker)) / total;
-					auto swfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.secondary_factory_worker)) / total;
 					if(cfrac < state.defines.max_clergy_for_literacy * 0.8f) {
-						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
-						--num_focuses_total;
+						auto nf = state.national_definitions.clergy_focus;
+						auto k = state.world.national_focus_get_limit(nf);
+						if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+							assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+							state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
+							--num_focuses_total;
+						}
 					}
 				}
 			} else {
 				// If we haven't maxxed out clergy on this state, then our number 1 priority is to maximize clergy
 				auto cfrac = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.clergy)) / state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 				if(cfrac < base_opt * 1.2f) {
-					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
-					--num_focuses_total;
+					auto nf = state.national_definitions.clergy_focus;
+					auto k = state.world.national_focus_get_limit(nf);
+					if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+						assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+						state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.clergy_focus);
+						--num_focuses_total;
+					}
 				}
 			}
 		}
 
 		for(uint32_t i = 0; num_focuses_total > 0 && i < ordered_states.size(); ++i) {
+			auto prov = state.world.state_instance_get_capital(ordered_states[i]);
 			auto total = state.world.state_instance_get_demographics(ordered_states[i], demographics::total);
 			auto pw_num = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_key(state, state.culture_definitions.primary_factory_worker));
 			auto pw_employed = state.world.state_instance_get_demographics(ordered_states[i], demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
@@ -730,26 +745,47 @@ void update_focuses(sys::state& state) {
 			// Due to floating point comparison where 2.9999 != 3, we will round the number
 			// so that the ratio is NOT exact, but rather an aproximate
 			if(pw_employed >= pw_num && int8_t(pw_frac * 100.f) != int8_t(ideal_pwfrac * 100.f)) {
-				// Keep balance between ratio of factory workers
-				// we will only promote primary workers if none are unemployed
-				state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.secondary_factory_worker_focus);
-				--num_focuses_total;
+				auto nf = state.national_definitions.secondary_factory_worker_focus;
+				auto k = state.world.national_focus_get_limit(nf);
+				if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+					// Keep balance between ratio of factory workers
+					// we will only promote primary workers if none are unemployed
+					assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+					state.world.state_instance_set_owner_focus(ordered_states[i], nf);
+					--num_focuses_total;
+				}
 			} else if(sw_employed >= sw_num && int8_t(sw_frac * 100.f) != int8_t(ideal_swfrac * 100.f)) {
-				// Keep balance between ratio of factory workers
-				// we will only promote secondary workers if none are unemployed
-				state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.primary_factory_worker_focus);
-				--num_focuses_total;
+				auto nf = state.national_definitions.primary_factory_worker_focus;
+				auto k = state.world.national_focus_get_limit(nf);
+				if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+					// Keep balance between ratio of factory workers
+					// we will only promote secondary workers if none are unemployed
+					assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+					state.world.state_instance_set_owner_focus(ordered_states[i], nf);
+					--num_focuses_total;
+				}
 			} else {
 				/* If we are a civilized nation, and we allow pops to operate on the economy
 				   i.e Laissez faire, we WILL promote capitalists, since they will help to
 				   build new factories for us */
 				auto rules = n.get_combined_issue_rules();
 				if(n.get_is_civilized() && (rules & (issue_rule::pop_build_factory | issue_rule::pop_build_factory_invest | issue_rule::pop_expand_factory | issue_rule::pop_expand_factory_invest | issue_rule::pop_open_factory | issue_rule::pop_open_factory_invest)) != 0) {
-					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.capitalist_focus);
+					auto nf = state.national_definitions.capitalist_focus;
+					auto k = state.world.national_focus_get_limit(nf);
+					if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+						assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+						state.world.state_instance_set_owner_focus(ordered_states[i], nf);
+						--num_focuses_total;
+					}
 				} else {
-					state.world.state_instance_set_owner_focus(ordered_states[i], state.national_definitions.aristocrat_focus);
+					auto nf = state.national_definitions.aristocrat_focus;
+					auto k = state.world.national_focus_get_limit(nf);
+					if(!k || trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(n), -1)) {
+						assert(command::can_set_national_focus(state, n, ordered_states[i], nf));
+						state.world.state_instance_set_owner_focus(ordered_states[i], nf);
+						--num_focuses_total;
+					}
 				}
-				--num_focuses_total;
 			}
 		}
 	}
@@ -4985,6 +5021,7 @@ void update_land_constructions(sys::state& state) {
 
 		bool can_make_inf = state.world.nation_get_active_unit(n, state.military_definitions.infantry) || state.military_definitions.unit_base_definitions[state.military_definitions.infantry].active;
 		bool can_make_art = state.world.nation_get_active_unit(n, state.military_definitions.artillery) || state.military_definitions.unit_base_definitions[state.military_definitions.artillery].active;
+		bool art_req_pc = state.military_definitions.unit_base_definitions[state.military_definitions.artillery].primary_culture;
 
 		for(auto ar : state.world.nation_get_army_control(n)) {
 			for(auto r : ar.get_army().get_army_membership()) {
@@ -5001,91 +5038,91 @@ void update_land_constructions(sys::state& state) {
 			}
 		}
 
-		const std::function<dcon::unit_type_id()> decide_type = can_make_art
-			? std::function<dcon::unit_type_id()>([&]() {
-			if(num_frontline > num_support) {
-				++num_support;
-				return state.military_definitions.artillery;
+		const auto decide_type = [&](bool pc) {
+			if(can_make_art && (!art_req_pc || (art_req_pc && pc))) {
+				if(num_frontline > num_support) {
+					++num_support;
+					return state.military_definitions.artillery;
+				} else {
+					++num_frontline;
+					return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
+				}
 			} else {
-				++num_frontline;
 				return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
 			}
-			})
-			: std::function<dcon::unit_type_id()>([&]() {
-				return can_make_inf ? state.military_definitions.infantry : state.military_definitions.irregular;
-			});
+		};
 
-			for(auto p : state.world.nation_get_province_ownership(n)) {
-				if(p.get_province().get_nation_from_province_control() != n)
-					continue;
+		for(auto p : state.world.nation_get_province_ownership(n)) {
+			if(p.get_province().get_nation_from_province_control() != n)
+				continue;
 
-				if(p.get_province().get_is_colonial()) {
-					float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-					float minimum = state.defines.pop_min_size_for_regiment;
+			if(p.get_province().get_is_colonial()) {
+				float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
+				float minimum = state.defines.pop_min_size_for_regiment;
 
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(t);
+								--num_to_make;
 							}
 						}
 					}
-				} else if(!p.get_province().get_is_owner_core()) {
-					float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-					float minimum = state.defines.pop_min_size_for_regiment;
+				}
+			} else if(!p.get_province().get_is_owner_core()) {
+				float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
+				float minimum = state.defines.pop_min_size_for_regiment;
 
-					dcon::pop_id non_preferred;
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+				dcon::pop_id non_preferred;
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(t);
+								--num_to_make;
 							}
 						}
 					}
-				} else {
-					float divisor = state.defines.pop_size_per_regiment;
-					float minimum = state.defines.pop_min_size_for_regiment;
+				}
+			} else {
+				float divisor = state.defines.pop_size_per_regiment;
+				float minimum = state.defines.pop_min_size_for_regiment;
 
-					dcon::pop_id non_preferred;
-					for(auto pop : p.get_province().get_pop_location()) {
-						if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-							if(pop.get_pop().get_size() >= minimum) {
-								auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-								auto regs = pop.get_pop().get_regiment_source();
-								auto building = pop.get_pop().get_province_land_construction();
-								auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
-
-								while(num_to_make > 0) {
-									assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), decide_type()));
-									auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
-									c.set_type(decide_type());
-									--num_to_make;
-								}
+				dcon::pop_id non_preferred;
+				for(auto pop : p.get_province().get_pop_location()) {
+					if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
+						if(pop.get_pop().get_size() >= minimum) {
+							auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
+							auto regs = pop.get_pop().get_regiment_source();
+							auto building = pop.get_pop().get_province_land_construction();
+							auto num_to_make = amount - ((regs.end() - regs.begin()) + (building.end() - building.begin()));
+							while(num_to_make > 0) {
+								auto t = decide_type(pop.get_pop().get_is_primary_or_accepted_culture());
+								assert(command::can_start_land_unit_construction(state, n, pop.get_province(), pop.get_pop().get_culture(), t));
+								auto c = fatten(state.world, state.world.try_create_province_land_construction(pop.get_pop().id, n));
+								c.set_type(t);
+								--num_to_make;
 							}
 						}
 					}
 				}
 			}
+		}
 	}
 }
 

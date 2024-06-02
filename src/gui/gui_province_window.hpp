@@ -306,8 +306,8 @@ public:
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
 		return bool(state.world.state_instance_get_owner_focus(content).id)
-							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-							 : 0;
+			? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+			: 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {

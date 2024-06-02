@@ -235,7 +235,7 @@ modifier_base
 	pop_growth                                value      float            member_fn
 	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
-	seperatism                                value      float            member_fn
+	seperatism                                value      float            member_fn (non_accepted_pop_militancy_modifier)
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard

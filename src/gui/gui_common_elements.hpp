@@ -12,6 +12,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "triggers.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -1866,6 +1867,8 @@ public:
 			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 				modifier_description(state, contents, mid, 15);
 			}
+
+			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(sid), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 

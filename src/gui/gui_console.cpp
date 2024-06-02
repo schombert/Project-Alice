@@ -2274,6 +2274,9 @@ void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
 void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
 	ui::console_window::show_toggle(state);
 }
+void ui::console_edit::edit_box_back_slash(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
 
 void ui::console_window::show_toggle(sys::state& state) {
 	assert(state.ui_state.console_window);
