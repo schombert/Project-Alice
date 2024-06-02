@@ -232,6 +232,18 @@ public:
 		dcon::national_identity_id content = retrieve<dcon::national_identity_id>(state, parent);
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
+		if(auto allowed_countries = state.world.cb_type_get_allowed_countries(cb); allowed_countries) {
+			dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+			auto holder = state.world.national_identity_get_nation_from_identity_holder(retrieve<dcon::national_identity_id>(state, parent));
+			trigger_description(state, contents, allowed_countries, trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(holder));
+		}
+	}
 };
 
 class wargoal_country_item : public listbox_row_element_base<dcon::national_identity_id> {
@@ -267,8 +279,7 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-				trigger::to_generic(n.id))) {
+			if(n != target && n != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
 				auto id = state.world.nation_get_identity_from_identity_holder(n);
 				if(!war) {
 					row_contents.push_back(id);
@@ -713,20 +724,6 @@ public:
 			text::add_line(state, contents, "alice_wg_usage_trigger");
 			ui::trigger_description(state, contents, can_use, trigger::to_generic(n), trigger::to_generic(state.local_player_nation), trigger::to_generic(n));
 		}
-		if(auto allowed_states = state.world.cb_type_get_allowed_states(c); allowed_states) {
-			bool described = false;
-			for(auto si : state.world.nation_get_state_ownership(n)) {
-				if(si.get_state().get_definition() == s
-				&& trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation))) {
-					ui::trigger_description(state, contents, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
-					described = true;
-					break;
-				}
-			}
-			if(!described) {
-				ui::trigger_description(state, contents, allowed_states, -1, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
-			}
-		}
 	}
 };
 
@@ -995,7 +992,6 @@ private:
 						}
 					}
 				}
-
 			} else {
 				for(auto si : state.world.nation_get_state_ownership(target)) {
 					if(trigger::evaluate(state, allowed_states, trigger::to_generic(si.get_state().id), trigger::to_generic(actor), trigger::to_generic(actor))) {
@@ -1373,6 +1369,17 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, n).get_name()));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::cb_type_id cb = retrieve<dcon::cb_type_id>(state, parent);
+		if(auto allowed_countries = state.world.cb_type_get_allowed_countries(cb); allowed_countries) {
+			dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+			auto holder = state.world.national_identity_get_nation_from_identity_holder(retrieve<dcon::national_identity_id>(state, parent));
+			trigger_description(state, contents, allowed_countries, trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(holder));
+		}
+	}
 };
 
 class wargoal_target_country_item : public listbox_row_element_base<dcon::nation_id> {
@@ -1443,13 +1450,10 @@ public:
 		}
 
 		for(auto n : state.world.in_nation) {
-			if(trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor),
-				trigger::to_generic(n.id))) {
-				auto id = state.world.nation_get_identity_from_identity_holder(n);
-				row_contents.push_back(id);
+			if(n != target && n != actor && trigger::evaluate(state, allowed_countries, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(n.id))) {
+				row_contents.push_back(state.world.nation_get_identity_from_identity_holder(n));
 			}
 		}
-
 		update(state);
 	}
 };
