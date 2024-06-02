@@ -665,8 +665,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.1) \
-	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.6) \
+	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.05) \
+	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.85) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_overhire_multiplier, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \

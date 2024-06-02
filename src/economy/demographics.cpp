@@ -1361,6 +1361,12 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 						? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size))
 						: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
 
+					if(!promoting) {
+						if(ptype == state.culture_definitions.artisans) {
+							base_amount *= 10.f;
+						}
+					}
+
 					/*if(current_size < small_pop_size && base_amount > 0.0f) {
 						pbuf.amounts.set(p, current_size);
 					} else*/ if(base_amount >= 0.001f) {
