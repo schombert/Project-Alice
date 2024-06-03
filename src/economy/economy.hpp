@@ -86,6 +86,9 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
+void scores_to_distribution(std::vector<float>& scores, std::vector<float>& distribution, float multiplier);
+void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector<float>& distribution);
+
 // base subsistence
 inline constexpr float subsistence_factor = 10.0f;
 inline constexpr float subsistence_score_life = 20.0f;

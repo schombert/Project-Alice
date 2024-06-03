@@ -1671,6 +1671,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 		float total = 0.0f;
 
 		auto nation = dcon::fatten(state.world, state.local_player_nation);
+
 		switch (commodity_type) {
 		case economy::commodity_production_type::primary:
 		case economy::commodity_production_type::both:
@@ -1683,8 +1684,12 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 			}
 			break;
 
+
 		case economy::commodity_production_type::derivative:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+			static std::vector<float> artisan_distribution;
+			economy::fill_artisan_distribution(state, nation, artisan_distribution);
+
+			total += artisan_distribution[content.index()] * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {

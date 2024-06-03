@@ -581,6 +581,11 @@ float pseudo_exp_for_negative(float f) {
 	return f;
 }
 
+float get_artisans_multiplier(sys::state& state, dcon::nation_id n) {
+	float multiplier = 0.000001f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.artisans);
+	return 1.f / (multiplier + 1.f);
+}
+
 void scores_to_distribution(std::vector<float> & scores, std::vector<float> & distribution, float multiplier) {
 	float max_score = std::numeric_limits<float>::min();
 	for(uint32_t i = 1; i < scores.size(); ++i) {
@@ -603,10 +608,26 @@ void scores_to_distribution(std::vector<float> & scores, std::vector<float> & di
 	}
 }
 
-float get_artisans_multiplier(sys::state& state, dcon::nation_id n) {
-	float multiplier = 0.000001f * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.artisans);
-	return 1.f / (multiplier + 1.f);
+void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector<float>& distribution) {
+	std::vector<float> scores;
+
+	auto const csize = state.world.commodity_size();
+
+	scores.resize(csize + 1);
+	distribution.resize(csize + 1);
+
+	for(uint32_t i = 1; i < csize; ++i) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		scores[cid.index()] = state.world.nation_get_artisan_distribution(n, cid);
+	}
+
+	float mult = get_artisans_multiplier(state, n);
+	scores[csize] = 10.f / mult;
+
+	scores_to_distribution(scores, distribution, mult);
 }
+
+
 
 void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 	auto const csize = state.world.commodity_size();
@@ -616,14 +637,11 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 	std::vector<float> prev_profits;
 	std::vector<float> profits;
 	profits.resize(csize + 1);
-	prev_profits.resize(csize + 1);
 	current_distribution.resize(csize + 1);
 
 	float mult = get_artisans_multiplier(state, n);
 
 	profits[csize] = 10.f / mult; // * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.artisans) / state.defines.alice_needs_scaling_factor;
-	prev_profits[csize] = 10.f / mult; // * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.artisans) / state.defines.alice_needs_scaling_factor;
-
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -635,12 +653,7 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		prev_profits[cid.index()] = state.world.nation_get_artisan_distribution(n, cid);
-	}
-
-	scores_to_distribution(prev_profits, current_distribution, mult);
+	fill_artisan_distribution(state, n, current_distribution);
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -1753,17 +1766,9 @@ void update_national_artisan_consumption(sys::state& state, dcon::nation_id n, f
 
 	std::vector<float> current_score;
 	std::vector<float> current_distribution;
-	current_score.resize(csize + 1);
 	current_distribution.resize(csize + 1);
 
-	for(uint32_t i = 1; i < csize; ++i) {
-		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		current_score[cid.index()] = state.world.nation_get_artisan_distribution(n, cid);
-	}
-
-	float mult = get_artisans_multiplier(state, n);
-	current_score[csize] = 10.f / mult;
-	scores_to_distribution(current_score, current_distribution, mult);
+	fill_artisan_distribution(state, n, current_distribution);
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
