@@ -229,13 +229,11 @@ void create_opengl_context() {
 	glewExperimental = GL_TRUE;
 
 	if(glewInit() != 0) {
-		MessageBoxW(m_hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
-		std::abort();
+		window::emit_error_message("GLEW failed to initialize", true);
 	}
 
 	if(!wglewIsSupported("WGL_ARB_create_context")) {
-		MessageBoxW(m_hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
 	// Explicitly request for OpenGL 4.5
@@ -243,8 +241,7 @@ void create_opengl_context() {
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
 	opengl_context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 	if(opengl_context == nullptr) {
-		MessageBoxW(m_hwnd, L"Unable to create WGL context", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("Unable to create WGL context", true);
 	}
 
 	wglMakeCurrent(window_dc, HGLRC(opengl_context));
@@ -402,24 +399,63 @@ void make_mod_file() {
 	file_is_ready.store(false, std::memory_order::memory_order_seq_cst);
 	auto path = produce_mod_path();
 	std::thread file_maker([path]() {
-		auto game_state = std::make_unique<sys::state>();
-		simple_fs::restore_state(game_state->common_fs, path);
-
+		simple_fs::file_system fs_root;
+		simple_fs::restore_state(fs_root, path);
 		parsers::error_handler err("");
-		game_state->load_scenario_data(err);
-
-		auto sdir = simple_fs::get_or_create_scenario_directory();
-		int32_t append = 0;
-
-		auto time_stamp = uint64_t(std::time(0));
-		auto base_name = to_hex(time_stamp);
-		while(simple_fs::peek_file(sdir, base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin"))) {
-			++append;
+		auto root = get_root(fs_root);
+		auto common = open_directory(root, NATIVE("common"));
+		parsers::bookmark_context bookmark_context;
+		if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
+			auto bookmark_content = simple_fs::view_contents(*f);
+			err.file_name = "bookmarks.txt";
+			parsers::token_generator gen(bookmark_content.data, bookmark_content.data + bookmark_content.file_size);
+			parsers::parse_bookmark_file(gen, err, bookmark_context);
+			assert(!bookmark_context.bookmark_dates.empty());
+		} else {
+			err.accumulated_errors += "File common/bookmarks.txt could not be opened\n";
 		}
 
-		++max_scenario_count;
-		selected_scenario_file = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
-		sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
+		sys::checksum_key scenario_key;
+
+		for(uint32_t date_index = 0; date_index < uint32_t(bookmark_context.bookmark_dates.size()); date_index++) {
+			err.accumulated_errors.clear();
+			err.accumulated_warnings.clear();
+			//
+			auto game_state = std::make_unique<sys::state>();
+			simple_fs::restore_state(game_state->common_fs, path);
+			game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);
+			if(err.fatal)
+				break;
+			if(date_index == 0) {
+				auto sdir = simple_fs::get_or_create_scenario_directory();
+				int32_t append = 0;
+				auto time_stamp = uint64_t(std::time(0));
+				auto base_name = to_hex(time_stamp);
+				while(simple_fs::peek_file(sdir, base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin"))) {
+					++append;
+				}
+				++max_scenario_count;
+				selected_scenario_file = base_name + NATIVE("-") + std::to_wstring(append) + NATIVE(".bin");
+				sys::write_scenario_file(*game_state, selected_scenario_file, max_scenario_count);
+				if(auto of = simple_fs::open_file(sdir, selected_scenario_file); of) {
+					auto content = view_contents(*of);
+					auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
+					if(desc.count != 0) {
+						scenario_files.push_back(scenario_file{ selected_scenario_file , desc });
+					}
+				}
+				std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
+					return a.ident.count > b.ident.count;
+				});
+				scenario_key = game_state->scenario_checksum;
+			} else {
+#ifndef NDEBUG
+				sys::write_scenario_file(*game_state, std::to_wstring(date_index) + NATIVE(".bin"), 0);
+#endif
+				game_state->scenario_checksum = scenario_key;
+				sys::write_save_file(*game_state, sys::save_type::bookmark, bookmark_context.bookmark_dates[date_index].name_);
+			}
+		}
 
 		if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
 			auto assembled_file = std::string("You can still play the mod, but it might be unstable\r\nThe following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
@@ -438,25 +474,7 @@ void make_mod_file() {
 				);
 			}
 		}
-		if(!err.fatal) {
-			auto of = simple_fs::open_file(sdir, selected_scenario_file);
-
-			if(of) {
-				auto content = view_contents(*of);
-				auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
-				if(desc.count != 0) {
-					scenario_files.push_back(scenario_file{ selected_scenario_file , desc });
-				}
-			}
-
-
-			std::sort(scenario_files.begin(), scenario_files.end(), [](scenario_file const& a, scenario_file const& b) {
-				return a.ident.count > b.ident.count;
-			});
-		}
-
 		file_is_ready.store(true, std::memory_order::memory_order_release);
-
 		InvalidateRect((HWND)(m_hwnd), nullptr, FALSE);
 	});
 
@@ -1275,9 +1293,8 @@ void render() {
 		Create a new scenario file
 		for the selected mods
 		*/
-		auto xoffset = 830.0f - base_text_extent("Create a new scenario file", 26, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("Create a new scenario file", 26, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-
+		auto xoffset = 830.0f - base_text_extent("Create a new scenario", 21, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("Create a new scenario", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
 		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
@@ -1829,7 +1846,7 @@ int WINAPI wWinMain(
 	wcex.lpszClassName = NATIVE("alice_launcher_class");
 
 	if(RegisterClassEx(&wcex) == 0) {
-		std::abort();
+		window::emit_error_message("Unable to register window class", true);
 	}
 
 	// Use by default the name of the computer

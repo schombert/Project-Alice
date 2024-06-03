@@ -36,13 +36,11 @@ void create_opengl_context(sys::state& state) {
 	glewExperimental = GL_TRUE;
 
 	if(glewInit() != 0) {
-		MessageBoxW(state.win_ptr->hwnd, L"GLEW failed to initialize", L"GLEW error", MB_OK);
-		std::abort();
+		window::emit_error_message("GLEW failed to initialize", true);
 	}
 
 	if(!wglewIsSupported("WGL_ARB_create_context")) {
-		MessageBoxW(state.win_ptr->hwnd, L"WGL_ARB_create_context not supported", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("WGL_ARB_create_context not supported", true);
 	}
 
 	// Explicitly request for OpenGL 4.5
@@ -54,8 +52,7 @@ void create_opengl_context(sys::state& state) {
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB, 0 };
 	state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs);
 	if(state.open_gl.context == nullptr) {
-		MessageBoxW(state.win_ptr->hwnd, L"Unable to create WGL context", L"OpenGL error", MB_OK);
-		std::abort();
+		window::emit_error_message("Unable to create WGL context", true);
 	}
 
 	wglMakeCurrent(window_dc, HGLRC(state.open_gl.context));
@@ -73,8 +70,7 @@ void create_opengl_context(sys::state& state) {
 	} else if(wglewIsSupported("WGL_EXT_swap_control") == 1) {
 		wglSwapIntervalEXT(1);
 	} else {
-		MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error",
-				MB_OK);
+		MessageBoxW(state.win_ptr->hwnd, L"WGL_EXT_swap_control_tear and WGL_EXT_swap_control not supported", L"OpenGL error", MB_OK);
 	}
 }
 

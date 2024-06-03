@@ -152,6 +152,8 @@ enum class command_type : uint8_t {
 	c_set_auto_choice_all = 156,
 	c_clear_auto_choice_all = 157,
 	c_instant_navy = 158,
+	c_always_allow_decisions = 159,
+	c_always_potential_decisions = 160,
 };
 
 struct national_focus_data {
@@ -307,8 +309,8 @@ struct pending_human_n_event_data {
 	uint32_t r_hi = 0;
 	int32_t primary_slot;
 	int32_t from_slot;
-	dcon::national_event_id e;
 	sys::date date;
+	dcon::national_event_id e;
 	uint8_t opt_choice;
 	event::slot_type pt;
 	event::slot_type ft;
@@ -316,26 +318,26 @@ struct pending_human_n_event_data {
 struct pending_human_f_n_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
-	dcon::free_national_event_id e;
 	sys::date date;
+	dcon::free_national_event_id e;
 	uint8_t opt_choice;
 };
 struct pending_human_p_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
 	int32_t from_slot;
+	sys::date date;
 	dcon::provincial_event_id e;
 	dcon::province_id p;
-	sys::date date;
 	uint8_t opt_choice;
 	event::slot_type ft;
 };
 struct pending_human_f_p_event_data {
 	uint32_t r_lo = 0;
 	uint32_t r_hi = 0;
+	sys::date date;
 	dcon::free_provincial_event_id e;
 	dcon::province_id p;
-	sys::date date;
 	uint8_t opt_choice;
 };
 

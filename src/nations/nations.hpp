@@ -56,7 +56,7 @@ struct global_national_state {
 	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
 
-	dcon::nation_id rebel_id;
+	dcon::national_identity_id rebel_id;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -306,6 +306,7 @@ bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_i
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+bool is_landlocked(sys::state& state, dcon::nation_id n);
 
 bool nth_crisis_war_goal_is_for_attacker(sys::state& state, int32_t index);
 military::full_wg get_nth_crisis_war_goal(sys::state& state, int32_t index);
@@ -335,6 +336,11 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id i);
+
+float get_foreign_investment(sys::state& state, dcon::nation_id n);
+float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
+float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
+bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);

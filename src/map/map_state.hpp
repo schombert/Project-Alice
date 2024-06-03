@@ -85,6 +85,7 @@ public:
 	bool right_arrow_key_down = false;
 	bool up_arrow_key_down = false;
 	bool down_arrow_key_down = false;
+	bool shift_key_down = false;
 	bool left_mouse_down = false;
 	glm::vec2 scroll_pos_velocity = glm::vec2(0.f);
 	std::vector<bool> visible_provinces;

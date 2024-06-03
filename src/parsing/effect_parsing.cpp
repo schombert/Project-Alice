@@ -1347,21 +1347,6 @@ int32_t simplify_effect(uint16_t* source) {
 						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
 							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
 					}
-				} else if((sub_units_start[0] & effect::code_mask) == effect::integer_scope
-					&& (sub_units_start[0] & effect::scope_has_limit) == 0
-					&& (sub_units_start[0] & effect::is_random_scope) == 0) {
-					// sub sub
-					auto ss_units_start = sub_units_start + 2 + effect::effect_scope_data_payload(sub_units_start[0]);
-					if(ss_units_start[0] == effect::change_province_name) {
-						auto const prov = sub_units_start[2]; //[code] [size] [province]
-						auto const name_1 = ss_units_start[1];
-						auto const name_2 = ss_units_start[2];
-						sub_units_start[0] = effect::fop_change_province_name;
-						sub_units_start[1] = name_1; //name
-						sub_units_start[2] = name_2; //name
-						sub_units_start[3] = prov; //province
-						new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
-					}
 				}
 				if(new_size != old_size) { // has been simplified
 					assert(new_size < old_size);
@@ -1388,8 +1373,60 @@ int32_t simplify_effect(uint16_t* source) {
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
 			}
+		} else if((source[0] & effect::code_mask) == effect::owner_scope_province
+		&& (source[0] & effect::scope_has_limit) == 0
+		&& (source[0] & effect::is_random_scope) == 0) {
+			bool can_elim = true;
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			while(sub_units_start < source + source_size && can_elim) {
+				switch(sub_units_start[0] & effect::code_mask) {
+				case effect::clr_global_flag:
+				case effect::set_global_flag:
+				case effect::fop_clr_global_flag_2:
+				case effect::fop_clr_global_flag_3:
+				case effect::fop_clr_global_flag_4:
+				case effect::fop_clr_global_flag_5:
+				case effect::fop_clr_global_flag_6:
+				case effect::fop_clr_global_flag_7:
+				case effect::fop_clr_global_flag_8:
+				case effect::fop_clr_global_flag_9:
+				case effect::fop_clr_global_flag_10:
+				case effect::fop_clr_global_flag_11:
+				case effect::fop_clr_global_flag_12:
+				case effect::fop_change_province_name:
+				case effect::integer_scope:
+					break;
+				default:
+					can_elim = false;
+					break;
+				}
+				sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
+			}
+			if(can_elim) { //eliminate
+				std::copy(source + 2, source + source_size, source);
+				source_size -= 2;
+			}
+		} else if((source[0] & effect::code_mask) == effect::integer_scope
+			&& (source[0] & effect::scope_has_limit) == 0
+			&& (source[0] & effect::is_random_scope) == 0
+			&& source[1] == 4
+			&& effect::effect_scope_has_single_member(source)) {
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			auto const old_size = 1 + effect::get_generic_effect_payload_size(source);
+			if(sub_units_start[0] == effect::change_province_name) {
+				auto const prov = source[2]; //[code] [size] [province]
+				auto const name_1 = sub_units_start[1];
+				auto const name_2 = sub_units_start[2];
+				source[0] = effect::fop_change_province_name;
+				source[1] = name_1; //name
+				source[2] = name_2; //name
+				source[3] = prov; //province
+				auto const new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
+				assert(new_size < old_size);
+				std::copy(source + old_size, source + source_size, source + new_size);
+				source_size -= (old_size - new_size);
+			}
 		}
-
 		return source_size;
 	} else {
 		return 1 + effect::get_effect_non_scope_payload_size(source); // non scopes cannot be simplified
@@ -1627,8 +1664,46 @@ void effect_body::define_admiral(ef_define_admiral const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
-void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line,
+void effect_body::change_province_name(association_type t, std::string_view value, error_handler & err, int32_t line,
 		effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_province_name));
+	} else {
+		err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		context.add_int32_t_to_payload(name.index());
+	}
+}
+void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::state) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_state));
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
+	} else {
+		err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		context.add_int32_t_to_payload(name.index());
+	}
+}
+void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {
 		context.compiled_effect.push_back(uint16_t(effect::enable_canal));
 		context.compiled_effect.push_back(trigger::payload(uint16_t(value)).value);

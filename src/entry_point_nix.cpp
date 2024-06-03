@@ -52,12 +52,11 @@ int main(int argc, char **argv) {
 		}
 
 		network::init(game_state);
-	}
-	else {
+	} else {
 		if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
 			parsers::error_handler err{ "" };
-			game_state.load_scenario_data(err);
+			game_state.load_scenario_data(err, sys::year_month_day{ 1836, 1, 1 });
 			if(!err.accumulated_errors.empty())
 				window::emit_error_message(err.accumulated_errors, true);
 			sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);

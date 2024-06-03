@@ -37,7 +37,7 @@ void message_log_window::on_create(sys::state& state) noexcept {
 
 std::unique_ptr<element_base> message_log_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "close" || name == "closebutton") {
-		return make_element_by_type<generic_close_button>(state, id);
+		return make_element_by_type<message_log_close_button>(state, id);
 	} else if(name == "messagelog") {
 		auto ptr = make_element_by_type<message_log_listbox>(state, id);
 		log_list = ptr.get();

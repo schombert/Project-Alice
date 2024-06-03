@@ -491,6 +491,7 @@ public:
 						continue;
 					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
 					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					used += int32_t(p.get_pop().get_province_land_construction_as_pop().end() - p.get_pop().get_province_land_construction_as_pop().begin());
 					int32_t avail = possible - used;
 					if(possible > 0 && avail > 0) {
 						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
@@ -583,6 +584,7 @@ public:
 						continue;
 					int32_t possible = military::regiments_possible_from_pop(state, p.get_pop());
 					int32_t used = int32_t(p.get_pop().get_regiment_source().end() - p.get_pop().get_regiment_source().begin());
+					used += int32_t(p.get_pop().get_province_land_construction_as_pop().end() - p.get_pop().get_province_land_construction_as_pop().begin());
 					int32_t avail = possible - used;
 					if(possible > 0 && avail > 0) {
 						for(dcon::unit_type_id::value_base_t i = 0; i < sys::macro_builder_template::max_types; i++) {
@@ -744,6 +746,14 @@ class minimap_console_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		ui::console_window::show_toggle(state);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents);
+		text::localised_format_box(state, contents, box, "button_console_tt");
+		text::close_layout_box(contents, box);
 	}
 };
 
@@ -942,8 +952,6 @@ public:
 			return make_element_by_type<minimap_zoom_in_button>(state, id);
 		} else if(name == "map_zoom_out") {
 			return make_element_by_type<minimap_zoom_out_button>(state, id);
-		} else if(name == "menubar_bg") {
-			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "menubar_bg") {
 			return partially_transparent_image::make_element_by_type_alias(state, id);
 		} else if(name == "chat_window"

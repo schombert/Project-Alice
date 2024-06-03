@@ -568,18 +568,25 @@ inline bool effect_scope_has_single_member(uint16_t const* source) { // precondi
 }
 
 template<typename T>
-uint16_t* recurse_over_effects(uint16_t* source, T const& f) {
+uint32_t recurse_over_effects(uint16_t* source, T const& f) {
 	f(source);
 	assert((source[0] & effect::code_mask) < effect::first_invalid_code || (source[0] & effect::code_mask) == effect::code_mask);
 	if((source[0] & effect::code_mask) >= effect::first_scope_code) {
-		auto const source_size = 1 + effect::get_generic_effect_payload_size(source);
-		auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
-		while(sub_units_start < source + source_size) {
-			sub_units_start = recurse_over_effects(sub_units_start, f);
+		auto const source_size = 1 + effect::get_effect_scope_payload_size(source);
+		if((source[0] & effect::code_mask) == effect::random_list_scope) {
+			auto sub_units_start = source + 3; // [code] + [payload size] + [chances total] + [first sub effect chance]
+			while(sub_units_start < source + source_size) {
+				sub_units_start += 1 + recurse_over_effects(sub_units_start + 1, f); // each member preceeded by uint16_t
+			}
+		} else {
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			while(sub_units_start < source + source_size) {
+				sub_units_start += recurse_over_effects(sub_units_start, f);
+			}
 		}
-		return source + source_size;
+		return source_size;
 	} else {
-		return source + 1 + effect::get_effect_non_scope_payload_size(source);
+		return 1 + effect::get_effect_non_scope_payload_size(source);
 	}
 }
 

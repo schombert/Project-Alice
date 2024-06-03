@@ -331,7 +331,6 @@ struct scenario_building_context {
 	building_gfx_context gfx_context;
 
 	sys::state& state;
-
 	ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
 	tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
@@ -806,7 +805,6 @@ public:
 		}
 	}
 	MOD_NAT_FUNCTION(colonial_life_rating)
-	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
 	template<typename T>
@@ -1268,7 +1266,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 struct state_def_building_context {
 	scenario_building_context& outer_context;
-	dcon::state_definition_id id;
+	std::vector<dcon::province_id> provinces;
 };
 
 struct state_definition {
@@ -1282,22 +1280,6 @@ struct region_file {
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
 
-struct region_building_context {
-	scenario_building_context& outer_context;
-	dcon::region_id id;
-};
-
-struct region_definition {
-	void free_value(int32_t value, error_handler& err, int32_t line, region_building_context& context);
-	void finish(region_building_context&) { }
-};
-
-struct superregion_file {
-	void finish(scenario_building_context&) { }
-};
-
-void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
-
 struct continent_building_context {
 	scenario_building_context& outer_context;
 	dcon::modifier_id id;
@@ -1310,6 +1292,7 @@ struct continent_provinces {
 
 struct continent_definition : public modifier_base {
 	continent_provinces provinces;
+	void free_value(int32_t value, error_handler& err, int32_t line, continent_building_context& context);
 	void finish(continent_building_context&) { }
 };
 
@@ -1380,8 +1363,7 @@ struct commodity_set : public economy::commodity_set {
 };
 
 struct unit_definition : public military::unit_definition {
-	void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line,
-			scenario_building_context& context) {
+	void unit_type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
 		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "support"))
 			type = military::unit_type::support;
 		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "big_ship"))
@@ -1396,17 +1378,20 @@ struct unit_definition : public military::unit_definition {
 			type = military::unit_type::special;
 		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "infantry"))
 			type = military::unit_type::infantry;
+		else {
+			err.accumulated_errors += std::string(value) + " is not a valid unit type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 	}
 	void type_text(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context) {
-		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land"))
+		if(is_fixed_token_ci(value.data(), value.data() + value.length(), "land")) {
 			is_land = true;
-		else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval"))
+		} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "naval")) {
 			is_land = false;
-		else
-			err.accumulated_errors +=
-					std::string(value) + " is not a valid unit type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		} else {
+			err.accumulated_errors += std::string(value) + " is not a valid land/naval type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 	}
-	void finish(scenario_building_context&) { }
+	void finish(scenario_building_context&);
 };
 
 struct unit_file {
@@ -1628,7 +1613,7 @@ struct individual_ideology_context {
 };
 
 struct individual_ideology {
-	void finish(individual_ideology_context&) { }
+	void finish(individual_ideology_context&);
 	void can_reduce_militancy(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void uncivilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
 	void civilized(association_type, bool value, error_handler& err, int32_t line, individual_ideology_context& context);
@@ -2241,6 +2226,7 @@ struct generic_event {
 	dcon::effect_key immediate_;
 	bool major = false;
 	bool fire_only_once = false;
+	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
 	dcon::text_sequence_id title_;
 	dcon::text_sequence_id desc_;
@@ -2297,14 +2283,14 @@ struct oob_file_navy_context {
 	dcon::nation_id nation_for;
 };
 struct oob_leader {
-	void finish(oob_file_context&) { }
+	float prestige = 0.0f;
 	dcon::unit_name_id name_;
 	sys::date date_;
-	bool is_general = true;
 	dcon::leader_trait_id personality_;
 	dcon::leader_trait_id background_;
-	float prestige = 0.0f;
+	bool is_general = true;
 
+	void finish(oob_file_context&) { }
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context);
 	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, oob_file_context& context);
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_context& context) {
@@ -2344,6 +2330,7 @@ struct oob_navy {
 	void finish(oob_file_navy_context&) { }
 	void name(association_type, std::string_view value, error_handler& err, int32_t line, oob_file_navy_context& context);
 	void location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_navy_context& context);
+	void leader(oob_leader const& value, error_handler& err, int32_t line, oob_file_navy_context& context);
 };
 struct oob_ship {
 	void finish(oob_file_ship_context&) { }
@@ -2371,6 +2358,7 @@ struct oob_file {
 };
 
 oob_leader make_army_leader(token_generator& gen, error_handler& err, oob_file_army_context& context);
+oob_leader make_navy_leader(token_generator& gen, error_handler& err, oob_file_navy_context& context);
 void make_oob_relationship(std::string_view tag, token_generator& gen, error_handler& err, oob_file_context& context);
 void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context);
 void make_oob_navy(token_generator& gen, error_handler& err, oob_file_context& context);
@@ -2471,10 +2459,13 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 struct alliance {
 	dcon::nation_id first_;
 	dcon::nation_id second_;
+	bool invalid = false;
 
 	void finish(scenario_building_context&) { }
 	void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
+	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
+	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 struct vassal_description {
 	dcon::nation_id first_;
@@ -2484,6 +2475,7 @@ struct vassal_description {
 	void first(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void second(association_type, std::string_view tag, error_handler& err, int32_t line, scenario_building_context& context);
 	void start_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
+	void end_date(association_type, sys::year_month_day ymd, error_handler& err, int32_t line, scenario_building_context& context);
 };
 
 struct diplomacy_file {
@@ -2499,6 +2491,7 @@ struct country_history_context {
 	dcon::national_identity_id nat_ident;
 	dcon::nation_id holder_id;
 	std::vector<std::pair<dcon::nation_id, dcon::decision_id>>& pending_decisions;
+	bool in_dated_block = false;
 };
 
 struct govt_flag_block {
@@ -2530,6 +2523,8 @@ struct foreign_investment_block {
 };
 
 struct country_history_file {
+	foreign_investment_block foreign_investment;
+	upper_house_block upper_house;
 	void finish(country_history_context&) { }
 	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
@@ -2547,10 +2542,6 @@ struct country_history_file {
 	void nationalvalue(association_type, std::string_view value, error_handler& err, int32_t line,
 			country_history_context& context);
 	void schools(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
-
-	foreign_investment_block foreign_investment;
-	upper_house_block upper_house;
-
 	void civilized(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
 	void is_releasable_vassal(association_type, bool value, error_handler& err, int32_t line, country_history_context& context);
 	void literacy(association_type, float value, error_handler& err, int32_t line, country_history_context& context);
@@ -2756,7 +2747,54 @@ struct tutorial_file {
 	void finish(scenario_building_context& context) { }
 };
 
+struct battleplan_option {
+	void finish(scenario_building_context& context) { }
+};
+struct battleplan_tool_type {
+	void finish(scenario_building_context& context) { }
+};
+struct battleplan_settings_file {
+	void finish(scenario_building_context& context) { }
+};
+
+struct sfx_definition {
+	void finish(building_gfx_context& context) { }
+};
+struct sfx_file {
+	void finish(building_gfx_context& context) { }
+};
+
 void make_leader_images(scenario_building_context& outer_context);
+
+struct bookmark_context;
+
+struct bookmark_definition {
+	sys::year_month_day date_ = sys::year_month_day{ 1836, 1, 1 };
+	std::string name_ = "fe_new_game";
+
+	void date(association_type, sys::year_month_day value, error_handler& err, int32_t line, bookmark_context& ) {
+		date_ = value;
+	}
+	void name(association_type, std::string_view value, error_handler& err, int32_t line, bookmark_context& ) {
+		name_ = std::string(value);
+	}
+	void finish(bookmark_context& ) { }
+};
+
+struct bookmark_context {
+	std::vector<bookmark_definition> bookmark_dates;
+};
+
+struct bookmark_file {
+	void bookmark(bookmark_definition const& value, error_handler& err, int32_t line, bookmark_context& context) {
+		context.bookmark_dates.push_back(value);
+	}
+	void finish(bookmark_context& context) {
+		if(context.bookmark_dates.empty()) {
+			context.bookmark_dates.push_back(bookmark_definition{ sys::year_month_day{ 1836, 1, 1 }, std::string("fe_new_game") });
+		}
+	}
+};
 
 } // namespace parsers
 

@@ -12,11 +12,7 @@ class player_investement_text : public multiline_text_element_base {
 
 		auto ul = state.world.get_unilateral_relationship_by_unilateral_pair(to_nation, state.local_player_nation);
 		auto player_investment = state.world.unilateral_relationship_get_foreign_investment(ul);
-
-		float total_investment = 0.0f;
-		for(auto oul : state.world.nation_get_unilateral_relationship_as_target(to_nation)) {
-			total_investment += oul.get_foreign_investment();
-		}
+		float total_investment = nations::get_foreign_investment(state, to_nation);
 		auto container = text::create_endless_layout(multiline_text_element_base::internal_layout,
 				text::layout_parameters{0, 0, multiline_text_element_base::base_data.size.x,
 						multiline_text_element_base::base_data.size.y, multiline_text_element_base::base_data.data.text.font_handle, 0,
@@ -37,11 +33,7 @@ class player_investement_text : public multiline_text_element_base {
 			auto ul = state.world.get_unilateral_relationship_by_unilateral_pair(to_nation, sl);
 			auto sl_investment = state.world.unilateral_relationship_get_foreign_investment(ul);
 
-			float total_investment = 0.0f;
-			for(auto oul : state.world.nation_get_unilateral_relationship_as_target(to_nation)) {
-				total_investment += oul.get_foreign_investment();
-			}
-
+			float total_investment = nations::get_foreign_investment(state, to_nation);
 			float base = state.world.nation_get_rank(to_nation) <= state.defines.colonial_rank
 											 ? state.defines.second_rank_base_share_factor
 											 : state.defines.civ_base_share_factor;

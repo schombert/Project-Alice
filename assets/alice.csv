@@ -852,8 +852,13 @@ alice_indscore_3;$y$ in $x$
 war_goal_1;Added by: $x$
 war_goal_2;Targeting: $x$
 war_goal_3;For state: $x$
-war_goal_4;Secondary target: $x$
+war_goal_4;Secondary nation: $x$
 war_goal_5;Ticking war score: $x$
+war_goal_6;If we occupy §Y$x$§! of the the provinces, we will gain §Y$y$§! ticking war score (relative to the fraction of occupied provinces)
+war_goal_7;We have a grace period of §Y$x$§! days to occupy, otherwise we will lose §Y$y$§! ticking war score daily
+war_goal_8;War started in §Y$x$§!, we should fullfill by §Y$y$§!, before the grace period §Rruns out§!
+war_goal_9;The grace period §Rhas ran out§! (period was from §Y$x$§! to §Y$y$§!)
+war_goal_10;Secondary tag: $x$
 utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$);;;
 utt_noleader;no leader;;;
 war_score_1;From occupation: $x$
@@ -1006,7 +1011,7 @@ msg_inv_title;Invention Discovered
 msg_inv_1;$x$ has been discovered, with the following effects:
 msg_fab_discovered_title;Fabrication Discovered
 msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in §R$x$§! infamy.
-msg_fab_discovered_2;$x$ has been discovered fabricating a cb on $y$
+msg_fab_discovered_2;$x$ has been discovered fabricating a casus belli on $y$
 msg_fab_canceled_title;Fabrication Canceled
 msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
 msg_fab_finished_title;Fabrication Complete
@@ -1544,18 +1549,20 @@ aml_rank_s4;Unciv
 aml_rec_s1;Available
 aml_rec_s2;All used
 aml_rec_s3;None
-alice_shortcut_tooltip;Shortcut: §Y$x$§W
-alice_filter_all;Show §Yall§W relevant nations.
-alice_filter_allies;Filter by nations we have an §Yalliance§W with.
-alice_filter_allies_right;§YRight-click§W to filter by nations which want to ally us.
-alice_filter_enemies;Filter by nations that are either §Yenemies or at war with us§W.
-alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§W.
-alice_filter_neighbors;Filter by nations we share a §Yborder§W with.
-alice_filter_best_guess;Filter using a §Ybest guess§W by relevancy, this includes all §Yallies§W, §Yenemies§W, §Yspherelings§W and nations we share a §Yborder§W with.
-alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§W.
-alice_invention_chance;The chance of discovering this §Yinvention§W are as follows:
-is_primary_culture;§Y$NAME$§W is primary culture.
-is_primary_religion;§Y$NAME$§W is primary religion.
+alice_shortcut_tooltip;Shortcut: §Y$x$§!
+alice_filter_all;Show §Yall§! relevant nations.
+alice_filter_allies;Filter by nations we have an §Yalliance§! with.
+alice_filter_allies_right;§YRight-click§! to filter by nations which want to ally us.
+alice_filter_enemies;Filter by nations that are either §Yenemies or at war with us§!.
+alice_filter_sphere;Filter by nations that are within our §Ysphere of influence§!.
+alice_filter_sphere_right;§YRight-click§! to filter by nations which we are influencing but not on our sphere.
+alice_filter_neighbors;Filter by nations we share a §Yborder§! with.
+alice_filter_neighbors_right;§YRight-click§! to filter by nations we share a §Yborder§! and are not §Yvassals§!.
+alice_filter_best_guess;Filter using a §Ybest guess§! by relevancy, this includes all §Yallies§!, §Yenemies§!, §Yspherelings§! and nations we share a §Yborder§! with.
+alice_warn_war_ends_for_us;§RThis will end the war for everyone on our side§!.
+alice_invention_chance;The chance of discovering this §Yinvention§! are as follows:
+is_primary_culture;§Y$NAME$§! is the primary culture.
+is_primary_religion;§Y$NAME$§! is the primary religion.
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
@@ -1593,6 +1600,11 @@ alice_budget_scaled_9;Administration: §R$value$
 alice_budget_scaled_10;Social spending: §R$value$
 alice_budget_scaled_11;Military spending: §R$value$
 alice_budget_scaled_12;Domestic investments: §R$value$
+alice_budget_scaled_13;Overseas spending: §R$value$
+alice_budget_scaled_14;Stockpile filling: §R$value$
+alice_budget_scaled_15;War subsidies: §R$value$
+alice_budget_scaled_16;Diplomatic interest: §G$value$
+alice_budget_scaled_17;Gold production: §G$value$
 alice_budget_scaled_net;Net revenue: §Y$value$
 alice_budget_setting_percent;Set at $perc$.
 alice_spending_land_construction;Land construction in $name$: §R$cost$§W
@@ -1625,8 +1637,16 @@ colonial_points_from_naval_bases;From naval bases:
 colonial_points_from_ships;From ships:
 used_colonial_maintenance;Maintaining existing colonies:
 topbar_pause_speed;Pauses the game, click again to unpause
+topbar_date_leap;We're on a §Yleap§! year
+topbar_date_not_leap;We're on a §Ynormal§! year
+topbar_date_season_nh;Northern hemisphere season: §Y$x$§!
+topbar_date_season_sh;Southern hemisphere season: §Y$x$§!
+topbar_date_season_spring;Spring
+topbar_date_season_summer;Summer
+topbar_date_season_fall;Fall
+topbar_date_season_winter;Winter
 att_call_no_allies;You don't have any allies!
-att_truce_with;Truce with $text$ until $y$
+att_truce_with;Truce with $text$ until §Y$y$§!
 domestic_investment_label;Domestic investment:
 att_call_allies_effect;Call allies of this nation into its current wars
 modifier_min_domestic_investment;Minimum domestic investment rate
@@ -1659,6 +1679,7 @@ alice_nf_controls;§YLeft-click§W to select or replace\n§YRight-click§W to remove
 alice_utt_controls_1;§YLeft-click§W select (deselecting everything else)
 alice_utt_controls_2;§YSHIFT-Left-click§W add to selection
 alice_utt_controls_3;§YRight-click on a province§W partial retreat (§Gcycling/rotation§W) to province
+button_console_tt;Open the command console
 alice_demobilize;Demobilize
 alice_mobilize;Mobilize
 alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
