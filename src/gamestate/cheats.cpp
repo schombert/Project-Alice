@@ -26,13 +26,13 @@ void execute_c_switch_nation(sys::state& state, dcon::nation_id source, dcon::na
 		return;
 
 	dcon::nation_id target = state.world.national_identity_get_nation_from_identity_holder(t);
-	if(bool(source) && source != state.national_definitions.rebel_id) {
+	if(bool(source) && source != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) {
 		state.world.nation_set_is_player_controlled(source, false);
 	}
 	if(source == state.local_player_nation) {
 		state.local_player_nation = target;
 	}
-	if(bool(target) && target != state.national_definitions.rebel_id) {
+	if(bool(target) && target != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) {
 		state.world.nation_set_is_player_controlled(target, true);
 		ai::remove_ai_data(state, target);
 	}
@@ -482,6 +482,28 @@ void execute_c_clear_auto_choice_all(sys::state& state, dcon::nation_id source) 
 	for(const auto e : state.world.in_free_provincial_event) {
 		e.set_auto_choice(0);
 	}
+}
+
+void c_always_allow_decisions(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_allow_decisions;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_allow_decisions(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_allow_decisions = !state.cheat_data.always_allow_decisions;
+}
+
+void c_always_potential_decisions(sys::state& state, dcon::nation_id source) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::c_always_potential_decisions;
+	p.source = source;
+	add_to_command_queue(state, p);
+}
+void execute_c_always_potential_decisions(sys::state& state, dcon::nation_id source) {
+	state.cheat_data.always_potential_decisions = !state.cheat_data.always_potential_decisions;
 }
 
 }

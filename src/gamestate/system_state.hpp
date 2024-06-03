@@ -403,6 +403,8 @@ struct cheat_data_s {
 	bool daily_oos_check = false;
 	bool province_names = false;
 	bool instant_navy = false;
+	bool always_allow_decisions = false;
+	bool always_potential_decisions = false;
 };
 
 struct crisis_member_def {
@@ -619,8 +621,7 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
-	dcon::gfx_object_id bg_gfx_id{};
-
+	
 	// graphics data
 	ogl::data open_gl;
 
@@ -693,7 +694,7 @@ struct alignas(64) state {
 	void load_user_settings();
 	void update_ui_scale(float new_scale);
 
-	void load_scenario_data(parsers::error_handler& err);   // loads all scenario files other than map data
+	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void preload(); // clears data that will be later reconstructed from saved values
 

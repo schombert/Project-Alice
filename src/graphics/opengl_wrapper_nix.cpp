@@ -10,9 +10,9 @@ void create_opengl_context(sys::state& state) {
 	glfwSwapInterval(1); // Vsync option
 
 	glewExperimental = GL_TRUE;
-	if(glewInit() != GLEW_OK)
-		std::abort(); // throw "Failed to init glew\n";
-
+	if(glewInit() != GLEW_OK) {
+		window::emit_error_message("GLEW failed to initialize", true);
+	}
 #ifndef NDEBUG
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(debug_callback, nullptr);

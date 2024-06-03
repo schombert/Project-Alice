@@ -58,10 +58,10 @@ public:
 	using value_base_t = uint16_t;
 	using zero_is_null_t = std::true_type;
 
-	uint16_t value = 0;
+	value_base_t value = 0;
 
 	constexpr date() noexcept = default;
-	explicit constexpr date(uint16_t v) noexcept : value(v + 1) { }
+	explicit constexpr date(value_base_t v) noexcept : value(v + 1) { }
 	constexpr date(date const& v) noexcept = default;
 	constexpr date(date&& v) noexcept = default;
 	date(year_month_day const& v, absolute_time_point base) noexcept;
@@ -87,17 +87,17 @@ public:
 		return value >= v.value;
 	}
 	explicit constexpr operator bool() const noexcept {
-		return value != uint16_t(0);
+		return value != value_base_t(0);
 	}
 
 	date operator+(int32_t v) const noexcept {
-		return date{uint16_t(value + v - 1)};
+		return date{ value_base_t(value + v - 1)};
 	}
 	date operator-(int32_t v) const noexcept {
-		return date{uint16_t((value - v) - 1)};
+		return date{ value_base_t((value - v) - 1)};
 	}
 	date& operator+=(int32_t v) noexcept {
-		value = uint16_t(value + v);
+		value = value_base_t(value + v);
 		return *this;
 	}
 
@@ -109,5 +109,6 @@ public:
 
 bool is_playable_date(date d, absolute_time_point start, absolute_time_point end);
 int32_t days_difference(year_month_day start, year_month_day end);
+bool is_leap_year(int32_t year);
 
 } // namespace sys

@@ -25,27 +25,38 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 
 	auto rt = get_root(state.common_fs);
 	auto interfc = open_directory(rt, NATIVE("interface"));
+	auto assets = open_directory(rt, NATIVE("assets"));
 
 	{
 		// first, load in special mod gfx
 		// TODO put this in a better location
-		auto alice_gfx = open_file(rt, NATIVE("assets/alice.gfx"));
-		if(alice_gfx) {
-			auto content = view_contents(*alice_gfx);
-			err.file_name = "assets/alice.gfx";
-			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_gfx_files(gen, err, context);
-		}
-
-		auto all_files = list_files(interfc, NATIVE(".gfx"));
-
-		for(auto& file : all_files) {
-			auto ofile = open_file(file);
-			if(ofile) {
+		auto all_alice_files = list_files(assets, NATIVE(".gfx"));
+		for(auto& file : all_alice_files) {
+			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
 				parsers::token_generator gen(content.data, content.data + content.file_size);
 				parsers::parse_gfx_files(gen, err, context);
+			}
+		}
+
+		auto all_files = list_files(interfc, NATIVE(".gfx"));
+		for(auto& file : all_files) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_gfx_files(gen, err, context);
+			}
+		}
+
+		auto all_sfx_files = list_files(interfc, NATIVE(".sfx"));
+		for(auto& file : all_sfx_files) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_sfx_file(gen, err, context);
 			}
 		}
 	}
@@ -53,17 +64,14 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 	{
 		// first, load in special mod gui
 		// TODO put this in a better location
-		if(auto alice_gui = open_file(rt, NATIVE("assets/alice.gui")); alice_gui) {
-			auto content = view_contents(*alice_gui);
-			err.file_name = "assets/alice.gui";
-			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_gui_files(gen, err, context);
-		}
-		if(auto alice_mm_gui = open_file(rt, NATIVE("assets/alice_menubar.gui")); alice_mm_gui) {
-			auto content = view_contents(*alice_mm_gui);
-			err.file_name = "assets/alice_menubar.gui";
-			parsers::token_generator gen(content.data, content.data + content.file_size);
-			parsers::parse_gui_files(gen, err, context);
+		auto all_alice_gui_files = list_files(assets, NATIVE(".gui"));
+		for(auto& file : all_alice_gui_files) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(get_full_name(*ofile));
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_gui_files(gen, err, context);
+			}
 		}
 
 		// load normal .gui files

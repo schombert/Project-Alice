@@ -12,6 +12,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "triggers.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -36,6 +37,22 @@ enum class country_list_sort : uint8_t {
 	gp_investment = 0x80
 };
 
+// Filters used on both production and diplomacy tabs for the country lists
+enum class country_list_filter : uint8_t {
+	all,
+	neighbors,
+	sphere,
+	enemies,
+	allies,
+	find_allies, // Used only by diplo window
+	neighbors_no_vassals,
+	influenced,
+	deselect_all, // Used only by message filter window
+	best_guess, // Used only by message filter window
+	continent
+};
+
+bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b);
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend);
 
 void open_build_foreign_factory(sys::state& state, dcon::state_instance_id st);
@@ -58,18 +75,6 @@ class country_sort_by_player_investment : public button_element_base {
 	}
 };
 
-// Filters used on both production and diplomacy tabs for the country lists
-enum class country_list_filter : uint8_t {
-	all,
-	neighbors,
-	sphere,
-	enemies,
-	allies,
-	find_allies, // Used only by diplo window
-	deselect_all, // Used only by message filter window
-	best_guess, // Used only by message filter window
-	continent
-};
 class button_press_notification { };
 
 template<class T, class K>
@@ -598,10 +603,7 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		float total_invest = 0.f;
-		for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
-			total_invest += ur.get_foreign_investment();
-		}
+		float total_invest = nations::get_foreign_investment(state, n);
 		if(total_invest > 0.f) {
 			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
 			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
@@ -1865,6 +1867,8 @@ public:
 			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 				modifier_description(state, contents, mid, 15);
 			}
+
+			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(sid), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 
@@ -2126,6 +2130,10 @@ public:
 	void button_right_action(sys::state& state) noexcept final {
 		if constexpr(category == country_list_filter::allies) {
 			send(state, parent, country_list_filter::find_allies);
+		} else if constexpr(category == country_list_filter::sphere) {
+			send(state, parent, country_list_filter::influenced);
+		} else if constexpr(category == country_list_filter::neighbors) {
+			send(state, parent, country_list_filter::neighbors_no_vassals);
 		} else {
 			send(state, parent, category);
 			if constexpr(category == country_list_filter::all) {
@@ -2136,7 +2144,21 @@ public:
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto filter_settings = retrieve<country_filter_setting>(state, parent);
-		disabled = filter_settings.general_category != category;
+		auto t_category = filter_settings.general_category;
+		switch(t_category) {
+		case country_list_filter::influenced:
+			t_category = country_list_filter::sphere;
+			break;
+		case country_list_filter::find_allies:
+			t_category = country_list_filter::allies;
+			break;
+		case country_list_filter::neighbors_no_vassals:
+			t_category = country_list_filter::neighbors;
+			break;
+		default:
+			break;
+		}
+		disabled = t_category != category;
 		button_element_base::render(state, x, y);
 		disabled = false;
 	}
@@ -2151,10 +2173,14 @@ public:
 			text::add_line(state, contents, "alice_filter_all");
 			break;
 		case country_list_filter::neighbors:
+		case country_list_filter::neighbors_no_vassals:
 			text::add_line(state, contents, "alice_filter_neighbors");
+			text::add_line(state, contents, "alice_filter_neighbors_right");
 			break;
 		case country_list_filter::sphere:
+		case country_list_filter::influenced:
 			text::add_line(state, contents, "alice_filter_sphere");
+			text::add_line(state, contents, "alice_filter_sphere_right");
 			break;
 		case country_list_filter::enemies:
 			text::add_line(state, contents, "alice_filter_enemies");
