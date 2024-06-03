@@ -167,7 +167,14 @@ float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_f
 float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
 float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
 
-std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+struct rgo_workers_breakdown {
+	float paid_workers;
+	float slaves;
+	float total;
+};
+
+rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+
 float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
 float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
 float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n);

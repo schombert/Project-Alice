@@ -1565,14 +1565,20 @@ void update_single_factory_production(sys::state& state, dcon::factory_id f, dco
 	}
 }
 
-std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n) {
+rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto relevant_paid_population = 0.f;
 	for(auto wt : state.culture_definitions.rgo_workers) {
 		relevant_paid_population += state.world.province_get_demographics(p, demographics::to_key(state, wt));
 	}
 	auto slaves = state.world.province_get_demographics(p, demographics::to_employment_key(state, state.culture_definitions.slaves));
 
-	return std::tuple<float, float, float>(relevant_paid_population, slaves, relevant_paid_population + slaves);
+	rgo_workers_breakdown result = {
+		.paid_workers = relevant_paid_population,
+		.slaves = slaves,
+		.total = relevant_paid_population + slaves
+	};
+
+	return result;
 }
 
 float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n) {
@@ -2785,7 +2791,13 @@ void populate_effective_prices(sys::state& state, dcon::nation_id n) {
 	}
 }
 
-std::tuple<float, float, float> distribute_factory_profit(sys::state const & state, dcon::state_instance_const_fat_id s, float min_wage, float total_profit) {
+struct profit_distribution {
+	float per_primary_worker;
+	float per_secondary_worker;
+	float per_owner;
+};
+
+profit_distribution distribute_factory_profit(sys::state const & state, dcon::state_instance_const_fat_id s, float min_wage, float total_profit) {
 	float total_min_to_pworkers =
 		min_wage * state.world.state_instance_get_demographics(s,
 			demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
@@ -2820,7 +2832,12 @@ std::tuple<float, float, float> distribute_factory_profit(sys::state const & sta
 		per_sworker_profit = total_profit / (num_pworkers + num_sworkers);
 	}
 
-	return std::tuple(per_pworker_profit, per_sworker_profit, per_owner_profit);
+
+	return {
+		.per_primary_worker = per_pworker_profit,
+		.per_secondary_worker = per_sworker_profit,
+		.per_owner = per_owner_profit
+	};
 }
 
 void daily_update(sys::state& state, bool initiate_buildings ) {
@@ -3489,18 +3506,18 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 
 			auto const min_wage = factory_min_wage / state.defines.alice_needs_scaling_factor;
 
-			auto [per_pworker_profit, per_sworker_profit, per_owner_profit] = distribute_factory_profit(state, si.get_state(), min_wage, total_profit);
+			auto profit = distribute_factory_profit(state, si.get_state(), min_wage, total_profit);
 
 			province::for_each_province_in_state_instance(state, si.get_state(), [&](dcon::province_id p) {
 				for(auto pl : state.world.province_get_pop_location(p)) {
 					if(state.culture_definitions.primary_factory_worker == pl.get_pop().get_poptype()) {
-						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * per_pworker_profit);
+						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * profit.per_primary_worker);
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.secondary_factory_worker == pl.get_pop().get_poptype()) {
-						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * per_sworker_profit);
+						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * profit.per_secondary_worker);
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.capitalists == pl.get_pop().get_poptype()) {
-						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * per_owner_profit);
+						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * profit.per_owner);
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 					} else if(state.culture_definitions.aristocrat == pl.get_pop().get_poptype()) {
 						pl.get_pop().set_savings(pl.get_pop().get_savings() + state.inflation * pl.get_pop().get_size() * per_rgo_owner_profit);
