@@ -3158,23 +3158,6 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 				}
 			}
 		}
-
-		//write gdp to file
-		if(state.cheat_data.ecodump) {
-			auto life_costs =
-				state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
-				+ state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)
-				+ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.primary_factory_worker);
-			auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(n)));
-			auto name = text::produce_simple_string(state, state.world.nation_get_name(n));
-			state.cheat_data.national_economy_dump_file
-				<< tag << ","
-				<< name << ","
-				<< state.world.nation_get_gdp(n) << ","
-				<< life_costs << ","
-				<< state.world.nation_get_demographics(n, demographics::total) << ","
-				<< state.current_date.value << "\n";
-		}
 	}
 
 	/*
@@ -3792,21 +3775,21 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 	if(state.cheat_data.ecodump) {
 		float accumulator[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			state.cheat_data.prices_dump_file << state.world.commodity_get_current_price(c) << ",";
-			state.cheat_data.supply_dump_file << state.world.commodity_get_total_production(c) << ",";
-			state.cheat_data.demand_dump_file << state.world.commodity_get_total_real_demand(c) << ",";
+			state.cheat_data.prices_dump_buffer += std::to_string(state.world.commodity_get_current_price(c)) + ",";
+			state.cheat_data.supply_dump_buffer += std::to_string(state.world.commodity_get_total_production(c)) + ",";
+			state.cheat_data.demand_dump_buffer += std::to_string(state.world.commodity_get_total_real_demand(c)) + ",";
 			for(int i = 0; i < 8; i++) {
 				accumulator[i] += demand_by_category[i][c.index()];
 			}
 		});
 		for(int i = 0; i < 8; i++) {
-			state.cheat_data.demand_by_category_dump_file << accumulator[i] << ",";
+			state.cheat_data.demand_by_category_dump_buffer += std::to_string(accumulator[i]) + ",";
 		}
-		state.cheat_data.demand_by_category_dump_file << "\n";
+		state.cheat_data.demand_by_category_dump_buffer += "\n";
 		
-		state.cheat_data.prices_dump_file << "\n";
-		state.cheat_data.supply_dump_file << "\n";
-		state.cheat_data.demand_dump_file << "\n";
+		state.cheat_data.prices_dump_buffer += "\n";
+		state.cheat_data.supply_dump_buffer += "\n";
+		state.cheat_data.demand_dump_buffer += "\n";
 	}
 
 	/*
@@ -4151,7 +4134,25 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 	}
 
 AFTER_INVESTMENTS:
-	return;
+
+	//write gdp to file
+	if(state.cheat_data.ecodump) {
+		for(auto n : state.world.in_nation) {
+			auto life_costs =
+				state.world.nation_get_life_needs_costs(n, state.culture_definitions.primary_factory_worker)
+				+ state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)
+				+ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.primary_factory_worker);
+			auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(n)));
+			auto name = text::produce_simple_string(state, state.world.nation_get_name(n));
+			state.cheat_data.national_economy_dump_buffer +=
+				tag + ","
+				+ name + ","
+				+ std::to_string(state.world.nation_get_gdp(n)) + ","
+				+ std::to_string(life_costs) + ","
+				+ std::to_string(state.world.nation_get_demographics(n, demographics::total)) + ","
+				+ std::to_string(state.current_date.value) + "\n";
+		}
+	}
 }
 
 void regenerate_unsaved_values(sys::state& state) {

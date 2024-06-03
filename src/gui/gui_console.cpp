@@ -1,7 +1,6 @@
 #include <string>
 #include <string_view>
 #include <variant>
-#include <fstream>
 #include <filesystem>
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
@@ -1843,45 +1842,22 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::economy_dump:
 	{
-		auto data_dumps_directory = simple_fs::get_or_create_data_dumps_directory();
-		auto path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("economy_dump.txt"));
-		auto prices_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("prices_dump.txt"));
-		auto demand_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("demand_dump.txt"));
-		auto supply_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("supply_dump.txt"));
-		auto demand_by_category_path_string = simple_fs::get_path_to_file(data_dumps_directory, NATIVE("demand_by_category_dump.txt"));
-		if((path_string)&&(prices_path_string)&&(demand_path_string)&&(supply_path_string)&&(demand_by_category_path_string)) {
-			auto path = std::filesystem::path(path_string.value());
-			auto prices_path = std::filesystem::path(prices_path_string.value());
-			auto demand_path = std::filesystem::path(demand_path_string.value());
-			auto supply_path = std::filesystem::path(supply_path_string.value());
-
-			auto demand_by_category_path = std::filesystem::path(demand_by_category_path_string.value());
-
-			if(state.cheat_data.ecodump) {
-				state.cheat_data.ecodump = false;
-			} else {
-				state.cheat_data.ecodump = true;
-				state.cheat_data.national_economy_dump_file.open(path);
-				state.cheat_data.prices_dump_file.open(prices_path);
-				state.cheat_data.demand_dump_file.open(demand_path);
-				state.cheat_data.supply_dump_file.open(supply_path);
-				state.cheat_data.demand_by_category_dump_file.open(demand_by_category_path);
-
-				state.world.for_each_commodity([&](dcon::commodity_id c) {
-					state.cheat_data.prices_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
-					state.cheat_data.demand_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
-					state.cheat_data.supply_dump_file << text::produce_simple_string(state, state.world.commodity_get_name(c)) << ",";
-				});
-
-				state.cheat_data.prices_dump_file << "\n";
-				state.cheat_data.demand_dump_file << "\n";
-				state.cheat_data.supply_dump_file << "\n";
-			}
-			log_to_console(state, parent, state.cheat_data.ecodump ? "\x02" : "\x01");
+		if(state.cheat_data.ecodump) {
+			state.cheat_data.ecodump = false;
 		} else {
-			log_to_console(state, parent, "Command error");
+			state.cheat_data.ecodump = true;
+
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				state.cheat_data.prices_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.demand_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.supply_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+			});
+
+			state.cheat_data.prices_dump_buffer += "\n";
+			state.cheat_data.demand_dump_buffer += "\n";
+			state.cheat_data.supply_dump_buffer += "\n";
 		}
-		
+		log_to_console(state, parent, state.cheat_data.ecodump ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::color_blind_mode:

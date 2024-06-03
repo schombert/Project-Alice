@@ -96,6 +96,7 @@ void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
 
 void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
 	sys::write_save_file(state);
+
 	if(and_quit) {
 		window::close_window(state);
 	}

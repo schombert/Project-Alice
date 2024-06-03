@@ -682,7 +682,7 @@ public:
 
 		float population = state.world.nation_get_demographics(nation_id, demographics::total);
 
-		return text::format_float(state.world.nation_get_gdp(nation_id) / costs / population * 10000.f);
+		return text::format_float(state.world.nation_get_gdp(nation_id) / costs / population * 1000000.f);
 	}
 };
 
