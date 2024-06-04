@@ -257,6 +257,20 @@ native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
 }
 
+std::optional<native_string> get_path_to_file(directory const& dir, native_string_view file_name) {
+	if(dir.parent_system) {
+		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
+			native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
+			return full_path;
+		}
+	} else {
+		native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
+		return full_path;
+	}
+	return std::optional<native_string>{};
+}
+
 std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -421,6 +435,21 @@ directory get_or_create_scenario_directory() {
 	if(base_path.length() > 0) {
 		CreateDirectoryW(base_path.c_str(), nullptr);
 		base_path += NATIVE("\\scenarios");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
+directory get_or_create_data_dumps_directory() {
+	native_char* local_path_out = nullptr;
+	native_string base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\data_dumps");
 		CreateDirectoryW(base_path.c_str(), nullptr);
 	}
 	return directory(nullptr, base_path);

@@ -1262,20 +1262,11 @@ public:
 		float laborer_min_wage = economy::pop_laborer_min_wage(state, owner, min_wage_factor);
 		float expected_min_wage = is_mine ? laborer_min_wage : farmer_min_wage;
 
-		auto [non_slaves, slaves, total_relevant] = economy::rgo_relevant_population(state, prov_id, owner);
-		//float expected_profit = economy::rgo_expected_profit(state, prov_id, owner, total_relevant);
-		//float desired_profit = economy::rgo_desired_profit(state, prov_id, owner, expected_min_wage, total_relevant);
-
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
 		
-
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / desired profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(desired_profit * 100.f)));
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / expected profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_profit * 100.f)));
 		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
 

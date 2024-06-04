@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <filesystem>
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
@@ -77,6 +78,7 @@ struct command_info {
 		list_all_flags,
 		set_auto_choice_all,
 		clear_auto_choice_all,
+		economy_dump
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -279,7 +281,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
 				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
-						
+		command_info{ "ecodump", command_info::type::economy_dump, "Starts writing economy info to the disk. Could deteriorate performance.",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -2101,6 +2105,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.province_names = not state.cheat_data.province_names;
 		log_to_console(state, parent, state.cheat_data.province_names ? "✔" : "✘");
+		break;
+	}
+	case command_info::type::economy_dump:
+	{
+		if(state.cheat_data.ecodump) {
+			state.cheat_data.ecodump = false;
+		} else {
+			state.cheat_data.ecodump = true;
+
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				state.cheat_data.prices_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.demand_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.supply_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+			});
+
+			state.cheat_data.prices_dump_buffer += "\n";
+			state.cheat_data.demand_dump_buffer += "\n";
+			state.cheat_data.supply_dump_buffer += "\n";
+		}
+		log_to_console(state, parent, state.cheat_data.ecodump ? "\x02" : "\x01");
 		break;
 	}
 	case command_info::type::color_blind_mode:

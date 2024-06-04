@@ -142,8 +142,8 @@ static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
 	"Crea un nuevo escenario",
 	"para los mods seleccionados",
 	"No se encontro el escenario",
-	"Dirección IP",
-	"Contraseña",
+	"Direcci�n IP",
+	"Contrase�a",
 	"Alias",
 	"Un jugador",
 	"Multijugador",
@@ -172,47 +172,47 @@ static std::string_view it_localised_strings[uint8_t(string_index::count)] = {
 };
 //french
 static std::string_view fr_localised_strings[uint8_t(string_index::count)] = {
-	"Creer un scénario",
-	"Recréer le scénario",
+	"Creer un sc�nario",
+	"Recr�er le sc�nario",
 	"Fonctionnement...",
-	"Creer un nouveau scénario",
-	"pour les mods sélectionnés",
-	"Scénario introuvable",
+	"Creer un nouveau sc�nario",
+	"pour les mods s�lectionn�s",
+	"Sc�nario introuvable",
 	"Addresse IP",
 	"Passe",
 	"Alias",
 	"Solo",
 	"Multijoueur",
-	"Démarrer jeu",
-	"Hôte",
+	"D�marrer jeu",
+	"H�te",
 	"Rejoindre",
 	"Liste des modifications"
 };
 //portuguese
 static std::string_view po_localised_strings[uint8_t(string_index::count)] = {
-	"Criar cenário",
-	"Recriar cenário",
+	"Criar cen�rio",
+	"Recriar cen�rio",
 	"Trabalhando...",
-	"Crie un novo cenário para",
+	"Crie un novo cen�rio para",
 	"os mods selecionados",
-	"Cenário não encontrado",
-	"Endereço IP",
+	"Cen�rio n�o encontrado",
+	"Endere�o IP",
 	"Senha",
 	"Alias",
 	"Unjogador",
 	"Multijogador",
-	"Começar o jogo",
+	"Come�ar o jogo",
 	"Hospedar",
 	"Junte-se",
-	"Lista de modificações"
+	"Lista de modifica��es"
 };
 //deutsch
 static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 	"Szenario erstellen",
 	"Szenario neu erstellen",
 	"Arbeitet...",
-	"Neues Szenario für die",
-	"ausgewählten mods erstellen",
+	"Neues Szenario f�r die",
+	"ausgew�hlten mods erstellen",
 	"Szenario nicht gefunden",
 	"IP-Adresse",
 	"Passwort",
@@ -227,20 +227,20 @@ static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 //swedish
 static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 	"Skapa scenario",
-	"Återskapa scenario",
-	"Arbetssätt...",
+	"�terskapa scenario",
+	"Arbetss�tt...",
 	"Skepa ett nytt scenario",
-	"för de valda mods",
+	"f�r de valda mods",
 	"Scenario hittades inte",
 	"IP-adress",
-	"Lösenord",
+	"L�senord",
 	"Alias",
 	"Einselspalet",
 	"Merspalet",
 	"Starta spelet",
-	"Gå med",
-	"Vara värd",
-	"Lista över ändriggar"
+	"G� med",
+	"Vara v�rd",
+	"Lista �ver �ndriggar"
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -1469,12 +1469,10 @@ void render() {
 		Create a new scenario file
 		for the selected mods
 		*/
-		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_a_new_scenario)];
-		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-		sv = launcher::localised_strings[uint8_t(launcher::string_index::for_the_selected_mods)];
-		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		auto xoffset = 830.0f - base_text_extent("Create a new scenario", 21, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("Create a new scenario", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {

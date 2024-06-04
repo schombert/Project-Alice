@@ -1764,12 +1764,14 @@ alice_mvcap_9;The current capital not being sieged
 alice_mvcap_10;Is owned by you
 alice_mvcap_11;Is controlled by you
 alice_mvcap_12;Is owner core
-alice_pnt_pops;?YPopulation:?W $x$
-alice_pnt_rpops;?YRich strata:?W $x$ ($y$)
-alice_pnt_mpops;?YMiddle strata:?W $x$ ($y$)
-alice_pnt_ppops;?YPoor strata:?W $x$ ($y$)
-alice_pnt_culture;?YCulture:?W $x$
-alice_pnt_religion;?YReligion:?W $x$
-alice_pnt_dominant_religion;?YDominant religion:?W $x$
-alice_pnt_dominant_ideology;?YDominant Ideology:?W $x$
+alice_pnt_pops;?YPopulation:?! $x$
+alice_pnt_rpops;?YRich strata:?! $x$ ($y$)
+alice_pnt_mpops;?YMiddle strata:?! $x$ ($y$)
+alice_pnt_ppops;?YPoor strata:?! $x$ ($y$)
+alice_pnt_culture;?YCulture:?! $x$
+alice_pnt_religion;?YReligion:?! $x$
+alice_pnt_dominant_religion;?YDominant religion:?! $x$
+alice_pnt_dominant_ideology;?YDominant Ideology:?! $x$
+ledger_ppp_gdp;GDP(PPP)
+ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
 ;;;;;;;;;;;;;x
