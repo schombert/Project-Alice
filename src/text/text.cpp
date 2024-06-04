@@ -291,6 +291,8 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "cyrillic")) {
 						state.languages[last_language].encoding = text::language_encoding::utf8;
 						state.languages[last_language].script = text::language_script::cyrillic;
+					} else {
+						err.accumulated_errors += "Invalid encoding for language " + std::string(value) + " (" + err.file_name + ")\n";
 					}
 					++last_language;
 				};

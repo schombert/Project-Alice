@@ -1036,6 +1036,8 @@ inline constexpr GLuint tint = 12;
 inline constexpr GLuint interactable = 13;
 inline constexpr GLuint interactable_disabled = 14;
 inline constexpr GLuint subsprite_b = 15;
+inline constexpr GLuint atlas_index = 18;
+
 } // namespace parameters
 
 enum class color_modification {
@@ -1108,29 +1110,42 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 }
 
 void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
+	hb_feature_t features[1];
+	unsigned int num_features = 0;
+	if(f.features == text::font_feature::small_caps) {
+		features[0].tag = hb_tag_from_string("smcp", 4);
+		features[0].start = 0; /* Start point in text */
+		features[0].end = (unsigned int)-1; /* End point in text */
+		features[0].value = 1;
+		num_features = 1;
+	}
 	hb_buffer_t* buf = hb_buffer_create();
 	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
 	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, NULL, 0);
+	hb_shape(f.hb_font_face, buf, features, num_features);
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
-	float total = 0.0f;
+	// Preload glyphs
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		f.make_glyph(glyph_info[i].codepoint);
 	}
+
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		hb_position_t x_advance = glyph_pos[i].x_advance;
-		auto scale_factor = size / (64.0f * 64.f * 4.f);
-		glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
-		glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, f.textures[glyphid >> 6]);
-		hb_position_t x_offset = glyph_pos[i].x_offset;
-		hb_position_t y_offset = glyph_pos[i].y_offset;
-		glUniform4f(parameters::drawing_rectangle, x + float(x_offset) * scale_factor, baseline_y + float(y_offset) * scale_factor, size, size);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += float(x_advance) * scale_factor;
+		auto gso = f.glyph_positions[glyphid];
+		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
+			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
+			glActiveTexture(GL_TEXTURE2);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
+			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
+			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+		auto k = (i != glyph_count - 1)
+			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
+			: 0;
+		x += (f.glyph_advances[glyphid] + k) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 }
@@ -1163,20 +1178,32 @@ static ::ogl::texture big_r_button_tex;
 static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
+	hb_feature_t hb_features[1];
+	unsigned int num_features = 0;
+	if(f.features == text::font_feature::small_caps) {
+		hb_features[0].tag = hb_tag_from_string("smcp", 4);
+		hb_features[0].start = 0; /* Start point in text */
+		hb_features[0].end = (unsigned int)-1; /* End point in text */
+		hb_features[0].value = 1;
+		num_features = 1;
+	}
 	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
+	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
 	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, NULL, 0);
+	hb_shape(f.hb_font_face, buf, hb_features, num_features);
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
+		f.make_glyph(glyph_info[i].codepoint);
+	}
+	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto kerning = (i != glyph_count - 1)
+		auto k = (i != glyph_count - 1)
 			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
 			: 0;
-		total += (f.glyph_advances[glyphid] + kerning) * size / 64.f;
+		total += (f.glyph_advances[glyphid] + k) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 	return total;
