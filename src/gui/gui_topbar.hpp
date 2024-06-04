@@ -303,7 +303,6 @@ public:
 		text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
 		text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
-		text::add_line(state, contents, "separation_topbar");
 		text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
 		text::add_line_break_to_layout(state, contents);
@@ -943,33 +942,33 @@ public:
 
 		auto ymd = state.current_date.to_ymd(state.start_date);
 		if(sys::is_leap_year(ymd.year)) {
-			text::add_line(state, contents, "topbar_date_leap");
+			text::add_line(state, contents, "date_is_leap");
 		} else {
-			text::add_line(state, contents, "topbar_date_not_leap");
+			text::add_line(state, contents, "date_is_not_leap");
 		}
 
 		float nh_temp = 15.f;
 		std::string nh_season;
 		if(ymd.month == 12 || ymd.month <= 2) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+			nh_season = text::produce_simple_string(state, "winter");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+			nh_season = text::produce_simple_string(state, "spring");
 		} else if(ymd.month >= 6 && ymd.month <= 8) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+			nh_season = text::produce_simple_string(state, "summer");
 		} else if(ymd.month >= 9 && ymd.month <= 11) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+			nh_season = text::produce_simple_string(state, "autumn");
 		}
 		text::add_line(state, contents, "topbar_date_season_nh", text::variable_type::x, std::string_view(nh_season));
 
 		std::string sh_season;
 		if(ymd.month >= 6 && ymd.month <= 8) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+			sh_season = text::produce_simple_string(state, "winter");
 		} else if(ymd.month >= 9 && ymd.month <= 11) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+			sh_season = text::produce_simple_string(state, "spring");
 		} else if(ymd.month == 12 || ymd.month <= 2) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+			sh_season = text::produce_simple_string(state, "summer");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+			sh_season = text::produce_simple_string(state, "autumn");
 		}
 		text::add_line(state, contents, "topbar_date_season_sh", text::variable_type::x, std::string_view(sh_season));
 

@@ -2282,12 +2282,10 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
 	else if(std::holds_alternative<dcon::navy_id>(display_unit))
 		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
-	text::add_line(state, contents, "alice_utt_controls_1");
-	text::add_line(state, contents, "alice_utt_controls_2");
+	text::add_line(state, contents, "unit_controls_tooltip_1");
 	if(state.network_mode != sys::network_mode_type::single_player)
-		text::add_line(state, contents, "alice_utt_controls_3");
-
-	text::add_line(state, contents, "alice_ctrl_group");
+		text::add_line(state, contents, "unit_controls_tooltip_2");
+	text::add_line(state, contents, "unit_control_group_tooltip");
 }
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
@@ -2509,7 +2507,7 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"]", //CLOSED_BRACKET = 0xDD,
 		"\"", //QUOTE = 0xDE
 	};
-	text::add_line(state, contents, "alice_shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
+	text::add_line(state, contents, "shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
 }
 
 } // namespace ui

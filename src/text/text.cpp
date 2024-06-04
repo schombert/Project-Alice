@@ -215,6 +215,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
 	std::string_view fixed_iso_codes[] = {
 		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
+		//0		1		2			3		4			5		6		7		8			9		10		11		12
 	};
 	uint8_t last_language = 0;
 	for(uint32_t i = 0; i < std::extent_v<decltype(fixed_iso_codes)>; i++) {
@@ -224,9 +225,12 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		state.languages[i].encoding = text::language_encoding::win1252;
 		++last_language;
 	}
+	//fixes for russian
+	state.languages[11].encoding = text::language_encoding::utf8;
+	state.languages[11].script = text::language_script::cyrillic;
 
 	//Always parsed as windows-1252
-	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
 	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
 	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
 		if(auto ofile = open_file(file); ofile) {
@@ -243,7 +247,6 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		}
 	}
 
-	uint8_t first_new_language = 0;
 	if(auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt")); file) {
 		if(auto ofile = open_file(*file); ofile) {
 			auto content = view_contents(*ofile);
@@ -297,7 +300,8 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		}
 	}
 
-	for(uint32_t i = first_new_language; i < last_language; i++) {
+	// all languages will be checked for their respective localisation folders :D
+	for(uint32_t i = 0; i < last_language; i++) {
 		if(state.languages[i].encoding != text::language_encoding::none) {
 			if(state.languages[i].iso_code.size() > 2) {
 				auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.begin() + 2 });

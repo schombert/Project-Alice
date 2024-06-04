@@ -633,7 +633,7 @@ public:
 			if(state.network_state.save_stream) {
 				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
 			} else {
-				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+				set_button_text(state, text::produce_simple_string(state, "ready"));
 			}
 			button_element_base::render(state, x, y);
 		} else {
@@ -694,10 +694,6 @@ public:
 
 class quit_game_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_exit"));
-	}
 	void button_action(sys::state& state) noexcept override {
 		window::close_window(state);
 	}
@@ -708,7 +704,7 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
+			set_text(state, text::produce_simple_string(state, "ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
 					if(c.is_active() && c.playing_as == n) {
@@ -727,7 +723,7 @@ public:
 				}
 			}
 		} else {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
+			set_text(state, text::produce_simple_string(state, "ready"));
 		}
 		simple_text_element_base::render(state, x, y);
 	}
@@ -827,22 +823,7 @@ public:
 
 class nation_alice_readme_text : public scrollable_text {
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
-		text::add_line(state, contents, "alice_info_box_1");
-		text::add_line(state, contents, "alice_info_box_2");
-		text::add_line(state, contents, "alice_info_box_3");
-		text::add_line(state, contents, "alice_info_box_4");
-		text::add_line(state, contents, "alice_info_box_5");
-		text::add_line(state, contents, "alice_info_box_6");
-		text::add_line(state, contents, "alice_info_box_7");
-		text::add_line(state, contents, "alice_info_box_8");
-		text::add_line(state, contents, "alice_info_box_9");
-		text::add_line(state, contents, "alice_info_box_10");
-		text::add_line(state, contents, "alice_info_box_11");
-		text::add_line(state, contents, "alice_info_box_12");
-		text::add_line(state, contents, "alice_info_box_13");
-		text::add_line(state, contents, "alice_info_box_14");
-		text::add_line(state, contents, "alice_info_box_15");
-		text::add_line(state, contents, "alice_info_box_16");
+		text::add_line(state, contents, "alice_readme");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "gc_desc");
 	}

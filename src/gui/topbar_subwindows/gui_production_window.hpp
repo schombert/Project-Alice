@@ -306,12 +306,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line(state, contents, "alice_expand_factory_controls_1");
-		text::add_line(state, contents, "alice_expand_factory_controls_2");
-		text::add_line(state, contents, "alice_expand_factory_controls_3");
-		text::add_line(state, contents, "alice_expand_factory_controls_4");
-		text::add_line(state, contents, "alice_expand_factory_controls_5");
-		text::add_line(state, contents, "alice_expand_factory_controls_6");
+		text::add_line(state, contents, "factory_upgrade_shortcuts");
 	}
 };
 

@@ -121,9 +121,9 @@ public:
 		auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
 
 		if(!base_pop) {
-			text::add_line(state, contents, "alice_reinforce_rate_none");
+			text::add_line(state, contents, "reinforce_rate_none");
 		} else {
-			text::add_line(state, contents, "alice_x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
+			text::add_line(state, contents, "x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
 			text::add_line_break_to_layout(state, contents);
 
 			auto reg_range = state.world.pop_get_regiment_source(base_pop);
@@ -136,9 +136,9 @@ public:
 			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
 			auto reinf = state.defines.pop_size_per_regiment * military::reinforce_amount(state, a);
 			if(reinf >= 2.0f) {
-				text::add_line(state, contents, "alice_reinforce_rate", text::variable_type::x, int64_t(reinf));
+				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
-				text::add_line(state, contents, "alice_reinforce_rate_none");
+				text::add_line(state, contents, "reinforce_rate_none");
 			}
 		}
 	}

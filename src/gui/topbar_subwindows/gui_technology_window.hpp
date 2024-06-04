@@ -267,7 +267,7 @@ public:
 		technology_description(state, contents, content);
 		{
 			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "alice_tech_queue_info");
+			text::localised_format_box(state, contents, box, "tech_queue_explain");
 			text::close_layout_box(contents, box);
 		}
 	}

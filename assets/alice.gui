@@ -30,21 +30,21 @@ guiTypes = {
 			name = "save_and_exit"
 			position = { 58 104 }
 			quadTextureSprite ="GFX_frontend_button_236"
-			buttonText = "alice_save_exit"
+			buttonText = "save_and_exit"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
 			name = "save"
 			position = { 58 142 }
 			quadTextureSprite ="GFX_frontend_button_236"
-			buttonText = "alice_save"
+			buttonText = "save"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
 			name = "exit"
 			position = { 58 180 }
 			quadTextureSprite ="GFX_frontend_button_236"
-			buttonText = "alice_exit"
+			buttonText = "exit"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -921,7 +921,7 @@ guiTypes = {
 				font = "Arial16"
 				borderSize = { 0 0}
 				maxsize = { 236 18 }
-				text = "music_player"
+				text = "music_player_label"
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -1636,12 +1636,12 @@ guiTypes = {
 
 			iconType = {
 				name = "overlay"
-				spriteType = "GFX_alice_siege_frame"
+				spriteType = "GFX_unit_siege_frame"
 				position = { 0 0 }
 			}
 			iconType = {
 				name ="progress"
-				spriteType = "GFX_alice_siege_bar"
+				spriteType = "GFX_unit_siege_bar"
 				position = { 31 4 }
 			}
 
@@ -2829,7 +2829,7 @@ guiTypes = {
 			name = "message_reset"
 			position = { 30 410 }
 			quadTextureSprite ="GFX_frontend_button_236"
-			buttonText = "message_settings_reset"
+			buttonText = "reset"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -3066,7 +3066,7 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "legend_esc_instr"
-			text = "alice_state_select_2"
+			text = "press_esc_to_cancel"
 			position = { 0 33 }
 			font = "Arial14"
 			borderSize = { 0 0}
@@ -3990,7 +3990,7 @@ guiTypes = {
 			position = { 2 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "macro_new_template"
+			buttonText = "new"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -3998,7 +3998,7 @@ guiTypes = {
 			position = { 128 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "macro_save_template"
+			buttonText = "save"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -4006,7 +4006,7 @@ guiTypes = {
 			position = { 256 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "macro_remove_template"
+			buttonText = "delete"
 			buttonFont = "vic_22_black"
 		}
 		guiButtonType = {
@@ -4022,7 +4022,7 @@ guiTypes = {
 			position = { 510 288 }
 			size = { 128 24 }
 			quadTextureSprite = "GFX_button_128wide"
-			buttonText = "macro_apply_template"
+			buttonText = "apply"
 			buttonFont = "vic_22_black"
 		}
 		editBoxType = {

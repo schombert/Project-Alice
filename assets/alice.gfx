@@ -58,12 +58,12 @@ spriteTypes = {
 		noOfFrames = 8
 	}
 	spriteType = {
-		name = "GFX_alice_siege_frame"
+		name = "GFX_unit_siege_frame"
 		texturefile = "assets\\siegeframe.png"
 		noOfFrames = 1
 	}
 	progressbartype = {
-		name = "GFX_alice_siege_bar"
+		name = "GFX_unit_siege_bar"
 		textureFile1 = "assets\\siege_top.png"
 		textureFile2 = "assets\\siege_bottom.png"
 		size = { 64 11 }

@@ -1393,7 +1393,7 @@ void tf_unemployment_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_is_slave_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"), text::produce_simple_string(ws, "allowed"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "slavery"), text::produce_simple_string(ws, "allowed"),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -4861,14 +4861,14 @@ void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4877,7 +4877,7 @@ void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4889,7 +4889,7 @@ void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4901,7 +4901,7 @@ void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4913,7 +4913,7 @@ void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4926,7 +4926,7 @@ void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)

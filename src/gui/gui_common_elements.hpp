@@ -605,14 +605,14 @@ public:
 		}
 		float total_invest = nations::get_foreign_investment(state, n);
 		if(total_invest > 0.f) {
-			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
+			text::add_line(state, contents, "industry_score_explain_2", text::variable_type::x, text::fp_four_places{ iweight });
 			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
 				if(ur.get_foreign_investment() > 0.f) {
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
 					text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
 					auto box = text::open_layout_box(contents);
-					text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
+					text::localised_format_box(state, contents, box, std::string_view("industry_score_explain_3"), sub);
 					text::close_layout_box(contents, box);
 				}
 			}
@@ -642,14 +642,14 @@ public:
 		auto gen_range = state.world.nation_get_leader_loyalty(n);
 		auto num_leaders = float((gen_range.end() - gen_range.begin()));
 		auto num_capital_ships = state.world.nation_get_capital_ship_score(n);
-		text::add_line(state, contents, "alice_milscore_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
-		text::add_line(state, contents, "alice_milscore_2", text::variable_type::x, text::int_wholenum{ recruitable });
-		text::add_line(state, contents, "alice_milscore_3", text::variable_type::x, text::int_wholenum{ active_regs });
-		text::add_line_with_condition(state, contents, "alice_milscore_4", is_disarmed, text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
-		text::add_line(state, contents, "alice_milscore_5", text::variable_type::x, text::fp_two_places{ supply_mod });
+		text::add_line(state, contents, "military_score_explain_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
+		text::add_line(state, contents, "military_score_explain_2", text::variable_type::x, text::int_wholenum{ recruitable });
+		text::add_line(state, contents, "military_score_explain_3", text::variable_type::x, text::int_wholenum{ active_regs });
+		text::add_line_with_condition(state, contents, "military_score_explain_4", is_disarmed, text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
+		text::add_line(state, contents, "military_score_explain_5", text::variable_type::x, text::fp_two_places{ supply_mod });
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, true);
-		text::add_line(state, contents, "alice_milscore_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
-		text::add_line(state, contents, "alice_milscore_7", text::variable_type::x, text::fp_two_places{ num_leaders });
+		text::add_line(state, contents, "military_score_explain_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
+		text::add_line(state, contents, "military_score_explain_7", text::variable_type::x, text::fp_two_places{ num_leaders });
 	}
 };
 
@@ -2196,28 +2196,25 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		switch(category) {
 		case country_list_filter::all:
-			text::add_line(state, contents, "alice_filter_all");
+			text::add_line(state, contents, "filter_all");
 			break;
 		case country_list_filter::neighbors:
 		case country_list_filter::neighbors_no_vassals:
-			text::add_line(state, contents, "alice_filter_neighbors");
-			text::add_line(state, contents, "alice_filter_neighbors_right");
+			text::add_line(state, contents, "filter_neighbors");
 			break;
 		case country_list_filter::sphere:
 		case country_list_filter::influenced:
-			text::add_line(state, contents, "alice_filter_sphere");
-			text::add_line(state, contents, "alice_filter_sphere_right");
+			text::add_line(state, contents, "filter_sphere");
 			break;
 		case country_list_filter::enemies:
-			text::add_line(state, contents, "alice_filter_enemies");
+			text::add_line(state, contents, "filter_enemies");
 			break;
 		case country_list_filter::find_allies:
 		case country_list_filter::allies:
-			text::add_line(state, contents, "alice_filter_allies");
-			text::add_line(state, contents, "alice_filter_allies_right");
+			text::add_line(state, contents, "filter_allies");
 			break;
 		case country_list_filter::best_guess:
-			text::add_line(state, contents, "alice_filter_best_guess");
+			text::add_line(state, contents, "filter_best_guess");
 			break;
 		default:
 			break;
