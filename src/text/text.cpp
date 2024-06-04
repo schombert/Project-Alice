@@ -226,20 +226,22 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	}
 
 	//Always parsed as windows-1252
-	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
-	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
-		if(auto ofile = open_file(file); ofile) {
-			auto content = view_contents(*ofile);
-			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, content.data, content.file_size, err);
+	{
+		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_csv_file(state, content.data, content.file_size, err);
+			}
 		}
-	}
-	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
-	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
-		if(auto ofile = open_file(file); ofile) {
-			auto content = view_contents(*ofile);
-			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, content.data, content.file_size, err);
+		auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+		for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_csv_file(state, content.data, content.file_size, err);
+			}
 		}
 	}
 
@@ -284,10 +286,6 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 						state.languages[last_language].script = text::language_script::latin;
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
 						state.languages[last_language].encoding = text::language_encoding::utf8;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "gb18030")) {
-						state.languages[last_language].encoding = text::language_encoding::gb18030;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "win1252")) {
-						state.languages[last_language].encoding = text::language_encoding::win1252;
 					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "cyrillic")) {
 						state.languages[last_language].encoding = text::language_encoding::utf8;
 						state.languages[last_language].script = text::language_script::cyrillic;
@@ -303,6 +301,25 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 
 	for(uint32_t i = first_new_language; i < last_language; i++) {
 		if(state.languages[i].encoding != text::language_encoding::none) {
+			if(state.languages[i].iso_code.size() > 2) {
+				auto text_dir = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.begin() + 2 });
+				auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+				for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+					if(auto ofile = open_file(file); ofile) {
+						auto content = view_contents(*ofile);
+						err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+						consume_new_csv_file(state, content.data, content.file_size, err, i);
+					}
+				}
+				auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+				for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+					if(auto ofile = open_file(file); ofile) {
+						auto content = view_contents(*ofile);
+						err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+						consume_new_csv_file(state, content.data, content.file_size, err, i);
+					}
+				}
+			}
 			auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.end() });
 			auto text_lang_dir = open_directory(text_dir, lang_dir_name);
 			for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
