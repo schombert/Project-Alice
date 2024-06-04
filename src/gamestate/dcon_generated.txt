@@ -3567,7 +3567,6 @@ object {
 	property {
 		name{ intermediate_demand }
 		type{ array{commodity_id}{float} }
-		tag{ save }
 	}
 	property {
 		name{ imports }
