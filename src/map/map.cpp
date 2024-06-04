@@ -1790,10 +1790,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
 		float letter_spacing = letter_spacing_map / size_x;
-		//if(state.languages[state.user_settings.current_language].no_spacing) {
+		if(state.languages[state.user_settings.current_language].no_spacing) {
 			letter_spacing_map = 0.f;
 			letter_spacing = 0.f; //no spacing
-		//}
+		}
 
 		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
 
