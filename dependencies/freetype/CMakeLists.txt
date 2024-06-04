@@ -43,7 +43,7 @@ set(HB_HAVE_FREETYPE ON)
 FetchContent_Declare(
 	harfbuzz
 	GIT_REPOSITORY https://github.com/harfbuzz/harfbuzz
-	GIT_TAG f5d8895
+	GIT_TAG 8.5.0
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )

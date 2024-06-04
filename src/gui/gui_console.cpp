@@ -45,8 +45,6 @@ struct command_info {
 		force_ally,
 		win_wars,
 		toggle_ai,
-		change_language,
-		previous_language,
 		always_allow_wargoals,
 		always_allow_reforms,
 		always_allow_decisions,
@@ -182,12 +180,6 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		command_info{"tai", command_info::type::toggle_ai, "Toggles ON/OFF AI for countries",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"lang", command_info::type::change_language, "Change language",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}}},
-		command_info{"plang", command_info::type::previous_language, "Change to previous language",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
 		/* doesn't work, removed until someone fixes it
@@ -1847,40 +1839,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		for(auto n : state.world.in_nation)
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
-	case command_info::type::change_language:
-	{
-		state.user_settings.current_language++;
-		std::string str;
-		auto const& code = state.languages[state.user_settings.current_language].iso_code;
-		str.resize(code.size() + 1, '_');
-		std::copy(code.begin(), code.end(), str.begin());
-		log_to_console(state, parent, str);
-		//
-		state.ui_state.units_root->impl_on_reset_text(state);
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-		state.ui_state.root->impl_on_reset_text(state);
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-		state.ui_state.end_screen->impl_on_reset_text(state);
-		break;
-	}
-	case command_info::type::previous_language:
-	{
-		state.user_settings.current_language--;
-		std::string str;
-		auto const& code = state.languages[state.user_settings.current_language].iso_code;
-		str.resize(code.size() + 1, '_');
-		std::copy(code.begin(), code.end(), str.begin());
-		log_to_console(state, parent, str);
-		//
-		state.ui_state.units_root->impl_on_reset_text(state);
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-		state.ui_state.root->impl_on_reset_text(state);
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-		state.ui_state.end_screen->impl_on_reset_text(state);
-		break;
-	}
 	case command_info::type::always_allow_wargoals:
 		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_wargoals));
 		command::c_always_allow_wargoals(state, state.local_player_nation);

@@ -574,6 +574,38 @@ guiTypes = {
 				position = { 51 320 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
+
+			# Language
+			instantTextBoxType = {
+				name = "language_label"
+				position = { 58 340 }
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				text = "language_label"
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			instantTextBoxType={
+				name = "language_value"
+				position = { 58 360 }
+				font = "Arial14"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = centre
+			}
+			guiButtonType = {
+				name = "language_left"
+				position = { 51 358 }
+				quadTextureSprite = "option_prev"
+			}
+			guiButtonType = {
+				name = "language_right"
+				position = { 269 358 }
+				quadTextureSprite = "option_next"
+			}
+
 			# Zoom style
 			instantTextBoxType = {
 				name = "zoom_mode_label"

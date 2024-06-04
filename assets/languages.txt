@@ -1,2 +1,2 @@
-zh;utf8
-ar;utf8
+zh-CN;utf8
+ar-AR;rtl

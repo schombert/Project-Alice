@@ -103,6 +103,66 @@ void autosave_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void language_left::button_action(sys::state& state) noexcept {
+	uint32_t i = state.user_settings.current_language - 1;
+	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
+		--i;
+		i %= sys::max_languages;
+	}
+	state.user_settings.current_language = i;
+	//
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	//
+	send(state, parent, notify_setting_update{});
+}
+void language_left::on_update(sys::state& state) noexcept {
+
+}
+void language_right::button_action(sys::state& state) noexcept {
+	uint32_t i = state.user_settings.current_language + 1;
+	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
+		++i;
+		i %= sys::max_languages;
+	}
+	state.user_settings.current_language = i;
+	//
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	//
+	send(state, parent, notify_setting_update{});
+}
+void language_right::on_update(sys::state& state) noexcept {
+
+}
+void language_display::on_update(sys::state& state) noexcept {
+	auto const& code = state.languages[state.user_settings.current_language].iso_code;
+	std::string str;
+	str.resize(code.size());
+	std::copy(code.begin(), code.end(), str.begin());
+	set_text(state, text::produce_simple_string(state, "language_" + str));
+}
+
 void map_zoom_mode_left::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
 	if(scale_index > 0) {

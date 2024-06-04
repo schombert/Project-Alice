@@ -266,39 +266,6 @@ uint8_t const* find(uint8_t const* file_data) {
 	return nullptr;
 }
 
-std::vector<uint16_t> small_caps_lookup_indices(uint8_t const* gsub_table) {
-	std::vector<uint16_t> results;
-
-	uint8_t const* latn_table = nullptr;
-	uint8_t const* DFLT_table = nullptr;
-
-	auto so = gsub_table + script_offset(gsub_table);
-	script_list_table::for_each_script_table(so, [&](opentype_tag const& t, uint8_t const* d) {
-		if(t.tag_data[0] == 'D' && t.tag_data[1] == 'F' && t.tag_data[2] == 'L' && t.tag_data[3] == 'T') {
-			DFLT_table = d;
-		} else if(t.tag_data[0] == 'l' && t.tag_data[1] == 'a' && t.tag_data[2] == 't' && t.tag_data[3] == 'n') {
-			latn_table = d;
-		}
-	});
-
-	auto st = latn_table ? latn_table : DFLT_table;
-	if(!st)
-		return results;
-
-	auto def_ls_table = script_table::default_lang_sys_table(st);
-	if(!def_ls_table)
-		return results;
-
-	auto fo = gsub_table + feature_offset(gsub_table);
-	lang_sys_table::for_each_feature_index(def_ls_table, [&](uint16_t id) {
-		auto ft = feature_list_table::get_feature_table(fo, id);
-		if(ft.tag.tag_data[0] == 's' && ft.tag.tag_data[1] == 'm' && ft.tag.tag_data[2] == 'c' && ft.tag.tag_data[3] == 'p') {
-			feature_table::for_each_lookup_list_index(ft.feature_table, [&](uint16_t i) { results.push_back(i); });
-		}
-	});
-
-	return results;
-}
 uint32_t perform_glyph_subs(uint8_t const* gsub_table, std::vector<uint16_t> const& lookups, uint32_t glyph_in) {
 	auto lo = gsub_table + lookup_offset(gsub_table);
 
@@ -1141,13 +1108,6 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	fnt.internal_ascender = float(fnt.font_face->size->metrics.ascender) / float((1 << 6) * magnification_factor);
 	fnt.internal_descender = -float(fnt.font_face->size->metrics.descender) / float((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
-
-	fnt.gs = gsub::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
-	if(fnt.gs && f == font_feature::small_caps) {
-		//fnt.internal_line_height -= fnt.internal_descender;
-		//fnt.internal_descender = 0;	
-		fnt.substitution_indices = gsub::small_caps_lookup_indices(fnt.gs);
-	}
 	auto gp = gpos::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
 	fnt.type_2_kerning_tables = gpos::find_kerning_type2_subtables(gp);
 }
@@ -1155,13 +1115,6 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 float font::kerning(char32_t codepoint_first, char32_t codepoint_second)  {
 	if(auto it = kernings.find(uint64_t(codepoint_first) << 32 | uint64_t(codepoint_second)); it != kernings.end()) {
 		return it->second;
-	}
-
-	if(codepoint_first && gs && features == font_feature::small_caps) {
-		codepoint_first = gsub::perform_glyph_subs(gs, substitution_indices, codepoint_first);
-	}
-	if(codepoint_second && gs && features == font_feature::small_caps) {
-		codepoint_second = gsub::perform_glyph_subs(gs, substitution_indices, codepoint_second);
 	}
 
 	float res = 0.f;
@@ -1236,16 +1189,9 @@ void font::make_glyph(char32_t ch_in) {
 		return;
 	glyph_loaded.insert_or_assign(ch_in, true);
 	auto index_in_this_font = ch_in;
-	auto sc_index_in_this_font = index_in_this_font;
-	if(sc_index_in_this_font && gs && features == font_feature::small_caps) {
-		sc_index_in_this_font = gsub::perform_glyph_subs(gs, substitution_indices, index_in_this_font);
-		if(!sc_index_in_this_font) {
-			sc_index_in_this_font = index_in_this_font;
-		}
-	}
 	// load all glyph metrics
-	if(sc_index_in_this_font) {
-		FT_Load_Glyph(font_face, sc_index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
+	if(index_in_this_font) {
+		FT_Load_Glyph(font_face, index_in_this_font, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
 		FT_Glyph g_result;
 		FT_Get_Glyph(font_face->glyph, &g_result);
@@ -1308,10 +1254,19 @@ char font::codepoint_to_alnum(char32_t codepoint) {
 }
 
 float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
+	hb_feature_t hb_features[1];
+	unsigned int num_features = 0;
+	if(features == text::font_feature::small_caps) {
+		hb_features[0].tag = hb_tag_from_string("smcp", 4);
+		hb_features[0].start = 0; /* Start point in text */
+		hb_features[0].end = (unsigned int)-1; /* End point in text */
+		hb_features[0].value = 1;
+		num_features = 1;
+	}
 	hb_buffer_t* buf = hb_buffer_create();
 	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
 	hb_buffer_guess_segment_properties(buf);
-	hb_shape(hb_font_face, buf, NULL, 0);
+	hb_shape(hb_font_face, buf, hb_features, num_features);
 	unsigned int glyph_count = 0;
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);

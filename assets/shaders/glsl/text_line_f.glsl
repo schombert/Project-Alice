@@ -11,7 +11,7 @@ vec4 gamma_correct(vec4 colour) {
 void main() {
 	float border_size = 0.022f;
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
-	vec3 outer_color = inner_color;//vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
+	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
 	
 	vec4 color_in = texture(texture_atlas_sampler, tex_coord);
 	if(color_in.r > 0.505) {
@@ -24,7 +24,5 @@ void main() {
 	}
 
 	frag_color.a *= opacity;
-	frag_color.a = max(frag_color.a, 0.1f);
-
 	frag_color = gamma_correct(frag_color);
 }
