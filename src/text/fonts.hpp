@@ -43,9 +43,6 @@ private:
 public:
 	FT_Face font_face;
 	hb_font_t* hb_font_face = nullptr;
-	ankerl::unordered_dense::map<uint64_t, float> kernings;
-	std::vector<uint16_t> substitution_indices;
-	std::vector<uint8_t const*> type_2_kerning_tables;
 	uint8_t const* gs = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
 
@@ -75,7 +72,6 @@ public:
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
-	float kerning(char32_t codepoint_first, char32_t codepoint_second);
 	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size);
 
 	friend class font_manager;

@@ -661,70 +661,6 @@ uint8_t const* find(uint8_t const* file_data) {
 	return nullptr;
 }
 
-
-std::vector<uint8_t const*> find_kerning_type2_subtables(uint8_t const* gsub_table) {
-	std::vector<uint8_t const*> results;
-
-	uint8_t const* latn_table = nullptr;
-	uint8_t const* DFLT_table = nullptr;
-
-	auto so = gsub_table + script_offset(gsub_table);
-	script_list_table::for_each_script_table(so, [&](opentype_tag const& t, uint8_t const* d) {
-		if(t.tag_data[0] == 'D' && t.tag_data[1] == 'F' && t.tag_data[2] == 'L' && t.tag_data[3] == 'T') {
-			DFLT_table = d;
-		} else if(t.tag_data[0] == 'l' && t.tag_data[1] == 'a' && t.tag_data[2] == 't' && t.tag_data[3] == 'n') {
-			latn_table = d;
-		}
-	});
-
-	auto st = latn_table ? latn_table : DFLT_table;
-	if(!st)
-		return results;
-
-	auto def_ls_table = script_table::default_lang_sys_table(st);
-	if(!def_ls_table)
-		return results;
-
-	auto fo = gsub_table + feature_offset(gsub_table);
-	auto lo = gsub_table + lookup_offset(gsub_table);
-
-	lang_sys_table::for_each_feature_index(def_ls_table, [&](uint16_t id) {
-		auto ft = feature_list_table::get_feature_table(fo, id);
-		if(ft.tag.tag_data[0] == 'k' && ft.tag.tag_data[1] == 'e' && ft.tag.tag_data[2] == 'r' && ft.tag.tag_data[3] == 'n') {
-			feature_table::for_each_lookup_list_index(ft.feature_table, [&](uint16_t i) {
-				auto t = lookup_list_table::get_lookup_table(lo, i);
-				auto type = lookup_table::get_lookup_type(t);
-				auto stc = lookup_table::get_sub_table_count(t);
-				if(type == 2) { // basic pair positioning
-					for(uint16_t j = 0; j < stc; ++j) {
-						if(auto st = lookup_table::get_sub_table(t, j); st) {
-							results.push_back(st);
-						}
-					}
-				} else if(type == 9) { // extension positioning
-					for(uint16_t j = 0; j < stc; ++j) {
-						if(auto st = lookup_table::get_sub_table(t, j); st) {
-							if(b_to_u16(st) == 1 && b_to_u16(st + sizeof(uint16_t)) == 2) { // extension format referring to a type 2 lookup
-								results.push_back(st + b_to_u32(st + sizeof(uint16_t) * 2));
-							}
-						}
-					}
-				}
-			});
-		}
-	});
-
-	return results;
-}
-
-int32_t net_kerning(std::vector<uint8_t const*> const& tables, uint32_t glyph_a, uint32_t glyph_b) {
-	int32_t v = 0;
-	for(auto t : tables) {
-		v += pair_pos_format::net_x_adjust(t, glyph_a, glyph_b);
-	}
-	return v;
-}
-
 /*
 void dump_gpos(uint8_t const* data) {
 	OutputDebugStringA("Script List Table\n");
@@ -1109,28 +1045,6 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	fnt.internal_ascender = float(fnt.font_face->size->metrics.ascender) / float((1 << 6) * magnification_factor);
 	fnt.internal_descender = -float(fnt.font_face->size->metrics.descender) / float((1 << 6) * magnification_factor);
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
-	auto gp = gpos::find(reinterpret_cast<uint8_t const*>(fnt.file_data.get()));
-	fnt.type_2_kerning_tables = gpos::find_kerning_type2_subtables(gp);
-}
-
-float font::kerning(char32_t codepoint_first, char32_t codepoint_second)  {
-	if(auto it = kernings.find(uint64_t(codepoint_first) << 32 | uint64_t(codepoint_second)); it != kernings.end()) {
-		return it->second;
-	}
-
-	float res = 0.f;
-	if(codepoint_first == 0 || codepoint_second == 0) {
-		// nothing -- stays as 0.0f
-	} else if(FT_HAS_KERNING(font_face)) {
-		FT_Vector kerning;
-		FT_Get_Kerning(font_face, codepoint_first, codepoint_second, FT_KERNING_DEFAULT, &kerning);
-		res = float(kerning.x) / float((1 << 6) * magnification_factor);
-	} else {
-		auto rval = gpos::net_kerning(type_2_kerning_tables, codepoint_first, codepoint_second);
-		res = rval * 64.f / float(font_face->units_per_EM);
-	}
-	kernings.insert_or_assign(uint64_t(codepoint_first) << 32 | uint64_t(codepoint_second), res);
-	return res;
 }
 
 float font::line_height(int32_t size) const {
