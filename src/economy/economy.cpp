@@ -25,7 +25,11 @@ void register_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id co
 void register_intermediate_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id commodity_type, float amount, economy_reason reason) {
 	register_demand(state, n, commodity_type, amount, reason);
 	state.world.nation_get_intermediate_demand(n, commodity_type) += amount;
-	state.world.nation_get_gdp(n) -= amount * state.world.commodity_get_current_price(commodity_type);
+
+	float price = state.world.commodity_get_current_price(commodity_type);
+	float sat = state.world.nation_get_demand_satisfaction(n, commodity_type);
+
+	state.world.nation_get_gdp(n) -= amount * price * sat;
 }
 
 // it's registered as a demand separately
@@ -465,7 +469,7 @@ void presimulate(sys::state& state) {
 
 	// economic updates without construction
 
-	for(uint32_t i = 0; i < 365 * 20; i++) {
+	for(uint32_t i = 0; i < 365 * 5; i++) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
 		daily_update(state, false);
@@ -2345,7 +2349,7 @@ void update_pop_consumption(sys::state& state, dcon::nation_id n, float base_dem
 		for(auto pl : state.world.province_get_pop_location(p.get_province())) {
 			auto t = pl.get_pop().get_poptype();
 			assert(t);
-			auto total_budget = pl.get_pop().get_savings() * 0.8f;
+			auto total_budget = pl.get_pop().get_savings();
 			auto total_pop = pl.get_pop().get_size();
 
 			float ln_cost = state.world.nation_get_life_needs_costs(n, t) * total_pop / state.defines.alice_needs_scaling_factor;
@@ -4109,6 +4113,8 @@ void regenerate_unsaved_values(sys::state& state) {
 	}
 
 	state.world.commodity_resize_demand_by_category(8);
+
+	state.world.nation_resize_intermediate_demand(state.world.commodity_size());
 
 	state.world.nation_resize_life_needs_costs(state.world.pop_type_size());
 	state.world.nation_resize_everyday_needs_costs(state.world.pop_type_size());
