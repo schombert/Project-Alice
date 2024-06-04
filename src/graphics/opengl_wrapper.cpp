@@ -740,7 +740,9 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-
+		float x_advance = float(f.glyph_advances[glyphid]);
+		float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
+		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 		bool draw_icon = false;
 		bool draw_flag = false;
 		if(glyphid == FT_Get_Char_Index(f.font_face, '@')) {
@@ -770,7 +772,7 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 			}
 			if(draw_icon) {
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, icon_subroutines);//push
-				glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.0f, size * (draw_flag ? 1.5f : 1.f), size);
+				glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.0f, size * (draw_flag ? 1.5f : 1.f), size);
 				glUniform4f(ogl::parameters::subrect, 0.f, 1.f, 0.f, 1.f);
 				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);//pop
@@ -781,14 +783,11 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 			glBindVertexBuffer(0, state.open_gl.sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
-			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
+			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		auto k = (i != glyph_count - 1)
-			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
-			: 0;
-		x += (f.glyph_advances[glyphid] + k) * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 }
@@ -834,17 +833,25 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-			if(flag_texture_handle != 0) {
-				GLuint flag_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
+			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
+				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
 				f = font.chars[0x4D];
 				float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
 				float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
 				float CurX = x + f.x_offset - (float(f.width) * offset);
 				float CurY = y + f.y_offset - (float(f.height) * offset);
-				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
-				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
+				GLuint icon_tex = 0;
+				if(uint8_t(tag[1]) == 'F')
+					icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
+				else if(uint8_t(tag[1]) == 'T')
+					icon_tex = state.open_gl.checkmark_icon_tex;
+				else if(uint8_t(tag[1]) == 'A')
+					icon_tex = state.open_gl.army_icon_tex;
+				else if(uint8_t(tag[1]) == 'N')
+					icon_tex = state.open_gl.navy_icon_tex;
+				glBindTexture(GL_TEXTURE_2D, icon_tex);
 				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
 						float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
@@ -854,16 +861,36 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				// Restore affected state
 				glBindTexture(GL_TEXTURE_2D, font.ftexid);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-
-				x += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
-
-				i += 3;
+				x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
 				continue;
+			} else {
+				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
+				if(flag_texture_handle != 0) {
+					GLuint flag_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
+					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
+					f = font.chars[0x4D];
+					float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
+					float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
+					float CurX = x + f.x_offset - (float(f.width) * offset);
+					float CurY = y + f.y_offset - (float(f.height) * offset);
+					glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
+					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
+					glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+					glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
+							float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
+							float(f.height) / float(font.width) /* y height */
+					);
+					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+					// Restore affected state
+					glBindTexture(GL_TEXTURE_2D, font.ftexid);
+					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
+					x += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
+					i += 3;
+					continue;
+				}
 			}
-		}
-
-		if(uint8_t(codepoints[i]) == 0xA4 || uint8_t(codepoints[i]) == 0x01 || uint8_t(codepoints[i]) == 0x02 || int8_t(codepoints[i]) == 0x03 || uint8_t(codepoints[i]) == 0x04) {
-			GLuint money_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
+		} else if(uint8_t(codepoints[0]) == '\xA4') {
+			GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
 			f = font.chars[0x4D];
 			float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
@@ -871,19 +898,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			float CurX = x + f.x_offset - (float(f.width) * offset);
 			float CurY = y + f.y_offset - (float(f.height) * offset);
 			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-
-			GLuint icon_tex = 0;
-			if(uint8_t(codepoints[i]) == 0xA4)
-				icon_tex = state.open_gl.money_icon_tex;
-			else if(uint8_t(codepoints[i]) == 0x01)
-				icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
-			else if(uint8_t(codepoints[i]) == 0x02)
-				icon_tex = state.open_gl.checkmark_icon_tex;
-			else if(uint8_t(codepoints[i]) == 0x03)
-				icon_tex = state.open_gl.army_icon_tex;
-			else if(uint8_t(codepoints[i]) == 0x04)
-				icon_tex = state.open_gl.navy_icon_tex;
-
+			GLuint icon_tex = state.open_gl.money_icon_tex;
 			glBindTexture(GL_TEXTURE_2D, icon_tex);
 			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
@@ -894,10 +909,9 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			// Restore affected state
 			glBindTexture(GL_TEXTURE_2D, font.ftexid);
 			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-
 			x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
 			continue;
-		} else {
+		} else if(codepoints[i] != ' ') {
 			f = font.chars[uint8_t(codepoints[i])];
 			float CurX = x + f.x_offset;
 			float CurY = y + f.y_offset;

@@ -1102,6 +1102,7 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
 	FT_Set_Pixel_Sizes(fnt.font_face, 0, dr_size);
 	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
+	hb_font_set_scale(fnt.hb_font_face, dr_size, dr_size);
 	fnt.loaded = true;
 
 	fnt.internal_line_height = float(fnt.font_face->size->metrics.height) / float((1 << 6) * magnification_factor);
@@ -1276,6 +1277,8 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 	}
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		auto gso = glyph_positions[glyphid];
+		float x_advance = float(glyph_advances[glyphid]);
 		bool draw_icon = false;
 		bool draw_flag = false;
 		if(glyphid == FT_Get_Char_Index(font_face, '@')) {
@@ -1297,10 +1300,7 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 				i += 3;
 			}
 		}
-		auto k = (i != glyph_count - 1)
-			? kerning(glyphid, glyph_info[i + 1].codepoint)
-			: 0;
-		total += (glyph_advances[glyphid] + k) * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 	return total;

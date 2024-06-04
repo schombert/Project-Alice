@@ -97,6 +97,153 @@ static std::string ip_addr = "127.0.0.1";
 static std::string password = "";
 static std::string player_name = "AnonAnon";
 
+enum class string_index : uint8_t {
+	create_scenario,
+	recreate_scenario,
+	working,
+	create_a_new_scenario,
+	for_the_selected_mods,
+	no_scenario_found,
+	ip_address,
+	password,
+	nickname,
+	singleplayer,
+	multiplayer,
+	start_game,
+	host,
+	join,
+	mod_list,
+	count
+};
+
+//english
+static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
+	"Create scenario",
+	"Recreate scenario",
+	"Working...",
+	"Create a new scenario",
+	"for the selected mods",
+	"No scenario found",
+	"IP Address",
+	"Passowrd",
+	"Nickname",
+	"Singleplayer",
+	"Multiplayer",
+	"Start game",
+	"Host",
+	"Join",
+	"Mod list"
+};
+//spanish
+static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
+	"Crear escenario",
+	"Recrear escenario",
+	"Trabajando...",
+	"Crea un nuevo escenario",
+	"para los mods seleccionados",
+	"No se encontro el escenario",
+	"Dirección IP",
+	"Contraseña",
+	"Alias",
+	"Un jugador",
+	"Multijugador",
+	"Empezar juego",
+	"Hostear",
+	"Unirse",
+	"Lista de mods"
+};
+//italian
+static std::string_view it_localised_strings[uint8_t(string_index::count)] = {
+	"Crea esenario",
+	"Ricreare esenario",
+	"Lavorando...",
+	"Crea un nuovo esenario",
+	"per i mod selezionati",
+	"Scenario non trovato",
+	"Indirizzo IP",
+	"Password",
+	"Alias",
+	"Singolo",
+	"Multigiocatore",
+	"Inizia il gioco",
+	"Ospite",
+	"Partecipare",
+	"Elenco delle mods"
+};
+//french
+static std::string_view fr_localised_strings[uint8_t(string_index::count)] = {
+	"Creer un scénario",
+	"Recréer le scénario",
+	"Fonctionnement...",
+	"Creer un nouveau scénario",
+	"pour les mods sélectionnés",
+	"Scénario introuvable",
+	"Addresse IP",
+	"Passe",
+	"Alias",
+	"Solo",
+	"Multijoueur",
+	"Démarrer jeu",
+	"Hôte",
+	"Rejoindre",
+	"Liste des modifications"
+};
+//portuguese
+static std::string_view po_localised_strings[uint8_t(string_index::count)] = {
+	"Criar cenário",
+	"Recriar cenário",
+	"Trabalhando...",
+	"Crie un novo cenário para",
+	"os mods selecionados",
+	"Cenário não encontrado",
+	"Endereço IP",
+	"Senha",
+	"Alias",
+	"Unjogador",
+	"Multijogador",
+	"Começar o jogo",
+	"Hospedar",
+	"Junte-se",
+	"Lista de modificações"
+};
+//deutsch
+static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
+	"Szenario erstellen",
+	"Szenario neu erstellen",
+	"Arbeitet...",
+	"Neues Szenario für die",
+	"ausgewählten mods erstellen",
+	"Szenario nicht gefunden",
+	"IP-Adresse",
+	"Passwort",
+	"Alias",
+	"Einzelspieler",
+	"Mehrspieler",
+	"Spiel starten",
+	"Hosten",
+	"Teilnehmen",
+	"Liste der Modifikationen"
+};
+//swedish
+static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
+	"Skapa scenario",
+	"Återskapa scenario",
+	"Arbetssätt...",
+	"Skepa ett nytt scenario",
+	"för de valda mods",
+	"Scenario hittades inte",
+	"IP-adress",
+	"Lösenord",
+	"Alias",
+	"Einselspalet",
+	"Merspalet",
+	"Starta spelet",
+	"Gå med",
+	"Vara värd",
+	"Lista över ändriggar"
+};
+static std::string_view* localised_strings = &en_localised_strings[0];
+
 static HWND m_hwnd = nullptr;
 
 struct ui_active_rect {
@@ -1136,18 +1283,18 @@ void internal_text_render(char const* codepoints, uint32_t count, float x, float
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
+		float x_advance = float(f.glyph_advances[glyphid]);
+		float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
+		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 			glBindVertexBuffer(0, sub_square_buffers[glyphid & 63], 0, sizeof(GLfloat) * 4);
 			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D_ARRAY, f.texture_array);
-			glUniform4f(parameters::drawing_rectangle, x + gso.x * size / 64.f, baseline_y + gso.y * size / 64.f, size, size);
+			glUniform4f(parameters::drawing_rectangle, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
 			glUniform1f(parameters::atlas_index, float((glyphid >> 6) % text::max_texture_layers));
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-		auto k = (i != glyph_count - 1)
-			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
-			: 0;
-		x += (f.glyph_advances[glyphid] + k) * size / 64.f;
+		x += x_advance * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 }
@@ -1202,10 +1349,9 @@ float base_text_extent(char const* codepoints, uint32_t count, int32_t size, tex
 	}
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto k = (i != glyph_count - 1)
-			? f.kerning(glyphid, glyph_info[i + 1].codepoint)
-			: 0;
-		total += (f.glyph_advances[glyphid] + k) * size / 64.f;
+		auto gso = f.glyph_positions[glyphid];
+		float x_advance = float(f.glyph_advances[glyphid]);
+		total += x_advance * size / 64.f;
 	}
 	hb_buffer_destroy(buf);
 	return total;
@@ -1290,11 +1436,13 @@ void render() {
 		}
 
 		if(selected_scenario_file.empty()) {
-			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Create Scenario", 15, 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text("Create Scenario", 15, launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_scenario)];
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		} else {
-			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Recreate Scenario", 17, 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text("Recreate Scenario", 17, launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::recreate_scenario)];
+			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		}
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
@@ -1311,9 +1459,9 @@ void render() {
 				33,
 				warning_tex.get_texture_handle(), ui::rotation::upright, false);
 		}
-
-		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent("Working...", 10, 22, font_collection.fonts[1]) / 2.0f;
-		launcher::ogl::render_new_text("Working...", 10, launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
+		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 	}
 
 	{
@@ -1321,10 +1469,12 @@ void render() {
 		Create a new scenario file
 		for the selected mods
 		*/
-		auto xoffset = 830.0f - base_text_extent("Create a new scenario", 21, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("Create a new scenario", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_a_new_scenario)];
+		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		sv = launcher::localised_strings[uint8_t(launcher::string_index::for_the_selected_mods)];
+		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
@@ -1369,11 +1519,13 @@ void render() {
 		/*830, 250*/
 		// No scenario file found
 
-		auto xoffset = 830.0f - base_text_extent("No scenario file found", 22, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("No scenario file found", 22, launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::no_scenario_found)];
+		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
-	launcher::ogl::render_new_text("IP Address", 10, launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent("IP Address", 10, 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	auto sv = launcher::localised_strings[uint8_t(launcher::string_index::ip_address)];
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_ip_addr].x,
 		ui_rects[ui_obj_ip_addr].y,
@@ -1381,7 +1533,8 @@ void render() {
 		ui_rects[ui_obj_ip_addr].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Password", 10, launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent("IP Address", 10, 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::password)];
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_password].x,
 		ui_rects[ui_obj_password].y,
@@ -1389,7 +1542,8 @@ void render() {
 		ui_rects[ui_obj_password].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Nickname", 8, launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent("Nickname", 8, 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::nickname)];
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_player_name].x,
 		ui_rects[ui_obj_player_name].y,
@@ -1397,25 +1551,23 @@ void render() {
 		ui_rects[ui_obj_player_name].height,
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Singleplayer", 13, launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent("Singleplayer", 13, 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::singleplayer)];
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
-	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent("Start game", 10, 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text("Start game", 10, launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::start_game)];
+	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
-	const char* hg_text = "Host";
-	const char* jg_text = "Join";
-	if(!ip_addr.empty() && ::strchr(ip_addr.c_str(), ':') != NULL) {
-		hg_text = "Host<IPv6>";
-		jg_text = "Join<IPv6>";
-	}
-
-	launcher::ogl::render_new_text("Multiplayer", 12, launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent("Multiplayer", 12, 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::multiplayer)];
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	// Join and host game buttons
-	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(hg_text, uint32_t(::strlen(hg_text)), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(hg_text, uint32_t(::strlen(hg_text)), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
-	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(jg_text, uint32_t(::strlen(jg_text)), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(jg_text, uint32_t(::strlen(jg_text)), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::host)];
+	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::join)];
+	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	// Text fields
 	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
@@ -1425,9 +1577,9 @@ void render() {
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
 	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
-	auto ml_xoffset = list_text_right_align - base_text_extent("Mod List", 8, 24, font_collection.fonts[1]);
-	launcher::ogl::render_new_text("Mod List", 8, launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
-
+	sv = launcher::localised_strings[uint8_t(launcher::string_index::mod_list)];
+	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
@@ -1739,6 +1891,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 								password.pop_back();
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && password.size() < 16) {
 							password.push_back(turned_into);
+						}
+					} else {
+						static uint32_t current_language = 0;
+						static std::string_view* localised_strings_ptrs[] = {
+							en_localised_strings,
+							de_localised_strings,
+							es_localised_strings,
+							it_localised_strings,
+							sv_localised_strings,
+							fr_localised_strings,
+							po_localised_strings,
+						};
+						if(turned_into == 'p' || turned_into == 'P') {
+							current_language++;
+							current_language %= uint32_t(std::extent_v<decltype(localised_strings_ptrs)>);
+							localised_strings = localised_strings_ptrs[current_language];
 						}
 					}
 				}

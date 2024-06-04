@@ -573,12 +573,19 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
 	send(state, parent, notify_setting_update{});
 
-	state.ui_state.units_root->impl_on_reset_text(state);
-	state.ui_state.rgos_root->impl_on_reset_text(state);
-	state.ui_state.root->impl_on_reset_text(state);
-	state.ui_state.nation_picker->impl_on_reset_text(state);
-	state.ui_state.select_states_legend->impl_on_reset_text(state);
-	state.ui_state.end_screen->impl_on_reset_text(state);
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
 

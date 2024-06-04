@@ -1790,10 +1790,10 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
 		float letter_spacing = letter_spacing_map / size_x;
-		if(state.languages[state.user_settings.current_language].no_spacing) {
+		//if(state.languages[state.user_settings.current_language].no_spacing) {
 			letter_spacing_map = 0.f;
 			letter_spacing = 0.f; //no spacing
-		}
+		//}
 
 		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
 
@@ -1829,9 +1829,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		}
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
+			auto gso = f.glyph_positions[glyphid];
+			float x_advance = float(f.glyph_advances[glyphid]);
+			float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
+			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 				// Add up baseline and kerning offsets
-				glm::vec2 glyph_positions{ f.glyph_positions[glyphid].x / 64.f, -f.glyph_positions[glyphid].y / 64.f };
+				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
 
 				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
 				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
@@ -1858,11 +1862,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
 				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
 			}
-
-			auto k = (i != glyph_count - 1)
-				? f.kerning(glyphid, glyph_info[i + 1].codepoint)
-				: 0;
-			float glyph_advance = (f.glyph_advances[glyphid] + k) * size / 64.f;
+			float glyph_advance = x_advance * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {

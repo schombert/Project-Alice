@@ -373,7 +373,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.starts_with("The ")) {
 			name.erase(0, 4);
 		}
-		//name = "جُمْهُورِيَّة ٱلْعِرَاق";
+		name = "جُمْهُورِيَّة ٱلْعِرَاق";
 		//name = "在标准状况下";
 		//name = "Test";
 		if(name.empty())
