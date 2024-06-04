@@ -880,31 +880,31 @@ std::string prettify_currency(float num) {
 		1'000'000'000'000'000'000.0
 	};
 	constexpr static char const* sufx_two[] = {
-		"%.2f €",
-		"%.2fK €",
-		"%.2fM €",
-		"%.2fB €",
-		"%.2fT €",
-		"%.2fP €",
-		"%.2fZ €"
+		"%.2f £",
+		"%.2fK £",
+		"%.2fM £",
+		"%.2fB £",
+		"%.2fT £",
+		"%.2fP £",
+		"%.2fZ £"
 	};
 	constexpr static char const* sufx_one[] = {
-		"%.1f €",
-		"%.1fK €",
-		"%.1fM €",
-		"%.1fB €",
-		"%.1fT €",
-		"%.1fP €",
-		"%.1fZ €"
+		"%.1f £",
+		"%.1fK £",
+		"%.1fM £",
+		"%.1fB £",
+		"%.1fT £",
+		"%.1fP £",
+		"%.1fZ £"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.0f €",
-		"%.0fK €",
-		"%.0fM €",
-		"%.0fB €",
-		"%.0fT €",
-		"%.0fP €",
-		"%.0fZ €"
+		"%.0f £",
+		"%.0fK £",
+		"%.0fM £",
+		"%.0fB £",
+		"%.0fT £",
+		"%.0fP £",
+		"%.0fZ £"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -1382,7 +1382,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 		/// fp_currency, pretty_integer, fp_percentage, int_percentage
 	} else if(std::holds_alternative<fp_currency>(sub)) {
 		char buffer[200] = {0};
-		snprintf(buffer, 200, " %.2f €", std::get<fp_currency>(sub).value);
+		snprintf(buffer, 200, " %.2f £", std::get<fp_currency>(sub).value);
 		return std::string(buffer);
 	} else if(std::holds_alternative<pretty_integer>(sub)) {
 		return prettify(std::get<pretty_integer>(sub).value);

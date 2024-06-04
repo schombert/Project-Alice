@@ -807,7 +807,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 
-	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::subsprite_b};
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 
 	// Set Text Color, all one color for now.
@@ -827,8 +827,12 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
 
 	for(uint32_t i = 0; i < count; ++i) {
-		auto f = font.chars[0];
-		if(uint8_t(codepoints[i]) == 0x40) {
+		if(uint8_t(codepoints[i]) == '@') {
+			auto const& f = font.chars[0x4D];
+			float scaling = 1.f;
+			float offset = 0.f;
+			float CurX = x + f.x_offset - (float(f.width) * offset);
+			float CurY = y + f.y_offset - (float(f.height) * offset);
 			char tag[3] = { 0, 0, 0 };
 			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
@@ -836,11 +840,6 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
 				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
-				f = font.chars[0x4D];
-				float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
-				float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
-				float CurX = x + f.x_offset - (float(f.width) * offset);
-				float CurY = y + f.y_offset - (float(f.height) * offset);
 				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
 				GLuint icon_tex = 0;
 				if(uint8_t(tag[1]) == 'F')
@@ -862,17 +861,13 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				glBindTexture(GL_TEXTURE_2D, font.ftexid);
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
 				x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
+				i += 3;
 				continue;
 			} else {
 				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
 				if(flag_texture_handle != 0) {
 					GLuint flag_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
-					f = font.chars[0x4D];
-					float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
-					float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
-					float CurX = x + f.x_offset - (float(f.width) * offset);
-					float CurY = y + f.y_offset - (float(f.height) * offset);
 					glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
 					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 					glUniform3f(parameters::inner_color, c.r, c.g, c.b);
@@ -889,47 +884,30 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 					continue;
 				}
 			}
-		} else if(uint8_t(codepoints[0]) == '\xA4') {
-			GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
-			f = font.chars[0x4D];
-			float scaling = uint8_t(codepoints[i]) == 0xA4 ? 1.5f : 1.f;
-			float offset = uint8_t(codepoints[i]) == 0xA4 ? 0.25f : 0.f;
-			float CurX = x + f.x_offset - (float(f.width) * offset);
-			float CurY = y + f.y_offset - (float(f.height) * offset);
-			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-			GLuint icon_tex = state.open_gl.money_icon_tex;
-			glBindTexture(GL_TEXTURE_2D, icon_tex);
-			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-					float(f.height) / float(font.width) /* y height */
-			);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-			// Restore affected state
-			glBindTexture(GL_TEXTURE_2D, font.ftexid);
-			glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-			x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
-			continue;
-		} else if(codepoints[i] != ' ') {
-			f = font.chars[uint8_t(codepoints[i])];
-			float CurX = x + f.x_offset;
-			float CurY = y + f.y_offset;
-			glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width), float(f.height));
-			glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-			glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-					float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-					float(f.height) / float(font.width) /* y height */
-			);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
-
+		uint8_t ch = uint8_t(codepoints[i]);
+		if(i != 0 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
+			ch = 0xA3;
+			i++;
+		} else if(ch == 0xA4) {
+			ch = 0xA3;
+		}
+		auto const& f = font.chars[ch];
+		float CurX = x + f.x_offset;
+		float CurY = y + f.y_offset;
+		glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width), float(f.height));
+		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
+		glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
+				float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
+				float(f.height) / float(font.width) /* y height */
+		);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		// Only check kerning if there is greater then 1 character and
 		// if the check character is 1 less then the end of the string.
 		if(i != count - 1) {
-			x += font.get_kerning_pair(codepoints[i], codepoints[i + 1]);
+			x += font.get_kerning_pair(ch, codepoints[i + 1]);
 		}
-		x += f.x_advance;
+		x += f.x_advance * (ch == 0xA3 ? 0.25f : 1.f);
 	}
 }
 
