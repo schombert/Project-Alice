@@ -884,7 +884,7 @@ public:
 	int32_t visible_lines = 0;
 	text::layout internal_layout;
 
-	void on_reset_text(sys::state& state) noexcept;
+	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
