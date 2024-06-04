@@ -1074,7 +1074,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::production_scale_delta;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1671,6 +1671,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 		float total = 0.0f;
 
 		auto nation = dcon::fatten(state.world, state.local_player_nation);
+
 		switch (commodity_type) {
 		case economy::commodity_production_type::primary:
 		case economy::commodity_production_type::both:
@@ -1683,8 +1684,9 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 			}
 			break;
 
+
 		case economy::commodity_production_type::derivative:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+			total += economy::get_artisan_distribution_slow(state, nation, content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {

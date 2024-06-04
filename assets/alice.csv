@@ -1757,4 +1757,6 @@ alice_pnt_culture;即Culture:劬 $x$
 alice_pnt_religion;即Religion:劬 $x$
 alice_pnt_dominant_religion;即Dominant religion:劬 $x$
 alice_pnt_dominant_ideology;即Dominant Ideology:劬 $x$
+ledger_ppp_gdp;GDP(PPP)
+ledger_ppp_gdp_per_capita;GDP(PPP) per 1m people
 ;;;;;;;;;;;;;x

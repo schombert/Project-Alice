@@ -391,6 +391,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ demand_by_category }
+		type{ array{int32_t}{float} }
+	}
+	property{
 		name{ total_consumption }
 		type{ float }
 		tag{ save }
@@ -3526,6 +3530,11 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ gdp }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ effective_prices }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -3554,6 +3563,10 @@ object {
 		name{ real_demand }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+	property {
+		name{ intermediate_demand }
+		type{ array{commodity_id}{float} }
 	}
 	property {
 		name{ imports }

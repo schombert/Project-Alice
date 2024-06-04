@@ -1053,6 +1053,42 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 	delete[] temp_buffer;
 
 	state.save_list_updated.store(true, std::memory_order::release); // update for ui
+
+
+	if(state.cheat_data.ecodump) {
+		auto data_dumps_directory = simple_fs::get_or_create_data_dumps_directory();
+
+		simple_fs::write_file(
+			data_dumps_directory,
+			NATIVE("economy_dump.txt"),
+			state.cheat_data.national_economy_dump_buffer.c_str(),
+			uint32_t(state.cheat_data.national_economy_dump_buffer.size())
+		);
+		simple_fs::write_file(
+			data_dumps_directory,
+			NATIVE("prices_dump.txt"),
+			state.cheat_data.prices_dump_buffer.c_str(),
+			uint32_t(state.cheat_data.prices_dump_buffer.size())
+		);
+		simple_fs::write_file(
+			data_dumps_directory,
+			NATIVE("demand_dump.txt"),
+			state.cheat_data.demand_dump_buffer.c_str(),
+			uint32_t(state.cheat_data.demand_dump_buffer.size())
+		);
+		simple_fs::write_file(
+			data_dumps_directory,
+			NATIVE("supply_dump.txt"),
+			state.cheat_data.supply_dump_buffer.c_str(),
+			uint32_t(state.cheat_data.supply_dump_buffer.size())
+		);
+		simple_fs::write_file(
+			data_dumps_directory,
+			NATIVE("demand_by_category_dump.txt"),
+			state.cheat_data.demand_by_category_dump_buffer.c_str(),
+			uint32_t(state.cheat_data.demand_by_category_dump_buffer.size())
+		);
+	}
 }
 bool try_read_save_file(sys::state& state, native_string_view name) {
 	auto dir = simple_fs::get_or_create_save_game_directory();
