@@ -2438,6 +2438,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.pop_type_resize_issues(world.issue_option_size());
 	world.pop_type_resize_promotion(world.pop_type_size());
 
+	world.commodity_resize_demand_by_category(8);
+
 	world.national_focus_resize_production_focus(world.commodity_size());
 
 	world.technology_resize_activate_building(world.factory_type_size());

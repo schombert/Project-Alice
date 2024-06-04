@@ -391,6 +391,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ demand_by_category }
+		type{ array{int32_t}{float} }
+	}
+	property{
 		name{ total_consumption }
 		type{ float }
 		tag{ save }

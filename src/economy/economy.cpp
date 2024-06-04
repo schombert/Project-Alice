@@ -16,13 +16,9 @@ enum class economy_reason {
 	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty
 };
 
-std::vector<std::vector<float>> demand_by_category = {
-	{ }, { }, { }, { }, { }, { }, { }, { }, { }
-};
-
 void register_demand(sys::state& state, dcon::nation_id n, dcon::commodity_id commodity_type, float amount, economy_reason reason) {
 	state.world.nation_get_real_demand(n, commodity_type) += amount;
-	(demand_by_category[(int)reason])[commodity_type.index()] += amount;
+	state.world.commodity_get_demand_by_category(commodity_type, (int)reason) += amount;
 	assert(std::isfinite(state.world.nation_get_real_demand(n, commodity_type)));
 }
 
@@ -586,62 +582,54 @@ float get_artisans_multiplier(sys::state& state, dcon::nation_id n) {
 	return 1.f / (multiplier + 1.f);
 }
 
-void scores_to_distribution(std::vector<float> & scores, std::vector<float> & distribution, float multiplier) {
-	float max_score = std::numeric_limits<float>::min();
-	for(uint32_t i = 1; i < scores.size(); ++i) {
-		if(scores[i] > max_score) {
-			max_score = scores[i];
-		}
-	}
-
-	float total = 0.f;	
-
-	// crude approximation of softmax
-	for(uint32_t i = 1; i < scores.size(); ++i) {
-		distribution[i] = scores[i] - max_score;
-		distribution[i] = pseudo_exp_for_negative(distribution[i] * multiplier);
-		total += distribution[i];
-	}
-
-	for(uint32_t i = 1; i < scores.size(); ++i) {
-		distribution[i] = distribution[i] / (total + 0.001f);
-	}
-}
 
 void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector<float>& distribution) {
-	std::vector<float> scores;
-
 	auto const csize = state.world.commodity_size();
-
-	scores.resize(csize + 1);
 	distribution.resize(csize + 1);
+
+	float multiplier = get_artisans_multiplier(state, n);
+	float baseline = 10.f / multiplier;
+	float max_score = std::numeric_limits<float>::lowest();
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-		scores[cid.index()] = state.world.nation_get_artisan_distribution(n, cid);
+		float score = state.world.nation_get_artisan_distribution(n, cid);
+		if(score > max_score) {
+			max_score = score;
+		}
+	}
+	if(baseline > max_score) {
+		max_score = baseline;
 	}
 
-	float mult = get_artisans_multiplier(state, n);
-	scores[csize] = 10.f / mult;
+	float total = 0.f;
 
-	scores_to_distribution(scores, distribution, mult);
+	// crude approximation of softmax
+	for(uint32_t i = 1; i < csize; ++i) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+		float score = state.world.nation_get_artisan_distribution(n, cid);
+		distribution[i] = score - max_score;
+		distribution[i] = pseudo_exp_for_negative(distribution[i] * multiplier);
+		total += distribution[i];
+	}
+	distribution[csize] = baseline - max_score;
+	distribution[csize] = pseudo_exp_for_negative(distribution[csize] * multiplier);
+	total += distribution[csize];
+
+	for(uint32_t i = 1; i < csize + 1; ++i) {
+		distribution[i] = distribution[i] / (total + 0.001f);
+	}
 }
-
-
 
 void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 	auto const csize = state.world.commodity_size();
 	float distribution_drift_speed = 0.0001f;
 
 	std::vector<float> current_distribution;
-	std::vector<float> prev_profits;
 	std::vector<float> profits;
 	profits.resize(csize + 1);
-	current_distribution.resize(csize + 1);
 
 	float mult = get_artisans_multiplier(state, n);
-
-	profits[csize] = 10.f / mult; // * state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.artisans) / state.defines.alice_needs_scaling_factor;
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -672,18 +660,15 @@ void initialize(sys::state& state) {
 		fc.set_total_production(0.0f);
 		fc.set_total_real_demand(0.0f);
 
+		for(int i = 0; i < 8; i++) {
+			fc.set_demand_by_category(i, 0.f);
+		}
+
 		for(uint32_t i = 0; i < price_history_length; ++i) {
 			fc.set_price_record(i, fc.get_cost());
 		}
 		// fc.set_global_market_pool();
 	});
-
-	{
-		uint32_t total_commodities = state.world.commodity_size();
-		for(int i = 0; i < 8; i++) {
-			demand_by_category[i].resize(total_commodities + 1);
-		}
-	}
 
 	auto savings_buffer = state.world.pop_type_make_vectorizable_float_buffer();
 	state.world.for_each_pop_type([&](dcon::pop_type_id t) {
@@ -1770,9 +1755,7 @@ void update_national_artisan_consumption(sys::state& state, dcon::nation_id n, f
 	auto num_artisans = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.artisans));
 	float total_profit = 0.0f;
 
-	std::vector<float> current_score;
 	std::vector<float> current_distribution;
-	current_distribution.resize(csize + 1);
 
 	fill_artisan_distribution(state, n, current_distribution);
 
@@ -2908,10 +2891,9 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 
 	{
 		for(uint32_t i = 0; i < 8; i++) {
-			demand_by_category[i].resize(total_commodities + 1);
-			for(uint32_t j = 0; j < total_commodities; j++) {
-				demand_by_category[i][j] = 0;
-			}
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				state.world.commodity_set_demand_by_category(c, i, 0.f);
+			});
 		}
 	}
 
@@ -3732,7 +3714,7 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 			state.cheat_data.supply_dump_buffer += std::to_string(state.world.commodity_get_total_production(c)) + ",";
 			state.cheat_data.demand_dump_buffer += std::to_string(state.world.commodity_get_total_real_demand(c)) + ",";
 			for(int i = 0; i < 8; i++) {
-				accumulator[i] += demand_by_category[i][c.index()];
+				accumulator[i] += state.world.commodity_get_demand_by_category(c, i);
 			}
 		});
 		for(int i = 0; i < 8; i++) {
@@ -3744,30 +3726,6 @@ void daily_update(sys::state& state, bool initiate_buildings ) {
 		state.cheat_data.supply_dump_buffer += "\n";
 		state.cheat_data.demand_dump_buffer += "\n";
 	}
-
-	/*
-	float accumulator[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		OutputDebugStringA((std::to_string(state.world.commodity_get_current_price(c)) + ",").c_str());
-		OutputDebugStringA((std::to_string(state.world.commodity_get_total_production(c)) + ",").c_str());
-		OutputDebugStringA((std::to_string(state.world.commodity_get_total_real_demand(c)) + ",").c_str());
-		for(int i = 0; i < 8; i++) {
-			accumulator[i] += demand_by_category[i][c.index()];
-		}
-	});
-	OutputDebugStringA("\n");
-	*/
-
-	/*
-	for(int i = 0; i < 8; i++) {
-		state.cheat_data.demand_by_category_dump_file << accumulator[i] << ",";
-	}
-	state.cheat_data.demand_by_category_dump_file << "\n";
-
-	state.cheat_data.prices_dump_file << "\n";
-	state.cheat_data.supply_dump_file << "\n";
-	state.cheat_data.demand_dump_file << "\n";
-	*/
 
 	/*
 	* Enforce price floors
