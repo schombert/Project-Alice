@@ -582,12 +582,9 @@ float get_artisans_multiplier(sys::state& state, dcon::nation_id n) {
 	return 1.f / (multiplier + 1.f);
 }
 
-
-void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector<float>& distribution) {
+float max_artisan_score(sys::state& state, dcon::nation_id n, float multiplier) {
 	auto const csize = state.world.commodity_size();
-	distribution.resize(csize + 1);
 
-	float multiplier = get_artisans_multiplier(state, n);
 	float baseline = 10.f / multiplier;
 	float max_score = std::numeric_limits<float>::lowest();
 
@@ -602,23 +599,47 @@ void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector
 		max_score = baseline;
 	}
 
+	return max_score;
+}
+
+float total_artisan_exp_score(sys::state& state, dcon::nation_id n, float multiplier, float max_score) {
+	auto const csize = state.world.commodity_size();
+
 	float total = 0.f;
+	float baseline = 10.f / multiplier;
 
 	// crude approximation of softmax
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		float score = state.world.nation_get_artisan_distribution(n, cid);
-		distribution[i] = score - max_score;
-		distribution[i] = pseudo_exp_for_negative(distribution[i] * multiplier);
-		total += distribution[i];
+		float dist = pseudo_exp_for_negative((score - max_score) * multiplier);
+		total += dist;
 	}
-	distribution[csize] = baseline - max_score;
-	distribution[csize] = pseudo_exp_for_negative(distribution[csize] * multiplier);
-	total += distribution[csize];
+	total += pseudo_exp_for_negative((baseline - max_score) * multiplier);
 
-	for(uint32_t i = 1; i < csize + 1; ++i) {
-		distribution[i] = distribution[i] / (total + 0.001f);
-	}
+	return total;
+}
+
+float get_artisan_distribution_fast(
+	sys::state& state,
+	dcon::nation_id n,
+	dcon::commodity_id c,
+	float max_score,
+	float total_score,
+	float multiplier
+) {
+	float score = state.world.nation_get_artisan_distribution(n, c);
+	return pseudo_exp_for_negative((score - max_score) * multiplier) / (total_score + 0.001f);
+}
+
+float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
+	auto const csize = state.world.commodity_size();
+
+	float multiplier = get_artisans_multiplier(state, n);
+	float max_score = max_artisan_score(state, n, multiplier);
+	float total_score = total_artisan_exp_score(state, n, multiplier, max_score);
+
+	return get_artisan_distribution_fast(state, n, c, max_score, total_score, multiplier);
 }
 
 void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
@@ -641,12 +662,14 @@ void adjust_artisan_balance(sys::state& state, dcon::nation_id n) {
 		}
 	}
 
-	fill_artisan_distribution(state, n, current_distribution);
+	float multiplier = get_artisans_multiplier(state, n);
+	float max_score = max_artisan_score(state, n, multiplier);
+	float total_score = total_artisan_exp_score(state, n, multiplier, max_score);
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
 		auto& w = state.world.nation_get_artisan_distribution(n, cid);
-		w = w * 0.5f + distribution_drift_speed * profits[cid.index()] * (1 - current_distribution[cid.index()]);
+		w = w * 0.5f + distribution_drift_speed * profits[cid.index()] * (1 - get_artisan_distribution_fast(state, n, cid, max_score, total_score, multiplier));
 	}
 }
 
@@ -1755,9 +1778,10 @@ void update_national_artisan_consumption(sys::state& state, dcon::nation_id n, f
 	auto num_artisans = state.world.nation_get_demographics(n, demographics::to_key(state, state.culture_definitions.artisans));
 	float total_profit = 0.0f;
 
-	std::vector<float> current_distribution;
 
-	fill_artisan_distribution(state, n, current_distribution);
+	float multiplier = get_artisans_multiplier(state, n);
+	float max_score = max_artisan_score(state, n, multiplier);
+	float total_score = total_artisan_exp_score(state, n, multiplier, max_score);
 
 	for(uint32_t i = 1; i < csize; ++i) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
@@ -1784,7 +1808,7 @@ void update_national_artisan_consumption(sys::state& state, dcon::nation_id n, f
 			float output_multiplier = std::max(0.1f, state.defines.alice_output_base_factor_artisans
 				+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::artisan_output));
 
-			float max_production_scale = num_artisans * current_distribution[cid.index()] / 10'000.0f * std::max(0.0f, mobilization_impact);
+			float max_production_scale = num_artisans * get_artisan_distribution_fast(state, n, cid, max_score, total_score, multiplier) / 10'000.0f * std::max(0.0f, mobilization_impact);
 
 			auto profitability_factor = (output_total * output_multiplier * throughput_multiplier * min_available - input_multiplier * input_total * throughput_multiplier * min_available) / (0.5f * expected_min_wage * (10'000.0f / state.defines.alice_needs_scaling_factor));
 
@@ -4088,6 +4112,7 @@ void regenerate_unsaved_values(sys::state& state) {
 		}
 	}
 
+	state.world.commodity_resize_demand_by_category(8);
 
 	state.world.nation_resize_life_needs_costs(state.world.pop_type_size());
 	state.world.nation_resize_everyday_needs_costs(state.world.pop_type_size());

@@ -602,9 +602,6 @@ public:
 		};
 		static std::vector<tagged_value> producers;
 
-		static std::vector<float> artisan_distribution;
-		economy::fill_artisan_distribution(state, state.local_player_nation, artisan_distribution);
-
 		producers.clear();
 		for(auto n : state.world.in_nation) {
 			if(n.get_domestic_market_pool(com) >= 0.05f) {
@@ -668,7 +665,7 @@ public:
 					text::variable_type::x, text::fp_one_place{ a_total },
 					text::variable_type::y, text::fp_percentage{ a_total / total });
 				text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ artisan_distribution[com.index()] * 100.f });
+				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ economy::get_artisan_distribution_slow(state, state.local_player_nation, com) * 100.f });
 			}
 			if(f_total > 0.f) {
 				text::add_line(state, contents, "alice_factory_trade_prod",

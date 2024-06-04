@@ -1686,10 +1686,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 
 
 		case economy::commodity_production_type::derivative:
-			static std::vector<float> artisan_distribution;
-			economy::fill_artisan_distribution(state, nation, artisan_distribution);
-
-			total += artisan_distribution[content.index()] * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+			total += economy::get_artisan_distribution_slow(state, nation, content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {

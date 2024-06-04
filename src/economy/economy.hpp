@@ -86,7 +86,7 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
-void fill_artisan_distribution(sys::state& state, dcon::nation_id n, std::vector<float>& distribution);
+float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
 
 // base subsistence
 inline constexpr float subsistence_factor = 10.0f;
