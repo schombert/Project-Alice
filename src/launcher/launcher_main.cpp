@@ -142,8 +142,8 @@ static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
 	"Crea un nuevo escenario",
 	"para los mods seleccionados",
 	"No se encontro el escenario",
-	"Direcci�n IP",
-	"Contrase�a",
+	"Dirección IP",
+	"Contraseña",
 	"Alias",
 	"Un jugador",
 	"Multijugador",
@@ -172,46 +172,46 @@ static std::string_view it_localised_strings[uint8_t(string_index::count)] = {
 };
 //french
 static std::string_view fr_localised_strings[uint8_t(string_index::count)] = {
-	"Creer un sc�nario",
-	"Recr�er le sc�nario",
+	"Creer un scènario",
+	"Recrèer le scènario",
 	"Fonctionnement...",
-	"Creer un nouveau sc�nario",
-	"pour les mods s�lectionn�s",
-	"Sc�nario introuvable",
+	"Creer un nouveau scènario",
+	"pour les mods sèlectionnès",
+	"Scènario introuvable",
 	"Addresse IP",
 	"Passe",
 	"Alias",
 	"Solo",
 	"Multijoueur",
-	"D�marrer jeu",
-	"H�te",
+	"Dèmarrer jeu",
+	"Hõte",
 	"Rejoindre",
 	"Liste des modifications"
 };
 //portuguese
 static std::string_view po_localised_strings[uint8_t(string_index::count)] = {
-	"Criar cen�rio",
-	"Recriar cen�rio",
+	"Criar cenário",
+	"Recriar cenário",
 	"Trabalhando...",
-	"Crie un novo cen�rio para",
+	"Crie un novo cenário para",
 	"os mods selecionados",
-	"Cen�rio n�o encontrado",
-	"Endere�o IP",
+	"Cenário não encontrado",
+	"Endereço IP",
 	"Senha",
 	"Alias",
 	"Unjogador",
 	"Multijogador",
-	"Come�ar o jogo",
+	"Começar o jogo",
 	"Hospedar",
 	"Junte-se",
-	"Lista de modifica��es"
+	"Lista de modificaçães"
 };
 //deutsch
 static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 	"Szenario erstellen",
 	"Szenario neu erstellen",
 	"Arbeitet...",
-	"Neues Szenario f�r die",
+	"Neues Szenario für die",
 	"ausgew�hlten mods erstellen",
 	"Szenario nicht gefunden",
 	"IP-Adresse",
@@ -227,20 +227,38 @@ static std::string_view de_localised_strings[uint8_t(string_index::count)] = {
 //swedish
 static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 	"Skapa scenario",
-	"�terskapa scenario",
-	"Arbetss�tt...",
+	"Återskapa scenario",
+	"Arbetssått...",
 	"Skepa ett nytt scenario",
-	"f�r de valda mods",
+	"för de valda mods",
 	"Scenario hittades inte",
 	"IP-adress",
-	"L�senord",
+	"Lösenord",
 	"Alias",
 	"Einselspalet",
 	"Merspalet",
 	"Starta spelet",
-	"G� med",
-	"Vara v�rd",
-	"Lista �ver �ndriggar"
+	"Gå med",
+	"Vara värd",
+	"Lista åver åndriggar"
+};
+//chinese
+static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
+	"创造 风铃",
+	"热创造 风铃",
+	"你好 。。。",
+	"创造 一 生疏的 风铃",
+	"给的 没 月 挑选 建筑 不议案",
+	"从未 风铃 加你了",
+	"IP 同春徐",
+	"口令",
+	"别名",
+	"单数的 游戏的人",
+	"豆哥的 游戏的人",
+	"着手 雄赳赳地",
+	"许多",
+	"链接",
+	"建筑 不议案 倾斜"
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -1465,14 +1483,13 @@ void render() {
 	}
 
 	{
-		/*
-		Create a new scenario file
-		for the selected mods
-		*/
-		auto xoffset = 830.0f - base_text_extent("Create a new scenario", 21, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("Create a new scenario", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-		xoffset = 830.0f - base_text_extent("for the selected mods", 21, 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text("for the selected mods", 21, launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		// Create a new scenario file for the selected mods
+		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
+		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
+		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
@@ -1666,6 +1683,60 @@ char process_utf16_to_win1250(wchar_t c) {
 	return char_out;
 }
 
+void load_fonts(simple_fs::directory& root) {
+	uint8_t font_set_load = 0;
+	LANGID lang = GetMUILanguage();
+	switch(lang & 0xff) {
+	case 0x0007:
+		localised_strings = &de_localised_strings[0];
+		break;
+	case 0x000A:
+		localised_strings = &es_localised_strings[0];
+		break;
+	case 0x0010:
+		localised_strings = &it_localised_strings[0];
+		break;
+	case 0x001D:
+		localised_strings = &sv_localised_strings[0];
+		break;
+	case 0x000C:
+		localised_strings = &fr_localised_strings[0];
+		break;
+	case 0x0016:
+		localised_strings = &po_localised_strings[0];
+		break;
+	case 0x0004:
+		localised_strings = &zh_localised_strings[0];
+		font_set_load = 1;
+		break;
+	default:
+		break;
+	}
+	if(font_set_load == 0) {
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
+		if(font_a) {
+			auto file_content = simple_fs::view_contents(*font_a);
+			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+		}
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
+		if(font_b) {
+			auto file_content = simple_fs::view_contents(*font_b);
+			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+		}
+	} else if(font_set_load == 1) {
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Regular.ttf"));
+		if(font_a) {
+			auto file_content = simple_fs::view_contents(*font_a);
+			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+		}
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Light.ttf"));
+		if(font_b) {
+			auto file_content = simple_fs::view_contents(*font_b);
+			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+		}
+	}
+}
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	if(message == WM_CREATE) {
 		opengl_window_dc = GetDC(hwnd);
@@ -1682,17 +1753,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
-		auto font_a = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
-		if(font_a) {
-			auto file_content = view_contents(*font_a);
-			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-		auto font_b = open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
-		if(font_b) {
-			auto file_content = view_contents(*font_b);
-			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-
+		load_fonts(root);
 		font_collection.load_all_glyphs();
 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);
@@ -1889,22 +1950,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 								password.pop_back();
 						} else if(turned_into >= 32 && turned_into != '\t' && turned_into != ' ' && password.size() < 16) {
 							password.push_back(turned_into);
-						}
-					} else {
-						static uint32_t current_language = 0;
-						static std::string_view* localised_strings_ptrs[] = {
-							en_localised_strings,
-							de_localised_strings,
-							es_localised_strings,
-							it_localised_strings,
-							sv_localised_strings,
-							fr_localised_strings,
-							po_localised_strings,
-						};
-						if(turned_into == 'p' || turned_into == 'P') {
-							current_language++;
-							current_language %= uint32_t(std::extent_v<decltype(localised_strings_ptrs)>);
-							localised_strings = localised_strings_ptrs[current_language];
 						}
 					}
 				}
