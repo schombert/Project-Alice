@@ -769,7 +769,7 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 
 	map_state.on_key_up(keycode, mod);
 }
-void state::on_text(char c) { // c is win1250 codepage value
+void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }

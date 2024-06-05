@@ -412,7 +412,7 @@ public:
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
-	void on_text(sys::state& state, char ch) noexcept override;
+	void on_text(sys::state& state, char32_t ch) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
