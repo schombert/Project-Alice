@@ -1,0 +1,1785 @@
+language_en-US;Ingles (EEUU)
+language_fr-FR;Frances (Francia)
+language_de-DE;Aleman (Alemania)
+language_es-ES;Espaniol (Espania)
+language_it-IT;Italiano (Italia)
+language_sv-SV;Sueco (Suecia)
+language_cs-CZ;Checo (Chequia)
+language_hu-HU;Hungaro (Hungria)
+language_nl-NL;Holandes (Holanda)
+language_po-PO;Portugues (Portugal)
+language_ru-RU;Ruso (Rusia)
+language_fi-FI;Finlandes (Finlandia)
+language_pl-PL;Polaco (Polonia)
+language_ar-AR;Arabe (Arabia)
+language_zh-CN;Chino (China)
+language_jp-JP;Japones (Japon)
+language_ko-SK;Koreano (Korea del Sur)
+language_ko-NK;Koreano (Korea del Norte)
+language_bg-BG;Bulgaro (Bulgaria)
+save_and_exit;Salir y Guardar
+save;Guardar
+exit;Salir
+graphics_options;Opciones graficas
+sound_options;Opciones de audio
+controls_options;Opciones extra
+message_settings_options;Notificaciones
+window_mode_label;Pantalla completa
+map_projection;Proyeccion
+map_projection_globe;Ortografica
+map_projection_flat;Equirectangular
+map_projection_globe_perspective;Vertical
+dm_popup_label;Mensajes diplomaticos son Pop-Ups
+ui_scale;Escala de la interfaz
+zoom_mode_label;Estilo del zoom
+zoom_mode_panning;Panoramico
+zoom_mode_inverted;Invertido
+zoom_mode_centered;Centrado
+zoom_mode_to_cursor;Al cursor
+zoom_mode_away_from_cursor;Alejandose
+zoom_speed_label;Aceleracion de zoom
+river_label;Rios
+mute_on_focus_lost_label;Mutear al salir del enfoque
+wasd_for_map_movement_label;WASD para moverse
+vassal_color_label;Color de vasallios
+vassal_color_inherit;Heredar
+vassal_color_same;Igual
+vassal_color_none;Ninguno
+black_map_font_label;Texto negro
+edge_scrolling_label;Scroll al borde
+color_blind_mode_label;Deficit de color
+color_blind_mode_none;Ninguno
+color_blind_mode_deutan;Deutan
+color_blind_mode_protan;Protan
+color_blind_mode_tritan;Tritan
+color_blind_mode_achroma;Acroma
+render_models_label;Mostrar modelos 3D
+language_label;Lenguaje
+fow_label;Neblina de guerra
+railroad_label;Redes de ferrocarriles
+master_volume_label;Volumen total
+music_volume_label;Volumen de la musica
+interface_volume_label;Volumen de la interfaz
+effect_volume_label;Volumen de los efectos de sonido
+fonts_label;Letra clasica
+tooltip_mode_label;Sobrellevar tooltip
+music_player_label;Reproductor de musica
+gaussianblur_label;Desenfoque guassian
+gamma_label;Gamma
+map_label;Texto del mapa
+map_label_0;Ninguna
+map_label_1;Linear
+map_label_2;Cuadratica
+map_label_3;Cubica
+message_notify_rebels_defeat_label;Notificar cuando se derrota a un rebelde
+antialiasing_label;Antialiasing
+spoilers_label;Spoilers
+spoilers_tt;
+message_settings_spectator;Plantilla: Espectador
+mapmode_1;Terreno
+mapmode_2;Politico
+mapmode_3;Riesgo de revuelta
+mapmode_4;Diplomatico
+mapmode_5;Region
+mapmode_6;Infrestructura
+mapmode_7;Colonial
+mapmode_8;Administrativo
+mapmode_9;Reclutamiento
+mapmode_10;Enfoque nacional
+mapmode_11;RGO
+mapmode_12;Poblacion
+mapmode_13;Culturas
+mapmode_14;Esfera de influencia
+mapmode_15;Atricion
+mapmode_16;Lealtad a $text$
+mapmode_17;Ranking
+mapmode_18;Migracion
+mapmode_19;Nivel de civilizacion
+mapmode_20;Relaciones
+mapmode_21;Crisis
+mapmode_22;Naval
+mapmode_23;Religion
+mapmode_24;Barricadas
+mapmode_25;Ideologia
+mapmode_26;Ganancias
+mapmode_27;Conciencia
+mapmode_28;Militancia
+mapmode_29;Literacia
+mapmode_30;Empleo
+mapmode_31;Industrias
+mapmode_32;Problematicas
+mapmode_33;Crecimiento
+mapmode_34;Jugadores
+mapmode_35;Necesidades de vida
+mapmode_36;Necesidades diarias
+mapmode_37;Necesidades de lujo
+mapmode_38;Oficiales
+mapmode_39;Racion de trabajadores de industria
+mapmode_40;Habitabilidad
+mapmode_41;Crimen
+mapmode_42;Punto de reunion
+mapmode_43;Fuerza de trabajo
+mapmode_44;Mobilizacion
+legend_min_mapmode_8;Baja admin
+legend_min_mapmode_19;Incivilizado
+legend_min_mapmode_7;No colonizado
+legend_min_mapmode_21;Baja tension
+legend_min_mapmode_18;Emigracion
+legend_min_mapmode_12;Baja densidad
+legend_min_mapmode_17;Bajo rango
+legend_min_mapmode_20;Bajas relaciones
+legend_min_mapmode_3;Bajo riesgo
+legend_min_mapmode_11;Baja produccion
+legend_min_mapmode_15;Alta atricion
+legend_min_mapmode_26;Baja ganancias
+legend_min_mapmode_27;Baja conciencia
+legend_min_mapmode_28;Baja militancia
+legend_min_mapmode_29;Baja literacia
+legend_min_mapmode_30;Bajo empleo
+legend_min_mapmode_33;Bajo crecimiento
+legend_min_mapmode_35;Baja satisfaccion
+legend_min_mapmode_36;Baja satisfaccion
+legend_min_mapmode_37;Baja satisfaccion
+legend_min_mapmode_38;Baja cantidad
+legend_min_mapmode_39;Pobre
+legend_min_mapmode_40;Baja habitabilidad
+legend_min_mapmode_44;Pocos regimenes
+legend_max_mapmode_8;Alta admin
+legend_max_mapmode_19;Civilizado
+legend_max_mapmode_7;Colonizable
+legend_max_mapmode_21;Alta tension
+legend_max_mapmode_18;Inmigracion
+legend_max_mapmode_12;Alta densidad
+legend_max_mapmode_17;Alto rango
+legend_max_mapmode_20;Altas relaciones
+legend_max_mapmode_3;Alto riesgo
+legend_max_mapmode_11;Alta produccion
+legend_max_mapmode_15;Baja atricion
+legend_max_mapmode_26;Altos ingresos
+legend_max_mapmode_27;Alta conciencia
+legend_max_mapmode_28;Alta militancia
+legend_max_mapmode_29;Alta literacia
+legend_max_mapmode_30;Alto empleo
+legend_max_mapmode_33;Alto crecimiento
+legend_max_mapmode_35;Alta satisfaccion
+legend_max_mapmode_36;Alta satisfaccion
+legend_max_mapmode_37;Alta satisfaccion
+legend_max_mapmode_38;Alta cantidad
+legend_max_mapmode_39;Rico
+legend_max_mapmode_40;Alta habilitabilidad
+legend_max_mapmode_44;Muchos regimenes
+mapmode_tooltip_34;Jugador: $x$
+mapmode_tooltip_34_you_sp;Este eres tu!
+mapmode_tooltip_34_you;Jugador: $x$ (Este eres tu!)
+mapmode_tooltip_34_ai;Controlado por IA
+mapmode_tooltip_35;Necesidades de vida satisfechas: $x$
+mapmode_tooltip_36;Necesidades diarias satisfechas: $x$
+mapmode_tooltip_37;Necesidades de lujo satisfechas: $x$
+mapmode_tooltip_38;Oficiales totales: $x$ ($y$ de la poblacion, $value$ es optimo)
+mapmode_tooltip_39;Racion: $fraction$ ($x$/$y$), $value$ is optimal
+mapmode_tooltip_40;Habitabilidad: $x$
+mapmode_tooltip_41;Crimen: $x$
+mapmode_tooltip_42_1;Punto de reunion terrestre
+mapmode_tooltip_42_2;Punto de reunion naval
+mapmode_tooltip_43;Distribucion de la fuerza de trabajo:
+mapmode_tooltip_44;Regimenes mobilizados de esta provincia: $x$ (de $y$)
+mapmode_tooltip_44_2;No hay regimenes posibles
+support_for_blank;Soporte para $text$
+uh_support_for_blank;Soporte para $text$
+up_to;hasta 
+scaled_support; proporcional al soporte para $text$
+scaled_unemployment; proporcional al desempleo
+stockpile_of;En la reserva nacional de
+create_general;Se crea un nuevo general
+create_admiral;Se crea un nuevo admiral
+add_war_goal;La meta de guerra $text$ se a�ade contra $nation$
+blank_loyalty;Lealtad a $text$
+in_blank;En $text$
+no_effect;Sin efecto
+move_capital_to;Mover la capital a
+add_x_core;A�adir nucleo $adj$
+add_core_to;A�adir nucleo a
+remove_x_core;Remover nucleo $adj$
+remove_core_from;Remover nucleo de
+change_name_to;Cambiar nombre a $text$
+change_terrain_to;Cambia el terreno a $text$
+change_rgo_production_to;Cambiar produccion de RGO a $text$
+make_accepted_culture;$text$ se vuelve una cultura aceptada
+primary_culture_changes_to;La cultura primaria cambia a $text$
+union_culture_accepted;Todas las culturas en el grupo primario de culturas de la nacion se vuelven aceptadas
+remove_accepted_culture;$text$ deja de ser una cultura aceptada
+increase_national_variable_by;Incrementa la variable nacional $text$ por $value$
+decrease_national_variable_by;Decrementa la variable nacional $text$ por $value$
+life_rating;Calidad de vida
+make_national_religion;$text$ se vuelve la religion nacional
+make_slave_state;Se convierte en estado con esclavitud
+make_slave_pop;Se convierte en esclavo
+research_points;Puntos de tecnologia
+change_tech_school;Escuela tecnologica se cambia a $text$
+change_government_to;El gobierno cambia a $text$
+add_to_treasury;A�adido al tesoro
+war_exhaustion;Exhaustion de guerra
+become_blank;Se convierte en $text$
+player_control_change;El control del jugador se cambia a $text$
+set_national_flag;$text$ se establece para esta nacion
+remove_national_flag;$text$ se desestablece para esta nacion
+infamy;Infamia
+change_province_owner;Cambia el due�o de la provincia a $text$
+annex_effect;Anexa $text$
+annexed_by_effect;Es anexado por $text$
+core_return;Los nucleos de $adj$ son devueltos a $text$
+core_return_short;Los nucleos de $adj$ son devueltos
+change_province_controller;Cambiar el controlador de la provincia a $text$
+change_state_controller;Cambiar el controlador del estado a $text$
+pop_savings;Ahorros del pop
+leadership_points;Puntos de liderazgo
+release_as_vassal;Liberar a $text$ como un subyugado
+end_alliance;Terminar alianza con $text$
+end_war_with;Terminar guerra con $text$
+enable_ideology;Habilitar ideologia ?Y$text$?!
+enable_technology;Dar tecnologia ?Y$text$?!
+enable_invention;Dar invencion ?Y$text$?!
+change_ruling_party;Cambiar el partido electo a $text$
+remove_prov_mod;Quitar el modificador provincial $text$
+remove_nat_mod;Quitar el modificador nacional $text$
+make_alliance;Entrar en una alianza con $text$
+becomes_independent;$text$ se vuelve una nacion independiente
+release_as_independent;Liberar $text$ como una nacion independiente
+set_global_flag;Establecer $text$ globalmente
+remove_global_flag;Desestablecer $text$ globalmente
+change_national_value;Cambiar valor nacional a $text$
+become_civ;Se convierte en una nacion civilizada
+become_unciv;Se convierte en una nacion descivilizada
+free_slave_state;Se convierte en un estado libre
+free_slave_pop;Se libera de la esclavitud
+hold_election;Se hacen elecciones
+issue_change;$issue$ se cambia a $text$
+add_relative_income;Multiplicado por el ultimo ingreso y se a�ade al tesoro
+make_neutral;Todas las alianzas terminadas y todos los subyugados son liberados
+pop_size;Tama�o del pop
+move_pop_to;Mover pop a $text$
+change_pop_type;Cambiar tipo de pop a $text$
+years_of_research;A�os de investigacion
+remove_mil_reforms;Quitar $value$ reformas militares
+remove_econ_reforms;Quitar $value$ reformas economicas
+add_crime;A�adir crimen $text$
+remove_crime;Quitar crimen activo
+perform_nationalization;Hacer la nacionalizacion
+build_factory_in_capital;Construir $text$ en el estado capital
+enable_great_wars;La gran guerra se activa
+enable_world_wars;Las guerras mundiales se activan
+disable_great_wars;La gran guerra se desactiva
+disable_world_wars;Las guerras mundiales se desactivan
+assimilate_pop;Cambiar cultura a $text$
+assimilate_province;Cambiar la cultura de todos los pops a $text$
+owner_primary_culture;Su due�o de la cultura primaria
+literacy;Alfabetismo
+add_crisis_interest;Se interesa en la crisis actual
+crisis_temperature_plain;Temperatura de la crisis
+militancy;Militancia
+consciousness;Conciencia
+rgo_size;Tama�o del RGO
+trigger_every_revolt;Desencadena una revuelta de todas las facciones rebeldes
+call_allies;Llama a sus aliados a sus guerras actuales
+truce_with;Tregua con $text$ hasta ?Y$y$?!
+diplomatic_influence_with;Influencia diplomatica con $text$
+relations_with;Relacion con $text$
+add_modifier_until;Obtiene $text$ hasta $date$
+add_modifier;Obtiene $text$
+add_cb_months;Obtiene un cassus belli de $name$ en contra de $text$ por $value$ meses
+add_cb_no_months;Obitene un cassus belli de $name$ en contra de $text$
+add_cb_reversed_months;$text$ obtiene un cassus belli de $name$ en contra de la nacion en el contexto por $value$ meses
+add_cb_reversed_no_months;$text$ obtiene un cassus belli de $name$ contra la nacion en el contexto
+remove_cb_reversed;Pierde el cassus belli de $name$ en contra de $text$
+remove_cb;$text$ pierde el cassus belli de $name$ contra la nacion en el contexto
+set_national_variable_to;Igualar la variable nacional $text$ a $value$
+event_fires;Sucede el evento $text$
+event_fires_in_days;Sucede el evento $text$
+railroad_in_capital;?G+1?! ferrocarril en la capital
+railroad_in_capital_state;?G+1?! ferrocarril en el estado capital
+fort_in_capital;?G+1?! fortaleza en la capital
+fort_in_capital_state;?G+1?! fortaleza en el estado capital
+fort_in_capital;?G+1?! fortaleza en la capital
+fort_in_capital_state;?G+1?! fortaleza en el estado capital
+university_in_capital;?G+1?! universidad en la capital
+university_in_capital_state;?G+1?! universidad en el estado capital
+bank_in_capital;?G+1?! banco en la capital
+bank_in_capital_state;?G+1?! banco en el estado capital
+railroad_level;nivel del ferrocarril
+fort_level;nivel de la barraca
+naval_base_level;nivel de la base naval
+university_base_level;nivel de la universidad
+bank_base_level;nivel del banco
+apply;Aplicar
+ok;OK
+close;Cerrar
+delete;Borrar
+new;Nueva
+reset;Reset
+every;Cada
+ready;Listo
+any;Cualqier
+none;Nada
+random;Al albur de
+neighboring_province;provincia vecina
+where;donde: 
+neighboring_nation;nacion vecina
+nation;nacion
+continent;continente
+same_continent;En el mismo continente que
+empty_neighboring_province;Provincia vecina vacia
+poor_strata_pop;Pop de estrato pobre
+middle_strata_pop;Pop de estrata media
+rich_strata_pop;Pop de estrata rica
+pop;Pop
+owned_province;provincia perteneciente a
+singular_nation;esa nacion
+singular_state;ese estado
+singular_province;esa provincia
+singular_pop;ese pop
+one_of_the_following;uno de los siguientes efectos:
+this_nation;esta nacion
+this_state;este estado
+this_province;esta provincia
+this_pop;este pop
+from_nation;de nacion
+from_state;del estado
+from_province;de la provincia
+from_pop;del pop
+province_in;provincia en
+this_nation_culture;La cultura primaria de esta nacion
+from_nation_culture;La cultura primaria de esa nacion
+cultural_union_nation;La nacion de la union cultral para su cultura primaria
+core_of;nucleo de
+state_of;estado de
+chance_of;probablidad de:
+owner_of;due�o de
+controller_of;controlador de
+location_of_pop;ubicacion de ese pop
+nation_of_pop;nacion que contiene ese pop
+capital_of;Capital de
+containing_state;estado conteniendo
+adjacent_sea;zona de mar adyacente
+cultural_union_of;union cultural de
+overlord_of;maestro de
+sphere_leader_of;lider de esfera de
+crisis_state;estado de crisis
+reb_independence_nation;nacion rebelde independiente
+flashpoint_nation;nacion de punto de quiebre
+rebel;rebelde(s)
+flashpoint_tension_label;Tension de punto de quiebre
+for_text; para $text$
+where_ideology_is;donde su ideologia es $text$
+where_culture_is;donde su cultura es $text$
+where_religion_is;donde su religion es $text$
+of_type;del tipo $text$
+no_nation;ninguna nacion
+declare_war_on;Declara la guerra a $text$
+attacker_wg_label;Meta de guerra del atacante: $text$
+defender_wg_label;Meta de guerra del defendiente: $text$
+attacker_no_allies;Los aliados del atacante no seran llamados
+attacker_yes_allies;Los aliados del atacante seran llamados
+war_start_date_desc;guerra iniciada en ?Y$date$?!
+cmp_ge;es al menos
+cmp_le;es a lo mucho
+cmp_gt;es mas que
+cmp_lt;es menos que
+cmp_eq;es
+cmp_ne;no es
+cmp_has_eq;tiene
+cmp_has_ne;no tiene
+cmp_has_lt;tiene menos que
+cmp_has_gt;tiene mas que
+cmp_has_ge;tiene al menos
+cmp_has_le;tiene a lo mucho
+all_of_the_following;todo de lo siguiente:
+any_of_the_following;cualquiera de lo siguiente:
+nation_at_war_against;nacion en guerra en contra de
+core_in;nucleo en
+colonial_pop;localizado en una provincia colonial
+substate_of;subestado de
+nation_in_sphere;nacion en esfera de
+year;a�o
+month;mes
+a_port;un puerto
+national_rank;ranking nacional
+att_technology;tecnologia
+strata;estrata
+rich;rico
+poor;pobre
+middle;medio
+minimum_state_life_raing;calidad de vida minima en el estado
+an_empy_adj_prov;Una provincia vacia adyacente
+belongs_to_same_state;Perteneciente al mismo estado que $text$
+does_not_belong_to_same_state;No pertenece al mismo estado que $text$
+contains_blank;Contiene $text$
+does_not_contain_blank;No contiene $text$
+times_target_needs_spending;Multiplicado por el costo de las nescesidades que se desean
+unemployment;Desempleo
+slavery;esclavitud
+allowed;permitido
+a_slave_state;un estado esclavo
+a_slave;un esclavo
+an_independent_nation;una nacion independiente
+non_prim_culture_pops;pops de cultura no primaria
+government;gobierno
+capital;capital
+technology_school;escuela de tecnologia
+primary_culture;cultura primaria
+primary_culture_pop;la cultura primaria de la nacion donde esta el pop
+an_accepted_culture;una cultura aceptada
+culture;Cultura
+dominant_culture;cultura dominante
+a_primary_or_accepted;Una cultura primaria o aceptada
+rebel_culture;cultura rebelde
+this_nation_prim_culture;La cultura primaria o una cultura aceptada de esta nacion
+from_nation_prim_culture;La cultura primaria o una cultura aceptada de esa nacion
+culture_group;grupo de cultura
+dominant_culture_group;grupo de cultura dominante
+primary_culture_group;grupo de cultura primario
+a_core_ob;un nucleo propiedad de
+rebel_culture_group;grupo de cultura rebelde
+this_nation_culture_group;Es el mismo grupo que esta nacion
+from_nation_culture_group;Es el mismo grupo que esa nacion
+rebel_religion;la religion del rebelde
+this_nation_religion;La religion nacional de esta nacion
+from_nation_religion;La religion nacional de esa nacion
+province_terrain;terreno de provincia
+rgo_production;produccion de RGO
+a_secondary_power;un poder colonial
+owner;due�o
+an_active_rebel;una faccion activa
+a_member_of;un miembro de
+unclaimed_cores;nucleos sin reclamar
+a_cultural_union;una union cultural
+union_for_pop;la union cultural para el pop
+union_for_nation;la union cultural para la nacion
+the_rebel_ind_nation;la nacion independiente pertinente a los rebeldes
+capitalists_can_build;los capitalistas tienen permitido construir industrias
+capitalists_cannot_build;los capitalistas no tienen permitido construir industrias
+at_war;en guerra
+total_blockade;bloqueada total
+owns;es due�o de
+does_not_own;no es due�o de
+controls;controla
+does_not_control;no controla
+a_core_in;un nucleo en
+a_core_of;un nucleo de
+a_core_of_owner;un nucleo de su duenio
+located_in_a_core_of;localizado en el nucleo de
+percentage_reb_control;Porcentaje de provincias controladas por los rebeldes
+num_of_reb_control;Numero de provincias controladas por los rebeldes
+num_owned_provinces;Numero de provincias de las que sois due�os
+num_provinces_owned_by;El numero de provincias propiedad de
+num_of_ports;Numero de puertos
+num_of_allies;Numero de aliados
+num_of_vassals;Numero de subyugados
+owned_by;Propiedad de
+exists;Existe
+does_not_exist;No existe
+att_set;Establece
+in;En
+located_in;localizado en 
+the_owner_of_region;el duenio de la region
+a_casus_belli_against;Un cassus belli en contra de
+military_access_with;Acceso militar con
+prestige_of;El prestigio d
+prestige;Prestigio
+a_railroad;Un ferrocarril
+a_fort;Una fortaleza
+a_naval_base;Una base naval
+a_factory;Una industria
+empty;Sin propietario
+blockaded;Bloquado
+national_modifier;modificador nacional
+provincial_modifier;modificador provincial
+part_of;parte de
+a_border_with;tiene un borde con
+units_in_province;unidades en la provincia
+units_in_the_province;unidades en la provincia
+units_in_the_state;unidades en el estado
+at_war_against;en guerra contra
+num_of_divisions;un numero de divisiones
+an_ongoing_battle;una batalla en marcha
+treasury;tesoro
+o_treasury;el tesoro del duenio
+o_of_prov;el duenio de la provincia
+percentage_unowned_cores;
+a_vassal;
+ruling_party_ideology;
+ruling_party;
+enabled;
+political_reform_desire;
+social_reform_desire;
+num_of_ships;
+crime_percent;
+national_religion;
+member_of_nat_religion;
+dominant_religion;
+same_rel_as_this;
+this_pop_culture;
+this_nation_primary_culture;
+this_nation_accepted_culture;
+coastal;
+in_sphere_of;
+a_producer_of;
+next_reform;
+always;siempre
+never;nunca
+percentage_recruited;
+in_cultural_core_prov;
+nationalism;
+overseas;
+overseas_pop;
+controlled_by_rebel;
+controlled_by;
+state_capital;en el estado capital
+loc_state_capital;ubicado en el estado capital
+a_truce_with;tregua con
+att_population;poblacion
+size;
+pops_of_type;pops de tipo
+of_type_plain;de tipo
+ai_controlled;Controlado por IA
+a_leader_named;
+a_possible_vassal;
+a_vassal_of;
+a_substate_of;
+allied_to;
+has_recently_lost_war;
+has_not_recently_lost_war;
+mobilized;
+mobilization_size;
+admin_spending;
+greater_than_edu_spending;
+support_for_rp;
+colonial;
+in_default_to;
+in_bnkrpt;
+num_of_ports_connected;
+holding_an_election;
+set_globally;
+national_value;
+industrial_score;
+industrial_score_of;
+military_score;
+military_score_of;
+civilized;
+percent_occupied;
+rich_tax;
+middle_tax;
+poor_tax;
+soc_spending;
+edu_spending;
+mil_spending;
+colonies;
+dominant_ideology;
+dominant_issue;
+poor_militancy;
+middle_militancy;
+rich_militancy;
+gt_poor_tax;
+cultural_union;
+same_cultural_union;
+non_accepted_pops;
+crime;crimen
+num_substates;numero de subestados
+num_vassals_no_substates;
+num_regiments;
+owner_num_regiments;
+num_regiments_of;
+times_num_regiments_of;
+fabricating_on;
+cb_discovered;la fabricacion de un casus belli ha sido descubierta
+cb_not_discovered;la fabricacion de un casus belli no ha sido descubierta
+cb_progress;fabricacion de casus belli en progreso
+civ_progress;progreso de civilizacion
+constructing_a;fabricando un
+casus_belli;casus belli
+nation_in_scope;una nacion en contexto
+a_substate;un subestado
+gw_enabled;las grandes guerras estan activadas
+gw_not_enabled;las grandes guerras estan desactivadas
+ww_enabled;las guerras mundiales estan activadas
+ww_not_enabled;las guerras mundiales estan desactivadas
+can_perform_nationalization;puede nacionalizar
+cannot_perform_nationalization;no se puede nacionalizar
+in_sphere;
+num_states;
+a_releasable_vassal;
+recent_immigration;
+num_control_days;
+disarmed;
+social_mov_support;
+political_mov_support;
+a_member_of_social_mov;
+a_member_of_political_mov;
+cultural_sphere_members;
+pops;
+this_pop_religion;
+pops_with;
+life_needs_satisfaction;
+everyday_needs_satisfaction;
+luxury_needs_satisfaction;
+present_in_state;
+flashpoint;
+plurality_pop;
+an_ongoing_crisis;
+there;
+current_crisis;
+liberation_crisis;
+claim_crisis;
+involved_in_crisis;
+poor_life_needs_satisfaction;
+poor_everyday_needs_satisfaction;
+poor_luxury_needs_satisfaction;
+middle_life_needs_satisfaction;
+middle_everyday_needs_satisfaction;
+middle_luxury_needs_satisfaction;
+rich_life_needs_satisfaction;
+rich_everyday_needs_satisfaction;
+rich_luxury_needs_satisfaction;
+dip_influence_over;
+relationship_with;
+this_pop_type;
+nat_variable;
+support_in_uh;
+support_in;
+scope_province;
+able_build_rr;
+able_build_fort;
+able_build_naval_base;
+work;trabajo
+available_for;disponible para
+support;soporte
+percentage;porcentaje
+stockpile;almacen
+this_nat_religion;La religion nacional de este pais
+from_nat_religion;La religion nacional de ese pais
+event_show_requirements;Requerimientos para el evento
+event_only_other_requirements;Este evento solamente se realiza por otros eventos
+event_show_odds;Probabilidades del evento
+value_mod_product;
+value_mod_sum;
+value_mod_sum_factor;
+admin_explain_1;
+admin_explain_2;
+admin_explain_3;
+factory_condition_1;
+factory_condition_2;
+factory_condition_3;
+factory_condition_4;
+cant_subsidize_explanation;
+percent_of_pop_strata;
+cant_prioritize_explanation;
+factory_upgrade_condition_1;
+factory_upgrade_condition_2;
+factory_upgrade_condition_3;
+factory_upgrade_condition_4;
+factory_upgrade_condition_5;
+factory_upgrade_condition_6;
+factory_upgrade_condition_7;
+factory_upgrade_condition_8;
+factory_upgrade_condition_9;
+factory_upgrade_condition_10;
+factory_delete_header;
+factory_delete_not_allowed;
+factory_stats_1;
+factory_stats_2;
+factory_stats_3;
+factory_stats_4;
+factory_stats_5;
+factory_stats_6;
+factory_stats_wage;
+factory_stats_expenses;
+factory_stats_desired_income;
+speed;
+shift_to_hold_open;
+factory_upgrade_shortcuts;
+blank_org_gain;
+plurality_change_reason;
+revanchism_reason;
+allow_reform_cond;
+reform_effect_if_desc;
+reform_effect_then_desc;
+reform_effect_desc;
+special_rules;
+voting_rules;
+hide_decision;
+sup_point_gain;
+sup_point_explain;
+mapmode_tooltip_name;
+mapmode_tooltip_core_entry;
+mapmode_tooltip_state_entry;
+mapmode_tooltip_culture_majorities;
+mapmode_tooltip_religion_majorities;
+mapmode_tooltip_dominant_issues;
+mapmode_tooltip_total_income;
+mapmode_tooltip_dominant_ideology;
+mapmode_tooltip_con_average;
+mapmode_tooltip_total_employment;
+mapmode_tooltip_literacy_rate;
+mapmode_tooltip_factory_count;
+mapmode_tooltip_fort_level;
+mapmode_tooltip_fort_being_built;
+mapmode_tooltip_can_build_fort;
+mapmode_tooltip_population_change;
+mapmode_tooltip_rebels_amount;
+mapmode_tooltip_rebels_none;
+pop_size_1;
+pop_size_2;
+pop_size_3;
+pop_size_4;
+pop_size_5;
+pop_size_6;
+pop_size_7;
+pop_size_8;
+pop_l_migration_header;
+pop_l_c_migration_header;
+pop_l_emigration_header;
+pop_mig_1;
+pop_mig_2;
+pop_mig_3;
+pop_mig_4;
+pop_cmig_1;
+pop_cmig_2;
+pop_cmig_3;
+pop_cmig_4;
+pop_cmig_5;
+pop_cmig_6;
+pop_cmig_7;
+pop_emg_1;
+pop_emg_2;
+pop_emg_3;
+pop_emg_4;
+pop_emg_5;
+pop_emg_6;
+pop_prom_1;
+pop_prom_2;
+pop_prom_3;
+pop_prom_4;
+pop_prom_5;
+pop_prom_6;
+pop_prom_7;
+pop_prom_8;
+pop_prom_9;
+pop_con_1;
+pop_con_2;
+pop_con_3;
+pop_con_4;
+pop_con_5;
+pop_con_6;
+pop_con_7;
+pop_con_8;
+pop_con_9;
+pop_con_10;
+pop_con_11;
+pop_con_12;
+pop_con_13;
+pop_con_14;
+pop_con_15;
+pop_mil_1;
+pop_mil_2;
+pop_mil_3;
+pop_mil_4;
+pop_mil_5;
+pop_mil_6;
+pop_mil_7;
+pop_mil_8;
+pop_mil_9;
+pop_mil_10;
+pop_mil_11;
+pop_mil_12;
+pop_mil_13;
+pop_lit_1;
+pop_lit_2;
+pop_lit_3;
+pop_lit_4;
+pop_lit_5;
+pop_lit_6;
+pop_lit_7;
+pop_lit_8;
+pop_growth_topbar;
+pop_growth_topbar_2;
+pop_growth_topbar_3;
+pop_growth_topbar_4;
+pop_growth_1;
+pop_growth_2;
+pop_growth_3;
+pop_growth_4;
+pop_growth_5;
+pop_growth_6;
+pop_growth_7;
+pop_growth_8;
+pop_growth_9;
+pop_growth_10;
+pop_growth_11;
+pop_assim_1;
+pop_assim_2;
+pop_assim_3;
+pop_assim_4;
+pop_assim_5;
+pop_assim_6;
+pop_assim_7;
+pop_assim_8;
+pop_assim_9;
+pop_assim_10;
+pop_assim_11;
+pop_assim_12;
+pop_conver_1;
+pop_conver_2;
+pop_conver_3;
+pop_conver_4;
+pop_conver_5;
+pop_conver_6;
+pop_conver_7;
+pop_conver_8;
+pop_issue_attraction_1;
+pop_issue_attraction_2;
+pop_issue_attraction_3;
+pop_issue_attraction_4;
+pop_issue_attraction_5;
+pop_issue_attraction_6;
+pop_ideology_attraction_1;
+pop_ideology_attraction_2;
+trade_setting_drawing;Tomando de las reservas
+trade_setting_filling;Llenando las reservas
+trade_setting_stable;Sin actividad de reservas
+trade_commodity_report_1;
+trade_commodity_report_2;
+trade_commodity_report_3;
+trade_commodity_report_4;
+trade_fill;Llenar
+trade_use;Tomar de
+trade_stockpile_target;Meta de reservas:
+trade_stockpile_current;
+diplomacy_wx_1;Exhaustion de guerra mensual: 
+influence_explain_1;
+influence_explain_2;
+influence_explain_3;
+influence_explain_4;
+influence_explain_5;
+influence_explain_6;
+influence_explain_7;
+influence_explain_8;
+influence_explain_9;
+influence_explain_10;
+influence_explain_11;
+influence_explain_12;
+influence_explain_13;
+influence_explain_14;
+influence_explain_15;
+influence_explain_16;
+influence_explain_17;
+influence_explain_18;
+until_date;
+add_wg_1;
+add_wg_2;
+add_wg_3;
+add_wg_4;
+add_wg_5;
+intervene_1;
+intervene_2;
+intervene_3;
+intervene_4;
+intervene_5;
+intervene_6;
+intervene_7;
+intervene_8;
+intervene_9;
+intervene_10;
+intervene_11;
+intervene_12;
+intervene_13;
+intervene_14;
+intervene_15;
+intervene_16;
+intervene_17;
+military_score_explain_1;
+military_score_explain_2;
+military_score_explain_3;
+military_score_explain_4;
+military_score_explain_5;
+military_score_explain_6;
+military_score_explain_7;
+industry_score_explain_2;
+industry_score_explain_3;
+war_goal_1;
+war_goal_2;
+war_goal_3;
+war_goal_4;
+war_goal_5;
+war_goal_6;
+war_goal_7;
+war_goal_8;
+war_goal_9;
+war_goal_10;
+utt_unit;
+utt_noleader;
+war_score_1;
+war_score_2;
+war_score_3;
+war_score_4;
+dp_inf_tooltip_ban;
+dp_inf_tooltip_discredit;
+discredit_explain_1;
+discredit_explain_2;
+discredit_explain_3;
+iaction_explain_1;
+iaction_explain_2;
+iaction_explain_3;
+iaction_explain_4;
+expel_explain_1;
+expel_explain_2;
+ban_explain_1;
+ban_explain_2;
+dec_op_explain_1;
+dec_op_explain_2;
+dec_op_explain_3;
+dec_op_explain_4;
+iaction_explain_5;
+iaction_explain_6;
+state_transfer_di;
+state_transfer_button;
+state_transfer_offer;
+state_transfer_desc;
+state_transfer_explain_1;
+state_transfer_explain_2;
+state_transfer_explain_3;
+state_transfer_explain_4;
+state_transfer_explain_5;
+state_transfer_explain_6;
+cancel_ally_explain_1;
+cancel_ally_explain_2;
+cancel_ally_explain_3;
+cancel_ally_explain_4;
+cancel_ally_explain_5;
+ally_explain_1;
+ally_explain_2;
+ally_explain_3;
+ally_explain_4;
+ally_explain_5;
+ally_explain_6;
+ally_explain_7;
+ally_explain_8;
+call_ally_explain_1;
+call_ally_explain_2;
+call_ally_explain_3;
+call_ally_explain_4;
+call_ally_explain_5;
+cancel_access_explain_1;
+ask_access_explain_1;
+ask_access_explain_2;
+ask_access_explain_3;
+ask_access_explain_4;
+cancel_given_access_explain_1;
+give_access_explain_1;
+give_access_explain_2;
+give_access_explain_3;
+increase_rel_explain_1;
+increase_rel_explain_2;
+increase_rel_explain_3;
+increase_rel_explain_4;
+increase_rel_explain_5;
+decrease_rel_explain_1;
+decrease_rel_explain_2;
+decrease_rel_explain_3;
+decrease_rel_explain_4;
+decrease_rel_explain_5;
+cancel_w_sub_explain_1;
+cancel_w_sub_explain_2;
+w_sub_explain_1;
+w_sub_explain_2;
+w_sub_explain_3;
+w_sub_explain_4;
+invention_bulb_1;
+invention_bulb_2;
+invention_bulb_3;
+not_implemented;
+inc_op_explain_1;
+add_sphere_explain_1;
+add_sphere_explain_2;
+rem_sphere_explain_1;
+rem_sphere_explain_2;
+rem_sphere_explain_3;
+rem_sphere_explain_4;
+rem_sphere_explain_5;
+fab_explain_1;
+fab_explain_2;
+fab_explain_3;
+fab_explain_4;
+fab_explain_5;
+fab_explain_6;
+fab_explain_7;
+peace_description;
+peace_explain_1;
+peace_explain_2;
+peace_explain_3;
+peace_explain_4;
+peace_explain_5;
+war_explain_1;
+war_explain_2;
+war_explain_3;
+war_explain_4;
+wg_result_1;
+wg_result_2;
+wg_result_3;
+wg_not_ready;
+crisis_temperature_ex;
+crisis_mode_no_crisis;
+crisis_mode_finding_attacker;
+crisis_mode_finding_defender;
+crisis_mode_heating_up;
+crisis_back_explain_1;
+crisis_back_explain_2;
+crisis_add_interest_button;
+crisis_add_interest_button_ex_1;
+crisis_add_interest_button_ex_2;
+crisis_add_interest_button_ex_3;
+crisis_offer_button;
+crisis_offer_button_ex_1;
+crisis_offer_button_ex_2;
+crisis_offer_button_ex_3;
+msg_revolt_title;
+msg_revolt_1;
+msg_revolt_2;
+msg_war_title;
+msg_war_1;
+msg_wargoal_title;
+msg_wargoal_1;
+msg_war_join_title;
+msg_war_join_1;
+msg_war_becomes_great_title;
+msg_war_becomes_great_1;
+msg_siegeover_title;
+msg_siegeover_1;
+msg_siegeover_2;
+msg_siegeover_3;
+msg_siegeover_4;
+msg_siegeover_5;
+msg_new_crisis_title;
+msg_new_crisis_1;
+msg_new_crisis_2;
+msg_tech_title;
+msg_tech_1;
+msg_inv_title;
+msg_inv_1;
+msg_fab_discovered_title;
+msg_fab_discovered_1;
+msg_fab_discovered_2;
+msg_fab_canceled_title;
+msg_fab_canceled_1;
+msg_fab_finished_title;
+msg_fab_finished_1;
+msg_leader_died_title;
+msg_leader_died_1;
+msg_leader_died_2;
+msg_peace_offer_accepted_title;
+msg_peace_offer_accepted_1;
+msg_peace_offer_rejected_title;
+msg_peace_offer_rejected_1;
+msg_upper_house_title;
+msg_upper_house_1;
+msg_upper_house_2;
+msg_election_start_title;
+msg_election_start_1;
+msg_dec_rel_title;
+msg_dec_rel_1;
+msg_inc_rel_title;
+msg_inc_rel_1;
+msg_add_sphere_title;
+msg_add_sphere_1;
+msg_rem_sphere_title;
+msg_rem_sphere_1;
+msg_rem_sphere_2;
+msg_op_dec_title;
+msg_op_dec_1;
+msg_op_inc_title;
+msg_op_inc_1;
+msg_expel_title;
+msg_expel_1;
+msg_ban_title;
+msg_ban_1;
+msg_ban_2;
+msg_discredit_title;
+msg_discredit_1;
+msg_discredit_2;
+msg_ally_call_accepted_title;
+msg_ally_call_accepted_1;
+msg_ally_call_declined_title;
+msg_ally_call_decline_1;
+msg_alliance_declined_title;
+msg_alliance_declined_1;
+msg_alliance_starts_title;
+msg_alliance_starts_1;
+msg_alliance_ends_title;
+msg_alliance_ends_1;
+msg_access_refused_title;
+msg_access_refused_1;
+msg_access_granted_title;
+msg_access_granted_1;
+msg_access_canceled_a_title;
+msg_access_canceled_a_1;
+msg_access_canceled_b_title;
+msg_access_canceled_b_1;
+msg_wsub_start_title;
+msg_wsub_start_1;
+msg_wsub_end_title;
+msg_wsub_end_1;
+msg_new_gp_title;
+msg_new_gp_1;
+msg_lost_gp_title;
+msg_lost_gp_1;
+msg_decision_title;
+msg_decision_1;
+msg_decision_2;
+msg_rebels_win_title;
+msg_rebels_win_1;
+msg_rebels_win_2;
+msg_rebels_win_3;
+msg_rebels_win_4;
+msg_rebels_win_5;
+msg_rebels_win_6;
+msg_election_end_title;
+msg_election_end_1;
+msg_election_end_2;
+msg_crisis_joffer_accepted;
+msg_crisis_joffer_accepted_1;
+msg_crisis_joffer_rejected;
+msg_crisis_joffer_reject_1;
+msg_crisis_settled_title;
+msg_crisis_settled_1;
+msg_crisis_not_settled_title;
+msg_crisis_not_settled_1;
+msg_crisis_escalates_title;
+msg_crisis_escalates_1;
+msg_crisis_fizzle_title;
+msg_crisis_fizzle_1;
+msg_crisis_fizzle_2;
+msg_crisis_attacker_title;
+msg_crisis_attacker_1;
+msg_crisis_defender_title;
+msg_crisis_defender_1;
+msg_crisis_vol_join_title;
+msg_crisis_vol_join_1;
+msg_crisis_vol_join_2;
+msg_entered_automatic_alliance_title;
+msg_entered_automatic_alliance_1;
+msg_chat_message_title;
+msg_chat_message_1;
+msg_chat_message_2;
+msg_n_event_title;
+msg_p_event_title;
+msg_m_event_title;
+multiunit_header;$x$ Unidades Seleccionadas
+ai_alliance_1;La IA esta buscando aliados
+ai_alliance_2;Estas cerca para asistir en una guerra
+ai_alliance_3;Sin conflictos de interes
+ai_alliance_4;Tu militar es lo suficientemente fuerte
+ai_alliance_5;Tienen intereses estrategicos compartidos
+ai_access_1;
+col_start_title;
+col_start_1;
+col_start_2;
+col_start_3;
+col_start_4;
+col_start_5;
+col_start_6;
+col_start_7;
+col_start_8;
+col_start_9;
+col_invest_title;
+col_invest_1;
+col_invest_2;
+col_invest_3;
+col_invest_4;
+col_invest_5;
+col_invest_6;
+activated_by_with_a_chance_of;
+unit_max_speed;
+unit_attack;
+unit_hull;
+unit_fire_range;
+unit_supply_consumption;
+unit_supply_load;
+unit_defence;
+unit_discipline;
+unit_maneuver;
+unit_recon;
+unit_support;
+unit_evasion;
+unit_siege;
+unit_torpedo_attack;
+unit_build_time;$x$ dias
+unit_build_unit_pop_size;$x$k
+unit_build_unit_brigades;$x$/$y$
+msg_revolt;
+msg_war_on_nation;
+msg_war_by_nation;
+msg_wargoal_added;
+msg_siegeover_by_nation;
+msg_siegeover_on_nation;
+msg_colony_finished;
+msg_reform_gained;
+msg_reform_lost;
+msg_ruling_party_change;
+msg_upperhouse;
+msg_electionstart;
+msg_electiondone;
+msg_breakcountry;
+msg_peace_accepted_from_nation;
+msg_peace_rejected_from_nation;
+msg_peace_accepted_by_nation;
+msg_peace_rejected_by_nation;
+msg_mobilization_start;
+msg_mobilization_end;
+msg_factory_complete;
+msg_rr_complete;
+msg_fort_complete;
+msg_naval_base_complete;
+msg_province_event;
+msg_national_event;
+msg_major_event;
+msg_invention;
+msg_tech;
+msg_leader_dies;
+msg_land_combat_starts_on_nation;
+msg_naval_combat_starts_on_nation;
+msg_land_combat_starts_by_nation;
+msg_naval_combat_starts_by_nation;
+msg_movement_finishes;
+msg_decision;
+msg_lose_great_power;
+msg_become_great_power;
+msg_war_subsidies_start_by_nation;
+msg_war_subsidies_start_on_nation;
+msg_war_subsidies_end_by_nation;
+msg_war_subsidies_end_on_nation;
+msg_reparations_start_by_nation;
+msg_reparations_start_on_nation;
+msg_reparations_end_by_nation;
+msg_reparations_end_on_nation;
+msg_mil_access_start_by_nation;
+msg_mil_access_start_on_nation;
+msg_mil_access_end_by_nation;
+msg_mil_access_end_on_nation;
+msg_mil_access_declined_by_nation;
+msg_mil_access_declined_on_nation;
+msg_alliance_starts;
+msg_alliance_ends;
+msg_alliance_declined_by_nation;
+msg_alliance_declined_on_nation;
+msg_ally_called_accepted_by_nation;
+msg_ally_called_declined_by_nation;
+msg_discredit_by_nation;
+msg_ban_by_nation;
+msg_expell_by_nation;
+msg_discredit_on_nation;
+msg_ban_on_nation;
+msg_expell_on_nation;
+msg_increase_opinion;
+msg_decrease_opinion_by_nation;
+msg_decrease_opinion_on_nation;
+msg_rem_sphere_by_nation;
+msg_rem_sphere_on_nation;
+msg_removed_from_sphere;
+msg_add_sphere;
+msg_added_to_sphere;
+msg_increase_relation_by_nation;
+msg_increase_relation_on_nation;
+msg_decrease_relation_by_nation;
+msg_decrease_relation_on_nation;
+msg_join_war_by_nation;
+msg_join_war_on_nation;
+msg_gw_unlocked;
+msg_war_becomes_great;
+msg_cb_detected_on_nation;
+msg_cb_detected_by_nation;
+msg_crisis_join_offer_accepted_by_nation;
+msg_crisis_join_offer_declined_by_nation;
+msg_crisis_join_offer_accepted_from_nation;
+msg_crisis_join_offer_declined_from_nation;
+msg_crisis_resolution_accepted;
+msg_crisis_becomes_war;
+msg_crisis_resolution_declined_from_nation;
+msg_crisis_starts;
+msg_crisis_attacker_backer;
+msg_crisis_defender_backer;
+msg_crisis_fizzle;
+msg_war_join_by;
+msg_war_join_on;
+msg_cb_fab_finished;
+msg_cb_fab_cancelled;
+msg_crisis_voluntary_join;
+msg_bankruptcy_title;
+amsg_bankruptcy;
+msg_bankruptcy_1;
+uv_sort_a;Atq
+uv_sort_b;Def
+uv_sort_c;Org
+uv_sort_d;Mor
+uv_sort_e;Vel
+uv_sort_f;Rec
+uv_sort_g;Rel
+uv_sort_h;Exp
+alice_condition_diplo_points;
+alice_retreat;Retirarse de la batalla
+alice_retreat_1;
+alice_retreat_2;
+alice_province_select;Selecciona la provincia
+alice_province_deselect;Deselecciona la provincia
+alice_province_selector_on;SI
+alice_province_selector_off;NO
+province_selector;Selector
+province_immigrator;Inmigrador
+tt_a_bank;un banco
+tt_a_university;una universidad
+et_add_selector;habilita el selector provincial
+et_remove_selector;deshabilita el selector provincial
+et_add_immigrator;habilita el inmigrador provincial
+et_remove_immigrator;deshabilita el inmigrador provincial
+et_if;Si
+et_else_if;De lo contrario
+modifier_province_selector;Selector provincial
+modifier_province_immigrator;Inmigrador provincial
+modifier_conversion_rate;
+modifier_attrition;
+chat_player_joins;@$x$ $playername$ se unio
+chat_player_leaves;@$x$ $playername$ se fue
+chat_player_ban;@$x$ $playername$ fue baneado
+chat_player_kick;@$x$ $playername$ fue vetado
+chat_player_switch;@$x$ $playername$ ahora es $country$
+chat_player_oos;
+alice_status_stream;Progreso $value$
+alice_play_pending_client;$playername$ no esta listo/a todavia
+message_name_text;
+msg_for_us;
+msg_for_interesting;
+msg_for_other;
+msg_handling_ignore;
+msg_handling_log;
+msg_handling_sound;
+msg_handling_popup;
+msg_handling_pause;
+amsg_revolt;
+amsg_war_on_nation;
+amsg_war_by_nation;
+amsg_wargoal_added;
+amsg_siegeover_by_nation;
+amsg_siegeover_on_nation;
+amsg_colony_finished;
+amsg_reform_gained;
+amsg_reform_lost;
+amsg_ruling_party_change;
+amsg_upperhouse;
+amsg_electionstart;
+amsg_electiondone;
+amsg_breakcountry;
+amsg_peace_accepted_from_nation;
+amsg_peace_rejected_from_nation;
+amsg_peace_accepted_by_nation;
+amsg_peace_rejected_by_nation;
+amsg_mobilization_start;
+amsg_mobilization_end;
+amsg_factory_complete;
+amsg_rr_complete;
+amsg_fort_complete;
+amsg_naval_base_complete;
+amsg_province_event;
+amsg_national_event;
+amsg_major_event;
+amsg_invention;
+amsg_tech;
+amsg_leader_dies;
+amsg_land_combat_starts_on_nation;
+amsg_naval_combat_starts_on_nation;
+amsg_land_combat_starts_by_nation;
+amsg_naval_combat_starts_by_nation;
+amsg_movement_finishes;
+amsg_decision;
+amsg_lose_great_power;
+amsg_become_great_power;
+amsg_war_subsidies_start_by_nation;
+amsg_war_subsidies_start_on_nation;
+amsg_war_subsidies_end_by_nation;
+amsg_war_subsidies_end_on_nation;
+amsg_reparations_start_by_nation;
+amsg_reparations_start_on_nation;
+amsg_reparations_end_by_nation;
+amsg_reparations_end_on_nation;
+amsg_mil_access_start_by_nation;
+amsg_mil_access_start_on_nation;
+amsg_mil_access_end_by_nation;
+amsg_mil_access_end_on_nation;
+amsg_mil_access_declined_by_nation;
+amsg_mil_access_declined_on_nation;
+amsg_alliance_starts;
+amsg_alliance_ends;
+amsg_alliance_declined_by_nation;
+amsg_alliance_declined_on_nation;
+amsg_ally_called_accepted_by_nation;
+amsg_ally_called_declined_by_nation;
+amsg_discredit_by_nation;
+amsg_ban_by_nation;
+amsg_expell_by_nation;
+amsg_discredit_on_nation;
+amsg_ban_on_nation;
+amsg_expell_on_nation;
+amsg_increase_opinion;
+amsg_decrease_opinion_by_nation;
+amsg_decrease_opinion_on_nation;
+amsg_rem_sphere_by_nation;
+amsg_rem_sphere_on_nation;
+amsg_removed_from_sphere;
+amsg_add_sphere;
+amsg_added_to_sphere;
+amsg_increase_relation_by_nation;
+amsg_increase_relation_on_nation;
+amsg_decrease_relation_by_nation;
+amsg_decrease_relation_on_nation;
+amsg_join_war_by_nation;
+amsg_join_war_on_nation;
+amsg_gw_unlocked;
+amsg_war_becomes_great;
+amsg_cb_detected_on_nation;
+amsg_cb_detected_by_nation;
+amsg_crisis_join_offer_accepted_by_nation;
+amsg_crisis_join_offer_declined_by_nation;
+amsg_crisis_join_offer_accepted_from_nation;
+amsg_crisis_join_offer_declined_from_nation;
+amsg_crisis_resolution_accepted;
+amsg_crisis_becomes_war;
+amsg_crisis_resolution_declined_from_nation;
+amsg_crisis_starts;
+amsg_crisis_attacker_backer;
+amsg_crisis_defender_backer;
+amsg_crisis_fizzle;
+amsg_war_join_by;
+amsg_war_join_on;
+amsg_cb_fab_finished;
+amsg_cb_fab_cancelled;
+amsg_crisis_voluntary_join;
+amsg_army_built;
+amsg_navy_built;
+amsg_bankruptcy;
+amsg_entered_automatic_alliance;
+amsg_chat_message;
+alice_stockpile_button_0_0;
+alice_stockpile_button_1_0;
+alice_stockpile_button_1_1;
+alice_stockpile_button_1_2;
+alice_stockpile_button_2_0;
+alice_stockpile_button_3_0;
+a_alert_reb;
+event_auto;
+event_taken_auto;
+alice_load_unload_1;
+alice_load_unload_2;
+alice_load_unload_3;
+alice_load_unload_4;
+alice_load_unload_5;
+alice_unload_fleet;
+auto_save_lb;Frecuencia de auto-guardado
+auto_save_1;Diario
+auto_save_2;Mensual
+auto_save_3;Anual
+auto_save_0;Ninguno
+monthly_emigration_lab;
+monthly_immigration_lab;
+im_em_header;
+alice_unit_relative_attrition;
+ol_unit_standing_text;
+unit_moving_text;
+unit_standing_text;
+disarmed_pop;
+cancel_fac_construction;
+cancel_fac_upgrade;
+kierkegaard_1;Ya sea
+kierkegaard_2;O tambien
+open_and_sub;
+o_set_national_flag;
+o_add_modifier_until;
+o_add_modifier;
+o_relations_with;
+o_add_to_treasury;
+w_rgo_prod;
+w_artisan_prod;
+w_artisan_profit;
+w_artisan_distribution;
+w_fac_prod;
+alice_lose_gp;
+alice_state_select_title;Seleccionar estado
+press_esc_to_cancel;
+fort_build_tt_1;
+fort_build_tt_2;
+fort_build_tt_3;
+nb_build_tt_1;
+nb_build_tt_2;
+rr_build_tt_1;
+tech_ol_tt;
+tech_year_tt;
+disband_all;Desbaratar todas las unidades seleccionadas
+alice_play_checksum_host;Los codigos de verificacion no coinciden con el del anfitrion, checa que tengas los mismos mods
+alice_play_save_stream;El anfitrion os esta pasando la partida a vos, espera a que se complete
+ai_will_accept_po;Aceptaran esta oferta
+ai_will_not_accept_po;Rechazaran esta oferta
+close_and_del;Cerrar & Borrar Industria
+cb_conditions_header;Condiciones para usar:
+as_a_vassal;como un vasal
+change_state_name_to;
+alice_join_crisis_offer;
+alice_unit_disable_rebel_hunt;
+alice_regiment_battle_info;
+understaffed_regiment;
+tech_queue_explain;
+alice_province_building_build;
+commodity_shortage;
+commodity_surplus;
+alice_trade_flow_produced;
+alice_trade_flow_consumed;
+alice_trade_flow_label;Analisis del mercado:
+alice_trade_flow_piechart_producers;Productores
+alice_trade_flow_piechart_consumers;Consumidores
+alice_trade_flow_piechart_workforce;Inversionistas
+alice_diplo_release_subject;Liberar subdito
+alice_diplo_release_subject_desc;
+alice_diplo_release_subject_0;Es nuestro subdito
+kill_leader;Matar lider
+annex_null;se hace sin duenio
+meets_the_conditions_of;cumple con las condiciones de 
+does_not_meet_the_conditions_of;
+fab_finish_date;
+fab_is_paused;
+aml_civ_s1;
+aml_civ_s2;
+aml_civ_s3;
+aml_civ_s4;
+aml_civ_s5;
+aml_col_s1;
+aml_col_s2;
+aml_col_s3;
+aml_col_s4;
+aml_dip_s1;
+aml_dip_s2;
+aml_dip_s3;
+aml_dip_s4;
+aml_dip_s5;
+aml_dip_s6;
+aml_dip_s7;
+aml_dip_s8;
+aml_dip_s9;
+aml_rr_s1;
+aml_rr_s2;
+aml_rr_s3;
+aml_rr_s4;
+aml_rr_s5;
+aml_nav_s1;
+aml_nav_s2;
+aml_nav_s3;
+aml_nav_s4;
+aml_nav_s5;
+aml_rank_s1;
+aml_rank_s2;
+aml_rank_s3;
+aml_rank_s4;
+aml_rec_s1;
+aml_rec_s2;
+aml_rec_s3;
+macro_builder;Macro-constructor
+macro_total_desc;
+macro_switch_type_land;
+macro_switch_type_naval;
+macro_warn_overseas;
+macro_warn_culture;
+macro_warn_unlocked;
+macro_select_province;
+macro_warn_insuff;
+macro_warn_invalid_province;
+shortcut_tooltip;
+filter_all;
+filter_allies;
+filter_enemies;
+filter_sphere;
+filter_neighbors;
+filter_best_guess;
+alice_warn_war_ends_for_us;
+alice_invention_chance;
+is_primary_culture;
+is_primary_religion;
+tt_can_use_nation;
+et_on_add;
+et_on_po_accepted;
+alice_no_possible_units;
+alice_debt_spending;
+alice_loan_size;
+alice_currently_bankrupt;
+alice_no_loans_possible;
+alice_rf_demands_enforced_trigger;
+alice_rf_demands_enforced_effect;
+alice_rf_siege_won_trigger;
+alice_rf_siege_won_effect;
+may_month_name;Marzec
+alice_ca_cant_influence;
+alice_gp_status_regain_expiration;
+alice_mil_decay_description;
+alice_con_decay_description;
+x_from_y;
+reinforce_rate;
+reinforce_rate_none;
+alice_domestic_investment_button;
+alice_domestic_investment_pops;
+alice_domestic_investment_needs;
+alice_budget_scaled_inc;
+alice_budget_scaled_1;
+alice_budget_scaled_2;
+alice_budget_scaled_3;
+alice_budget_scaled_4;
+alice_budget_scaled_exp;
+alice_budget_scaled_5;
+alice_budget_scaled_6;
+alice_budget_scaled_7;
+alice_budget_scaled_8;
+alice_budget_scaled_9;
+alice_budget_scaled_10;
+alice_budget_scaled_11;
+alice_budget_scaled_12;
+alice_budget_scaled_13;
+alice_budget_scaled_14;
+alice_budget_scaled_15;
+alice_budget_scaled_16;
+alice_budget_scaled_17;
+alice_budget_scaled_net;
+alice_budget_setting_percent;
+alice_spending_land_construction;
+alice_spending_naval_construction;
+alice_spending_building_construction;
+alice_spending_factory_construction;
+alice_spending_unit;
+alice_spending_unit_1;
+alice_spending_total;
+alice_spending_commodity;
+alice_spending_commodity_2;
+alice_recommended_build;
+alice_factory_bonus;
+alice_factory_inputs;
+alice_factory_input_item;
+alice_factory_base_workforce;
+alice_factory_total_bonus;
+alice_slider_controls;
+alice_slider_controls_2;
+explain_colonial_points;
+alice_lobby_back;
+alice_lobby_back_tt_1;
+alice_lobby_back_tt_2;
+reopen_with_tab;
+alice_topbar_tab_1;
+alice_topbar_tab_2;
+colonial_points_from_technology;
+colonial_points_from_naval_bases;
+colonial_points_from_ships;
+used_colonial_maintenance;
+topbar_pause_speed;
+date_is_leap;
+date_is_not_leap;
+topbar_date_season_nh;
+topbar_date_season_sh;
+spring;
+summer;
+autumn;
+winter;
+att_call_will_accept;
+att_call_will_decline;
+att_call_is_human;
+att_call_no_allies;
+domestic_investment_label;
+modifier_min_domestic_investment;
+modifier_max_domestic_investment;
+mouse_left_click_mode_label;
+alice_supply_limit_desc;
+alice_factory_worker_1;
+alice_factory_worker_2;
+alice_rgo_unemployment_country_alert;
+pop_promote_info_on_sel_2;
+alice_readme;
+alice_nf_controls;
+unit_controls_tooltip_1;
+unit_controls_tooltip_2;
+unit_control_group_tooltip;
+console_button_tooltip;
+demobilize;
+mobilize;
+alice_cb_creation_detail_none;
+alice_cb_creation_detail;
+alice_mob_controls;
+alice_mw_create_1;
+alice_mw_create_2;
+alice_mw_create_lpb;
+alice_mw_create_lp;
+alice_mw_controls_1;
+alice_mw_controls_2;
+alice_daily_leadership_tt;
+unit_current_supply;
+unit_current_supply_high;
+unit_current_supply_mid;
+unit_current_supply_low;
+alice_crisis_inactive;
+alice_crisis_finding_attacker;
+alice_crisis_finding_defender;
+alice_crisis_heating_up;
+alice_last_crisis;
+alice_crisis_par_1;
+alice_crisis_par_2;
+alice_crisis_par_3;
+alice_commodity_cprice;
+alice_commodity_cost;
+alice_commodity_eprice;
+alice_trade_top_producers;
+alice_trade_no_producers;
+alice_political_party_trigger;
+alice_political_party_no_trigger;
+alice_ai_decision;
+alice_mobilized_is_ai_controlled;
+alice_ai_controlled_unit;
+alice_navy_allocation_tt;
+alice_navy_allocation_2;
+alice_wg_condition_1;
+alice_wg_condition_2;
+alice_wg_condition_3;
+alice_wg_condition_4;
+alice_wg_condition_5;
+alice_wg_condition_6;
+alice_wg_condition_7;
+alice_tt_wg_infamy_limit;
+alice_wg_usage_trigger;
+province_id;
+nation_tag;
+alice_rgo_trade_prod_1;
+alice_rgo_trade_prod_2;
+alice_rgo_trade_prod_3;
+alice_artisan_trade_prod;
+alice_factory_trade_prod;
+alice_all_trade_prod;
+alice_interested_in_alliance;
+alice_merge_rally_point_why;
+alice_mvcap_1;
+alice_mvcap_2;
+alice_mvcap_3;
+alice_mvcap_4;
+alice_mvcap_5;
+alice_mvcap_6;
+alice_mvcap_7;
+alice_mvcap_8;
+alice_mvcap_9;
+alice_mvcap_10;
+alice_mvcap_11;
+alice_mvcap_12;
+alice_pnt_pops;
+alice_pnt_rpops;
+alice_pnt_mpops;
+alice_pnt_ppops;
+alice_pnt_culture;
+alice_pnt_religion;
+alice_pnt_dominant_religion;
+alice_pnt_dominant_ideology;
+ledger_ppp_gdp;
+ledger_ppp_gdp_per_capita;

@@ -325,32 +325,46 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 		if(!n || !n.get_name())
 			continue;
-		std::string name = text::produce_simple_string(state, n.get_name());
+
+		auto nation_name = text::produce_simple_string(state, n.get_name());
+		auto prefix_remove = text::produce_simple_string(state, "map_remove_prefix");
+		if(nation_name.starts_with(prefix_remove)) {
+			nation_name.erase(0, prefix_remove.size());
+		}
+		auto acronym_expand = text::produce_simple_string(state, "map_expand_acronym");
+		if(nation_name.starts_with(acronym_expand)) {
+			nation_name.erase(0, acronym_expand.size());
+			auto acronym_expand_to = text::produce_simple_string(state, "map_expand_acronym_to");
+			nation_name.insert(0, acronym_expand_to.data(), acronym_expand_to.size());
+		}
+
+		std::string name = text::produce_simple_string(state, nation_name);
 		bool connected_to_capital = false;
 		for(auto visited_region : group_of_regions) {
 			if(n.get_capital().get_connected_region_id() == visited_region) {
 				connected_to_capital = true;
 			}
 		}
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::adj, n.get_adjective());
+		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(nation_name));
+		text::add_to_substitution_map(sub, text::variable_type::province, p);
+		text::add_to_substitution_map(sub, text::variable_type::state, p.get_state_membership());
+		text::add_to_substitution_map(sub, text::variable_type::continentname, p.get_continent().get_name());
 		if(!connected_to_capital) {
 			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+			name = text::resolve_string_substitution(state, "map_label_adj_continent", sub);
 			// 66% of the provinces correspond to a single national identity
 			// then it gets named after that identity
 			ankerl::unordered_dense::map<int32_t, uint32_t> map;
 			uint32_t total_provinces = 0;
 			dcon::province_id last_province;
-			dcon::state_instance_id sid;
 			bool in_same_state = true;
 			for(auto visited_region : group_of_regions) {
 				for(auto candidate : state.world.in_province) {
 					if(candidate.get_connected_region_id() == visited_region) {
-						if(sid) {
-							if(candidate.get_state_membership() != sid)
-								in_same_state = false;
-						} else {
-							sid = candidate.get_state_membership();
-						}
+						if(candidate.get_state_membership() != p.get_state_membership())
+							in_same_state = false;
 
 						last_province = candidate;
 						total_provinces++;
@@ -365,11 +379,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 			if(in_same_state == true) {
-				name = text::produce_simple_string(state, n.get_adjective()) + " " + text::get_dynamic_state_name(state, sid);
+				name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
 			}
 			if(total_provinces == 1) {
 				// Adjective + Province name
-				name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.province_get_name(last_province));
+				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
 			} else {
 				for(const auto& e : map) {
 					if(float(e.second) / float(total_provinces) >= 0.75f) {
@@ -390,23 +404,19 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 										degrees = 360.f + degrees;
 									}
 									assert(degrees >= 0.f && degrees <= 360.f);
-									auto nation_name = text::produce_simple_string(state, n.get_name());
-									if(nation_name.starts_with("The ")) {
-										nation_name.erase(0, 4);
-									}
 									if(degrees >= 0.f && degrees < 90.f) {
-										name = "East " + nation_name;
+										name = text::resolve_string_substitution(state, "map_label_east_country", sub);
 									} else if(degrees >= 90.f && degrees < 180.f) {
-										name = "South " + nation_name;
+										name = text::resolve_string_substitution(state, "map_label_south_country", sub);
 									} else if(degrees >= 180.f && degrees < 270.f) {
-										name = "West " + nation_name;
+										name = text::resolve_string_substitution(state, "map_label_west_country", sub);
 									} else if(degrees >= 270.f && degrees < 360.f) {
-										name = "North " + nation_name;
+										name = text::resolve_string_substitution(state, "map_label_north_country", sub);
 									}
 								}
 							} else {
-								//non cultural union tag -> dont use our name
-								name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
+								text::add_to_substitution_map(sub, text::variable_type::tag, state.world.national_identity_get_name(nid));
+								name = text::resolve_string_substitution(state, "map_label_adj_tag", sub);
 							}
 							break;
 						}
@@ -414,12 +424,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-		if(name.starts_with("The ")) {
-			name.erase(0, 4);
-		}
 		//name = "جُمْهُورِيَّة ٱلْعِرَاق";
 		//name = "在标准状况下";
-		//name = "Test";
 		if(name.empty())
 			continue;
 
