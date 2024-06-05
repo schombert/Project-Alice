@@ -83,7 +83,6 @@ directory get_or_create_data_dumps_directory();
 // necessary for reading paths out of data from inside older paradox files:
 // even on linux, this must do something, because win1250 isn't ascii or utf8
 native_string win1250_to_native(std::string_view data_in);
-std::string win1250_to_utf8(std::string_view data_in);
 
 // necessary for reading paths out of data from inside files we may create:
 // on linux, this just has to call the string constructor

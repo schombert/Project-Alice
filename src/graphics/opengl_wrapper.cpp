@@ -754,7 +754,10 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
 					bind_vertices_by_rotation(state, ui::rotation::upright, false);
 					glActiveTexture(GL_TEXTURE0);
-					glBindTexture(GL_TEXTURE_2D, tag[1] == 'F' ? ((state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex) : state.open_gl.checkmark_icon_tex);
+					GLuint false_icon = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan)
+						? state.open_gl.color_blind_cross_icon_tex
+						: state.open_gl.cross_icon_tex;
+					glBindTexture(GL_TEXTURE_2D, tag[1] == 'F' ? false_icon : state.open_gl.checkmark_icon_tex);
 					draw_icon = true;
 				} else { //(A)rmy or (N)avy
 					bind_vertices_by_rotation(state, ui::rotation::upright, false);

@@ -1683,60 +1683,6 @@ char process_utf16_to_win1250(wchar_t c) {
 	return char_out;
 }
 
-void load_fonts(simple_fs::directory& root) {
-	uint8_t font_set_load = 0;
-	LANGID lang = GetMUILanguage();
-	switch(lang & 0xff) {
-	case 0x0007:
-		localised_strings = &de_localised_strings[0];
-		break;
-	case 0x000A:
-		localised_strings = &es_localised_strings[0];
-		break;
-	case 0x0010:
-		localised_strings = &it_localised_strings[0];
-		break;
-	case 0x001D:
-		localised_strings = &sv_localised_strings[0];
-		break;
-	case 0x000C:
-		localised_strings = &fr_localised_strings[0];
-		break;
-	case 0x0016:
-		localised_strings = &po_localised_strings[0];
-		break;
-	case 0x0004:
-		localised_strings = &zh_localised_strings[0];
-		font_set_load = 1;
-		break;
-	default:
-		break;
-	}
-	if(font_set_load == 0) {
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
-		if(font_a) {
-			auto file_content = simple_fs::view_contents(*font_a);
-			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
-		if(font_b) {
-			auto file_content = simple_fs::view_contents(*font_b);
-			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-	} else if(font_set_load == 1) {
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Regular.ttf"));
-		if(font_a) {
-			auto file_content = simple_fs::view_contents(*font_a);
-			font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Light.ttf"));
-		if(font_b) {
-			auto file_content = simple_fs::view_contents(*font_b);
-			font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
-		}
-	}
-}
-
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	if(message == WM_CREATE) {
 		opengl_window_dc = GetDC(hwnd);
@@ -1753,7 +1699,57 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		simple_fs::add_root(fs, NATIVE("."));
 		auto root = get_root(fs);
 
-		load_fonts(root);
+		uint8_t font_set_load = 0;
+		LANGID lang = GetUserDefaultUILanguage();
+		switch(lang & 0xff) {
+		case 0x0007:
+			localised_strings = &de_localised_strings[0];
+			break;
+		case 0x000A:
+			localised_strings = &es_localised_strings[0];
+			break;
+		case 0x0010:
+			localised_strings = &it_localised_strings[0];
+			break;
+		case 0x001D:
+			localised_strings = &sv_localised_strings[0];
+			break;
+		case 0x000C:
+			localised_strings = &fr_localised_strings[0];
+			break;
+		case 0x0016:
+			localised_strings = &po_localised_strings[0];
+			break;
+		case 0x0004:
+			localised_strings = &zh_localised_strings[0];
+			font_set_load = 1;
+			break;
+		default:
+			break;
+		}
+		if(font_set_load == 0) {
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
+			if(font_a) {
+				auto file_content = simple_fs::view_contents(*font_a);
+				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
+			if(font_b) {
+				auto file_content = simple_fs::view_contents(*font_b);
+				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+		} else if(font_set_load == 1) {
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Regular.ttf"));
+			if(font_a) {
+				auto file_content = simple_fs::view_contents(*font_a);
+				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Light.ttf"));
+			if(font_b) {
+				auto file_content = simple_fs::view_contents(*font_b);
+				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+		}
 		font_collection.load_all_glyphs();
 
 		::ogl::load_file_and_return_handle(NATIVE("assets/launcher_bg.png"), fs, bg_tex, false);

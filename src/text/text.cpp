@@ -63,7 +63,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 
 	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
 		if(enc == text::language_encoding::win1252) {
-			return simple_fs::win1250_to_utf8(s);
+			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
 		}
 		return std::string(s);
 	};
