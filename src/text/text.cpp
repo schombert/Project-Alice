@@ -140,7 +140,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 
 	// TODO: Emit error when 64K boundary is violated
 	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
-	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
+	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint16_t>::max());
 
 	return text_sequence{
 		static_cast<uint32_t>(component_start_index),
@@ -169,44 +169,22 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 }
 
 void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
-	auto start = (file_size != 0 && file_content[0] == '#')
+	auto cpos = (file_size != 0 && file_content[0] == '#')
 		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 		: file_content;
-	while(start < file_content + file_size) {
-		auto parse_fn = [&state, &err](std::string_view key, std::string_view content, uint32_t column) {
+	while(cpos < file_content + file_size) {
+		cpos = parsers::parse_first_and_fixed_amount_csv_values<6>(cpos, file_content + file_size, ';', [&](std::string_view key, std::string_view content, uint32_t column) {
 			create_text_entry(state, key, content, err, column);
-		};
-		start = parsers::parse_first_and_fixed_amount_csv_values<6>(start, file_content + file_size, ';', parse_fn);
-	}
-	//Normalize all text sequences
-	uint32_t seq_size = 0;
-	for(const auto& l : state.languages) {
-		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
-	}
-	for(auto& l : state.languages) {
-		uint32_t old_size = uint32_t(l.text_sequences.size());
-		l.text_sequences.resize(size_t(seq_size));
+		});
 	}
 }
 
 void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, uint32_t language) {
-	auto start = (file_size != 0 && file_content[0] == '#')
-		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
-		: file_content;
-	while(start < file_content + file_size) {
-		auto parse_fn = [&state, &err, language](std::string_view key, std::string_view content, uint32_t column) {
-			create_text_entry(state, key, content, err, language);
-		};
-		start = parsers::parse_first_and_fixed_amount_csv_values<1>(start, file_content + file_size, ';', parse_fn);
-	}
-	//Normalize all text sequences
-	uint32_t seq_size = 0;
-	for(const auto& l : state.languages) {
-		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
-	}
-	for(auto& l : state.languages) {
-		uint32_t old_size = uint32_t(l.text_sequences.size());
-		l.text_sequences.resize(size_t(seq_size));
+	auto cpos = file_content;
+	while(cpos < file_content + file_size) {
+		cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
+			create_text_entry(state, values[0], values[1], err, language);
+		});
 	}
 }
 
@@ -215,7 +193,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 
 	//ISO 639-1, aka. two letters + a hypen + region locale
 	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
-	std::string_view fixed_iso_codes[] = {
+	static const std::string_view fixed_iso_codes[] = {
 		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
 		//0		1		2			3		4			5		6		7		8			9		10		11		12
 	};
@@ -230,9 +208,58 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	//fixes for russian
 	state.languages[11].encoding = text::language_encoding::utf8;
 	state.languages[11].script = text::language_script::cyrillic;
-
 	//Always parsed as windows-1252
 	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+	if(auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt")); file) {
+		if(auto ofile = open_file(*file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
+			auto cpos = content.data;
+			while(cpos < content.data + content.file_size) {
+				cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, content.data + content.file_size, ';', [&](std::string_view const* values) {
+					state.languages[last_language].iso_code.resize(values[0].size());
+					std::copy(values[0].begin(), values[0].end(), state.languages[last_language].iso_code.begin());
+					if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_linked")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_linked_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "arabic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+						state.languages[last_language].script = text::language_script::arabic;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "chinese")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::chinese;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "korean")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::korean;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "japan")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::japanese;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "latin")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::latin;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "cyrillic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::cyrillic;
+					} else {
+						err.accumulated_errors += "Invalid encoding '" + std::string(values[1]) + "' for language '" + std::string(values[0]) + "' (" + err.file_name + ")\n";
+					}
+					++last_language;
+				});
+			}
+		}
+	}
+
 	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
 	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
 		if(auto ofile = open_file(file); ofile) {
@@ -249,82 +276,12 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		}
 	}
 
-	if(auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt")); file) {
-		if(auto ofile = open_file(*file); ofile) {
-			auto content = view_contents(*ofile);
-			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
-			auto start = (content.file_size != 0 && content.data[0] == '#')
-				? parsers::csv_advance_to_next_line(content.data, content.data + content.file_size)
-				: content.data;
-			while(start < content.data + content.file_size) {
-				auto parse_fn = [&state, &err, &last_language](std::string_view key, std::string_view value, uint32_t column) {
-					state.languages[last_language].iso_code.resize(key.size());
-					std::copy(key.begin(), key.end(), state.languages[last_language].iso_code.begin());
-					if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_linked")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].no_spacing = true;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_rtl")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].rtl = true;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8_linked_rtl")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].rtl = true;
-						state.languages[last_language].no_spacing = true;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "arabic")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].rtl = true;
-						state.languages[last_language].no_spacing = true;
-						state.languages[last_language].script = text::language_script::arabic;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "chinese")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].script = text::language_script::chinese;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "korean")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].script = text::language_script::korean;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "japan")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].script = text::language_script::japanese;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "latin")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].script = text::language_script::latin;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "utf8")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-					} else if(parsers::is_fixed_token_ci(value.data(), value.data() + value.length(), "cyrillic")) {
-						state.languages[last_language].encoding = text::language_encoding::utf8;
-						state.languages[last_language].script = text::language_script::cyrillic;
-					} else {
-						err.accumulated_errors += "Invalid encoding for language " + std::string(value) + " (" + err.file_name + ")\n";
-					}
-					++last_language;
-				};
-				start = parsers::parse_first_and_fixed_amount_csv_values<1>(start, content.data + content.file_size, ';', parse_fn);
-			}
-		}
-	}
-
 	// all languages will be checked for their respective localisation folders :D
 	for(uint32_t i = 0; i < last_language; i++) {
-		if(state.languages[i].encoding != text::language_encoding::none) {
-			if(state.languages[i].iso_code.size() > 2) {
-				auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.begin() + 2 });
-				auto text_lang_dir = open_directory(text_dir, lang_dir_name);
-				for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
-					if(auto ofile = open_file(file); ofile) {
-						auto content = view_contents(*ofile);
-						err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-						consume_new_csv_file(state, content.data, content.file_size, err, i);
-					}
-				}
-				auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
-				for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
-					if(auto ofile = open_file(file); ofile) {
-						auto content = view_contents(*ofile);
-						err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-						consume_new_csv_file(state, content.data, content.file_size, err, i);
-					}
-				}
-			}
-			auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.end() });
+		assert(state.languages[i].encoding != text::language_encoding::none);
+		assert(!state.languages[i].iso_code.empty());
+		if(state.languages[i].iso_code.size() >= 2) {
+			auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.begin() + 2 });
 			auto text_lang_dir = open_directory(text_dir, lang_dir_name);
 			for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
 				if(auto ofile = open_file(file); ofile) {
@@ -342,16 +299,43 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				}
 			}
 		}
-	}
-
-	// fill out missing text sequences
-	for(auto& l : state.languages) {
-		for(uint32_t i = 0; i < uint32_t(l.text_sequences.size()); i++) {
-			auto t = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(i));
-			if(!l.text_sequences[t].starting_component && !l.text_sequences[t].component_count) {
-				l.text_sequences[t] = state.languages[0].text_sequences[t];
+		auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.end() });
+		auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+		for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
 			}
 		}
+		auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+		for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
+			}
+		}
+	}
+	//normalize language keys
+	uint32_t max_seq_size = 0;
+	for(uint32_t i = 0; i < last_language; i++) {
+		max_seq_size = std::max(max_seq_size, uint32_t(state.languages[i].text_sequences.size()));
+	}
+	for(uint32_t i = 0; i < last_language; i++) {
+		state.languages[i].text_sequences.resize(size_t(max_seq_size));
+#if 0
+		// fill out missing text sequences
+		if(i != 0) { //english shall not fill itself with english!
+			for(uint32_t j = 0; j < max_seq_size; j++) {
+				auto t = dcon::text_sequence_id{ dcon::text_sequence_id::value_base_t(j) };
+				if(!state.languages[i].text_sequences[t].starting_component
+				&& !state.languages[i].text_sequences[t].component_count) {
+					state.languages[i].text_sequences[t] = state.languages[0].text_sequences[t];
+				}
+			}
+		}
+#endif
 	}
 }
 
@@ -892,6 +876,8 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		parsers::error_handler err("");
 		dcon::text_sequence_id seq{};
 		for(uint32_t i = 0; i < uint32_t(state.languages.size()); i++) {
+			if(state.languages[i].encoding == text::language_encoding::none)
+				break;
 			seq = create_text_entry(state, local_key_copy, txt, err, i);
 		}
 		return seq;

@@ -810,8 +810,8 @@ enum class language_script : uint8_t {
 struct language_table {
 	std::vector<char> iso_code;
 	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	language_encoding encoding;
-	language_script script;
+	language_encoding encoding = language_encoding::none;
+	language_script script = language_script::latin;
 	bool rtl = false;
 	bool no_spacing = false;
 };

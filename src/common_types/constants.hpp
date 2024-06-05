@@ -543,7 +543,7 @@ enum class color_blind_mode {
 };
 
 constexpr int32_t max_event_options = 8;
-constexpr uint32_t max_languages = 128;
+constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
 	normal,
