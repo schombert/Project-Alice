@@ -1,0 +1,12 @@
+map_remove_prefix;Le ;
+map_expand_acronym;Imp.
+map_expand_acronym_to;Imperio
+map_label_country;$country$
+map_label_adj_continent;$continentname$ $adj$
+map_label_adj_state;$state$ $adj$
+map_label_adj_province;$province$ $adj$
+map_label_west_country;$country$ il Oeste
+map_label_east_country;$country$ il Est
+map_label_north_country;$country$ il Nord
+map_label_south_country;$country$ il Sute
+map_label_adj_tag;$tag$ $adj$

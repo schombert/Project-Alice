@@ -709,7 +709,7 @@ hide_decision;Hide the notification for this decision
 sup_point_gain;Monthly suppression point increase: ?G+$val$
 sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
 mapmode_tooltip_name;$state$ ($name$ - )
-mapmode_tooltip_core_entry;$$faction$ - $name$
+mapmode_tooltip_core_entry;$faction$ - $name$
 mapmode_tooltip_state_entry; - $state$ \n $continentname$
 mapmode_tooltip_culture_majorities;The cultures in ?Y$PROV$?W are:
 mapmode_tooltip_religion_majorities;The religions in ?Y$PROV$?W are:
@@ -721,8 +721,8 @@ mapmode_tooltip_total_employment;Employment:
 mapmode_tooltip_literacy_rate;Literacy: 
 mapmode_tooltip_factory_count;Factories in ?Y$state$?W: 
 mapmode_tooltip_fort_level;Fort level 
-mapmode_tooltip_fort_being_built;A fort level is under construction here.
-mapmode_tooltip_can_build_fort;A new fort level can be built here.
+mapmode_tooltip_fort_being_built;A fort is under construction here.
+mapmode_tooltip_can_build_fort;A new fort can be built here.
 mapmode_tooltip_population_change;Monthly population change: 
 mapmode_tooltip_rebels_amount;Rebels active in province: 
 mapmode_tooltip_rebels_none;There are no rebels in this province.

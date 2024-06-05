@@ -1,4 +1,4 @@
-map_remove_prefix;The 
+map_remove_prefix;The ;
 map_expand_acronym;USA
 map_expand_acronym_to;United States
 map_label_country;$country$

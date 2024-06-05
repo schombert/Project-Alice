@@ -708,35 +708,35 @@ voting_rules;
 hide_decision;
 sup_point_gain;
 sup_point_explain;
-mapmode_tooltip_name;
-mapmode_tooltip_core_entry;
-mapmode_tooltip_state_entry;
-mapmode_tooltip_culture_majorities;
-mapmode_tooltip_religion_majorities;
-mapmode_tooltip_dominant_issues;
-mapmode_tooltip_total_income;
-mapmode_tooltip_dominant_ideology;
-mapmode_tooltip_con_average;
-mapmode_tooltip_total_employment;
-mapmode_tooltip_literacy_rate;
-mapmode_tooltip_factory_count;
-mapmode_tooltip_fort_level;
-mapmode_tooltip_fort_being_built;
-mapmode_tooltip_can_build_fort;
-mapmode_tooltip_population_change;
-mapmode_tooltip_rebels_amount;
-mapmode_tooltip_rebels_none;
-pop_size_1;
-pop_size_2;
-pop_size_3;
-pop_size_4;
-pop_size_5;
-pop_size_6;
-pop_size_7;
-pop_size_8;
-pop_l_migration_header;
-pop_l_c_migration_header;
-pop_l_emigration_header;
+mapmode_tooltip_name;$state$ ($name$ - )
+mapmode_tooltip_core_entry;$faction$ - $name$
+mapmode_tooltip_state_entry; - $state$ \n $continentname$
+mapmode_tooltip_culture_majorities;Las culturas en ?Y$PROV$?! son:
+mapmode_tooltip_religion_majorities;Las religiones en ?Y$PROV$?! son:
+mapmode_tooltip_dominant_issues;Las problematicas en ?Y$PROV$?! son:
+mapmode_tooltip_total_income;Total de ingresos diarios:
+mapmode_tooltip_dominant_ideology;Las ideologias en ?Y$PROV$?! son:
+mapmode_tooltip_con_average;Conciencia promedio ?Y$val$?!
+mapmode_tooltip_total_employment;Empleo:
+mapmode_tooltip_literacy_rate;Literacia:
+mapmode_tooltip_factory_count;Industrias en ?Y$state$?!:
+mapmode_tooltip_fort_level;Nivel de barricadas
+mapmode_tooltip_fort_being_built;Una barricada se esta construyendo aqui.
+mapmode_tooltip_can_build_fort;Se puede construir una barricada aqui.
+mapmode_tooltip_population_change;Cambio de poblacion mensual:
+mapmode_tooltip_rebels_amount;Rebeldes activos en la provincia:
+mapmode_tooltip_rebels_none;No hay rebeldes en esta provincia.
+pop_size_1;En el mes que viene el tamanio de este pop se espera que cambie por:
+pop_size_2;De crecimiento:
+pop_size_3;De promocion y democion:
+pop_size_4;De asimilacion:
+pop_size_5;De migracion interna:
+pop_size_6;De migracion colonial:
+pop_size_7;De emigracion:
+pop_size_8;De conversion:
+pop_l_migration_header;?YMigracion hacia afuera: $val$
+pop_l_c_migration_header;?YMigracion colonial hacia afuera: $val$
+pop_l_emigration_header;?YEmigracion hacia afuera: $val$
 pop_mig_1;
 pop_mig_2;
 pop_mig_3;
