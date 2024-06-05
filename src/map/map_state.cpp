@@ -378,25 +378,31 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 						if(state.world.national_identity_get_name(nid)) {
 							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
 							|| nid == n.get_identity_from_identity_holder()) {
-								//cultural union tag -> use our name
-								name = text::produce_simple_string(state, n.get_name());
-								//Get cardinality
-								auto p1 = n.get_capital().get_mid_point();
-								auto p2 = state.world.province_get_mid_point(last_province);
-								auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
-								auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
-								if(degrees < 0.f) {
-									degrees = 360.f + degrees;
-								}
-								assert(degrees >= 0.f && degrees <= 360.f);
-								if(degrees >= 0.f && degrees < 90.f) {
-									name = "East " + text::produce_simple_string(state, n.get_name());
-								} else if(degrees >= 90.f && degrees < 180.f) {
-									name = "South " + text::produce_simple_string(state, n.get_name());
-								} else if(degrees >= 180.f && degrees < 270.f) {
-									name = "West " + text::produce_simple_string(state, n.get_name());
-								} else if(degrees >= 270.f && degrees < 360.f) {
-									name = "North " + text::produce_simple_string(state, n.get_name());
+								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
+									//cultural union tag -> use our name
+									name = text::produce_simple_string(state, n.get_name());
+									//Get cardinality
+									auto p1 = n.get_capital().get_mid_point();
+									auto p2 = state.world.province_get_mid_point(last_province);
+									auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
+									auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
+									if(degrees < 0.f) {
+										degrees = 360.f + degrees;
+									}
+									assert(degrees >= 0.f && degrees <= 360.f);
+									auto nation_name = text::produce_simple_string(state, n.get_name());
+									if(nation_name.starts_with("The ")) {
+										nation_name.erase(0, 4);
+									}
+									if(degrees >= 0.f && degrees < 90.f) {
+										name = "East " + nation_name;
+									} else if(degrees >= 90.f && degrees < 180.f) {
+										name = "South " + nation_name;
+									} else if(degrees >= 180.f && degrees < 270.f) {
+										name = "West " + nation_name;
+									} else if(degrees >= 270.f && degrees < 360.f) {
+										name = "North " + nation_name;
+									}
 								}
 							} else {
 								//non cultural union tag -> dont use our name
