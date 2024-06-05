@@ -184,7 +184,14 @@ void consume_csv_file(sys::state& state, char const* file_content, uint32_t file
 		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
 	}
 	for(auto& l : state.languages) {
+		uint32_t old_size = uint32_t(l.text_sequences.size());
 		l.text_sequences.resize(size_t(seq_size));
+		for(uint32_t i = old_size; i < seq_size; i++) {
+			auto t = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(i));
+			if(!l.text_sequences[t].starting_component && !l.text_sequences[t].component_count) {
+				l.text_sequences[t] = state.languages[0].text_sequences[i];
+			}
+		}
 	}
 }
 
@@ -204,7 +211,14 @@ void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t 
 		seq_size = std::max(seq_size, uint32_t(l.text_sequences.size()));
 	}
 	for(auto& l : state.languages) {
+		uint32_t old_size = uint32_t(l.text_sequences.size());
 		l.text_sequences.resize(size_t(seq_size));
+		for(uint32_t i = old_size; i < seq_size; i++) {
+			auto t = dcon::text_sequence_id(dcon::text_sequence_id::value_base_t(i));
+			if(!l.text_sequences[t].starting_component && !l.text_sequences[t].component_count) {
+				l.text_sequences[t] = state.languages[0].text_sequences[i];
+			}
+		}
 	}
 }
 
