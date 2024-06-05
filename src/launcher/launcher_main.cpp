@@ -1473,10 +1473,10 @@ void render() {
 
 	{
 		// Create a new scenario file for the selected mods
-		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
+		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_a_new_scenario)];
 		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
 		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
-		sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
+		sv = launcher::localised_strings[uint8_t(launcher::string_index::for_the_selected_mods)];
 		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
 		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
@@ -1690,6 +1690,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 
 		uint8_t font_set_load = 0;
 		LANGID lang = GetUserDefaultUILanguage();
+		//lang = 0x0004;
 		switch(lang & 0xff) {
 		case 0x0007:
 			localised_strings = &de_localised_strings[0];
