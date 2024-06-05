@@ -32,6 +32,12 @@ enum class font_feature {
 	none, small_caps
 };
 
+struct cached_text_entry {
+	unsigned int glyph_count = 0;
+	std::vector<hb_glyph_info_t> glyph_info;
+	std::vector<hb_glyph_position_t> glyph_pos;
+};
+
 class font {
 private:
 	font(font const&) = delete;
@@ -41,6 +47,7 @@ private:
 	font() = default;
 
 public:
+	ankerl::unordered_dense::map<std::string, cached_text_entry> cached_text;
 	FT_Face font_face;
 	hb_font_t* hb_font_face = nullptr;
 	uint8_t const* gs = nullptr;
@@ -75,6 +82,7 @@ public:
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
 	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size);
+	decltype(cached_text)::iterator get_cached_glyphs(char const* codepoints, uint32_t count);
 
 	friend class font_manager;
 };

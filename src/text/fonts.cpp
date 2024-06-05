@@ -1178,18 +1178,39 @@ char font::codepoint_to_alnum(char32_t codepoint) {
 	return 0;
 }
 
-float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
-	hb_buffer_clear_contents(hb_buf);
-	hb_buffer_add_utf8(hb_buf, codepoints, int(count), 0, int(count));
-	hb_buffer_guess_segment_properties(hb_buf);
-	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
-	float total = 0.0f;
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		make_glyph(glyph_info[i].codepoint);
+decltype(font::cached_text)::iterator font::get_cached_glyphs(char const* codepoints, uint32_t count) {
+	auto s = std::string(std::string_view(codepoints, codepoints + count));
+	if(auto it = cached_text.find(s); it != cached_text.end()) {
+		return it;
+	} else {
+		hb_buffer_clear_contents(hb_buf);
+		hb_buffer_add_utf8(hb_buf, codepoints, int(count), 0, -1);
+		hb_buffer_guess_segment_properties(hb_buf);
+		hb_shape(hb_font_face, hb_buf, hb_features, num_features);
+		unsigned int glyph_count;
+		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
+		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
+		for(unsigned int i = 0; i < glyph_count; i++) { // Preload glyphs
+			make_glyph(glyph_info[i].codepoint);
+		}
+		text::cached_text_entry entry{};
+		entry.glyph_info.resize(size_t(glyph_count));
+		std::memcpy(entry.glyph_info.data(), glyph_info, glyph_count * sizeof(glyph_info[0]));
+		entry.glyph_pos.resize(size_t(glyph_count));
+		std::memcpy(entry.glyph_pos.data(), glyph_pos, glyph_count * sizeof(glyph_pos[0]));
+		cached_text.insert_or_assign(s, entry);
+		return cached_text.find(s);
 	}
+}
+
+float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
+	auto it = get_cached_glyphs(codepoints, count);
+	assert(it != cached_text.end());
+	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
+	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
+	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
+	//
+	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = glyph_positions[glyphid];

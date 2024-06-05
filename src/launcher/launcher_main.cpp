@@ -244,21 +244,57 @@ static std::string_view sv_localised_strings[uint8_t(string_index::count)] = {
 };
 //chinese
 static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
-	"创造 风铃",
-	"热创造 风铃",
-	"你好 。。。",
-	"创造 一 生疏的 风铃",
-	"给的 没 月 挑选 建筑 不议案",
-	"从未 风铃 加你了",
-	"IP 同春徐",
-	"口令",
-	"别名",
-	"单数的 游戏的人",
-	"豆哥的 游戏的人",
-	"着手 雄赳赳地",
-	"许多",
-	"链接",
-	"建筑 不议案 倾斜"
+	"创建场景",
+	"重新创建场景",
+	"工作中。。。",
+	"创建新场景",
+	"针对所选模组",
+	"未找到场景",
+	"IP 地址",
+	"密码",
+	"昵称",
+	"单人游戏",
+	"多人游戏",
+	"开始游戏",
+	"主机",
+	"加入",
+	"模组列表"
+};
+//arabic
+static std::string_view ar_localised_strings[uint8_t(string_index::count)] = {
+	"إنشاء السيناريو",
+	"إعادة إنشاء السيناريو",
+	"عمل...",
+	"إنشاء سيناريو جديد",
+	"للوضع المحدد",
+	"لم يتم العثور على المشهد",
+	"عنوان IP",
+	"كلمة المرور",
+	"كنية",
+	"لاعب واحد",
+	"متعددة اللاعبين",
+	"بدء اللعبة",
+	"يستضيف",
+	"ينضم",
+	"قائمة وزارة الدفاع",
+};
+//russian
+static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
+	"Создать сценарий",
+	"Воссоздать сценарий",
+	"Работающий...",
+	"Создать новый сценарий",
+	"Для выбранного мода",
+	"Сцена не найдена",
+	"айпи адрес",
+	"Пароль",
+	"Псевдоним",
+	"Один игрок",
+	"Мультиплеер",
+	"Начать игру",
+	"Хозяин",
+	"Присоединиться",
+	"Список модов",
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -1277,17 +1313,11 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 }
 
 void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
-	hb_buffer_clear_contents(f.hb_buf);
-	hb_buffer_add_utf8(f.hb_buf, codepoints, int(count), 0, -1);
-	hb_buffer_guess_segment_properties(f.hb_buf);
-	hb_shape(f.hb_font_face, f.hb_buf, f.hb_features, f.num_features);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
-	// Preload glyphs
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		f.make_glyph(glyph_info[i].codepoint);
-	}
+	auto it = f.get_cached_glyphs(codepoints, count);
+	assert(it != f.cached_text.end());
+	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
+	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
+	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
@@ -1714,6 +1744,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			localised_strings = &zh_localised_strings[0];
 			font_set_load = 1;
 			break;
+		case 0x0001:
+			localised_strings = &ar_localised_strings[0];
+			font_set_load = 2;
+			break;
+		case 0x0019:
+			localised_strings = &ru_localised_strings[0];
+			font_set_load = 3;
+			break;
 		default:
 			break;
 		}
@@ -1728,13 +1766,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				auto file_content = simple_fs::view_contents(*font_b);
 				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
 			}
-		} else if(font_set_load == 1) {
+		} else if(font_set_load == 1) { //chinese
 			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Regular.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
 				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
 			}
 			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Light.ttf"));
+			if(font_b) {
+				auto file_content = simple_fs::view_contents(*font_b);
+				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+		} else if(font_set_load == 2) { //arabic
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Bold.ttf"));
+			if(font_a) {
+				auto file_content = simple_fs::view_contents(*font_a);
+				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
+			}
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Regular.ttf"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
 				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);

@@ -716,17 +716,11 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 }
 
 void internal_text_render(sys::state& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
-	hb_buffer_clear_contents(f.hb_buf);
-	hb_buffer_add_utf8(f.hb_buf, codepoints, int(count), 0, -1);
-	hb_buffer_guess_segment_properties(f.hb_buf);
-	hb_shape(f.hb_font_face, f.hb_buf, f.hb_features, f.num_features);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
-	// Preload glyphs
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		f.make_glyph(glyph_info[i].codepoint);
-	}
+	auto it = f.get_cached_glyphs(codepoints, count);
+	assert(it != f.cached_text.end());
+	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
+	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
+	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
