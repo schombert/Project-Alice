@@ -45,6 +45,8 @@ public:
 	hb_font_t* hb_font_face = nullptr;
 	uint8_t const* gs = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
+	hb_feature_t hb_features[1];
+	unsigned int num_features = 0;
 
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;

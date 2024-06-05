@@ -676,6 +676,14 @@ public:
 
 class multiplayer_status_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode_type::host) {
+			// on render
+		} else {
+			set_text(state, text::produce_simple_string(state, "ready"));
+		}
+	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
@@ -697,8 +705,6 @@ public:
 					}
 				}
 			}
-		} else {
-			set_text(state, text::produce_simple_string(state, "ready"));
 		}
 		simple_text_element_base::render(state, x, y);
 	}

@@ -1804,22 +1804,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			accumulated_length += added_distance;
 		}
 
-		hb_feature_t features[1];
-		unsigned int num_features = 0;
-		if(f.features == text::font_feature::small_caps) {
-			features[0].tag = hb_tag_from_string("smcp", 4);
-			features[0].start = 0; /* Start point in text */
-			features[0].end = (unsigned int)-1; /* End point in text */
-			features[0].value = 1;
-			num_features = 1;
-		}
-		hb_buffer_t* buf = hb_buffer_create();
-		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.length()), 0, -1);
-		hb_buffer_guess_segment_properties(buf);
-		hb_shape(f.hb_font_face, buf, features, num_features);
+		hb_buffer_clear_contents(f.hb_buf);
+		hb_buffer_add_utf8(f.hb_buf, e.text.c_str(), int(e.text.length()), 0, -1);
+		hb_buffer_guess_segment_properties(f.hb_buf);
+		hb_shape(f.hb_font_face, f.hb_buf, f.hb_features, f.num_features);
 		unsigned int glyph_count = 0;
-		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
+		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			f.make_glyph(glyph_info[i].codepoint);
 		}
@@ -1868,7 +1859,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				glyph_length += added_distance;
 			}
 		}
-		hb_buffer_destroy(buf);
 	}
 	if(text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);

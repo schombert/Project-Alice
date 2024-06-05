@@ -716,27 +716,17 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 }
 
 void internal_text_render(sys::state& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
-	hb_feature_t features[1];
-	unsigned int num_features = 0;
-	if(f.features == text::font_feature::small_caps) {
-		features[0].tag = hb_tag_from_string("smcp", 4);
-		features[0].start = 0; /* Start point in text */
-		features[0].end = (unsigned int)-1; /* End point in text */
-		features[0].value = 1;
-		num_features = 1;
-	}
-	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, -1);
-	hb_buffer_guess_segment_properties(buf);
-	hb_shape(f.hb_font_face, buf, features, num_features);
+	hb_buffer_clear_contents(f.hb_buf);
+	hb_buffer_add_utf8(f.hb_buf, codepoints, int(count), 0, -1);
+	hb_buffer_guess_segment_properties(f.hb_buf);
+	hb_shape(f.hb_font_face, f.hb_buf, f.hb_features, f.num_features);
 	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
 	// Preload glyphs
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		f.make_glyph(glyph_info[i].codepoint);
 	}
-
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
@@ -792,7 +782,6 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 		}
 		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
-	hb_buffer_destroy(buf);
 }
 
 void render_new_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {

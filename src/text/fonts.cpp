@@ -916,6 +916,8 @@ font_manager::~font_manager() {
 }
 
 font::~font() {
+	if(hb_buf)
+		hb_buffer_destroy(hb_buf);
 	// if(loaded)
 	//	FT_Done_Face(font_face);
 }
@@ -1039,6 +1041,14 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	FT_Set_Pixel_Sizes(fnt.font_face, 0, dr_size);
 	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
 	hb_font_set_scale(fnt.hb_font_face, dr_size, dr_size);
+	fnt.hb_buf = hb_buffer_create();
+	if(fnt.features == text::font_feature::small_caps) {
+		fnt.hb_features[0].tag = hb_tag_from_string("smcp", 4);
+		fnt.hb_features[0].start = 0; /* Start point in text */
+		fnt.hb_features[0].end = (unsigned int)-1; /* End point in text */
+		fnt.hb_features[0].value = 1;
+		fnt.num_features = 1;
+	}
 	fnt.loaded = true;
 
 	fnt.internal_line_height = float(fnt.font_face->size->metrics.height) / float((1 << 6) * magnification_factor);
@@ -1169,22 +1179,13 @@ char font::codepoint_to_alnum(char32_t codepoint) {
 }
 
 float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
-	hb_feature_t hb_features[1];
-	unsigned int num_features = 0;
-	if(features == text::font_feature::small_caps) {
-		hb_features[0].tag = hb_tag_from_string("smcp", 4);
-		hb_features[0].start = 0; /* Start point in text */
-		hb_features[0].end = (unsigned int)-1; /* End point in text */
-		hb_features[0].value = 1;
-		num_features = 1;
-	}
-	hb_buffer_t* buf = hb_buffer_create();
-	hb_buffer_add_utf8(buf, codepoints, int(count), 0, int(count));
-	hb_buffer_guess_segment_properties(buf);
-	hb_shape(hb_font_face, buf, hb_features, num_features);
+	hb_buffer_clear_contents(hb_buf);
+	hb_buffer_add_utf8(hb_buf, codepoints, int(count), 0, int(count));
+	hb_buffer_guess_segment_properties(hb_buf);
+	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
 	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
 	float total = 0.0f;
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		make_glyph(glyph_info[i].codepoint);
@@ -1216,7 +1217,6 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 		}
 		total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
-	hb_buffer_destroy(buf);
 	return total;
 }
 

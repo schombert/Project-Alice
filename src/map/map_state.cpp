@@ -296,8 +296,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
-
 	for(auto p : state.world.in_province) {
+		if(p.id.index() >= state.province_definitions.first_sea_province.index())
+			break;
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
 			continue;
@@ -306,7 +307,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		auto n = p.get_nation_from_province_ownership();
 		n = get_top_overlord(state, n.id);
 
-		// flood fill regions
+		//flood fill regions
 		group_of_regions.clear();
 		group_of_regions.push_back(rid);
 		int first_index = 0;
@@ -314,7 +315,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		while(first_index < vacant_index) {
 			auto current_region = group_of_regions[first_index];
 			first_index++;
-
 			for(auto neighbour_region : regions_graph[current_region]) {
 				if(!visited[neighbour_region]) {
 					group_of_regions.push_back(neighbour_region);
@@ -323,21 +323,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-
-		//
-		//
 		if(!n || !n.get_name())
 			continue;
 		std::string name = text::produce_simple_string(state, n.get_name());
-
 		bool connected_to_capital = false;
-
 		for(auto visited_region : group_of_regions) {
 			if(n.get_capital().get_connected_region_id() == visited_region) {
 				connected_to_capital = true;
 			}
 		}
-		
 		if(!connected_to_capital) {
 			// Adjective + " " + Continent
 			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
@@ -345,9 +339,20 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			// then it gets named after that identity
 			ankerl::unordered_dense::map<int32_t, uint32_t> map;
 			uint32_t total_provinces = 0;
+			dcon::province_id last_province;
+			dcon::state_instance_id sid;
+			bool in_same_state = true;
 			for(auto visited_region : group_of_regions) {
 				for(auto candidate : state.world.in_province) {
 					if(candidate.get_connected_region_id() == visited_region) {
+						if(sid) {
+							if(candidate.get_state_membership() != sid)
+								in_same_state = false;
+						} else {
+							sid = candidate.get_state_membership();
+						}
+
+						last_province = candidate;
 						total_provinces++;
 						for(const auto core : candidate.get_core_as_province()) {
 							uint32_t v = 1;
@@ -359,13 +364,46 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 				}
 			}
-			for(const auto& e : map) {
-				if(float(e.second) / float(total_provinces) >= 0.75f) {
-					// Adjective + " " + National identity
-					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
-						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
-						break;
+			if(in_same_state == true) {
+				name = text::produce_simple_string(state, n.get_adjective()) + " " + text::get_dynamic_state_name(state, sid);
+			}
+			if(total_provinces == 1) {
+				// Adjective + Province name
+				name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.province_get_name(last_province));
+			} else {
+				for(const auto& e : map) {
+					if(float(e.second) / float(total_provinces) >= 0.75f) {
+						// Adjective + " " + National identity
+						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
+						if(state.world.national_identity_get_name(nid)) {
+							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
+							|| nid == n.get_identity_from_identity_holder()) {
+								//cultural union tag -> use our name
+								name = text::produce_simple_string(state, n.get_name());
+								//Get cardinality
+								auto p1 = n.get_capital().get_mid_point();
+								auto p2 = state.world.province_get_mid_point(last_province);
+								auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
+								auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
+								if(degrees < 0.f) {
+									degrees = 360.f + degrees;
+								}
+								assert(degrees >= 0.f && degrees <= 360.f);
+								if(degrees >= 0.f && degrees < 90.f) {
+									name = "East " + text::produce_simple_string(state, n.get_name());
+								} else if(degrees >= 90.f && degrees < 180.f) {
+									name = "South " + text::produce_simple_string(state, n.get_name());
+								} else if(degrees >= 180.f && degrees < 270.f) {
+									name = "West " + text::produce_simple_string(state, n.get_name());
+								} else if(degrees >= 270.f && degrees < 360.f) {
+									name = "North " + text::produce_simple_string(state, n.get_name());
+								}
+							} else {
+								//non cultural union tag -> dont use our name
+								name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
+							}
+							break;
+						}
 					}
 				}
 			}
