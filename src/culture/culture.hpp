@@ -82,6 +82,10 @@ enum class flag_type : uint8_t {
 	slot2,
 	slot3,
 	slot4,
+	anarcho_liberal,
+	green,
+	traditionalist,
+	ultranationalist,
 	count
 };
 
