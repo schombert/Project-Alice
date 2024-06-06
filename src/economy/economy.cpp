@@ -1142,10 +1142,13 @@ void update_rgo_employment(sys::state& state) {
 		float speed = 0.005f;
 
 		float total_workforce = labor_pool;
+		float max_employment_total = 0.f;
+		float total_employed = 0.f;
 
 		for(uint32_t i = 0; i < ordered_rgo_goods.size(); ++i) {
 			auto c = ordered_rgo_goods[i];
 			float max_employment = rgo_max_employment(state, owner, p, c);
+			max_employment_total += max_employment;
 			float target_workforce = std::min(state.world.province_get_rgo_target_employment_per_good(p, c), total_workforce);
 
 			float current_workforce = state.world.province_get_rgo_employment_per_good(p, c);
@@ -1153,18 +1156,17 @@ void update_rgo_employment(sys::state& state) {
 			total_workforce -= new_employment;
 
 			new_employment = std::clamp(new_employment, 0.f, max_employment);
+			total_employed += new_employment;
 
 			state.world.province_set_rgo_employment_per_good(p, c, new_employment);
 		}
 
 		float employment_ratio = 0.f;
-		if(total_workforce > 1.f) {
-			employment_ratio = 1.f - total_workforce / (labor_pool + 1.f);
+		if(max_employment_total > 1.f) {
+			employment_ratio = total_employed / (max_employment_total + 1.f);
 		} else {
 			employment_ratio = 1.f;
 		}
-
-		assert(employment_ratio >= 0.0f && employment_ratio <= 1.0f);
 		state.world.province_set_rgo_employment(p, employment_ratio);		
 		
 		auto slave_fraction = (slave_pool > current_employment) ? current_employment / slave_pool : 1.0f;
