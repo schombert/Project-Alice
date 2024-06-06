@@ -453,18 +453,17 @@ bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
 float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
+	return economy::rgo_total_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id) *
-				 state.world.province_get_rgo_employment(id);
+	return economy::rgo_total_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_income(sys::state& state, dcon::province_id id) {
 	return state.world.province_get_rgo_full_profit(id);
 }
-float rgo_production_quantity(sys::state& state, dcon::province_id id) {
-	return economy::rgo_full_production_quantity(state, state.world.province_get_nation_from_province_ownership(id), id) *
-				 state.world.province_get_rgo_employment(id);
+float rgo_production_quantity(sys::state& state, dcon::province_id id, dcon::commodity_id c) {
+	auto n = state.world.province_get_nation_from_province_ownership(id);
+	return state.world.province_get_rgo_actual_production_per_good(id, c);
 }
 float rgo_size(sys::state& state, dcon::province_id prov_id) {
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));

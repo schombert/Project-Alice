@@ -1728,6 +1728,7 @@ public:
 				}
 			});
 			break;
+		/*
 		case ledger_sort_type::output_amount:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1737,6 +1738,7 @@ public:
 				}
 			});
 			break;
+		*/
 		case ledger_sort_type::profit:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1755,6 +1757,7 @@ public:
 				}
 			});
 			break;
+		/*
 		case ledger_sort_type::rgo_size:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1764,6 +1767,7 @@ public:
 				}
 			});
 			break;
+		*/
 		default:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {

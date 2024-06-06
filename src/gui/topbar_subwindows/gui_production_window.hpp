@@ -1677,10 +1677,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 		case economy::commodity_production_type::both:
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
-
-				if(province.get_rgo() == content) {
-					total += economy::rgo_max_employment(state, nation, province) * state.world.province_get_rgo_employment(province);
-				}
+				total += state.world.province_get_rgo_employment(province);
 			}
 			break;
 

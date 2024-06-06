@@ -1492,15 +1492,6 @@ object {
 		name{ is_owner_core }
 		type{ bitfield }
 	}
-	property{
-		name{ rgo_production_scale }
-		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ rgo_actual_production }
-		type{ float }
-	}
 	property {
 		name{ rgo_full_profit }
 		type{ float }
@@ -1514,6 +1505,34 @@ object {
 		name{ rgo_size }
 		type{ float }
 		tag{ scenario }
+	}
+	property{
+		name{ subsistence_score }
+		type{ float }
+	}
+	property{
+		name{ rgo_max_size_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_target_employment_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_employment_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_profit_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}	
+	property{
+		name{ rgo_actual_production_per_good }
+		type{ array{commodity_id}{float} }
 	}
 	property{
 		name{ daily_net_migration }
