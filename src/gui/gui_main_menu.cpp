@@ -123,7 +123,8 @@ void language_left::button_action(sys::state& state) noexcept {
 		state.ui_state.select_states_legend->impl_on_reset_text(state);
 	if(state.ui_state.end_screen)
 		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	//
 	send(state, parent, notify_setting_update{});
 }
@@ -150,7 +151,8 @@ void language_right::button_action(sys::state& state) noexcept {
 		state.ui_state.select_states_legend->impl_on_reset_text(state);
 	if(state.ui_state.end_screen)
 		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	//
 	send(state, parent, notify_setting_update{});
 }
