@@ -364,6 +364,12 @@ void initialize_sound_system(sys::state& state) {
 		{ &state.sound_ptr->console_open_sound, NATIVE("NU_OpenConsole.wav") },
 		{ &state.sound_ptr->console_close_sound, NATIVE("NU_CloseConsole.wav") },
 		{ &state.sound_ptr->tab_budget_sound, NATIVE("NU_TabBudget.wav") },
+		{ &state.sound_ptr->hover_sound, NATIVE("NU_Hover.wav") },
+		{ &state.sound_ptr->checkbox_sound, NATIVE("NU_Checkbox.wav") },
+		{ &state.sound_ptr->enact_sound, NATIVE("NU_Enact.wav") },
+		{ &state.sound_ptr->subtab_sound, NATIVE("NU_Subtab.wav") },
+		{ &state.sound_ptr->delete_sound, NATIVE("NU_Delete.wav") },
+		{ &state.sound_ptr->autochoose_sound, NATIVE("NU_Autochoose.wav") },
 		{ &state.sound_ptr->tab_politics_sound, NATIVE("NU_TabPolitics.wav") },
 		{ &state.sound_ptr->tab_diplomacy_sound, NATIVE("NU_TabDiplomacy.wav") },
 		{ &state.sound_ptr->tab_military_sound, NATIVE("NU_TabMilitary.wav") },
@@ -460,6 +466,24 @@ audio_instance& get_click_right_sound(sys::state& state) {
 }
 audio_instance& get_tab_budget_sound(sys::state& state) {
 	return state.sound_ptr->tab_budget_sound;
+}
+audio_instance& get_hover_sound(sys::state& state) {
+	return state.sound_ptr->hover_sound;
+}
+audio_instance& get_checkbox_sound(sys::state& state) {
+	return state.sound_ptr->checkbox_sound;
+}
+audio_instance& get_enact_sound(sys::state& state) {
+	return state.sound_ptr->enact_sound;
+}
+audio_instance& get_subtab_sound(sys::state& state) {
+	return state.sound_ptr->subtab_sound;
+}
+audio_instance& get_delete_sound(sys::state& state) {
+	return state.sound_ptr->delete_sound;
+}
+audio_instance& get_autochoose_sound(sys::state& state) {
+	return state.sound_ptr->autochoose_sound;
 }
 audio_instance& get_tab_politics_sound(sys::state& state) {
 	return state.sound_ptr->tab_politics_sound;

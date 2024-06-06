@@ -1256,7 +1256,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
+
 		if(tooltip_probe.under_mouse) {
+			if(tooltip_probe.under_mouse->base_data.get_element_type() == ui::element_type::button) {
+				sound::play_interface_sound(*this, sound::get_hover_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,

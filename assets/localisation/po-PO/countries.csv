@@ -1,0 +1,542 @@
+REB;Rebels
+REB_ADJ;Rebel
+ENG;The United Kingdom
+ENG_ADJ;British
+RUS;Russia
+RUS_ADJ;Russian
+FRA;France
+FRA_ADJ;French
+PRU;Prussia
+PRU_ADJ;Prussian
+GER;Germany
+GER_ADJ;German
+AUS;Austria
+AUS_ADJ;Austrian
+USA;America
+USA_ADJ;American
+JAP;Japan
+JAP_ADJ;Japanese
+ITA;Italy
+ITA_ADJ;Italian
+KUK;Austria-Hungary
+KUK_ADJ;Austro-Hungarian
+DEN;Denmark
+DEN_ADJ;Danish
+FIN;Finland
+FIN_ADJ;Finnish
+NOR;Norway
+NOR_ADJ;Norwegian
+SCA;Scandinavia
+SCA_ADJ;Scandinavian
+SWE;Sweden
+SWE_ADJ;Swedish
+BEL;Belgium
+BEL_ADJ;Belgian
+CAT;Catalonia
+CAT_ADJ;Catalonian
+FLA;Flanders
+FLA_ADJ;Flemish
+IRE;Ireland
+IRE_ADJ;Irish
+NET;Netherlands
+NET_ADJ;Dutch
+POR;Portugal
+POR_ADJ;Portuguese
+SCO;Scotland
+SCO_ADJ;Scottish
+SPA;Spain
+SPA_ADJ;Spanish
+WLL;Wallonia
+WLL_ADJ;Wallonian
+ANH;Anhalt
+ANH_ADJ;Anhaltian
+BAD;Baden
+BAD_ADJ;Baden
+BAV;Bavaria
+BAV_ADJ;Bavarian
+BRA;Braunschweig
+BRA_ADJ;Braunschweigian
+BRE;Bremen
+BRE_ADJ;Bremian
+COB;Saxe-Coburg-Gotha
+COB_ADJ;Saxon
+DZG;Danzig
+DZG_ADJ;Danziger
+FRM;Frankfurt am Main
+FRM_ADJ;Frankfurter
+HAM;Hamburg
+HAM_ADJ;Hamburgian
+HAN;Hanover
+HAN_ADJ;Hanoverian
+HES;Hesse-Darmstadt
+HES_ADJ;Hessian
+HEK;Hesse-Kassel
+HEK_ADJ;Hessian
+HOL;Holstein
+HOL_ADJ;Holsteinian
+LIP;Lippe-Detmold
+LIP_ADJ;Lippish
+LUB;Lübeck
+LUB_ADJ;Lubeckian
+LUX;Luxemburg
+LUX_ADJ;Luxemburgian
+MEC;Mecklenburg
+MEC_ADJ;Mecklenburgian
+MEI;Saxe-Meiningen
+MEI_ADJ;Saxon
+NAS;Nassau
+NAS_ADJ;Nassauan
+NGF;North German Federation
+NGF_ADJ;North German
+OLD;Oldenburg
+OLD_ADJ;Oldenburgian
+SAX;Saxony
+SAX_ADJ;Saxon
+SCH;Schleswig
+SCH_ADJ;Schleswigian
+SGF;South German Federation
+SGF_ADJ;German
+WEI;Saxe-Weimar
+WEI_ADJ;Saxon
+WUR;Württemberg
+WUR_ADJ;Wurttembergian
+LOM;Lombardia
+LOM_ADJ;Lombardian
+LUC;Lucca
+LUC_ADJ;Luccan
+MOD;Modena
+MOD_ADJ;Modenian
+PAP;Papal States
+PAP_ADJ;Papal
+PAR;Parma
+PAR_ADJ;Parmese
+SAR;Sardinia-Piedmont
+SAR_ADJ;Piedmontian
+SIC;Two Sicilies
+SIC_ADJ;Sicilian
+TRE;Trieste
+TRE_ADJ;Triestian
+TUS;Tuscany
+TUS_ADJ;Tuscan
+VEN;Venice
+VEN_ADJ;Venetian
+BOH;Bohemia-Moravia
+BOH_ADJ;Bohemian
+KRA;Krakow
+KRA_ADJ;Krakowian
+CRI;Crimea
+CRI_ADJ;Crimean
+EST;Estonia
+EST_ADJ;Estonian
+HUN;Hungary
+HUN_ADJ;Hungarian
+LIT;Lithuania
+LIT_ADJ;Lithuanian
+LAT;Latvia
+LAT_ADJ;Latvian
+POL;Poland
+POL_ADJ;Polish
+SLV;Slovakia
+SLV_ADJ;Slovak
+SWI;Switzerland
+SWI_ADJ;Swiss
+RUT;Ruthenia
+RUT_ADJ;Ruthenian
+SIE;Siebenbürgen
+SIE_ADJ;Transylvanian
+UKR;Ukraine
+UKR_ADJ;Ukrainian
+CZH;Czechoslovakia
+CZH_ADJ;Czechoslovakian
+ALB;Albania
+ALB_ADJ;Albanian
+BOS;Bosnia-Herzegovina
+BOS_ADJ;Bosnian
+BUL;Bulgaria
+BUL_ADJ;Bulgarian
+CRE;Crete
+CRE_ADJ;Cretian
+CRO;Croatia
+CRO_ADJ;Croatian
+CYP;Cyprus
+CYP_ADJ;Cypriot
+GRE;Greece
+GRE_ADJ;Greek
+ION;Ionian Islands
+ION_ADJ;Ionian
+MOL;Moldavia
+MOL_ADJ;Moldavian
+MON;Montenegro
+MON_ADJ;Montenegrin
+ROM;Romania
+ROM_ADJ;Romanian
+SER;Serbia
+SER_ADJ;Serb
+SLO;Slovenia
+SLO_ADJ;Slovenian
+TUR;The Ottoman Empire
+TUR_ADJ;Ottoman
+WAL;Wallachia
+WAL_ADJ;Wallachian
+YUG;Yugoslavia
+YUG_ADJ;Yugoslavian
+ALD;Algeria
+ALD_ADJ;Algerian
+CNG;Congo
+CNG_ADJ;Congolese
+EGY;Egypt
+EGY_ADJ;Egyptian
+ETH;Ethiopia
+ETH_ADJ;Ethiopian
+MAD;Madagascar
+MAD_ADJ;Madagascarian
+LIB;Liberia
+LIB_ADJ;Liberian
+MOR;Morocco
+MOR_ADJ;Moroccan
+NAL;Natalia
+NAL_ADJ;Natalian
+ORA;Oranje
+ORA_ADJ;Oranjean
+SAF;South Africa
+SAF_ADJ;South African
+SOK;Sokoto
+SOK_ADJ;Sokot
+RHO;Southern Rhodesia
+RHO_ADJ;Rhodesian
+TRI;Tripoli
+TRI_ADJ;Tripolitanian
+TRN;Transvaal
+TRN_ADJ;Transvaali
+TUN;Tunis
+TUN_ADJ;Tunisian
+ZAN;Zanzibar
+ZAN_ADJ;Zanzibari
+ZUL;Zulu
+ZUL_ADJ;Zulu
+ABU;Abu Dhabi
+ABU_ADJ;Abu Dhabian
+AFG;Afghanistan
+AFG_ADJ;Afghan
+ARM;Armenia
+ARM_ADJ;Armenian
+AZB;Azerbaijan
+AZB_ADJ;Azerbaijani
+BUK;Bukkhara
+BUK_ADJ;Bukkharan
+GEO;Georgia
+GEO_ADJ;Georgian
+HDJ;Hedjaz
+HDJ_ADJ;Hedjazi
+IRQ;Iraq
+IRQ_ADJ;Iraqi
+KHI;Khiva
+KHI_ADJ;Khivan
+KOK;Kokand
+KOK_ADJ;Kokandi
+MUG;Mughalistan
+MUG_ADJ;Mughal
+NEJ;Nejd
+NEJ_ADJ;Nejdi
+OMA;Oman
+OMA_ADJ;Omani
+PER;Persia
+PER_ADJ;Persian
+YEM;Yemen
+YEM_ADJ;Yemeni
+HND;India
+HND_ADJ;Indian
+AWA;Awadh
+AWA_ADJ;Awadhi
+BAS;Bastar
+BAS_ADJ;Bastar
+BER;Beroda
+BER_ADJ;Berodan
+BHO;Bhopal
+BHO_ADJ;Bhopali
+BIK;Bikaner
+BIK_ADJ;Bikaneri
+BUN;Bundelkhand
+BUN_ADJ;Bundeli
+GWA;Gwalior
+GWA_ADJ;Gwaliori
+HYD;Hyderabad
+HYD_ADJ;Hyderabadi
+IND;Indore
+IND_ADJ;Indori
+JAI;Jaipur
+JAI_ADJ;Jaipuri
+JAS;Jaisalmer
+JAS_ADJ;Jaisalmeri
+JOD;Jodhpur
+JOD_ADJ;Jodhpuri
+KAL;Kalat
+KAL_ADJ;Kalati
+KAS;Kashmir
+KAS_ADJ;Kashmiri
+KUT;Kutch
+KUT_ADJ;Kutchi
+LAD;Ladakh
+LAD_ADJ;Ladakhi
+MAK;Makran
+MAK_ADJ;Makran
+MEW;Mewar
+MEW_ADJ;Mewari
+MYS;Mysore
+MYS_ADJ;Mysori
+NAG;Nagpur
+NAG_ADJ;Nagpuri
+NEP;Nepal
+NEP_ADJ;Nepali
+ORI;Orissa
+ORI_ADJ;Orissan
+PAN;Panjab
+PAN_ADJ;Panjabi
+SHI;Shimla
+SHI_ADJ;Shimlan
+SIK;Sikkim
+SIK_ADJ;Sikkim
+SIN;Sindh
+SIN_ADJ;Sindi
+TRA;Travancore
+TRA_ADJ;Travancorian
+ATJ;Atjeh
+ATJ_ADJ;Atjehnese
+BAL;Bali
+BAL_ADJ;Balinese
+BHU;Bhutan
+BHU_ADJ;Bhutanese
+BRU;Brunei
+BRU_ADJ;Brunei
+BUR;Burma
+BUR_ADJ;Burmese
+CAM;Cambodia
+CAM_ADJ;Cambodian
+CHI;China
+CHI_ADJ;Chinese
+DAI;Dai Nam
+DAI_ADJ;Vietnamese
+JAV;Java
+JAV_ADJ;Javanese
+KOR;Korea
+KOR_ADJ;Korean
+LUA;Luang Prabang
+LUA_ADJ;Luang Prabangi
+JOH;Johore
+JOH_ADJ;Johorian
+SIA;Siam
+SIA_ADJ;Siamese
+TIB;Tibet
+TIB_ADJ;Tibetan
+MGL;Mongolia
+MGL_ADJ;Mongolian
+WIA;Wiang Chhan
+WIA_ADJ;Vientiane
+PHI;Philippines
+PHI_ADJ;Philippine
+MCK;Manchukuo
+MCK_ADJ;Manchu
+GXI;Guangxi Clique
+GXI_ADJ;Guangxi
+SXI;Shanxi Clique
+SXI_ADJ;Shanxi
+YNN;Yunnan Clique
+YNN_ADJ;Yunnan
+XBI;Xibei San Ma
+XBI_ADJ;Ma
+XIN;Xinjiang Clique
+XIN_ADJ;Xinjiang
+CAL;Californian Republic
+CAL_ADJ;Californian
+CAN;Canada
+CAN_ADJ;Canadian
+CHE;Cherokee
+CHE_ADJ;Cherokee
+COL;Columbia
+COL_ADJ;Columbian
+COS;Costa Rica
+COS_ADJ;Costa Rican
+CSA;America
+CSA_ADJ;Confederate
+CUB;Cuba
+CUB_ADJ;Cuban
+DES;Deseret
+DES_ADJ;Mormon
+DOM;Dominican Republic
+DOM_ADJ;Dominican
+ELS;El Salvador
+ELS_ADJ;El Salvadorian
+GUA;Guatemala
+GUA_ADJ;Guatemalan
+HAI;Haiti
+HAI_ADJ;Haitian
+HAW;Hawaii
+HAW_ADJ;Hawaiian
+MAN;Manhattan Commune
+MAN_ADJ;Manhattanite
+MEX;Mexico
+MEX_ADJ;Mexican
+MTC;Metis Confederacy
+MTC_ADJ;Metis
+HON;Honduras
+HON_ADJ;Honduran
+NEN;New England
+NEN_ADJ;New English
+NEW;Новый
+NEW_ADJ;Newfoundlander
+NIC;Nicaragua
+NIC_ADJ;Nicaraguan
+PNM;Panama
+PNM_ADJ;Panamanian
+QUE;Quebec
+QUE_ADJ;Quebec
+TEX;Texas
+TEX_ADJ;Texan
+UCA;United States of Central America
+UCA_ADJ;Central American
+ARG;Argentina
+ARG_ADJ;Argentinian
+BOL;Bolivia
+BOL_ADJ;Bolivian
+BRZ;Brazil
+BRZ_ADJ;Brazilian
+CHL;Chile
+CHL_ADJ;Chilean
+CLM;Colombia
+CLM_ADJ;Colombian
+ECU;Ecuador
+ECU_ADJ;Ecuadorian
+PEU;Peru
+PEU_ADJ;Peruvian
+PRG;Paraguay
+PRG_ADJ;Paraguayan
+URU;Uruguay
+URU_ADJ;Uruguayan
+VNZ;Venezuela
+VNZ_ADJ;Venezuelan
+AST;Australia
+AST_ADJ;Australian
+NZL;New Zealand
+NZL_ADJ;New Zealand
+ISR;Israel
+ISR_ADJ;Israeli
+BYZ;Byzantine Empire
+BYZ_ADJ;Byzantine
+ICL;Iceland
+ICL_ADJ;Icelandic
+BAB;Babylon
+BAB_ADJ;Babylonian
+TPG;Heavenly Kingdom
+TPG_ADJ;Taiping
+ARA;Arabia
+ARA_ADJ;Arab
+UBD;United Baltic Provinces
+UBD_ADJ;Baltic
+BYE;Belarus
+BYE_ADJ;Byelorussian
+PLC;Poland-Lithuania
+PLC_ADJ;Polish-Lithuanian
+GCO;Gran Colombia
+GCO_ADJ;Gran Colombian
+JAN;Jan Mayen
+JAN_ADJ;Jan Mayen
+D01;The Kingdom of $region$
+D01_ADJ;Kingsmen
+D02;The Confederation of $region$
+D02_ADJ;Confederate
+D03;Commonwealth of $region$
+D03_ADJ;Commonwealth
+D04;The Republic of $region$
+D04_ADJ;Republican
+D05;The $region$ State
+D05_ADJ;Stateite
+D06;The People's Republic of $region$
+D06_ADJ;Republican
+D07;The Free State of $region$
+D07_ADJ;Freestator
+D08;The Grand State of $region$
+D08_ADJ;Grandstator
+D09;The State of $region$
+D09_ADJ;Stateite
+D10;The Principality of $region$
+D10_ADJ;Princely
+D11;The Democratic Republic of $region$
+D11_ADJ;Depublican
+D12;The $region$ Union
+D12_ADJ;Unionite
+D13;The $region$ Kingdom
+D13_ADJ;Kingsmen
+D14;The Dominion of $region$
+D14_ADJ;Dominion
+D15;The Grand Duchy of $region$
+D15_ADJ;Grandee
+D16;The $region$ Nation
+D16_ADJ;National
+D17;The $region$ Federation
+D17_ADJ;Federation
+D18;The United States of $region$
+D18_ADJ;Union
+D19;The Democratic Union of $region$
+D19_ADJ;Union
+D20;The Princedom of $region$
+D20_ADJ;Princely
+D21;The Union of $region$
+D21_ADJ;Unionite
+D22;The People's Democratic Republic of $region$
+D22_ADJ;PDR
+D23;The $region$ Area
+D23_ADJ;Areon
+D24;The Glorious Union of $region$
+D24_ADJ;Glorious
+D25;Mighty $region$
+D25_ADJ;Mighty
+D26;The $region$ Free State
+D26_ADJ;Freestator
+D27;The $region$ Commonwealth
+D27_ADJ;Commonwealth
+D28;The $region$ Confederacy
+D28_ADJ;Confederate
+D29;The Free People of $region$
+D29_ADJ;Freepeople
+D30;The $region$ Republic
+D30_ADJ;Republican
+D31;The Holy Union of $region$
+D31_ADJ;Zealot
+D32;The People's Union of $region$
+D32_ADJ;Unionite
+D33;The Federal States of $region$
+D33_ADJ;Federation
+D34;The $region$ Federal State
+D34_ADJ;Federation
+D35;The $region$ Confederation
+D35_ADJ;Confederate
+D36;The $region$ Federation
+D36_ADJ;Federation
+D37;The Pious Union of $region$
+D37_ADJ;Pious
+D38;? Land
+D38_ADJ;Lander
+D39;The Most Serene Republic of $region$
+D39_ADJ;Serene
+D40;The Secret Kingdom of $region$
+D40_ADJ;Secret
+D41;The Commune of $region$
+D41_ADJ;Communist
+D42;The $region$ Commune
+D42_ADJ;Communist
+D43;The Worker's Union of $region$
+D43_ADJ;Worker
+D44;The Landgrave of $region$
+D44_ADJ;Landgravine
+D45;The Nation of $region$
+D45_ADJ;Nationite
+D46;Holy $region$
+D46_ADJ;Zealous
+D47;The $region$ Dominion
+D47_ADJ;Dominator
+D48;The People's State of $region$
+D48_ADJ;Popular
+D49;The High Kingdom of $region$
+D49_ADJ;Highest
+D50;The Lesser Duchy of $region$
+D50_ADJ;Duchy
