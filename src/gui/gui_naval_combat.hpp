@@ -488,8 +488,8 @@ class nc_defender_combat_modifiers : public overlapping_listbox_element_base<lc_
 
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
-		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
-		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_attacking_admiral(b));
+		auto defender_per = state.world.leader_get_personality(state.world.naval_battle_get_admiral_from_defending_admiral(b));
+		auto defender_bg = state.world.leader_get_background(state.world.naval_battle_get_admiral_from_defending_admiral(b));
 
 		auto defence_bonus =
 			int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -1063,18 +1063,12 @@ class nc_goto_location_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		auto prov = report->location;
-		if(prov) {
+		if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 			state.map_state.set_selected_province(prov);
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
-			if(state.map_state.get_zoom() < 8)
-				state.map_state.zoom = 8.0f;
-
-			auto map_pos = state.world.province_get_mid_point(prov);
-			map_pos.x /= float(state.map_state.map_data.size_x);
-			map_pos.y /= float(state.map_state.map_data.size_y);
-			map_pos.y = 1.0f - map_pos.y;
-			state.map_state.set_pos(map_pos);
+			if(state.map_state.get_zoom() < map::zoom_very_close)
+				state.map_state.zoom = map::zoom_very_close;
+			state.map_state.center_map_on_province(state, prov);
 		}
 	}
 };

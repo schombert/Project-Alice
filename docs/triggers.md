@@ -23,13 +23,13 @@ This describes a scope with a payload size 1. The payload includes everything wi
 
 | Position | Data |
 |---|---|
-| 0 | `trigger::is_disjunctive_scope | trigger::generic_scope` |
+| 0 | `trigger::is_disjunctive_scope, trigger::generic_scope` |
 | 1 | `8` |
-| 2 | `trigger::association_ne | trigger::owns` |
+| 2 | `trigger::association_ne, trigger::owns` |
 | 3 | `100` |
 | 4 | `trigger::x_core_scope_nation` |
 | 5 | `4` |
-| 6 | `trigger::association_lt | trigger::blockade` |
+| 6 | `trigger::association_lt, trigger::blockade` |
 | 7 | `trigger::payload(float(2.0))` |
 
 This is roughly equivalent to the following code:
@@ -691,6 +691,110 @@ Not an exhaustive list of triggers, be wary the trigger codes **may** have flags
 | 0x0273 | variable_reform_group_name_state | 2 | 
 | 0x0274 | variable_reform_group_name_province | 2 | 
 | 0x0275 | variable_reform_group_name_pop | 2 | 
+| 0x0276 | is_disarmed_pop | 0 | |
+| 0x0277 | owned_by_state_tag | 1 | |
+| 0x0278 | owned_by_state_from_nation | 0 | |
+| 0x0279 | owned_by_state_this_nation | 0 | |
+| 0x027A | owned_by_state_this_province | 0 | |
+| 0x027B | owned_by_state_this_state | 0 | |
+| 0x027C | owned_by_state_this_pop | 0 | |
+| 0x027D | units_in_province_tag | 1 | |
+| 0x027E | primary_culture_from_nation | 0 | |
+| 0x027F | primary_culture_from_province | 0 | |
+| 0x0280 | neighbour_this_province | 0 | |
+| 0x0281 | neighbour_from_province | 0 | |
+| 0x0282 | technology_province | 1 | |
+| 0x0283 | invention_province | 1 | |
+| 0x0284 | brigades_compare_province_this | 2 | |
+| 0x0285 | brigades_compare_province_from | 2 | |
+| 0x0286 | is_accepted_culture_nation_this_pop | 0 | |
+| 0x0287 | is_accepted_culture_nation_this_nation | 0 | |
+| 0x0288 | is_accepted_culture_nation_this_state | 0 | |
+| 0x0289 | is_accepted_culture_nation_this_province | 0 | |
+| 0x028A | is_accepted_culture_state_this_pop | 0 | |
+| 0x028B | is_accepted_culture_state_this_nation | 0 | |
+| 0x028C | is_accepted_culture_state_this_state | 0 | |
+| 0x028D | is_accepted_culture_state_this_province | 0 | |
+| 0x028E | is_accepted_culture_province_this_pop | 0 | |
+| 0x028F | is_accepted_culture_province_this_nation | 0 | |
+| 0x0290 | is_accepted_culture_province_this_state | 0 | |
+| 0x0291 | is_accepted_culture_province_this_province | 0 | |
+| 0x0292 | is_accepted_culture_pop_this_pop | 0 | |
+| 0x0293 | is_accepted_culture_pop_this_nation | 0 | |
+| 0x0294 | is_accepted_culture_pop_this_state | 0 | |
+| 0x0295 | is_accepted_culture_pop_this_province | 0 | |
+| 0x0296 | culture_group_province | 1 | |
+| 0x0297 | culture_group_state | 1 | |
+| 0x0298 | have_core_in_nation_tag | 1 | |
+| 0x0299 | have_core_in_nation_this | 0 | |
+| 0x029A | have_core_in_nation_from | 0 | |
+| 0x029B | owns_province | 1 | |
+| 0x029C | empty_state | 0 | |
+| 0x029D | is_overseas_pop | 0 | |
+| 0x029E | primary_culture_pop | 1 | |
+| 0x029F | plurality_pop | 2 | |
+| 0x02A0 | is_overseas_state | 0 | |
+| 0x02A1 | stronger_army_than_tag | 1 | |
+| 0x02A2 | region_state | 1 | |
+| 0x02A3 | region_pop | 1 | |
+| 0x02A4 | owns_region | 1 | |
+| 0x02A5 | is_core_state_tag | 1 | |
+| 0x02A6 | country_units_in_state_from | 0 | |
+| 0x02A7 | country_units_in_state_this_nation | 0 | |
+| 0x02A8 | country_units_in_state_this_province | 0 | |
+| 0x02A9 | country_units_in_state_this_state | 0 | |
+| 0x02AA | country_units_in_state_this_pop | 0 | |
+| 0x02AB | country_units_in_state_tag | 1 | |
+| 0x02AC | stronger_army_than_this_nation | 0 | |
+| 0x02AD | stronger_army_than_this_state | 0 | |
+| 0x02AE | stronger_army_than_this_province | 0 | |
+| 0x02AF | stronger_army_than_this_pop | 0 | |
+| 0x02B0 | stronger_army_than_from_nation | 0 | |
+| 0x02B1 | stronger_army_than_from_province | 0 | |
+| 0x02B2 | flashpoint_tension_province | 2 | |
+| 0x02B3 | is_colonial_pop | 0 | |
+| 0x02B4 | has_country_flag_state | 1 | |
+| 0x02B5 | rich_tax_pop | 1 | |
+| 0x02B6 | middle_tax_pop | 1 | |
+| 0x02B7 | poor_tax_pop | 1 | |
+| 0x02B8 | is_core_pop_tag | 1 | |
+| 0x02B9 | is_core_boolean | 0 | |
+| 0x02BA | is_core_state_this_nation | 0 | |
+| 0x02BB | is_core_state_this_province | 0 | |
+| 0x02BC | is_core_state_this_pop | 0 | |
+| 0x02BD | is_core_state_from_nation | 0 | |
+| 0x02BE | ruling_party_ideology_province | 1 | |
+| 0x02BF | money_province | 2 | |
+| 0x02C0 | is_our_vassal_province_tag | 1 | |
+| 0x02C1 | is_our_vassal_province_from | 0 | |
+| 0x02C2 | is_our_vassal_province_this_nation | 0 | |
+| 0x02C3 | is_our_vassal_province_this_province | 0 | |
+| 0x02C4 | is_our_vassal_province_this_state | 0 | |
+| 0x02C5 | is_our_vassal_province_this_pop | 0 | |
+| 0x02C6 | vassal_of_province_tag | 1 | |
+| 0x02C7 | vassal_of_province_from | 0 | |
+| 0x02C8 | vassal_of_province_this_nation | 0 | |
+| 0x02C9 | vassal_of_province_this_province | 0 | |
+| 0x02CA | vassal_of_province_this_state | 0 | |
+| 0x02CB | vassal_of_province_this_pop | 0 | |
+| 0x02CC | relation_this_pop | 1 | |
+| 0x02CD | has_recently_lost_war_pop | 0 | |
+| 0x02CE | technology_pop | 1 | |
+| 0x02CF | invention_pop | 1 | |
+| 0x02D0 | in_default_bool | 0 | |
+| 0x02D1 | is_state_capital_pop | 0 | |
+| 0x02D2 | region_proper | 1 | |
+| 0x02D3 | region_proper_state | 1 | |
+| 0x02D4 | region_proper_pop | 1 | |
+| 0x02D5 | owns_region_proper | 1 | |
+| 0x02D6 | pop_majority_religion_nation_this_nation | 0 | |
+| 0x02D7 | military_score_tag | 1 | |
+| 0x02D8 | industrial_score_tag | 1 | |
+| 0x02D9 | has_factories_nation | 0 | |
+| 0x02DA | is_coastal_state | 0 | |
+| 0x02DB | has_building_bank | 0 | |
+| 0x02DC | has_building_university | 0 | |
+| 0x02DD | test | 1 | Forwards `THIS`, `FROM` and primary arguments, for more information see Scripted Triggers on the modding extensions |
 
 ### Optimizations
 
@@ -1056,3 +1160,95 @@ Effects describe what "effects" will occur upon the game state - those do modify
 | 0x0014B | remove_core_tag_state | 1 | 
 | 0x014C | secede_province_state | 1 | 
 | 0x014D | assimilate_state | 0 | 
+| 0x014E | add_core_state_this_nation | 0 | |
+| 0x014F | add_core_state_this_province | 0 | |
+| 0x0150 | add_core_state_this_state | 0 | |
+| 0x0151 | add_core_state_this_pop | 0 | |
+| 0x0152 | add_core_state_from_province | 0 | |
+| 0x0153 | add_core_state_from_nation | 0 | |
+| 0x0154 | add_core_state_reb | 0 | |
+| 0x0155 | add_province_modifier_state | 2 | |
+| 0x0156 | add_province_modifier_state_no_duration | 1 | |
+| 0x0157 | remove_core_state_this_nation | 0 | |
+| 0x0158 | remove_core_state_this_province | 0 | |
+| 0x0159 | remove_core_state_this_state | 0 | |
+| 0x015A | remove_core_state_this_pop | 0 | |
+| 0x015B | remove_core_state_from_province | 0 | |
+| 0x015C | remove_core_state_from_nation | 0 | |
+| 0x015D | remove_core_state_reb | 0 | |
+| 0x015E | remove_province_modifier_state | 1 | |
+| 0x015F | life_rating_state | 1 | |
+| 0x0160 | secede_province_state_this_nation | 0 | |
+| 0x0161 | secede_province_state_this_state | 0 | |
+| 0x0162 | secede_province_state_this_province | 0 | |
+| 0x0163 | secede_province_state_this_pop | 0 | |
+| 0x0164 | secede_province_state_from_nation | 0 | |
+| 0x0165 | secede_province_state_from_province | 0 | |
+| 0x0166 | secede_province_state_reb | 0 | |
+| 0x0167 | infrastructure_state | 1 | |
+| 0x0168 | fort_state | 1 | |
+| 0x0169 | naval_base_state | 1 | |
+| 0x016A | is_slave_province_yes | 0 | |
+| 0x016B | is_slave_province_no | 0 | |
+| 0x016C | change_controller_state | 1 | |
+| 0x016D | change_controller_state_this_nation | 0 | |
+| 0x016E | change_controller_state_this_province | 0 | |
+| 0x016F | change_controller_state_from_nation | 0 | |
+| 0x0170 | change_controller_state_from_province | 0 | |
+| 0x0171 | reduce_pop_province | 2 | |
+| 0x0172 | reduce_pop_state | 2 | |
+| 0x0173 | reduce_pop_nation | 2 | |
+| 0x0174 | consciousness_province | 2 | |
+| 0x0175 | consciousness_state | 2 | |
+| 0x0176 | consciousness_nation | 2 | |
+| 0x0177 | militancy_province | 2 | |
+| 0x0178 | militancy_state | 2 | |
+| 0x0179 | militancy_nation | 2 | |
+| 0x017A | remove_core_tag_nation | 1 | |
+| 0x017B | remove_core_nation_this_nation | 0 | |
+| 0x017C | remove_core_nation_this_province | 0 | |
+| 0x017D | remove_core_nation_this_state | 0 | |
+| 0x017E | remove_core_nation_this_pop | 0 | |
+| 0x017F | remove_core_nation_from_province | 0 | |
+| 0x0180 | remove_core_nation_from_nation | 0 | |
+| 0x0181 | remove_core_nation_reb | 0 | |
+| 0x0182 | set_country_flag_pop | 1 | |
+| 0x0183 | social_reform_province | 1 | |
+| 0x0184 | political_reform_province | 1 | |
+| 0x0185 | flashpoint_tension_province | 2 | |
+| 0x0186 | release_vassal_province | 1 | |
+| 0x0187 | release_vassal_province_this_nation | 0 | |
+| 0x0188 | release_vassal_province_this_province | 0 | |
+| 0x0189 | release_vassal_province_from_nation | 0 | |
+| 0x018A | release_vassal_province_from_province | 0 | |
+| 0x018B | release_vassal_province_reb | 0 | |
+| 0x018C | release_vassal_province_random | 0 | |
+| 0x018D | build_bank_in_capital_yes_whole_state_yes_limit | 0 | |
+| 0x018E | build_bank_in_capital_yes_whole_state_no_limit | 0 | |
+| 0x018F | build_bank_in_capital_no_whole_state_yes_limit | 0 | |
+| 0x0190 | build_bank_in_capital_no_whole_state_no_limit | 0 | |
+| 0x0191 | build_university_in_capital_yes_whole_state_yes_limit | 0 | |
+| 0x0192 | build_university_in_capital_yes_whole_state_no_limit | 0 | |
+| 0x0193 | build_university_in_capital_no_whole_state_yes_limit | 0 | |
+| 0x0194 | build_university_in_capital_no_whole_state_no_limit | 0 | |
+| 0x0195 | bank | 1 | |
+| 0x0196 | bank_state | 1 | |
+| 0x0197 | university | 1 | |
+| 0x0198 | university_state | 1 | |
+| 0x0199 | kill_leader | 2 | |
+| 0x019A | annex_to_null_nation | 0 | |
+| 0x019B | annex_to_null_province | 0 | |
+| 0x019C | add_truce_tag | 2 | |
+| 0x019D | add_truce_this_nation | 1 | |
+| 0x019E | add_truce_this_state | 1 | |
+| 0x019F | add_truce_this_province | 1 | |
+| 0x01A0 | add_truce_this_pop | 1 | |
+| 0x01A1 | add_truce_from_nation | 1 | |
+| 0x01A2 | add_truce_from_province | 1 | |
+| 0x01A3 | call_allies | 0 | |
+| 0x01A4 | ruling_party_this | 0 | |
+| 0x01A5 | ruling_party_from | 0 | |
+| 0x01A6 | add_accepted_culture_this | 0 | |
+| 0x01A7 | add_accepted_culture_union_this | 0 | |
+| 0x01A8 | add_accepted_culture_from | 0 | |
+| 0x01A9 | add_accepted_culture_union_from | 0 | |

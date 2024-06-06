@@ -15,6 +15,7 @@ struct effect_building_context {
 	scenario_building_context& outer_context;
 	std::vector<uint16_t> compiled_effect;
 	size_t limit_position = 0;
+	bool effect_is_for_event = false;
 
 	trigger::slot_contents main_slot = trigger::slot_contents::empty;
 	trigger::slot_contents this_slot = trigger::slot_contents::empty;
@@ -825,20 +826,7 @@ struct effect_body {
 			}
 		}
 	}
-	void change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::state) {
-			context.compiled_effect.push_back(uint16_t(effect::change_region_name_state));
-		} else if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
-		} else {
-			err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
-			return;
-		}
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	}
+	void change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void trade_goods(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_commodity_names.find(std::string(value));
@@ -862,6 +850,14 @@ struct effect_body {
 		if(context.main_slot == trigger::slot_contents::nation) {
 			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "union")) {
 				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union | effect::no_payload));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "this_union")) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union_this | effect::no_payload));
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "from_union")) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_union_from | effect::no_payload));
+			} else if(is_this(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_this | effect::no_payload));
+			} else if(is_from(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture_from | effect::no_payload));
 			} else if(auto it = context.outer_context.map_of_culture_names.find(std::string(value));
 								it != context.outer_context.map_of_culture_names.end()) {
 				context.compiled_effect.push_back(uint16_t(effect::add_accepted_culture));
@@ -1153,7 +1149,7 @@ struct effect_body {
 			context.compiled_effect.push_back(trigger::payload(context.outer_context.get_national_flag(std::string(value))).value);
 		} else {
 			err.accumulated_errors +=
-					"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				"clr_country_flag effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1227,8 +1223,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1237,34 +1232,34 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-																		", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_reb(value)) {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																		std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "---")) {
+				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+				return;
 			} else if(value.length() == 3) {
 				if(auto it = context.outer_context.map_of_ident_names.find(nations::tag_to_int(value[0], value[1], value[2]));
 						it != context.outer_context.map_of_ident_names.end()) {
 					context.compiled_effect.push_back(uint16_t(effect::secede_province));
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
-					err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
+					err.accumulated_warnings += "secede_province effect given an invalid tag '" + std::string(value) + "' will assume null (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
-				err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::state) {
@@ -1278,8 +1273,7 @@ struct effect_body {
 				else if(context.this_slot == trigger::slot_contents::pop)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_this_pop | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-						", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = this effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_from(value)) {
@@ -1288,16 +1282,14 @@ struct effect_body {
 				else if(context.from_slot == trigger::slot_contents::province)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_from_province | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
-						", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = from effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(is_reb(value)) {
 				if(context.from_slot == trigger::slot_contents::rebel)
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state_reb | effect::no_payload));
 				else {
-					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-						std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province = reb effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else if(value.length() == 3) {
@@ -1306,18 +1298,15 @@ struct effect_body {
 					context.compiled_effect.push_back(uint16_t(effect::secede_province_state));
 					context.compiled_effect.push_back(trigger::payload(it->second).value);
 				} else {
-					err.accumulated_errors +=
-							"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					err.accumulated_errors += "secede_province effect given an invalid tag '" + std::string(value) + "' (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
 			} else {
-				err.accumulated_errors +=
-						"secede_province effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				err.accumulated_errors += "secede_province effect given an invalid value '"	+ std::string(value) + "' (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
-			err.accumulated_errors +=
-					"secede_province effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			err.accumulated_errors += "secede_province effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 			return;
 		}
 	}
@@ -1405,7 +1394,7 @@ struct effect_body {
 						"annex_to effect given an invalid tag (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 					return;
 				}
-			} else if(value == "null") {
+			} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_nation | effect::no_payload));
 				return;
 			} else {
@@ -1414,7 +1403,7 @@ struct effect_body {
 				return;
 			}
 		} else if(context.main_slot == trigger::slot_contents::province) {
-			if(value == "null") {
+			if(is_fixed_token_ci(value.data(), value.data() + value.length(), "null")) {
 				context.compiled_effect.push_back(uint16_t(effect::annex_to_null_province | effect::no_payload));
 				return;
 			} else {
@@ -1877,13 +1866,17 @@ struct effect_body {
 	void ruling_party_ideology(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
-			if(auto it = context.outer_context.map_of_ideologies.find(std::string(value));
+			if(is_this(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::ruling_party_this));
+			} else if(is_from(value)) {
+				context.compiled_effect.push_back(uint16_t(effect::ruling_party_from));
+			} else if(auto it = context.outer_context.map_of_ideologies.find(std::string(value));
 					it != context.outer_context.map_of_ideologies.end()) {
 				context.compiled_effect.push_back(uint16_t(effect::ruling_party_ideology));
 				context.compiled_effect.push_back(trigger::payload(it->second.id).value);
 			} else {
 				err.accumulated_errors += "ruling_party_ideology effect supplied with invalid ideology name " + std::string(value) +
-																	" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+					" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
 		} else {
@@ -2087,18 +2080,7 @@ struct effect_body {
 			return;
 		}
 	}
-	void change_province_name(association_type t, std::string_view value, error_handler& err, int32_t line,
-			effect_building_context& context) {
-		if(context.main_slot == trigger::slot_contents::province) {
-			context.compiled_effect.push_back(uint16_t(effect::change_province_name));
-		} else {
-			err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " +
-																std::to_string(line) + ")\n";
-			return;
-		}
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	}
+	void change_province_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context);
 	void set_global_flag(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
@@ -3164,7 +3146,7 @@ struct effect_body {
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_province : effect::war_no_ally_this_province);
 			else if(context.this_slot == trigger::slot_contents::state)
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_state : effect::war_no_ally_this_state);
-			else if(context.this_slot == trigger::slot_contents::province)
+			else if(context.this_slot == trigger::slot_contents::pop)
 				context.compiled_effect.push_back(value.call_ally ? effect::war_this_pop : effect::war_no_ally_this_pop);
 			else {
 				err.accumulated_errors +=
@@ -3368,6 +3350,55 @@ struct effect_body {
 		context.compiled_effect.push_back(effect::change_variable);
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
+	}
+	void increment_variable(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(1.f);
+	}
+	void decrement_variable(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"change_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(-1.f);
+	}
+	void set_variable_to_zero(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(context.main_slot != trigger::slot_contents::nation) {
+			err.accumulated_errors +=
+				"set_variable effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+		auto which_ = context.outer_context.get_national_variable(std::string(value));
+		context.compiled_effect.push_back(effect::set_variable);
+		context.compiled_effect.push_back(trigger::payload(which_).value);
+		context.add_float_to_payload(0.f);
+	}
+	void change_terrain(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		if(auto it = context.outer_context.map_of_terrain_types.find(std::string(value));
+				it != context.outer_context.map_of_terrain_types.end()) {
+			if(context.main_slot == trigger::slot_contents::pop) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_pop));
+			} else if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::change_terrain_province));
+			} else {
+				err.accumulated_errors += "chenge_terrain effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+				return;
+			}
+			context.compiled_effect.push_back(trigger::payload(it->second.id).value);
+		} else {
+			err.accumulated_errors += "chenge_terrain effect supplied with an invalid terrain \"" + std::string(value) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
 	}
 	void ideology(ef_ideology const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::pop) {
@@ -3661,7 +3692,10 @@ void ef_scope_else(token_generator& gen, error_handler& err, effect_building_con
 void ef_scope_hidden_tooltip(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_random_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context);
+void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_country(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context);

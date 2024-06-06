@@ -1067,7 +1067,7 @@ class pop_distribution_piechart : public piechart<T> {
 				auto end = start + state.world.national_identity_get_political_party_count(tag);
 				for(int32_t i = start; i < end; i++) {
 					auto pid = T(typename T::value_base_t(i));
-					if(politics::political_party_is_active(state, pid)) {
+					if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 						auto support = politics::party_total_support(state, pop_id, pid,
 								state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 						weight_fn(pid, support);
@@ -1219,7 +1219,7 @@ public:
 					auto end = start + state.world.national_identity_get_political_party_count(tag);
 					for(int32_t i = start; i < end; i++) {
 						auto pid = T(typename T::value_base_t(i));
-						if(politics::political_party_is_active(state, pid)) {
+						if(politics::political_party_is_active(state, state.world.province_get_nation_from_province_ownership(prov_id), pid)) {
 							auto support = politics::party_total_support(state, pop_id, pid,
 									state.world.province_get_nation_from_province_ownership(prov_id), prov_id);
 							distrib[typename T::value_base_t(pid.index())] += support;
@@ -1385,7 +1385,9 @@ public:
 
 			std::vector<dcon::issue_option_id> distrib;
 			for(auto io : state.world.in_issue_option) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
@@ -1534,7 +1536,9 @@ public:
 
 			std::vector<dcon::ideology_id> distrib;
 			for(auto io : state.world.in_ideology) {
-				distrib.push_back(io.id);
+				auto v = state.world.pop_get_demographics(pop, pop_demographics::to_key(state, io.id));
+				if(v > 0.f)
+					distrib.push_back(io.id);
 			}
 
 			std::sort(distrib.begin(), distrib.end(), [&](auto a, auto b) {
@@ -1863,6 +1867,8 @@ class pop_details_window : public generic_settable_element<main_window_element_b
 	pop_type_icon* type_icon = nullptr;
 	popwin_religion_type* religion_icon = nullptr;
 	simple_text_element_base* religion_text = nullptr;
+	simple_text_element_base* income_text = nullptr;
+	simple_text_element_base* expenses_text = nullptr;
 	simple_text_element_base* savings_text = nullptr;
 	std::vector<element_base*> promotion_windows;
 	std::vector<element_base*> dist_windows;
@@ -1962,6 +1968,14 @@ public:
 			return make_element_by_type<pop_literacy_text>(state, id);
 		} else if(name == "icon_religion") {
 			return make_element_by_type<popwin_religion_type>(state, id);
+		} else if(name == "income_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			income_text = ptr.get();
+			return ptr;
+		} else if(name == "expenses_value") {
+			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+			expenses_text = ptr.get();
+			return ptr;
 		} else if(name == "bank_value") {
 			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
 			savings_text = ptr.get();
@@ -1998,16 +2012,23 @@ public:
 			return;
 
 		auto fat_id = dcon::fatten(state.world, std::get<dcon::pop_id>(content));
+		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
+		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
+
 		// updated below ...
-		savings_text->set_text(state, text::format_float(state.world.pop_get_savings(fat_id.id)));
+		float expenses = 0.f;
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_life_needs(c);
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_everyday_needs(c);
+			expenses += state.world.nation_get_effective_prices(nat_id, c) * fat_id.get_poptype().get_luxury_needs(c);
+		});
+		expenses_text->set_text(state, text::format_money(expenses));
+		savings_text->set_text(state, text::format_money(state.world.pop_get_savings(fat_id.id)));
 		Cyto::Any payload = fat_id.id;
 		for(auto& c : children) {
 			c->impl_set(state, payload);
 			c->impl_on_update(state);
 		}
-
-		auto prov_id = state.world.pop_location_get_province(state.world.pop_get_pop_location_as_pop(fat_id.id));
-		auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
 
 		// Hide all promotion windows...
 		for(std::size_t i = 0; i < promotion_windows.size(); ++i)
@@ -2442,7 +2463,7 @@ private:
 			fn = [&](dcon::pop_id a, dcon::pop_id b) {
 				auto a_fat_id = dcon::fatten(state.world, a);
 				auto b_fat_id = dcon::fatten(state.world, b);
-				return a_fat_id.get_employment()/a_fat_id.get_size() < b_fat_id.get_employment()/b_fat_id.get_size();
+				return a_fat_id.get_employment() / a_fat_id.get_size() < b_fat_id.get_employment() / b_fat_id.get_size();
 			};
 			break;
 		case pop_list_sort::ideology:
@@ -2639,7 +2660,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_pops") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "pop_list") {
 			auto ptr = make_element_by_type<pop_listbox>(state, id);

@@ -562,8 +562,8 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		auto location = state.world.land_battle_get_location_from_land_battle_location(b);
 		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
 
-		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_attacking_general(b));
-		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_attacking_general(b));
+		auto defender_per = state.world.leader_get_personality(state.world.land_battle_get_general_from_defending_general(b));
+		auto defender_bg = state.world.leader_get_background(state.world.land_battle_get_general_from_defending_general(b));
 
 		auto defence_bonus =
 			int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
@@ -904,7 +904,7 @@ public:
 				if(bool(rf)) {
 					n = state.world.rebellion_within_get_ruler(state.world.rebel_faction_get_rebellion_within(rf));
 					if(!bool(n))
-						n = state.national_definitions.rebel_id;
+						n = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 				}
 				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
 				tag_str += " " + rebel::rebel_name(state, rf);
@@ -918,20 +918,20 @@ public:
 			text::close_layout_box(contents, box);
 
 			if(state.world.nation_get_unit_stats(n, utid).reconnaissance_or_fire_range > 0) {
-				text::add_line(state, contents, "alice_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).reconnaissance_or_fire_range, 2));
+				text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).reconnaissance_or_fire_range, 2));
 			}
 			if(state.world.nation_get_unit_stats(n, utid).siege_or_torpedo_attack > 0) {
-				text::add_line(state, contents, "alice_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).siege_or_torpedo_attack, 2));
+				text::add_line(state, contents, "unit_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).siege_or_torpedo_attack, 2));
 			}
-			text::add_line(state, contents, "alice_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).attack_or_gun_power, 2));
-			text::add_line(state, contents, "alice_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).defence_or_hull, 2));
-			text::add_line(state, contents, "alice_discipline", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion * 100, 0));
+			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).attack_or_gun_power, 2));
+			text::add_line(state, contents, "unit_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).defence_or_hull, 2));
+			text::add_line(state, contents, "unit_discipline", text::variable_type::x, text::format_percentage(state.military_definitions.unit_base_definitions[utid].discipline_or_evasion, 0));
 			if(state.military_definitions.unit_base_definitions[utid].support > 0) {
-				text::add_line(state, contents, "alice_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).support, 0));
+				text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).support, 0));
 			}
-			text::add_line(state, contents, "alice_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
-			text::add_line(state, contents, "alice_maximum_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).maximum_speed, 2));
-			text::add_line(state, contents, "alice_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).supply_consumption * 100, 0));
+			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.military_definitions.unit_base_definitions[utid].maneuver, 0));
+			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(n, utid).maximum_speed, 2));
+			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(state.world.nation_get_unit_stats(n, utid).supply_consumption, 0));
 
 		}
 	}
@@ -1404,18 +1404,12 @@ class lc_goto_location_button : public button_element_base {
 	void button_action(sys::state& state) noexcept override {
 		military::land_battle_report* report = retrieve< military::land_battle_report*>(state, parent);
 		auto prov = report->location;
-		if(prov) {
+		if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 			state.map_state.set_selected_province(prov);
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
-
-			if(state.map_state.get_zoom() < 8)
-				state.map_state.zoom = 8.0f;
-
-			auto map_pos = state.world.province_get_mid_point(prov);
-			map_pos.x /= float(state.map_state.map_data.size_x);
-			map_pos.y /= float(state.map_state.map_data.size_y);
-			map_pos.y = 1.0f - map_pos.y;
-			state.map_state.set_pos(map_pos);
+			if(state.map_state.get_zoom() < map::zoom_very_close)
+				state.map_state.zoom = map::zoom_very_close;
+			state.map_state.center_map_on_province(state, prov);
 		}
 	}
 };

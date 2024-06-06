@@ -1,6 +1,38 @@
 #include "gui_common_elements.hpp"
+#include "ai.hpp"
 
 namespace ui {
+bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b) {
+	switch(filt) {
+	case country_list_filter::all:
+		return true;
+	case country_list_filter::allies:
+		return nations::are_allied(state, a, b);
+	case country_list_filter::enemies:
+		return military::are_at_war(state, a, b);
+	case country_list_filter::sphere:
+		return state.world.nation_get_in_sphere_of(b) == a;
+	case country_list_filter::neighbors:
+		return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b));
+	case country_list_filter::find_allies:
+		return ai::ai_will_accept_alliance(state, b, a)
+			&& command::can_ask_for_alliance(state, a, b, false);
+	case country_list_filter::influenced:
+		return (state.world.gp_relationship_get_status(state.world.get_gp_relationship_by_gp_influence_pair(b, a))
+			& nations::influence::priority_mask) != nations::influence::priority_zero
+			&& state.world.nation_get_in_sphere_of(b) != a;
+	case country_list_filter::neighbors_no_vassals:
+		for(const auto sub : state.world.nation_get_overlord_as_ruler(b)) {
+			if(state.world.get_nation_adjacency_by_nation_adjacency_pair(a, sub.get_subject()))
+				return true;
+		}
+		return !state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(b))
+			&& state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
+	default:
+		return true;
+	}
+}
+
 void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, country_list_sort sort, bool sort_ascend) {
 	switch(sort) {
 	case country_list_sort::country: {

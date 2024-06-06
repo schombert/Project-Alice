@@ -94,12 +94,97 @@ void ef_scope_any_neighbor_country(token_generator& gen, error_handler& err, eff
 		return;
 	}
 }
+void ef_scope_random_neighbor_country(token_generator& gen, error_handler& err, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::nation) {
+		auto old_limit_offset = context.limit_position;
+
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_country_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "any_neighbor_province effect scope used in an incorrect scope type (" + err.file_name + ")\n";
+		return;
+	}
+}
 
 void ef_scope_any_country(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
+	if(context.main_slot == trigger::slot_contents::nation) {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::scope_has_limit));
+			}
+		}
+	} else {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
+			}
+		}
+	}
 
-	context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	context.main_slot = trigger::slot_contents::nation;
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+	context.main_slot = old_main;
+}
+
+void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	auto old_main = context.main_slot;
+
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::scope_has_limit));
+	} else {
+		context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::scope_has_limit));
+	}
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	context.main_slot = trigger::slot_contents::nation;
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+	context.main_slot = old_main;
+}
+void ef_scope_any_defined_country(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	auto old_main = context.main_slot;
+
+	if(context.main_slot == trigger::slot_contents::nation) {
+		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::scope_has_limit));
+	} else {
+		context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::scope_has_limit));
+	}
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
@@ -118,11 +203,27 @@ void ef_scope_random_country(token_generator& gen, error_handler& err, effect_bu
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	if(context.main_slot == trigger::slot_contents::nation)
-		context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
-	else
-		context.compiled_effect.push_back(
-				uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+	if(context.main_slot == trigger::slot_contents::nation) {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope_nation | effect::is_random_scope | effect::scope_has_limit));
+			}
+		}
+	} else {
+		if(bool(context.outer_context.state.defines.alice_disable_divergent_any_country_effect)) {
+			context.compiled_effect.push_back(uint16_t(effect::x_country_scope | effect::is_random_scope | effect::scope_has_limit));
+		} else {
+			if(context.effect_is_for_event) {
+				context.compiled_effect.push_back(uint16_t(effect::x_event_country_scope | effect::is_random_scope | effect::scope_has_limit));
+			} else {
+				context.compiled_effect.push_back(uint16_t(effect::x_decision_country_scope | effect::is_random_scope | effect::scope_has_limit));
+			}
+		}
+	}
 
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
@@ -142,8 +243,7 @@ void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err,
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(
-				uint16_t(effect::x_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -160,12 +260,11 @@ void ef_scope_random_neighbor_province(token_generator& gen, error_handler& err,
 	}
 }
 
-void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context) {
+void ef_scope_any_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::province) {
 		auto old_limit_offset = context.limit_position;
 
-		context.compiled_effect.push_back(
-				uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(effect::x_empty_neighbor_province_scope | effect::scope_has_limit));
 		context.compiled_effect.push_back(uint16_t(0));
 		auto payload_size_offset = context.compiled_effect.size() - 1;
 		context.limit_position = context.compiled_effect.size();
@@ -177,7 +276,28 @@ void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler
 		context.limit_position = old_limit_offset;
 	} else {
 		gen.discard_group();
-		err.accumulated_errors += "any_neighbor_province effect scope used in an incorrect scope type (" + err.file_name + ")\n";
+		err.accumulated_errors += "any_empty_neighbor_province effect scope used in an incorrect scope type(" + err.file_name + ")\n";
+		return;
+	}
+}
+
+void ef_scope_random_empty_neighbor_province(token_generator& gen, error_handler& err, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::province) {
+		auto old_limit_offset = context.limit_position;
+
+		context.compiled_effect.push_back(uint16_t(effect::x_empty_neighbor_province_scope | effect::is_random_scope | effect::scope_has_limit));
+		context.compiled_effect.push_back(uint16_t(0));
+		auto payload_size_offset = context.compiled_effect.size() - 1;
+		context.limit_position = context.compiled_effect.size();
+		context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+		parse_effect_body(gen, err, context);
+
+		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+		context.limit_position = old_limit_offset;
+	} else {
+		gen.discard_group();
+		err.accumulated_errors += "random_empty_neighbor_province effect scope used in an incorrect scope type (" + err.file_name + ")\n";
 		return;
 	}
 }
@@ -187,6 +307,25 @@ void ef_scope_any_greater_power(token_generator& gen, error_handler& err, effect
 	auto old_main = context.main_slot;
 
 	context.compiled_effect.push_back(uint16_t(effect::x_greater_power_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+
+	context.main_slot = trigger::slot_contents::nation;
+	parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+	context.main_slot = old_main;
+}
+
+void ef_scope_random_greater_power(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	auto old_main = context.main_slot;
+
+	context.compiled_effect.push_back(uint16_t(effect::x_greater_power_scope | effect::is_random_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 
@@ -324,6 +463,7 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
+	auto const scope_offset = context.compiled_effect.size();
 	if(context.main_slot == trigger::slot_contents::state) {
 		context.compiled_effect.push_back(uint16_t(effect::x_owned_scope_state | effect::is_random_scope | effect::scope_has_limit));
 	} else if(context.main_slot == trigger::slot_contents::nation) {
@@ -339,6 +479,9 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 
 		context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 		context.limit_position = old_limit_offset;
+
+		auto const new_scope_size = simplify_effect(context.compiled_effect.data() + scope_offset);
+		context.compiled_effect.resize(scope_offset + size_t(new_scope_size));
 		return;
 	} else {
 		gen.discard_group();
@@ -358,6 +501,9 @@ void ef_scope_random_owned(token_generator& gen, error_handler& err, effect_buil
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
 	context.limit_position = old_limit_offset;
 	context.main_slot = old_main;
+
+	auto const new_scope_size = simplify_effect(context.compiled_effect.data() + scope_offset);
+	context.compiled_effect.resize(scope_offset + size_t(new_scope_size));
 }
 
 void ef_scope_any_owned(token_generator& gen, error_handler& err, effect_building_context& context) {
@@ -1147,12 +1293,12 @@ int32_t simplify_effect(uint16_t* source) {
 
 		if((source[0] & effect::code_mask) == effect::random_list_scope) {
 			auto sub_units_start = source + 4; // [code] + [payload size] + [chances total] + [first sub effect chance]
-
 			while(sub_units_start < source + source_size) {
 				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
 				auto const new_size = simplify_effect(sub_units_start);
 				if(new_size > 0) {
-					if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+					if(new_size != old_size) { // has been simplified
+						assert(new_size < old_size);
 						std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
 						source_size -= (old_size - new_size);
 					}
@@ -1164,12 +1310,46 @@ int32_t simplify_effect(uint16_t* source) {
 			}
 		} else {
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
-
 			while(sub_units_start < source + source_size) {
-				auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
-				auto const new_size = simplify_effect(sub_units_start);
-
-				if(new_size != old_size) { // has been simplified, assumes that new size always <= old size
+				// [0      0     ] | clr_global_flag	[1      2     ] | clr_global_flag
+				// [0      1     ] | <flag>				[1      3     ] | <flag>
+				// --------------- | n = 1				...............
+				// [n      2n    ]
+				// [n      2n + 1]
+				int32_t old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+				int32_t new_size = simplify_effect(sub_units_start);
+				if((sub_units_start[0] & effect::code_mask) == effect::clr_global_flag) {
+					auto repeats = 0;
+					while(sub_units_start + old_size < source + source_size
+						&& (sub_units_start[old_size] & effect::code_mask) == effect::clr_global_flag
+						&& repeats < 8) {
+						old_size += 1 + effect::data_sizes[effect::clr_global_flag];
+						++repeats;
+					}
+					static const uint16_t fop_table[] = {
+						effect::clr_global_flag,
+						effect::fop_clr_global_flag_2,
+						effect::fop_clr_global_flag_3,
+						effect::fop_clr_global_flag_4,
+						effect::fop_clr_global_flag_5,
+						effect::fop_clr_global_flag_6,
+						effect::fop_clr_global_flag_7,
+						effect::fop_clr_global_flag_8,
+						effect::fop_clr_global_flag_9,
+						effect::fop_clr_global_flag_10,
+						effect::fop_clr_global_flag_11,
+						effect::fop_clr_global_flag_12
+					};
+					sub_units_start[0] = fop_table[repeats];
+					new_size = 1 + effect::data_sizes[fop_table[repeats]];
+					for(auto i = 1; i <= repeats + 1; i++) {
+						// todo: copy n size
+						sub_units_start[effect::data_sizes[effect::clr_global_flag] * i]
+							= sub_units_start[(1 + effect::data_sizes[effect::clr_global_flag]) * i - 1];
+					}
+				}
+				if(new_size != old_size) { // has been simplified
+					assert(new_size < old_size);
 					std::copy(sub_units_start + old_size, source + source_size, sub_units_start + new_size);
 					source_size -= (old_size - new_size);
 				}
@@ -1193,8 +1373,60 @@ int32_t simplify_effect(uint16_t* source) {
 				std::copy(source + 2, source + source_size, source);
 				source_size -= 2;
 			}
+		} else if((source[0] & effect::code_mask) == effect::owner_scope_province
+		&& (source[0] & effect::scope_has_limit) == 0
+		&& (source[0] & effect::is_random_scope) == 0) {
+			bool can_elim = true;
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			while(sub_units_start < source + source_size && can_elim) {
+				switch(sub_units_start[0] & effect::code_mask) {
+				case effect::clr_global_flag:
+				case effect::set_global_flag:
+				case effect::fop_clr_global_flag_2:
+				case effect::fop_clr_global_flag_3:
+				case effect::fop_clr_global_flag_4:
+				case effect::fop_clr_global_flag_5:
+				case effect::fop_clr_global_flag_6:
+				case effect::fop_clr_global_flag_7:
+				case effect::fop_clr_global_flag_8:
+				case effect::fop_clr_global_flag_9:
+				case effect::fop_clr_global_flag_10:
+				case effect::fop_clr_global_flag_11:
+				case effect::fop_clr_global_flag_12:
+				case effect::fop_change_province_name:
+				case effect::integer_scope:
+					break;
+				default:
+					can_elim = false;
+					break;
+				}
+				sub_units_start += 1 + effect::get_generic_effect_payload_size(sub_units_start);
+			}
+			if(can_elim) { //eliminate
+				std::copy(source + 2, source + source_size, source);
+				source_size -= 2;
+			}
+		} else if((source[0] & effect::code_mask) == effect::integer_scope
+			&& (source[0] & effect::scope_has_limit) == 0
+			&& (source[0] & effect::is_random_scope) == 0
+			&& source[1] == 4
+			&& effect::effect_scope_has_single_member(source)) {
+			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
+			auto const old_size = 1 + effect::get_generic_effect_payload_size(source);
+			if(sub_units_start[0] == effect::change_province_name) {
+				auto const prov = source[2]; //[code] [size] [province]
+				auto const name_1 = sub_units_start[1];
+				auto const name_2 = sub_units_start[2];
+				source[0] = effect::fop_change_province_name;
+				source[1] = name_1; //name
+				source[2] = name_2; //name
+				source[3] = prov; //province
+				auto const new_size = 1 + effect::data_sizes[effect::fop_change_province_name];
+				assert(new_size < old_size);
+				std::copy(source + old_size, source + source_size, source + new_size);
+				source_size -= (old_size - new_size);
+			}
 		}
-
 		return source_size;
 	} else {
 		return 1 + effect::get_effect_non_scope_payload_size(source); // non scopes cannot be simplified
@@ -1231,7 +1463,7 @@ dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_bu
 
 	if(context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
 		err.accumulated_errors += "effect is " + std::to_string(context.compiled_effect.size()) +
-															" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
+			" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
 		return dcon::effect_key{0};
 	}
 
@@ -1432,8 +1664,54 @@ void effect_body::define_admiral(ef_define_admiral const& value, error_handler& 
 	context.compiled_effect.push_back(trigger::payload(value.personality_).value);
 	context.compiled_effect.push_back(trigger::payload(value.background_).value);
 }
-void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line,
+void effect_body::change_province_name(association_type t, std::string_view value, error_handler & err, int32_t line,
 		effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_province_name));
+	} else {
+		err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
+		context.add_int32_t_to_payload(name.index());
+	}
+}
+void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+	if(context.main_slot == trigger::slot_contents::state) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_state));
+	} else if(context.main_slot == trigger::slot_contents::province) {
+		context.compiled_effect.push_back(uint16_t(effect::change_region_name_province));
+	} else {
+		err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		return;
+	}
+	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
+		auto name = text::find_or_add_key(context.outer_context.state, value);
+		context.add_int32_t_to_payload(name.index());
+	} else {
+		std::string new_key_str = std::string("renaming_") + std::string(value);
+		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
+		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
+		context.add_int32_t_to_payload(name.index());
+	}
+}
+void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {
 		context.compiled_effect.push_back(uint16_t(effect::enable_canal));
 		context.compiled_effect.push_back(trigger::payload(uint16_t(value)).value);

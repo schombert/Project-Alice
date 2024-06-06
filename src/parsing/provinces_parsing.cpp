@@ -148,6 +148,7 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());
@@ -157,26 +158,42 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 }
 
 void make_state_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto name_id = text::find_key(context.state, name);
-	auto state_id = context.state.world.create_state_definition();
-
-	context.map_of_state_names.insert_or_assign(std::string(name), state_id);
-	context.state.world.state_definition_set_name(state_id, name_id);
-
-	state_def_building_context new_context{context, state_id};
-
-	parsers::parse_state_definition(gen, err, new_context);
-}
-void make_region_definition(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
 	auto name_id = text::find_or_add_key(context.state, name);
-	auto rid = context.state.world.create_region();
+	state_def_building_context new_context{ context, std::vector<dcon::province_id>{} };
+	parsers::parse_state_definition(gen, err, new_context);
+	if(new_context.provinces.empty())
+		return; //empty, tooltip metaregions
 
-	context.map_of_region_names.insert_or_assign(std::string(name), rid);
-	context.state.world.region_set_name(rid, name_id);
-
-	region_building_context new_context{ context, rid };
-
-	parsers::parse_region_definition(gen, err, new_context);
+	bool is_state = false;
+	bool is_region = false;
+	for(const auto prov : new_context.provinces) {
+		if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+			is_region = true;
+		} else {
+			is_state = true;
+		}
+	}
+	if(is_state && is_region) {
+		err.accumulated_warnings += "State " + std::string(name) + " mixes assigned and unassigned provinces (" + err.file_name + ")\n";
+		for(const auto prov : new_context.provinces) {
+			if(context.state.world.province_get_state_from_abstract_state_membership(prov)) {
+				err.accumulated_warnings += "Province " + std::to_string(context.prov_id_to_original_id_map[prov].id) + " on state " + std::string(name) + " is already assigned to a state (" + err.file_name + ")\n";
+			}
+		}
+	}
+	if(is_region) {
+		auto rdef = context.state.world.create_region();
+		context.map_of_region_names.insert_or_assign(std::string(name), rdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_region_membership(prov, rdef);
+		}
+	} else {
+		auto sdef = context.state.world.create_state_definition();
+		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
+		for(const auto prov : new_context.provinces) {
+			context.state.world.force_create_abstract_state_membership(prov, sdef);
+		}
+	}
 }
 
 void make_continent_definition(std::string_view name, token_generator& gen, error_handler& err,
@@ -188,6 +205,7 @@ void make_continent_definition(std::string_view name, token_generator& gen, erro
 
 	continent_building_context new_context{context, new_modifier};
 	context.state.world.modifier_set_name(new_modifier, name_id);
+	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
 
 	auto continent = parse_continent_definition(gen, err, new_context);
 
@@ -223,6 +241,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 		auto new_id = context.state.world.create_modifier();
 		context.map_of_modifiers.insert_or_assign(std::string(name), new_id);
 		context.state.world.modifier_set_name(new_id, name_id);
+		context.state.world.modifier_set_desc(new_id, text::find_key(context.state, std::string(name) + "_desc"));
 		return new_id;
 	}();
 
@@ -241,8 +260,7 @@ void make_climate_definition(std::string_view name, token_generator& gen, error_
 
 void enter_dated_block(std::string_view name, token_generator& gen, error_handler& err, province_file_context& context) {
 	auto ymd = parse_date(name, 0, err);
-	auto block_date = sys::date(ymd, context.outer_context.state.start_date);
-	if(block_date.to_raw_value() > 1) { // is after the start date
+	if(sys::date(ymd, context.outer_context.state.start_date) >= context.outer_context.state.current_date) { // is after the start date
 		gen.discard_group();
 	} else {
 		parse_province_history_file(gen, err, context);
@@ -286,6 +304,9 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		if(context.outer_context.state.world.province_ownership_get_nation(context.outer_context.state.world.province_get_province_ownership(context.id))) {
+			err.accumulated_warnings += "Duplicate owner statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -295,6 +316,9 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
+		if(context.outer_context.state.world.province_control_get_nation(context.outer_context.state.world.province_get_province_control(context.id))) {
+			err.accumulated_warnings += "Duplicate controller statment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
 		context.outer_context.state.world.force_create_province_control(context.id, holder);
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -307,8 +331,7 @@ void province_history_file::terrain(association_type, std::string_view text, err
 			it != context.outer_context.map_of_terrain_types.end()) {
 		context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
 	} else {
-		err.accumulated_errors +=
-				std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		err.accumulated_errors += "Invalid terrain '" + std::string(text) + "' (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 
@@ -410,19 +433,59 @@ void parse_csv_pop_history_file(sys::state& state, const char* start, const char
 				err.accumulated_errors += "Unspecified type (" + err.file_name + ")\n";
 				return;
 			}
-			if(rebel_text.empty()) {
-				err.accumulated_errors += "Unspecified rebel faction (" + err.file_name + ")\n";
-				return;
-			}
 			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
 			pop_history_province_context pop_context{context, p};
 			def.culture(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
 			def.religion(parsers::association_type::eq_default, religion_text , err, 0, pop_context);
-			def.rebel_type(parsers::association_type::eq_default, rebel_text, err, 0, pop_context);
+			if(!rebel_text.empty()) {
+				def.rebel_type(parsers::association_type::eq_default, rebel_text, err, 0, pop_context);
+			}
 			def.size = parsers::parse_int(size_text, 0, err);
 			//def.rebel_type(parsers::association_type::eq_default, culture_text, err, 0, pop_context);
 			ppl.any_group(type_text, def, err, 0, pop_context);
 			ppl.finish(pop_context);
+		});
+	}
+}
+
+void parse_csv_province_history_file(sys::state& state, const char* start, const char* end, error_handler& err, scenario_building_context& context) {
+	province_history_file f;
+
+	auto cpos = start;
+	while(cpos < end) {
+		// province-id;owner;controller;core;trade_goods;life_rating;colonial;slave
+		cpos = parsers::parse_fixed_amount_csv_values<8>(cpos, end, ';', [&](std::string_view const* values) {
+			auto provid_text = parsers::remove_surrounding_whitespace(values[0]);
+			auto owner_text = parsers::remove_surrounding_whitespace(values[1]);
+			auto controller_text = parsers::remove_surrounding_whitespace(values[2]);
+			auto core_text = parsers::remove_surrounding_whitespace(values[3]);
+			auto trade_goods_text = parsers::remove_surrounding_whitespace(values[4]);
+			auto life_rating_text = parsers::remove_surrounding_whitespace(values[5]);
+			auto is_colonial_text = parsers::remove_surrounding_whitespace(values[6]);
+			auto is_slave_text = parsers::remove_surrounding_whitespace(values[7]);
+			if(provid_text.empty()) {
+				err.accumulated_errors += "Unspecified province id (" + err.file_name + ")\n";
+				return;
+			}
+			if(trade_goods_text.empty()) {
+				err.accumulated_errors += "Unspecified trade_goods (" + err.file_name + ")\n";
+				return;
+			}
+			auto p = context.original_id_to_prov_id_map[parsers::parse_int(provid_text, 0, err)];
+			province_file_context province_context{ context, p };
+			if(!owner_text.empty()) {
+				f.owner(parsers::association_type::eq_default, parsers::parse_tag(owner_text, 0, err), err, 0, province_context);
+			}
+			if(!controller_text.empty()) {
+				f.controller(parsers::association_type::eq_default, parsers::parse_tag(controller_text, 0, err), err, 0, province_context);
+			}
+			if(!core_text.empty()) {
+				f.add_core(parsers::association_type::eq_default, parsers::parse_tag(core_text, 0, err), err, 0, province_context);
+			}
+			f.trade_goods(parsers::association_type::eq_default, trade_goods_text, err, 0, province_context);
+			f.life_rating(parsers::association_type::eq_default, parsers::parse_int(life_rating_text, 0, err), err, 0, province_context);
+			f.colony(parsers::association_type::eq_default, parsers::parse_int(is_colonial_text, 0, err), err, 0, province_context);
+			f.is_slave(parsers::association_type::eq_default, parsers::parse_int(is_slave_text, 0, err), err, 0, province_context);
 		});
 	}
 }

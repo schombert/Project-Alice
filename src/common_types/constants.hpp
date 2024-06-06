@@ -163,8 +163,8 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
-constexpr inline float ui_scales[] = {0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
-constexpr inline uint32_t ui_scales_count = 8;
+constexpr inline float ui_scales[] = {0.25f, 0.30f, 0.35f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
+constexpr inline uint32_t ui_scales_count = 12;
 
 enum class autosave_frequency : uint8_t {
 	none = 0,
@@ -185,7 +185,9 @@ enum class map_label_mode : uint8_t {
 enum class map_zoom_mode : uint8_t {
 	panning = 0,
 	inverted = 1,
-	centered = 2
+	centered = 2,
+	to_cursor = 3,
+	away_from_cursor = 4,
 };
 
 enum class map_vassal_color_mode : uint8_t {
@@ -299,6 +301,8 @@ enum class message_setting_type : uint8_t {
 	army_built = 98, // added
 	navy_built = 99, // added
 	bankruptcy = 100,
+	entered_automatic_alliance = 101,
+	chat_message = 102,
 	count = 128
 };
 
@@ -375,7 +379,9 @@ enum class message_base_type : uint8_t {
 	army_built = 69, // added
 	navy_built = 70, // added
 	bankruptcy = 71,
-	count = 72
+	entered_automatic_alliance = 72,
+	chat_message = 73,
+	count = 74
 };
 
 struct msg_setting_entry {
@@ -496,6 +502,8 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::army_built,				message_setting_type::count,				message_setting_type::count}, //army_built = 69, // added
 	msg_setting_entry{ message_setting_type::navy_built,				message_setting_type::count,				message_setting_type::count}, //navy_built = 70, // added
 	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
+	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
+	msg_setting_entry{ message_setting_type::chat_message, message_setting_type::count, message_setting_type::count },//chat_message = 73,
 };
 
 namespace  message_response {
@@ -526,8 +534,22 @@ enum class network_mode_type {
 	host
 };
 
+enum class color_blind_mode {
+	none,
+	protan, //lack red
+	deutan, //lack green
+	tritan, //lack blue
+	achroma, //black and white
+};
 
 constexpr int32_t max_event_options = 8;
+constexpr uint32_t max_languages = 64;
+
+enum save_type : uint8_t {
+	normal,
+	autosave,
+	bookmark
+};
 
 } // namespace sys
 

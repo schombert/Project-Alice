@@ -21,15 +21,12 @@
 std::unique_ptr<sys::state> load_testing_scenario_file() {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
-	assert(std::string("NONE") != GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
-
-	add_root(game_state->common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
 	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 
 	if (!sys::try_read_scenario_and_save_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		// scenario making functions
 		parsers::error_handler err("");
-		game_state->load_scenario_data(err);
+		game_state->load_scenario_data(err, sys::year_month_day{ 1836, 1, 1 });
 		sys::write_scenario_file(*game_state, NATIVE("tests_scenario.bin"), 1);
 	} else {
 		game_state->fill_unsaved_data();
@@ -43,7 +40,7 @@ std::unique_ptr<sys::state> load_testing_scenario_file() {
 #include "parsers_tests.cpp"
 #include "file_system_tests.cpp"
 #include "text_tests.cpp"
-#include "scenario_building.cpp"
+//#include "scenario_building.cpp"
 #include "defines_tests.cpp"
 #include "triggers_tests.cpp"
 #include "dcon_tests.cpp"

@@ -27,7 +27,7 @@ The second group of functions are those that are designed as customization point
 - `virtual message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept` : this is the event for a right mouse click
 - `virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept` : This message is unusual in that it is not massed down through the ui hierarchy. Instead it is sent directly to the element pointed to by the `element_base* drag_target` member of `ui_state` (a member of `sys::state`). Elements typically ask to receive drag events by setting this pointer as part of their response to a left mouse button event. The old x and y coordinates sent as parameters are the previous position of the mouse. Comparing these to the current values will tell you how much the mouse has been dragged.
 - `virtual message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept` : this is the event for a keypress
-- `virtual void on_text(sys::state& state, char ch) noexcept` : This message works like `on_drag` in that it is sent only to the `edit_target` if any (and when the `edit_target` is set, `on_key_down` messages will not be sent).
+- `virtual void on_text(sys::state& state, char32_t ch) noexcept` : This message works like `on_drag` in that it is sent only to the `edit_target` if any (and when the `edit_target` is set, `on_key_down` messages will not be sent).
 - `virtual message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept` : this is the event triggered by the mouse scroll wheel.
 - `virtual void on_update(sys::state& state) noexcept` : This event is sent to every visible ui element in the ui hierarchy to allow them to update their state when the game state is updated. It is also triggered when the ui element becomes visible after being hidden to populate its contents in those situations.
 - `virtual message_result get(sys::state& state, Cyto::Any& payload) noexcept` : See below
@@ -173,6 +173,7 @@ Represents an element that can be typed into, by default it handles all of the u
 - `virtual void edit_box_down(sys::state &state) noexcept` : Called when the `<Down Arrow>` key is pressed.
 - `virtual void edit_box_esc(sys::state &state) noexcept` : Called when the `<Escape>` key is pressed.
 - `virtual void edit_box_backtick(sys::state &state) noexcept` : Called when the `<Backtick>` key is pressed.
+- `virtual void edit_box_slash(sys::state &state) noexcept` : Called when the `<Back slash>`  key is pressed.
 - `virtual void edit_index_position(sys::state &state, int32_t index) noexcept` : Called when the index position is modified; for example, `<Left Arrow>` or `<Right Arrow>` were pressed, and the handler made them go -1 or +1 in the current index, so it will call this function.
 
 #### `tinted_image_element_base`
@@ -260,7 +261,7 @@ for(auto& txt : internal_layout.contents) {
 		ogl::color_modification::none,
 		float(x) + txt.x, float(y + txt.y),
 		float(font_size),
-		get_text_color(txt.color),
+		get_text_color(state, txt.color),
 		state.font_collection.fonts[font_id - 1]
 	);
 }

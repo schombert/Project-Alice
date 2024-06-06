@@ -64,10 +64,6 @@ bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_inst
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
-float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
-float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
-float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);
-float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id);
 float rgo_maximum_employment(sys::state& state, dcon::province_id id);
 float rgo_employment(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::province_id id);

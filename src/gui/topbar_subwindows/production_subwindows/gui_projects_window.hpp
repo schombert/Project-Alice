@@ -63,13 +63,19 @@ protected:
 class production_project_invest_button : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
-		set_visible(state, false);
+		disabled = true;
 	}
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
-			parent->impl_get(state, payload);
-		}
+		//if(parent) {
+		//	Cyto::Any payload = element_selection_wrapper<production_action>{production_action{production_action::investment_window}};
+		//	parent->impl_get(state, payload);
+		//}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_domestic_investment_button");
 	}
 };
 

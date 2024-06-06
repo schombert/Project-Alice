@@ -66,14 +66,6 @@ inline uint32_t get_ui_color(sys::state& state, dcon::pop_satisfaction_wrapper_i
 
 namespace ui {
 
-
-class nation_actual_stockpile_spending_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_stockpile_filling_spending(state, state.local_player_nation)));
-	}
-};
-
 class nation_gold_income_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -166,7 +158,7 @@ public:
 			auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
 
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{ total * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_percentage{ total });
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "admin_explain_2", m);
 			text::close_layout_box(contents, box);
@@ -179,15 +171,90 @@ public:
 			auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
 
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val,
-					text::fp_two_places{ (from_issues + state.defines.max_bureaucracy_percentage) * 100.0f });
-			text::add_to_substitution_map(m, text::variable_type::x,
-					text::fp_two_places{ state.defines.max_bureaucracy_percentage * 100.0f });
-			text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{ from_issues * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_percentage{ (from_issues + state.defines.max_bureaucracy_percentage) });
+			text::add_to_substitution_map(m, text::variable_type::x, text::fp_percentage{ state.defines.max_bureaucracy_percentage });
+			text::add_to_substitution_map(m, text::variable_type::y, text::fp_percentage{ from_issues });
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "admin_explain_3", m);
 			text::close_layout_box(contents, box);
 		}
+	}
+};
+
+template<culture::pop_strata Strata>
+class satisfaction_graph : public line_graph {
+public:
+	satisfaction_graph() : line_graph(32) { }
+
+	void on_create(sys::state& state) noexcept override {
+		base_data.position.x -= 25;
+		base_data.size.x *= 2;
+		base_data.size.y *= 2;
+
+		is_coloured = true;
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(parent == nullptr)
+			return;
+
+		float min = 0.f;
+
+		float max = 0.f;
+		for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+
+			for(auto pop_loc : prov.get_province().get_pop_location()) {
+				auto pop_id = pop_loc.get_pop();
+				auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+				auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+
+				max += pop_size;
+			}
+		}
+
+		std::vector<float> datapoints(count);
+
+		float integral = 0.f;
+		float total_area = 0.f;
+
+		for(uint32_t i = 0; i < count; ++i) {
+			float cutoff = (float)i / count + 0.01f;
+			float value = 0.f;
+
+			for(auto prov : state.world.nation_get_province_ownership(state.local_player_nation)) {
+
+				for(auto pop_loc : prov.get_province().get_pop_location()) {
+					auto pop_id = pop_loc.get_pop();
+					auto pop_strata = state.world.pop_type_get_strata(state.world.pop_get_poptype(pop_id));
+					auto pop_size = pop_strata == uint8_t(Strata) ? state.world.pop_get_size(pop_id) : 0.f;
+
+					float total =
+						pop_id.get_luxury_needs_satisfaction()
+						+ pop_id.get_everyday_needs_satisfaction()
+						+ pop_id.get_life_needs_satisfaction();
+
+					if(total / 3.f >= cutoff)
+						value += pop_size;
+
+					integral += total / 3.f * pop_size;
+					total_area += pop_size;
+				}
+			}
+
+			datapoints[i] = value;
+		}
+
+		float area_ratio = integral / (total_area + 0.0001f);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::achroma) {
+			r = 0.f;
+			g = 0.f;
+			b = 0.f;
+		} else {
+			r = 1.f - area_ratio * 0.5f;
+			g = std::sqrt(area_ratio);
+			b = std::sqrt(area_ratio) * 0.8f;
+		}
+		set_data_points(state, datapoints, min, max);
 	}
 };
 
@@ -275,6 +342,14 @@ enum class budget_slider_target : uint8_t {
 	tariffs,
 	domestic_investment,
 	raw,
+	//
+	overseas,
+	stockpile_filling,
+	diplomatic_interest,
+	interest,
+	subsidies,
+	gold_income,
+	//
 	target_count
 };
 
@@ -350,7 +425,6 @@ public:
 					auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(0 + first_child.index()));
 					auto ch_res = make_element_by_type<scrollbar_left>(state, child_tag);
 					left = ch_res.get();
-					left->hold_continous = true;
 					add_child_to_back(std::move(ch_res));
 
 					settings.buttons_size = settings.vertical ? left->base_data.size.y : left->base_data.size.x;
@@ -366,7 +440,6 @@ public:
 					auto ch_res = make_element_by_type<scrollbar_right>(state, child_tag);
 					//ui::element_base* test = ch_res.get();
 					right = ch_res.get();
-					right->hold_continous = true;
 					add_child_to_back(std::move(ch_res));
 
 					if(step_size::twenty_five == step)
@@ -418,9 +491,8 @@ public:
 			}
 			send(state, parent, budget_slider_signal{ SliderTarget, amount });
 		}
-		if(state.ui_state.drag_target == nullptr && state.ui_state.left_mouse_hold_target != left && state.ui_state.left_mouse_hold_target != right) {
+		if(state.ui_state.drag_target != slider)
 			commit_changes(state);
-		}
 	}
 
 	void on_update(sys::state& state) noexcept final {
@@ -518,11 +590,11 @@ public:
 			max_tariff = std::max(min_tariff, max_tariff);
 
 			mutable_scrollbar_settings new_settings;
-			new_settings.lower_value = -100;
+			new_settings.lower_value = 0;
 			new_settings.upper_value = 100;
 			new_settings.using_limits = true;
-			new_settings.lower_limit = std::clamp(min_tariff, -100, 100);
-			new_settings.upper_limit = std::clamp(max_tariff, -100, 100);
+			new_settings.lower_limit = std::clamp(min_tariff, 0, 100);
+			new_settings.upper_limit = std::clamp(max_tariff, 0, 100);
 			change_settings(state, new_settings);
 		} break;
 		case budget_slider_target::domestic_investment:
@@ -650,6 +722,10 @@ class budget_poor_tax_slider : public budget_slider<budget_slider_target::poor_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_poor_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -665,6 +741,10 @@ class budget_middle_tax_slider : public budget_slider<budget_slider_target::midd
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_middle_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -680,6 +760,10 @@ class budget_rich_tax_slider : public budget_slider<budget_slider_target::rich_t
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_rich_tax(n) });
 		text::close_layout_box(contents, box);
+
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tax_efficiency, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tax, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tax, true);
 	}
 };
 
@@ -884,21 +968,27 @@ class budget_construction_stockpile_slider : public budget_slider<budget_slider_
 				text::close_layout_box(contents, box);
 			}
 		}
-		text::add_line(state, contents, "alice_spending_total");
 		uint32_t total_commodities = state.world.commodity_size();
+		bool is_spending = false;
 		for(uint32_t i = 1; i < total_commodities; ++i) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
-			auto cost = state.world.commodity_get_current_price(cid);
-			auto amount = total[i];
-			if(amount > 0.f) {
-				text::substitution_map m;
-				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
-				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
-				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
-				auto box = text::open_layout_box(contents, 0);
-				text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
-				text::close_layout_box(contents, box);
+			is_spending = is_spending || (total[i] > 0.f);
+		}
+		if(is_spending) {
+			text::add_line(state, contents, "alice_spending_total");
+			for(uint32_t i = 1; i < total_commodities; ++i) {
+				dcon::commodity_id cid{ dcon::commodity_id::value_base_t(i) };
+				auto cost = state.world.commodity_get_current_price(cid);
+				auto amount = total[i];
+				if(amount > 0.f) {
+					text::substitution_map m;
+					text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+					text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ cost });
+					text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
+					text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ cost * amount });
+					auto box = text::open_layout_box(contents, 0);
+					text::localised_format_box(state, contents, box, "alice_spending_commodity", m);
+					text::close_layout_box(contents, box);
+				}
 			}
 		}
 	}
@@ -946,6 +1036,8 @@ class budget_social_spending_slider : public budget_slider<budget_slider_target:
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_social_spending(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_social_spending, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_social_spending, true);
 	}
 };
 
@@ -961,6 +1053,8 @@ class budget_military_spending_slider : public budget_slider<budget_slider_targe
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_military_spending(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_military_spending, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_military_spending, true);
 	}
 };
 
@@ -976,6 +1070,9 @@ class budget_tariff_slider : public budget_slider<budget_slider_target::tariffs,
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_single_sub_box(state, contents, box, "alice_budget_setting_percent", text::variable_type::perc, text::int_percentage{ state.world.nation_get_tariffs(n) });
 		text::close_layout_box(contents, box);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::tariff_efficiency_modifier, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::min_tariff, true);
+		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::max_tariff, true);
 	}
 };
 
@@ -985,9 +1082,9 @@ private:
 	std::array<float, size_t(budget_slider_target::target_count)> multipliers;
 
 public:
-	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
+	bool expense = false;
 
-	bool color_result = false;
+	virtual void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept { }
 
 	void on_create(sys::state& state) noexcept override {
 		color_text_element::on_create(state);
@@ -1003,27 +1100,134 @@ public:
 		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i)
 			total += values[i] * multipliers[i];
 
-		if(color_result) {
-			if(total < 0.0f) {
-				color = text::text_color::dark_red;
-				set_text(state, text::format_money(total));
-			} else if(total > 0.0f) {
-				color = text::text_color::dark_green;
-				set_text(state, std::string("+") + text::format_money(total));
-			} else {
-				color = text::text_color::black;
-				set_text(state, text::format_money(total));
-			}
+		if(expense)
+			total = -total;
+
+		if(total < 0.0f) {
+			color = text::text_color::dark_red;
+			set_text(state, text::format_money(total)); //automatically adds a - when negative
+		} else if(total > 0.0f) {
+			color = text::text_color::dark_green;
+			set_text(state, text::format_money(total));
 		} else {
+			color = text::text_color::black;
 			set_text(state, text::format_money(total));
 		}
-
-
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		put_values(state, values);
 		apply_multipliers(state);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto box = text::open_layout_box(contents, 0);
+
+		float total = 0.f;
+		float total_exp = 0.f;
+		float total_inc = 0.f;
+		for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+			float v = values[i] * multipliers[i];
+			if(expense)
+				v = -v;
+			if(v < 0.f)
+				total_exp += v;
+			else
+				total_inc += v;
+			total += v;
+		}
+		if(total_inc != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_inc", text::variable_type::value, text::fp_currency{ total_inc });
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+				float v = values[i] * multipliers[i];
+				if(expense)
+					v = -v;
+				if(v > 0.f) {
+					switch(budget_slider_target(i)) {
+					case budget_slider_target::poor_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_1", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::middle_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_2", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::rich_tax:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_3", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::tariffs:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_4", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::gold_income:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_17", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::diplomatic_interest:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_16", text::variable_type::value, text::fp_currency{ v });
+						break;
+					default:
+						break;
+					}
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+		}
+		if(total_exp != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_exp", text::variable_type::value, text::fp_currency{ total_exp });
+			text::add_line_break_to_layout_box(state, contents, box);
+			for(uint8_t i = 0; i < uint8_t(budget_slider_target::target_count); ++i) {
+				float v = values[i] * multipliers[i];
+				if(expense)
+					v = -v;
+				if(v < 0.f) {
+					switch(budget_slider_target(i)) {
+					case budget_slider_target::army_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_5", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::navy_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_6", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::construction_stock:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_7", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::education:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_8", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::admin:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_9", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::social:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_10", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::military:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_11", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::domestic_investment:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_12", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::overseas:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_13", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::stockpile_filling:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_14", text::variable_type::value, text::fp_currency{ v });
+						break;
+					case budget_slider_target::subsidies:
+						text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_15", text::variable_type::value, text::fp_currency{ v });
+						break;
+					default:
+						break;
+					}
+					text::add_line_break_to_layout_box(state, contents, box);
+				}
+			}
+		}
+		if(total != 0.f) {
+			text::localised_single_sub_box(state, contents, box, "alice_budget_scaled_net", text::variable_type::value, text::fp_currency{ total });
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		text::close_layout_box(contents, box);
 	}
 
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -1035,6 +1239,14 @@ public:
 			return message_result::consumed;
 		}
 		return message_result::unseen;
+	}
+};
+
+class budget_actual_stockpile_spending_text : public budget_scaled_monetary_value_text {
+public:
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::stockpile_filling)] =
+			economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
 	}
 };
 
@@ -1056,10 +1268,11 @@ public:
 	}
 };
 
-class budget_overseas_spending_text : public simple_text_element_base {
+class budget_overseas_spending_text : public budget_scaled_monetary_value_text {
 public:
-	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::format_money(economy::estimate_overseas_penalty_spending(state, state.local_player_nation)));
+	void put_values(sys::state& state, std::array<float, size_t(budget_slider_target::target_count)>& vals) noexcept override {
+		vals[uint8_t(budget_slider_target::overseas)] =
+			economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
 	}
 };
 
@@ -1101,7 +1314,7 @@ public:
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
 		vals[uint8_t(budget_slider_target::rich_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 	}
 };
 
@@ -1119,14 +1332,13 @@ public:
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
 		vals[uint8_t(budget_slider_target::military)] =
 				economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] = 0;
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_domestic_investment(state, state.local_player_nation)
+		vals[uint8_t(budget_slider_target::domestic_investment)] = economy::estimate_domestic_investment(state, state.local_player_nation)
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_subsidy_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += economy::interest_payment(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::subsidies)] = economy::estimate_subsidy_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::overseas)] = economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::stockpile_filling)] = economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::interest)] = economy::interest_payment(state, state.local_player_nation);
 	}
 };
 
@@ -1140,7 +1352,7 @@ public:
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::middle);
 		vals[uint8_t(budget_slider_target::rich_tax)] =
 				economy::estimate_tax_income_by_strata(state, state.local_player_nation, culture::pop_strata::rich);
-		vals[uint8_t(budget_slider_target::raw)] = economy::estimate_gold_income(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::gold_income)] = economy::estimate_gold_income(state, state.local_player_nation);
 
 		// spend
 		vals[uint8_t(budget_slider_target::construction_stock)] =
@@ -1148,21 +1360,18 @@ public:
 		vals[uint8_t(budget_slider_target::army_stock)] = -economy::estimate_land_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::navy_stock)] = -economy::estimate_naval_spending(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::social)] = -economy::estimate_social_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::education)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
-		vals[uint8_t(budget_slider_target::admin)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
-		vals[uint8_t(budget_slider_target::military)] =
-				-economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_subsidy_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] += -economy::estimate_domestic_investment(state, state.local_player_nation)
+		vals[uint8_t(budget_slider_target::education)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education);
+		vals[uint8_t(budget_slider_target::admin)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::administration);
+		vals[uint8_t(budget_slider_target::military)] = -economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military);
+		vals[uint8_t(budget_slider_target::subsidies)] = -economy::estimate_subsidy_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::overseas)] = -economy::estimate_overseas_penalty_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::stockpile_filling)] = -economy::estimate_stockpile_filling_spending(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::domestic_investment)] = -economy::estimate_domestic_investment(state, state.local_player_nation)
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f
 			* state.world.nation_get_domestic_investment_spending(state.local_player_nation) / 100.0f;
 		// balance
-		vals[uint8_t(budget_slider_target::raw)] += economy::estimate_diplomatic_balance(state, state.local_player_nation);
-		vals[uint8_t(budget_slider_target::raw)] -= economy::interest_payment(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::diplomatic_interest)] = economy::estimate_diplomatic_balance(state, state.local_player_nation);
+		vals[uint8_t(budget_slider_target::interest)] = -economy::interest_payment(state, state.local_player_nation);
 		vals[uint8_t(budget_slider_target::tariffs)] = economy::estimate_tariff_income(state, state.local_player_nation);
 	}
 };
@@ -1639,15 +1848,13 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto win1337 = make_element_by_type<budget_take_loan_window>(state,
-				state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
 		budget_take_loan_win = win1337.get();
 		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
-		auto win101 = make_element_by_type<budget_repay_loan_window>(state,
-				state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
 		budget_repay_loan_win = win101.get();
 		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
@@ -1669,15 +1876,22 @@ public:
 			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_value")->second.definition);
 			add_child_to_front(std::move(elm));
 		}
-
 		set_visible(state, false);
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_budget") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "tariff_mid") {
+			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
-			return make_element_by_type<budget_tariff_percentage_text>(state, id);
+			auto ptr = make_element_by_type<budget_tariff_percentage_text>(state, id);
+			ptr->base_data.position.x += int16_t(10); //nudge
+			return ptr;
 		} else if(name == "total_funds_val") {
 			return make_element_by_type<nation_budget_funds_text>(state, id);
 		} else if(name == "national_bank_val") {
@@ -1703,43 +1917,55 @@ public:
 		} else if(name == "debt_listbox") {
 			return make_element_by_type<debt_listbox>(state, id);
 		} else if(name == "chart_0") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::poor>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::poor>>(state, id);
 		} else if(name == "chart_1") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::middle>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::middle>>(state, id);
 		} else if(name == "chart_2") {
-			return make_element_by_type<pop_satisfaction_piechart<culture::pop_strata::rich>>(state, id);
+			return make_element_by_type<satisfaction_graph<culture::pop_strata::rich>>(state, id);
+		} else if(name == "overlay_0" || name == "overlay_1" || name == "overlay_2") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "nat_stock_val") {
-			return make_element_by_type<nation_actual_stockpile_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_actual_stockpile_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "nat_stock_est") {
-			return make_element_by_type<budget_estimated_stockpile_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_estimated_stockpile_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "mil_cost_val") {
-			return make_element_by_type<budget_military_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_military_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "overseas_cost_val") {
-			return make_element_by_type<budget_overseas_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_overseas_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "tariff_val") {
 			return make_element_by_type<budget_tariff_income_text>(state, id);
 		} else if(name == "gold_inc") {
 			return make_element_by_type<nation_gold_income_text>(state, id);
 		} else if(name == "tax_0_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>(
-					state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::poor, budget_slider_target::poor_tax>>( state, id);
 		} else if(name == "tax_1_inc") {
-			return make_element_by_type<
-					budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::middle, budget_slider_target::middle_tax>>(state, id);
 		} else if(name == "tax_2_inc") {
-			return make_element_by_type< budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>(
-					state, id);
+			return make_element_by_type<budget_stratified_tax_income_text<culture::pop_strata::rich, budget_slider_target::rich_tax>>( state, id);
 		} else if(name == "exp_val_0") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>(
-					state, id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::education, budget_slider_target::education>>( state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_1") {
-			return make_element_by_type< budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(
-					state, id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::administration, budget_slider_target::admin>>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_2") {
-			return make_element_by_type<budget_social_spending_text>(state, id);
+			auto ptr = make_element_by_type<budget_social_spending_text>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "exp_val_3") {
-			return make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state,
-					id);
+			auto ptr = make_element_by_type<budget_expenditure_text<culture::income_type::military, budget_slider_target::military>>(state, id);
+			ptr->expense = true;
+			return ptr;
 		} else if(name == "admin_efficiency") {
 			return make_element_by_type<nation_administrative_efficiency_text>(state, id);
 		} else if(name == "interest_val") {
@@ -1751,11 +1977,11 @@ public:
 		} else if(name == "total_inc") {
 			return make_element_by_type<budget_income_projection_text>(state, id);
 		} else if(name == "total_exp") {
-			return make_element_by_type<budget_expenditure_projection_text>(state, id);
-		} else if(name == "balance") {
-			auto ptr = make_element_by_type<budget_balance_projection_text>(state, id);
-			ptr->color_result = true;
+			auto ptr = make_element_by_type<budget_expenditure_projection_text>(state, id);
+			ptr->expense = true;
 			return ptr;
+		} else if(name == "balance") {
+			return make_element_by_type<budget_balance_projection_text>(state, id);
 		} else if(name == "tax_0_slider") {
 			return make_element_by_type<budget_poor_tax_slider>(state, id);
 		} else if(name == "tax_1_slider") {
@@ -1817,6 +2043,8 @@ public:
 				move_child_to_front(budget_repay_loan_win);
 			}
 			return message_result::consumed;
+		} else if(payload.holds_type<budget_slider_signal>()) {
+			impl_set(state, payload);
 		}
 
 		return message_result::unseen;

@@ -103,6 +103,70 @@ void autosave_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void language_left::button_action(sys::state& state) noexcept {
+	uint32_t i = state.user_settings.current_language - 1;
+	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
+		--i;
+		i %= sys::max_languages;
+	}
+	state.user_settings.current_language = i;
+	//
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
+	//
+	send(state, parent, notify_setting_update{});
+}
+void language_left::on_update(sys::state& state) noexcept {
+
+}
+void language_right::button_action(sys::state& state) noexcept {
+	uint32_t i = state.user_settings.current_language + 1;
+	while(state.languages[i % sys::max_languages].encoding == text::language_encoding::none && i != state.user_settings.current_language) {
+		++i;
+		i %= sys::max_languages;
+	}
+	state.user_settings.current_language = i;
+	//
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
+	//
+	send(state, parent, notify_setting_update{});
+}
+void language_right::on_update(sys::state& state) noexcept {
+
+}
+void language_display::on_update(sys::state& state) noexcept {
+	auto const& code = state.languages[state.user_settings.current_language].iso_code;
+	std::string str;
+	str.resize(code.size());
+	std::copy(code.begin(), code.end(), str.begin());
+	set_text(state, text::produce_simple_string(state, "language_" + str));
+}
+
 void map_zoom_mode_left::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
 	if(scale_index > 0) {
@@ -116,14 +180,14 @@ void map_zoom_mode_left::on_update(sys::state& state) noexcept {
 }
 void map_zoom_mode_right::button_action(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
-	if(scale_index < 2) {
+	if(scale_index < 4) {
 		state.user_settings.zoom_mode = sys::map_zoom_mode(scale_index + 1);
 		send(state, parent, notify_setting_update{});
 	}
 }
 void map_zoom_mode_right::on_update(sys::state& state) noexcept {
 	auto scale_index = uint8_t(state.user_settings.zoom_mode);
-	disabled = (scale_index >= 2);
+	disabled = (scale_index >= 4);
 }
 void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 	switch(state.user_settings.zoom_mode) {
@@ -135,6 +199,12 @@ void map_zoom_mode_display::on_update(sys::state& state) noexcept {
 		break;
 	case sys::map_zoom_mode::centered:
 		set_text(state, text::produce_simple_string(state, "zoom_mode_centered"));
+		break;
+	case sys::map_zoom_mode::to_cursor:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_to_cursor"));
+		break;
+	case sys::map_zoom_mode::away_from_cursor:
+		set_text(state, text::produce_simple_string(state, "zoom_mode_away_from_cursor"));
 		break;
 	default:
 		set_text(state, "???");
@@ -161,6 +231,34 @@ void spoilers_checkbox::button_action(sys::state& state) noexcept {
 }
 bool spoilers_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.spoilers;
+}
+void wasd_for_map_movement_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.wasd_for_map_movement = !state.user_settings.wasd_for_map_movement;
+	send(state, parent, notify_setting_update{});
+}
+bool wasd_for_map_movement_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.wasd_for_map_movement;
+}
+void dm_popup_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.diplomatic_message_popup = !state.user_settings.diplomatic_message_popup;
+	send(state, parent, notify_setting_update{});
+}
+bool dm_popup_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.diplomatic_message_popup;
+}
+void mute_on_focus_lost_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.mute_on_focus_lost = !state.user_settings.mute_on_focus_lost;
+	send(state, parent, notify_setting_update{});
+}
+bool mute_on_focus_lost_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.mute_on_focus_lost;
+}
+void zoom_speed_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
+	state.user_settings.zoom_speed = float(v);
+	send(state, parent, notify_setting_update{});
+}
+void zoom_speed_scrollbar::on_update(sys::state& state) noexcept {
+	update_raw_value(state, int32_t(state.user_settings.zoom_speed));
 }
 
 void fow_checkbox::on_create(sys::state& state) noexcept {
@@ -363,6 +461,57 @@ void vassal_color_display::on_update(sys::state& state) noexcept {
 	}
 }
 
+void color_blind_left::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.color_blind_mode);
+	if(index > 0) {
+		state.user_settings.color_blind_mode = sys::color_blind_mode(index - 1);
+		map_mode::update_map_mode(state);
+		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.rgos_root->impl_on_update(state);
+		state.ui_state.root->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void color_blind_left::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.color_blind_mode) == 0);
+}
+void color_blind_right::button_action(sys::state& state) noexcept {
+	auto index = uint8_t(state.user_settings.color_blind_mode);
+	if(index < 4) {
+		state.user_settings.color_blind_mode = sys::color_blind_mode(index + 1);
+		map_mode::update_map_mode(state);
+		state.ui_state.units_root->impl_on_update(state);
+		state.ui_state.rgos_root->impl_on_update(state);
+		state.ui_state.root->impl_on_update(state);
+		send(state, parent, notify_setting_update{});
+	}
+}
+void color_blind_right::on_update(sys::state& state) noexcept {
+	disabled = (uint8_t(state.user_settings.color_blind_mode) >= 4);
+}
+void color_blind_display::on_update(sys::state& state) noexcept {
+	switch(state.user_settings.color_blind_mode) {
+	case sys::color_blind_mode::none:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_none"));
+		break;
+	case sys::color_blind_mode::deutan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_deutan"));
+		break;
+	case sys::color_blind_mode::protan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_protan"));
+		break;
+	case sys::color_blind_mode::tritan:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_tritan"));
+		break;
+	case sys::color_blind_mode::achroma:
+		set_text(state, text::produce_simple_string(state, "color_blind_mode_achroma"));
+		break;
+	default:
+		set_text(state, "???");
+		break;
+	}
+}
+
 /*
 class autosave_left : public button_element_base {
 public:
@@ -428,9 +577,19 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
 	send(state, parent, notify_setting_update{});
 
-	state.ui_state.units_root->impl_on_reset_text(state);
-	state.ui_state.rgos_root->impl_on_reset_text(state);
-	state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
 
@@ -513,13 +672,13 @@ void interface_volume::on_update(sys::state& state) noexcept {
 	update_raw_value(state, int32_t(state.user_settings.interface_volume * 128.0f));
 }
 
-
+ //TODO: Perhaps add a tooltip of which next song is going to be played, or the queue of songs
 void music_player_left::button_action(sys::state& state) noexcept {
-	sound::play_new_track(state);
+	sound::play_next_track(state);
 	send(state, parent, notify_setting_update{});
 }
 void music_player_right::button_action(sys::state& state) noexcept {
-	sound::play_new_track(state);
+	sound::play_previous_track(state);
 	send(state, parent, notify_setting_update{});
 }
 void music_player_display::on_update(sys::state& state) noexcept {

@@ -109,6 +109,8 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_army_built", // army_built
 		"amsg_navy_built", // navy_built
 		"amsg_bankruptcy", //bankruptcy
+		"amsg_entered_automatic_alliance",//entered_automatic_alliance
+		"amsg_chat_message",//chat_message
 	};
 	return std::string{key_str[type]};
 }
@@ -272,12 +274,47 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(auto i = 0; i <= 100; ++i)
+		for(uint32_t i = 0; i <= 102; ++i)
 			row_contents.push_back(i);
 		update(state);
 	}
 };
 
+
+class message_preset_reset : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		sys::user_settings_s d{};
+		std::memcpy(state.user_settings.self_message_settings, d.self_message_settings, sizeof(d.self_message_settings));
+		std::memcpy(state.user_settings.other_message_settings, d.other_message_settings, sizeof(d.other_message_settings));
+		std::memcpy(state.user_settings.interesting_message_settings, d.interesting_message_settings, sizeof(d.interesting_message_settings));
+		send(state, parent, message_setting_changed_notification{});
+		state.game_state_updated.store(true, std::memory_order::release);
+	}
+};
+
+class message_preset_ai_only : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		for(uint32_t i = 0; i < uint32_t(sys::message_setting_type::count); i++) {
+			state.user_settings.self_message_settings[i] = sys::message_response::log;
+			state.user_settings.other_message_settings[i] = sys::message_response::ignore;
+			state.user_settings.interesting_message_settings[i] = sys::message_response::ignore;
+		}
+		send(state, parent, message_setting_changed_notification{});
+		state.game_state_updated.store(true, std::memory_order::release);
+	}
+};
+
+class message_notify_rebels_defeat : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		return state.user_settings.notify_rebels_defeat;
+	}
+	void button_action(sys::state& state) noexcept override {
+		state.user_settings.notify_rebels_defeat = !state.user_settings.notify_rebels_defeat;
+	}
+};
 
 class message_settings_window : public window_element_base {
 public:
@@ -302,6 +339,12 @@ public:
 			return make_element_by_type<opaque_element_base>(state, id);
 		} else if(name == "message_settings_items") {
 			return make_element_by_type<message_settings_listbox>(state, id);
+		} else if(name == "message_reset") {
+			return make_element_by_type<message_preset_reset>(state, id);
+		} else if(name == "message_spectator") {
+			return make_element_by_type<message_preset_ai_only>(state, id);
+		} else if(name == "message_notify_rebels_defeat_checkbox") {
+			return make_element_by_type<message_notify_rebels_defeat>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -350,6 +393,15 @@ protected:
 
 enum class message_settings_category : uint8_t {
 	all, combat, diplomacy, units, provinces, events, others, count
+};
+
+class message_log_close_button : public generic_close_button {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(state.ui_state.menubar_window)
+			state.ui_state.menubar_window->impl_on_update(state);
+		generic_close_button::button_action(state);
+	}
 };
 
 template<message_settings_category Filter>

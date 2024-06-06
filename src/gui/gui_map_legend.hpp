@@ -31,6 +31,13 @@ class map_legend_gradient_image : public image_element_base {
 		case map_mode::mode::growth:
 		case map_mode::mode::income:
 		case map_mode::mode::employment:
+		case map_mode::mode::life_needs:
+		case map_mode::mode::everyday_needs:
+		case map_mode::mode::luxury_needs:
+		case map_mode::mode::mobilization:
+		case map_mode::mode::officers:
+		case map_mode::mode::life_rating:
+		case map_mode::mode::clerk_to_craftsmen_ratio:
 			return 1;
 		case map_mode::mode::conciousness:
 		case map_mode::mode::militancy:
@@ -49,7 +56,7 @@ public:
 };
 class map_legend_gradient_max : public simple_text_element_base {
 	std::string get_gradient_max_from_mode(map_mode::mode v) {
-		return "lg_max_mapmode_" + std::to_string(uint32_t(v));
+		return "legend_max_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -58,7 +65,7 @@ public:
 };
 class map_legend_gradient_min : public simple_text_element_base {
 	std::string get_gradient_min_from_mode(map_mode::mode v) {
-		return "lg_min_mapmode_" + std::to_string(uint32_t(v));
+		return "legend_min_mapmode_" + std::to_string(uint32_t(v));
 	}
 public:
 	void on_update(sys::state& state) noexcept override {

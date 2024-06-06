@@ -121,9 +121,9 @@ public:
 		auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
 
 		if(!base_pop) {
-			text::add_line(state, contents, "alice_reinforce_rate_none");
+			text::add_line(state, contents, "reinforce_rate_none");
 		} else {
-			text::add_line(state, contents, "alice_x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
+			text::add_line(state, contents, "x_from_y", text::variable_type::x, state.world.pop_get_poptype(base_pop).get_name(), text::variable_type::y, state.world.pop_get_province_from_pop_location(base_pop));
 			text::add_line_break_to_layout(state, contents);
 
 			auto reg_range = state.world.pop_get_regiment_source(base_pop);
@@ -136,9 +136,9 @@ public:
 			auto a = state.world.regiment_get_army_from_army_membership(reg_id);
 			auto reinf = state.defines.pop_size_per_regiment * military::reinforce_amount(state, a);
 			if(reinf >= 2.0f) {
-				text::add_line(state, contents, "alice_reinforce_rate", text::variable_type::x, int64_t(reinf));
+				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
-				text::add_line(state, contents, "alice_reinforce_rate_none");
+				text::add_line(state, contents, "reinforce_rate_none");
 			}
 		}
 	}
@@ -165,7 +165,7 @@ enum class reorg_win_action : uint8_t {
 };
 
 template<class T>
-class reorg_unit_transfer_button : public shift_button_element_base {
+class reorg_unit_transfer_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
@@ -330,12 +330,28 @@ public:
 						listbox_left::row_contents.push_back(regi.get_regiment().id);
 					}
 				}
+				std::sort(listbox_left::row_contents.begin(), listbox_left::row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+					auto av = state.world.regiment_get_type(a).index();
+					auto bv = state.world.regiment_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			} else {
 				for(auto regi : fat.get_navy_membership()) {
 					if(auto result = std::find(begin(selectedunits), end(selectedunits), regi.get_ship().id); result == std::end(selectedunits)) {
 						listbox_left::row_contents.push_back(regi.get_ship().id);
 					}
 				}
+				std::sort(listbox_left::row_contents.begin(), listbox_left::row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+					auto av = state.world.ship_get_type(a).index();
+					auto bv = state.world.ship_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			}
 
 			listbox_left::update(state);
@@ -370,12 +386,28 @@ public:
 						listbox_right::row_contents.push_back(regi.get_regiment().id);
 					}
 				}
+				std::sort(listbox_right::row_contents.begin(), listbox_right::row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+					auto av = state.world.regiment_get_type(a).index();
+					auto bv = state.world.regiment_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			} else {
 				for(auto regi : fat.get_navy_membership()) {
 					if(auto result = std::find(begin(selectedunits), end(selectedunits), regi.get_ship().id); result != std::end(selectedunits)) {
 						listbox_right::row_contents.push_back(regi.get_ship().id);
 					}
 				}
+				std::sort(listbox_right::row_contents.begin(), listbox_right::row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+					auto av = state.world.ship_get_type(a).index();
+					auto bv = state.world.ship_get_type(b).index();
+					if(av != bv)
+						return av > bv;
+					else
+						return a.index() < b.index();
+				});
 			}
 
 			listbox_right::update(state);

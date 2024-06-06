@@ -6,17 +6,6 @@
 
 namespace ui {
 
-class picker_flag : public flag_button {
-public:
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		auto fat_id = dcon::fatten(state.world, retrieve<dcon::nation_id>(state, parent));
-		return fat_id.get_identity_from_identity_holder();
-	}
-	void button_action(sys::state& state) noexcept override {
-
-	}
-};
-
 class nation_picker_poptypes_chart : public piechart<dcon::pop_type_id> {
 protected:
 	void on_update(sys::state& state) noexcept override {
@@ -63,7 +52,7 @@ class nation_details_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			return make_element_by_type<picker_flag>(state, id);
+			return make_element_by_type<flag_button>(state, id);
 		} else if(name == "flag_overlay") {
 			return make_element_by_type<nation_flag_frame>(state, id);
 		} else if(name == "selected_nation_totalrank") {
@@ -143,10 +132,15 @@ public:
 struct save_item {
 	native_string file_name;
 	uint64_t timestamp = 0;
-	dcon::national_identity_id save_flag;
 	sys::date save_date;
+	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
+	std::string name = "fe_new_game";
+
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
 
 	bool operator==(save_item const& o) const {
 		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
@@ -165,8 +159,23 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
-		if(i->file_name == state.loaded_save_file)\
+		if(!i->is_new_game && i->file_name == state.loaded_save_file)
 			return;
+
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+		if(state.ui_state.request_window)
+			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
+		if(state.ui_state.msg_window)
+			static_cast<ui::message_window*>(state.ui_state.msg_window)->messages.clear();
+		if(state.ui_state.request_topbar_listbox)
+			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
+		if(state.ui_state.msg_log_window)
+			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
+		for(const auto& win : land_combat_end_popup::land_reports_pool)
+			win->set_visible(state, false);
+		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
+			win->set_visible(state, false);
+		ui::clear_event_windows(state);
 
 		state.network_state.save_slock.store(true, std::memory_order::release);
 		std::vector<dcon::nation_id> players;
@@ -179,14 +188,22 @@ public:
 		if(i->is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-				window::emit_error_message(msg, false);
+				ui::popup_error_window(state, "Scenario Error", msg);
 			} else {
 				loaded = true;
 			}
 		} else {
 			if(!sys::try_read_save_file(state, i->file_name)) {
 				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
-				window::emit_error_message(msg, false);
+				ui::popup_error_window(state, "Save Error", msg);
+				state.save_list_updated.store(true, std::memory_order::release); //update savefile list
+				//try loading save from scenario so we atleast have something to work on
+				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
+					auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+					ui::popup_error_window(state, "Scenario Error", msg2);
+				} else {
+					loaded = true;
+				}
 			} else {
 				loaded = true;
 			}
@@ -219,9 +236,13 @@ public:
 		}
 		/* Savefiles might load with new railroads, so for responsiveness we
 		   update whenever one is loaded. */
+		state.map_state.set_selected_province(dcon::province_id{});
+		state.map_state.unhandled_province_selection = true;
 		state.railroad_built.store(true, std::memory_order::release);
 		state.network_state.save_slock.store(false, std::memory_order::release);
 		state.game_state_updated.store(true, std::memory_order_release);
+
+		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
 	}
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
@@ -236,18 +257,17 @@ protected:
 public:
 	void button_action(sys::state& state) noexcept override { }
 
-
 	void on_update(sys::state& state) noexcept  override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		auto tag = i->save_flag;
 		auto gov = i->as_gov;
-		visible = !i->is_new_game;
+		visible = !i->is_new_game && !i->is_bookmark();
 
 		if(!visible)
 			return;
 
 		if(!bool(tag))
-			tag = state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id);
+			tag = state.national_definitions.rebel_id;
 
 		culture::flag_type ft = culture::flag_type::default_flag;
 		if(gov) {
@@ -297,6 +317,8 @@ public:
 		save_item* i = retrieve< save_item*>(state, parent);
 		if(i->is_new_game) {
 			set_text(state, text::produce_simple_string(state, "fe_new_game"));
+		} else if(i->is_bookmark()) {
+			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
 			auto name = i->as_gov ? state.world.national_identity_get_government_name(i->save_flag, i->as_gov) : state.world.national_identity_get_name(i->save_flag);
 			set_text(state, text::produce_simple_string(state, name));
@@ -312,10 +334,10 @@ public:
 	}
 };
 
-class save_game_item : public listbox_row_element_base<save_item> {
+class save_game_item : public listbox_row_element_base<std::shared_ptr<save_item>> {
 public:
 	void on_create(sys::state& state) noexcept override {
-		listbox_row_element_base<save_item>::on_create(state);
+		listbox_row_element_base<std::shared_ptr<save_item>>::on_create(state);
 		base_data.position.x += 9; // Nudge
 		base_data.position.y += 7; // Nudge
 	}
@@ -335,14 +357,14 @@ public:
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
 		if(payload.holds_type<save_item*>()) {
-			payload.emplace<save_item*>(&content);
+			payload.emplace<save_item*>(content.get());
 			return message_result::consumed;
 		}
-		return listbox_row_element_base<save_item>::get(state, payload);
+		return listbox_row_element_base<std::shared_ptr<save_item>>::get(state, payload);
 	}
 };
 
-class saves_listbox : public listbox_element_base<save_game_item, save_item> {
+class saves_listbox : public listbox_element_base<save_game_item, std::shared_ptr<save_item>> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "alice_savegameentry";
@@ -350,7 +372,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(save_item{ NATIVE(""), 0, dcon::national_identity_id{ }, sys::date(0), dcon::government_type_id{ }, true });
+		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
 
 		auto sdir = simple_fs::get_or_create_save_game_directory();
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -361,13 +383,15 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(save_item{ simple_fs::get_file_name(f), h.timestamp, h.tag, h.d, h.cgov, false });
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, std::string(h.save_name) }));
 				}
 			}
 		}
 
-		std::sort(row_contents.begin() + 1, row_contents.end(), [](save_item const& a, save_item const& b) {
-			return a.timestamp > b.timestamp;
+		std::sort(row_contents.begin() + 1, row_contents.end(), [](std::shared_ptr<save_item> const& a, std::shared_ptr<save_item> const& b) {
+			if(a->is_bookmark() != b->is_bookmark())
+				return a->is_bookmark();
+			return a->timestamp > b->timestamp;
 		});
 
 		update(state);
@@ -378,7 +402,7 @@ public:
 		base_data.size.x -= 20; //nudge
 		base_data.size.y += base_data.position.y;
 		base_data.position.y = 0;
-		listbox_element_base<save_game_item, save_item>::on_create(state);
+		listbox_element_base<save_game_item, std::shared_ptr<save_item>>::on_create(state);
 		update_save_list(state);
 	}
 
@@ -432,7 +456,7 @@ public:
 			ptr->base_data.position.y = 0; // Nudge
 			return ptr;
 		} else if(name == "playable_countries_flag") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 9; // Nudge
 			ptr->base_data.position.y = 1; // Nudge
 			return ptr;
@@ -573,6 +597,11 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
+			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+				if(state.map_state.get_zoom() < map::zoom_very_close)
+					state.map_state.zoom = map::zoom_very_close;
+				state.map_state.center_map_on_province(state, cap);
+			}
 			command::notify_start_game(state, state.local_player_nation);
 		}
 	}
@@ -604,7 +633,7 @@ public:
 			if(state.network_state.save_stream) {
 				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
 			} else {
-				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+				set_button_text(state, text::produce_simple_string(state, "ready"));
 			}
 			button_element_base::render(state, x, y);
 		} else {
@@ -640,10 +669,6 @@ public:
 
 class quit_game_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_exit"));
-	}
 	void button_action(sys::state& state) noexcept override {
 		window::close_window(state);
 	}
@@ -651,26 +676,35 @@ public:
 
 class multiplayer_status_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode_type::host) {
+			// on render
+		} else {
+			set_text(state, text::produce_simple_string(state, "ready"));
+		}
+	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
+			set_text(state, text::produce_simple_string(state, "ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
 					if(c.is_active() && c.playing_as == n) {
 						auto completed = c.total_sent_bytes - c.save_stream_offset;
 						auto total = c.save_stream_size;
-						float progress = (float(total) / float(completed));
-						if(progress < 1.f) {
-							text::substitution_map sub{};
-							text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
-							set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+						if(total > 0.f) {
+							float progress = float(completed) / float(total);
+							if(progress < 1.f) {
+								text::substitution_map sub{};
+								text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ progress });
+								set_text(state, text::produce_simple_string(state, text::resolve_string_substitution(state, "alice_status_stream", sub)));
+							}
 						}
+						break;
 					}
 				}
 			}
-		} else {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
 		}
 		simple_text_element_base::render(state, x, y);
 	}
@@ -699,7 +733,7 @@ class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::na
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			auto ptr = make_element_by_type<picker_flag>(state, id);
+			auto ptr = make_element_by_type<flag_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
@@ -770,22 +804,7 @@ public:
 
 class nation_alice_readme_text : public scrollable_text {
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
-		text::add_line(state, contents, "alice_info_box_1");
-		text::add_line(state, contents, "alice_info_box_2");
-		text::add_line(state, contents, "alice_info_box_3");
-		text::add_line(state, contents, "alice_info_box_4");
-		text::add_line(state, contents, "alice_info_box_5");
-		text::add_line(state, contents, "alice_info_box_6");
-		text::add_line(state, contents, "alice_info_box_7");
-		text::add_line(state, contents, "alice_info_box_8");
-		text::add_line(state, contents, "alice_info_box_9");
-		text::add_line(state, contents, "alice_info_box_10");
-		text::add_line(state, contents, "alice_info_box_11");
-		text::add_line(state, contents, "alice_info_box_12");
-		text::add_line(state, contents, "alice_info_box_13");
-		text::add_line(state, contents, "alice_info_box_14");
-		text::add_line(state, contents, "alice_info_box_15");
-		text::add_line(state, contents, "alice_info_box_16");
+		text::add_line(state, contents, "alice_readme");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "gc_desc");
 	}

@@ -16,25 +16,10 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 GLuint load_file_and_return_handle(native_string const& native_name, simple_fs::file_system const& fs, texture& asset_texture, bool keep_data);
 
 enum {
-	SOIL_FLAG_POWER_OF_TWO = 1,
-	SOIL_FLAG_MIPMAPS = 2,
 	SOIL_FLAG_TEXTURE_REPEATS = 4,
-	SOIL_FLAG_MULTIPLY_ALPHA = 8,
-	SOIL_FLAG_INVERT_Y = 16,
-	SOIL_FLAG_COMPRESS_TO_DXT = 32,
-	SOIL_FLAG_DDS_LOAD_DIRECT = 64,
-	SOIL_FLAG_NTSC_SAFE_RGB = 128,
-	SOIL_FLAG_CoCg_Y = 256,
-	SOIL_FLAG_TEXTURE_RECTANGLE = 512,
-	SOIL_FLAG_PVR_LOAD_DIRECT = 1024,
-	SOIL_FLAG_ETC1_LOAD_DIRECT = 2048,
-	SOIL_FLAG_GL_MIPMAPS = 4096,
-	SOIL_FLAG_SRGB_COLOR_SPACE = 8192,
-	SOIL_FLAG_NEAREST = 16384,
 };
 
-unsigned int SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, unsigned int buffer_length, unsigned int& width,
-		unsigned int& height, int flags);
+GLuint SOIL_direct_load_DDS_from_memory(unsigned char const* const buffer, uint32_t buffer_length, uint32_t& width, uint32_t& height, int soil_flags);
 
 class texture {
 	GLuint texture_handle = 0;

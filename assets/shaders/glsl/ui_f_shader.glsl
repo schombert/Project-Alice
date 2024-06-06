@@ -9,10 +9,12 @@ layout (location = 0) out vec4 frag_color;
 
 layout (binding = 0) uniform sampler2D texture_sampler;
 layout (binding = 1) uniform sampler2D secondary_texture_sampler;
+layout (binding = 2) uniform sampler2DArray texture_atlas_sampler;
 layout (location = 2) uniform vec4 d_rect;
 layout (location = 6) uniform float border_size;
 layout (location = 7) uniform vec3 inner_color;
 layout (location = 10) uniform vec4 subrect;
+layout (location = 18) uniform float atlas_index;
 
 layout (location = 11) uniform float gamma;
 vec4 gamma_correct(vec4 colour) {
@@ -21,7 +23,7 @@ vec4 gamma_correct(vec4 colour) {
 
 layout(index = 0) subroutine(font_function_class)
 vec4 border_filter(vec2 tc) {
-	vec4 color_in = texture(texture_sampler, tc);
+	vec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));
 	if(color_in.r > 0.5) {
 		return vec4(inner_color, 1.0);
 	} else if(color_in.r > 0.5 - border_size) {
@@ -35,7 +37,7 @@ vec4 border_filter(vec2 tc) {
 
 layout(index = 1) subroutine(font_function_class)
 vec4 color_filter(vec2 tc) {
-	vec4 color_in = texture(texture_sampler, tc);
+	vec4 color_in = texture(texture_atlas_sampler, vec3(tc, atlas_index));
 	float sm_val = smoothstep(0.5 - border_size / 2.0, 0.5 + border_size / 2.0, color_in.r);
 	return vec4(inner_color, sm_val);
 }
@@ -45,14 +47,20 @@ vec4 no_filter(vec2 tc) {
 	return texture(texture_sampler, tc);
 }
 
+layout(index = 3) subroutine(color_function_class)
+vec4 disabled_color(vec4 color_in) {
+	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;
+	return vec4(amount, amount, amount, color_in.a);
+}
+
+layout(index = 4) subroutine(color_function_class)
+vec4 enabled_color(vec4 color_in) {
+	return color_in;
+}
+
 layout(index = 5) subroutine(font_function_class)
 vec4 subsprite(vec2 tc) {
 	return texture(texture_sampler, vec2(tc.x * inner_color.y + inner_color.x, tc.y));
-}
-
-layout(index = 15) subroutine(font_function_class)
-vec4 subsprite_b(vec2 tc) {
-	return vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
 }
 
 layout(index = 6) subroutine(font_function_class)
@@ -103,18 +111,12 @@ vec4 barchart(vec2 tc) {
 
 layout(index = 11) subroutine(font_function_class)
 vec4 linegraph(vec2 tc) {
-	return mix(vec4(1.0, 0.0, 0.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0), tc.y);
+	return mix(vec4(inner_color.r, 0.0, inner_color.b, 1.0), vec4(0.0, inner_color.g, inner_color.b, 1.0), tc.y);
 }
 
-layout(index = 17) subroutine(font_function_class)
-vec4 linegraph_color(vec2 tc) {
-	return vec4(inner_color, 1.0);
-}
-
-layout(index = 3) subroutine(color_function_class)
-vec4 disabled_color(vec4 color_in) {
-	const float amount = (color_in.r + color_in.g + color_in.b) / 4.0;
-	return vec4(amount, amount, amount, color_in.a);
+layout(index = 12) subroutine(color_function_class)
+vec4 tint_color(vec4 color_in) {
+	return vec4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);
 }
 
 layout(index = 13) subroutine(color_function_class)
@@ -128,19 +130,19 @@ vec4 interactable_disabled_color(vec4 color_in) {
 	return vec4(amount + 0.1, amount + 0.1, amount + 0.1, color_in.a);
 }
 
-layout(index = 12) subroutine(color_function_class)
-vec4 tint_color(vec4 color_in) {
-	return vec4(color_in.r * inner_color.r, color_in.g * inner_color.g, color_in.b * inner_color.b, color_in.a);
-}
-
-layout(index = 4) subroutine(color_function_class)
-vec4 enabled_color(vec4 color_in) {
-	return color_in;
+layout(index = 15) subroutine(font_function_class)
+vec4 subsprite_b(vec2 tc) {
+	return vec4(inner_color, texture(texture_sampler, vec2(tc.x * subrect.y + subrect.x, tc.y * subrect.a + subrect.z)).a);
 }
 
 layout(index = 16) subroutine(color_function_class)
 vec4 alt_tint_color(vec4 color_in) {
 	return vec4(color_in.r * subrect.r, color_in.g * subrect.g, color_in.b * subrect.b, color_in.a);
+}
+
+layout(index = 17) subroutine(font_function_class)
+vec4 linegraph_color(vec2 tc) {
+	return vec4(inner_color, 1.0);
 }
 
 void main() {

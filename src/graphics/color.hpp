@@ -60,5 +60,9 @@ template<>
 inline uint32_t get_ui_color(sys::state& state, dcon::issue_option_id id) {
 	return ogl::color_from_hash(uint32_t(id.index()));
 }
+template<>
+inline uint32_t get_ui_color(sys::state& state, dcon::crime_id id) {
+	return ogl::color_from_hash(uint32_t(id.index()));
+}
 
 } // namespace ogl

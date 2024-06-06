@@ -28,10 +28,21 @@ public:
 	}
 };
 
-class cb_wargoal_button : public button_element_base {
+class cb_wargoal_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
+			? military::truce_break_cb_infamy(state, content)
+			: military::cb_infamy(state, content);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			color = sys::pack_color(255, 196, 196);
+		} else {
+			color = sys::pack_color(255, 255, 255);
+		}
+
 		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, content).get_name()));
 		if(parent) {
 			auto selected = retrieve<dcon::cb_type_id>(state, parent->parent);
@@ -41,8 +52,25 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		const dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
-		Cyto::Any newpayload = element_selection_wrapper<dcon::cb_type_id>{ content };
-		parent->impl_get(state, newpayload);
+		send(state, parent, element_selection_wrapper<dcon::cb_type_id>{ content });
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::cb_type_id content = retrieve<dcon::cb_type_id>(state, parent);
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto cb_infamy = military::has_truce_with(state, state.local_player_nation, target)
+			? military::truce_break_cb_infamy(state, content)
+			: military::cb_infamy(state, content);
+		if(state.world.nation_get_infamy(state.local_player_nation) + cb_infamy >= state.defines.badboy_limit) {
+			text::add_line(state, contents, "alice_tt_wg_infamy_limit");
+		}
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_conditions_satisfied(state, state.local_player_nation, target, content));
+		text::add_line(state, contents, "alice_wg_usage_trigger");
+		ui::trigger_description(state, contents, state.world.cb_type_get_can_use(content), trigger::to_generic(target), trigger::to_generic(state.local_player_nation), trigger::to_generic(target));
 	}
 };
 
@@ -96,21 +124,22 @@ public:
 class diplomacy_make_cb_desc : public simple_multiline_body_text {
 public:
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept override {
-
 		auto fat_cb = dcon::fatten(state.world, retrieve<dcon::cb_type_id>(state, parent));
-
 		auto box = text::open_layout_box(contents);
-
 		auto fab_time = std::ceil(100.0f / (state.defines.cb_generation_base_speed * fat_cb.get_construction_speed() * (state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::cb_generation_speed_modifier) + 1.0f)));
-
+		auto target_nation = retrieve<dcon::nation_id>(state, parent);
 		if(fat_cb.is_valid()) {
-			text::substitution_map sub;
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 			text::add_to_substitution_map(sub, text::variable_type::type, fat_cb.get_name());
 			text::add_to_substitution_map(sub, text::variable_type::days, int64_t(fab_time));
 			text::add_to_substitution_map(sub, text::variable_type::badboy, text::fp_one_place{military::cb_infamy(state, fat_cb)});
-			text::localised_format_box(state, contents, box, std::string_view("cb_creation_detail"), sub);
+			text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail"), sub);
+		} else {
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
+			text::localised_format_box(state, contents, box, std::string_view("alice_cb_creation_detail_none"), sub);
 		}
-
 		text::close_layout_box(contents, box);
 	}
 };
@@ -304,127 +333,101 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		return;
 	}
 
-	float total_gain = state.defines.base_greatpower_daily_influence * (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)) * (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
+	if(total_influence_shares > 0) {
+		float total_gain = state.defines.base_greatpower_daily_influence
+			* (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier))
+			* (1.0f + n.get_modifier_values(sys::national_mod_offsets::influence));
+		float gp_score = n.get_industrial_score() + n.get_military_score() + nations::prestige_score(state, n);
+		float base_shares = nations::get_base_shares(state, rel, total_gain, total_influence_shares);
 
-	float gp_score = n.get_industrial_score() + n.get_military_score() + nations::prestige_score(state, n);
-	
-	float base_shares = [&]() {
-		switch(rel.get_status() & nations::influence::priority_mask) {
-			case nations::influence::priority_one:
-				return total_gain / float(total_influence_shares);
-			case nations::influence::priority_two:
-				return 2.0f * total_gain / float(total_influence_shares);
-			case nations::influence::priority_three:
-				return 3.0f * total_gain / float(total_influence_shares);
-			default:
-			case nations::influence::priority_zero:
-				return 0.0f;
-			}
-	}();
-
-	bool has_sphere_neighbor = [&]() {
-		for(auto g : state.world.nation_get_nation_adjacency(target)) {
-			if(g.get_connected_nations(0) != target && g.get_connected_nations(0).get_in_sphere_of() == n)
-				return true;
-			if(g.get_connected_nations(1) != target && g.get_connected_nations(1).get_in_sphere_of() == n)
-				return true;
-			}
-		return false;
-	}();
-
-	float total_fi = 0.0f;
-	for(auto i : state.world.nation_get_unilateral_relationship_as_target(target)) {
-		total_fi += i.get_foreign_investment();
-	}
-	auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
+		float total_fi = nations::get_foreign_investment(state, n);
+		auto gp_invest = state.world.unilateral_relationship_get_foreign_investment(
 			state.world.get_unilateral_relationship_by_unilateral_pair(target, n));
 
-	float discredit_factor =
-		(rel.get_status() & nations::influence::is_discredited) != 0
-		? state.defines.discredit_influence_gain_factor
-		: 0.0f;
-	float neighbor_factor =
-			bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, target))
-		? state.defines.neighbour_bonus_influence_percent
-		: 0.0f;
-	float sphere_neighbor_factor =
-		has_sphere_neighbor
-		? state.defines.sphere_neighbour_bonus_influence_percent
-		: 0.0f;
-	float continent_factor =
-		n.get_capital().get_continent() != state.world.nation_get_capital(target).get_continent()
-		? state.defines.other_continent_bonus_influence_percent
-		: 0.0f;
-	float puppet_factor =
-		fatten(state.world, state.world.nation_get_overlord_as_subject(target)).get_ruler() == n
-		? state.defines.puppet_bonus_influence_percent
-		: 0.0f;
-	float relationship_factor =
-		state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, target)) / state.defines.relation_influence_modifier;
+		float discredit_factor = (rel.get_status() & nations::influence::is_discredited) != 0
+			? state.defines.discredit_influence_gain_factor
+			: 0.0f;
+		float neighbor_factor = bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(n, target))
+			? state.defines.neighbour_bonus_influence_percent
+			: 0.0f;
+		float sphere_neighbor_factor = nations::has_sphere_neighbour(state, n, target)
+			? state.defines.sphere_neighbour_bonus_influence_percent
+			: 0.0f;
+		float continent_factor =
+			n.get_capital().get_continent() != state.world.nation_get_capital(target).get_continent()
+			? state.defines.other_continent_bonus_influence_percent
+			: 0.0f;
+		float puppet_factor =
+			fatten(state.world, state.world.nation_get_overlord_as_subject(target)).get_ruler() == n
+			? state.defines.puppet_bonus_influence_percent
+			: 0.0f;
+		float relationship_factor =
+			state.world.diplomatic_relation_get_value(state.world.get_diplomatic_relation_by_diplomatic_pair(n, target)) / state.defines.relation_influence_modifier;
 
-	float investment_factor =
-		total_fi > 0.0f
-		? state.defines.investment_influence_defense * gp_invest / total_fi
-		: 0.0f;
-	float pop_factor =
+		float investment_factor =
+			total_fi > 0.0f
+			? state.defines.investment_influence_defense * gp_invest / total_fi
+			: 0.0f;
+		float pop_factor =
 			state.world.nation_get_demographics(target, demographics::total) > state.defines.large_population_limit
-		? state.defines.large_population_influence_penalty * state.world.nation_get_demographics(target, demographics::total) / state.defines.large_population_influence_penalty_chunk
-		: 0.0f;
-	float score_factor =
-		gp_score > 0.0f
-		? std::max(1.0f - (state.world.nation_get_industrial_score(target) + state.world.nation_get_military_score(target) + nations::prestige_score(state, target)) / gp_score, 0.0f)
-		: 0.0f;
+			? state.defines.large_population_influence_penalty * state.world.nation_get_demographics(target, demographics::total) / state.defines.large_population_influence_penalty_chunk
+			: 0.0f;
+		float score_factor =
+			gp_score > 0.0f
+			? std::max(1.0f - (state.world.nation_get_industrial_score(target) + state.world.nation_get_military_score(target) + nations::prestige_score(state, target)) / gp_score, 0.0f)
+			: 0.0f;
 
-	float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
+		float total_multiplier = 1.0f + discredit_factor + neighbor_factor + sphere_neighbor_factor + continent_factor + puppet_factor + relationship_factor + investment_factor + pop_factor + score_factor;
 
-	auto gain_amount = std::max(0.0f, base_shares * total_multiplier);
+		auto gain_amount = std::max(0.0f, base_shares * total_multiplier);
 
-	text::add_line(state, contents, "remove_diplomacy_dailyinflulence_gain", text::variable_type::num, text::fp_two_places{gain_amount}, text::variable_type::country, target);
-	text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "remove_diplomacy_dailyinflulence_gain", text::variable_type::num, text::fp_two_places{ gain_amount }, text::variable_type::country, target);
+		text::add_line_break_to_layout(state, contents);
 
-	text::add_line(state, contents, "influence_explain_4", text::variable_type::x, text::fp_two_places{total_gain});
-	text::add_line(state, contents, "influence_explain_5", text::variable_type::x, text::fp_two_places{state.defines.base_greatpower_daily_influence}, text::variable_type::y, text::fp_percentage{1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)}, text::variable_type::val, text::fp_percentage{1.0f + n.get_modifier_values(sys::national_mod_offsets::influence)});
+		text::add_line(state, contents, "influence_explain_4", text::variable_type::x, text::fp_two_places{ total_gain });
+		text::add_line(state, contents, "influence_explain_5", text::variable_type::x, text::fp_two_places{ state.defines.base_greatpower_daily_influence }, text::variable_type::y, text::fp_percentage{ 1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier) }, text::variable_type::val, text::fp_percentage{ 1.0f + n.get_modifier_values(sys::national_mod_offsets::influence) });
 
-	text::add_line(state, contents, "influence_explain_6", text::variable_type::x, text::fp_percentage{1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier)});
-	active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::influence_modifier, false);
+		text::add_line(state, contents, "influence_explain_6", text::variable_type::x, text::fp_percentage{ 1.0f + n.get_modifier_values(sys::national_mod_offsets::influence_modifier) });
+		active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::influence_modifier, false);
 
-	text::add_line(state, contents, "influence_explain_7", text::variable_type::x, text::fp_percentage{1.0f + n.get_modifier_values(sys::national_mod_offsets::influence)});
-	active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::influence, false);
+		text::add_line(state, contents, "influence_explain_7", text::variable_type::x, text::fp_percentage{ 1.0f + n.get_modifier_values(sys::national_mod_offsets::influence) });
+		active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::influence, false);
 
-	text::add_line_break_to_layout(state, contents);
+		text::add_line_break_to_layout(state, contents);
 
-	text::add_line(state, contents, "influence_explain_8", text::variable_type::x, text::fp_two_places{base_shares});
+		text::add_line(state, contents, "influence_explain_8", text::variable_type::x, text::fp_two_places{ base_shares });
 
-	if(discredit_factor != 0 || neighbor_factor != 0 || sphere_neighbor_factor != 0 || continent_factor != 0 || puppet_factor != 0 || relationship_factor != 0 || investment_factor != 0 ||  pop_factor != 0 || score_factor != 0) {
+		if(discredit_factor != 0 || neighbor_factor != 0 || sphere_neighbor_factor != 0 || continent_factor != 0 || puppet_factor != 0 || relationship_factor != 0 || investment_factor != 0 || pop_factor != 0 || score_factor != 0) {
 
-		text::add_line(state, contents, "influence_explain_9");
+			text::add_line(state, contents, "influence_explain_9");
 
-		if(discredit_factor != 0) {
-			text::add_line(state, contents, "influence_explain_10", text::variable_type::x, text::fp_two_places{discredit_factor}, 15);
-		}
-		if(neighbor_factor != 0) {
-			text::add_line(state, contents, "influence_explain_11", text::variable_type::x, text::fp_two_places{neighbor_factor}, 15);
-		}
-		if(sphere_neighbor_factor != 0) {
-			text::add_line(state, contents, "influence_explain_12", text::variable_type::x, text::fp_two_places{sphere_neighbor_factor}, 15);
-		}
-		if(continent_factor != 0) {
-			text::add_line(state, contents, "influence_explain_13", text::variable_type::x, text::fp_two_places{continent_factor}, 15);
-		}
-		if(puppet_factor != 0) {
-			text::add_line(state, contents, "influence_explain_14", text::variable_type::x, text::fp_two_places{puppet_factor}, 15);
-		}
-		if(relationship_factor != 0) {
-			text::add_line(state, contents, "influence_explain_15", text::variable_type::x, text::fp_two_places{relationship_factor}, 15);
-		}
-		if(investment_factor != 0) {
-			text::add_line(state, contents, "influence_explain_16", text::variable_type::x, text::fp_two_places{investment_factor}, 15);
-		}
-		if(pop_factor != 0) {
-			text::add_line(state, contents, "influence_explain_17", text::variable_type::x, text::fp_two_places{pop_factor}, 15);
-		}
-		if(score_factor != 0) {
-			text::add_line(state, contents, "influence_explain_18", text::variable_type::x, text::fp_two_places{score_factor}, 15);
+			if(discredit_factor != 0) {
+				text::add_line(state, contents, "influence_explain_10", text::variable_type::x, text::fp_two_places{ discredit_factor }, 15);
+			}
+			if(neighbor_factor != 0) {
+				text::add_line(state, contents, "influence_explain_11", text::variable_type::x, text::fp_two_places{ neighbor_factor }, 15);
+			}
+			if(sphere_neighbor_factor != 0) {
+				text::add_line(state, contents, "influence_explain_12", text::variable_type::x, text::fp_two_places{ sphere_neighbor_factor }, 15);
+			}
+			if(continent_factor != 0) {
+				text::add_line(state, contents, "influence_explain_13", text::variable_type::x, text::fp_two_places{ continent_factor }, 15);
+			}
+			if(puppet_factor != 0) {
+				text::add_line(state, contents, "influence_explain_14", text::variable_type::x, text::fp_two_places{ puppet_factor }, 15);
+			}
+			if(relationship_factor != 0) {
+				text::add_line(state, contents, "influence_explain_15", text::variable_type::x, text::fp_two_places{ relationship_factor }, 15);
+			}
+			if(investment_factor != 0) {
+				text::add_line(state, contents, "influence_explain_16", text::variable_type::x, text::fp_two_places{ investment_factor }, 15);
+			}
+			if(pop_factor != 0) {
+				text::add_line(state, contents, "influence_explain_17", text::variable_type::x, text::fp_two_places{ pop_factor }, 15);
+			}
+			if(score_factor != 0) {
+				text::add_line(state, contents, "influence_explain_18", text::variable_type::x, text::fp_two_places{ score_factor }, 15);
+			}
 		}
 	}
 }
@@ -534,6 +537,30 @@ public:
 	}
 };
 
+class diplomacy_country_interested_in_alliance : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
+		return state.world.unilateral_relationship_get_interested_in_alliance(rel);
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_toggle_interested_in_alliance(state, state.local_player_nation, n);
+		frame = is_active(state) ? 1 : 0;
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto const n = retrieve<dcon::nation_id>(state, parent);
+		command::toggle_interested_in_alliance(state, state.local_player_nation, n);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_interested_in_alliance");
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -552,7 +579,14 @@ public:
 		} else if(name == "country_name") {
 			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_prio") {
-			return make_element_by_type<diplomacy_priority_button>(state, id);
+			auto ptr = make_element_by_type<diplomacy_priority_button>(state, id);
+			//
+			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, "alice_interested_in_alliance");
+			btn->base_data.position = ptr->base_data.position;
+			btn->base_data.position.x -= btn->base_data.size.x;
+			add_child_to_front(std::move(btn));
+			//
+			return ptr;
 		} else if(name == "country_boss_flag") {
 			return make_element_by_type<nation_overlord_flag>(state, id);
 		} else if(name == "country_prestige") {
@@ -593,25 +627,7 @@ protected:
 		row_contents.clear();
 		state.world.for_each_nation([&](dcon::nation_id id) {
 			if(state.world.nation_get_owned_province_count(id) != 0) {
-				bool passes_filter = [&]() {
-					switch(current_filter.general_category) {
-					case country_list_filter::all:
-						return true;
-					case country_list_filter::allies:
-						return nations::are_allied(state, id, state.local_player_nation);
-					case country_list_filter::find_allies:
-						return ai::ai_will_accept_alliance(state, id, state.local_player_nation)
-							&& command::can_ask_for_alliance(state, state.local_player_nation, id, false);
-					case country_list_filter::enemies:
-						return military::are_at_war(state, state.local_player_nation, id);
-					case country_list_filter::sphere:
-						return state.world.nation_get_in_sphere_of(id) == state.local_player_nation;
-					case country_list_filter::neighbors:
-						return bool(state.world.get_nation_adjacency_by_nation_adjacency_pair(state.local_player_nation, id));
-					default:
-						return true;
-					}
-				}();
+				bool passes_filter = country_category_filter_check(state, current_filter.general_category, state.local_player_nation, id);
 				bool right_continent = !current_filter.continent || state.world.nation_get_capital(id).get_continent() == current_filter.continent;
 				if(passes_filter && right_continent)
 					row_contents.push_back(id);
@@ -657,7 +673,7 @@ public:
 
 		auto conditions = state.world.cb_type_get_can_use(cb.cb_type);
 		if(conditions) {
-			disabled = !trigger::evaluate(state, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			disabled = !trigger::evaluate(state, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(retrieve<dcon::nation_id>(state, parent)));
 		} else {
 			disabled = false;
 		}
@@ -677,7 +693,7 @@ public:
 		if(conditions) {
 			text::add_line_break_to_layout(state, contents);
 			text::add_line(state, contents, "cb_conditions_header");
-			ui::trigger_description(state, contents, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation));
+			ui::trigger_description(state, contents, conditions, trigger::to_generic(retrieve<dcon::nation_id>(state, parent)), trigger::to_generic(state.local_player_nation), trigger::to_generic(retrieve<dcon::nation_id>(state, parent)));
 		}
 	}
 };
@@ -715,7 +731,7 @@ public:
 		for(auto cb : state.world.in_cb_type) {
 			if((cb.get_type_bits() & military::cb_flag::always) != 0) {
 				if(military::cb_conditions_satisfied(state, state.local_player_nation, content, cb))
-					row_contents.push_back(military::available_cb{content, sys::date{}, cb});
+					row_contents.push_back(military::available_cb{ sys::date{}, content, cb});
 			}
 		}
 		update(state);
@@ -828,10 +844,7 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = diplomacy_action::add_wargoal;
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, diplomacy_action::add_wargoal);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1107,75 +1120,16 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
-		{
+		uint32_t row_count = uint32_t(state.defines.great_nations_count) / 2;
+		for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count); i++) {
 			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 0;
+			win->gp_num = int32_t(i);
 			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 0;
-			non_gp_elements[1] = win.get();
+			win->base_data.position.x += win->base_data.size.x * int16_t(i / row_count);
+			win->base_data.position.y += win->base_data.size.y * int16_t(i % row_count);
+			non_gp_elements[1 + i] = win.get();
 			add_child_to_front(std::move(win));
 		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 1;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 1;
-			non_gp_elements[2] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 2;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 2;
-			non_gp_elements[3] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 3;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 3;
-			non_gp_elements[4] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 4;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 0;
-			win->base_data.position.x += 157;
-			non_gp_elements[5] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 5;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 1;
-			win->base_data.position.x += 157;
-			non_gp_elements[6] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 6;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 2;
-			win->base_data.position.x += 157;
-			non_gp_elements[7] = win.get();
-			add_child_to_front(std::move(win));
-		}
-		{
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
-			win->gp_num = 7;
-			win->base_data.position = sub_window_top_left;
-			win->base_data.position.y += 35 * 3;
-			win->base_data.position.x += 157;
-			non_gp_elements[8] = win.get();
-			add_child_to_front(std::move(win));
-		}
-
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1213,9 +1167,8 @@ public:
 		} else if(name == "nongp_extra_info_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			non_gp_elements[0] = ptr.get();
-			sub_window_top_left = ptr->base_data.position;
-			sub_window_top_left.x += 8;
-			sub_window_top_left.y += 12;
+			auto const& def = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_fact_pos")->second.definition];
+			sub_window_top_left = def.position;
 			return ptr;
 		} else if(name == "country_flag") {
 			return make_element_by_type<flag_button>(state, id);
@@ -1369,33 +1322,42 @@ public:
 
 		if(active_tab != diplomacy_window_tab::great_powers) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 		} else if(nations::is_great_power(state, content)) {
 			for(auto p : gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		} else {
 			for(auto p : gp_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 			for(auto p : non_gp_elements) {
-				p->set_visible(state, true);
+				if(p)
+					p->set_visible(state, true);
 			}
 			for(auto p : war_elements) {
-				p->set_visible(state, false);
+				if(p)
+					p->set_visible(state, false);
 			}
 		}
 		
@@ -1594,12 +1556,40 @@ public:
 			text::add_line(state, contents, "war_goal_3", text::variable_type::x, state.world.wargoal_get_associated_state(wg));
 		}
 		if(state.world.wargoal_get_associated_tag(wg)) {
-			text::add_line(state, contents, "war_goal_4", text::variable_type::x, state.world.wargoal_get_associated_tag(wg));
+			text::add_line(state, contents, "war_goal_10", text::variable_type::x, state.world.wargoal_get_associated_tag(wg));
 		} else if(state.world.wargoal_get_secondary_nation(wg)) {
 			text::add_line(state, contents, "war_goal_4", text::variable_type::x, state.world.wargoal_get_secondary_nation(wg));
 		}
 		if(state.world.wargoal_get_ticking_war_score(wg) != 0) {
 			text::add_line(state, contents, "war_goal_5", text::variable_type::x, text::fp_one_place{state.world.wargoal_get_ticking_war_score(wg)});
+			{
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage{ state.defines.tws_fulfilled_idle_space });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ state.defines.tws_fulfilled_speed });
+				text::localised_format_box(state, contents, box, "war_goal_6", sub);
+				text::close_layout_box(contents, box);
+			}
+			{
+				auto box = text::open_layout_box(contents);
+				text::substitution_map sub{};
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(state.defines.tws_grace_period_days) });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_two_places{ state.defines.tws_not_fulfilled_speed });
+				text::localised_format_box(state, contents, box, "war_goal_7", sub);
+				text::close_layout_box(contents, box);
+			}
+			auto const start_date = state.world.war_get_start_date(state.world.wargoal_get_war_from_wargoals_attached(wg));
+			auto const end_date = start_date + int32_t(state.defines.tws_grace_period_days);
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub{};
+			text::add_to_substitution_map(sub, text::variable_type::x, start_date);
+			text::add_to_substitution_map(sub, text::variable_type::y, end_date);
+			if(end_date <= state.current_date) {
+				text::localised_format_box(state, contents, box, "war_goal_9", sub);
+			} else {
+				text::localised_format_box(state, contents, box, "war_goal_8", sub);
+			}
+			text::close_layout_box(contents, box);
 		}
 	}
 };
@@ -2206,8 +2196,10 @@ public:
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));
 
-		Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.local_player_nation };
-		impl_get(state, payload);
+		if(state.great_nations.size() > 1) {
+			Cyto::Any payload = element_selection_wrapper<dcon::nation_id>{ state.great_nations[0].nation };
+			impl_get(state, payload);
+		}
 
 		set_visible(state, false);
 	}
@@ -2219,7 +2211,11 @@ public:
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "bg_diplomacy") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "gp_info") {
 			auto ptr = make_element_by_type<generic_tab_button<diplomacy_window_tab>>(state, id);

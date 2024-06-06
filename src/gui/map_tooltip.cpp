@@ -5,16 +5,55 @@
 
 namespace ui {
 
+float selected_relative_attrition_amount(sys::state& state, dcon::nation_id n, std::vector<dcon::army_id>& list, dcon::province_id prov) {
+	float total_army_weight = 0.f;
+	for(auto army : list) {
+		auto ar = dcon::fatten(state.world, army);
+		if(ar.get_black_flag() == false && ar.get_is_retreating() == false && !bool(ar.get_navy_from_army_transport())) {
+			for(auto rg : ar.get_army_membership()) {
+				total_army_weight += 3.0f * rg.get_regiment().get_strength();
+			}
+		}
+	}
+	for(auto ar : state.world.province_get_army_location(prov)) {
+		if(ar.get_army().get_black_flag() == false && ar.get_army().get_is_retreating() == false && !bool(ar.get_army().get_navy_from_army_transport())) {
+			for(auto rg : ar.get_army().get_army_membership()) {
+				total_army_weight += 3.0f * rg.get_regiment().get_strength();
+			}
+		}
+	}
+	auto prov_attrition_mod = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::attrition);
+	auto army_controller = dcon::fatten(state.world, n);
+	auto supply_limit = military::supply_limit_in_province(state, army_controller, prov);
+	auto attrition_mod = 1.0f + army_controller.get_modifier_values(sys::national_mod_offsets::land_attrition);
+	float greatest_hostile_fort = 0.0f;
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		if((adj.get_type() & (province::border::impassible_bit | province::border::coastal_bit)) == 0) {
+			auto other = adj.get_connected_provinces(0) != prov ? adj.get_connected_provinces(0) : adj.get_connected_provinces(1);
+			if(other.get_building_level(economy::province_building_type::fort) > 0) {
+				if(military::are_at_war(state, army_controller, other.get_nation_from_province_control())) {
+					greatest_hostile_fort = std::max(greatest_hostile_fort, float(other.get_building_level(economy::province_building_type::fort)));
+				}
+			}
+		}
+	}
+	return total_army_weight * attrition_mod - (supply_limit + prov_attrition_mod + greatest_hostile_fort) > 0;
+}
+
 void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
 	auto fat = dcon::fatten(state.world, prov);
 	auto owner = fat.get_nation_from_province_ownership();
 	auto box = text::open_layout_box(contents);
 
 	if(state.cheat_data.show_province_id_tooltip) {
-		text::add_to_layout_box(state, contents, box, std::string_view{ "PROVID: " });
+		text::localised_format_box(state, contents, box, "province_id", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, prov.index());
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, std::string_view{ "TAG: " });
+		text::localised_format_box(state, contents, box, "nation_tag", text::substitution_map{});
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int()));
 		text::add_divider_to_layout_box(state, contents, box);
 	}
@@ -46,7 +85,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
-			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ military::relative_attrition_amount(state, a, prov) });
+			text::add_to_substitution_map(sub, text::variable_type::val, text::fp_two_places{ selected_relative_attrition_amount(state, state.local_player_nation, state.selected_armies, prov) });
 			box = text::open_layout_box(contents);
 			text::localised_format_box(state, contents, box, "alice_unit_relative_attrition", sub);
 			text::close_layout_box(contents, box);
@@ -87,7 +126,7 @@ void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 	} else if(auto rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov); rf) {
 		auto fat_id = dcon::fatten(state.world, rf);
 		auto box = text::open_layout_box(contents);
-		std::string formatted_tag = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id)));
+		std::string formatted_tag = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.national_definitions.rebel_id));
 		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 		text::add_space_to_layout_box(state, contents, box);
 		auto name = rebel::rebel_name(state, rf);
@@ -187,9 +226,10 @@ void region_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub;
-		text::add_to_substitution_map(sub, text::variable_type::state, fat.get_state_from_abstract_state_membership().get_name());
+		std::string state_name = text::get_dynamic_state_name(state, fat.get_state_membership().id);
+		text::add_to_substitution_map(sub, text::variable_type::state, std::string_view{ state_name });
 		text::add_to_substitution_map(sub, text::variable_type::continentname, fat.get_continent().get_name());
-		text::localised_format_box(state, contents, box, std::string_view("mtt_state_entry"), sub);
+		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_state_entry"), sub);
 		text::close_layout_box(contents, box);
 	}
 }
@@ -211,17 +251,13 @@ void infrastructure_map_tt_box(sys::state& state, text::columnar_layout& content
 
 void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {    // Done
 	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, fat.get_abstract_state_membership().get_state().get_name(), text::text_color::white);
 		if(fat.get_is_coast()) {
-			text::add_to_layout_box(state, contents, box, std::string_view(" - "));
 			text::substitution_map sub;
-			text::add_to_substitution_map(sub, text::variable_type::val,
-			std::string_view(text::format_float(province::direct_distance(state, dcon::fatten(state.world, state.local_player_nation).get_capital().id, prov), 0))
-			);
-			//text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "colonial_range"), sub);
+			text::add_to_substitution_map(sub, text::variable_type::val, std::string_view(text::format_float(province::direct_distance(state, dcon::fatten(state.world, state.local_player_nation).get_capital().id, prov), 0)));
 			text::localised_format_box(state, contents, box, std::string_view("colonial_range"), sub);
 		}
 		text::add_line_break_to_layout_box(state, contents, box);
@@ -256,8 +292,6 @@ void colonial_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 		}
 
 		text::close_layout_box(contents, box4);
-	} else {
-		country_name_box(state, contents, prov);
 	}
 }
 
@@ -281,6 +315,7 @@ void recruitment_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 
 		auto max_regiments = military::regiments_max_possible_from_province(state, prov);
 		auto created_regiments = military::regiments_created_from_province(state, prov);
+		created_regiments += military::regiments_under_construction_in_province(state, prov);
 
 		if(fat.get_nation_from_province_ownership().id.value == state.local_player_nation.value) {
 			if(max_regiments == 0) {
@@ -354,7 +389,7 @@ void nationality_map_tt_box(sys::state& state, text::columnar_layout& contents, 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_culture_majorities"), text::variable_type::prov, prov);
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_culture_majorities"), text::variable_type::prov, prov);
 
 		std::vector<dcon::culture_fat_id> cultures;
 		for(auto pop : fat.get_pop_location()) {
@@ -797,7 +832,7 @@ void religion_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_religion_majorities"), text::variable_type::prov, prov);
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_religion_majorities"), text::variable_type::prov, prov);
 
 		std::vector<dcon::religion_fat_id> religions;
 		for(auto pop : fat.get_pop_location()) {
@@ -828,7 +863,7 @@ void issues_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_dominant_issues"), text::variable_type::prov, prov);
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_dominant_issues"), text::variable_type::prov, prov);
 
 		std::vector<dcon::issue_option_fat_id> issues;
 		state.world.for_each_issue_option([&](dcon::issue_option_id id) {
@@ -861,7 +896,7 @@ void income_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 		for(auto pop : fat.get_pop_location()) {
 			savings += pop.get_pop().get_savings();
 		}
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_total_income"), text::variable_type::prov, prov);
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_total_income"), text::variable_type::prov, prov);
 		text::add_to_layout_box(state, contents, box, text::prettify_currency(savings), text::text_color::yellow);
 		text::close_layout_box(contents, box);
 	}
@@ -874,7 +909,7 @@ void ideology_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_dominant_ideology"), text::variable_type::prov, prov);
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_dominant_ideology"), text::variable_type::prov, prov);
 
 		std::vector<dcon::ideology_fat_id> ideologies;
 		float total_pops = state.world.province_get_demographics(prov, demographics::total);
@@ -904,7 +939,7 @@ void con_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::pr
 
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		float average_con = (fat.get_demographics(demographics::total) == 0.f ? 0.f : fat.get_demographics(demographics::consciousness) / fat.get_demographics(demographics::total));
-		text::add_line(state, contents, "mtt_con_average", text::variable_type::val, text::fp_one_place{ average_con });
+		text::add_line(state, contents, "mapmode_tooltip_con_average", text::variable_type::val, text::fp_one_place{ average_con });
 		ui::active_modifiers_description(state, contents, prov, 0, sys::provincial_mod_offsets::pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::core_pop_consciousness_modifier, true);
 		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(prov)), 0, sys::national_mod_offsets::global_pop_consciousness_modifier, true);
@@ -921,7 +956,7 @@ void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 
 		float employment_rate = fat.get_demographics(demographics::employable) == 0.f ? 0.f : (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
 
-		text::localised_format_box(state, contents, box, std::string_view("mtt_total_employment"));
+		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_total_employment"));
 		text::add_to_layout_box(state, contents, box, text::format_percentage(employment_rate, 1), text::text_color::yellow);
 
 		text::close_layout_box(contents, box);
@@ -937,7 +972,7 @@ void literacy_map_tt_box(sys::state& state, text::columnar_layout& contents, dco
 
 		float literacy_rate = fat.get_demographics(demographics::total) == 0.f ? 0.f : (fat.get_demographics(demographics::literacy) / fat.get_demographics(demographics::total));
 
-		text::localised_format_box(state, contents, box, std::string_view("mtt_literacy_rate"));
+		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_literacy_rate"));
 		text::add_to_layout_box(state, contents, box, text::format_percentage(literacy_rate, 1), text::text_color::yellow);
 
 		text::close_layout_box(contents, box);
@@ -953,7 +988,7 @@ void factory_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 
 		auto region = fat.get_state_membership();
 
-		text::localised_single_sub_box(state, contents, box, std::string_view("mtt_factory_count"), text::variable_type::state, text::get_province_state_name(state, prov));
+		text::localised_single_sub_box(state, contents, box, std::string_view("mapmode_tooltip_factory_count"), text::variable_type::state, text::get_province_state_name(state, prov));
 
 		std::vector<dcon::factory_fat_id> factories;
 		for(auto m : fat.get_state_from_abstract_state_membership().get_abstract_state_membership()) {
@@ -989,18 +1024,18 @@ void fort_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::p
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		if(fat.get_building_level(economy::province_building_type::fort) > 0) {
 			auto box = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box, std::string_view("mtt_fort_level"));
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_fort_level"));
 			text::add_to_layout_box(state, contents, box, fat.get_building_level(economy::province_building_type::fort), text::text_color::yellow);
 			text::close_layout_box(contents, box);
 		}
 		if(province::has_fort_being_built(state, fat.id)) {
 			auto box3 = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box3, std::string_view("mtt_fort_being_built"));
+			text::localised_format_box(state, contents, box3, std::string_view("mapmode_tooltip_fort_being_built"));
 			text::close_layout_box(contents, box3);
 		}
 		if(province::can_build_fort(state, fat.id, state.local_player_nation)) {
 			auto box3 = text::open_layout_box(contents);
-			text::localised_format_box(state, contents, box3, std::string_view("mtt_can_build_fort"));
+			text::localised_format_box(state, contents, box3, std::string_view("mapmode_tooltip_can_build_fort"));
 			text::close_layout_box(contents, box3);
 		}
 	}
@@ -1013,7 +1048,7 @@ void growth_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		text::localised_format_box(state, contents, box, std::string_view("mtt_population_change"));
+		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_population_change"));
 		text::add_to_layout_box(state, contents, box, text::format_float(float(demographics::get_monthly_pop_increase(state, fat.id)), 0), text::text_color::yellow);
 
 		text::close_layout_box(contents, box);
@@ -1047,9 +1082,9 @@ void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 		auto box = text::open_layout_box(contents);
 
 		if(total_rebels <= 0.f) {
-			text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_none"));
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_rebels_none"));
 		} else {
-			text::localised_format_box(state, contents, box, std::string_view("mtt_rebels_amount"));
+			text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_rebels_amount"));
 			text::add_to_layout_box(state, contents, box, text::prettify(int64_t(total_rebels)), text::text_color::yellow);
 
 			for(size_t i = 0; i < rebel_factions.size(); i++) {
@@ -1067,7 +1102,280 @@ void revolt_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon:
 	}
 }
 
+void players_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto n = state.world.province_get_nation_from_province_ownership(prov);
+		if(n) {
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, state.network_state.map_of_player_names[n.index()].to_string_view());
+			if(n == state.local_player_nation) {
+				if(state.network_mode == sys::network_mode_type::single_player) {
+					text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_34_you_sp"), sub);
+				} else {
+					text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_34_you"), sub);
+				}
+			} else if(state.world.nation_get_is_player_controlled(n)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_34"), sub);
+			}
+			if(!state.world.nation_get_is_player_controlled(n)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_34_ai"), sub);
+			}
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+void life_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		float value = 0.f;
+		float total = 0.f;
+		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
+			value += pl.get_pop().get_life_needs_satisfaction();
+			total += 1.f;
+		}
+		if(total > 0.f) {
+			float ratio = value / total;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_35"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+void everyday_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		float value = 0.f;
+		float total = 0.f;
+		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
+			value += pl.get_pop().get_everyday_needs_satisfaction();
+			total += 1.f;
+		}
+		if(total > 0.f) {
+			float ratio = value / total;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_36"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+void luxury_needs_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		float value = 0.f;
+		float total = 0.f;
+		for(const auto pl : state.world.province_get_pop_location_as_province(prov)) {
+			value += pl.get_pop().get_luxury_needs_satisfaction();
+			total += 1.f;
+		}
+		if(total > 0.f) {
+			float ratio = value / total;
+			auto box = text::open_layout_box(contents);
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{ ratio });
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_37"), sub);
+			text::close_layout_box(contents, box);
+		}
+	}
+}
+void officers_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		float value = state.world.province_get_demographics(prov, demographics::to_key(state, state.culture_definitions.officers));
+		float total = state.world.province_get_demographics(prov, demographics::total);
+		float ratio = value / std::max(1.f, total);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
+		text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ ratio });
+		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ 0.02f });
+		text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_38"), sub);
+		text::close_layout_box(contents, box);
+	}
+}
+void ctc_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		float total_pw = state.world.province_get_demographics(prov, demographics::to_key(state, state.culture_definitions.primary_factory_worker));
+		float total_sw = state.world.province_get_demographics(prov, demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
+		float ratio = total_pw / std::max(1.f, total_pw + total_sw);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total_pw) });
+		text::add_to_substitution_map(sub, text::variable_type::y, text::pretty_integer{ int32_t(total_sw) });
+		text::add_to_substitution_map(sub, text::variable_type::fraction, text::fp_percentage_one_place{ ratio });
+		text::add_to_substitution_map(sub, text::variable_type::value, text::fp_percentage_one_place{ state.economy_definitions.craftsmen_fraction });
+		text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_39"), sub);
+		text::close_layout_box(contents, box);
+	}
+}
+void life_rating_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(state.world.province_get_life_rating(prov)) });
+		text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_40"), sub);
+		text::close_layout_box(contents, box);
+	}
+}
+void crime_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value && state.world.province_get_crime(prov)) {
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::x, state.culture_definitions.crimes[state.world.province_get_crime(prov)].name);
+		text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_41"), sub);
+		text::close_layout_box(contents, box);
+	}
+}
+void rally_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		text::add_line_with_condition(state, contents, "alice_mmapmode_tooltip_42_1", state.world.province_get_land_rally_point(prov));
+		text::add_line_with_condition(state, contents, "alice_mmapmode_tooltip_42_2", state.world.province_get_naval_rally_point(prov));
+	}
+}
+void workforce_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		{
+			auto box = text::open_layout_box(contents);
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_43"));
+			text::close_layout_box(contents, box);
+		}
+		float total = state.world.province_get_demographics(prov, demographics::total);
+		for(const auto pt : state.world.in_pop_type) {
+			float value = state.world.province_get_demographics(prov, demographics::to_key(state, pt));
+			if(value > 0.f) {
+				auto box = text::open_layout_box(contents);
+				text::add_to_layout_box(state, contents, box, pt.get_name(), text::text_color::white);
+				text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, text::pretty_integer{ int32_t(value) }, text::text_color::yellow);
+				text::add_space_to_layout_box(state, contents, box);
+				text::add_to_layout_box(state, contents, box, std::string_view("("), text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ value / total }, text::text_color::yellow);
+				text::add_to_layout_box(state, contents, box, std::string_view(")"), text::text_color::yellow);
+				text::close_layout_box(contents, box);
+			}
+		}
+	}
+}
+void mobilization_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	auto fat = dcon::fatten(state.world, prov);
+	country_name_box(state, contents, prov);
+	if(prov.value < state.province_definitions.first_sea_province.value) {
+		auto max = military::mobilized_regiments_possible_from_province(state, prov);
+		auto used = military::mobilized_regiments_created_from_province(state, prov);
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub;
+		text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ max });
+		text::add_to_substitution_map(sub, text::variable_type::y, text::pretty_integer{ used });
+		if(max == 0) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_44_2"), sub);
+		} else {
+			text::localised_format_box(state, contents, box, std::string_view("alice_mmapmode_tooltip_44"), sub);
+		}
+		text::close_layout_box(contents, box);
+	}
+}
+
+void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {   // Done
+	country_name_box(state, contents, prov);
+	if(auto n = state.world.province_get_nation_from_province_ownership(prov); n) {
+		auto fat_id = dcon::fatten(state.world, n);
+		auto box = text::open_layout_box(contents);
+		text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(economy::money), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
+		text::add_space_to_layout_box(state, contents, box);
+		text::add_to_layout_box(state, contents, box, text::fp_currency{ fat_id.get_stockpiles(economy::money) }, text::text_color::green);
+		text::add_line_break_to_layout_box(state, contents, box);
+		auto total = fat_id.get_demographics(demographics::total);
+		if(total > 0.f) {
+			{
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(total) });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_pops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::rich_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_rpops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::middle_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_mpops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+			{
+				auto value = fat_id.get_demographics(demographics::poor_total);
+				text::substitution_map sub;
+				text::add_to_substitution_map(sub, text::variable_type::x, text::pretty_integer{ int32_t(value) });
+				text::add_to_substitution_map(sub, text::variable_type::y, text::fp_percentage_one_place{ value / total });
+				text::localised_format_box(state, contents, box, std::string_view("alice_pnt_ppops"), sub);
+				text::add_line_break_to_layout_box(state, contents, box);
+			}
+		}
+		if(fat_id.get_primary_culture()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_primary_culture().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_culture"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		if(fat_id.get_religion()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_religion().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_religion"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		if(fat_id.get_dominant_religion()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_religion().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_religion"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		if(fat_id.get_dominant_ideology()) {
+			text::substitution_map sub;
+			text::add_to_substitution_map(sub, text::variable_type::x, fat_id.get_dominant_ideology().get_name());
+			text::localised_format_box(state, contents, box, std::string_view("alice_pnt_dominant_ideology"), sub);
+			text::add_line_break_to_layout_box(state, contents, box);
+		}
+		text::add_line_break_to_layout_box(state, contents, box);
+		text::close_layout_box(contents, box);
+	}
+}
+
 void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	if(state.mode == sys::game_mode_type::pick_nation) {
+		picking_map_tt_box(state, contents, prov);
+		return;
+	}
+
 	switch(state.map_state.active_map_mode) {
 	case map_mode::mode::terrain:
 		terrain_map_tt_box(state, contents, prov);
@@ -1170,6 +1478,40 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		break;
 	case map_mode::mode::militancy:
 		militancy_map_tt_box(state, contents, prov);
+		break;
+	//even newer mapmodes
+	case map_mode::mode::players:
+		players_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::life_needs:
+		life_needs_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::everyday_needs:
+		everyday_needs_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::luxury_needs:
+		luxury_needs_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::life_rating:
+		life_rating_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::clerk_to_craftsmen_ratio:
+		ctc_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::mobilization:
+		mobilization_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::officers:
+		officers_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::crime:
+		crime_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::rally:
+		rally_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::workforce:
+		workforce_map_tt_box(state, contents, prov);
 		break;
 	default:
 		break;

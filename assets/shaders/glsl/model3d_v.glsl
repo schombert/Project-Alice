@@ -69,7 +69,7 @@ vec3 rotate_skew(vec3 v) {
 }
 
 void main() {
-	float vertical_factor = ((map_size.x + map_size.y) / 2.f);
+	float vertical_factor = ((map_size.x + map_size.y) / 3.f);
 	float height_scale = map_size.x / 2.f;
 	vec3 world_pos = vec3(vertex_position.x, vertex_position.y, vertex_position.z);
 	world_pos = rotate_skew(rotate_target(world_pos));

@@ -133,11 +133,11 @@ public:
 
 	}
 
-	void button_right_action(sys::state& state) noexcept {
+	void button_right_action(sys::state& state) noexcept override {
 
 	}
 
-	void button_shift_action(sys::state& state) noexcept {
+	void button_shift_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -151,7 +151,7 @@ public:
 		}
 	}
 
-	void button_shift_right_action(sys::state& state) noexcept {
+	void button_shift_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		for(auto p : state.world.state_definition_get_abstract_state_membership_as_state(state.world.state_instance_get_definition(sid))) {
@@ -167,7 +167,7 @@ public:
 		}
 	}
 
-	void button_ctrl_action(sys::state& state) noexcept {
+	void button_ctrl_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -180,7 +180,7 @@ public:
 		}
 	}
 
-	void button_ctrl_right_action(sys::state& state) noexcept {
+	void button_ctrl_right_action(sys::state& state) noexcept override {
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			for(auto fac : p.get_province().get_factory_location()) {
@@ -195,7 +195,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_action(sys::state& state) noexcept {
+	void button_ctrl_shift_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -210,7 +210,7 @@ public:
 		}
 	}
 
-	void button_ctrl_shift_right_action(sys::state& state) noexcept {
+	void button_ctrl_shift_right_action(sys::state& state) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
 		for(auto p : state.world.nation_get_province_ownership(n)) {
@@ -232,68 +232,6 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		command::begin_factory_building_construction(state, state.local_player_nation, sid, fat.get_building_type().id, true);
-	}
-
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(!disabled) {
-				//ToDo: Make button change appearance while pressed
-				//disabled = true;
-			}
-		} else if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(!disabled) {
-			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_right_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_right_action(state);
-			else
-				button_right_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release) {
-			if(under_mouse) {
-				sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-				if(mods == sys::key_modifiers::modifiers_shift)
-					button_shift_action(state);
-				else if(mods == sys::key_modifiers::modifiers_ctrl)
-					button_ctrl_action(state);
-				else
-					button_action(state);
-			} else {
-				//ToDo: Make button revert appearance when released
-				//disabled = false;
-			}
-		}
-		return message_result::consumed;
-	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, sound::get_click_sound(state),
-					state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else
-				button_action(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -368,12 +306,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line(state, contents, "alice_expand_factory_controls_1");
-		text::add_line(state, contents, "alice_expand_factory_controls_2");
-		text::add_line(state, contents, "alice_expand_factory_controls_3");
-		text::add_line(state, contents, "alice_expand_factory_controls_4");
-		text::add_line(state, contents, "alice_expand_factory_controls_5");
-		text::add_line(state, contents, "alice_expand_factory_controls_6");
+		text::add_line(state, contents, "factory_upgrade_shortcuts");
 	}
 };
 
@@ -637,32 +570,54 @@ class normal_factory_background : public opaque_element_base {
 		if(!fid)
 			return;
 		dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+		auto p = state.world.factory_get_province_from_factory_location(retrieve<dcon::factory_id>(state, parent));
+		auto p_fat = fatten(state.world, p);
+		auto sdef = state.world.abstract_state_membership_get_state(state.world.province_get_abstract_state_membership(p));
+		dcon::state_instance_id s{};
+		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+			if(state.world.state_instance_get_definition(id) == sdef)
+				s = id;
+		});
 
+		// nation data
+
+		float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;
+		auto cap_prov = state.world.nation_get_capital(n);
+		auto cap_continent = state.world.province_get_continent(cap_prov);
+		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
+
+
+		auto fac = fatten(state.world, fid);
 		auto type = state.world.factory_get_building_type(fid);
 
 		auto& inputs = type.get_inputs();
 		auto& einputs = type.get_efficiency_inputs();
 
-		float min_input = 1.0f;
-		float min_efficiency_input = 1.0f;
-		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(inputs.commodity_type[i]) {
-				min_input = std::min(min_input, state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]));
-			} else {
-				break;
-			}
-		}
+		//inputs
 
-		// and for efficiency inputs
-		for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
-			if(einputs.commodity_type[i]) {
-				min_efficiency_input = std::min(min_efficiency_input, state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]));
-			} else {
-				break;
-			}
-		}
+		float input_total = economy::factory_input_total_cost(state, n, type);
+		float min_input_available = economy::factory_min_input_available(state, n, type);
+		float e_input_total = economy::factory_e_input_total_cost(state, n, type);
+		float min_e_input_available = economy::factory_min_e_input_available(state, n, type);
 
-		auto amount = (0.75f + 0.25f * min_efficiency_input) * min_input * state.world.factory_get_production_scale(fid);
+		//modifiers
+
+		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
+		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s);
+		float output_multiplier = economy::factory_output_multiplier(state, fac, n, p);
+
+		float max_production_scale = economy::factory_max_production_scale(
+			state,
+			fac,
+			mobilization_impact,
+			p_fat.get_nation_from_province_control() != n, // is occupied
+			p_fat.get_connected_region_id() != cap_region
+			&& p_fat.get_continent() != cap_continent // is overseas
+		);
+
+		float effective_production_scale = std::min(fac.get_production_scale() * fac.get_level(), max_production_scale);
+
+		auto amount = (0.75f + 0.25f * min_e_input_available) * min_input_available * state.world.factory_get_production_scale(fid);
 
 		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
 
@@ -680,15 +635,155 @@ class normal_factory_background : public opaque_element_base {
 		text::add_line(state, contents, "factory_stats_5");
 
 
+		float total_expenses = 0.f;
+
+		int position_demand_sat = 100;
+		int position_amount = 180;
+		int position_cost = 250;
+
+		auto input_cost_line = [&] (
+			dcon::commodity_id cid,
+			float base_amount
+		) {
+			auto box = text::open_layout_box(contents);
+			text::layout_box name_entry = box;
+			text::layout_box demand_satisfaction = box;
+			text::layout_box amount_box = box;
+			text::layout_box cost_box = box;
+
+			demand_satisfaction.x_position += position_demand_sat;
+			amount_box.x_position += position_amount;
+			cost_box.x_position += position_cost;
+
+			name_entry.x_size /= 10;
+			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
+			
+			auto sat = state.world.nation_get_demand_satisfaction(n, cid);
+			text::add_to_layout_box(state, contents,
+				demand_satisfaction,
+				text::fp_percentage{ sat },
+				sat >= 0.9f ? text::text_color::green : text::text_color::red
+			);
+
+			float amount =
+				base_amount
+				* input_multiplier
+				* throughput_multiplier
+				* min_input_available
+				* effective_production_scale;
+
+			float cost =
+				state.world.nation_get_effective_prices(n, cid)
+				* amount;
+
+			total_expenses += cost;
+			
+			text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
+			text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ -cost }, text::text_color::red);
+
+			text::add_to_layout_box(state, contents, box, std::string(" "));
+			text::close_layout_box(contents, box);
+		};
+
+		auto e_input_cost_line = [&](
+			dcon::commodity_id cid,
+			float base_amount
+		) {
+			auto box = text::open_layout_box(contents);
+			text::layout_box name_entry = box;
+			text::layout_box demand_satisfaction = box;
+			text::layout_box amount_box = box;
+			text::layout_box cost_box = box;
+
+			demand_satisfaction.x_position += position_demand_sat;
+			amount_box.x_position += position_amount;
+			cost_box.x_position += position_cost;
+
+			name_entry.x_size /= 10;
+			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
+
+			auto sat = state.world.nation_get_demand_satisfaction(n, cid);
+			text::add_to_layout_box(state, contents,
+				demand_satisfaction,
+				text::fp_percentage{ sat },
+				sat >= 0.9f ? text::text_color::green : text::text_color::red
+			);
+
+			float amount =
+				base_amount
+				* input_multiplier
+				* min_e_input_available
+				* min_input_available
+				* effective_production_scale;
+
+			float cost =
+				state.world.nation_get_effective_prices(n, cid)
+				* amount;
+
+			total_expenses += cost;
+
+			text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
+			text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ -cost }, text::text_color::red);
+
+			text::add_to_layout_box(state, contents, box, std::string(" "));
+			text::close_layout_box(contents, box);
+		};
+
+		auto named_money_line = [&](
+			std::string_view loc,
+			float value
+		) {
+			auto box = text::open_layout_box(contents);
+			text::layout_box name_entry = box;
+			text::layout_box cost = box;
+
+			cost.x_position += position_cost;
+			name_entry.x_size /= 10;
+
+			text::localised_format_box(state, contents, name_entry, loc);
+			text::add_to_layout_box(state, contents, cost, text::fp_currency{ value }, value >= 0.f ? text::text_color::green : text::text_color::red);
+
+			text::add_to_layout_box(state, contents, box, std::string(" "));
+			text::close_layout_box(contents, box);
+		};
+
+		auto output_cost_line = [&](
+			dcon::commodity_id cid,
+			float base_amount
+		) {
+			auto box = text::open_layout_box(contents);
+			text::layout_box name_entry = box;
+			text::layout_box amount = box;
+			text::layout_box cost = box;
+
+			amount.x_position += position_amount;
+			cost.x_position += position_cost;
+
+			name_entry.x_size /= 10;
+			text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
+
+			float output_amount =
+				base_amount
+				* (0.75f + 0.25f * min_e_input_available)
+				* throughput_multiplier
+				* output_multiplier
+				* min_input_available
+				* effective_production_scale;
+
+			float output_cost =
+				state.world.nation_get_effective_prices(n, cid)
+				* output_amount;
+
+			text::add_to_layout_box(state, contents, amount, text::fp_two_places{ output_amount });
+			text::add_to_layout_box(state, contents, cost, text::fp_currency{ output_cost }, text::text_color::green);
+
+			text::add_to_layout_box(state, contents, box, std::string(" "));
+			text::close_layout_box(contents, box);
+		};
+
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(inputs.commodity_type[i]) {
-				auto box = text::open_layout_box(contents);
-				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(inputs.commodity_type[i]));
-				text::add_to_layout_box(state, contents, box, std::string_view{": "});
-				auto sat = state.world.nation_get_demand_satisfaction(n, inputs.commodity_type[i]);
-				text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
-						sat >= 0.9f ? text::text_color::green : text::text_color::red);
-				text::close_layout_box(contents, box);
+				input_cost_line(inputs.commodity_type[i], inputs.commodity_amounts[i]);
 			} else {
 				break;
 			}
@@ -700,17 +795,42 @@ class normal_factory_background : public opaque_element_base {
 
 		for(uint32_t i = 0; i < economy::small_commodity_set::set_size; ++i) {
 			if(einputs.commodity_type[i]) {
-				auto box = text::open_layout_box(contents);
-				text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(einputs.commodity_type[i]));
-				text::add_to_layout_box(state, contents, box, std::string_view{": "});
-				auto sat = state.world.nation_get_demand_satisfaction(n, einputs.commodity_type[i]);
-				text::add_to_layout_box(state, contents, box, text::fp_percentage{sat},
-						sat >= 0.9f ? text::text_color::green : text::text_color::red);
-				text::close_layout_box(contents, box);
+				e_input_cost_line(einputs.commodity_type[i], einputs.commodity_amounts[i]);
 			} else {
 				break;
 			}
 		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		auto const min_wage_factor = economy::pop_min_wage_factor(state, n);
+		float factory_min_wage = economy::pop_factory_min_wage(state, n, min_wage_factor);
+
+		float wage_estimation =
+			factory_min_wage
+			* state.defines.alice_factory_per_level_employment
+			/ state.defines.alice_needs_scaling_factor
+			* effective_production_scale;
+
+		total_expenses += wage_estimation;
+
+		named_money_line("factory_stats_wage",
+			-wage_estimation
+		);
+
+		text::add_line_break_to_layout(state, contents);
+
+		named_money_line("factory_stats_expenses",
+			-total_expenses
+		);
+
+		output_cost_line(type.get_output(), type.get_output_amount());
+
+		float desired_income = economy::factory_desired_raw_profit(fac, total_expenses);
+
+		named_money_line("factory_stats_desired_income",
+			desired_income
+		);
 	}
 };
 
@@ -838,7 +958,7 @@ public:
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "income_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+			auto ptr = make_element_by_type<factory_income_image>(state, id);
 			factory_elements.push_back(ptr.get());
 			return ptr;
 		} else if(name == "output") {
@@ -949,7 +1069,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::production_scale_delta;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1019,15 +1139,20 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		factories.resize(size_t(state.defines.factories_per_state));
+		xy_pair vert_bound{ 0, 0 };
+		int16_t num_cols = 8;
 		// Create factory slots for each of the provinces
-		for(uint8_t factory_index = 0; factory_index < uint8_t(state.defines.factories_per_state); ++factory_index) {
+		for(int16_t factory_index = 0; factory_index < int16_t(state.defines.factories_per_state); ++factory_index) {
 			auto ptr = make_element_by_type<production_factory_info>(state,
 					state.ui_state.defs_by_name.find("factory_info")->second.definition);
-			ptr->index = factory_index;
-			ptr->base_data.position.x = factory_index * ptr->base_data.size.x;
+			ptr->index = uint8_t(factory_index);
+			ptr->base_data.position.x = (factory_index % num_cols) * ptr->base_data.size.x;
+			ptr->base_data.position.y += std::max<int16_t>(0, (factory_index / num_cols) * (ptr->base_data.size.y - 26));
 			infos.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+			* ((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols);
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -1159,14 +1284,15 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1228,20 +1354,21 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
 };
 
-class production_national_focus_button : public button_element_base {
+class production_national_focus_button : public right_click_button_element_base {
 	int32_t get_icon_frame(sys::state& state) noexcept {
 		auto content = retrieve<dcon::state_instance_id>(state, parent);
 		return bool(state.world.state_instance_get_owner_focus(content).id)
@@ -1261,12 +1388,13 @@ public:
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = dcon::state_instance_id{};
-			parent->impl_get(state, payload);
-			Cyto::Any s_payload = production_selection_wrapper{any_cast<dcon::state_instance_id>(payload), false, base_data.position};
-			parent->impl_get(state, s_payload);
-		}
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		send(state, parent, production_selection_wrapper{sid, false, base_data.position});
+	}
+
+	void button_right_action(sys::state& state) noexcept override {
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		command::set_national_focus(state, state.local_player_nation, sid, dcon::national_focus_id{});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1403,6 +1531,10 @@ public:
 	}
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::state_instance_id>::on_create(state);
+		constexpr int16_t num_cols = 8;
+		base_data.size.y += state.ui_defs.gui[state.ui_state.defs_by_name.find("factory_info")->second.definition].size.y
+			* (((int16_t(state.defines.factories_per_state) + num_cols - 1) / num_cols) - 1);
+		// (8 + 7 - 1) - 1 = (8 + 6) - 1 = (14 / 8) - 1 ~= 1.75 rundown 1 - 1 = 0, ok
 
 		xy_pair base_sort_template_offset =
 				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
@@ -1536,6 +1668,7 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 		float total = 0.0f;
 
 		auto nation = dcon::fatten(state.world, state.local_player_nation);
+
 		switch (commodity_type) {
 		case economy::commodity_production_type::primary:
 		case economy::commodity_production_type::both:
@@ -1548,8 +1681,9 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 			}
 			break;
 
+
 		case economy::commodity_production_type::derivative:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+			total += economy::get_artisan_distribution_slow(state, nation, content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {
@@ -1793,7 +1927,11 @@ public:
 		set_visible(state, false);
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
+		if(name == "main_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "prod_bg") {
+			return make_element_by_type<opaque_element_base>(state, id);
+		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tab_factories") {
 			auto ptr = make_element_by_type<generic_tab_button<production_window_tab>>(state, id);

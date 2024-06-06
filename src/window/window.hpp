@@ -12,6 +12,7 @@ class window_data_impl {
 public:
 	HWND hwnd = nullptr;
 	HDC opengl_window_dc = nullptr;
+	HCURSOR cursors[8] = { HCURSOR(NULL) };
 
 	int32_t creation_x_size = 600;
 	int32_t creation_y_size = 400;
@@ -56,6 +57,16 @@ void close_window(sys::state& game_state); // close the main window
 void set_borderless_full_screen(sys::state& game_state, bool fullscreen);
 bool is_in_fullscreen(sys::state const& game_state);
 bool is_key_depressed(sys::state const& game_state, sys::virtual_key key); // why not cheer it up then?
+
+enum class cursor_type : uint8_t {
+	normal,
+	busy,
+	drag_select,
+	hostile_move,
+	friendly_move,
+	no_move
+};
+void change_cursor(sys::state const& state, cursor_type type);
 
 void get_window_size(sys::state const& game_state, int& width, int& height);
 

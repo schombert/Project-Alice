@@ -13,8 +13,7 @@ namespace ui {
 class province_search_edit : public edit_box_element_base {
 public:
 	void edit_box_update(sys::state& state, std::string_view s) noexcept override {
-		Cyto::Any input = s;
-		parent->impl_get(state, input);
+		send(state, parent, s);
 	}
 };
 
@@ -22,7 +21,7 @@ class province_search_list_item : public listbox_row_button_base<dcon::province_
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto map_prov_id = content;
-		if(map_prov_id) {
+		if(map_prov_id && map_prov_id.value < state.province_definitions.first_sea_province.value) {
 			state.map_state.set_selected_province(map_prov_id);
 			static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, map_prov_id);
 			state.map_state.center_map_on_province(state, map_prov_id);

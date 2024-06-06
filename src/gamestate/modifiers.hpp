@@ -161,15 +161,15 @@ namespace sys {
 	MOD_LIST_ELEMENT(88, land_defense_modifier, true, modifier_display_type::percent, "modifier_land_defense")                     \
 	MOD_LIST_ELEMENT(89, tariff_efficiency_modifier, true, modifier_display_type::percent, "modifier_tariff_efficiency")           \
 	MOD_LIST_ELEMENT(90, max_loan_modifier, true, modifier_display_type::percent, "modifier_max_loan_amount")                      \
-	MOD_LIST_ELEMENT(91, unciv_economic_modifier, true, modifier_display_type::percent, "modifier_unciv_economic")                 \
-	MOD_LIST_ELEMENT(92, unciv_military_modifier, true, modifier_display_type::percent, "modifier_unciv_military")                 \
-	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, true, modifier_display_type::percent, "modifier_self_unciv_economic")       \
-	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, true, modifier_display_type::percent, "modifier_self_unciv_military")       \
-	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, false, modifier_display_type::percent, "commerce_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(96, army_tech_research_bonus, false, modifier_display_type::percent, "army_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, false, modifier_display_type::percent, "industry_tech_research_bonus")       \
-	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, false, modifier_display_type::percent, "navy_tech_research_bonus")               \
-	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, false, modifier_display_type::percent, "culture_tech_research_bonus")         \
+	MOD_LIST_ELEMENT(91, unciv_economic_modifier, false, modifier_display_type::percent, "modifier_unciv_economic")                 \
+	MOD_LIST_ELEMENT(92, unciv_military_modifier, false, modifier_display_type::percent, "modifier_unciv_military")                 \
+	MOD_LIST_ELEMENT(93, self_unciv_economic_modifier, false, modifier_display_type::percent, "modifier_self_unciv_economic")       \
+	MOD_LIST_ELEMENT(94, self_unciv_military_modifier, false, modifier_display_type::percent, "modifier_self_unciv_military")       \
+	MOD_LIST_ELEMENT(95, commerce_tech_research_bonus, true, modifier_display_type::percent, "commerce_tech_research_bonus")       \
+	MOD_LIST_ELEMENT(96, army_tech_research_bonus, true, modifier_display_type::percent, "army_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(97, industry_tech_research_bonus, true, modifier_display_type::percent, "industry_tech_research_bonus")       \
+	MOD_LIST_ELEMENT(98, navy_tech_research_bonus, true, modifier_display_type::percent, "navy_tech_research_bonus")               \
+	MOD_LIST_ELEMENT(99, culture_tech_research_bonus, true, modifier_display_type::percent, "culture_tech_research_bonus")         \
 	MOD_LIST_ELEMENT(100, supply_limit, true, modifier_display_type::percent, "supply_limit_tech")                                 \
 	MOD_LIST_ELEMENT(101, colonial_migration, true, modifier_display_type::percent, "colonial_migration_tech")                     \
 	MOD_LIST_ELEMENT(102, max_national_focus, true, modifier_display_type::integer, "tech_max_focus")                              \
@@ -186,13 +186,12 @@ namespace sys {
 	MOD_LIST_ELEMENT(113, land_attrition, false, modifier_display_type::percent, "land_attrition_tech")                             \
 	MOD_LIST_ELEMENT(114, pop_growth, true, modifier_display_type::fp_three_places, "tech_pop_growth")                                     \
 	MOD_LIST_ELEMENT(115, colonial_life_rating, false, modifier_display_type::integer, "modifier_life_rating")                      \
-	MOD_LIST_ELEMENT(116, seperatism, false, modifier_display_type::percent, "separatism_tech")                                     \
-	MOD_LIST_ELEMENT(117, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
-	MOD_LIST_ELEMENT(118, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
-	MOD_LIST_ELEMENT(119, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
-	MOD_LIST_ELEMENT(120, min_domestic_investment, false, modifier_display_type::percent, "modifier_min_domestic_investment") \
-	MOD_LIST_ELEMENT(121, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment")
-#define MOD_NAT_LIST_COUNT 122
+	MOD_LIST_ELEMENT(116, colonial_prestige, true, modifier_display_type::percent, "colonial_prestige_modifier_tech")              \
+	MOD_LIST_ELEMENT(117, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
+	MOD_LIST_ELEMENT(118, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
+	MOD_LIST_ELEMENT(119, min_domestic_investment, false, modifier_display_type::percent, "modifier_min_domestic_investment") \
+	MOD_LIST_ELEMENT(120, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment")
+#define MOD_NAT_LIST_COUNT 121
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
@@ -316,6 +315,9 @@ struct dated_modifier {
 	sys::date expiration;
 	dcon::modifier_id mod_id;
 };
+static_assert(sizeof(dated_modifier) ==
+	sizeof(dated_modifier::expiration)
+	+ sizeof(dated_modifier::mod_id));
 
 // restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);

@@ -56,13 +56,12 @@ struct textured_line_vertex_b {
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{ type }, thickness_{ thickness }  { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec3 texture_coord, float thickness)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }  { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
-	glm::vec2 texture_coord_;
-	float type_ = 0.f;
+	glm::vec3 texture_coord_;
 	float thickness_ = 0.f;
 };
 
@@ -102,6 +101,7 @@ public:
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void update_railroad_paths(sys::state& state);
 	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
+	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b> border_vertices;
@@ -116,10 +116,33 @@ public:
 	std::vector<GLsizei> coastal_counts;
 	std::vector<GLint> static_mesh_starts;
 	std::vector<GLsizei> static_mesh_counts;
+	//
 	std::vector<curved_line_vertex> unit_arrow_vertices;
 	std::vector<GLint> unit_arrow_starts;
 	std::vector<GLsizei> unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> attack_unit_arrow_vertices;
+	std::vector<GLint> attack_unit_arrow_starts;
+	std::vector<GLsizei> attack_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> retreat_unit_arrow_vertices;
+	std::vector<GLint> retreat_unit_arrow_starts;
+	std::vector<GLsizei> retreat_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> strategy_unit_arrow_vertices;
+	std::vector<GLint> strategy_unit_arrow_starts;
+	std::vector<GLsizei> strategy_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> objective_unit_arrow_vertices;
+	std::vector<GLint> objective_unit_arrow_starts;
+	std::vector<GLsizei> objective_unit_arrow_counts;
+	//
+	std::vector<curved_line_vertex> other_objective_unit_arrow_vertices;
+	std::vector<GLint> other_objective_unit_arrow_starts;
+	std::vector<GLsizei> other_objective_unit_arrow_counts;
+	//
 	std::vector<text_line_vertex> text_line_vertices;
+	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
 	std::vector<uint8_t> median_terrain_type;
@@ -144,7 +167,13 @@ public:
 	static constexpr uint32_t vo_coastal = 6;
 	static constexpr uint32_t vo_railroad = 7;
 	static constexpr uint32_t vo_static_mesh = 8;
-	static constexpr uint32_t vo_count = 9;
+	static constexpr uint32_t vo_province_text_line = 9;
+	static constexpr uint32_t vo_attack_unit_arrow = 10;
+	static constexpr uint32_t vo_retreat_unit_arrow = 11;
+	static constexpr uint32_t vo_strategy_unit_arrow = 12;
+	static constexpr uint32_t vo_objective_unit_arrow = 13;
+	static constexpr uint32_t vo_other_objective_unit_arrow = 14;
+	static constexpr uint32_t vo_count = 15;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -167,7 +196,12 @@ public:
 	static constexpr uint32_t texture_coastal_border = 16;
 	static constexpr uint32_t texture_diag_border_identifier = 17;
 	static constexpr uint32_t texture_railroad = 18;
-	static constexpr uint32_t texture_count = 19;
+	static constexpr uint32_t texture_attack_unit_arrow = 19;
+	static constexpr uint32_t texture_retreat_unit_arrow = 20;
+	static constexpr uint32_t texture_strategy_unit_arrow = 21;
+	static constexpr uint32_t texture_objective_unit_arrow = 22;
+	static constexpr uint32_t texture_other_objective_unit_arrow = 23;
+	static constexpr uint32_t texture_count = 24;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;

@@ -1,3 +1,7 @@
+#ifndef DCON_TRAP_INVALID_STORE
+#define DCON_TRAP_INVALID_STORE 1
+#endif
+
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
@@ -33,6 +37,7 @@
 #include "gui_population_window.cpp"
 #include "gui_budget_window.cpp"
 #include "gui_technology_window.cpp"
+#include "gui_error_window.cpp"
 #include "commands.cpp"
 #include "network.cpp"
 #include "diplomatic_messages.cpp"

@@ -217,7 +217,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 						continue;
 
 					// Check if the file is of the right extension
-					if(strlen(extension)) {
+					if(extension && extension[0] != 0) {
 						char* dot = strrchr(dir_ent->d_name, '.');
 						if(!dot || dot == dir_ent->d_name)
 							continue;
@@ -249,7 +249,7 @@ std::vector<unopened_file> list_files(directory const& dir, native_char const* e
 					continue;
 
 				// Check if the file is of the right extension
-				if(strlen(extension)) {
+				if(extension && extension[0] != 0) {
 					char* dot = strrchr(dir_ent->d_name, '.');
 					if(!dot || dot == dir_ent->d_name)
 						continue;
@@ -481,6 +481,13 @@ directory get_or_create_templates_directory() {
 
 directory get_or_create_oos_directory() {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/oos/";
+	make_directories(path);
+
+	return directory(nullptr, path);
+}
+
+directory get_or_create_data_dumps_directory() {
+	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/data_dumps/";
 	make_directories(path);
 
 	return directory(nullptr, path);

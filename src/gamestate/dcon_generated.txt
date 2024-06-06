@@ -84,6 +84,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_ruler_name }
+		type{ array{government_type_id}{text_sequence_id} }
+		tag{ scenario }
+	}
+	property{
 		name{ government_color }
 		type{ array{government_type_id}{uint32_t} }
 		tag{ scenario }
@@ -139,6 +144,11 @@ object {
 	property{
 		name{ party_issues }
 		type{array{issue_id}{issue_option_id}}
+		tag{ scenario }
+	}
+	property{
+		name{ trigger }
+		type{ dcon::trigger_key }
 		tag{ scenario }
 	}
 }
@@ -381,6 +391,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ demand_by_category }
+		type{ array{int32_t}{float} }
+	}
+	property{
 		name{ total_consumption }
 		type{ float }
 		tag{ save }
@@ -416,6 +430,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ desc }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -637,6 +656,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<issue_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -665,6 +689,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ desc }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -734,6 +763,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<reform_option_id,culture::max_issue_options> }
 		tag{ scenario }
@@ -760,7 +794,11 @@ object {
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
-
+	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
 	property{
 		name{ rules }
 		type{ uint32_t }
@@ -812,7 +850,7 @@ object {
 object {
 	name{cb_type}
 	storage_type{ contiguous }
-	size{ 120 }
+	size{ 125 }
 	tag{ scenario }
 
 	property{
@@ -1260,6 +1298,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ ruler_name }
 		type{ text_sequence_id }
 		tag{ scenario }
@@ -1553,7 +1596,7 @@ relationship{
 object {
 	name{ regiment }
 	storage_type{ erasable }
-	size{ 18000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -1589,7 +1632,7 @@ object {
 object {
 	name{ ship }
 	storage_type{ erasable }
-	size{ 10000 }
+	size{ 16000 }
 	tag{ save }
 
 	property{
@@ -1675,12 +1718,17 @@ object {
 		type{ province_id }
 		tag{ save }
 	}
+	property{
+		name{ is_ai_controlled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 object {
 	name{ navy }
 	storage_type{ erasable }
-	size{ 2000 }
+	size{ 6000 }
 	tag{ save }
 
 	property{
@@ -2271,7 +2319,7 @@ relationship{
 object {
 	name{ leader }
 	storage_type{ erasable }
-	size{ 25000 }
+	size{ 32000 }
 	tag{ save }
 
 	property{
@@ -3059,6 +3107,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ marked_for_gc }
+		type{ bitfield }
+	}
+	property{
 		name{ is_great_power }
 		type{ bitfield }
 	}
@@ -3371,6 +3423,14 @@ object {
 		type{ float }
 	}
 	property {
+		name{ private_investment_education }
+		type{ float }
+	}
+	property {
+		name{ private_investment_administration }
+		type{ float }
+	}
+	property {
 		name{ total_rich_income }
 		type{ float }
 		tag{ save }
@@ -3470,6 +3530,16 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ gdp }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ effective_prices }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
 		name{ stockpiles }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -3493,6 +3563,10 @@ object {
 		name{ real_demand }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+	property {
+		name{ intermediate_demand }
+		type{ array{commodity_id}{float} }
 	}
 	property {
 		name{ imports }
@@ -3720,6 +3794,11 @@ object {
 		name{ ai_home_port }
 		type{ province_id }
 	}
+	property{
+		name{ mobilized_is_ai_controlled }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 
@@ -3806,6 +3885,11 @@ relationship{
 	}
 	property{
 		name{ reparations }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ interested_in_alliance }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -4445,6 +4529,11 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ allow_multiple_instances }
+		type{ bitfield }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4461,6 +4550,11 @@ object {
 	property{
 		name{ description }
 		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ immediate_effect }
+		type{ effect_key }
 		tag{ scenario }
 	}
 	property{
@@ -4580,6 +4674,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ immediate_effect }
+		type{ effect_key }
+		tag{ scenario }
+	}
+	property{
 		name{ options }
 		type{ std::array<sys::event_option,sys::max_event_options> }
 		tag{ scenario }
@@ -4652,6 +4751,7 @@ object {
 		tag{ scenario }
 	}
 }
+
 
 object {
 	name{ stored_trigger }

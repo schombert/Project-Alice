@@ -89,23 +89,6 @@ void close_window(sys::state& game_state) {
 		PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 }
 
-bool is_low_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xDC00 && char_code <= 0xDFFF;
-}
-bool is_high_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xD800 && char_code <= 0xDBFF;
-}
-
-char process_utf16_to_win1250(wchar_t c) {
-	if(c <= 127)
-		return char(c);
-	if(is_low_surrogate(c) || is_high_surrogate(c))
-		return 0;
-	char char_out = 0;
-	WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
-	return char_out;
-}
-
 sys::key_modifiers get_current_modifiers() {
 	uint32_t val =
 			uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) |
@@ -153,10 +136,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_SETFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
+		if(state->user_settings.mute_on_focus_lost) {
+			sound::resume_all(*state);
+		}
 		return 0;
 	case WM_KILLFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		if(state->user_settings.mute_on_focus_lost) {
+			sound::pause_all(*state);
+		}
 		return 0;
 	case WM_LBUTTONDOWN: {
 		SetCapture(hwnd);
@@ -256,6 +245,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	{
 		sys::virtual_key key = sys::virtual_key(wParam);
 		switch(key) {
+		case sys::virtual_key::RETURN: [[fallthrough]];
 		case sys::virtual_key::BACK: [[fallthrough]];
 		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
 		case sys::virtual_key::LEFT: [[fallthrough]];
@@ -276,9 +266,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	case WM_CHAR: {
 		if(state->ui_state.edit_target) {
-			char turned_into = process_utf16_to_win1250(wchar_t(wParam));
-			if(turned_into)
-				state->on_text(turned_into);
+			state->on_text(char32_t(wParam));
 		}
 		return 0;
 	}
@@ -324,14 +312,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	wcex.hbrBackground = NULL;
 	wcex.lpszMenuName = NULL;
 	wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wcex.hIcon = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON, GetSystemMetrics(SM_CXICON),
-			GetSystemMetrics(SM_CYICON), 0);
-	// wcex.hIconSm = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON,
-	// GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), 0);
+	wcex.hIcon = (HICON)LoadImage(GetModuleHandleW(nullptr), MAKEINTRESOURCE(IDI_ICON1), IMAGE_ICON,
+		GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), 0);
 	wcex.lpszClassName = L"project_alice_class";
-
 	if(RegisterClassExW(&wcex) == 0) {
-		std::abort();
+		window::emit_error_message("Unable to register window class", true);
 	}
 
 	DWORD win32Style = !params.borderless_fullscreen ? (WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX |
@@ -394,19 +379,9 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	sound::initialize_sound_system(game_state);
 	sound::start_music(game_state, game_state.user_settings.master_volume * game_state.user_settings.music_volume);
 
+	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-
-	{
-		auto root = simple_fs::get_root(game_state.common_fs);
-		auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
-		auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
-		if(auto f = simple_fs::peek_file(cursors_dir, NATIVE("normal.cur")); f) {
-			auto path = simple_fs::get_full_name(*f);
-			HCURSOR h_cursor = LoadCursorFromFileW(path.c_str()); //.cur or .ani
-			SetCursor(h_cursor);
-			SetClassLongPtr(game_state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(h_cursor));
-		}
-	}
+	change_cursor(game_state, cursor_type::normal);
 
 	MSG msg;
 	// pump message loop
@@ -427,12 +402,56 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	}
 }
 
+void change_cursor(sys::state const& state, cursor_type type) {
+	auto root = simple_fs::get_root(state.common_fs);
+	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
+	auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
+
+	if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
+		native_string_view fname = NATIVE("normal.cur");
+		switch(type) {
+		case cursor_type::normal:
+			fname = NATIVE("normal.cur");
+			break;
+		case cursor_type::busy:
+			fname = NATIVE("busy.ani");
+			break;
+		case cursor_type::drag_select:
+			fname = NATIVE("dragselect.ani");
+			break;
+		case cursor_type::hostile_move:
+			fname = NATIVE("attack_move.ani");
+			break;
+		case cursor_type::friendly_move:
+			fname = NATIVE("friendly_move.ani");
+			break;
+		case cursor_type::no_move:
+			fname = NATIVE("no_move.ani");
+			break;
+		default:
+			fname = NATIVE("normal.cur");
+			break;
+		}
+		if(auto f = simple_fs::peek_file(cursors_dir, fname); f) {
+			auto path = simple_fs::get_full_name(*f);
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursorFromFileW(path.c_str()); //.cur or .ani
+			if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
+				state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+			}
+		} else {
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(nullptr, IDC_ARROW); //default system cursor
+		}
+	}
+	SetCursor(state.win_ptr->cursors[uint8_t(type)]);
+	SetClassLongPtr(state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(state.win_ptr->cursors[uint8_t(type)]));
+}
+
 void emit_error_message(std::string const& content, bool fatal) {
-	MessageBoxA(nullptr, content.c_str(),
-			fatal ? "Project Alice has encountered a fatal error:" : "Project Alice has encountered the following problems:",
-			MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
+	static const char* msg1 = "Project Alice has encountered a fatal error";
+	static const char* msg2 = "Project Alice has encountered the following problems";
+	MessageBoxA(nullptr, content.c_str(), fatal ? msg1 : msg2, MB_OK | (fatal ? MB_ICONERROR : MB_ICONWARNING));
 	if(fatal) {
-		std::terminate();
+		std::exit(EXIT_FAILURE);
 	}
 }
 } // namespace window

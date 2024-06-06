@@ -14,10 +14,10 @@ public:
 		filename = o.filename;
 		return *this;
 	}
-	audio_instance(simple_fs::unopened_file const& file) {
-		filename = simple_fs::get_full_name(file);
-	}
 	~audio_instance() { }
+	void set_file(native_string_view name) {
+		filename = native_string(name);
+	}
 };
 
 class sound_impl {
@@ -27,8 +27,18 @@ public:
 	std::optional<ma_sound> music;
 
 	ma_engine engine;
+	bool global_pause = false;
 
 	audio_instance click_sound;
+	audio_instance click_left_sound;
+	audio_instance click_right_sound;
+	audio_instance tab_budget_sound;
+	audio_instance tab_politics_sound;
+	audio_instance tab_diplomacy_sound;
+	audio_instance tab_military_sound;
+	audio_instance tab_population_sound;
+	audio_instance tab_production_sound;
+	audio_instance tab_technology_sound;
 	audio_instance technology_finished_sound;
 	audio_instance army_move_sound;
 	audio_instance army_select_sound;
@@ -51,8 +61,15 @@ public:
 	audio_instance decline_sound;
 	audio_instance accept_sound;
 	audio_instance diplomatic_request_sound;
+	audio_instance console_open_sound;
+	audio_instance console_close_sound;
 	audio_instance land_battle_sounds[6];
 	audio_instance naval_battle_sounds[6];
+	audio_instance province_select_sounds[4];
+	audio_instance event_sound;
+	audio_instance decision_sound;
+	audio_instance pause_sound;
+	audio_instance unpause_sound;
 
 	std::vector<audio_instance> music_list;
 	int32_t last_music = -1;
@@ -64,7 +81,9 @@ public:
 	void set_volume(std::optional<ma_sound>& sound, float volume);
 	void override_sound(std::optional<ma_sound>& sound, audio_instance& s, float volume);
 	void play_music(int32_t track, float volume);
-	void play_new_track(sys::state& s, float v);
+	void play_new_track(sys::state& ws);
+	void play_next_track(sys::state& ws);
+	void play_previous_track(sys::state& ws);
 	bool music_finished();
 };
 

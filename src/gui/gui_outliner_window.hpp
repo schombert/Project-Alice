@@ -43,7 +43,7 @@ using outliner_data = std::variant< outliner_filter, dcon::army_id, dcon::navy_i
 	dcon::province_naval_construction_id, dcon::state_instance_id, outliner_rebel_occupation, outliner_hostile_siege, outliner_my_siege,
 	dcon::land_battle_id, dcon::naval_battle_id, outliner_rally_point>;
 
-class outliner_element_button : public shift_button_element_base {
+class outliner_element_button : public button_element_base {
 public:
 	bool visible = false;
 
@@ -62,7 +62,7 @@ public:
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
-			shift_button_element_base::render(state, x, y);
+			button_element_base::render(state, x, y);
 	}
 	void button_action(sys::state& state) noexcept override {
 		if(!visible)
@@ -340,7 +340,16 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
+			std::string ctrl_str = "";
+			for(uint32_t i = 0; i < uint32_t(state.ctrl_armies.size()); i++) {
+				for(const auto e : state.ctrl_armies[i]) {
+					if(e == army.id) {
+						ctrl_str += "(" + std::to_string(i) + ")";
+						break;
+					}
+				}
+			}
+			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, army.get_location_from_army_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::navy_id>(content)) {
@@ -357,7 +366,16 @@ public:
 			text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
 			text::add_to_substitution_map(sub, text::variable_type::y, int64_t(amounts.type3));
 
-			auto base_str = text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
+			std::string ctrl_str = "";
+			for(uint32_t i = 0; i < uint32_t(state.ctrl_navies.size()); i++) {
+				for(const auto e : state.ctrl_navies[i]) {
+					if(e == navy.id) {
+						ctrl_str += "(" + std::to_string(i) + ")";
+						break;
+					}
+				}
+			}
+			auto base_str = ctrl_str + text::resolve_string_substitution(state, "ol_unit_standing_text", sub);
 			auto full_str = base_str + " (" + text::produce_simple_string(state, navy.get_location_from_navy_location().get_name()) + ")";
 			set_text(state, full_str);
 		} else if(std::holds_alternative<dcon::gp_relationship_id>(content)) {
@@ -678,8 +696,11 @@ public:
 		if(get_filter(state, outliner_filter::gp_influence)) {
 			row_contents.push_back(outliner_filter::gp_influence);
 			auto old_size = row_contents.size();
-			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation,
-					[&](dcon::gp_relationship_id grid) { row_contents.push_back(grid); });
+			state.world.nation_for_each_gp_relationship_as_great_power(state.local_player_nation, [&](dcon::gp_relationship_id grid) {
+				auto status = (state.world.gp_relationship_get_status(grid) & nations::influence::priority_mask);
+				if(status != nations::influence::priority_zero)
+					row_contents.push_back(grid);
+			});
 			if(old_size == row_contents.size())
 				row_contents.pop_back();
 		}

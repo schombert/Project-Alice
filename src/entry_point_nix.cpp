@@ -4,12 +4,7 @@
 static sys::state game_state; // too big for the stack
 
 int main(int argc, char **argv) {
-	assert(
-			std::string("NONE") !=
-			GAME_DIR); // If this fails, then you have not created a local_user_settings.hpp (read the documentation for contributors)
-	add_root(game_state.common_fs, NATIVE_M(GAME_DIR)); // game files directory is overlaid on top of that
-	add_root(game_state.common_fs,
-			NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
+	add_root(game_state.common_fs, NATIVE(".")); // will add the working directory as first root -- for the moment this lets us find the shader files
 
 	if(argc >= 2) {
 #ifndef NDEBUG
@@ -57,12 +52,11 @@ int main(int argc, char **argv) {
 		}
 
 		network::init(game_state);
-	}
-	else {
+	} else {
 		if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 			// scenario making functions
 			parsers::error_handler err{ "" };
-			game_state.load_scenario_data(err);
+			game_state.load_scenario_data(err, sys::year_month_day{ 1836, 1, 1 });
 			if(!err.accumulated_errors.empty())
 				window::emit_error_message(err.accumulated_errors, true);
 			sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
@@ -85,6 +79,6 @@ int main(int argc, char **argv) {
 	game_state.quit_signaled.store(true, std::memory_order_release);
 	update_thread.join();
 
-	network::finish(game_state);
+	network::finish(game_state, true);
 	return EXIT_SUCCESS;
 }

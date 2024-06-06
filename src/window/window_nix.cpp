@@ -125,6 +125,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		break;
 	case GLFW_REPEAT:
 		switch(virtual_key) {
+		case sys::virtual_key::RETURN: [[fallthrough]];
 		case sys::virtual_key::BACK: [[fallthrough]];
 		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
 		case sys::virtual_key::LEFT: [[fallthrough]];
@@ -208,8 +209,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 	if(state->ui_state.edit_target) {
-		// TODO change UTF32 to (win1250??)
-		state->on_text(char(codepoint));
+		state->on_text(codepoint);
 	}
 }
 
@@ -245,6 +245,19 @@ void window_iconify_callback(GLFWwindow* window, int iconified) {
 
 void window_maximize_callback(GLFWwindow* window, int maximized) {
 	on_window_change(window);
+}
+
+void focus_callback(GLFWwindow* window, int focused) {
+	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
+	if(focused) {
+		if(state->user_settings.mute_on_focus_lost) {
+			sound::resume_all(*state);
+		}
+	} else {
+		if(state->user_settings.mute_on_focus_lost) {
+			sound::pause_all(*state);
+		}
+	}
 }
 
 void create_window(sys::state& game_state, creation_parameters const& params) {
@@ -283,6 +296,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwSetWindowIconifyCallback(window, window_iconify_callback);
 	glfwSetWindowMaximizeCallback(window, window_maximize_callback);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetWindowFocusCallback(window, focus_callback);
 	glfwSetWindowSizeLimits(window, 640, 400, 2400, 1800);
 
 	ogl::initialize_opengl(game_state);
@@ -292,7 +306,9 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	on_window_change(window); // Init the window size
 
+	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
+	change_cursor(game_state, cursor_type::normal);
 
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -308,10 +324,14 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	glfwTerminate();
 }
 
+void change_cursor(sys::state const& state, cursor_type type) {
+	//TODO: Implement on linux
+}
+
 void emit_error_message(std::string const& content, bool fatal) {
 	std::fprintf(stderr, "%s", content.c_str());
 	if(fatal) {
-		std::terminate();
+		std::exit(EXIT_FAILURE);
 	}
 }
 

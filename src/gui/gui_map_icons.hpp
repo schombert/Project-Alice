@@ -19,7 +19,7 @@ struct toggle_unit_grid {
 };
 
 template<bool IsNear>
-class port_ex_bg : public shift_button_element_base {
+class port_ex_bg : public button_element_base {
 	bool visible = false;
 
 	void on_update(sys::state& state) noexcept override {
@@ -383,9 +383,6 @@ public:
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
 					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
-					}
 					if(state.ui_state.naval_combat_window) {
 						state.ui_state.naval_combat_window->set_visible(state, false);
 					}
@@ -401,9 +398,6 @@ public:
 					if(state.ui_state.province_window) {
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
 					}
 					if(state.ui_state.naval_combat_window) {
 						state.ui_state.naval_combat_window->set_visible(state, false);
@@ -425,9 +419,6 @@ public:
 					if(state.ui_state.province_window) {
 						state.ui_state.province_window->set_visible(state, false);
 						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.unit_window_army) {
-						state.ui_state.unit_window_army->set_visible(state, false);
 					}
 					if(state.ui_state.army_combat_window) {
 						state.ui_state.army_combat_window->set_visible(state, false);
@@ -755,7 +746,7 @@ public:
 	}
 };
 
-class tl_frame_bg : public shift_button_element_base {
+class tl_frame_bg : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
@@ -1762,9 +1753,9 @@ public:
 			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::bank);
 			last_update = state.ui_date;
 		}
-
 		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::color3f color{ 0.f, 0.f, 0.f };
+		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 
@@ -1778,9 +1769,9 @@ public:
 			cached_level = '0' + state.world.province_get_building_level(retrieve<dcon::province_id>(state, parent), economy::province_building_type::university);
 			last_update = state.ui_date;
 		}
-
 		image_element_base::render(state, x, y);
-		ogl::render_character(state, cached_level, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), 14.0f, state.font_collection.fonts[1]);
+		ogl::color3f color{ 0.f, 0.f, 0.f };
+		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 

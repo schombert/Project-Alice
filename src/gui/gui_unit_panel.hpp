@@ -7,6 +7,7 @@
 #include "prng.hpp"
 #include "gui_leader_tooltip.hpp"
 #include "gui_leader_select.hpp"
+#include "gui_unit_grid_box.hpp"
 
 namespace ui {
 
@@ -15,10 +16,7 @@ enum class unitpanel_action : uint8_t { close, reorg, split, disband, changelead
 class unit_selection_close_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload);
-		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -33,8 +31,7 @@ public:
 class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		Cyto::Any payload = element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg};
-		parent->impl_get(state, payload);
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -80,18 +77,13 @@ template<class T>
 class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(parent) {
-			Cyto::Any payload = T{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<T>(payload);
-			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				command::delete_army(state, state.local_player_nation, content);
-			} else {
-				command::delete_navy(state, state.local_player_nation, content);
-			}
-			Cyto::Any payload2 = element_selection_wrapper<unitpanel_action>{unitpanel_action{unitpanel_action::close}};
-			parent->impl_get(state, payload2);
+		auto content = retrieve<T>(state, parent);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			command::delete_army(state, state.local_player_nation, content);
+		} else {
+			command::delete_navy(state, state.local_player_nation, content);
 		}
+		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -112,10 +104,14 @@ public:
 	}
 };
 
-class unit_selection_disband_too_small_button : public button_element_base {
+class unit_selection_disband_too_small_button : public tinted_button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));
+		color = sys::pack_color(255, 196, 196);
+		if(state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) {
+			color = sys::pack_color(255, 255, 255); //remap to blue
+		}
 	}
 	void button_action(sys::state& state) noexcept override {
 		 command::disband_undermanned_regiments(state, state.local_player_nation, retrieve<dcon::army_id>(state, parent));
@@ -470,6 +466,8 @@ public:
 
 template<class T>
 class unit_selection_panel : public window_element_base {
+	dcon::gfx_object_id disband_gfx{};
+	unit_selection_disband_too_small_button* disband_too_small_btn = nullptr;
 public:
 	window_element_base* reorg_window = nullptr;
 	window_element_base* combat_window = nullptr;
@@ -491,6 +489,9 @@ public:
 			}
 		}
 		window_element_base::on_create(state);
+		if(disband_too_small_btn && disband_gfx) {
+			disband_too_small_btn->base_data.data.button.button_image = disband_gfx;
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -516,12 +517,17 @@ public:
 		} else if(name == "splitinhalf") {
 			return make_element_by_type<unit_selection_split_in_half_button<T>>(state, id);
 		} else if(name == "disbandbutton") {
-			return make_element_by_type<unit_selection_disband_button<T>>(state, id);
+			auto ptr = make_element_by_type<unit_selection_disband_button<T>>(state, id);
+			disband_gfx = ptr->base_data.data.button.button_image;
+			return ptr;
 		} else if(name == "disbandtoosmallbutton") {
-			if constexpr(std::is_same_v<T, dcon::army_id>)
-				return make_element_by_type<unit_selection_disband_too_small_button>(state, id);
-			else
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				auto ptr = make_element_by_type<unit_selection_disband_too_small_button>(state, id);
+				disband_too_small_btn = ptr.get();
+				return ptr;
+			} else {
 				return make_element_by_type<invisible_element>(state, id);
+			}
 		} else if(name == "str_bar") {
 			return make_element_by_type<unit_selection_str_bar<T>>(state, id);
 		} else if(name == "org_bar") {
@@ -747,16 +753,20 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::army_id>(state, parent);
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::army_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::army_id>(payload);
-			state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
-				auto rid = state.world.army_membership_get_regiment(amid);
-				row_contents.push_back(rid);
-			});
-		}
+		state.world.army_for_each_army_membership_as_army(content, [&](dcon::army_membership_id amid) {
+			auto rid = state.world.army_membership_get_regiment(amid);
+			row_contents.push_back(rid);
+		});
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::regiment_id a, dcon::regiment_id b) {
+			auto av = state.world.regiment_get_type(a).index();
+			auto bv = state.world.regiment_get_type(b).index();
+			if(av != bv)
+				return av > bv;
+			else
+				return a.index() < b.index();
+		});
 		update(state);
 	}
 };
@@ -773,16 +783,20 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::navy_id>(state, parent);
 		row_contents.clear();
-		if(parent) {
-			Cyto::Any payload = dcon::navy_id{};
-			parent->impl_get(state, payload);
-			auto content = any_cast<dcon::navy_id>(payload);
-			state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
-				auto sid = state.world.navy_membership_get_ship(nmid);
-				row_contents.push_back(sid);
-			});
-		}
+		state.world.navy_for_each_navy_membership_as_navy(content, [&](dcon::navy_membership_id nmid) {
+			auto sid = state.world.navy_membership_get_ship(nmid);
+			row_contents.push_back(sid);
+		});
+		std::sort(row_contents.begin(), row_contents.end(), [&](dcon::ship_id a, dcon::ship_id b) {
+			auto av = state.world.ship_get_type(a).index();
+			auto bv = state.world.ship_get_type(b).index();
+			if(av != bv)
+				return av > bv;
+			else
+				return a.index() < b.index();
+		});
 		update(state);
 	}
 };
@@ -792,17 +806,68 @@ public:
 	bool visible = false;
 
 	void button_action(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::army_id>(state, parent);
-		command::embark_army(state, state.local_player_nation, n);
+		auto a = retrieve<dcon::army_id>(state, parent);
+		auto p = state.world.army_get_location_from_army_location(a);
+		int32_t max_cap = 0;
+		for(auto n : state.world.province_get_navy_location(p)) {
+			if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
+				max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
+			}
+		}
+		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+			&& max_cap > 0) { //require splitting
+			auto regs = state.world.army_get_army_membership(a);
+			int32_t army_cap = int32_t(regs.end() - regs.begin());
+			int32_t to_split = army_cap - max_cap;
+			//can mark 10 regiments to be split at a time
+			std::array<dcon::regiment_id, command::num_packed_units> data;
+			int32_t i = 0;
+			data.fill(dcon::regiment_id{});
+			for(auto reg : state.world.army_get_army_membership(a)) {
+				if(to_split == 0)
+					break;
+				//
+				data[i] = reg.get_regiment();
+				++i;
+				if(i >= int32_t(command::num_packed_units)) { //reached max allowed
+					command::mark_regiments_to_split(state, state.local_player_nation, data);
+					data.fill(dcon::regiment_id{});
+					i = 0;
+				}
+				//
+				--to_split;
+			}
+			if(i > 0) { //leftovers
+				command::mark_regiments_to_split(state, state.local_player_nation, data);
+			}
+			command::split_army(state, state.local_player_nation, a);
+			command::embark_army(state, state.local_player_nation, a);
+		} else { //no split
+			command::embark_army(state, state.local_player_nation, a);
+		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::army_id>(state, parent);
-		auto tprted = state.world.army_get_navy_from_army_transport(n);
-		auto loc = state.world.army_get_location_from_army_location(n);
-
-		visible = !bool(tprted);
-
-		disabled = !military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n);
+		auto a = retrieve<dcon::army_id>(state, parent);
+		auto p = state.world.army_get_location_from_army_location(a);
+		visible = !bool(state.world.army_get_navy_from_army_transport(a)); //not already in ship
+		disabled = true;
+		frame = 0;
+		if(visible) {
+			int32_t max_cap = 0;
+			for(auto n : state.world.province_get_navy_location(p)) {
+				if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+					!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
+					max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
+				}
+			}
+			disabled = max_cap <= 0;
+			//require splitting
+			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+				&& max_cap > 0) {
+				frame = 1;
+			}
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -988,6 +1053,25 @@ public:
 			button_element_base::render(state, x, y);
 	}
 };
+class unit_details_ai_controlled : public checkbox_button {
+public:
+	bool is_active(sys::state& state) noexcept override {
+		return state.world.army_get_is_ai_controlled(retrieve<dcon::army_id>(state, parent));
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return button_element_base::test_mouse(state, x, y, type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_ai_controlled_unit");
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto a = retrieve<dcon::army_id>(state, parent);
+		command::toggle_unit_ai_control(state, state.local_player_nation, a);
+	}
+};
 
 class unit_supply_bar : public progress_bar {
 public:
@@ -1063,10 +1147,7 @@ public:
 		float max_supply = 0.0f;
 		float actual_supply = 0.0f;
 
-
 		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
-
-
 		for(uint32_t i = 0; i < total_commodities; ++i) {
 			if(!commodities.commodity_type[i]) {
 				break;
@@ -1081,35 +1162,23 @@ public:
 		}
 
 		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
-
-		if(army) {
-			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
-			text::add_line(state, contents, "current_supply_text2");
-		} else if(navy) {
-			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
-			text::add_line(state, contents, "current_supply_text2");
-		}
-		
+		text::add_line(state, contents, "unit_current_supply", text::variable_type::val, int16_t(median_supply * 100.f));
 		text::add_line_break_to_layout(state, contents);
-
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(commodities.commodity_type[i]) {
-				if(commodities.commodity_amounts[i] > 0) {
+			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
+				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+				float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+				float wanted_commodity = commodities.commodity_amounts[i];
+				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 
-					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-					float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
-					float wanted_commodity = commodities.commodity_amounts[i];
-					float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
+				int32_t display_satisfaction = int32_t(satisfaction * 100);
 
-					int32_t display_satisfaction = int32_t(satisfaction * 100);
-
-					if(satisfaction == 1 || satisfaction >= 0.95) {
-						text::add_line(state, contents, "current_supply_text_commodity", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					} else if (satisfaction < 0.95 && satisfaction >= 0.5) {
-						text::add_line(state, contents, "current_supply_text_commodity_orange_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					} else {
-						text::add_line(state, contents, "current_supply_text_commodity_red_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					}					
+				if(satisfaction == 1 || satisfaction >= 0.95) {
+					text::add_line(state, contents, "unit_current_supply_high", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+				} else if (satisfaction < 0.95 && satisfaction >= 0.5) {
+					text::add_line(state, contents, "unit_current_supply_mid", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+				} else {
+					text::add_line(state, contents, "unit_current_supply_low", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
 				}
 			}
 		}
@@ -1121,6 +1190,14 @@ class unit_details_buttons : public window_element_base {
 private:
 	simple_text_element_base* navytransport_text = nullptr;
 public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			auto ptr = make_element_by_type<unit_details_ai_controlled>(state, "alice_enable_ai_controlled");
+			add_child_to_front(std::move(ptr));
+		}
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "load_button" && std::is_same_v<T, dcon::army_id>) {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
@@ -1395,7 +1472,7 @@ public:
 	}
 };
 
-class whole_panel_button : public shift_button_element_base {
+class whole_panel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
@@ -1875,7 +1952,61 @@ public:
 	}
 };
 
+class multi_unit_details_ai_controlled : public checkbox_button {
+	bool visible = true;
+public:
+	bool is_active(sys::state& state) noexcept override {
+		for(auto i : state.selected_armies) {
+			if(state.world.army_get_is_ai_controlled(i) == false)
+				return false;
+		}
+		return true;
+	}
+	void on_update(sys::state& state) noexcept override {
+		checkbox_button::on_update(state);
+		visible = state.selected_navies.empty();
+	}
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		return button_element_base::test_mouse(state, x, y, type);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "alice_ai_controlled_unit");
+	}
+	void button_action(sys::state& state) noexcept override {
+		bool all_on = true;
+		for(auto i : state.selected_armies) {
+			if(state.world.army_get_is_ai_controlled(i) == false) {
+				all_on = false;
+				break;
+			}
+		}
+		for(auto a : state.selected_armies) {
+			if(all_on) { //all on -> turn all off
+				command::toggle_unit_ai_control(state, state.local_player_nation, a);
+			} else { //some on -> turn all that are off into on, all off -> turn all on
+				if(!state.world.army_get_is_ai_controlled(a)) {
+					command::toggle_unit_ai_control(state, state.local_player_nation, a);
+				}
+			}
+		}
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			checkbox_button::render(state, x, y);
+	}
+};
+
 class mulit_unit_selection_panel : public main_window_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
+		add_child_to_front(std::move(ptr));
+	}
+
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "desc") {
 			return make_element_by_type<units_selected_text>(state, id);

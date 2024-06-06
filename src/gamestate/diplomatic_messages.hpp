@@ -21,17 +21,18 @@ enum class type_t : uint8_t {
 };
 
 struct message {
-	dcon::nation_id from; //2
-	dcon::nation_id to; //2
-	sys::date when; //2
 	union dtype {
 		dcon::war_id war; //2
 		dcon::peace_offer_id peace; //2
 		sys::crisis_join_offer crisis_offer; //10
 		dcon::state_definition_id state; //2
-
-		dtype() { memset(this, 0, sizeof(*this)); }
-	} data;
+		dtype() {
+			memset(this, 0, sizeof(*this));
+		}
+	} data; //10
+	sys::date when; //2
+	dcon::nation_id from; //2
+	dcon::nation_id to; //2
 	type_t type = diplomatic_message::type_t::none; //1
 	uint8_t padding = 0; //1
 
@@ -54,6 +55,7 @@ bool ai_will_accept(sys::state& state, message const& m);
 
 void decline(sys::state& state, message const& m);
 void accept(sys::state& state, message const& m);
+bool can_accept(sys::state& state, message const& m);
 
 void post(sys::state& state, message const& m);
 void update_pending(sys::state& state);
