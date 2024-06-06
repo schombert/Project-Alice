@@ -2,12 +2,10 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
-layout (location = 3) in vec2 texture_coord;
-layout (location = 4) in float codepoint_tn;
-layout (location = 5) in float thickness;
+layout (location = 3) in vec3 texture_coord;
+layout (location = 4) in float thickness;
 
-out vec2 tex_coord;
-out float type;
+out vec3 tex_coord;
 out float opacity;
 
 // Camera position
@@ -126,5 +124,4 @@ void main() {
 
 	gl_Position = temp_result;
 	tex_coord = texture_coord;
-	type = codepoint_tn;
 }

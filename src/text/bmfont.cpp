@@ -140,36 +140,35 @@ float bm_font::get_string_width(sys::state& state, char const* string, uint32_t 
 	float total = 0;
 
 	for(uint32_t i = 0; i < count; ++i) {
-		auto c = uint8_t(string[i]);
-
-		if(uint8_t(string[i]) == 0x40) { // Handle @TAG
+		auto ch = uint8_t(string[i]);
+		if(ch == '@') { // Handle @TAG
 			auto const& f = chars[0x4D];
-			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
-			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;
+			float scaling = 1.f;
+			float offset = 0.f;
 			char tag[3] = { 0, 0, 0 };
 			tag[0] = (i + 1 < count) ? char(string[i + 1]) : 0;
 			tag[1] = (i + 2 < count) ? char(string[i + 2]) : 0;
 			tag[2] = (i + 3 < count) ? char(string[i + 3]) : 0;
-			if(ogl::display_tag_is_valid(state, tag)) {
+			if(tag[0] == '(' || tag[2] == ')') {
+				total += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
+				i += 3;
+				continue;
+			} else if(ogl::display_tag_is_valid(state, tag)) {
 				total += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
 				i += 3;
 				continue;
 			}
 		}
-
-		if(c == 0x01 || c == 0x02 || c == 0x03 || c == 0x04 || c == 0x40) {
-			auto f = chars[0x4D];
-			float scaling = uint8_t(string[i]) == 0xA4 ? 1.5f : 1.f;
-			float offset = uint8_t(string[i]) == 0xA4 ? 0.25f : 0.f;
-			total += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
-			continue;
+		if(i != 0 && ch == 0xC3 && uint8_t(string[i + 1]) == 0xA3) {
+			ch = 0xA3;
+			i++;
+		} else if(ch == 0xA4) {
+			ch = 0xA3;
 		}
-
-		total += chars[c].x_advance;
-		if(i != 0) {
-			total += get_kerning_pair(string[i - 1], c);
+		if(i != count - 1) {
+			total += get_kerning_pair(ch, string[i + 1]);
 		}
-
+		total += chars[ch].x_advance * (ch == 0xA3 ? 0.25f : 1.f);
 	}
 	return total;
 }

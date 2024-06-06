@@ -56,17 +56,25 @@ std::string lowercase_str(std::string_view sv) {
 	return result;
 }
 
-text_sequence create_text_sequence(sys::state& state, std::string_view content) {
+text_sequence create_text_sequence(sys::state& state, std::string_view content, text::language_encoding enc) {
 	char const* seq_start = content.data();
 	char const* seq_end = content.data() + content.size();
 	char const* section_start = seq_start;
+
+	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
+		if(enc == text::language_encoding::win1252) {
+			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
+		}
+		return std::string(s);
+	};
 
 	const auto component_start_index = state.text_components.size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
 		if(uint8_t(*pos) == 0xA7) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			pos += 1;
@@ -75,14 +83,16 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
 							is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			section_start = pos += 3;
 			colour_esc = true;
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			pos += 1;
@@ -90,7 +100,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 			colour_esc = true;
 		} else if(*pos == '$') {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			const char* vend = pos + 1;
@@ -102,7 +113,8 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 			if(section_start != pos) {
-				auto added_key = state.add_to_pool(std::string_view(section_start, pos - section_start));
+				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			state.text_components.emplace_back(line_break{});
@@ -121,13 +133,14 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 	}
 
 	if(section_start < seq_end) {
-		auto added_key = state.add_to_pool(std::string_view(section_start, seq_end - section_start));
+		auto sv = convert_to_utf8(std::string_view(section_start, seq_end - section_start));
+		auto added_key = state.add_to_pool(sv);
 		state.text_components.emplace_back(added_key);
 	}
 
 	// TODO: Emit error when 64K boundary is violated
 	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
-	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint8_t>::max());
+	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint16_t>::max());
 
 	return text_sequence{
 		static_cast<uint32_t>(component_start_index),
@@ -135,20 +148,19 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content) 
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language) {
 	auto to_lower_temp = lowercase_str(key);
-	auto sequence_record = create_text_sequence(state, content);
-
+	auto sequence_record = create_text_sequence(state, content, state.languages[language].encoding);
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
-		// maybe report an error here -- repeated definition
-		err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
-		//leave previous in place
-		//state.text_sequences[it->second] = sequence_record;
+		//err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
+		if(state.languages[language].text_sequences.size() <= size_t(it->second.value)) {
+			state.languages[language].text_sequences.resize(size_t(it->second.value) + 1);
+		}
+		state.languages[language].text_sequences[it->second] = sequence_record;
 		return it->second;
 	} else {
-		const auto nh = state.text_sequences.size();
-		state.text_sequences.push_back(sequence_record);
-
+		const auto nh = state.languages[language].text_sequences.size();
+		state.languages[language].text_sequences.push_back(sequence_record);
 		auto main_key = state.add_to_pool_lowercase(key);
 		dcon::text_sequence_id new_k{ dcon::text_sequence_id::value_base_t(nh) };
 		state.key_to_text_sequence.insert_or_assign(main_key, new_k);
@@ -156,35 +168,171 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	}
 }
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
-	auto start = (file_size != 0 && file_content[0] == '#')
-									 ? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
-									 : file_content;
-	while(start < file_content + file_size) {
-		start = parsers::parse_first_and_nth_csv_values(language, start, file_content + file_size, ';',
-				[&state, &err](std::string_view key, std::string_view content) {
-					create_text_entry(state, key, content, err);
-				});
+void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
+	auto cpos = (file_size != 0 && file_content[0] == '#')
+		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
+		: file_content;
+	while(cpos < file_content + file_size) {
+		cpos = parsers::parse_first_and_fixed_amount_csv_values<6>(cpos, file_content + file_size, ';', [&](std::string_view key, std::string_view content, uint32_t column) {
+			create_text_entry(state, key, content, err, column);
+		});
 	}
 }
 
-void load_text_data(sys::state& state, uint32_t language, parsers::error_handler& err) {
+void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, uint32_t language) {
+	auto cpos = file_content;
+	while(cpos < file_content + file_size) {
+		cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
+			create_text_entry(state, values[0], values[1], err, language);
+		});
+	}
+}
+
+void load_text_data(sys::state& state, parsers::error_handler& err) {
 	auto root_dir = get_root(state.common_fs);
 
-	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
-	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {\
+	//ISO 639-1, aka. two letters + a hypen + region locale
+	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
+	static const std::string_view fixed_iso_codes[] = {
+		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
+		//0		1		2			3		4			5		6		7		8			9		10		11		12
+	};
+	uint8_t last_language = 0;
+	for(uint32_t i = 0; i < std::extent_v<decltype(fixed_iso_codes)>; i++) {
+		auto key = fixed_iso_codes[i];
+		state.languages[i].iso_code.resize(key.size());
+		std::copy(key.begin(), key.end(), state.languages[i].iso_code.begin());
+		state.languages[i].encoding = text::language_encoding::win1252;
+		++last_language;
+	}
+	//fixes for russian
+	state.languages[11].encoding = text::language_encoding::utf8;
+	state.languages[11].script = text::language_script::cyrillic;
+	//Always parsed as windows-1252
+	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+	for(auto& file : list_files(assets_dir, NATIVE(".txt"))) {
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size, err);
+			auto cpos = content.data;
+			while(cpos < content.data + content.file_size) {
+				cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, content.data + content.file_size, ';', [&](std::string_view const* values) {
+					state.languages[last_language].iso_code.resize(values[0].size());
+					std::copy(values[0].begin(), values[0].end(), state.languages[last_language].iso_code.begin());
+					if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_linked")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8_linked_rtl")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "arabic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].rtl = true;
+						state.languages[last_language].no_spacing = true;
+						state.languages[last_language].script = text::language_script::arabic;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "chinese")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::chinese;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "korean")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::korean;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "japan")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::japanese;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "latin")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::latin;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "utf8")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+					} else if(parsers::is_fixed_token_ci(values[1].data(), values[1].data() + values[1].length(), "cyrillic")) {
+						state.languages[last_language].encoding = text::language_encoding::utf8;
+						state.languages[last_language].script = text::language_script::cyrillic;
+					} else {
+						err.accumulated_errors += "Invalid encoding '" + std::string(values[1]) + "' for language '" + std::string(values[0]) + "' (" + err.file_name + ")\n";
+					}
+					++last_language;
+				});
+			}
 		}
 	}
-	auto assets_dir = open_directory(root_dir, NATIVE("assets"));
+
+	auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+	for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+			consume_csv_file(state, content.data, content.file_size, err);
+		}
+	}
 	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, language, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err);
+		}
+	}
+
+	// all languages will be checked for their respective localisation folders :D
+	for(uint32_t i = 0; i < last_language; i++) {
+		assert(state.languages[i].encoding != text::language_encoding::none);
+		assert(!state.languages[i].iso_code.empty());
+		if(state.languages[i].iso_code.size() >= 2) {
+			auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.begin() + 2 });
+			auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+			for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+				if(auto ofile = open_file(file); ofile) {
+					auto content = view_contents(*ofile);
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+					consume_new_csv_file(state, content.data, content.file_size, err, i);
+				}
+			}
+			auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+			for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+				if(auto ofile = open_file(file); ofile) {
+					auto content = view_contents(*ofile);
+					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+					consume_new_csv_file(state, content.data, content.file_size, err, i);
+				}
+			}
+		}
+		auto lang_dir_name = simple_fs::utf8_to_native(std::string_view{ state.languages[i].iso_code.begin(), state.languages[i].iso_code.end() });
+		auto text_lang_dir = open_directory(text_dir, lang_dir_name);
+		for(auto& file : list_files(text_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
+			}
+		}
+		auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
+		for(auto& file : list_files(assets_lang_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
+				consume_new_csv_file(state, content.data, content.file_size, err, i);
+			}
+		}
+	}
+	//normalize language keys
+	uint32_t max_seq_size = 0;
+	for(uint32_t i = 0; i < last_language; i++) {
+		max_seq_size = std::max(max_seq_size, uint32_t(state.languages[i].text_sequences.size()));
+	}
+	for(uint32_t i = 0; i < last_language; i++) {
+		state.languages[i].text_sequences.resize(size_t(max_seq_size));
+		// fill out missing text sequences
+		if(i != 0) { //english shall not fill itself with english!
+			for(uint32_t j = 0; j < max_seq_size; j++) {
+				auto t = dcon::text_sequence_id{ dcon::text_sequence_id::value_base_t(j) };
+				if(!state.languages[i].text_sequences[t].starting_component
+				&& !state.languages[i].text_sequences[t].component_count) {
+					state.languages[i].text_sequences[t] = state.languages[0].text_sequences[t];
+				}
+			}
 		}
 	}
 }
@@ -684,10 +832,10 @@ char16_t win1250toUTF16(char in) {
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id) {
 	std::string result;
 
-	if(!id)
+	if(!id || size_t(id.value) >= state.languages[state.user_settings.current_language].text_sequences.size())
 		return result;
 
-	auto& seq = state.text_sequences[id];
+	auto& seq = state.languages[state.user_settings.current_language].text_sequences[id];
 	for(uint32_t i = 0; i < seq.component_count; ++i) {
 		// std::variant<line_break, text_color, variable_type, dcon::text_key>
 		if(state.text_components[i + seq.starting_component].type == text::text_component_type::text_key) {
@@ -724,7 +872,13 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		std::string local_key_copy{ state.to_string_view(new_key) };
 		// TODO: eror handler
 		parsers::error_handler err("");
-		return create_text_entry(state, local_key_copy, txt, err);
+		dcon::text_sequence_id seq{};
+		for(uint32_t i = 0; i < uint32_t(state.languages.size()); i++) {
+			if(state.languages[i].encoding == text::language_encoding::none)
+				break;
+			seq = create_text_entry(state, local_key_copy, txt, err, i);
+		}
+		return seq;
 	}
 	return key;
 }
@@ -741,31 +895,31 @@ std::string prettify_currency(float num) {
 		1'000'000'000'000'000'000.0
 	};
 	constexpr static char const* sufx_two[] = {
-		"%.2f \xA4",
-		"%.2fK \xA4",
-		"%.2fM \xA4",
-		"%.2fB \xA4",
-		"%.2fT \xA4",
-		"%.2fP \xA4",
-		"%.2fZ \xA4"
+		"%.2f £",
+		"%.2fK £",
+		"%.2fM £",
+		"%.2fB £",
+		"%.2fT £",
+		"%.2fP £",
+		"%.2fZ £"
 	};
 	constexpr static char const* sufx_one[] = {
-		"%.1f \xA4",
-		"%.1fK \xA4",
-		"%.1fM \xA4",
-		"%.1fB \xA4",
-		"%.1fT \xA4",
-		"%.1fP \xA4",
-		"%.1fZ \xA4"
+		"%.1f £",
+		"%.1fK £",
+		"%.1fM £",
+		"%.1fB £",
+		"%.1fT £",
+		"%.1fP £",
+		"%.1fZ £"
 	};
 	constexpr static char const* sufx_zero[] = {
-		"%.0f \xA4",
-		"%.0fK \xA4",
-		"%.0fM \xA4",
-		"%.0fB \xA4",
-		"%.0fT \xA4",
-		"%.0fP \xA4",
-		"%.0fZ \xA4"
+		"%.0f £",
+		"%.0fK £",
+		"%.0fM £",
+		"%.0fB £",
+		"%.0fT £",
+		"%.0fP £",
+		"%.0fZ £"
 	};
 	char buffer[200] = { 0 };
 	double dval = double(num);
@@ -865,7 +1019,7 @@ std::string get_short_state_name(sys::state const& state, dcon::state_instance_i
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
-std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id) {
 	auto fat_id = dcon::fatten(state.world, state_id);
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
@@ -875,11 +1029,17 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 				if(!adj_id) {
 					return get_name_as_string(state, fat_id.get_capital());
 				}
-				return adj + " " + get_name_as_string(state, fat_id.get_capital());
+				substitution_map sub{};
+				add_to_substitution_map(sub, text::variable_type::state, fat_id.get_capital());
+				add_to_substitution_map(sub, text::variable_type::adj, adj_id);
+				return resolve_string_substitution(state, "compose_dynamic_adj_state", sub);
 			} else if(!adj_id) {
 				return get_name_as_string(state, fat_id.get_definition());
 			}
-			return adj + " " + get_name_as_string(state, fat_id.get_definition());
+			substitution_map sub{};
+			add_to_substitution_map(sub, text::variable_type::state, fat_id.get_definition());
+			add_to_substitution_map(sub, text::variable_type::adj, adj_id);
+			return resolve_string_substitution(state, "compose_dynamic_adj_state", sub);
 		}
 	}
 	if(!fat_id.get_definition().get_name())
@@ -887,7 +1047,7 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
-std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id) {
+std::string get_province_state_name(sys::state& state, dcon::province_id prov_id) {
 	auto fat_id = dcon::fatten(state.world, prov_id);
 	auto state_instance_id = fat_id.get_state_membership().id;
 	if(state_instance_id) {
@@ -1020,9 +1180,13 @@ dcon::text_sequence_id localize_month(sys::state const& state, uint16_t month) {
 	}
 }
 
-std::string date_to_string(sys::state const& state, sys::date date) {
+std::string date_to_string(sys::state& state, sys::date date) {
 	sys::year_month_day ymd = date.to_ymd(state.start_date);
-	return text::produce_simple_string(state, localize_month(state, ymd.month)) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	substitution_map sub{};
+	add_to_substitution_map(sub, variable_type::year, int32_t(ymd.year));
+	add_to_substitution_map(sub, variable_type::month, localize_month(state, ymd.month));
+	add_to_substitution_map(sub, variable_type::day, int32_t(ymd.day));
+	return resolve_string_substitution(state, "date_string_ymd", sub);
 }
 
 text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {
@@ -1064,9 +1228,9 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 } // namespace impl
 
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1074,9 +1238,9 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 	impl::lb_finish_line(dest, box, line_height);
 }
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1084,9 +1248,9 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	dest.y_cursor += line_height;
 }
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
@@ -1094,9 +1258,43 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	dest.y_cursor += line_height;
 }
 
+uint32_t codepoint_from_utf8(char const* start, char const* end) {
+	uint8_t byte1 = uint8_t(start + 0 < end ? start[0] : 0);
+	uint8_t byte2 = uint8_t(start + 1 < end ? start[1] : 0);
+	uint8_t byte3 = uint8_t(start + 2 < end ? start[2] : 0);
+	uint8_t byte4 = uint8_t(start + 3 < end ? start[3] : 0);
+	if((byte1 & 0x80) == 0) {
+		return uint32_t(byte1);
+	} else if((byte1 & 0xE0) == 0xC0) {
+		return uint32_t(byte2 & 0x3F) | (uint32_t(byte1 & 0x1F) << 6);
+	} else  if((byte1 & 0xF0) == 0xE0) {
+		return uint32_t(byte3 & 0x3F) | (uint32_t(byte2 & 0x3F) << 6) | (uint32_t(byte1 & 0x0F) << 12);
+	} else if((byte1 & 0xF8) == 0xF0) {
+		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
+	}
+	assert(false);
+	return 0;
+}
+size_t size_from_utf8(char const* start, char const* end) {
+	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
+	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
+		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
+		: 0;
+}
+bool codepoint_is_space(uint32_t c) noexcept {
+	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
+		|| c == 0x0085 || c <= 0x0020 || (0x2000 <= c && c <= 0x200A));
+}
+bool codepoint_is_line_break(uint32_t c) noexcept {
+	return  c == 0x2029 || c == 0x2028 || c == uint32_t('\n') || c == uint32_t('\r');
+}
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {
+	if(dest.fixed_parameters.align == alignment::left && state.languages[state.user_settings.current_language].rtl) {
+		dest.fixed_parameters.align = alignment::right;
+	}
+
 	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
@@ -1124,11 +1322,22 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	size_t start_position = 0;
 	size_t end_position = 0;
 	bool first_in_line = true;
-
 	while(end_position < txt.length()) {
-		auto next_wb = txt.find_first_of(" \r\n\t", end_position);
-		auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
-
+		size_t next_wb = std::string::npos;
+		size_t next_word = std::string::npos;
+		for(size_t i = end_position; i < txt.size(); ) {
+			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
+				if(next_wb == std::string::npos) { //first of whitespace
+					next_wb = i;
+				}
+			} else if(next_wb != std::string::npos) { //first not of whitespace
+				next_word = i;
+				break;
+			}
+			i += size_from_utf8(txt.data() + i, txt.data() + txt.size());
+		}
+		//
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
 			next_word = next_wb + 1;
@@ -1239,7 +1448,7 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 		/// fp_currency, pretty_integer, fp_percentage, int_percentage
 	} else if(std::holds_alternative<fp_currency>(sub)) {
 		char buffer[200] = {0};
-		snprintf(buffer, 200, " %.2f \xA4", std::get<fp_currency>(sub).value);
+		snprintf(buffer, 200, " %.2f £", std::get<fp_currency>(sub).value);
 		return std::string(buffer);
 	} else if(std::holds_alternative<pretty_integer>(sub)) {
 		return prettify(std::get<pretty_integer>(sub).value);
@@ -1275,14 +1484,14 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 		return;
 
 	auto current_color = dest.fixed_parameters.color;
-	auto font_index = text::font_index_from_font_id(dest.fixed_parameters.font_id);
+	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= 3);
+	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
 	auto& font = state.font_collection.fonts[font_index - 1];
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
-	auto seq = state.text_sequences[source_text];
+	auto seq = state.languages[state.user_settings.current_language].text_sequences[source_text];
 	for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
 		if(state.text_components[i].type == text::text_component_type::text_key) {
 			auto tkey = state.text_components[i].data.text_key;
@@ -1453,13 +1662,12 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
-
 
 	text::add_space_to_layout_box(state, dest, box);
 
@@ -1473,11 +1681,11 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1494,11 +1702,11 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1516,11 +1724,11 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-
+	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
 	if(condition_met) {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x02"), text::text_color::green);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
-		text::add_to_layout_box(state, dest, box, std::string_view("\x01"), text::text_color::red);
+		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::red);
 	}
 
 	text::add_space_to_layout_box(state, dest, box);
@@ -1622,7 +1830,7 @@ std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_i
 	std::string result;
 
 	if(source_text) {
-		auto seq = state.text_sequences[source_text];
+		auto seq = state.languages[state.user_settings.current_language].text_sequences[source_text];
 		for(size_t i = seq.starting_component; i < size_t(seq.starting_component + seq.component_count); ++i) {
 			if(state.text_components[i].type == text::text_component_type::text_key) {
 				auto tkey = state.text_components[i].data.text_key;
@@ -1656,6 +1864,22 @@ std::string resolve_string_substitution(sys::state& state, std::string_view key,
 		return std::string{key};
 
 	return resolve_string_substitution(state, source_text, mp);
+}
+
+dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_view k, dcon::text_sequence_id v) {
+	if(auto it = state.key_to_text_sequence.find(k); it != state.key_to_text_sequence.end()) {
+		// if some language does not posses the key, naturally assign it a default one
+		for(uint32_t i = 0; i < sys::max_languages; i++) {
+			if(state.languages[i].encoding == text::language_encoding::none)
+				break;
+			if(!state.languages[i].text_sequences[it->second].starting_component
+			&& !state.languages[i].text_sequences[it->second].component_count) {
+				state.languages[i].text_sequences[it->second] = state.languages[i].text_sequences[v];
+			}
+		}
+		return it->second;
+	}
+	return v;
 }
 
 } // namespace text

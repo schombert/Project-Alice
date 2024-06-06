@@ -33,3 +33,45 @@ The state object contains a `std::vector<char>` named `text_data` containing win
 - `dcon::text_key add_unique_to_pool(std::string const& text)` -- this function acts as the one above, except that it first searches the existing stored data to see if the string is already stored in it. If the string is found, no new data will be appended to `text_data`. Otherwise, it acts like the function above. This function is useful if you know that there is a good chance that the text you want to store is already somewhere in `text_data`. However, scanning the entirety of the stored text is not without a cost, especially as the amount of text grows, so do not use this function as the default way to add text.
 
 Implementation note: I go back and forth a bit on whether to store the size of the string in its identifying tag (currently `dcon::text_key`) or whether to store null characters in `text_data` to determine where one string ends and another begins. Currently I am storing null characters.
+
+## Language system
+
+By default, Alice will define the following languages, corresponding to the default languages used on Victoria 2:
+* en-US: English US
+* fr-FR: French
+* de-DE: German
+* pl-PL: Polish
+* es-ES: Spanish
+* it-IT: Italian
+* sv-SV: Swedish
+* cs-CZ: Czech
+* hu-HU: Hungarian
+* nl-NL: Dutch
+* po-PO: Portuguese
+* ru-RU: Russian
+* fi-FI: Finnish
+
+Some of these languages are unfortunely not suited for Windows-1252 (most notably, Russian - even if it's defined).
+
+The solution to overcome these limtiations while not breaking mod compatibility is to have a language manifest, `languages.txt`, where each **additional** language is specified accordingly.
+
+```
+ar-AR;utf8_linked_rtl
+hn-IN;utf8_linked
+<...>
+```
+
+The syntax goes as follows: `iso-code;setting`. The ISO code is composed of the two character code for the language plus the two character code for the region or country. For example Swiss German may have some differences to Germany German.
+
+* `utf8_linked`: Linked script, uses UTF8.
+* `utf8_linked_rtl`: Linked script with RTL (right to left) properties, uses UTF8.
+* `utf8`: Generic UTF8 script.
+* `arabic`: Use Arabic set of fonts, set as a linked and RTL script, uses UTF8.
+* `chinese`: Use Chinesse set of fonts, uses UTF8.
+* `japan`: Use Japanesse set of fonts, uses UTF8.
+* `korean`: Use Korean set of fonts, uses UTF8.
+* `cyrillic`: Use Cyrillic set of fonts, uses UTF8.
+* `latin`: Generic UTF8 latin script.
+
+Sublanguages or dialects will take data from the parent languages, for example, `cs-CZ` will take data from the `cs` folder AND the `cs-CZ` folder, first the parent, then the dialect version - this is to ease some shared translations amongst languages that would otherwise require too much duplication.
+

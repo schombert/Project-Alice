@@ -2905,7 +2905,7 @@ uint32_t ef_enable_ideology(EFFECT_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::substitution_map m;
 	text::add_to_substitution_map(m, text::variable_type::text, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
-	text::localised_format_box(ws, layout, box, "enable_blank", m);
+	text::localised_format_box(ws, layout, box, "enable_ideology", m);
 	text::close_layout_box(layout, box);
 	return 0;
 }
@@ -3424,7 +3424,7 @@ uint32_t ef_activate_technology(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.technology_get_name(trigger::payload(tval[1]).tech_id));
-		text::localised_format_box(ws, layout, box, "enable_blank", m);
+		text::localised_format_box(ws, layout, box, "enable_technology", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -3434,7 +3434,7 @@ uint32_t ef_activate_invention(EFFECT_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
 		text::add_to_substitution_map(m, text::variable_type::text, ws.world.invention_get_name(trigger::payload(tval[1]).invt_id));
-		text::localised_format_box(ws, layout, box, "enable_blank", m);
+		text::localised_format_box(ws, layout, box, "enable_invention", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;

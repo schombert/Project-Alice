@@ -77,7 +77,7 @@ protected:
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
 	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
 			sys::key_modifiers mods) noexcept; // as drag events are generated
-	virtual void on_text(sys::state& state, char ch) noexcept { }
+	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
@@ -115,7 +115,7 @@ public:
 	friend std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
-	friend void sys::state::on_text(char c);
+	friend void sys::state::on_text(char32_t c);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);

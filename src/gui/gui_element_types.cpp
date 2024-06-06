@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <unordered_map>
 #include <variant>
+#include <codecvt>
+#include <locale>
 #include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
@@ -428,25 +430,28 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 
 void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
-	text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-		base_data.data.button.font_handle)) / 2.0f;
+	using_default = false;
+	on_reset_text(state);
 }
 
 void button_element_base::on_reset_text(sys::state& state) noexcept {
+	if(using_default) {
+		if(base_data.get_element_type() == element_type::button) {
+			auto base_text_handle = base_data.data.button.txt;
+			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+			if(base_text_handle) {
+				stored_text = text::produce_simple_string(state, base_data.data.button.txt);
+				text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
+			}
+		}
+	}
 	if(stored_text.length() > 0) {
 		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
 void button_element_base::on_create(sys::state& state) noexcept {
-	if(base_data.get_element_type() == element_type::button) {
-		auto base_text_handle = base_data.data.button.txt;
-		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-		if(base_text_handle) {
-			stored_text = text::produce_simple_string(state, base_text_handle);
-			text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()), base_data.data.button.font_handle)) / 2.0f;
-		}
-	}
+	on_reset_text(state);
 }
 
 message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -457,11 +462,11 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 	return message_result::consumed;
 }
 
-void edit_box_element_base::on_text(sys::state& state, char ch) noexcept {
+void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
-		if(ch >= 32 && ch != '`' && ch != 127) {
-			auto s = std::string(get_text(state)).insert(edit_index, 1, ch);
-			edit_index++;
+		if(ch >= 32 && ch != U'`' && ch != 127) {
+			auto s = std::string(get_text(state));
+			s += char(ch & 0xff);
 			set_text(state, s);
 			edit_box_update(state, s);
 		}
@@ -538,17 +543,21 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 	return message_result::unseen;
 }
 
-void edit_box_element_base::on_reset_text(sys::state& state) noexcept { }
+void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+	} else if(base_data.get_element_type() == element_type::text) {
+		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+	}
+}
 
 void edit_box_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		simple_text_element_base::text_offset = 0.0f;
 	} else if(base_data.get_element_type() == element_type::text) {
-		;
-		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		simple_text_element_base::text_offset = base_data.data.text.border_size.x;
 	}
+	on_reset_text(state);
 }
 
 void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -584,8 +593,9 @@ void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
 			float(base_data.size.y), ogl::get_texture_handle(state, definitions::tiles_dialog, true), ui::rotation::upright, false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
+		auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, state.ui_state.tooltip_font)];
 		ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
-				float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
+			float(x) + t.x, float(y + t.y), get_text_color(state, t.color), state.ui_state.tooltip_font);
 	}
 }
 
@@ -641,12 +651,24 @@ void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
 	stored_text = new_text;
+	using_default = false;
 	on_reset_text(state);
 }
 
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
-	if(stored_text.length() == 0)
+	if(using_default) {
+		if(base_data.get_element_type() == element_type::button) {
+			stored_text = text::produce_simple_string(state, base_data.data.button.txt);
+			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		} else if(base_data.get_element_type() == element_type::text) {
+			stored_text = text::produce_simple_string(state, base_data.data.text.txt);
+			black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		}
+	}
+
+	if(stored_text.empty())
 		return;
+
 	float extent = 0.f;
 	uint16_t font_handle = 0;
 	if(base_data.get_element_type() == element_type::button)
@@ -658,15 +680,14 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 
 	if(stored_text.back() != '\x85' && int16_t(extent) > base_data.size.x) {
 		auto width_of_ellipsis = 0.5f * state.font_collection.text_extent(state, "\x85", uint32_t(1), font_handle);
-
 		uint32_t m = 1;
 		for(; m < stored_text.length(); ++m) {
 			if(state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(m), font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
-
 		stored_text = stored_text.substr(0, m - 1) + "\x85";
 	}
+
 	if(base_data.get_element_type() == element_type::button) {
 		switch(base_data.data.button.get_alignment()) {
 		case alignment::centered:
@@ -696,13 +717,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	}
 }
 void simple_text_element_base::on_create(sys::state& state) noexcept {
-	if(base_data.get_element_type() == element_type::button) {
-		set_text(state, text::produce_simple_string(state, base_data.data.button.txt));
-		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-	} else if(base_data.get_element_type() == element_type::text) {
-		set_text(state, text::produce_simple_string(state, base_data.data.text.txt));
-		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-	}
+	on_reset_text(state);
 }
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(stored_text.length() > 0) {
@@ -807,6 +822,7 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		for(auto& t : internal_layout.contents) {
+			auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, state.ui_state.tooltip_font)];
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(state, t.win1250chars.c_str(), uint32_t(t.win1250chars.length()), ogl::color_modification::none,
@@ -917,8 +933,7 @@ message_result multiline_text_element_base::test_mouse(sys::state& state, int32_
 	return message_result::unseen;
 }
 
-void multiline_button_element_base::on_create(sys::state& state) noexcept {
-	button_element_base::on_create(state);
+void multiline_button_element_base::on_reset_text(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.button.font_handle);
@@ -926,7 +941,12 @@ void multiline_button_element_base::on_create(sys::state& state) noexcept {
 			return;
 		visible_lines = base_data.size.y / int32_t(line_height);
 	}
+}
+
+void multiline_button_element_base::on_create(sys::state& state) noexcept {
+	button_element_base::on_create(state);
 	set_button_text(state, "");
+	on_reset_text(state);
 }
 
 void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -2264,12 +2284,10 @@ void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text
 		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
 	else if(std::holds_alternative<dcon::navy_id>(display_unit))
 		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
-	text::add_line(state, contents, "alice_utt_controls_1");
-	text::add_line(state, contents, "alice_utt_controls_2");
+	text::add_line(state, contents, "unit_controls_tooltip_1");
 	if(state.network_mode != sys::network_mode_type::single_player)
-		text::add_line(state, contents, "alice_utt_controls_3");
-
-	text::add_line(state, contents, "alice_ctrl_group");
+		text::add_line(state, contents, "unit_controls_tooltip_2");
+	text::add_line(state, contents, "unit_control_group_tooltip");
 }
 
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
@@ -2491,7 +2509,7 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"]", //CLOSED_BRACKET = 0xDD,
 		"\"", //QUOTE = 0xDE
 	};
-	text::add_line(state, contents, "alice_shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
+	text::add_line(state, contents, "shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
 }
 
 } // namespace ui

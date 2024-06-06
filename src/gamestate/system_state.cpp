@@ -769,7 +769,7 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 
 	map_state.on_key_up(keycode, mod);
 }
-void state::on_text(char c) { // c is win1250 codepage value
+void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
@@ -786,8 +786,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
-		if(user_settings.map_label != sys::map_label_mode::none)
+		if(user_settings.map_label != sys::map_label_mode::none) {
 			map::update_text_lines(*this, map_state.map_data);
+		}
 	}
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
@@ -1786,6 +1787,7 @@ void state::save_user_settings() const {
 	US_SAVE(wasd_for_map_movement);
 	US_SAVE(notify_rebels_defeat);
 	US_SAVE(color_blind_mode);
+	US_SAVE(current_language);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1852,6 +1854,7 @@ void state::load_user_settings() {
 			US_LOAD(wasd_for_map_movement);
 			US_LOAD(notify_rebels_defeat);
 			US_LOAD(color_blind_mode);
+			US_LOAD(current_language);
 #undef US_LOAD
 		} while(false);
 
@@ -1954,7 +1957,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2, err); // 2 = English
+	text::load_text_data(*this, err);
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
@@ -2471,19 +2474,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		tag += "_";
 		for(auto& named_gov : context.map_of_governments) {
 			auto special_ident = tag + named_gov.first;
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_name(named_gov.second, ident.get_name());
-			}
+			auto k = text::find_or_use_default_key(*this, special_ident, ident.get_name());
+			ident.set_government_name(named_gov.second, k);
 		}
 		for(auto& named_gov : context.map_of_governments) {
 			auto special_ident = tag + named_gov.first + "_ruler";
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_ruler_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_ruler_name(named_gov.second, world.government_type_get_ruler_name(named_gov.second));
-			}
+			auto k = text::find_or_use_default_key(*this, special_ident, world.government_type_get_ruler_name(named_gov.second));
+			ident.set_government_ruler_name(named_gov.second, k);
 		}
 	}
 

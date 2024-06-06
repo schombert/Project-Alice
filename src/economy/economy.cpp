@@ -1702,7 +1702,6 @@ void update_province_rgo_consumption(
 	auto max_production = rgo_full_production_quantity(state, n, p);
 	auto overhire_modifier = rgo_overhire_modifier(state, p, n);
 
-
 	auto pops_max = rgo_max_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
 	auto current_employment = pops_max * state.world.province_get_rgo_employment(p);
 
@@ -1727,8 +1726,7 @@ void update_province_rgo_consumption(
 	float relative_modifier = (1.f / (relative_production_amount + 0.01f)) / 1000.f;
 
 	auto c = state.world.province_get_rgo(p);
-
-	{
+	if(c) {
 		float positive_speed = (expected_profit + 0.00000001f) / (desired_profit + 0.00000001f) - 1.f;
 		float negative_speed = (desired_profit + 0.00000001f) / (expected_profit + 0.00000001f) - 1.f;
 
@@ -1742,19 +1740,16 @@ void update_province_rgo_consumption(
 		assert(std::isfinite(current_scale + change));
 		auto new_production_scale = std::clamp(current_scale + change, 0.0f, 1.f);
 		state.world.province_set_rgo_production_scale(p, new_production_scale);
+
+		// rgos produce all the way down
+		float employment_ratio = state.world.province_get_rgo_employment(p);
+		assert(max_production * overhire_modifier * employment_ratio >= 0);
+		state.world.province_set_rgo_actual_production(p,
+			max_production
+			* overhire_modifier
+			* employment_ratio
+		);
 	}
-
-
-	// rgos produce all the way down
-	float employment_ratio = state.world.province_get_rgo_employment(p);
-
-	assert(max_production * overhire_modifier * employment_ratio >= 0);
-
-	state.world.province_set_rgo_actual_production(p,
-		max_production
-		* overhire_modifier
-		* employment_ratio
-	);
 }
 
 void update_province_rgo_production(sys::state& state, dcon::province_id p, dcon::nation_id n) {

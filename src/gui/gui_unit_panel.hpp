@@ -1147,10 +1147,7 @@ public:
 		float max_supply = 0.0f;
 		float actual_supply = 0.0f;
 
-
 		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
-
-
 		for(uint32_t i = 0; i < total_commodities; ++i) {
 			if(!commodities.commodity_type[i]) {
 				break;
@@ -1165,35 +1162,23 @@ public:
 		}
 
 		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
-
-		if(army) {
-			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
-			text::add_line(state, contents, "current_supply_text2");
-		} else if(navy) {
-			text::add_line(state, contents, "current_supply_text", text::variable_type::val, int16_t(median_supply*100));
-			text::add_line(state, contents, "current_supply_text2");
-		}
-		
+		text::add_line(state, contents, "unit_current_supply", text::variable_type::val, int16_t(median_supply * 100.f));
 		text::add_line_break_to_layout(state, contents);
-
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			if(commodities.commodity_type[i]) {
-				if(commodities.commodity_amounts[i] > 0) {
+			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
+				dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
+				float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
+				float wanted_commodity = commodities.commodity_amounts[i];
+				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 
-					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-					float satisfaction = state.world.nation_get_demand_satisfaction(owner, c);
-					float wanted_commodity = commodities.commodity_amounts[i];
-					float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
+				int32_t display_satisfaction = int32_t(satisfaction * 100);
 
-					int32_t display_satisfaction = int32_t(satisfaction * 100);
-
-					if(satisfaction == 1 || satisfaction >= 0.95) {
-						text::add_line(state, contents, "current_supply_text_commodity", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					} else if (satisfaction < 0.95 && satisfaction >= 0.5) {
-						text::add_line(state, contents, "current_supply_text_commodity_orange_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					} else {
-						text::add_line(state, contents, "current_supply_text_commodity_red_satisfaction", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
-					}					
+				if(satisfaction == 1 || satisfaction >= 0.95) {
+					text::add_line(state, contents, "unit_current_supply_high", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+				} else if (satisfaction < 0.95 && satisfaction >= 0.5) {
+					text::add_line(state, contents, "unit_current_supply_mid", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
+				} else {
+					text::add_line(state, contents, "unit_current_supply_low", text::variable_type::what, state.world.commodity_get_name(commodities.commodity_type[i]), text::variable_type::val, text::fp_three_places{ actual_commodity }, text::variable_type::value, text::fp_three_places{ wanted_commodity }, text::variable_type::total, display_satisfaction);
 				}
 			}
 		}
