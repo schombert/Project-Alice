@@ -1767,12 +1767,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
 			}
 		} else if(font_set_load == 1) { //chinese
-			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Regular.ttf"));
+			auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC-Bold.ttf"));
 			if(font_a) {
 				auto file_content = simple_fs::view_contents(*font_a);
 				font_collection.load_font(font_collection.fonts[0], file_content.data, file_content.file_size, text::font_feature::none);
 			}
-			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifTC-Light.ttf"));
+			auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerifSC-Regular.ttf"));
 			if(font_b) {
 				auto file_content = simple_fs::view_contents(*font_b);
 				font_collection.load_font(font_collection.fonts[1], file_content.data, file_content.file_size, text::font_feature::none);
