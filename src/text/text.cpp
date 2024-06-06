@@ -213,7 +213,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	for(auto& file : list_files(assets_dir, NATIVE(".txt"))) {
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
-			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
 			auto cpos = content.data;
 			while(cpos < content.data + content.file_size) {
 				cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, content.data + content.file_size, ';', [&](std::string_view const* values) {
