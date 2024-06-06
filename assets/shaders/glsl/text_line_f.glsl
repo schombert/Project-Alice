@@ -1,5 +1,6 @@
 in vec3 tex_coord;
 in float opacity;
+in float text_size;
 layout (binding = 0) uniform sampler2DArray texture_atlas_sampler;
 layout (location = 0) out vec4 frag_color;
 layout (location = 12) uniform float is_black;
@@ -12,6 +13,8 @@ void main() {
 	float border_size = 0.022f;
 	vec3 inner_color = vec3(1.0 - is_black, 1.0 - is_black, 1.0 - is_black);
 	vec3 outer_color = vec3(1.0 * is_black, 1.0 * is_black, 1.0 * is_black);
+    
+    outer_color = mix(inner_color, outer_color, text_size * 40.f);
 	
 	vec4 color_in = texture(texture_atlas_sampler, tex_coord);
 	if(color_in.r > 0.505) {
