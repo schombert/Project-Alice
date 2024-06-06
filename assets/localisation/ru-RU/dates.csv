@@ -1,1 +1,21 @@
 date_string_ymd;$day$ $month$, $year$
+january;январь
+february;февраль
+march;март
+april;апрель
+may_month_name;май
+june;июнь
+july;июль
+august;август
+september;сентябрь
+october;октябрь
+november;ноябрь
+december;Декабрь
+date_is_leap;На ?Yleap?! год
+date_is_not_leap;На ?Ynormal?! год
+topbar_date_season_nh;Сезон Северного полушария: ?Y$x$?!
+topbar_date_season_sh;Сезон Южного полушария: ?Y$x$?!
+spring;Весна
+summer;Лето
+autumn;Осень
+winter;Зима
