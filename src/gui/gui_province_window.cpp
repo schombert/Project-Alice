@@ -24,7 +24,7 @@ void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& c
 		profit_box.x_position += 180.f;
 
 		text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
-		text::add_to_layout_box(state, contents, production_box, text::fp_two_places(production));
+		text::add_to_layout_box(state, contents, production_box, text::fp_two_places{ production });
 		text::add_to_layout_box(state, contents, profit_box, text::format_money(profit));
 		text::add_to_layout_box(state, contents, base_box, std::string(" "));
 		text::close_layout_box(contents, base_box);
