@@ -1259,10 +1259,10 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 }
 
 uint32_t codepoint_from_utf8(char const* start, char const* end) {
-	uint8_t byte1 = start + 0 < end ? uint8_t(*start + 0) : uint8_t(0);
-	uint8_t byte2 = start + 1 < end ? uint8_t(*(start + 1)) : uint8_t(0);
-	uint8_t byte3 = start + 2 < end ? uint8_t(*(start + 2)) : uint8_t(0);
-	uint8_t byte4 = start + 3 < end ? uint8_t(*(start + 3)) : uint8_t(0);
+	uint8_t byte1 = uint8_t(start + 0 < end ? start[0] : 0);
+	uint8_t byte2 = uint8_t(start + 1 < end ? start[1] : 0);
+	uint8_t byte3 = uint8_t(start + 2 < end ? start[2] : 0);
+	uint8_t byte4 = uint8_t(start + 3 < end ? start[3] : 0);
 	if((byte1 & 0x80) == 0) {
 		return uint32_t(byte1);
 	} else if((byte1 & 0xE0) == 0xC0) {
@@ -1272,23 +1272,14 @@ uint32_t codepoint_from_utf8(char const* start, char const* end) {
 	} else if((byte1 & 0xF8) == 0xF0) {
 		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
 	}
+	assert(false);
 	return 0;
 }
-uint32_t size_from_utf8(char const* start, char const* end) {
-	uint8_t byte1 = start + 0 < end ? uint8_t(*start + 0) : uint8_t(0);
-	uint8_t byte2 = start + 1 < end ? uint8_t(*(start + 1)) : uint8_t(0);
-	uint8_t byte3 = start + 2 < end ? uint8_t(*(start + 2)) : uint8_t(0);
-	uint8_t byte4 = start + 3 < end ? uint8_t(*(start + 3)) : uint8_t(0);
-	if((byte1 & 0x80) == 0) {
-		return 1;
-	} else if((byte1 & 0xE0) == 0xC0) {
-		return 2;
-	} else  if((byte1 & 0xF0) == 0xE0) {
-		return 3;
-	} else if((byte1 & 0xF8) == 0xF0) {
-		return 4;
-	}
-	return 0;
+size_t size_from_utf8(char const* start, char const* end) {
+	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
+	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
+		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
+		: 0;
 }
 bool codepoint_is_space(uint32_t c) noexcept {
 	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
@@ -1331,20 +1322,22 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	size_t start_position = 0;
 	size_t end_position = 0;
 	bool first_in_line = true;
-
 	while(end_position < txt.length()) {
 		size_t next_wb = std::string::npos;
 		size_t next_word = std::string::npos;
-		for(uint32_t i = 0; i < uint32_t(txt.size()); i += size_from_utf8(txt.data(), txt.data() + txt.size())) {
-			uint32_t c = codepoint_from_utf8(txt.data(), txt.data() + txt.size());
+		for(size_t i = end_position; i < txt.size(); ) {
+			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
 			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
-				if(next_wb == std::string::npos) //first of whitespace
-					next_wb = size_t(i);
-			} else {
-				if(next_wb != std::string::npos) //first not of whitespace
-					next_word = size_t(i);
+				if(next_wb == std::string::npos) { //first of whitespace
+					next_wb = i;
+				}
+			} else if(next_wb != std::string::npos) { //first not of whitespace
+				next_word = i;
+				break;
 			}
+			i += size_from_utf8(txt.data() + i, txt.data() + txt.size());
 		}
+		//
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
 			next_word = next_wb + 1;
