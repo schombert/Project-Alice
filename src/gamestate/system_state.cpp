@@ -2466,21 +2466,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
-		auto tagi = ident.get_identifying_int();
-		auto tag = nations::int_to_tag(tagi);
-		tag[0] = char(std::tolower(tag[0]));
-		tag[1] = char(std::tolower(tag[1]));
-		tag[2] = char(std::tolower(tag[2]));
-		tag += "_";
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first;
-			auto k = text::find_or_use_default_key(*this, special_ident, ident.get_name());
-			ident.set_government_name(named_gov.second, k);
-		}
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first + "_ruler";
-			auto k = text::find_or_use_default_key(*this, special_ident, world.government_type_get_ruler_name(named_gov.second));
-			ident.set_government_ruler_name(named_gov.second, k);
+		auto const tag = nations::int_to_tag(ident.get_identifying_int());
+		for(auto const& named_gov : context.map_of_governments) {
+			auto const name = tag + "_" + named_gov.first;
+			auto name_k = text::find_or_use_default_key(*this, name, ident.get_name());
+			ident.set_government_name(named_gov.second, name_k);
+			auto const ruler = tag + "_" + named_gov.first + "_ruler";
+			auto ruler_k = text::find_or_use_default_key(*this, ruler, world.government_type_get_ruler_name(named_gov.second));
+			ident.set_government_ruler_name(named_gov.second, ruler_k);
 		}
 	}
 

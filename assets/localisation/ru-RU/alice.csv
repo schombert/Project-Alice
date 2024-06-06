@@ -1,210 +1,210 @@
-language_en-US;English (US)
-language_fr-FR;French (France)
-language_de-DE;German (Germany)
-language_es-ES;Spanish (Spain)
-language_it-IT;Italian (Italy)
-language_sv-SV;Swedish (Sweden)
-language_cs-CZ;Czech (Czech Rep.)
-language_hu-HU;Hungarian (Hungary)
-language_nl-NL;Dutch (Netherlands)
-language_po-PO;Portuguese (Portugal)
-language_ru-RU;Russian (Russia)
-language_fi-FI;Finnish (Finland)
-language_pl-PL;Polish (Poland)
-language_ar-AR;Arabic (Arabia)
-language_zh-CN;Chinese (China)
-language_jp-JP;Japanese (Japan)
-language_ko-SK;Korean (South Korea)
-language_ko-NK;Korean (North Korea)
-language_bg-BG;Bulgarian (Bulgaria)
-save_and_exit;Save and Exit
-save;Save
-exit;Exit
-graphics_options;Graphics Options
-sound_options;Sound Options
-controls_options;Misc. Options
-message_settings_options;Message Settings
-window_mode_label;Fullscreen
-map_projection;Projection
-map_projection_globe;Orthographic
-map_projection_flat;Equirectangular
-map_projection_globe_perspective;Vertical
-dm_popup_label;Diplomatic message as popups
-ui_scale;UI scale
-zoom_mode_label;Zoom style
-zoom_mode_panning;Panning
-zoom_mode_inverted;Inverted
-zoom_mode_centered;Centered
-zoom_mode_to_cursor;To cursor
-zoom_mode_away_from_cursor;Away from cursor
-zoom_speed_label;Zoom Acceleration
-river_label;Rivers
-mute_on_focus_lost_label;Mute on focus lost
-wasd_for_map_movement_label;WASD for movement
-vassal_color_label;Vassal coloring
-vassal_color_inherit;Inherit
-vassal_color_same;Same
-vassal_color_none;None
-black_map_font_label;Black map font
-edge_scrolling_label;Edge scrolling
-color_blind_mode_label;Color blind
-color_blind_mode_none;None
-color_blind_mode_deutan;Deutan
-color_blind_mode_protan;Protan
-color_blind_mode_tritan;Tritan
-color_blind_mode_achroma;Achroma
-render_models_label;Render models
-language_label;Language
-fow_label;Fog of War
-railroad_label;Railroad networks
-master_volume_label;Master volume
-music_volume_label;Music volume
-interface_volume_label;Interface volume
-effect_volume_label;Sound effect volume
-fonts_label;Classic fonts
-tooltip_mode_label;Floating tooltip
-music_player_label;Music player
-gaussianblur_label;Gaussian blur
-gamma_label;Gamma
-map_label;Map text
-map_label_0;None
-map_label_1;Linear
-map_label_2;Quadratic
-map_label_3;Cubic
-message_notify_rebels_defeat_label;Notify when defeating rebels?
-antialiasing_label;Antialiasing
-spoilers_label;Spoilers
-spoilers_tt;Some game content is intentionally obfuscated from the player, this is mainly useful in alt-history mods or easter eggs
-message_settings_spectator;Preset: Spectate only
-mapmode_1;Terrain
-mapmode_2;Political
+language_en-US;Английский (США)
+language_fr-FR;Французский (Франция)
+language_de-DE;Немецкий (Германия)
+language_es-ES;Испанский (Испания)
+language_it-IT;Итальянский (Италия)
+language_sv-SV;Шведский (Швеция)
+language_cs-CZ;Чешский (Чешская Респ.)
+language_hu-HU;Венгерский (Венгрия)
+language_nl-NL;Голландский (Нидерланды)
+language_po-PO;Португальский (Португалия)
+language_ru-RU;Русский (Россия)
+language_fi-FI;финский (Финляндия)
+language_pl-PL;Польский (Польша)
+language_ar-AR;Арабский (Аравия)
+language_zh-CN;Китайский (Китай)
+language_jp-JP;Японский (Япония)
+language_ko-SK;Корейский (Южная Корея)
+language_ko-NK;Корейский (Северная Корея)
+language_bg-BG;Болгарский (Болгария)
+save_and_exit;Сохранить и выйти
+save;Сохранять
+exit;Выход
+graphics_options;Параметры графики
+sound_options;Параметры звука
+controls_options;Разное. Параметры
+message_settings_options;Настройки сообщения
+window_mode_label;Полноэкранный режим
+map_projection;Проекция
+map_projection_globe;Орфографический
+map_projection_flat;Равнопрямоугольный
+map_projection_globe_perspective;Вертикально
+dm_popup_label;Дипломатическое сообщение в виде всплывающих окон
+ui_scale;Масштаб пользовательского интерфейса
+zoom_mode_label;Стиль масштабирования
+zoom_mode_panning;Панорамирование
+zoom_mode_inverted;Инвертированный
+zoom_mode_centered;По центру
+zoom_mode_to_cursor;К курсору
+zoom_mode_away_from_cursor;Вдали от курсора
+zoom_speed_label;Ускорение масштабирования
+river_label;Реки
+mute_on_focus_lost_label;Отключение звука при потере фокуса
+wasd_for_map_movement_label;WASD для движения
+vassal_color_label;Вассальная раскраска
+vassal_color_inherit;Наследовать
+vassal_color_same;То же самое
+vassal_color_none;Нет
+black_map_font_label;Шрифт черной карты
+edge_scrolling_label;Прокрутка по краю
+color_blind_mode_label;Дальтоник
+color_blind_mode_none;Нет
+color_blind_mode_deutan;Дейтан
+color_blind_mode_protan;Протан
+color_blind_mode_tritan;Тритан
+color_blind_mode_achroma;Ахрома
+render_models_label;Рендеринг моделей
+language_label;Язык
+fow_label;Туман войны
+railroad_label;Железнодорожные сети
+master_volume_label;Основной том
+music_volume_label;Громкость музыки
+interface_volume_label;Громкость интерфейса
+effect_volume_label;Громкость звукового эффекта
+fonts_label;Классические шрифты
+tooltip_mode_label;Плавающая подсказка
+music_player_label;Музыкальный проигрыватель
+gaussianblur_label;Размытие по Гауссу
+gamma_label;Гамма
+map_label;Текст карты
+map_label_0;Нет
+map_label_1;Линейный
+map_label_2;Квадратичный
+map_label_3;Кубический
+message_notify_rebels_defeat_label;Уведомлять при победе над повстанцами?
+antialiasing_label;Сглаживание
+spoilers_label;Спойлеры
+spoilers_tt;Некоторый игровой контент намеренно скрыт от игрока, это в основном полезно в модах альтернативной истории или пасхальных яйцах.
+message_settings_spectator;Предустановка: только наблюдение
+mapmode_1;Ландшафт
+mapmode_2;Политический
 mapmode_3;Revoltrisk
-mapmode_4;Diplomatic
-mapmode_5;Region
-mapmode_6;Infrastructure
-mapmode_7;Colonial
-mapmode_8;Administration
-mapmode_9;Recruitment
-mapmode_10;National focus
-mapmode_11;RGO
-mapmode_12;Population
-mapmode_13;Cultures
-mapmode_14;Sphere of influence
-mapmode_15;Supply
-mapmode_16;Loyalty
-mapmode_17;Ranking
-mapmode_18;Migration
-mapmode_19;Civilization level
-mapmode_20;Relations
-mapmode_21;Crisis
-mapmode_22;Naval
-mapmode_23;Religion
-mapmode_24;Forts
-mapmode_25;Ideology
-mapmode_26;Income
-mapmode_27;Conciousness
-mapmode_28;Militancy
-mapmode_29;Literacy
-mapmode_30;Employment
-mapmode_31;Factories
-mapmode_32;Issues
-mapmode_33;Growth
-mapmode_34;Players
-mapmode_35;Life Needs
-mapmode_36;Everyday Needs
-mapmode_37;Luxury Needs
-mapmode_38;Officers
-mapmode_39;Clerk-to-Craftsmen Ratio
-mapmode_40;Life Rating
-mapmode_41;Crime
-mapmode_42;Rally
-mapmode_43;Workforce
-mapmode_44;Mobilization
-legend_min_mapmode_8;Low admin
-legend_min_mapmode_19;Uncivilized
-legend_min_mapmode_7;Uncolonized
-legend_min_mapmode_21;Low tension
-legend_min_mapmode_18;Emigration
-legend_min_mapmode_12;Low density
-legend_min_mapmode_17;Low rank
-legend_min_mapmode_20;Low relations
-legend_min_mapmode_3;Low revolt risk
-legend_min_mapmode_11;Low RGO output
-legend_min_mapmode_15;Low supply
-legend_min_mapmode_26;Low income
-legend_min_mapmode_27;Low conciousness
-legend_min_mapmode_28;Low militancy
-legend_min_mapmode_29;Low literacy
-legend_min_mapmode_30;Low employment
-legend_min_mapmode_33;Low growth
-legend_min_mapmode_35;Low satisfaction
-legend_min_mapmode_36;Low satisfaction
-legend_min_mapmode_37;Low satisfaction
-legend_min_mapmode_38;Low amount
-legend_min_mapmode_39;Poor CTC ratio
-legend_min_mapmode_40;Low life rating
-legend_min_mapmode_44;Low regiment count
-legend_max_mapmode_8;High admin
-legend_max_mapmode_19;Civilized
-legend_max_mapmode_7;Colonizable
-legend_max_mapmode_21;High tension
-legend_max_mapmode_18;Immigration
-legend_max_mapmode_12;High density
-legend_max_mapmode_17;High rank
-legend_max_mapmode_20;High relations
-legend_max_mapmode_3;High revolt risk
-legend_max_mapmode_11;High RGO output
-legend_max_mapmode_15;High supply
-legend_max_mapmode_26;High income
-legend_max_mapmode_27;High conciousness
-legend_max_mapmode_28;High militancy
-legend_max_mapmode_29;High literacy
-legend_max_mapmode_30;High employment
-legend_max_mapmode_33;High growth
-legend_max_mapmode_35;High satisfaction
-legend_max_mapmode_36;High satisfaction
-legend_max_mapmode_37;High satisfaction
-legend_max_mapmode_38;High amount
-legend_max_mapmode_39;Rich CTC ratio
-legend_max_mapmode_40;High life rating
-legend_max_mapmode_44;High regiment count
-mapmode_tooltip_34;Player: $x$ 
-mapmode_tooltip_34_you_sp;This is you! 
-mapmode_tooltip_34_you;Player: $x$ (This is you!) 
-mapmode_tooltip_34_ai;AI controlled
-mapmode_tooltip_35;Life needs satisfied: $x$
-mapmode_tooltip_36;Everyday needs satisfied: $x$
-mapmode_tooltip_37;Luxury needs satisfied: $x$
-mapmode_tooltip_38;Total officers: $x$ ($y$ of population, $value$ is optimal)
-mapmode_tooltip_39;Clerks-to-craftsmen-ratio: $fraction$ ($x$/$y$), $value$ is optimal
-mapmode_tooltip_40;Life rating: $x$
-mapmode_tooltip_41;Crime: $x$
-mapmode_tooltip_42_1;Land rally point
-mapmode_tooltip_42_2;Naval rally point
-mapmode_tooltip_43;Workforce distrobution:
-mapmode_tooltip_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
-mapmode_tooltip_44_2;No possible regiments
-support_for_blank;support for $text$
-uh_support_for_blank;upper house support for $text$
-up_to;up to 
-scaled_support; proportional to support of $text$
-scaled_unemployment; proportional to unemployment
-stockpile_of;to national stockpile of $text$
-create_general;A new general is created
-create_admiral;A new admiral is created
-add_war_goal;A $text$ war goal is added against $nation$
-blank_loyalty;$text$ loyalty
-in_blank;in $text$
-no_effect;No effect
-move_capital_to;Move capital to
-add_x_core;Add $adj$ core
-add_core_to;Add core to
-remove_x_core;Remove $adj$ core
-remove_core_from;Remove core from
-change_name_to;Change name to $text$
-change_terrain_to;Change terrain to $text$
-change_rgo_production_to;Change RGO production to $text$
-make_accepted_culture;$text$ becomes an accepted culture
+mapmode_4;Дипломатический
+mapmode_5;Регион
+mapmode_6;Инфраструктура
+mapmode_7;Колониальный
+mapmode_8;Администрирование
+mapmode_9;Набор персонала
+mapmode_10;Национальный фокус
+mapmode_11;РГО
+mapmode_12;Население
+mapmode_13;Культуры
+mapmode_14;Сфера влияния
+mapmode_15;Припасы
+mapmode_16;Верность
+mapmode_17;Рейтинг
+mapmode_18;Миграция
+mapmode_19;Уровень цивилизации
+mapmode_20;Отношения
+mapmode_21;Кризис
+mapmode_22;Морской
+mapmode_23;Религия
+mapmode_24;Форты
+mapmode_25;Идеология
+mapmode_26;Доход
+mapmode_27;Сознание
+mapmode_28;Воинственность
+mapmode_29;Грамотность
+mapmode_30;Занятость
+mapmode_31;Заводы
+mapmode_32;Проблемы
+mapmode_33;Рост
+mapmode_34;Игроки
+mapmode_35;Жизненные потребности
+mapmode_36;Повседневные потребности
+mapmode_37;Роскошные потребности
+mapmode_38;Офицеры
+mapmode_39;Соотношение служащих и мастеров
+mapmode_40;Рейтинг жизни
+mapmode_41;Преступность
+mapmode_42;Ралли
+mapmode_43;Рабочая сила
+mapmode_44;Мобилизация
+legend_min_mapmode_8;Низкий уровень администратора
+legend_min_mapmode_19;Нецивилизованный
+legend_min_mapmode_7;Неколонизированный
+legend_min_mapmode_21;Низкое напряжение
+legend_min_mapmode_18;Эмиграция
+legend_min_mapmode_12;Низкая плотность
+legend_min_mapmode_17;Низкий ранг
+legend_min_mapmode_20;Низкие отношения
+legend_min_mapmode_3;Низкий риск восстания
+legend_min_mapmode_11;Низкий выход RGO
+legend_min_mapmode_15;Низкий запас
+legend_min_mapmode_26;Низкий доход
+legend_min_mapmode_27;Низкое сознание
+legend_min_mapmode_28;Низкая воинственность
+legend_min_mapmode_29;Низкая грамотность
+legend_min_mapmode_30;Низкая занятость
+legend_min_mapmode_33;Низкий рост
+legend_min_mapmode_35;Низкая удовлетворенность
+legend_min_mapmode_36;Низкая удовлетворенность
+legend_min_mapmode_37;Низкая удовлетворенность
+legend_min_mapmode_38;Низкая сумма
+legend_min_mapmode_39;Плохое соотношение CTC
+legend_min_mapmode_40;Низкий рейтинг жизни
+legend_min_mapmode_44;Малое количество полков
+legend_max_mapmode_8;Высший администратор
+legend_max_mapmode_19;Цивилизованный
+legend_max_mapmode_7;Колонизуемый
+legend_max_mapmode_21;Высокое напряжение
+legend_max_mapmode_18;Иммиграция
+legend_max_mapmode_12;Высокая плотность
+legend_max_mapmode_17;Высокий ранг
+legend_max_mapmode_20;Высокие отношения
+legend_max_mapmode_3;Высокий риск восстания
+legend_max_mapmode_11;Высокий выход RGO
+legend_max_mapmode_15;Высокий запас
+legend_max_mapmode_26;Высокий доход
+legend_max_mapmode_27;Высокое сознание
+legend_max_mapmode_28;Высокая воинственность
+legend_max_mapmode_29;Высокая грамотность
+legend_max_mapmode_30;Высокая занятость
+legend_max_mapmode_33;Высокий рост
+legend_max_mapmode_35;Высокая удовлетворенность
+legend_max_mapmode_36;Высокая удовлетворенность
+legend_max_mapmode_37;Высокая удовлетворенность
+legend_max_mapmode_38;Большое количество
+legend_max_mapmode_39;Большой коэффициент CTC
+legend_max_mapmode_40;Высокий рейтинг жизни
+legend_max_mapmode_44;Высокое количество полков
+mapmode_tooltip_34;Игрок: $x$
+mapmode_tooltip_34_you_sp;Это вы!
+mapmode_tooltip_34_you;Игрок: $x$ (Это ты!)
+mapmode_tooltip_34_ai;Управляется ИИ
+mapmode_tooltip_35;Жизненные потребности удовлетворены: $x$
+mapmode_tooltip_36;Удовлетворение повседневных потребностей: $x$
+mapmode_tooltip_37;Потребности в роскоши удовлетворены: $x$
+mapmode_tooltip_38;Всего офицеров: $x$ ($y$ населения, $value$ оптимально)
+mapmode_tooltip_39;Соотношение клерков и мастеров: $fraction$ ($x$/$y$), $value$ оптимально
+mapmode_tooltip_40;Рейтинг жизни: $x$
+mapmode_tooltip_41;Преступление: $x$
+mapmode_tooltip_42_1;Наземная точка сбора
+mapmode_tooltip_42_2;Точка сбора ВМФ
+mapmode_tooltip_43;Распределение рабочей силы:
+mapmode_tooltip_44;Мобилизованных полков из этой провинции: $x$ (из возможных $y$)
+mapmode_tooltip_44_2;Нет возможных полков
+support_for_blank;поддержка $text$
+uh_support_for_blank;верхняя палата поддерживает $text$
+up_to;до
+scaled_support; пропорционально поддержке $text$
+scaled_unemployment; пропорционален безработице
+stockpile_of;в национальный запас $text$
+create_general;Создан новый генерал
+create_admiral;Создан новый адмирал
+add_war_goal;Добавлена ​​цель войны $text$ против $nation$
+blank_loyalty;$text$ лояльность
+in_blank;в $text$
+no_effect;Нет эффекта
+move_capital_to;Переместить столицу в
+add_x_core;Добавить ядро ​​$adj$
+add_core_to;Добавить ядро ​​в
+Remove_x_core;Удалить ядро ​​$adj$
+Remove_core_from;Удалить ядро ​​из
+change_name_to;Изменить имя на $text$
+change_terrain_to;Изменить местность на $text$
+change_rgo_production_to;Изменить производство RGO на $text$
+make_accepted_culture;$text$ становится принятой культурой
 primary_culture_changes_to;Primary culture changes to $text$
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
@@ -223,8 +223,8 @@ become_blank;Becomes $text$
 player_control_change;Player control changes to $text$
 set_national_flag;$text$ is set for this nation
 remove_national_flag;$text$ is unset for this nation
-infamy;Infamy
-change_province_owner;Change province owner to $text$
+infamy;позор
+change_province_owner;Изменить владельца провинции на $text$
 annex_effect;Annex $text$
 annexed_by_effect;Is annexed by $text$
 core_return;$adj$ cores are returned to $text$
@@ -1040,227 +1040,227 @@ crisis_offer_button;Make an offer to this nation to join your side of the crisis
 crisis_offer_button_ex_1;You are the leader of one of the crisis sides
 crisis_offer_button_ex_2;The crisis has attracted its initial backers
 crisis_offer_button_ex_3;You have at least 1 diplomatic point
-msg_revolt_title;Rebel Uprising
-msg_revolt_1;$x$ rebels have risen up in the following provinces:
-msg_revolt_2;$x$ rebels have risen up (unsuccessfully)
-msg_war_title;War Declared
-msg_war_1;$x$ has declared war on $y$, starting the $val$.
-msg_wargoal_title;War Goal Added
-msg_wargoal_1;$x$ has added to our war the following war goal:
-msg_war_join_title;Nation joins war
-msg_war_join_1;$x$ has joined the ongoing $val$
-msg_war_becomes_great_title;War Escalates
-msg_war_becomes_great_1;The $x$ has become the $y$
-msg_siegeover_title;Siege finishes
-msg_siegeover_1;The siege of $x$ has ended.
-msg_siegeover_2;$y$ no longer controls the province.
-msg_siegeover_3;$y$ rebels no longer control the province.
-msg_siegeover_4;The province is now controlled by $y$.
-msg_siegeover_5;The province is now controlled by $y$ rebels.
-msg_new_crisis_title;Crisis Brewing
-msg_new_crisis_1;A crisis is brewing over the ownership of $x$.
-msg_new_crisis_2;A crisis is brewing over the colonization of $x$.
-msg_tech_title;Technology Researched
-msg_tech_1;$x$ has been researched, with the following effects:
-msg_inv_title;Invention Discovered
-msg_inv_1;$x$ has been discovered, with the following effects:
-msg_fab_discovered_title;Fabrication Discovered
-msg_fab_discovered_1;Our casus belli fabrication has been discovered, resulting in ?R$x$?! infamy.
-msg_fab_discovered_2;$x$ has been discovered fabricating a casus belli on $y$
-msg_fab_canceled_title;Fabrication Canceled
-msg_fab_canceled_1;The casus belli we were fabricating has become invalid and fabrication has been canceled.
-msg_fab_finished_title;Fabrication Complete
-msg_fab_finished_1;We have finished fabricating a $x$ casus belli against $y$.
-msg_leader_died_title;A Military Leader Has Died
-msg_leader_died_1;One of our generals leading an army in $y$, $x$, has died.
-msg_leader_died_2;One of our admirals commanding a navy in $y$, $x$, has died.
-msg_peace_offer_accepted_title;Peace Offer Accepted
-msg_peace_offer_accepted_1;$x$ has accepted a peace offer from $y$ as part of the $val$.
-msg_peace_offer_rejected_title;Peace Offer Rejected
-msg_peace_offer_rejected_1;$x$ has rejected a peace offer from $y$ as part of the $val$.
-msg_upper_house_title;Upper House Formed
-msg_upper_house_1;A new upper house has been assembled with the following composition:
+msg_revolt_title;Восстание повстанцев
+msg_revolt_1;$x$ повстанцы поднялись в следующих провинциях:
+msg_revolt_2;$x$ повстанцы восстали (безуспешно)
+msg_war_title;Война объявлена
+msg_war_1;$x$ объявил войну $y$, начав $val$.
+msg_wargoal_title;Добавлена ​​цель войны
+msg_wargoal_1;$x$ добавил в нашу войну следующую военную цель:
+msg_war_join_title;Нация присоединяется к войне
+msg_war_join_1;$x$ присоединился к продолжающемуся $val$
+msg_war_becomes_great_title;Война обостряется
+msg_war_becomes_great_1;$x$ стал $y$
+msg_siegeover_title;Осада завершена
+msg_siegeover_1;Осада $x$ закончилась.
+msg_siegeover_2;$y$ больше не контролирует провинцию.
+msg_siegeover_3;$y$ повстанцы больше не контролируют провинцию.
+msg_siegeover_4;Теперь провинцией управляет $y$.
+msg_siegeover_5;Провинция теперь контролируется повстанцами $y$.
+msg_new_crisis_title;Назревание кризиса
+msg_new_crisis_1;Назревает кризис вокруг владения $x$.
+msg_new_crisis_2;Назревает кризис из-за колонизации $x$.
+msg_tech_title;Исследованная технология
+msg_tech_1;$x$ было исследовано со следующими эффектами:
+msg_inv_title;Обнаружено изобретение
+msg_inv_1;$x$ был обнаружен со следующими эффектами:
+msg_fab_discovered_title;Обнаружено производство
+msg_fab_discovered_1;Наша фабрикация повода для войны раскрыта, что привело к ?R$x$?! позор.
+msg_fab_discovered_2;$x$ был обнаружен при фабрикации повода для войны по $y$
+msg_fab_canceled_title;Изготовление отменено
+msg_fab_canceled_1;Придуманный нами повод к войне стал недействительным, и производство было отменено.
+msg_fab_finished_title;Изготовление завершено
+msg_fab_finished_1;Мы закончили выдумывать $x$ повод для войны против $y$.
+msg_leader_died_title;Умер военачальник
+msg_leader_died_1;Один из наших генералов, возглавлявший армию в $y$, $x$, умер.
+msg_leader_died_2;Один из наших адмиралов, командующий флотом в $y$, $x$, умер.
+msg_peace_offer_accepted_title;Мирное предложение принято
+msg_peace_offer_accepted_1;$x$ принял мирное предложение от $y$ как часть $val$.
+msg_peace_offer_rejected_title;Мирное предложение отклонено
+msg_peace_offer_rejected_1;$x$ отклонил мирное предложение от $y$ как часть $val$.
+msg_upper_house_title;Сформирована Верхняя палата
+msg_upper_house_1;Собран новый верхний дом следующего состава:
 msg_upper_house_2;$x$%: $y$
-msg_election_start_title;Elections Starting
-msg_election_start_1;The election will finish on $x$.
-msg_dec_rel_title;Relations Worsened
-msg_dec_rel_1;$x$ has decreased their relations with $y$.
-msg_inc_rel_title;Relations Improved
-msg_inc_rel_1;$x$ has improved their relations with $y$.
-msg_add_sphere_title;Nation Sphered
-msg_add_sphere_1;$x$ has added $y$ to their sphere of influence.
-msg_rem_sphere_title;Nation Removed from Sphere
-msg_rem_sphere_1;$x$ has removed $y$ from their sphere of influence.
-msg_rem_sphere_2;$x$ has removed $y$ from the sphere of influence of $val$.
-msg_op_dec_title;Opinion Decreased
-msg_op_dec_1;$x$ has decreased $y$'s opinion of $val$.
-msg_op_inc_title;Opinion Increased
-msg_op_inc_1;$x$ has increased $y$'s opinion of them.
-msg_expel_title;Advisors Expelled
-msg_expel_1;$x$ has expelled $val$'s advisors to $y$.
-msg_ban_title;Embassy Banned
-msg_ban_1;$x$ has caused $val$'s embassy to $y$ to be banned.
-msg_ban_2;This will last until $x$.
-msg_discredit_title;Nation Discredited
-msg_discredit_1;$x$ has caused $val$ to be discredited with $y$.
-msg_discredit_2;This will last until $x$.
-msg_ally_call_accepted_title;Alliance Honored
-msg_ally_call_accepted_1;$x$ has honored their alliance with $y$ and joined the $val$.
-msg_ally_call_declined_title;Alliance Dishonored
-msg_ally_call_decline_1;$x$ has refused to honor their alliance with $y$ and join the $val$.
-msg_alliance_declined_title;Alliance Refused
-msg_alliance_declined_1;$x$ has refused $y$'s offer to form an alliance.
-msg_alliance_starts_title;Alliance Formed
-msg_alliance_starts_1;$x$ and $y$ have formed an alliance.
-msg_alliance_ends_title;Alliance Broken
-msg_alliance_ends_1;The alliance between $x$ and $y$ has ended.
-msg_access_refused_title;Access Refused
-msg_access_refused_1;$x$ has refused to give $y$ military access to their nation.
-msg_access_granted_title;Access Granted
-msg_access_granted_1;$x$ has given $y$ military access to their nation.
-msg_access_canceled_a_title;Access Revoked
-msg_access_canceled_a_1;$x$ has revoked military access from $y$.
-msg_access_canceled_b_title;Access Canceled
-msg_access_canceled_b_1;$x$ no longer requires military access to $y$.
-msg_wsub_start_title;War Subsidies Start
-msg_wsub_start_1;$x$ has begun subsidizing $y$'s current wars.
-msg_wsub_end_title;War Subsidies End
-msg_wsub_end_1;$x$ has stopped subsidizing $y$'s current wars.
-msg_new_gp_title;New Great Power
-msg_new_gp_1;$x$ is now a great power.
-msg_lost_gp_title;Lost Great Power
-msg_lost_gp_1;$x$ is no longer considered to be a great power.
-msg_decision_title;Decision Made
-msg_decision_1;$x$ has taken the $y$ decision
-msg_decision_2;Effect:
-msg_rebels_win_title;Rebel victory
-msg_rebels_win_1;$x$ rebels have won.
-msg_rebels_win_2;?R$x$?! prestige lost
-msg_rebels_win_3;Government changes to $x$
-msg_rebels_win_4;Government ideology changed to $x$
-msg_rebels_win_5;All diplomatic relationships are ended
-msg_rebels_win_6;Effect:
-msg_election_end_title;Election Finished
-msg_election_end_1;$x$ is the new ruling party, receiving $y$ of the vote.
-msg_election_end_2;$x$ is the new ruling party, as part of a coalition government, receiving $y$ of the vote.
-msg_crisis_joffer_accepted;Nation Takes a Side
-msg_crisis_joffer_accepted_1;$x$ has accepted an offer by $y$ to take their side in the current crisis.
-msg_crisis_joffer_rejected;Nation Remains Neutral
-msg_crisis_joffer_reject_1;$x$ has rejected an offer by $y$ to take their side in the current crisis.
-msg_crisis_settled_title;Crisis Resolved
-msg_crisis_settled_1;$x$ has accepted an offer by $y$ to resolve the current crisis.
-msg_crisis_not_settled_title;Crisis Resolution Rejected
-msg_crisis_not_settled_1;$x$ has rejected an offer by $y$ to resolve the current crisis.
-msg_crisis_escalates_title;Crisis Escalates
-msg_crisis_escalates_1;The current crisis has escalated into the $x$.
-msg_crisis_fizzle_title;Crisis Adverted
-msg_crisis_fizzle_1;The brewing crisis has failed to attract international attention.
-msg_crisis_fizzle_2;The brewing crisis failed to attract a defender
-msg_crisis_attacker_title;Crisis Backer
-msg_crisis_attacker_1;$x$ has become involved in the current crisis, backing the attacker.
-msg_crisis_defender_title;Crisis Backer
-msg_crisis_defender_1;$x$ has become involved in the current crisis, backing the defender.
-msg_crisis_vol_join_title;Nation Takes a Side
-msg_crisis_vol_join_1;$x$ has decided to join the current crisis on the side of the attackers.
-msg_crisis_vol_join_2;$x$ has decided to join the current crisis on the side of the defenders.
-msg_entered_automatic_alliance_title;Entered alliance automatically
-msg_entered_automatic_alliance_1;$x$ has entered in an alliance with us automatically, because we marked that we're interested in allying them if possible
-msg_chat_message_title;Chat message
-msg_chat_message_1;$x$ says:
+msg_election_start_title;Выборы начинаются
+msg_election_start_1;Выборы завершатся $x$.
+msg_dec_rel_title;Отношения ухудшились
+msg_dec_rel_1;$x$ уменьшило свои отношения с $y$.
+msg_inc_rel_title;Улучшены отношения
+msg_inc_rel_1;$x$ улучшили свои отношения с $y$.
+msg_add_sphere_title;Сфера нации
+msg_add_sphere_1;$x$ добавил $y$ в свою сферу влияния.
+msg_rem_sphere_title;Нация удалена из сферы
+msg_rem_sphere_1;$x$ удалил $y$ из своей сферы влияния.
+msg_rem_sphere_2;$x$ удалил $y$ из сферы влияния $val$.
+msg_op_dec_title;Мнение понизилось
+msg_op_dec_1;$x$ снизил мнение $y$ о $val$.
+msg_op_inc_title;Мнение возросло
+msg_op_inc_1;$x$ повысил мнение о них у $y$.
+msg_expel_title;Советники исключены
+msg_expel_1;$x$ исключил советников $val$ в $y$.
+msg_ban_title;Посольство забанено
+msg_ban_1;$x$ привел к запрету посольства $val$ в $y$.
+msg_ban_2;Это продлится до $x$.
+msg_discredit_title;Нация дискредитирована
+msg_discredit_1;$x$ привел к дискредитации $val$ с помощью $y$.
+msg_discredit_2;Это продлится до $x$.
+msg_ally_call_accepted_title;Уважение Альянса
+msg_ally_call_accepted_1;$x$ подтвердил свой союз с $y$ и присоединился к $val$.
+msg_ally_call_declined_title;Альянс опозорен
+msg_ally_call_decline_1;$x$ отказался соблюдать свой союз с $y$ и присоединиться к $val$.
+msg_alliance_declined_title;Альянс отказался
+msg_alliance_declined_1;$x$ отклонил предложение $y$ сформировать альянс.
+msg_alliance_starts_title;Альянс сформирован
+msg_alliance_starts_1;$x$ и $y$ заключили альянс.
+msg_alliance_ends_title;Альянс распался
+msg_alliance_ends_1;Альянс между $x$ и $y$ распался.
+msg_access_refused_title;В доступе отказано
+msg_access_refused_1;$x$ отказался предоставить $y$ военный доступ в свою страну.
+msg_access_granted_title;Доступ предоставлен
+msg_access_granted_1;$x$ предоставил $y$ военный доступ к своей стране.
+msg_access_canceled_a_title;Доступ отозван
+msg_access_canceled_a_1;$x$ отозвал военный доступ у $y$.
+msg_access_canceled_b_title;Доступ отменен
+msg_access_canceled_b_1;$x$ больше не требует военного доступа к $y$.
+msg_wsub_start_title;Начало военных субсидий
+msg_wsub_start_1;$x$ начал субсидировать текущие войны $y$.
+msg_wsub_end_title;Окончание военных субсидий
+msg_wsub_end_1;$x$ прекратил субсидировать текущие войны $y$.
+msg_new_gp_title;Новая великая держава
+msg_new_gp_1;$x$ теперь является великой силой.
+msg_lost_gp_title;Потерянная великая держава
+msg_lost_gp_1;$x$ больше не считается великой державой.
+msg_decision_title;Решение принято
+msg_decision_1;$x$ принял решение $y$
+msg_decision_2;Эффект:
+msg_rebels_win_title;Победа повстанцев
+msg_rebels_win_1;$x$ повстанцев победили.
+msg_rebels_win_2;?R$x$?! престиж потерян
+msg_rebels_win_3;Правительство меняется на $x$
+msg_rebels_win_4;Идеология правительства изменена на $x$
+msg_rebels_win_5;Все дипломатические отношения прекращены
+msg_rebels_win_6;Эффект:
+msg_election_end_title;Выборы завершены
+msg_election_end_1;$x$ — новая правящая партия, получившая $y$ голосов.
+msg_election_end_2;$x$ — новая правящая партия в составе коалиционного правительства, получившая $y$ голосов.
+msg_crisis_joffer_accepted;Нация принимает сторону
+msg_crisis_joffer_accepted_1;$x$ принял предложение $y$ принять их сторону в нынешнем кризисе.
+msg_crisis_joffer_rejected;Нация остается нейтральной
+msg_crisis_joffer_reject_1;$x$ отклонил предложение $y$ принять их сторону в нынешнем кризисе.
+msg_crisis_settled_title;Кризис разрешен
+msg_crisis_settled_1;$x$ принял предложение $y$ по разрешению текущего кризиса.
+msg_crisis_not_settled_title;Разрешение кризиса отклонено
+msg_crisis_not_settled_1;$x$ отклонил предложение $y$ по разрешению текущего кризиса.
+msg_crisis_escalates_title;Кризис обостряется
+msg_crisis_escalates_1;Текущий кризис перерос в $x$.
+msg_crisis_fizzle_title;Кризис объявлен
+msg_crisis_fizzle_1;Назревающий кризис не смог привлечь международного внимания.
+msg_crisis_fizzle_2;Назревающий кризис не смог привлечь защитника
+msg_crisis_attacker_title;Кризисный покровитель
+msg_crisis_attacker_1;$x$ оказался вовлеченным в текущий кризис, поддерживая злоумышленника.
+msg_crisis_defender_title;Кризисный спонсор
+msg_crisis_defender_1;$x$ оказался вовлеченным в текущий кризис, поддерживая защитника.
+msg_crisis_vol_join_title;Нация принимает сторону
+msg_crisis_vol_join_1;$x$ решил присоединиться к текущему кризису на стороне злоумышленников.
+msg_crisis_vol_join_2;$x$ решил присоединиться к текущему кризису на стороне защитников.
+msg_entered_automatic_alliance_title;Вступил в альянс автоматически
+msg_entered_automatic_alliance_1;$x$ автоматически вступил с нами в союз, поскольку мы отметили, что заинтересованы в том, чтобы вступить с ними в союз, если это возможно.
+msg_chat_message_title;Сообщение в чате
+msg_chat_message_1;$x$ говорит:
 msg_chat_message_2;$x$
-msg_n_event_title;National Event
-msg_p_event_title;Provincial Event
-msg_m_event_title;Major Event
-multiunit_header;$x$ Units Selected
-ai_alliance_1;The AI is currently seeking allies
-ai_alliance_2;Your nation is close enough to assist in a war
-ai_alliance_3;No conflicting ambitions
-ai_alliance_4;Your nation's military is sufficiently strong
-ai_alliance_5;Has shared mutual strategic interests
-ai_access_1;The AI sees one of your wars as advantageous to them
-col_start_title;Begin colonizing this state
-col_start_1;No colonizers are present or colonization is still in the initial stage
-col_start_2;Your nation is at least rank $x$
-col_start_3;The state is not the target of a colonial crisis
-col_start_4;You are not participating in a crisis war
-col_start_5;The minimum life rating you can colonize ($x$) is less than or equal to the life rating of the state ($y$)
-col_start_6;Base ?Y$x$
-col_start_7;There are at most three other colonizers present
-col_start_8;You are adjacent to the state or it is within naval range
-col_start_9;You have at least $x$ free colonial points
-col_invest_title;Invest in your colony
-col_invest_1;Your nation is at least rank $x$
-col_invest_2;The state is not the target of a colonial crisis
-col_invest_3;You are not participating in a crisis war
-col_invest_4;Without competition, you will be able to turn this state into a colony on $x$
-col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
-col_invest_6;You have at least $x$ free colonial points
-activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
-unit_max_speed;Max Speed ?G$x$?! KPH
-unit_attack;Attack ?G$x$
-unit_hull;Hull ?G$x$
-unit_fire_range;Firing Range ?G$x$
-unit_supply_consumption;Supply Consumption ?R$x$
-unit_supply_load;Supplies Weight ?R$x$
-unit_defence;Defence ?G$x$
-unit_discipline;Discipline ?G$x$
-unit_maneuver;Maneuver ?G$x$
-unit_recon;Reconaissance ?G$x$
-unit_support;Support ?G$x$
-unit_evasion;Evasion ?G$x$
-unit_siege;Siege ?G$x$
-unit_torpedo_attack;Torpedo Attack ?G$x$
-unit_build_time;$x$ days
+msg_n_event_title;Национальное событие
+msg_p_event_title;Провинциальное событие
+msg_m_event_title;Крупное событие
+multiunit_header;$x$ Выбрано единиц измерения
+ai_alliance_1;ИИ в настоящее время ищет союзников
+ai_alliance_2;Ваша нация достаточно близко, чтобы помочь в войне
+ai_alliance_3;Нет противоречивых амбиций
+ai_alliance_4;Военные силы вашей страны достаточно сильны
+ai_alliance_5;Обладает общими стратегическими интересами
+ai_access_1;ИИ считает одну из ваших войн выгодной для себя
+col_start_title;Начать колонизацию этого штата
+col_start_1;Колонизаторы отсутствуют или колонизация все еще находится на начальной стадии
+col_start_2;Ранг вашей нации не ниже $x$
+col_start_3;Государство не является объектом колониального кризиса
+col_start_4;Вы не участвуете в кризисной войне
+col_start_5;Минимальный рейтинг жизни, который вы можете колонизировать ($x$), меньше или равен рейтингу жизни государства ($y$)
+col_start_6;База ?Y$x$
+col_start_7;Присутствуют не более трех других колонизаторов
+col_start_8;Вы находитесь рядом с штатом или в пределах досягаемости военно-морского флота.
+col_start_9;У вас есть как минимум $x$ свободных колониальных очков
+col_invest_title;Инвестируйте в свою колонию
+col_invest_1;Ранг вашей нации не ниже $x$
+col_invest_2;Государство не является объектом колониального кризиса
+col_invest_3;Вы не участвуете в кризисной войне
+col_invest_4;Без конкуренции вы сможете превратить это государство в колонию на $x$
+col_invest_5;Прошло $x$ дней с момента вашей последней инвестиции (следующая инвестиция возможна на $y$)
+col_invest_6;У вас есть как минимум $x$ свободных колониальных очков
+activated_by_with_a_chance_of;Активируется ?Y$x$?!, с шансом:
+unit_max_speed;Максимальная скорость ?G$x$?! КПХ
+unit_attack;Атака ?G$x$
+unit_hull;Корпус ?G$x$
+unit_fire_range;Дальность стрельбы ?G$x$
+unit_supply_consumption;Потребление припасов ?R$x$
+unit_supply_load;Вес припасов ?R$x$
+unit_defence;Защита ?G$x$
+unit_discipline;Дисциплина ?G$x$
+unit_maneuver;Маневр ?G$x$
+unit_recon;Разведка ?G$x$
+unit_support;Поддержка ?G$x$
+unit_evasion;Уклонение ?G$x$
+unit_siege;Осада ?G$x$
+unit_torpedo_attack;Торпедная атака ?G$x$
+unit_build_time;$x$ дней
 unit_build_unit_pop_size;$x$k
 unit_build_unit_brigades;$x$/$y$
-msg_revolt;When a revolt occurs
-msg_war_on_nation;When we declare war
-msg_war_by_nation;When we are declared war
-msg_wargoal_added;When a wargoal is added
-msg_siegeover_by_nation;Siege done against us
-msg_siegeover_on_nation;Siege done against them
-msg_colony_finished;When we finish colonizing
-msg_reform_gained;When we gain a reform
-msg_reform_lost;When we lose a reform
-msg_ruling_party_change;When the ruling party changes
-msg_upperhouse;When the upperhouse changes
-msg_electionstart;When elections start
-msg_electiondone;When elections end
-msg_breakcountry;When a country is broken
-msg_peace_accepted_from_nation;When we accept a peace offer
-msg_peace_rejected_from_nation;When we reject a peace offer
-msg_peace_accepted_by_nation;When they accept a peace offer
-msg_peace_rejected_by_nation;When they reject a peace offer
-msg_mobilization_start;When we mobilize
-msg_mobilization_end;When we demobilize
-msg_factory_complete;When a factory gets constructed
-msg_rr_complete;When a railroad gets constructed
-msg_fort_complete;When a fort gets constructed
-msg_naval_base_complete;When a naval base gets constructed
-msg_province_event;When a province event occurs
-msg_national_event;When a national event occurs
-msg_major_event;When a major event occurs
-msg_invention;When an invention is discovered
-msg_tech;When we finish research
-msg_leader_dies;When a leader dies
-msg_land_combat_starts_on_nation;When we start land combat
-msg_naval_combat_starts_on_nation;When we start naval combat
-msg_land_combat_starts_by_nation;When land combat is started
-msg_naval_combat_starts_by_nation;When naval combat is started
-msg_movement_finishes;When movement finishes
-msg_decision;When a decision is done
-msg_lose_great_power;When we lose great power
-msg_become_great_power;When we become great power
-msg_war_subsidies_start_by_nation;When war subsidies are given
-msg_war_subsidies_start_on_nation;When we give war subsidies
-msg_war_subsidies_end_by_nation;When war subsidies are ended
-msg_war_subsidies_end_on_nation;When we end war subsidies
-msg_reparations_start_by_nation;When war reparations are placed
-msg_reparations_start_on_nation;When we pay have to war reparations
-msg_reparations_end_by_nation;When war reparations are paid off
-msg_reparations_end_on_nation;When we pay off war reparations
-msg_mil_access_start_by_nation;When we are given military access
-msg_mil_access_start_on_nation;When we give military access
+msg_revolt;Когда происходит восстание
+msg_war_on_nation;Когда мы объявим войну
+msg_war_by_nation;Когда нам объявят войну
+msg_wargoal_added;При добавлении цели войны
+msg_siegeover_by_nation;Нас устроили осада
+msg_siegeover_on_nation;Против них проведена осада
+msg_colony_finished;Когда мы закончим колонизацию
+msg_reform_gained;Когда мы добьемся реформы
+msg_reform_lost;Когда мы теряем реформу
+msg_ruling_party_change;Когда меняется правящая партия
+msg_upperhouse;Когда меняется верхняя палата
+msg_electionstart;Когда начнутся выборы
+msg_electiondone;Когда выборы закончатся
+msg_breakcountry;Когда страна разрушена
+msg_peace_accepted_from_nation;Когда мы принимаем мирное предложение
+msg_peace_rejected_from_nation;Когда мы отклоняем мирное предложение
+msg_peace_accepted_by_nation;Когда они принимают мирное предложение
+msg_peace_rejected_by_nation;Когда они отклоняют мирное предложение
+msg_mobilization_start;Когда мы мобилизуемся
+msg_mobilization_end;Когда мы демобилизуемся
+msg_factory_complete;Когда будет построена фабрика
+msg_rr_complete;Когда будет построена железная дорога
+msg_fort_complete;Когда будет построен форт
+msg_naval_base_complete;Когда будет построена военно-морская база
+msg_province_event;Когда происходит событие провинции
+msg_national_event;Когда происходит национальное событие
+msg_major_event;Когда происходит важное событие
+msg_invention;Когда обнаружено изобретение
+msg_tech;Когда мы закончим исследование
+msg_leader_dies;Когда умирает лидер
+msg_land_combat_starts_on_nation;Когда мы начнем наземный бой
+msg_naval_combat_starts_on_nation;Когда мы начнем морской бой
+msg_land_combat_starts_by_nation;Когда начинается наземный бой
+msg_naval_combat_starts_by_nation;Когда начинается морской бой
+msg_movement_finishes;Когда движение закончится
+msg_decision;Когда решение принято
+msg_lose_great_power;Когда мы потеряем великую державу
+msg_become_great_power;Когда мы станем великой державой
+msg_war_subsidies_start_by_nation;Когда предоставляются военные субсидии
+msg_war_subsidies_start_on_nation;Когда мы даем военные субсидии
+msg_war_subsidies_end_by_nation;Когда военные субсидии прекратятся
+msg_war_subsidies_end_on_nation;Когда мы прекратим военные субсидии
+msg_reparations_start_by_nation;Когда размещаются военные репарации
+msg_reparations_start_on_nation;Когда мы платим военные репарации
+msg_reparations_end_by_nation;Когда будут выплачены военные репарации
+msg_reparations_end_on_nation;Когда мы выплатим военные репарации
+msg_mil_access_start_by_nation;Когда нам дадут военный доступ
+msg_mil_access_start_on_nation;Когда мы предоставим военный доступ
 msg_mil_access_end_by_nation;
 msg_mil_access_end_on_nation;
 msg_mil_access_declined_by_nation;
@@ -1479,11 +1479,11 @@ alice_load_unload_3;The transporting fleet is docked
 alice_load_unload_4;One or more armies is being transported
 alice_load_unload_5;The fleet is docked
 alice_unload_fleet;Unload all armies transported by the fleet
-auto_save_lb;Auto-save frequency
-auto_save_1;Daily
-auto_save_2;Monthly
-auto_save_3;Yearly
-auto_save_0;None
+auto_save_lb;Частота автосохранения
+auto_save_1;Ежедневно
+auto_save_2;Ежемесячно
+auto_save_3;Ежегодно
+auto_save_0;Нет
 monthly_emigration_lab;Monthly emigration to (top 10)
 monthly_immigration_lab;Monthly immigration from (top 10)
 im_em_header;Predicted immigration/emigration for 
@@ -1550,41 +1550,43 @@ meets_the_conditions_of;meets the conditions of
 does_not_meet_the_conditions_of;does not meet the conditions of 
 fab_finish_date;CB fabrication is expected to finish on $date$
 fab_is_paused;CB fabrication is currently paused
-aml_civ_s1;Civilized
-aml_civ_s2;Uncolonized
-aml_civ_s3;100% Westernized
-aml_civ_s4;0% Westernized
-aml_civ_s5;Colony
-aml_col_s1;Potential
-aml_col_s2;NA
-aml_col_s3;Can Invest
-aml_col_s4;Colonizing
-aml_dip_s1;Viewpoint
-aml_dip_s2;Ally
-aml_dip_s3;Enemy
-aml_dip_s4;Puppet
-aml_dip_s5;Sphere
-aml_dip_s6;Other
-aml_dip_s7;Core
-aml_dip_s8;Non Core
-aml_dip_s9;Union Core
-aml_rr_s1;Level 0
-aml_rr_s2;Level 6
-aml_rr_s3;Upgrading
-aml_rr_s4;Max level
-aml_rr_s5;Blocked
-aml_nav_s1;No base
-aml_nav_s2;Max level
-aml_nav_s3;Upgrading
-aml_nav_s4;Upgradeable
-aml_nav_s5;Constructible
-aml_rank_s1;Great
-aml_rank_s2;Secondary
+
+693 / 5,000
+aml_civ_s1;Цивилизованный
+aml_civ_s2;Неколонизированный
+aml_civ_s3;100% вестернизированный
+aml_civ_s4;0% вестернизированный
+aml_civ_s5;Колония
+aml_col_s1;Потенциал
+aml_col_s2;Нет данных
+aml_col_s3;Можно инвестировать
+aml_col_s4;Колонизация
+aml_dip_s1;Точка обзора
+aml_dip_s2;Союзник
+aml_dip_s3;Враг
+aml_dip_s4;Марионетка
+aml_dip_s5;Сфера
+aml_dip_s6;Другое
+aml_dip_s7;Ядро
+aml_dip_s8;Неосновной
+aml_dip_s9;Объединенное ядро
+aml_rr_s1;Уровень 0
+aml_rr_s2;Уровень 6
+aml_rr_s3;Обновление
+aml_rr_s4;Максимальный уровень
+aml_rr_s5;Заблокировано
+aml_nav_s1;Нет базы
+aml_nav_s2;Максимальный уровень
+aml_nav_s3;Обновление
+aml_nav_s4;Обновляемый
+aml_nav_s5;Конструируемый
+aml_rank_s1;Отлично
+aml_rank_s2;Вторичный
 aml_rank_s3;Civ
 aml_rank_s4;Unciv
-aml_rec_s1;Available
-aml_rec_s2;All used
-aml_rec_s3;None
+aml_rec_s1;Доступно
+aml_rec_s2;Все использовано
+aml_rec_s3;Нет
 macro_builder;Macro-builder
 macro_total_desc;Total unit stats:
 macro_switch_type_land;Build army

@@ -1,64 +1,17 @@
 CHI;Imperio Chino
-CHI_proletarian_dictatorship;Imperio Chino
-CHI_presidential_dictatorship;Imperio Chino
-CHI_bourgeois_dictatorship;Imperio Chino
-CHI_fascist_dictatorship;Imperio Chino
-CHI_absolute_monarchy;Imperio Chino
-CHI_prussian_constitutionalism;Imperio Chino
-CHI_hms_government;Imperio Chino
-CHI_democracy;Republica China
+CHI_democracy;Republica de China
 USA;Estados Unidos
-USA_proletarian_dictatorship;Estados Unidos
-USA_presidential_dictatorship;Estados Unidos
-USA_bourgeois_dictatorship;Estados Unidos
-USA_fascist_dictatorship;Estados Unidos
+USA_proletarian_dictatorship;Estados Socialistas
 USA_absolute_monarchy;Imperio Americano
 USA_prussian_constitutionalism;Imperio Americano
 USA_hms_government;Imperio Americano
-USA_democracy;Estados Unidos
 CSA;Estados Confederados
-CSA_proletarian_dictatorship;Estados Confederados
-CSA_presidential_dictatorship;Estados Confederados
-CSA_bourgeois_dictatorship;Estados Confederados
-CSA_fascist_dictatorship;Imperio Confederado
+CSA_fascist_dictatorship;Regimen Confederado
 CSA_absolute_monarchy;Imperio Confederado
 CSA_prussian_constitutionalism;Imperio Confederado
-CSA_hms_government;Estados Confederados
-CSA_democracy;Estados Confederados
+CSA_hms_government;Imperio Confederados
 TEX;Tejas
-TEX_proletarian_dictatorship;Tejas
-TEX_presidential_dictatorship;Tejas
-TEX_bourgeois_dictatorship;Tejas
-TEX_fascist_dictatorship;Tejas
-TEX_absolute_monarchy;Tejas
-TEX_prussian_constitutionalism;Tejas
-TEX_hms_government;Tejas
-TEX_democracy;Tejas
 ALD;Argelia
-ALD_proletarian_dictatorship;Argelia
-ALD_presidential_dictatorship;Argelia
-ALD_bourgeois_dictatorship;Argelia
-ALD_fascist_dictatorship;Argelia
-ALD_absolute_monarchy;Argelia
-ALD_prussian_constitutionalism;Argelia
-ALD_hms_government;Argelia
-ALD_democracy;Argelia
 BYE;Byelorusia
-BYE_proletarian_dictatorship;Byelorusia
-BYE_presidential_dictatorship;Byelorusia
-BYE_bourgeois_dictatorship;Byelorusia
-BYE_fascist_dictatorship;Byelorusia
-BYE_absolute_monarchy;Byelorusia
-BYE_prussian_constitutionalism;Byelorusia
-BYE_hms_government;Byelorusia
-BYE_democracy;Byelorusia
 UBD;Union de Provincias Balticas
-UBD_proletarian_dictatorship;Union de Provincias Balticas
-UBD_presidential_dictatorship;Union de Provincias Balticas
-UBD_bourgeois_dictatorship;Union de Provincias Balticas
-UBD_fascist_dictatorship;Union de Provincias Balticas
-UBD_absolute_monarchy;Union de Provincias Balticas
-UBD_prussian_constitutionalism;Union de Provincias Balticas
-UBD_hms_government;Union de Provincias Balticas
-UBD_democracy;Union de Provincias Balticas
-SPA_adj;Española
+SPA_ADJ;Española
