@@ -305,8 +305,8 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, state.military_definitions.unit_base_definitions[unit_type].name);
 		if(state.military_definitions.unit_base_definitions[unit_type].is_land) {
-			text::add_line(state, contents, "alice_unit_folder_unit_name", text::variable_type::x, state.military_definitions.unit_base_definitions[unit_type].name);
 			if(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).reconnaissance_or_fire_range > 0) {
 				text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).reconnaissance_or_fire_range, 2));
 			}
@@ -323,7 +323,6 @@ public:
 			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).maximum_speed, 2));
 			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).supply_consumption * 100, 0));
 		} else {
-			text::add_line(state, contents, state.military_definitions.unit_base_definitions[unit_type].name);
 			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).maximum_speed, 2));
 			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).attack_or_gun_power, 2));
 			if(state.world.nation_get_unit_stats(state.local_player_nation, unit_type).siege_or_torpedo_attack > 0) {
@@ -455,7 +454,7 @@ public:
 			//time_to_build
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::x, udef.build_time);
-			if(build_time) build_time->set_text(state, text::resolve_string_substitution(state, "alice_build_time", m));
+			if(build_time) build_time->set_text(state, text::resolve_string_substitution(state, "unit_build_time", m));
 			//popsize
 			if(content.is_navy) {
 				if(pop_size) pop_size->set_text(state, "");
@@ -476,12 +475,12 @@ public:
 
 				text::substitution_map n;
 				text::add_to_substitution_map(n, text::variable_type::x, std::string_view(pop_size_text));
-				if(pop_size) pop_size->set_text(state, text::resolve_string_substitution(state, "alice_build_unit_pop_size", n));
+				if(pop_size) pop_size->set_text(state, text::resolve_string_substitution(state, "unit_build_unit_pop_size", n));
 
 				text::substitution_map p;
 				text::add_to_substitution_map(p, text::variable_type::x, num_of_brigades);
 				text::add_to_substitution_map(p, text::variable_type::y, military::regiments_max_possible_from_province(state, state.world.pop_get_province_from_pop_location(content.pop_info)));
-				if(brigades) brigades->set_text(state, text::resolve_string_substitution(state, "alice_build_unit_brigades", p));
+				if(brigades) brigades->set_text(state, text::resolve_string_substitution(state, "unit_build_unit_brigades", p));
 			}
 			//province
 			if(province) province->set_text(state, text::produce_simple_string(state, state.world.province_get_name(content.province_info)));
