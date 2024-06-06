@@ -1256,7 +1256,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
+
 		if(tooltip_probe.under_mouse) {
+			if(tooltip_probe.under_mouse->base_data.get_element_type() == ui::element_type::button) {
+				sound::play_interface_sound(*this, sound::get_hover_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
@@ -2466,21 +2470,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
-		auto tagi = ident.get_identifying_int();
-		auto tag = nations::int_to_tag(tagi);
-		tag[0] = char(std::tolower(tag[0]));
-		tag[1] = char(std::tolower(tag[1]));
-		tag[2] = char(std::tolower(tag[2]));
-		tag += "_";
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first;
-			auto k = text::find_or_use_default_key(*this, special_ident, ident.get_name());
-			ident.set_government_name(named_gov.second, k);
-		}
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first + "_ruler";
-			auto k = text::find_or_use_default_key(*this, special_ident, world.government_type_get_ruler_name(named_gov.second));
-			ident.set_government_ruler_name(named_gov.second, k);
+		auto const tag = nations::int_to_tag(ident.get_identifying_int());
+		for(auto const& named_gov : context.map_of_governments) {
+			auto const name = tag + "_" + named_gov.first;
+			auto name_k = text::find_or_use_default_key(*this, name, ident.get_name());
+			ident.set_government_name(named_gov.second, name_k);
+			auto const ruler = tag + "_" + named_gov.first + "_ruler";
+			auto ruler_k = text::find_or_use_default_key(*this, ruler, world.government_type_get_ruler_name(named_gov.second));
+			ident.set_government_ruler_name(named_gov.second, ruler_k);
 		}
 	}
 
@@ -3022,7 +3019,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_modifier_values(provincial_mod_offsets::count);
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
+
 	world.province_resize_demographics(demographics::size(*this));
+	world.province_resize_rgo_max_size_per_good(world.commodity_size());
+	world.province_resize_rgo_profit_per_good(world.commodity_size());
+	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
+	world.province_resize_rgo_employment_per_good(world.commodity_size());
+	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.nation_resize_domestic_market_pool(world.commodity_size());
 	world.nation_resize_real_demand(world.commodity_size());
@@ -3333,6 +3336,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+
+	text::finish_text_data(*this);
 }
 
 void state::preload() {

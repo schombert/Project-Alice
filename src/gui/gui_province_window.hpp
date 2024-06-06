@@ -805,9 +805,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -885,9 +885,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -1253,7 +1253,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
+		auto max_emp = economy::rgo_total_max_employment(state, owner, prov_id);
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));

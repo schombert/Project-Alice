@@ -219,6 +219,8 @@ Alice adds a handful of new defines:
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
 - `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
 - `alice_needs_scaling_factor`: Scale factor multiplier for all needs
+- `alice_base_rgo_employment_bonus`: Additional rgo size of the main rgo.
+- `alice_base_rgo_efficiency_bonus`: Additional rgo efficiency of the main rgo.
 - `alice_factory_per_level_employment`: Employment per factory level.
 - `alice_domestic_investment_multiplier`: Multiplier of domestic investment.
 - `alice_rgo_boost`: Boost given to RGOs (for example, 1.2 produces 120% more)

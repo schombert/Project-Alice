@@ -1,0 +1,542 @@
+REB;Rebelianci
+REB_ADJ;Buntownik
+ENG;Wielka Brytania
+ENG_ADJ;brytyjski
+RUS;Rosja
+RUS_ADJ;Rosyjski
+FRA;Francja
+FRA_ADJ;Francuski
+PRU;Prusy
+PRU_ADJ;pruski
+GER;Niemcy
+GER_ADJ;Niemiecki
+AUS;Austria
+AUS_ADJ;austriacki
+USA;Ameryka
+USA_ADJ;ameryka?ski
+JAP;Japonia
+JAP_ADJ;j?zyk japo?ski
+ITA;W?ochy
+ITA_ADJ;W?oski
+KUK;Austro-W?gry
+KUK_ADJ;Austro-W?gier
+DEN;Dania
+DEN_ADJ;du?ski
+FIN;Finlandia
+FIN_ADJ;fi?ski
+NOR;Norwegia
+NOR_ADJ;norweski
+SCA;Skandynawia
+SCA_ADJ;skandynawski
+SWE;Szwecja
+SWE_ADJ;szwedzki
+BEL;Belgia
+BEL_ADJ;belgijski
+CAT;Katalonia
+CAT_ADJ;Katalo?ski
+FLA;Flandria
+FLA_ADJ;flamandzki
+IRE;Irlandia
+IRE_ADJ;Irlandczyk
+NET;Holandia
+NET_ADJ;Holenderski
+POR;Portugalia
+POR_ADJ;portugalski
+SCO;Szkocja
+SCO_ADJ;szkocki
+SPA;Hiszpania
+SPA_ADJ;hiszpa?ski
+WLL;Walonia
+WLL_ADJ;Walo?ski
+ANH;Anhalt
+ANH_ADJ;Anhaltian
+BAD;Badenia
+BAD_ADJ;Badenia
+BAV;Bawaria
+BAV_ADJ;bawarski
+BRA;Brunszwik
+BRA_ADJ;Brunszwik
+BRE;Brema
+BRE_ADJ;Bremian
+COB;Saxe-Coburg-Gotha
+COB_ADJ;Sas
+DZG;Gda?sk
+DZG_ADJ;Gda?sk
+FRM;Frankfurt nad Menem
+FRM_ADJ;Parówka
+HAM;Hamburg
+HAM_ADJ;Hamburger
+HAN;Hanower
+HAN_ADJ;hanowerski
+HES;Hesja-Darmstadt
+HES_ADJ;heski
+HEK;Hesja-Kassel
+HEK_ADJ;heski
+HOL;Holsztyn
+HOL_ADJ;holszty?ski
+LIP;Lippe-Detmold
+LIP_ADJ;Lipski
+LUB;Lubeka
+LUB_ADJ;lubecki
+LUX;Luksemburg
+LUX_ADJ;luksemburski
+MEC;Meklemburgia
+MEC_ADJ;Meklemburski
+MEI;Saksonia-Meiningen
+MEI_ADJ;Sas
+NAS;Nassau
+NAS_ADJ;Nassauan
+NGF;Federacja Pó?nocnoniemiecka
+NGF_ADJ;Pó?nocne Niemcy
+OLD;Oldenburga
+OLD_ADJ;Oldenburski
+SAX;Saksonia
+SAX_ADJ;Sas
+SCH;Szlezwik
+SCH_ADJ;Szlezwik
+SGF;Federacja Po?udniowoniemiecka
+SGF_ADJ;Niemiecki
+WEI;Saksonia-Weimar
+WEI_ADJ;Sas
+WUR;Wirtembergia
+WUR_ADJ;Wirtembergia
+LOM;Lombardia
+LOM_ADJ;Lombardii
+LUC;Lukka
+LUC_ADJ;Luccan
+MOD;Modena
+MOD_ADJ;Mode?ski
+PAP;Pa?stwa Ko?cielne
+PAP_ADJ;Papieski
+PAR;Parmie
+PAR_ADJ;Parmez
+SAR;Sardynia-Piemont
+SAR_ADJ;Piemoncki
+SIC;Dwie Sycylie
+SIC_ADJ;sycylijski
+TRE;Triest
+TRE_ADJ;Triestian
+TUS;Toskania
+TUS_ADJ;toska?ski
+VEN;Wenecja
+VEN_ADJ;wenecki
+BOH;Czechy-Morawy
+BOH_ADJ;Czech
+KRA;Kraków
+KRA_ADJ;krakowski
+CRI;Krym
+CRI_ADJ;krymski
+EST;Estonia
+EST_ADJ;esto?ski
+HUN;W?gry
+HUN_ADJ;j?zyk w?gierski
+LIT;Litwa
+LIT_ADJ;litewski
+LAT;?otwa
+LAT_ADJ;?otewski
+POL;Polska
+POL_ADJ;Polski
+SLV;S?owacja
+SLV_ADJ;s?owacki
+SWI;Szwajcaria
+SWI_ADJ;szwajcarski
+RUT;Ru?
+RUT_ADJ;ruski
+SIE;Siebenbürgen
+SIE_ADJ;Transylwanii
+UKR;Ukraina
+UKR_ADJ;ukrai?ski
+CZH;Czechos?owacja
+CZH_ADJ;czechos?owacki
+ALB;Albania
+ALB_ADJ;alba?ski
+BOS;Bo?nia i Hercegowina
+BOS_ADJ;bo?niacki
+BUL;Bu?garia
+BUL_ADJ;bu?garski
+CRE;Kreta
+CRE_ADJ;krete?ski
+CRO;Chorwacja
+CRO_ADJ;chorwacki
+CYP;Cypr
+CYP_ADJ;Cypryjczyk
+GRE;Grecja
+GRE_ADJ;grecki
+ION;Wyspy Jo?skie
+ION_ADJ;jo?ski
+MOL;Mo?dawia
+MOL_ADJ;mo?dawski
+MON;Czarnogóra
+MON_ADJ;czarnogórski
+ROM;Rumunia
+ROM_ADJ;rumu?ski
+SER;Serbia
+SER_ADJ;Serb
+SLO;S?owenia
+SLO_ADJ;s?owe?ski
+TUR;Imperium Osma?skie
+TUR_ADJ;Otomana
+WAL;Wo?oszczyzna
+WAL_ADJ;Wo?oski
+YUG;Jugos?awia
+YUG_ADJ;jugos?owia?ski
+ALD;Algieria
+ALD_ADJ;algierski
+CNG;Kongo
+CNG_ADJ;Kongijczyk
+EGY;Egipt
+EGY_ADJ;Egipcjanin
+ETH;Etiopia
+ETH_ADJ;etiopczyk
+MAD;Madagaskar
+MAD_ADJ;Madagaskarski
+LIB;Liberia
+LIB_ADJ;Liberyjski
+MOR;Maroko
+MOR_ADJ;Maroka?ski
+NAL;Natalia
+NAL_ADJ;Nataliana
+ORA;Oranje
+ORA_ADJ;Oranjeana
+SAF;Afryka Po?udniowa
+SAF_ADJ;Po?udniowa Afryka
+SOK;Sokoto
+SOK_ADJ;Sokot
+RHO;Rodezja Po?udniowa
+RHO_ADJ;rodezyjski
+TRI;Trypolis
+TRI_ADJ;Trypolita?ski
+TRN;Transwal
+TRN_ADJ;Transwal
+TUN;Tunis
+TUN_ADJ;tunezyjski
+ZAN;Zanzibar
+ZAN_ADJ;Zanzibari
+ZUL;Zulus
+ZUL_ADJ;Zulus
+ABU;Abu Dabi
+ABU_ADJ;Abu Zabian
+AFG;Afganistan
+AFG_ADJ;afga?ski
+ARM;Armenia
+ARM_ADJ;ormia?ski
+AZB;Azerbejd?an
+AZB_ADJ;azerbejd?a?ski
+BUK;Buchara
+BUK_ADJ;Bukkharan
+GEO;Gruzja
+GEO_ADJ;gruzi?ski
+HDJ;Hedjaz
+HDJ_ADJ;Hed?azi
+IRQ;Irak
+IRQ_ADJ;iracki
+KHI;Chiwa
+KHI_ADJ;Chiwan
+KOK;Kokand
+KOK_ADJ;Kokandi
+MUG;Mogolastan
+MUG_ADJ;Mogo?ów
+NEJ;Nejd
+NEJ_ADJ;Nejdi
+OMA;Oman
+OMA_ADJ;Oman
+PER;Persia
+PER_ADJ;perski
+YEM;Jemen
+YEM_ADJ;Jemen
+HND;Indie
+HND_ADJ;indyjski
+AWA;Awadh
+AWA_ADJ;Awadhi
+BAS;Bastar
+BAS_ADJ;Bastar
+BER;Beroda
+BER_ADJ;Berodana
+BHO;Bhopal
+BHO_ADJ;Bhopali
+BIK;Bikaner
+BIK_ADJ;Bikaneri
+BUN;Bundelkhand
+BUN_ADJ;Bundeli
+GWA;Gwalior
+GWA_ADJ;Gwaliori
+HYD;Hyderabad
+HYD_ADJ;Hyderabadi
+IND;Indore
+IND_ADJ;Indori
+JAI;Jaipur
+JAI_ADJ;Jaipuri
+JAS;Jaisalmer
+JAS_ADJ;Jaisalmeri
+JOD;D?odhpur
+JOD_ADJ;Jodhpuri
+KAL;Kalat
+KAL_ADJ;Kalati
+KAS;Kaszmir
+KAS_ADJ;Kaszmirski
+KUT;Kutch
+KUT_ADJ;Kutchi
+LAD;Ladakh
+LAD_ADJ;Ladakhi
+MAK;Makran
+MAK_ADJ;Makran
+MEW;Mewar
+MEW_ADJ;Mewari
+MYS;Mysore
+MYS_ADJ;Mysori
+NAG;Nagpur
+NAG_ADJ;Nagpuri
+NEP;Nepal
+NEP_ADJ;Nepalski
+ORI;Orisa
+ORI_ADJ;Orissan
+PAN;Pand?ab
+PAN_ADJ;Panjabi
+SHI;Shimla
+SHI_ADJ;Shimlan
+SIK;Sikkim
+SIK_ADJ;Sikkim
+SIN;Sindh
+SIN_ADJ;Sindi
+TRA;Travancore
+TRA_ADJ;Travancorian
+ATJ;Atjeh
+ATJ_ADJ;Atjehnese
+BAL;Bali
+BAL_ADJ;balijski
+BHU;Bhutan
+BHU_ADJ;Bhuta?czyk
+BRU;Brunei
+BRU_ADJ;Brunei
+BUR;Birma
+BUR_ADJ;Birma?czyk
+CAM;Kambod?a
+CAM_ADJ;Kambod?a?ska
+CHI;Chiny
+CHI_ADJ;chi?ski
+DAI;Dai Nam
+DAI_ADJ;wietnamski
+JAV;Jawa
+JAV_ADJ;jawajski
+KOR;Korea
+KOR_ADJ;korea?ski
+LUA;Luang Prabang
+LUA_ADJ;Luang Prabangi
+JOH;Johor
+JOH_ADJ;Johoriana
+SIA;Syjam
+SIA_ADJ;syjamski
+TIB;Tybet
+TIB_ADJ;tybeta?ski
+MGL;Mongolia
+MGL_ADJ;mongolski
+WIA;Wiang Chhana
+WIA_ADJ;Wientian
+PHI;Filipiny
+PHI_ADJ;Filipiny
+MCK;Mand?ukuo
+MCK_ADJ;Mand?urski
+GXI;Klika Guangxi
+GXI_ADJ;Kuangsi
+SXI;Klika Shanxi
+SXI_ADJ;Shanxi
+YNN;Klika Yunnana
+YNN_ADJ;Yunnan
+XBI;Xibei San Ma
+XBI_ADJ;Mama
+XIN;Klika Xinjiangu
+XIN_ADJ;Xinjiang
+CAL;Republika Kalifornijska
+CAL_ADJ;Kalifornijczyk
+CAN;Kanada
+CAN_ADJ;kanadyjski
+CHE;Czirokez
+CHE_ADJ;Czirokez
+COL;Kolumbia
+COL_ADJ;Kolumbijczyk
+COS;Kostaryka
+COS_ADJ;Kostaryka?czyk
+CSA;Ameryka
+CSA_ADJ;Konfederat
+CUB;Kuba
+CUB_ADJ;kuba?ski
+DES;Pustynia
+DES_ADJ;Mormon
+DOM;Republika Dominikany
+DOM_ADJ;dominika?ski
+ELS;Salwador
+ELS_ADJ;Salwadorczyk
+GUA;Gwatemala
+GUA_ADJ;Gwatemalski
+HAI;Haiti
+HAI_ADJ;haita?ski
+HAW;Hawaje
+HAW_ADJ;hawajski
+MAN;Gmina Manhattan
+MAN_ADJ;Manhattanit
+MEX;Meksyk
+MEX_ADJ;Meksyka?ski
+MTC;Konfederacja Metis
+MTC_ADJ;Metys
+HON;Honduras
+HON_ADJ;Honduras
+NEN;Nowa Anglia
+NEN_ADJ;Nowy angielski
+NEW;Nowy
+NEW_ADJ;Nowofundlandczyk
+NIC;Nikaragua
+NIC_ADJ;Nikaragua?czyk
+PNM;Panama
+PNM_ADJ;panamski
+QUE;Quebec
+QUE_ADJ;Quebec
+TEX;Teksas
+TEX_ADJ;Teksa?czyk
+UCA;Stany Zjednoczone Ameryki ?rodkowej
+UCA_ADJ;Ameryka ?rodkowa
+ARG;Argentyna
+ARG_ADJ;Argenty?czyk
+BOL;Boliwia
+BOL_ADJ;boliwijski
+BRZ;Brazylia
+BRZ_ADJ;brazylijski
+CHL;Chile
+CHL_ADJ;chilijski
+CLM;Kolumbia
+CLM_ADJ;Kolumbijczyk
+ECU;Ekwador
+ECU_ADJ;ekwadorski
+PEU;Peru
+PEU_ADJ;peruwia?ski
+PRG;Paragwaj
+PRG_ADJ;Paragwajski
+URU;Urugwaj
+URU_ADJ;urugwajski
+VNZ;Wenezuela
+VNZ_ADJ;wenezuelski
+AST;Australia
+AST_ADJ;australijski
+NZL;Nowa Zelandia
+NZL_ADJ;Nowa Zelandia
+ISR;Izrael
+ISR_ADJ;izraelski
+BYZ;Imperium Bizantyjskie
+BYZ_ADJ;bizantyjski
+ICL;Islandia
+ICL_ADJ;islandzki
+BAB;Babilon
+BAB_ADJ;babilo?ski
+TPG;Królestwo Niebieskie
+TPG_ADJ;Taiping
+ARA;Arabia
+ARA_ADJ;Arab
+UBD;Zjednoczone Prowincje Ba?tyckie
+UBD_ADJ;ba?tycki
+BYE;Bia?oru?
+BYE_ADJ;bia?oruski
+PLC;Polska-Litwa
+PLC_ADJ;polsko-litewski
+GCO;Wielka Kolumbia
+GCO_ADJ;Gran Kolumbijska
+JAN;Jana Mayena
+JAN_ADJ;Jana Mayena
+D01;Królestwo $region$
+D01_ADJ;Królowie
+D02;Konfederacja $region$
+D02_ADJ;Konfederat
+D03;Wspólnota $region$
+D03_ADJ;Wspólnota
+D04;Republika $region$
+D04_ADJ;Republika?ski
+D05;Stan $region$
+D05_ADJ;Pa?stwowa
+D06;Republika Ludowa $region$
+D06_ADJ;Republika?ski
+D07;Wolne Pa?stwo $region$
+D07_ADJ;Freestator
+D08;Wielki stan $region$
+D08_ADJ;Grandstator
+D09;Stan $region$
+D09_ADJ;Pa?stwowa
+D10;Ksi?stwo $region$
+D10_ADJ;Ksi???cy
+D11;Demokratyczna Republika $region$
+D11_ADJ;Republikanin
+D12;Unia $region$
+D12_ADJ;Unionista
+D13;Królestwo $region$
+D13_ADJ;Królowie
+D14;Dominium $region$
+D14_ADJ;Panowanie
+D15;Wielkie Ksi?stwo $region$
+D15_ADJ;Grand
+D16;$region$ Naród
+D16_ADJ;Krajowy
+D17;Federacja $region$
+D17_ADJ;Federacja
+D18;Stany Zjednoczone $region$
+D18_ADJ;Unia
+D19;Unia Demokratyczna $region$
+D19_ADJ;Unia
+D20;Ksi?stwo $region$
+D20_ADJ;Ksi???cy
+D21;Zwi?zek $region$
+D21_ADJ;Unionista
+D22;$region$, Republika Ludowo-Demokratyczna
+D22_ADJ;PDR
+D23;Obszar $region$
+D23_ADJ;Areona
+D24;Chwalebna Unia $region$
+D24_ADJ;Wspania?y
+D25;Pot??ny $region$
+D25_ADJ;Pot??ny
+D26;$region$ Wolne Pa?stwo
+D26_ADJ;Freestator
+D27;$region$ Wspólnota Narodów
+D27_ADJ;Wspólnota
+D28;Konfederacja $region$
+D28_ADJ;Konfederat
+D29;Wolni ludzie $region$
+D29_ADJ;Wolni ludzie
+D30;Republika $region$
+D30_ADJ;Republika?ski
+D31;?wi?ta Unia $region$
+D31_ADJ;Gorliwiec
+D32;Zwi?zek Ludowy $region$
+D32_ADJ;Unionista
+D33;Kraje zwi?zkowe $region$
+D33_ADJ;Federacja
+D34;$region$ Stan federalny
+D34_ADJ;Federacja
+D35;Konfederacja $region$
+D35_ADJ;Konfederat
+D36;Federacja $region$
+D36_ADJ;Federacja
+D37;Pobo?na Unia $region$
+D37_ADJ;Pobo?ny
+D38;? Grunt
+D38_ADJ;L?downik
+D39;Najspokojniejsza republika $region$
+D39_ADJ;Spokojny
+D40;Sekretne królestwo $region$
+D40_ADJ;Sekret
+D41;Gmina $region$
+D41_ADJ;komunistyczny
+D42;Gmina $region$
+D42_ADJ;komunistyczny
+D43;Zwi?zek Robotniczy $region$
+D43_ADJ;Pracownik
+D44;Landgraf $region$
+D44_ADJ;Landgravina
+D45;Naród $region$
+D45_ADJ;Narodowo??
+D46;?wi?ty $region$
+D46_ADJ;Gorliwy
+D47;Dominium $region$
+D47_ADJ;Dominator
+D48;Pa?stwo Ludowe $region$
+D48_ADJ;Popularny
+D49;Wysokie Królestwo $region$
+D49_ADJ;Najwy?szy
+D50;Ma?e Ksi?stwo $region$
+D50_ADJ;Ksi?stwo

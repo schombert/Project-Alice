@@ -30,8 +30,6 @@ struct command_info {
 		money,
 		westernize,
 		unwesternize,
-		elecwin,
-		mainmenu,
 		cb_progress,
 		crisis,
 		end_game,
@@ -40,8 +38,8 @@ struct command_info {
 		dump_out_of_sync,
 		dump_event_graph,
 		dump_tooltip,
+		dump_tags_and_provinces_csv,
 		ai_elligibility,
-		fog_of_war,
 		prestige,
 		force_ally,
 		win_wars,
@@ -61,8 +59,6 @@ struct command_info {
 		change_control_and_owner,
 		toggle_core,
 		province_id_tooltip,
-		wasd,
-		next_song,
 		add_population,
 		instant_army,
 		instant_navy,
@@ -71,7 +67,6 @@ struct command_info {
 		daily_oos_check,
 		dump_map,
 		province_names,
-		color_blind_mode,
 		list_national_variables,
 		list_global_flags,
 		list_national_flags,
@@ -100,7 +95,7 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"abort", command_info::type::abort, "Abnormally terminates execution",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"clr_log", command_info::type::clear_log, "Clears console logs",
+		command_info{"clr", command_info::type::clear_log, "Clears console logs",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"fps", command_info::type::fps, "Toggles FPS counter",
@@ -140,9 +135,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
-				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"colour", command_info::type::colour_guide, "An overview of available colors for complex text",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -169,12 +161,12 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
+		command_info{"dxlsl", command_info::type::dump_tags_and_provinces_csv, "Dump tags and province loc",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
-		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"fa", command_info::type::force_ally, "Force an alliance between you and a country",
 				{command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
@@ -233,12 +225,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "provid", command_info::type::province_id_tooltip, "show province id in mouse tooltip",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "wasd", command_info::type::wasd, "move camera with wasd",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "addpop", command_info::type::add_population, "Add a certain ammount of population to your nation",
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
@@ -258,9 +244,6 @@ inline constexpr command_info possible_commands[] = {
 				{command_info::argument_info{"type", command_info::argument_info::type::text, true}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
-			{command_info::argument_info{}, command_info::argument_info{},
-					command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "lnv", command_info::type::list_national_variables, "List national variables",
@@ -700,15 +683,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	switch(pstate.cmd.mode) {
-	case command_info::type::mainmenu:
-		if(!state.ui_state.main_menu) {
-			show_main_menu(state);
-		} else {
-			state.ui_state.main_menu->is_visible() ? state.ui_state.main_menu->set_visible(state, false)
-				: state.ui_state.main_menu->set_visible(state, true);
-			state.ui_state.main_menu->impl_on_update(state);
-		}
-		break;
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
 		state.map_state.load_map(state);
@@ -1337,6 +1311,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
+	case command_info::type::dump_tags_and_provinces_csv:
+	{
+		std::string out_text = "\n";
+		for(const auto nid : state.world.in_national_identity) {
+			auto tag = nations::int_to_tag(nid.get_identifying_int());
+			out_text += tag + ";" + text::produce_simple_string(state, nid.get_name()) + "\n";
+			out_text += tag + "_ADJ" + ";" + text::produce_simple_string(state, nid.get_adjective()) + "\n";
+		}
+		for(const auto p : state.world.in_province) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == p.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
+	}
+	break;
 	case command_info::type::dump_event_graph:
 	{
 		struct graph_event_option {
@@ -1832,11 +1826,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, "Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
 		window::change_cursor(state, window::cursor_type::normal);
 		break;
-	case command_info::type::fog_of_war:
-		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
-		state.map_state.map_data.update_fog_of_war(state);
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(state.user_settings.fow_enabled));
-		break;
 	case command_info::type::win_wars:
 		break;
 	case command_info::type::toggle_ai:
@@ -1960,18 +1949,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
 		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "✔" : "✘");
-		break;
-	}
-	case command_info::type::wasd:
-	{
-		state.user_settings.wasd_for_map_movement = not state.user_settings.wasd_for_map_movement;
-		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "✔" : "✘");
-		state.save_user_settings();
-		break;
-	}
-	case command_info::type::next_song:
-	{
-		sound::play_new_track(state);
 		break;
 	}
 	case command_info::type::add_population:
@@ -2124,16 +2101,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			state.cheat_data.demand_dump_buffer += "\n";
 			state.cheat_data.supply_dump_buffer += "\n";
 		}
-		log_to_console(state, parent, state.cheat_data.ecodump ? "\x02" : "\x01");
-		break;
-	}
-	case command_info::type::color_blind_mode:
-	{
-		state.user_settings.color_blind_mode = sys::color_blind_mode(uint8_t(state.user_settings.color_blind_mode) + 1);
-		if(uint8_t(state.user_settings.color_blind_mode) > 4) {
-			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
-		}
-		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "✔" : "✘");
+		log_to_console(state, parent, state.cheat_data.ecodump ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::list_national_variables:

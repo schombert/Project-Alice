@@ -332,13 +332,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			nation_name.erase(0, prefix_remove.size());
 		}
 		auto acronym_expand = text::produce_simple_string(state, "map_expand_acronym");
-		if(nation_name.starts_with(acronym_expand)) {
+		if(acronym_expand.size() > 0 && nation_name.starts_with(acronym_expand)) {
 			nation_name.erase(0, acronym_expand.size());
 			auto acronym_expand_to = text::produce_simple_string(state, "map_expand_acronym_to");
 			nation_name.insert(0, acronym_expand_to.data(), acronym_expand_to.size());
 		}
 
-		std::string name = text::produce_simple_string(state, nation_name);
+		std::string name = nation_name;
 		bool connected_to_capital = false;
 		for(auto visited_region : group_of_regions) {
 			if(n.get_capital().get_connected_region_id() == visited_region) {

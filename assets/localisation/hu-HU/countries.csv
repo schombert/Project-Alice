@@ -1,0 +1,542 @@
+REB;Lázadók
+REB_ADJ;Lázadó
+ENG;Az Egyesült Királyság
+ENG_ADJ;angol
+RUS;Oroszország
+RUS_ADJ;orosz
+FRA;Franciaország
+FRA_ADJ;Francia
+PRU;Poroszország
+PRU_ADJ;porosz
+GER;Németország
+GER_ADJ;német
+AUS;Ausztria
+AUS_ADJ;osztrák
+USA;Amerika
+USA_ADJ;Amerikai
+JAP;Japán
+JAP_ADJ;japán
+ITA;Olaszország
+ITA_ADJ;olasz
+KUK;Ausztria-Magyarország
+KUK_ADJ;osztrák-magyar
+DEN;Dánia
+DEN_ADJ;dán
+FIN;Finnország
+FIN_ADJ;finn
+NOR;Norvégia
+NOR_ADJ;norvég
+SCA;Skandinávia
+SCA_ADJ;skandináv
+SWE;Svédország
+SWE_ADJ;svéd
+BEL;Belgium
+BEL_ADJ;belga
+CAT;Katalónia
+CAT_ADJ;katalán
+FLA;Flandria
+FLA_ADJ;flamand
+IRE;Írország
+IRE_ADJ;ír
+NET;Hollandia
+NET_ADJ;holland
+POR;Portugália
+POR_ADJ;portugál
+SCO;Skócia
+SCO_ADJ;skót
+SPA;Spanyolország
+SPA_ADJ;spanyol
+WLL;Vallónia
+WLL_ADJ;vallon
+ANH;Anhalt
+ANH_ADJ;Anhaltian
+BAD;Baden
+BAD_ADJ;Baden
+BAV;Bajorország
+BAV_ADJ;bajor
+BRA;Braunschweig
+BRA_ADJ;braunschweigian
+BRE;Bremen
+BRE_ADJ;Bremian
+COB;Szász-Coburg-Gotha
+COB_ADJ;szász
+DZG;Danzig
+DZG_ADJ;Danziger
+FRM;Frankfurt am Main
+FRM_ADJ;Virsli
+HAM;Hamburg
+HAM_ADJ;hamburgi
+HAN;Hannover
+HAN_ADJ;hannoveri
+HES;Hesse-Darmstadt
+HES_ADJ;Zsákvászon
+HEK;Hesse-Kassel
+HEK_ADJ;Zsákvászon
+HOL;Holstein
+HOL_ADJ;holsteini
+LIP;Lippe-Detmold
+LIP_ADJ;lippis
+LUB;Lübeck
+LUB_ADJ;lubecki
+LUX;Luxemburg
+LUX_ADJ;luxemburgi
+MEC;Mecklenburg
+MEC_ADJ;mecklenburgi
+MEI;Szász-Meiningen
+MEI_ADJ;szász
+NAS;Nassau
+NAS_ADJ;Nassauan
+NGF;Észak-német Szövetség
+NGF_ADJ;északnémet
+OLD;Oldenburg
+OLD_ADJ;oldenburgi
+SAX;Szászország
+SAX_ADJ;szász
+SCH;Schleswig
+SCH_ADJ;Schleswigian
+SGF;Délnémet Szövetség
+SGF_ADJ;német
+WEI;Szász-Weimar
+WEI_ADJ;szász
+WUR;Württemberg
+WUR_ADJ;württembergi
+LOM;Lombardia
+LOM_ADJ;lombardiai
+LUC;Lucca
+LUC_ADJ;Luccan
+MOD;Modena
+MOD_ADJ;modeniai
+PAP;Pápai államok
+PAP_ADJ;Pápai
+PAR;Parma
+PAR_ADJ;parmese
+SAR;Szardínia-Piemont
+SAR_ADJ;piemonti
+SIC;Két Szicília
+SIC_ADJ;szicíliai
+TRE;Trieszt
+TRE_ADJ;trieszti
+TUS;Toszkána
+TUS_ADJ;toszkán
+VEN;Velence
+VEN_ADJ;velencei
+BOH;Cseh-Morvaország
+BOH_ADJ;bohém
+KRA;Krakkó
+KRA_ADJ;krakkói
+CRI;Krím
+CRI_ADJ;krími
+EST;Észtország
+EST_ADJ;észt
+HUN;Magyarország
+HUN_ADJ;Magyar
+LIT;Litvánia
+LIT_ADJ;litván
+LAT;Lettország
+LAT_ADJ;lett
+POL;Lengyelország
+POL_ADJ;fényesít
+SLV;Szlovákia
+SLV_ADJ;szlovák
+SWI;Svájc
+SWI_ADJ;svájci
+RUT;Ruthenia
+RUT_ADJ;rutén
+SIE;Siebenbürgen
+SIE_ADJ;erdélyi
+UKR;Ukrajna
+UKR_ADJ;ukrán
+CZH;Csehszlovákia
+CZH_ADJ;csehszlovák
+ALB;Albánia
+ALB_ADJ;albán
+BOS;Bosznia-Hercegovina
+BOS_ADJ;bosnyák
+BUL;Bulgária
+BUL_ADJ;bolgár
+CRE;Kréta
+CRE_ADJ;krétai
+CRO;Horvátország
+CRO_ADJ;horvát
+CYP;Ciprus
+CYP_ADJ;ciprusi
+GRE;Görögország
+GRE_ADJ;görög
+ION;Jón-szigetek
+ION_ADJ;Jón
+MOL;Moldva
+MOL_ADJ;moldvai
+MON;Montenegró
+MON_ADJ;montenegrói
+ROM;Románia
+ROM_ADJ;román
+SER;Szerbia
+SER_ADJ;szerb
+SLO;Szlovénia
+SLO_ADJ;szlovén
+TUR;Az Oszmán Birodalom
+TUR_ADJ;török
+WAL;Wallachia
+WAL_ADJ;oláh
+YUG;Jugoszlávia
+YUG_ADJ;jugoszláv
+ALD;Algéria
+ALD_ADJ;algériai
+CNG;Kongó
+CNG_ADJ;kongói
+EGY;Egyiptom
+EGY_ADJ;egyiptomi
+ETH;Etiópia
+ETH_ADJ;etióp
+MAD;Madagaszkár
+MAD_ADJ;madagaszkári
+LIB;Libéria
+LIB_ADJ;libériai
+MOR;Marokkó
+MOR_ADJ;marokkói
+NAL;Natalia
+NAL_ADJ;Natalian
+ORA;Oranje
+ORA_ADJ;Oranjean
+SAF;Dél-Afrika
+SAF_ADJ;Dél-afrikai
+SOK;Sokoto
+SOK_ADJ;Sokot
+RHO;Dél-Rhodesia
+RHO_ADJ;rhodesiai
+TRI;Tripoli
+TRI_ADJ;tripolitán
+TRN;Transvaal
+TRN_ADJ;Transvaali
+TUN;Tunisz
+TUN_ADJ;tunéziai
+ZAN;Zanzibár
+ZAN_ADJ;Zanzibari
+ZUL;zulu
+ZUL_ADJ;zulu
+ABU;Abu Dhabi
+ABU_ADJ;Abu-Dzabi
+AFG;Afganisztán
+AFG_ADJ;afgán
+ARM;Örményország
+ARM_ADJ;örmény
+AZB;Azerbajdzsán
+AZB_ADJ;azerbajdzsáni
+BUK;Bukkhara
+BUK_ADJ;Bukkharan
+GEO;Grúzia
+GEO_ADJ;grúz
+HDJ;Hedjaz
+HDJ_ADJ;Hedjazi
+IRQ;Irak
+IRQ_ADJ;iraki
+KHI;Khiva
+KHI_ADJ;Khivan
+KOK;Kokand
+KOK_ADJ;Kokandi
+MUG;Mogulisztán
+MUG_ADJ;Mogul
+NEJ;Nejd
+NEJ_ADJ;Nejdi
+OMA;Omán
+OMA_ADJ;ománi
+PER;Perzsia
+PER_ADJ;perzsa
+YEM;Jemen
+YEM_ADJ;jemeni
+HND;India
+HND_ADJ;indián
+AWA;Awadh
+AWA_ADJ;Awadhi
+BAS;Bastar
+BAS_ADJ;Bastar
+BER;Beroda
+BER_ADJ;Berodan
+BHO;Bhopal
+BHO_ADJ;Bhopali
+BIK;Bikaner
+BIK_ADJ;Bikaneri
+BUN;Bundelkhand
+BUN_ADJ;Bundeli
+GWA;Gwalior
+GWA_ADJ;Gwaliori
+HYD;Hyderabad
+HYD_ADJ;Hyderabadi
+IND;Indore
+IND_ADJ;Indiori
+JAI;Jaipur
+JAI_ADJ;Jaipuri
+JAS;Jaisalmer
+JAS_ADJ;Jaisalmeri
+JOD;Jodhpur
+JOD_ADJ;Jodhpuri
+KAL;Kalat
+KAL_ADJ;Kalati
+KAS;Kasmír
+KAS_ADJ;kasmíri
+KUT;Kutch
+KUT_ADJ;Kutchi
+LAD;Ladakh
+LAD_ADJ;Ladakhi
+MAK;Makran
+MAK_ADJ;Makran
+MEW;Mewar
+MEW_ADJ;Mewari
+MYS;Mysore
+MYS_ADJ;Mysori
+NAG;Nagpur
+NAG_ADJ;Nagpuri
+NEP;Nepál
+NEP_ADJ;nepáli
+ORI;Orissa
+ORI_ADJ;Orissan
+PAN;Panjab
+PAN_ADJ;pandzsábi
+SHI;Shimla
+SHI_ADJ;Shimlan
+SIK;Sikkim
+SIK_ADJ;Sikkim
+SIN;Szindh
+SIN_ADJ;Sindi
+TRA;Travancore
+TRA_ADJ;Travancorian
+ATJ;Atjeh
+ATJ_ADJ;Atjehnese
+BAL;Bali
+BAL_ADJ;balinéz
+BHU;Bhután
+BHU_ADJ;bhutáni
+BRU;Brunei
+BRU_ADJ;Brunei
+BUR;Burma
+BUR_ADJ;burmai
+CAM;Kambodzsa
+CAM_ADJ;kambodzsai
+CHI;Kína
+CHI_ADJ;kínai
+DAI;Dai Nam
+DAI_ADJ;vietnami
+JAV;Jáva
+JAV_ADJ;jávai
+KOR;Korea
+KOR_ADJ;koreai
+LUA;Luang Prabang
+LUA_ADJ;Luang Prabangi
+JOH;Johore
+JOH_ADJ;Johorian
+SIA;Sziám
+SIA_ADJ;sziámi
+TIB;Tibet
+TIB_ADJ;tibeti
+MGL;Mongólia
+MGL_ADJ;mongol
+WIA;Wiang Chhan
+WIA_ADJ;Vientiane
+PHI;Fülöp-szigetek
+PHI_ADJ;Fülöp
+MCK;Mandzsukuo
+MCK_ADJ;mandzsu
+GXI;Guangxi klikk
+GXI_ADJ;Guangxi
+SXI;Shanxi klikk
+SXI_ADJ;Shanxi
+YNN;Yunnan-klikk
+YNN_ADJ;Yunnan
+XBI;Xibei San Ma
+XBI_ADJ;Ma
+XIN;Xinjiang-klikk
+XIN_ADJ;Xinjiang
+CAL;Kaliforniai Köztársaság
+CAL_ADJ;kaliforniai
+CAN;Kanada
+CAN_ADJ;kanadai
+CHE;Cherokee
+CHE_ADJ;Cherokee
+COL;Kolumbia
+COL_ADJ;kolumbiai
+COS;Costa Rica
+COS_ADJ;Costa Rica-i
+CSA;Amerika
+CSA_ADJ;Szövetséges
+CUB;Kuba
+CUB_ADJ;kubai
+DES;Deseret
+DES_ADJ;mormon
+DOM;Dominikai Köztársaság
+DOM_ADJ;dominikánus
+ELS;El Salvador
+ELS_ADJ;El salvadori
+GUA;Guatemala
+GUA_ADJ;guatemalai
+HAI;Haiti
+HAI_ADJ;haiti
+HAW;Hawaii
+HAW_ADJ;hawaii
+MAN;Manhattan Commune
+MAN_ADJ;Manhattani
+MEX;Mexikó
+MEX_ADJ;mexikói
+MTC;Metis Konföderáció
+MTC_ADJ;Nyolcad vér
+HON;Honduras
+HON_ADJ;Hondurasi
+NEN;Új Anglia
+NEN_ADJ;Új angol
+NEW;?????
+NEW_ADJ;újfundlandi
+NIC;Nicaragua
+NIC_ADJ;nicaraguai
+PNM;Panama
+PNM_ADJ;panamai
+QUE;Quebec
+QUE_ADJ;Quebec
+TEX;Texas
+TEX_ADJ;texasi
+UCA;Közép-Amerika Egyesült Államok
+UCA_ADJ;közép-amerikai
+ARG;Argentína
+ARG_ADJ;argentin
+BOL;Bolívia
+BOL_ADJ;bolíviai
+BRZ;Brazília
+BRZ_ADJ;brazil
+CHL;Chile
+CHL_ADJ;chilei
+CLM;Colombia
+CLM_ADJ;kolumbiai
+ECU;Ecuador
+ECU_ADJ;ecuadori
+PEU;Peru
+PEU_ADJ;perui
+PRG;Paraguay
+PRG_ADJ;paraguayi
+URU;Uruguay
+URU_ADJ;uruguayi
+VNZ;Venezuela
+VNZ_ADJ;venezuelai
+AST;Ausztrália
+AST_ADJ;ausztrál
+NZL;Új Zéland
+NZL_ADJ;Új Zéland
+ISR;Izrael
+ISR_ADJ;izraeli
+BYZ;Bizánci Birodalom
+BYZ_ADJ;bizánci
+ICL;Izland
+ICL_ADJ;izlandi
+BAB;Babilon
+BAB_ADJ;babilóniai
+TPG;Mennyei Királyság
+TPG_ADJ;Taiping
+ARA;Arábia
+ARA_ADJ;arab
+UBD;Egyesült balti tartományok
+UBD_ADJ;balti
+BYE;Fehéroroszország
+BYE_ADJ;belorusz
+PLC;Lengyelország-Litvánia
+PLC_ADJ;lengyel-litván
+GCO;Gran Kolumbia
+GCO_ADJ;Gran kolumbiai
+JAN;Jan Mayen
+JAN_ADJ;Jan Mayen
+D01;$region$ királysága
+D01_ADJ;Kingsmen
+D02;$region$ konföderációja
+D02_ADJ;Szövetséges
+D03;$region$ nemzetközössége
+D03_ADJ;Nemzetközösség
+D04;$region$ Köztársaság
+D04_ADJ;Köztársasági
+D05;A $region$ állam
+D05_ADJ;Állami
+D06;$region$ Népköztársaság
+D06_ADJ;Köztársasági
+D07;$region$ szabad állama
+D07_ADJ;Freestator
+D08;$region$ nagy állama
+D08_ADJ;Grandstator
+D09;$region$ állam
+D09_ADJ;Állami
+D10;$region$ hercegsége
+D10_ADJ;Fejedelmi
+D11;$region$ Demokratikus Köztársaság
+D11_ADJ;Depublikánus
+D12;A $region$ Unió
+D12_ADJ;szakszervezeti
+D13;A $region$ Királyság
+D13_ADJ;Kingsmen
+D14;$region$ uralma
+D14_ADJ;Uralom
+D15;$region$ nagyhercegsége
+D15_ADJ;Mágnás
+D16;A $region$ nemzet
+D16_ADJ;Nemzeti
+D17;A $region$ Szövetség
+D17_ADJ;Föderáció
+D18;$region$ Egyesült Államok
+D18_ADJ;Unió
+D19;$region$ Demokratikus Uniója
+D19_ADJ;Unió
+D20;$region$ hercegsége
+D20_ADJ;Fejedelmi
+D21;A $region$ Uniója
+D21_ADJ;szakszervezeti
+D22;$region$ Népi Demokratikus Köztársaság
+D22_ADJ;PDR
+D23;A $region$ terület
+D23_ADJ;Areon
+D24;$region$ dics?séges uniója
+D24_ADJ;Dics?
+D25;Hatalmas $region$
+D25_ADJ;Hatalmas
+D26;A $region$ szabad állam
+D26_ADJ;Freestator
+D27;A $region$ Nemzetközösség
+D27_ADJ;Nemzetközösség
+D28;A $region$ Konföderáció
+D28_ADJ;Szövetséges
+D29;$region$ szabad népe
+D29_ADJ;Szabad emberek
+D30;A $region$ Köztársaság
+D30_ADJ;Köztársasági
+D31;$region$ Szent Uniója
+D31_ADJ;Fanatikus
+D32;$region$ Népszövetsége
+D32_ADJ;szakszervezeti
+D33;$region$ szövetségi államai
+D33_ADJ;Föderáció
+D34;A $region$ szövetségi állam
+D34_ADJ;Föderáció
+D35;A $region$ Konföderáció
+D35_ADJ;Szövetséges
+D36;A $region$ Szövetség
+D36_ADJ;Föderáció
+D37;$region$ jámbor uniója
+D37_ADJ;Jámbor
+D38;? Föld
+D38_ADJ;Lander
+D39;$region$ legnyugodtabb köztársasága
+D39_ADJ;Der?s
+D40;$region$ titkos királysága
+D40_ADJ;Titok
+D41;$region$ közössége
+D41_ADJ;kommunista
+D42;A $region$ kommuna
+D42_ADJ;kommunista
+D43;$region$ Munkásszövetsége
+D43_ADJ;Munkás
+D44;$region$ földsírja
+D44_ADJ;Landgravine
+D45;$region$ nemzete
+D45_ADJ;nemzetiségi
+D46;Szent $régió$
+D46_ADJ;Buzgó
+D47;A $region$ Dominion
+D47_ADJ;Dominator
+D48;$region$ népállam
+D48_ADJ;Népszer?
+D49;$region$ magas királysága
+D49_ADJ;Legmagasabb
+D50;$region$ Kishercegség
+D50_ADJ;Hercegség
