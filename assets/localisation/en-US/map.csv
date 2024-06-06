@@ -1,0 +1,13 @@
+compose_dynamic_adj_state;$adj$ $state$
+map_remove_prefix;The ;
+map_expand_acronym;USA
+map_expand_acronym_to;United States
+map_label_country;$country$
+map_label_adj_continent;$adj$ $continentname$
+map_label_adj_state;$adj$ $state$
+map_label_adj_province;$adj$ $province$
+map_label_west_country;West $country$
+map_label_east_country;East $country$
+map_label_north_country;North $country$
+map_label_south_country;South $country$
+map_label_adj_tag;$adj$ $tag$

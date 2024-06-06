@@ -582,9 +582,9 @@ public:
 		if(com != economy::money) {
 			auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
 			if(sat < 0.5f) {
-				text::add_line(state, contents, "alice_commodity_shortage");
+				text::add_line(state, contents, "commodity_shortage");
 			} else if(sat >= 1.f) {
-				text::add_line(state, contents, "alice_commodity_surplus");
+				text::add_line(state, contents, "commodity_surplus");
 			}
 			text::add_line(state, contents, "alice_commodity_cprice", text::variable_type::x, text::format_money(state.world.commodity_get_current_price(com)));
 			text::add_line(state, contents, "alice_commodity_cost", text::variable_type::x, text::format_money(state.world.commodity_get_cost(com)));

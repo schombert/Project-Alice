@@ -301,7 +301,14 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
 	ptr_in = deserialize(ptr_in, state.text_data);
 	ptr_in = deserialize(ptr_in, state.text_components);
-	ptr_in = deserialize(ptr_in, state.text_sequences);
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		ptr_in = deserialize(ptr_in, state.languages[i].iso_code);
+		ptr_in = deserialize(ptr_in, state.languages[i].text_sequences);
+		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].encoding);
+		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].rtl);
+		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].no_spacing);
+		ptr_in = memcpy_deserialize(ptr_in, state.languages[i].script);
+	}
 	ptr_in = deserialize(ptr_in, state.key_to_text_sequence);
 	{ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
@@ -485,7 +492,14 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.value_modifiers);
 	ptr_in = serialize(ptr_in, state.text_data);
 	ptr_in = serialize(ptr_in, state.text_components);
-	ptr_in = serialize(ptr_in, state.text_sequences);
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		ptr_in = serialize(ptr_in, state.languages[i].iso_code);
+		ptr_in = serialize(ptr_in, state.languages[i].text_sequences);
+		ptr_in = memcpy_serialize(ptr_in, state.languages[i].encoding);
+		ptr_in = memcpy_serialize(ptr_in, state.languages[i].rtl);
+		ptr_in = memcpy_serialize(ptr_in, state.languages[i].no_spacing);
+		ptr_in = memcpy_serialize(ptr_in, state.languages[i].script);
+	}
 	ptr_in = serialize(ptr_in, state.key_to_text_sequence);
 	{ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
@@ -663,7 +677,14 @@ size_t sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.value_modifiers);
 	sz += serialize_size(state.text_data);
 	sz += serialize_size(state.text_components);
-	sz += serialize_size(state.text_sequences);
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		sz += serialize_size(state.languages[i].iso_code);
+		sz += serialize_size(state.languages[i].text_sequences);
+		sz += sizeof(state.languages[i].encoding);
+		sz += sizeof(state.languages[i].rtl);
+		sz += sizeof(state.languages[i].no_spacing);
+		sz += sizeof(state.languages[i].script);
+	}
 	sz += serialize_size(state.key_to_text_sequence);
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);

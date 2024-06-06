@@ -23,9 +23,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.world.nation_get_is_mobilized(n)) {
-			set_button_text(state, text::produce_simple_string(state, "alice_demobilize"));
+			set_button_text(state, text::produce_simple_string(state, "demobilize"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_mobilize"));
+			set_button_text(state, text::produce_simple_string(state, "mobilize"));
 		}
 	}
 

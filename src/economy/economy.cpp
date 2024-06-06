@@ -1857,9 +1857,6 @@ void update_province_rgo_consumption(
 	auto rgo_pops = rgo_relevant_population(state, p, n);
 	float desired_profit = rgo_desired_worker_norm_profit(state, p, n, expected_min_wage, rgo_pops.total);
 
-	if(state.map_state.get_selected_province() == p) {
-		bool breakpoint = true;
-	}
 
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto max_production = rgo_full_production_quantity(state, n, p, c);
@@ -1876,9 +1873,6 @@ void update_province_rgo_consumption(
 
 		float market_size = state.world.commodity_get_total_production(c)
 			+ state.world.commodity_get_total_real_demand(c);
-
-		//float relative_production_amount = max_production / (market_size + 5.f);
-		//float relative_modifier = (1.f / (relative_production_amount + 0.01f)) * 1000.f;
 
 		float positive_speed = (expected_profit + 0.00000001f) / (desired_profit + 0.00000001f) - 1.f;
 		float negative_speed = (desired_profit + 0.00000001f) / (expected_profit + 0.00000001f) - 1.f;

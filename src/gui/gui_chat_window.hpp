@@ -271,13 +271,13 @@ class chat_close_button : public generic_close_button {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_lobby_close"));
+		set_button_text(state, text::produce_simple_string(state, "close"));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		text::add_line(state, contents, "alice_lobby_close_tt");
+		text::add_line(state, contents, "reopen_with_tab");
 	}
 };
 

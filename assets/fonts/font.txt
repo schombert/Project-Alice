@@ -1,3 +1,4 @@
+##LATIN
 font = { #Font used for normal, regular text
 	id = 1
 	path = "assets/fonts/LibreCaslonText-Regular.ttf"
@@ -16,4 +17,58 @@ font = { #Font used for the map labels
 	fallback = "assets/fonts/LibreCaslonText-Regular.ttf"
 	smallCaps = yes
 }
-blackMapFont = no #Whetever or not the map font is black (inner) and white (outer)
+
+##CHINESE
+font = { #Font used for normal, regular text
+	id = 4
+	path = "assets/fonts/NotoSerifSC-Regular.ttf"
+	smallCaps = no
+}
+font = { #Font used for headers and "bold" text
+	id = 5
+	path = "assets/fonts/NotoSerifSC-Bold.ttf"
+	smallCaps = yes
+}
+font = { #Font used for the map labels
+	id = 6
+	path = "assets/fonts/NotoSerifSC-Regular.ttf"
+	smallCaps = yes
+}
+
+##ARABIC
+font = { #Font used for normal, regular text
+	id = 7
+	path = "assets/fonts/NotoNaskhArabic-Regular.ttf"
+	smallCaps = no
+}
+font = { #Font used for headers and "bold" text
+	id = 8
+	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
+	smallCaps = yes
+}
+font = { #Font used for the map labels
+	id = 9
+	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
+	smallCaps = yes
+}
+
+##CYRILLIC
+font = { #Font used for normal, regular text
+	id = 10
+	path = "assets/fonts/NotoSerif-Regular.ttf"
+	smallCaps = no
+}
+font = { #Font used for headers and "bold" text
+	id = 11
+	path = "assets/fonts/NotoSerif-Bold.ttf"
+	smallCaps = yes
+}
+font = { #Font used for the map labels
+	id = 12
+	path = "assets/fonts/NotoSerif-Bold.ttf"
+	smallCaps = yes
+}
+
+
+
+

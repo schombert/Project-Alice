@@ -58,7 +58,7 @@ class event_name_text : public multiline_text_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		auto fh = base_data.data.text.font_handle;
-		auto font_index = text::font_index_from_font_id(fh);
+		auto font_index = text::font_index_from_font_id(state, fh);
 		auto font_size = text::size_from_font_id(fh);
 		auto& font = state.font_collection.fonts[font_index - 1];
 		auto text_height = int32_t(std::ceil(font.line_height(font_size)));

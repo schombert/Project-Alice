@@ -306,12 +306,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line(state, contents, "alice_expand_factory_controls_1");
-		text::add_line(state, contents, "alice_expand_factory_controls_2");
-		text::add_line(state, contents, "alice_expand_factory_controls_3");
-		text::add_line(state, contents, "alice_expand_factory_controls_4");
-		text::add_line(state, contents, "alice_expand_factory_controls_5");
-		text::add_line(state, contents, "alice_expand_factory_controls_6");
+		text::add_line(state, contents, "factory_upgrade_shortcuts");
 	}
 };
 
@@ -1289,14 +1284,15 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1358,14 +1354,15 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
