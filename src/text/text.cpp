@@ -210,8 +210,8 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	state.languages[11].script = text::language_script::cyrillic;
 	//Always parsed as windows-1252
 	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
-	if(auto file = simple_fs::peek_file(assets_dir, NATIVE("languages.txt")); file) {
-		if(auto ofile = open_file(*file); ofile) {
+	for(auto& file : list_files(assets_dir, NATIVE(".txt"))) {
+		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(*file));
 			auto cpos = content.data;
