@@ -805,9 +805,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -885,9 +885,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {

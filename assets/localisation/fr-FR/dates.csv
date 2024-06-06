@@ -1,1 +1,9 @@
-date_string_ymd;$day$ et $month$ et $year$
+date_string_ymd;$day$ $month$, $year$
+date_is_leap;On a ?Yleap?! year
+date_is_not_leap;On a ?Ynormal?! year
+topbar_date_season_nh;Northern hemisphere season: ?Y$x$?!
+topbar_date_season_sh;Southern hemisphere season: ?Y$x$?!
+spring;Spring
+summer;Summer
+autumn;Autumn
+winter;Winter

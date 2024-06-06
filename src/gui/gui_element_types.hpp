@@ -471,6 +471,10 @@ public:
 		return false;
 	}
 
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_checkbox_sound(state);
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		frame = int32_t(is_active(state));
 		button_element_base::render(state, x, y);
@@ -636,6 +640,10 @@ public:
 template<class TabT>
 class generic_tab_button : public checkbox_button {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_subtab_sound(state);
+	}
+
 	bool is_active(sys::state& state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
 	}

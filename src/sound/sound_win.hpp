@@ -65,6 +65,12 @@ public:
 	audio_instance click_left_sound;
 	audio_instance click_right_sound;
 	audio_instance tab_budget_sound;
+	audio_instance hover_sound;
+	audio_instance checkbox_sound;
+	audio_instance enact_sound;
+	audio_instance subtab_sound;
+	audio_instance delete_sound;
+	audio_instance autochoose_sound;
 	audio_instance tab_politics_sound;
 	audio_instance tab_diplomacy_sound;
 	audio_instance tab_military_sound;

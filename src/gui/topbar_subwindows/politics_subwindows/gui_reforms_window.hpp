@@ -161,6 +161,10 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 
 class reforms_reform_button : public button_element_base {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_enact_sound(state);
+	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::issue_option_id>(state, parent);
 		command::enact_issue(state, state.local_player_nation, content);

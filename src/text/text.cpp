@@ -317,12 +317,19 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			}
 		}
 	}
+}
+
+void finish_text_data(sys::state& state) {
 	//normalize language keys
 	uint32_t max_seq_size = 0;
-	for(uint32_t i = 0; i < last_language; i++) {
-		max_seq_size = std::max(max_seq_size, uint32_t(state.languages[i].text_sequences.size()));
+	for(const auto& l : state.languages) {
+		if(l.encoding == language_encoding::none)
+			break;
+		max_seq_size = std::max(max_seq_size, uint32_t(l.text_sequences.size()));
 	}
-	for(uint32_t i = 0; i < last_language; i++) {
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		if(state.languages[i].encoding == language_encoding::none)
+			break;
 		state.languages[i].text_sequences.resize(size_t(max_seq_size));
 		// fill out missing text sequences
 		if(i != 0) { //english shall not fill itself with english!
@@ -1867,14 +1874,14 @@ std::string resolve_string_substitution(sys::state& state, std::string_view key,
 }
 
 dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_view k, dcon::text_sequence_id v) {
-	if(auto it = state.key_to_text_sequence.find(k); it != state.key_to_text_sequence.end()) {
+	auto str = text::lowercase_str(k);
+	if(auto it = state.key_to_text_sequence.find(str); it != state.key_to_text_sequence.end()) {
 		// if some language does not posses the key, naturally assign it a default one
-		for(uint32_t i = 0; i < sys::max_languages; i++) {
-			if(state.languages[i].encoding == text::language_encoding::none)
+		for(auto& l : state.languages) {
+			if(l.encoding == text::language_encoding::none)
 				break;
-			if(!state.languages[i].text_sequences[it->second].starting_component
-			&& !state.languages[i].text_sequences[it->second].component_count) {
-				state.languages[i].text_sequences[it->second] = state.languages[i].text_sequences[v];
+			if(!l.text_sequences[it->second].starting_component && !l.text_sequences[it->second].component_count) {
+				l.text_sequences[it->second] = l.text_sequences[v];
 			}
 		}
 		return it->second;
