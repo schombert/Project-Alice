@@ -317,12 +317,19 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			}
 		}
 	}
+}
+
+void finish_text_data(sys::state& state) {
 	//normalize language keys
 	uint32_t max_seq_size = 0;
-	for(uint32_t i = 0; i < last_language; i++) {
-		max_seq_size = std::max(max_seq_size, uint32_t(state.languages[i].text_sequences.size()));
+	for(const auto& l : state.languages) {
+		if(l.encoding == language_encoding::none)
+			break;
+		max_seq_size = std::max(max_seq_size, uint32_t(l.text_sequences.size()));
 	}
-	for(uint32_t i = 0; i < last_language; i++) {
+	for(uint32_t i = 0; i < sys::max_languages; i++) {
+		if(state.languages[i].encoding == language_encoding::none)
+			break;
 		state.languages[i].text_sequences.resize(size_t(max_seq_size));
 		// fill out missing text sequences
 		if(i != 0) { //english shall not fill itself with english!

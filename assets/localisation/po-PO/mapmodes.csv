@@ -1,0 +1,162 @@
+
+mapmode_1;Terrain
+mapmode_2;Political
+mapmode_3;Revoltrisk
+mapmode_4;Diplomatic
+mapmode_5;Region
+mapmode_6;Infrastructure
+mapmode_7;Colonial
+mapmode_8;Administration
+mapmode_9;Recruitment
+mapmode_10;National focus
+mapmode_11;RGO
+mapmode_12;Population
+mapmode_13;Cultures
+mapmode_14;Sphere of influence
+mapmode_15;Supply
+mapmode_16;Loyalty
+mapmode_17;Ranking
+mapmode_18;Migration
+mapmode_19;Civilization level
+mapmode_20;Relations
+mapmode_21;Crisis
+mapmode_22;Naval
+mapmode_23;Religion
+mapmode_24;Forts
+mapmode_25;Ideology
+mapmode_26;Income
+mapmode_27;Conciousness
+mapmode_28;Militancy
+mapmode_29;Literacy
+mapmode_30;Employment
+mapmode_31;Factories
+mapmode_32;Issues
+mapmode_33;Growth
+mapmode_34;Players
+mapmode_35;Life Needs
+mapmode_36;Everyday Needs
+mapmode_37;Luxury Needs
+mapmode_38;Officers
+mapmode_39;Clerk-to-Craftsmen Ratio
+mapmode_40;Life Rating
+mapmode_41;Crime
+mapmode_42;Rally
+mapmode_43;Workforce
+mapmode_44;Mobilization
+legend_min_mapmode_8;Low admin
+legend_min_mapmode_19;Uncivilized
+legend_min_mapmode_7;Uncolonized
+legend_min_mapmode_21;Low tension
+legend_min_mapmode_18;Emigration
+legend_min_mapmode_12;Low density
+legend_min_mapmode_17;Low rank
+legend_min_mapmode_20;Low relations
+legend_min_mapmode_3;Low revolt risk
+legend_min_mapmode_11;Low RGO output
+legend_min_mapmode_15;Low supply
+legend_min_mapmode_26;Low income
+legend_min_mapmode_27;Low conciousness
+legend_min_mapmode_28;Low militancy
+legend_min_mapmode_29;Low literacy
+legend_min_mapmode_30;Low employment
+legend_min_mapmode_33;Low growth
+legend_min_mapmode_35;Low satisfaction
+legend_min_mapmode_36;Low satisfaction
+legend_min_mapmode_37;Low satisfaction
+legend_min_mapmode_38;Low amount
+legend_min_mapmode_39;Poor CTC ratio
+legend_min_mapmode_40;Low life rating
+legend_min_mapmode_44;Low regiment count
+legend_max_mapmode_8;High admin
+legend_max_mapmode_19;Civilized
+legend_max_mapmode_7;Colonizable
+legend_max_mapmode_21;High tension
+legend_max_mapmode_18;Immigration
+legend_max_mapmode_12;High density
+legend_max_mapmode_17;High rank
+legend_max_mapmode_20;High relations
+legend_max_mapmode_3;High revolt risk
+legend_max_mapmode_11;High RGO output
+legend_max_mapmode_15;High supply
+legend_max_mapmode_26;High income
+legend_max_mapmode_27;High conciousness
+legend_max_mapmode_28;High militancy
+legend_max_mapmode_29;High literacy
+legend_max_mapmode_30;High employment
+legend_max_mapmode_33;High growth
+legend_max_mapmode_35;High satisfaction
+legend_max_mapmode_36;High satisfaction
+legend_max_mapmode_37;High satisfaction
+legend_max_mapmode_38;High amount
+legend_max_mapmode_39;Rich CTC ratio
+legend_max_mapmode_40;High life rating
+legend_max_mapmode_44;High regiment count
+mapmode_tooltip_34;Player: $x$ 
+mapmode_tooltip_34_you_sp;This is you! 
+mapmode_tooltip_34_you;Player: $x$ (This is you!) 
+mapmode_tooltip_34_ai;AI controlled
+mapmode_tooltip_35;Life needs satisfied: $x$
+mapmode_tooltip_36;Everyday needs satisfied: $x$
+mapmode_tooltip_37;Luxury needs satisfied: $x$
+mapmode_tooltip_38;Total officers: $x$ ($y$ of population, $value$ is optimal)
+mapmode_tooltip_39;Clerks-to-craftsmen-ratio: $fraction$ ($x$/$y$), $value$ is optimal
+mapmode_tooltip_40;Life rating: $x$
+mapmode_tooltip_41;Crime: $x$
+mapmode_tooltip_42_1;Land rally point
+mapmode_tooltip_42_2;Naval rally point
+mapmode_tooltip_43;Workforce distrobution:
+mapmode_tooltip_44;Mobilized regiments from this province: $x$ (out of $y$ possible)
+mapmode_tooltip_44_2;No possible regiments
+mapmode_tooltip_name;$state$ ($name$ - )
+mapmode_tooltip_core_entry;$$faction$ - $name$
+mapmode_tooltip_state_entry; - $state$ \n $continentname$
+mapmode_tooltip_culture_majorities;The cultures in ?Y$PROV$?W are:
+mapmode_tooltip_religion_majorities;The religions in ?Y$PROV$?W are:
+mapmode_tooltip_dominant_issues;The issues in ?Y$PROV$?W are:
+mapmode_tooltip_total_income;Total daily income: 
+mapmode_tooltip_dominant_ideology;The ideologies in ?Y$PROV$?W are:
+mapmode_tooltip_con_average;Average consciousness: ?Y$val$?W
+mapmode_tooltip_total_employment;Employment: 
+mapmode_tooltip_literacy_rate;Literacy: 
+mapmode_tooltip_factory_count;Factories in ?Y$state$?W: 
+mapmode_tooltip_fort_level;Fort level 
+mapmode_tooltip_fort_being_built;A fort level is under construction here.
+mapmode_tooltip_can_build_fort;A new fort level can be built here.
+mapmode_tooltip_population_change;Monthly population change: 
+mapmode_tooltip_rebels_amount;Rebels active in province: 
+mapmode_tooltip_rebels_none;There are no rebels in this province.
+aml_civ_s1;Civilized
+aml_civ_s2;Uncolonized
+aml_civ_s3;100% Westernized
+aml_civ_s4;0% Westernized
+aml_civ_s5;Colony
+aml_col_s1;Potential
+aml_col_s2;NA
+aml_col_s3;Can Invest
+aml_col_s4;Colonizing
+aml_dip_s1;Viewpoint
+aml_dip_s2;Ally
+aml_dip_s3;Enemy
+aml_dip_s4;Puppet
+aml_dip_s5;Sphere
+aml_dip_s6;Other
+aml_dip_s7;Core
+aml_dip_s8;Non Core
+aml_dip_s9;Union Core
+aml_rr_s1;Level 0
+aml_rr_s2;Level 6
+aml_rr_s3;Upgrading
+aml_rr_s4;Max level
+aml_rr_s5;Blocked
+aml_nav_s1;No base
+aml_nav_s2;Max level
+aml_nav_s3;Upgrading
+aml_nav_s4;Upgradeable
+aml_nav_s5;Constructible
+aml_rank_s1;Great
+aml_rank_s2;Secondary
+aml_rank_s3;Civ
+aml_rank_s4;Unciv
+aml_rec_s1;Available
+aml_rec_s2;All used
+aml_rec_s3;None

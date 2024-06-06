@@ -3326,6 +3326,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+
+	text::finish_text_data(*this);
 }
 
 void state::preload() {

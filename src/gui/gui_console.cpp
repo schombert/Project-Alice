@@ -38,6 +38,7 @@ struct command_info {
 		dump_out_of_sync,
 		dump_event_graph,
 		dump_tooltip,
+		dump_tags_and_provinces_csv,
 		ai_elligibility,
 		prestige,
 		force_ally,
@@ -158,6 +159,9 @@ inline constexpr command_info possible_commands[] = {
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
 		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
+		command_info{"dxlsl", command_info::type::dump_tags_and_provinces_csv, "Dump tags and province loc",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
@@ -1305,6 +1309,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
+	}
+	break;
+	case command_info::type::dump_tags_and_provinces_csv:
+	{
+		std::string out_text = "\n";
+		for(const auto nid : state.world.in_national_identity) {
+			auto tag = nations::int_to_tag(nid.get_identifying_int());
+			out_text += tag + ";" + text::produce_simple_string(state, nid.get_name()) + "\n";
+			out_text += tag + "_ADJ" + ";" + text::produce_simple_string(state, nid.get_adjective()) + "\n";
+		}
+		for(const auto p : state.world.in_province) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == p.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
 	case command_info::type::dump_event_graph:
