@@ -1019,7 +1019,7 @@ std::string get_short_state_name(sys::state const& state, dcon::state_instance_i
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
-std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance_id state_id) {
+std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id) {
 	auto fat_id = dcon::fatten(state.world, state_id);
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
@@ -1029,11 +1029,17 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 				if(!adj_id) {
 					return get_name_as_string(state, fat_id.get_capital());
 				}
-				return adj + " " + get_name_as_string(state, fat_id.get_capital());
+				substitution_map sub{};
+				add_to_substitution_map(sub, text::variable_type::state, fat_id.get_capital());
+				add_to_substitution_map(sub, text::variable_type::adj, adj_id);
+				return resolve_string_substitution(state, "compose_dynamic_adj_state", sub);
 			} else if(!adj_id) {
 				return get_name_as_string(state, fat_id.get_definition());
 			}
-			return adj + " " + get_name_as_string(state, fat_id.get_definition());
+			substitution_map sub{};
+			add_to_substitution_map(sub, text::variable_type::state, fat_id.get_definition());
+			add_to_substitution_map(sub, text::variable_type::adj, adj_id);
+			return resolve_string_substitution(state, "compose_dynamic_adj_state", sub);
 		}
 	}
 	if(!fat_id.get_definition().get_name())
@@ -1041,7 +1047,7 @@ std::string get_dynamic_state_name(sys::state const& state, dcon::state_instance
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
-std::string get_province_state_name(sys::state const& state, dcon::province_id prov_id) {
+std::string get_province_state_name(sys::state& state, dcon::province_id prov_id) {
 	auto fat_id = dcon::fatten(state.world, prov_id);
 	auto state_instance_id = fat_id.get_state_membership().id;
 	if(state_instance_id) {
@@ -1174,9 +1180,13 @@ dcon::text_sequence_id localize_month(sys::state const& state, uint16_t month) {
 	}
 }
 
-std::string date_to_string(sys::state const& state, sys::date date) {
+std::string date_to_string(sys::state& state, sys::date date) {
 	sys::year_month_day ymd = date.to_ymd(state.start_date);
-	return text::produce_simple_string(state, localize_month(state, ymd.month)) + " " + std::to_string(ymd.day) + ", " + std::to_string(ymd.year);
+	substitution_map sub{};
+	add_to_substitution_map(sub, variable_type::year, int32_t(ymd.year));
+	add_to_substitution_map(sub, variable_type::month, localize_month(state, ymd.month));
+	add_to_substitution_map(sub, variable_type::day, int32_t(ymd.day));
+	return resolve_string_substitution(state, "date_string_ymd", sub);
 }
 
 text_chunk const* layout::get_chunk_from_position(int32_t x, int32_t y) const {
@@ -1248,6 +1258,45 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	dest.y_cursor += line_height;
 }
 
+uint32_t codepoint_from_utf8(char const* start, char const* end) {
+	uint8_t byte1 = start + 0 < end ? uint8_t(*start + 0) : uint8_t(0);
+	uint8_t byte2 = start + 1 < end ? uint8_t(*(start + 1)) : uint8_t(0);
+	uint8_t byte3 = start + 2 < end ? uint8_t(*(start + 2)) : uint8_t(0);
+	uint8_t byte4 = start + 3 < end ? uint8_t(*(start + 3)) : uint8_t(0);
+	if((byte1 & 0x80) == 0) {
+		return uint32_t(byte1);
+	} else if((byte1 & 0xE0) == 0xC0) {
+		return uint32_t(byte2 & 0x3F) | (uint32_t(byte1 & 0x1F) << 6);
+	} else  if((byte1 & 0xF0) == 0xE0) {
+		return uint32_t(byte3 & 0x3F) | (uint32_t(byte2 & 0x3F) << 6) | (uint32_t(byte1 & 0x0F) << 12);
+	} else if((byte1 & 0xF8) == 0xF0) {
+		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
+	}
+	return 0;
+}
+uint32_t size_from_utf8(char const* start, char const* end) {
+	uint8_t byte1 = start + 0 < end ? uint8_t(*start + 0) : uint8_t(0);
+	uint8_t byte2 = start + 1 < end ? uint8_t(*(start + 1)) : uint8_t(0);
+	uint8_t byte3 = start + 2 < end ? uint8_t(*(start + 2)) : uint8_t(0);
+	uint8_t byte4 = start + 3 < end ? uint8_t(*(start + 3)) : uint8_t(0);
+	if((byte1 & 0x80) == 0) {
+		return 1;
+	} else if((byte1 & 0xE0) == 0xC0) {
+		return 2;
+	} else  if((byte1 & 0xF0) == 0xE0) {
+		return 3;
+	} else if((byte1 & 0xF8) == 0xF0) {
+		return 4;
+	}
+	return 0;
+}
+bool codepoint_is_space(uint32_t c) noexcept {
+	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
+		|| c == 0x0085 || c <= 0x0020 || (0x2000 <= c && c <= 0x200A));
+}
+bool codepoint_is_line_break(uint32_t c) noexcept {
+	return  c == 0x2029 || c == 0x2028 || c == uint32_t('\n') || c == uint32_t('\r');
+}
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,
 		substitution source) {
@@ -1284,9 +1333,18 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	bool first_in_line = true;
 
 	while(end_position < txt.length()) {
-		auto next_wb = txt.find_first_of(" \r\n\t", end_position);
-		auto next_word = txt.find_first_not_of(" \r\n\t", next_wb);
-
+		size_t next_wb = std::string::npos;
+		size_t next_word = std::string::npos;
+		for(uint32_t i = 0; i < uint32_t(txt.size()); i += size_from_utf8(txt.data(), txt.data() + txt.size())) {
+			uint32_t c = codepoint_from_utf8(txt.data(), txt.data() + txt.size());
+			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
+				if(next_wb == std::string::npos) //first of whitespace
+					next_wb = size_t(i);
+			} else {
+				if(next_wb != std::string::npos) //first not of whitespace
+					next_word = size_t(i);
+			}
+		}
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
 			next_word = next_wb + 1;

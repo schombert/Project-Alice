@@ -1,3 +1,4 @@
+compose_dynamic_adj_state;$adj$ $state$
 map_remove_prefix;The ;
 map_expand_acronym;USA
 map_expand_acronym_to;United States

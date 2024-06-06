@@ -1,3 +1,4 @@
+compose_dynamic_adj_state;$state$ $adj$
 map_remove_prefix;El ;
 map_expand_acronym;Imp.
 map_expand_acronym_to;Imperio
