@@ -791,6 +791,8 @@ void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box&
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
 std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
 
+dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_view k, dcon::text_sequence_id v);
+
 enum class language_encoding : uint8_t {
 	none = 0,
 	win1252,

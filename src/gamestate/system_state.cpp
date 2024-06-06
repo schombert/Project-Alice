@@ -2474,19 +2474,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		tag += "_";
 		for(auto& named_gov : context.map_of_governments) {
 			auto special_ident = tag + named_gov.first;
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_name(named_gov.second, ident.get_name());
-			}
+			auto k = text::find_or_use_default_key(*this, special_ident, ident.get_name());
+			ident.set_government_name(named_gov.second, k);
 		}
 		for(auto& named_gov : context.map_of_governments) {
 			auto special_ident = tag + named_gov.first + "_ruler";
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_ruler_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_ruler_name(named_gov.second, world.government_type_get_ruler_name(named_gov.second));
-			}
+			auto k = text::find_or_use_default_key(*this, special_ident, world.government_type_get_ruler_name(named_gov.second));
+			ident.set_government_ruler_name(named_gov.second, k);
 		}
 	}
 

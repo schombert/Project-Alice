@@ -324,7 +324,6 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	}
 	for(uint32_t i = 0; i < last_language; i++) {
 		state.languages[i].text_sequences.resize(size_t(max_seq_size));
-#if 0
 		// fill out missing text sequences
 		if(i != 0) { //english shall not fill itself with english!
 			for(uint32_t j = 0; j < max_seq_size; j++) {
@@ -335,7 +334,6 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				}
 			}
 		}
-#endif
 	}
 }
 
@@ -1815,6 +1813,22 @@ std::string resolve_string_substitution(sys::state& state, std::string_view key,
 		return std::string{key};
 
 	return resolve_string_substitution(state, source_text, mp);
+}
+
+dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_view k, dcon::text_sequence_id v) {
+	if(auto it = state.key_to_text_sequence.find(k); it != state.key_to_text_sequence.end()) {
+		// if some language does not posses the key, naturally assign it a default one
+		for(uint32_t i = 0; i < sys::max_languages; i++) {
+			if(state.languages[i].encoding == text::language_encoding::none)
+				break;
+			if(!state.languages[i].text_sequences[it->second].starting_component
+			&& !state.languages[i].text_sequences[it->second].component_count) {
+				state.languages[i].text_sequences[it->second] = state.languages[i].text_sequences[v];
+			}
+		}
+		return it->second;
+	}
+	return v;
 }
 
 } // namespace text
