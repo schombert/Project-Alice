@@ -125,7 +125,7 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"for the selected mods",
 	"No scenario found",
 	"IP Address",
-	"Passowrd",
+	"Password",
 	"Nickname",
 	"Singleplayer",
 	"Multiplayer",
@@ -295,6 +295,240 @@ static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Хозяин",
 	"Присоединиться",
 	"Список модов",
+};
+//polish
+static std::string_view pl_localised_strings[uint8_t(string_index::count)] = {
+	"Stwórz scenariusz",
+	"Odtwórz scenariusz",
+	"Pracujący...",
+	"Utwórz nowy scenariusz",
+	"dla wybranych modów",
+	"Nie znaleziono scenariusza",
+	"Adres IP",
+	"Hasło",
+	"Przezwisko",
+	"Jeden gracz",
+	"Tryb wieloosobowy",
+	"Rozpocząć grę",
+	"Gospodarz",
+	"Dołączyć",
+	"Lista modów"
+};
+//bulgarian
+static std::string_view bg_localised_strings[uint8_t(string_index::count)] = {
+	"Създайте сценарий",
+	"Пресъздайте сценарий",
+	"Работи...",
+	"Създайте нов сценарий",
+	"за избраните модове",
+	"Няма намерен сценарий",
+	"IP адрес",
+	"Парола",
+	"Псевдоним",
+	"Един играч",
+	"Мултиплейър",
+	"Започни игра",
+	"Домакин",
+	"Присъединяване",
+	"Мод списък",
+};
+//catalan
+static std::string_view ca_localised_strings[uint8_t(string_index::count)] = {
+	"Crea un escenari",
+	"Recrea l'escenari",
+	"Treball...",
+	"Creeu un nou escenari",
+	"per als mods seleccionats",
+	"No s'ha trobat cap escenari",
+	"Adreça IP",
+	"Contrasenya",
+	"Pseudònim",
+	"Sol jugador",
+	"Multijugador",
+	"Començar el joc",
+	"Amfitrió",
+	"Uneix - te",
+	"Llista de modificacions",
+};
+//czech
+static std::string_view cs_localised_strings[uint8_t(string_index::count)] = {
+	"Vytvořte scénář",
+	"Znovu vytvořit scénář",
+	"Pracovní...",
+	"Vytvořte nový scénář",
+	"pro vybrané mody",
+	"Nebyl nalezen žádný scénář",
+	"IP adresa",
+	"Heslo",
+	"Přezdívka",
+	"Singleplayer",
+	"Multiplayer",
+	"Začít hru",
+	"Hostitel",
+	"Připojit",
+	"Seznam modů"
+};
+//danish
+static std::string_view da_localised_strings[uint8_t(string_index::count)] = {
+	"Opret scenarie",
+	"Genskab scenariet",
+	"Arbejder...",
+	"Opret et nyt scenarie",
+	"for de valgte mods",
+	"Intet scenarie fundet",
+	"IP - adresse",
+	"Adgangskode",
+	"Kaldenavn",
+	"Singleplayer",
+	"Multiplayer",
+	"Start Spil",
+	"Vært",
+	"Tilslutte",
+	"Mod liste"
+};
+//greek
+static std::string_view el_localised_strings[uint8_t(string_index::count)] = {
+	"Δημιουργία σεναρίου",
+	"Αναδημιουργήστε το σενάριο",
+	"Εργαζόμενος...",
+	"Δημιουργήστε ένα νέο σενάριο",
+	"για τα επιλεγμένα mods",
+	"Δεν βρέθηκε κανένα σενάριο",
+	"Διεύθυνση IP",
+	"Κωδικός πρόσβασης",
+	"Παρατσούκλι",
+	"Μονος παιχτης",
+	"Multiplayer",
+	"Ξεκίνα το παιχνίδι",
+	"Πλήθος",
+	"Συμμετοχή",
+	"Λίστα mod"
+};
+//finnish
+static std::string_view fi_localised_strings[uint8_t(string_index::count)] = {
+	"Luo skenaario",
+	"Luo skenaario uudelleen",
+	"Työskentelee...",
+	"Luo uusi skenaario",
+	"valituille modeille",
+	"Skenaariota ei löytynyt",
+	"IP - osoite",
+	"Salasana",
+	"Nimimerkki",
+	"Yksinpeli",
+	"Moninpeli",
+	"Aloita peli",
+	"Isäntä",
+	"Liittyä seuraan",
+	"Mod lista",
+};
+//hungarian
+static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
+	"Forgatókönyv létrehozása",
+	"Forgatókönyv újbóli létrehozása",
+	"Dolgozó...",
+	"Hozzon létre egy új forgatókönyvet",
+	"a kiválasztott modokhoz",
+	"Nem található forgatókönyv",
+	"IP - cím",
+	"Jelszó",
+	"Becenév",
+	"Egyjátékos",
+	"Többjátékos",
+	"Játék kezdése",
+	"Házigazda",
+	"Csatlakozik",
+	"Mod lista"
+};
+//dutch
+static std::string_view nl_localised_strings[uint8_t(string_index::count)] = {
+	"Scenario maken",
+	"Scenario opnieuw maken",
+	"Werken...",
+	"Maak een nieuw scenario",
+	"voor de geselecteerde mods",
+	"Geen scenario gevonden",
+	"IP adres",
+	"Wachtwoord",
+	"Bijnaam",
+	"Een speler",
+	"Multiplayer",
+	"Start het spel",
+	"Gastheer",
+	"Meedoen",
+	"Mod - lijst"
+};
+//lithuanian
+static std::string_view lt_localised_strings[uint8_t(string_index::count)] = {
+	"Sukurti scenarijų",
+	"Atkurti scenarijų",
+	"Dirba...",
+	"Sukurkite naują pasirinktų",
+	"modifikacijų scenarijų",
+	"Scenarijus nerastas",
+	"IP adresas",
+	"Slaptažodis",
+	"Slapyvardis",
+	"Vieno žaidėjo",
+	"Multiplayer",
+	"Pradėti žaidimą",
+	"Šeimininkas",
+	"Prisijunk",
+	"Modifikacijų sąrašas"
+};
+//latvian
+static std::string_view lv_localised_strings[uint8_t(string_index::count)] = {
+	"Izveidojiet scenāriju",
+	"Atkārtoti izveidojiet scenāriju",
+	"Strādā...",
+	"Izveidojiet jaunu scenāriju",
+	"atlasītajiem modiem",
+	"Nav atrasts neviens scenārijs",
+	"IP adrese",
+	"Parole",
+	"Segvārds",
+	"Viens spēlētājs",
+	"Vairāku spēlētāju spēle",
+	"Sākt spēli",
+	"Uzņēmēja",
+	"Pievienojieties",
+	"Modu saraksts"
+};
+//estonian
+static std::string_view et_localised_strings[uint8_t(string_index::count)] = {
+	"Loo stsenaarium",
+	"Loo stsenaarium uuesti",
+	"Töötab...",
+	"Looge valitud modifikatsioonide",
+	"jaoks uus stsenaarium",
+	"Stsenaariumi ei leitud",
+	"IP - aadress",
+	"Parool",
+	"Hüüdnimi",
+	"Üksik mängija",
+	"Mitmikmäng",
+	"Alusta mängu",
+	"Host",
+	"Liitu",
+	"Modifikatsioonide loend"
+};
+//hindi
+static std::string_view hi_localised_strings[uint8_t(string_index::count)] = {
+	"परिदृश्य बनाएँ",
+	"परिदृश्य फिर से बनाएँ",
+	"कार्य कर रहा है...",
+	"चयनित मॉड के लिए",
+	"एक नया परिदृश्य बनाएँ",
+	"कोई परिदृश्य नहीं मिला",
+	"आईपी पता",
+	"पासवर्ड",
+	"उपनाम",
+	"एकल खिलाड़ी",
+	"मल्टीप्लेयर",
+	"खेल शुरू करें",
+	"होस्ट",
+	"जॉइन करें",
+	"मॉड सूची"
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -1748,9 +1982,49 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			localised_strings = &ar_localised_strings[0];
 			font_set_load = 2;
 			break;
+		case 0x0015:
+			localised_strings = &pl_localised_strings[0];
+			break;
 		case 0x0019:
 			localised_strings = &ru_localised_strings[0];
 			font_set_load = 3;
+			break;
+		case 0x0002:
+			localised_strings = &bg_localised_strings[0];
+			font_set_load = 3;
+			break;
+		case 0x0003:
+			localised_strings = &ca_localised_strings[0];
+			break;
+		case 0x0005:
+			localised_strings = &cs_localised_strings[0];
+			break;
+		case 0x0006:
+			localised_strings = &da_localised_strings[0];
+			break;
+		case 0x0008:
+			localised_strings = &el_localised_strings[0];
+			break;
+		case 0x000B:
+			localised_strings = &fi_localised_strings[0];
+			break;
+		case 0x000E:
+			localised_strings = &hu_localised_strings[0];
+			break;
+		case 0x0013:
+			localised_strings = &nl_localised_strings[0];
+			break;
+		case 0x0025:
+			localised_strings = &et_localised_strings[0];
+			break;
+		case 0x0026:
+			localised_strings = &lv_localised_strings[0];
+			break;
+		case 0x0027:
+			localised_strings = &lt_localised_strings[0];
+			break;
+		case 0x0039:
+			localised_strings = &hi_localised_strings[0];
 			break;
 		default:
 			break;

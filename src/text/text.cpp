@@ -1279,7 +1279,6 @@ uint32_t codepoint_from_utf8(char const* start, char const* end) {
 	} else if((byte1 & 0xF8) == 0xF0) {
 		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
 	}
-	assert(false);
 	return 0;
 }
 size_t size_from_utf8(char const* start, char const* end) {
@@ -1334,6 +1333,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		size_t next_word = std::string::npos;
 		for(size_t i = end_position; i < txt.size(); ) {
 			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+			if(c == 0) {
+				next_wb = i;
+				next_word = next_wb + 1;
+				break;
+			}
 			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
 				if(next_wb == std::string::npos) { //first of whitespace
 					next_wb = i;

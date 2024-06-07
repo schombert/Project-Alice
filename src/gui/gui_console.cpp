@@ -1329,6 +1329,103 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
+		//reset csv
+		out_text = "\n";
+		for(const auto t : state.world.in_technology) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("technologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_invention) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("inventions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_decision) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("decisions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_national_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_free_national_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_provincial_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_free_provincial_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("events.csv"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
 	case command_info::type::dump_event_graph:

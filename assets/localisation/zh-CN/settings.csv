@@ -1,75 +1,75 @@
-language_en-US;English (US)
-language_fr-FR;French (France)
-language_de-DE;German (Germany)
-language_es-ES;Spanish (Spain)
-language_it-IT;Italian (Italy)
-language_sv-SV;Swedish (Sweden)
-language_cs-CZ;Czech (Czech Rep.)
-language_hu-HU;Hungarian (Hungary)
-language_nl-NL;Dutch (Netherlands)
-language_po-PO;Portuguese (Portugal)
-language_ru-RU;Russian (Russia)
-language_fi-FI;Finnish (Finland)
-language_pl-PL;Polish (Poland)
-language_ar-AR;Arabic (Arabia)
-language_zh-CN;Chinese (China)
-language_jp-JP;Japanese (Japan)
-language_ko-SK;Korean (South Korea)
-language_ko-NK;Korean (North Korea)
-language_bg-BG;Bulgarian (Bulgaria)
-save_and_exit;Save and Exit
-save;Save
-exit;Exit
-graphics_options;Graphics Options
-sound_options;Sound Options
-controls_options;Misc. Options
-message_settings_options;Message Settings
-window_mode_label;Fullscreen
-map_projection;Projection
-map_projection_globe;Orthographic
-map_projection_flat;Equirectangular
-map_projection_globe_perspective;Vertical
-dm_popup_label;Diplomatic message as popups
-ui_scale;UI scale
-zoom_mode_label;Zoom style
-zoom_mode_panning;Panning
-zoom_mode_inverted;Inverted
-zoom_mode_centered;Centered
-zoom_mode_to_cursor;To cursor
-zoom_mode_away_from_cursor;Away from cursor
-zoom_speed_label;Zoom Acceleration
-river_label;Rivers
-mute_on_focus_lost_label;Mute on focus lost
-wasd_for_map_movement_label;WASD for movement
-vassal_color_label;Vassal coloring
-vassal_color_inherit;Inherit
-vassal_color_same;Same
-vassal_color_none;None
-black_map_font_label;Black map font
-edge_scrolling_label;Edge scrolling
-color_blind_mode_label;Color blind
-color_blind_mode_none;None
-color_blind_mode_deutan;Deutan
-color_blind_mode_protan;Protan
-color_blind_mode_tritan;Tritan
-color_blind_mode_achroma;Achroma
-render_models_label;Render models
-language_label;Language
-fow_label;Fog of War
-railroad_label;Railroad networks
-master_volume_label;Master volume
-music_volume_label;Music volume
-interface_volume_label;Interface volume
-effect_volume_label;Sound effect volume
-fonts_label;Classic fonts
-tooltip_mode_label;Floating tooltip
-music_player_label;Music player
-gaussianblur_label;Gaussian blur
-gamma_label;Gamma
-map_label;Map text
-map_label_0;None
-map_label_1;Linear
-map_label_2;Quadratic
-map_label_3;Cubic
-antialiasing_label;Antialiasing
-spoilers_label;Spoilers
+language_en-US;英语（美国）
+language_fr-FR;法语（法国）
+language_de-DE;德语（德国）
+language_es-ES;西班牙语（西班牙）
+language_it-IT;意大利语（意大利）
+language_sv-SV;瑞典语（瑞典）
+language_cs-CZ;捷克语（捷克共和国）
+language_hu-HU;匈牙利语（匈牙利）
+language_nl-NL;荷兰语（荷兰）
+language_po-PO;葡萄牙语（葡萄牙）
+language_ru-RU;俄语（俄罗斯）
+language_fi-FI;芬兰语（芬兰）
+language_pl-PL;波兰语（波兰）
+language_ar-AR;阿拉伯语（阿拉伯）
+language_zh-CN;中文（中国）
+language_jp-JP;日语（日本）
+language_ko-SK;韩语（韩国）
+language_ko-NK;朝鲜语（朝鲜）
+language_bg-BG;保加利亚语（保加利亚）
+save_and_exit;保存并退出
+save;节省
+exit;出口
+graphics_options;图形选项
+sound_options;声音选项
+controls_options;杂项。选项
+message_settings_options;消息设置
+window_mode_label;全屏
+map_projection;投影
+map_projection_globe;正字法
+map_projection_flat;等长方形
+map_projection_globe_perspective;垂直的
+dm_popup_label;弹出式外交消息
+ui_scale;用户界面比例
+zoom_mode_label;变焦风格
+zoom_mode_panning;平移
+zoom_mode_inverted;倒
+zoom_mode_centered;居中
+zoom_mode_to_cursor;到光标
+zoom_mode_away_from_cursor;远离光标
+zoom_speed_label;变焦加速
+river_label;河流
+mute_on_focus_lost_label;失去焦点时静音
+wasd_for_map_movement_label;WASD 用于移动
+vassal_color_label;附庸着色
+vassal_color_inherit;继承
+vassal_color_same;相同的
+vassal_color_none;没有任何
+black_map_font_label;黑色地图字体
+edge_scrolling_label;边缘滚动
+color_blind_mode_label;色盲
+color_blind_mode_none;没有任何
+color_blind_mode_deutan;多伊坦
+color_blind_mode_protan;普罗坦
+color_blind_mode_tritan;特里坦
+color_blind_mode_achroma;无色差
+render_models_label;渲染模型
+language_label;语言
+fow_label;战争迷雾
+railroad_label;铁路网络
+master_volume_label;主音量
+music_volume_label;音乐音量
+interface_volume_label;接口体积
+effect_volume_label;音效音量
+fonts_label;经典字体
+tooltip_mode_label;浮动工具提示
+music_player_label;音乐播放器
+gaussianblur_label;高斯模糊
+gamma_label;伽玛
+map_label;地图文字
+map_label_0;没有任何
+map_label_1;线性
+map_label_2;二次
+map_label_3;立方体
+antialiasing_label;抗锯齿
+spoilers_label;剧透
