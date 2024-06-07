@@ -1511,6 +1511,10 @@ object {
 		type{ float }
 	}
 	property{
+		name{ rgo_was_set_during_scenario_creation }
+		type{ bitfield }
+	}
+	property{
 		name{ rgo_max_size_per_good }
 		type{ array{commodity_id}{float} }
 		tag{ save }

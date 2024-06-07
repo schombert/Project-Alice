@@ -376,3 +376,21 @@ Now you can define ruler names for a specific nation with a specific government 
 RUS_absolute_monarchy;The Russian Empire
 RUS_absolute_monarchy_ruler;Tsar
 ```
+
+## Definitions for multiple goods produced by local RGO
+
+As RGO can produce a whole distribution of goods, you can define your own distribution for specific provinces:
+
+Example (`history\provinces` files):
+```
+rgo_distribution = {
+	entry = {
+        trade_good = silk
+        max_employment = 100000
+	}
+    entry = {
+        trade_good = opium
+        max_employment = 100000
+	}
+}
+```

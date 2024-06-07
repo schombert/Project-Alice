@@ -300,6 +300,10 @@ void province_history_file::trade_goods(association_type, std::string_view text,
 	}
 }
 
+void province_history_file::rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context) {
+	return;
+}
+
 void province_history_file::owner(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
@@ -385,6 +389,32 @@ void province_history_file::any_value(std::string_view name, association_type, u
 		}
 	}
 	err.accumulated_errors += "unknown province history key " + std::string(name) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";//err.unhandled_association_key();
+}
+
+void province_rgo_ext_desc::max_employment(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context) {
+	max_employment_value = float(value);
+}
+
+void province_rgo_ext_desc::trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(text));
+			it != context.outer_context.map_of_commodity_names.end()) {
+		trade_good_id = it->second;
+	} else {
+		err.accumulated_errors +=
+			std::string(text) + " is not a valid commodity name (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+}
+
+void province_rgo_ext_desc::finish(province_file_context& context) {
+	
+};
+
+void province_rgo_ext::entry(province_rgo_ext_desc const& value, error_handler& err, int32_t line, province_file_context& context) {
+	if(value.trade_good_id) {
+		auto p = context.id;
+		context.outer_context.state.world.province_set_rgo_max_size_per_good(p, value.trade_good_id, value.max_employment_value / economy::rgo_per_size_employment);
+		context.outer_context.state.world.province_set_rgo_was_set_during_scenario_creation(p, 1);
+	}
 }
 
 void make_pop_province_list(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context) {
