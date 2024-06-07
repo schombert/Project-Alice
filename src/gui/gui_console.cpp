@@ -1353,6 +1353,76 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		simple_fs::write_file(sdir, NATIVE("inventions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
+		for(const auto t : state.world.in_ideology) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("ideologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_issue_option) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("issue_options.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_issue) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("issues.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_culture) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("cultures.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_religion) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("religions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_government_type) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("government_type.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
 		for(const auto t : state.world.in_decision) {
 			for(const auto& k : state.key_to_text_sequence) {
 				if(k.second == t.get_name()) {

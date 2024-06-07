@@ -60,7 +60,6 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	char const* seq_start = content.data();
 	char const* seq_end = content.data() + content.size();
 	char const* section_start = seq_start;
-
 	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
 		if(enc == text::language_encoding::win1252) {
 			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
@@ -141,7 +140,6 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	// TODO: Emit error when 64K boundary is violated
 	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
 	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint16_t>::max());
-
 	return text_sequence{
 		static_cast<uint32_t>(component_start_index),
 		static_cast<uint16_t>(state.text_components.size() - component_start_index)
@@ -335,8 +333,7 @@ void finish_text_data(sys::state& state) {
 		if(i != 0) { //english shall not fill itself with english!
 			for(uint32_t j = 0; j < max_seq_size; j++) {
 				auto t = dcon::text_sequence_id{ dcon::text_sequence_id::value_base_t(j) };
-				if(!state.languages[i].text_sequences[t].starting_component
-				&& !state.languages[i].text_sequences[t].component_count) {
+				if(!state.languages[i].text_sequences[t].component_count) {
 					state.languages[i].text_sequences[t] = state.languages[0].text_sequences[t];
 				}
 			}
@@ -1884,7 +1881,7 @@ dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_vi
 		for(auto& l : state.languages) {
 			if(l.encoding == text::language_encoding::none)
 				break;
-			if(!l.text_sequences[it->second].starting_component && !l.text_sequences[it->second].component_count) {
+			if(!l.text_sequences[it->second].component_count) {
 				l.text_sequences[it->second] = l.text_sequences[v];
 			}
 		}
