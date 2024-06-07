@@ -2505,6 +2505,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	world.province_resize_rgo_max_size_per_good(world.commodity_size());
+
 	// load province history files
 	auto history = open_directory(root, NATIVE("history"));
 	{
@@ -3021,7 +3023,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.state_instance_resize_demographics(demographics::size(*this));
 
 	world.province_resize_demographics(demographics::size(*this));
-	world.province_resize_rgo_max_size_per_good(world.commodity_size());
 	world.province_resize_rgo_profit_per_good(world.commodity_size());
 	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
 	world.province_resize_rgo_employment_per_good(world.commodity_size());

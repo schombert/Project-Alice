@@ -799,6 +799,10 @@ void initialize(sys::state& state) {
 
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
+		if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
+			return;
+		}
+
 		auto fp = fatten(state.world, p);
 
 		dcon::modifier_id climate = fp.get_climate();
@@ -854,7 +858,7 @@ void initialize(sys::state& state) {
 			true_distribution[c.index()] /= total;
 		});
 
-		// distribution of rgo land per good
+		// distribution of rgo land per good		
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto fc = fatten(state.world, c);
 			state.world.province_get_rgo_max_size_per_good(fp, c) +=
