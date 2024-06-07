@@ -24,16 +24,14 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
 - `break_if = { ... }`: Stop exeuction of the effect if the condition is fullfilled.
-- `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip_`.
+- `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
 
 ### Custom tooltip
 ```
 custom_tooltip = {
-	# $othercountry$
-	other_country = tag/THIS/FROM/main
-	# $otherprovince$
-	other_province = id/THIS/FROM/main
+	x = <variable> #$x$
+	y = <variable> #$x$
 	text = "localisation_key"
 }
 ```
