@@ -7,6 +7,7 @@ layout (location = 4) in float thickness;
 
 out vec3 tex_coord;
 out float opacity;
+out float text_size;
 
 // Camera position
 layout (location = 0) uniform vec2 offset;
@@ -121,6 +122,8 @@ void main() {
         opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
         
 	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
+    
+    text_size = thickness * zoom;
 
 	gl_Position = temp_result;
 	tex_coord = texture_coord;

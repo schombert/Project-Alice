@@ -3019,7 +3019,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_modifier_values(provincial_mod_offsets::count);
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
+
 	world.province_resize_demographics(demographics::size(*this));
+	world.province_resize_rgo_max_size_per_good(world.commodity_size());
+	world.province_resize_rgo_profit_per_good(world.commodity_size());
+	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
+	world.province_resize_rgo_employment_per_good(world.commodity_size());
+	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.nation_resize_domestic_market_pool(world.commodity_size());
 	world.nation_resize_real_demand(world.commodity_size());

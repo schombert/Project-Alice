@@ -1538,7 +1538,32 @@ class province_goods_produced_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(province::rgo_production_quantity(state, province_id), 3));
+		set_text(state, text::format_float(province::rgo_production_quantity(state, province_id, state.world.province_get_rgo(province_id)), 3));
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto production = province::rgo_production_quantity(state, p, c);
+
+			if(production < 0.0001f) {
+				return;
+			}
+
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto production_box = base_box;
+			production_box.x_position += 120.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+			text::add_to_layout_box(state, contents, production_box, text::format_money(production));
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
 	}
 };
 
@@ -1547,6 +1572,35 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::format_money(province::rgo_income(state, province_id)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto profit = state.world.province_get_rgo_profit_per_good(p, c);
+
+			if(profit < 0.0001f) {
+				return;
+			}
+
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto profit_box = base_box;
+			profit_box.x_position += 120.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+			text::add_to_layout_box(state, contents, profit_box, text::format_money(profit));
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
 	}
 };
 
@@ -1563,33 +1617,49 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
-		auto rgo_max = economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(p), p) * state.world.province_get_rgo_production_scale(p);
-		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		float worker_pool = 0.0f;
-		for(auto wt : state.culture_definitions.rgo_workers) {
-			worker_pool += state.world.province_get_demographics(p, demographics::to_key(state, wt));
-		}
-		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-		float labor_pool = worker_pool + slave_pool;
 
-		text::add_line(state, contents, "provinceview_employment", text::variable_type::value, int64_t(std::min(rgo_max, labor_pool)));
-		text::add_line_break_to_layout(state, contents);
-		{
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "base_rgo_size");
-			text::add_to_layout_box(state, contents, box, int64_t(economy::rgo_per_size_employment * state.world.province_get_rgo_size(p)));
-			text::close_layout_box(contents, box);
-		}
+		auto n = state.world.province_get_nation_from_province_ownership(p);
 
-		if(is_mine) {
-			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
-			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
-				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, false);
-		} else {
-			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, false);
-			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
-				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, false);
-		}
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
+			auto current_employment = int64_t(rgo_employment);
+			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
+			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, n, c);
+
+			if(max_employment < 1.f) {
+				return;
+			}
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto employment_box = base_box;
+			employment_box.x_position += 120.f;
+			auto max_employment_box = base_box;
+			max_employment_box.x_position += 180.f;
+			auto expected_profit_box = base_box;
+			expected_profit_box.x_position += 250.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+
+			
+			text::add_to_layout_box(state, contents, employment_box, current_employment);
+			text::add_to_layout_box(state, contents, max_employment_box, max_employment);
+			text::add_to_layout_box(state, contents, expected_profit_box, text::format_money(expected_profit));
+
+			//text::close_layout_box(contents, name_box);
+			//text::close_layout_box(contents, employment_box);
+			//text::close_layout_box(contents, max_employment_box);
+
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
+
+		active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
+		if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+			active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, false);
+		active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, false);
+		if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+			active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, false);
 	}
 };
 
@@ -1597,7 +1667,7 @@ class province_rgo_size_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(economy::rgo_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2));
+		set_text(state, text::format_float(economy::rgo_total_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2));
 	}
 };
 
