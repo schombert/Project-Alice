@@ -3,4 +3,3 @@ ar-AR;arabic
 jp-JP;japan
 ko-SK;korean
 bg-BG;cyrillic
-pt-BR;latin
