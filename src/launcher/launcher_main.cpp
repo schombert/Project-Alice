@@ -134,6 +134,42 @@ static std::string_view en_localised_strings[uint8_t(string_index::count)] = {
 	"Join",
 	"Mod list"
 };
+//turkish
+static std::string_view tr_localised_strings[uint8_t(string_index::count)] = {
+	"Senaryo oluştur",
+	"Senaryoyu yeniden oluştur",
+	"Çalışma...",
+	"Seçilen modlar için yeni",
+	"bir senaryo oluşturun",
+	"Senaryo bulunamadı",
+	"IP adresi",
+	"Şifre",
+	"Takma ad",
+	"Tek oyunculu",
+	"Çok Oyunculu",
+	"Oyunu başlatmak",
+	"Ev sahibi",
+	"Katılmak",
+	"Mod listesi"
+};
+//albanian
+static std::string_view sq_localised_strings[uint8_t(string_index::count)] = {
+	"Krijo skenar",
+	"Rikrijo skenar",
+	"Punon...",
+	"Krijo një skenar të ri",
+	"për modalitetet e zgjedhura",
+	"Nuk u gjet asnjë skenar",
+	"Adresa IP",
+	"Fjalëkalimi",
+	"Pseudonimi",
+	"Lojtar i vetëm",
+	"Shumë lojtarë",
+	"Fillo lojen",
+	"Mikpritës",
+	"Bashkohu",
+	"Lista e modës"
+};
 //spanish
 static std::string_view es_localised_strings[uint8_t(string_index::count)] = {
 	"Crear escenario",
@@ -289,8 +325,8 @@ static std::string_view no_localised_strings[uint8_t(string_index::count)] = {
 	"IP adresse",
 	"Passord",
 	"Kallenavn",
-	"Singleplayer",
-	"Multiplayer",
+	"Enkeltspiller",
+	"Flerspiller",
 	"Start spill",
 	"Vert",
 	"Bli med",
@@ -308,7 +344,7 @@ static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
 	"Parola",
 	"Poreclă",
 	"Un singur jucator",
-	"Multiplayer",
+	"Jucători multipli",
 	"Începeți jocul",
 	"Gazdă",
 	"A te alatura",
@@ -397,8 +433,8 @@ static std::string_view cs_localised_strings[uint8_t(string_index::count)] = {
 	"IP adresa",
 	"Heslo",
 	"Přezdívka",
-	"Singleplayer",
-	"Multiplayer",
+	"Pro jednoho hráče",
+	"Pro více hráčů",
 	"Začít hru",
 	"Hostitel",
 	"Připojit",
@@ -415,8 +451,8 @@ static std::string_view da_localised_strings[uint8_t(string_index::count)] = {
 	"IP - adresse",
 	"Adgangskode",
 	"Kaldenavn",
-	"Singleplayer",
-	"Multiplayer",
+	"En spiller",
+	"Flere spillere",
 	"Start Spil",
 	"Vært",
 	"Tilslutte",
@@ -434,7 +470,7 @@ static std::string_view el_localised_strings[uint8_t(string_index::count)] = {
 	"Κωδικός πρόσβασης",
 	"Παρατσούκλι",
 	"Μονος παιχτης",
-	"Multiplayer",
+	"Λειτουργία για πολλούς παίκτες",
 	"Ξεκίνα το παιχνίδι",
 	"Πλήθος",
 	"Συμμετοχή",
@@ -466,7 +502,7 @@ static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
 	"צור תרחיש חדש עבור",
 	"המצבים שנבחרו",
 	"לא נמצא תרחיש",
-	"כתובת ה - IP",
+	"כתובת פרוטוקול אינטרנט",
 	"סיסמה",
 	"כינוי",
 	"שחקן יחיד",
@@ -474,7 +510,7 @@ static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
 	"התחל משחק",
 	"מנחה",
 	"לְהִצְטַרֵף",
-	"רשימת MOD"
+	"רשימת השינויים במשחק"
 };
 //hungarian
 static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
@@ -506,7 +542,7 @@ static std::string_view nl_localised_strings[uint8_t(string_index::count)] = {
 	"Wachtwoord",
 	"Bijnaam",
 	"Een speler",
-	"Multiplayer",
+	"Meerdere spelers",
 	"Start het spel",
 	"Gastheer",
 	"Meedoen",
@@ -524,7 +560,7 @@ static std::string_view lt_localised_strings[uint8_t(string_index::count)] = {
 	"Slaptažodis",
 	"Slapyvardis",
 	"Vieno žaidėjo",
-	"Multiplayer",
+	"Kelių žaidėjų",
 	"Pradėti žaidimą",
 	"Šeimininkas",
 	"Prisijunk",
@@ -2140,8 +2176,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			localised_strings = &ru_localised_strings[0];
 			font_set_load = 3;
 			break;
+		case 0x001C:
+			localised_strings = &sq_localised_strings[0];
+			break;
 		case 0x001D:
 			localised_strings = &sv_localised_strings[0];
+			break;
+		case 0x001F:
+			localised_strings = &tr_localised_strings[0];
 			break;
 		case 0x0022:
 			localised_strings = &uk_localised_strings[0];
