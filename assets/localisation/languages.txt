@@ -4,3 +4,4 @@ jp-JP;japan
 ko-SK;korean
 ko-NK;korean
 bg-BG;cyrillic
+pt-BR;latin
