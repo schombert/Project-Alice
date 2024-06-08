@@ -458,6 +458,24 @@ static std::string_view fi_localised_strings[uint8_t(string_index::count)] = {
 	"Liittyä seuraan",
 	"Mod lista",
 };
+//hebrew
+static std::string_view he_localised_strings[uint8_t(string_index::count)] = {
+	"צור תרחיש",
+	"ליצור מחדש תרחיש",
+	"עובד...",
+	"צור תרחיש חדש עבור",
+	"המצבים שנבחרו",
+	"לא נמצא תרחיש",
+	"כתובת ה - IP",
+	"סיסמה",
+	"כינוי",
+	"שחקן יחיד",
+	"רב משתתפים",
+	"התחל משחק",
+	"מנחה",
+	"לְהִצְטַרֵף",
+	"רשימת MOD"
+};
 //hungarian
 static std::string_view hu_localised_strings[uint8_t(string_index::count)] = {
 	"Forgatókönyv létrehozása",
@@ -2086,7 +2104,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			localised_strings = &fr_localised_strings[0];
 			break;
 		case 0x000D:
-			//localised_strings = &he_localised_strings[0];
+			localised_strings = &he_localised_strings[0];
 			break;
 		case 0x000E:
 			localised_strings = &hu_localised_strings[0];
