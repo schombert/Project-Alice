@@ -60,7 +60,6 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	char const* seq_start = content.data();
 	char const* seq_end = content.data() + content.size();
 	char const* section_start = seq_start;
-
 	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
 		if(enc == text::language_encoding::win1252) {
 			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
@@ -141,7 +140,6 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	// TODO: Emit error when 64K boundary is violated
 	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
 	assert(state.text_components.size() - component_start_index < std::numeric_limits<uint16_t>::max());
-
 	return text_sequence{
 		static_cast<uint32_t>(component_start_index),
 		static_cast<uint16_t>(state.text_components.size() - component_start_index)
@@ -194,7 +192,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	//ISO 639-1, aka. two letters + a hypen + region locale
 	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
 	static const std::string_view fixed_iso_codes[] = {
-		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
+		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SE", "cs-CZ", "hu-HU", "nl-NL", "pt-PT", "ru-RU", "fi-FI"
 		//0		1		2			3		4			5		6		7		8			9		10		11		12
 	};
 	uint8_t last_language = 0;
@@ -335,8 +333,7 @@ void finish_text_data(sys::state& state) {
 		if(i != 0) { //english shall not fill itself with english!
 			for(uint32_t j = 0; j < max_seq_size; j++) {
 				auto t = dcon::text_sequence_id{ dcon::text_sequence_id::value_base_t(j) };
-				if(!state.languages[i].text_sequences[t].starting_component
-				&& !state.languages[i].text_sequences[t].component_count) {
+				if(!state.languages[i].text_sequences[t].component_count) {
 					state.languages[i].text_sequences[t] = state.languages[0].text_sequences[t];
 				}
 			}
@@ -1279,7 +1276,6 @@ uint32_t codepoint_from_utf8(char const* start, char const* end) {
 	} else if((byte1 & 0xF8) == 0xF0) {
 		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
 	}
-	assert(false);
 	return 0;
 }
 size_t size_from_utf8(char const* start, char const* end) {
@@ -1334,6 +1330,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		size_t next_word = std::string::npos;
 		for(size_t i = end_position; i < txt.size(); ) {
 			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+			if(c == 0) {
+				next_wb = i;
+				next_word = next_wb + 1;
+				break;
+			}
 			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
 				if(next_wb == std::string::npos) { //first of whitespace
 					next_wb = i;
@@ -1880,7 +1881,7 @@ dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_vi
 		for(auto& l : state.languages) {
 			if(l.encoding == text::language_encoding::none)
 				break;
-			if(!l.text_sequences[it->second].starting_component && !l.text_sequences[it->second].component_count) {
+			if(!l.text_sequences[it->second].component_count) {
 				l.text_sequences[it->second] = l.text_sequences[v];
 			}
 		}

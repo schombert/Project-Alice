@@ -329,8 +329,9 @@ public:
 			set_text(state, "");
 		} else if(std::holds_alternative<dcon::army_id>(content)) {
 			auto army = fatten(state.world, std::get<dcon::army_id>(content));
-
-			color = bool(army.get_battle_from_army_battle_participation()) ? text::text_color::red : text::text_color::white;
+			color = bool(army.get_battle_from_army_battle_participation()) ? text::text_color::orange
+				: military::attrition_amount(state, army) > 0.f ? text::text_color::red
+				: text::text_color::white;
 			unitamounts amounts = calc_amounts_from_army(state, army);
 
 			text::substitution_map sub;

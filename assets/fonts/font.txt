@@ -48,7 +48,7 @@ font = { #Font used for headers and "bold" text
 }
 font = { #Font used for the map labels
 	id = 9
-	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
+	path = "assets/fonts/NotoNaskhArabic-Regular.ttf"
 	smallCaps = yes
 }
 
@@ -65,10 +65,6 @@ font = { #Font used for headers and "bold" text
 }
 font = { #Font used for the map labels
 	id = 12
-	path = "assets/fonts/NotoSerif-Bold.ttf"
+	path = "assets/fonts/NotoSerif-Regular.ttf"
 	smallCaps = yes
 }
-
-
-
-
