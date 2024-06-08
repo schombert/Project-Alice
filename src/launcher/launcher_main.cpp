@@ -278,6 +278,42 @@ static std::string_view ar_localised_strings[uint8_t(string_index::count)] = {
 	"ينضم",
 	"قائمة وزارة الدفاع",
 };
+//norwegian
+static std::string_view no_localised_strings[uint8_t(string_index::count)] = {
+	"Lag scenario",
+	"Gjenskape scenario",
+	"Arbeider...",
+	"Lag et nytt scenario",
+	"for de valgte modsene",
+	"Ingen scenarioer funnet",
+	"IP adresse",
+	"Passord",
+	"Kallenavn",
+	"Singleplayer",
+	"Multiplayer",
+	"Start spill",
+	"Vert",
+	"Bli med",
+	"Mod liste",
+};
+//romanian
+static std::string_view ro_localised_strings[uint8_t(string_index::count)] = {
+	"Creați script",
+	"Scenariu de recenzie",
+	"Lucru...",
+	"Creați un nou script",
+	"pentru moduri selectate",
+	"Nu a fost găsit niciun script",
+	"adresa IP",
+	"Parola",
+	"Poreclă",
+	"Un singur jucator",
+	"Multiplayer",
+	"Începeți jocul",
+	"Gazdă",
+	"A te alatura",
+	"Lista de moduri"
+};
 //russian
 static std::string_view ru_localised_strings[uint8_t(string_index::count)] = {
 	"Создать сценарий",
@@ -529,6 +565,60 @@ static std::string_view hi_localised_strings[uint8_t(string_index::count)] = {
 	"होस्ट",
 	"जॉइन करें",
 	"मॉड सूची"
+};
+//vietnamese
+static std::string_view vi_localised_strings[uint8_t(string_index::count)] = {
+	"Tạo kịch bản",
+	"Kịch bản tái tạo",
+	"Đang làm việc...",
+	"Tạo một kịch bản mới cho",
+	"các mod đã chọn",
+	"Không tìm thấy kịch bản",
+	"Địa chỉ IP",
+	"Mật khẩu",
+	"Tên nick",
+	"Người chơi đơn",
+	"Nhiều người chơi",
+	"Bắt đầu trò chơi",
+	"Chủ nhà",
+	"Tham gia",
+	"Danh sách mod"
+};
+//armenian
+static std::string_view hy_localised_strings[uint8_t(string_index::count)] = {
+	"Ստեղծեք սցենար",
+	"Վերստեղծեք սցենարը",
+	"Աշխատանքային ...",
+	"Ստեղծեք նոր սցենար",
+	"ընտրված ռեժիմների համար",
+	"Ոչ մի սցենար չի գտնվել",
+	"IP հասցե",
+	"Գաղտնաբառ",
+	"Մականուն",
+	"Միայնակ խաղացող",
+	"Բազմապատկիչ",
+	"Սկսել խաղը",
+	"Հյուրընկալող",
+	"Միանալ",
+	"Mod ուցակ"
+};
+//ukrainian
+static std::string_view uk_localised_strings[uint8_t(string_index::count)] = {
+	"Створити сценарій",
+	"Сценарій огляду",
+	"Працює ...",
+	"Створіть новий сценарій",
+	"для вибраних мод",
+	"Не знайдено сценарію",
+	"IP - адреса",
+	"Пароль",
+	"Прізвище",
+	"Один гравець",
+	"Мультиплеєр",
+	"Почніть гру",
+	"Господар",
+	"З'єднувати",
+	"Список мод"
 };
 static std::string_view* localised_strings = &en_localised_strings[0];
 
@@ -2019,8 +2109,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case 0x0013:
 			localised_strings = &nl_localised_strings[0];
 			break;
+		case 0x0014:
+			localised_strings = &no_localised_strings[0];
+			break;
 		case 0x0015:
 			localised_strings = &pl_localised_strings[0];
+			break;
+		case 0x0018:
+			localised_strings = &ro_localised_strings[0];
 			break;
 		case 0x0019:
 			localised_strings = &ru_localised_strings[0];
@@ -2028,6 +2124,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			break;
 		case 0x001D:
 			localised_strings = &sv_localised_strings[0];
+			break;
+		case 0x0022:
+			localised_strings = &uk_localised_strings[0];
+			font_set_load = 3;
 			break;
 		case 0x0025:
 			localised_strings = &et_localised_strings[0];
@@ -2037,6 +2137,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 			break;
 		case 0x0027:
 			localised_strings = &lt_localised_strings[0];
+			break;
+		case 0x002A:
+			localised_strings = &vi_localised_strings[0];
+			break;
+		case 0x002B:
+			localised_strings = &hy_localised_strings[0];
 			break;
 		case 0x0039:
 			localised_strings = &hi_localised_strings[0];
