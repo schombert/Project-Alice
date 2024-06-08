@@ -192,7 +192,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 	//ISO 639-1, aka. two letters + a hypen + region locale
 	//Key;English;French;German;Polish;Spanish;Italian;Swedish;Czech;Hungarian;Dutch;Portuguese;Russian;Finnish;
 	static const std::string_view fixed_iso_codes[] = {
-		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SV", "cs-CZ", "hu-HU", "nl-NL", "po-PO", "ru-RU", "fi-FI"
+		"en-US", "fr-FR", "de-DE", "pl-PL", "es-ES", "it-IT", "sv-SE", "cs-CZ", "hu-HU", "nl-NL", "pt-PT", "ru-RU", "fi-FI"
 		//0		1		2			3		4			5		6		7		8			9		10		11		12
 	};
 	uint8_t last_language = 0;
