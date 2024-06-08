@@ -472,7 +472,7 @@ void presimulate(sys::state& state) {
 
 	// economic updates without construction
 
-	for(uint32_t i = 0; i < 365 * 5; i++) {
+	for(uint32_t i = 0; i < 365; i++) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
 		daily_update(state, false);
@@ -3844,7 +3844,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 			}
 		}
 
-		state.world.commodity_set_current_price(c, std::clamp(luxury_costs_laborer, 0.001f, 100000.0f));
+		state.world.commodity_set_current_price(c, std::clamp(luxury_costs_laborer * 0.3f, 0.001f, 100000.0f));
 	});
 
 	concurrency::parallel_for(uint32_t(0), total_commodities, [&](uint32_t k) {
