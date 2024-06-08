@@ -1956,38 +1956,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		LANGID lang = GetUserDefaultUILanguage();
 		//lang = 0x0004;
 		switch(lang & 0xff) {
-		case 0x0007:
-			localised_strings = &de_localised_strings[0];
-			break;
-		case 0x000A:
-			localised_strings = &es_localised_strings[0];
-			break;
-		case 0x0010:
-			localised_strings = &it_localised_strings[0];
-			break;
-		case 0x001D:
-			localised_strings = &sv_localised_strings[0];
-			break;
-		case 0x000C:
-			localised_strings = &fr_localised_strings[0];
-			break;
-		case 0x0016:
-			localised_strings = &po_localised_strings[0];
-			break;
-		case 0x0004:
-			localised_strings = &zh_localised_strings[0];
-			font_set_load = 1;
-			break;
 		case 0x0001:
 			localised_strings = &ar_localised_strings[0];
 			font_set_load = 2;
-			break;
-		case 0x0015:
-			localised_strings = &pl_localised_strings[0];
-			break;
-		case 0x0019:
-			localised_strings = &ru_localised_strings[0];
-			font_set_load = 3;
 			break;
 		case 0x0002:
 			localised_strings = &bg_localised_strings[0];
@@ -1996,23 +1967,67 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		case 0x0003:
 			localised_strings = &ca_localised_strings[0];
 			break;
+		case 0x0004:
+			localised_strings = &zh_localised_strings[0];
+			font_set_load = 1;
+			break;
 		case 0x0005:
 			localised_strings = &cs_localised_strings[0];
 			break;
 		case 0x0006:
 			localised_strings = &da_localised_strings[0];
 			break;
+		case 0x0007:
+			localised_strings = &de_localised_strings[0];
+			break;
 		case 0x0008:
 			localised_strings = &el_localised_strings[0];
+			break;
+		case 0x0009:
+			localised_strings = &en_localised_strings[0];
+			break;
+		case 0x000A:
+			localised_strings = &es_localised_strings[0];
 			break;
 		case 0x000B:
 			localised_strings = &fi_localised_strings[0];
 			break;
+		case 0x000C:
+			localised_strings = &fr_localised_strings[0];
+			break;
+		case 0x000D:
+			//localised_strings = &he_localised_strings[0];
+			break;
 		case 0x000E:
 			localised_strings = &hu_localised_strings[0];
 			break;
+		case 0x000F:
+			//localised_strings = &is_localised_strings[0];
+			break;
+		case 0x0010:
+			localised_strings = &it_localised_strings[0];
+			break;
+		case 0x0011:
+			//localised_strings = &ja_localised_strings[0];
+			break;
+		case 0x0012:
+			//localised_strings = &ko_localised_strings[0];
+			break;
+		case 0x0016:
+			localised_strings = &po_localised_strings[0];
+			break;
 		case 0x0013:
 			localised_strings = &nl_localised_strings[0];
+			break;
+		case 0x0015:
+			localised_strings = &pl_localised_strings[0];
+			break;
+		case 0x0019:
+			localised_strings = &ru_localised_strings[0];
+			font_set_load = 3;
+			break;
+		case 0x001D:
+			localised_strings = &sv_localised_strings[0];
 			break;
 		case 0x0025:
 			localised_strings = &et_localised_strings[0];
