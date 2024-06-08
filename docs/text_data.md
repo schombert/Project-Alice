@@ -75,3 +75,9 @@ The syntax goes as follows: `iso-code;setting`. The ISO code is composed of the 
 
 Sublanguages or dialects will take data from the parent languages, for example, `cs-CZ` will take data from the `cs` folder AND the `cs-CZ` folder, first the parent, then the dialect version - this is to ease some shared translations amongst languages that would otherwise require too much duplication.
 
+Any localisation key that is not defined on a language other than English, will default to the English version - for convenience. Additionally, any language which requires the uses of fallbacks (such as `ALD_democracy` fallbacking to `ALD`) will do the following:
+- Do we have `ALD_democracy` defined in our language specific localisation?
+- Yes? Use that.
+- No? Do we have `ALD` defined in our language specific localisation?
+- Yes? Use that.
+- No? Fallback to localisation of `ALD` in English.
