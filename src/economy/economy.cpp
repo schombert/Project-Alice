@@ -472,7 +472,7 @@ void presimulate(sys::state& state) {
 
 	// economic updates without construction
 
-	for(uint32_t i = 0; i < 365 * 1.f; i++) {
+	for(uint32_t i = 0; i < 365; i++) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
 		daily_update(state, false);
