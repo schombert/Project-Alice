@@ -23,6 +23,7 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
+- `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
 - `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
 - `this_bounce = { ... }`: Same as above but with `THIS`.
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
@@ -130,6 +131,8 @@ Alternatively:
 - `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
 - `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
 - `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
+- `all_greater_power = { ... }`: All greater powers must fullfill condition.
+- `any_owned = { ... }`: Shorthand for `any_owned_province`.
 
 ### Lambda events
 

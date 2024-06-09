@@ -359,119 +359,7 @@ void convert_commodities_into_ingredients(
 }
 
 void presimulate(sys::state& state) {
-	/*
-	uint32_t total_commodities = state.world.commodity_size();
-
-	std::vector<float> max_rgo_production_buffer;
-	max_rgo_production_buffer.resize(total_commodities + 1);
-
-	float total_max_rgo_production = 0.f;
-
-	std::vector<float> rgo_weights;
-	rgo_weights.resize(total_commodities + 1);
-
-	// calculate total rgo production
-	province::for_each_land_province(state, [&](dcon::province_id p) {
-		auto fp = fatten(state.world, p);
-		auto n = fp.get_nation_from_province_ownership();
-		auto c = state.world.province_get_rgo(p);
-		if(!c)
-			return;
-		bool is_mine = state.world.commodity_get_is_mine(c);
-
-		//currently working pops there
-		float pop_amount = 0.0f;
-		for(auto pt : state.world.in_pop_type) {
-			if(pt == state.culture_definitions.slaves) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-			} else if(pt.get_is_paid_rgo_worker()) {
-				pop_amount += state.world.province_get_demographics(p, demographics::to_key(state, pt));
-			}
-		}
-
-		auto max_production = rgo_full_production_quantity(state, n, p); // maximal amount of goods which rgo could potentially produce
-		auto pops_max = rgo_max_employment(state, n, p); // maximal amount of workers which rgo could potentially employ
-
-		max_rgo_production_buffer[c.id.index()] += pop_amount / pops_max * max_production; // rough estimate again
-		total_max_rgo_production += pop_amount / pops_max * max_production;
-	});
-
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		rgo_weights[c.index()] = max_rgo_production_buffer[c.index()] / total_max_rgo_production;
-	});
-
-	std::vector<float> max_demand_buffer_depth_0;
-	max_demand_buffer_depth_0.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_1;
-	max_demand_buffer_depth_1.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_2;
-	max_demand_buffer_depth_2.resize(total_commodities + 1);
-
-	std::vector<float> max_demand_buffer_depth_3;
-	max_demand_buffer_depth_3.resize(total_commodities + 1);
-
-	//populate max demand
-	for(auto n : state.nations_by_rank) {
-		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-				auto adj_pop_of_type = state.world.nation_get_demographics(n, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
-
-				float base_life = state.world.pop_type_get_life_needs(pt, c) * 0.05f;
-				float base_everyday = state.world.pop_type_get_everyday_needs(pt, c) * 0.1f;
-				float base_luxury = state.world.pop_type_get_luxury_needs(pt, c) * 0.005f;
-
-				max_demand_buffer_depth_0[c.index()] += (base_life + base_everyday + base_luxury) * adj_pop_of_type;
-			});
-		});
-	}
-
-	// turn goods into ingredients
-	convert_commodities_into_ingredients(state, max_demand_buffer_depth_0, max_demand_buffer_depth_1, rgo_weights);
-
-	// turn ingredients into their ingredients
-	convert_commodities_into_ingredients(state, max_demand_buffer_depth_1, max_demand_buffer_depth_2, rgo_weights);
-	convert_commodities_into_ingredients(state, max_demand_buffer_depth_2, max_demand_buffer_depth_3, rgo_weights);
-	// should be enough steps for rough estimate...
-	// TODO: make a loop with switching buffers
-
-	// reduce imbalance
-	float total_shortage = 0.f;
-	float count = 0.f;
-
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		if(state.world.commodity_get_rgo_amount(c) > 0.f && max_rgo_production_buffer[c.index()] > 1.f) {
-			float shortage = max_demand_buffer_depth_3[c.index()] / max_rgo_production_buffer[c.index()];
-			float current_amount = state.world.commodity_get_rgo_amount(c);
-
-			// do not decrease amounts, only increase
-			if(shortage > 1.f) {
-				state.world.commodity_set_rgo_amount(c, current_amount * shortage);
-
-				total_shortage += shortage;
-				count++;
-			}
-		}
-	});
-
-	float average_shortage = 1.f;
-	if(count > 0) {
-		average_shortage = total_shortage / count;
-	}
-
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		if(state.world.commodity_get_rgo_amount(c) > 0.f && max_rgo_production_buffer[c.index()] <= 1.f) {
-			float current_amount = state.world.commodity_get_rgo_amount(c);
-			state.world.commodity_set_rgo_amount(c, current_amount *  average_shortage);
-		}
-	});
-
-	*/
-
-
 	// economic updates without construction
-
 	for(uint32_t i = 0; i < 365; i++) {
 		update_rgo_employment(state);
 		update_factory_employment(state);
@@ -816,9 +704,7 @@ void initialize(sys::state& state) {
 		// distribution of rgo land per good		
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto fc = fatten(state.world, c);
-			state.world.province_get_rgo_max_size_per_good(fp, c) +=
-				real_size
-				* true_distribution[c.index()];
+			state.world.province_get_rgo_max_size_per_good(fp, c) += real_size * true_distribution[c.index()];
 		});
 	});
 
@@ -1816,22 +1702,17 @@ void update_province_rgo_consumption(
 	auto rgo_pops = rgo_relevant_population(state, p, n);
 	float desired_profit = rgo_desired_worker_norm_profit(state, p, n, expected_min_wage, rgo_pops.total);
 
-
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto max_production = rgo_full_production_quantity(state, n, p, c);
-
 		if(max_production < 0.001f) {
 			return;
 		}		
 
 		auto pops_max = rgo_max_employment(state, n, p, c); // maximal amount of workers which rgo could potentially employ
-
 		auto current_employment = state.world.province_get_rgo_employment_per_good(p, c);
-
 		float expected_profit = rgo_expected_worker_norm_profit(state, p, n, c);
 
-		float market_size = state.world.commodity_get_total_production(c)
-			+ state.world.commodity_get_total_real_demand(c);
+		float market_size = state.world.commodity_get_total_production(c) + state.world.commodity_get_total_real_demand(c);
 
 		float positive_speed = (expected_profit + 0.00000001f) / (desired_profit + 0.00000001f) - 1.f;
 		float negative_speed = (desired_profit + 0.00000001f) / (expected_profit + 0.00000001f) - 1.f;
@@ -1847,16 +1728,10 @@ void update_province_rgo_consumption(
 		auto new_employment = std::clamp(current_employment + change, 0.0f, pops_max);
 		state.world.province_set_rgo_target_employment_per_good(p, c, new_employment);
 
-
 		// rgos produce all the way down
 		float employment_ratio = current_employment / pops_max;
-
 		assert(max_production * employment_ratio >= 0);
-
-		state.world.province_set_rgo_actual_production_per_good(p, c,
-			max_production
-			* employment_ratio
-		);
+		state.world.province_set_rgo_actual_production_per_good(p, c, max_production * employment_ratio);
 	});	
 }
 
