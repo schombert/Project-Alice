@@ -413,6 +413,8 @@ enum class variable_type : uint16_t {
 	infantry,
 	cavalry,
 	special,
+	//vanilla but forgot
+	thiscountry,
 	//non-vanilla
 	fromcontinent,
 	fromcapital,

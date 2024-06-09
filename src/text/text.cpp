@@ -709,6 +709,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
 		CT_STRING_ENUM(fromcapital)
+		CT_STRING_ENUM(thiscountry)
 	} else if(v.length() == 12) {
 		if(false) { }
 		CT_STRING_ENUM(construction)

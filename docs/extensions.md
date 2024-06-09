@@ -23,9 +23,88 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
-- `break_if = { ... }`: Stop exeuction of the effect if the condition is fullfilled.
+- `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
+- `this_bounce = { ... }`: Same as above but with `THIS`.
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
+
+### FROM bounce
+FROM bouncing is a technique where before, modders would do:
+```
+country_event (THIS = USA, FROM = ---) -> fire for X
+country_event (THIS = X, FROM = USA) -> Fire for Y
+country_event (THIS = Y, FROM = X) -> <Dynamic effects>
+```
+However this can be tedious to perform, hence we added a `from_bounce` effect scope, that can be used as follows:
+```
+any_country = {
+	#Assume FROM = ENG
+	from_bounce = {
+		FROM = { add_accepted_culture = THIS }
+		THIS = { add_accepted_culture = FROM }
+	}
+	#FROM is now again = ENG
+}
+```
+
+You can even nest them! Why would you want this? Up to you really.
+
+```
+any_country = {
+	limit = { has_country_flag = paid_the_sultan }
+	from_bounce = {
+		prestige = 5
+		SUL = { random_owned = { annex_to = FROM } } #Partition the sultan
+		any_country = {
+			#All countries at war with us will get annexed
+			limit = { war_with = FROM }
+			from_bounce = { inherit = FROM }
+		}
+	}
+}
+```
+
+If the `from_bounce` has a limit, it will evaluate with FROM-relativity:
+```
+ENG = {
+	from_bounce = {
+		limit = { FROM = { tag != ENG } }
+		prestige = 5
+	}
+}
+```
+The above code will never execute because it will never be true. Same applies for `this_bounce`.
+
+Before, this would've required something akin to:
+```
+country_event = { #Setup THIS
+	id = 50000
+	option = {
+		name = "Ok"
+		any_country = { country_event = 50001 }
+	}
+}
+country_event = { #Setup THIS-FROM
+	id = 50001
+	is_triggered_only = yes
+	option = {
+		name = "Ok"
+		any_country = {
+			limit = { NOT = { tag = FROM } }
+			country_event = 50002
+		}
+	}
+}
+country_event = {
+	id = 50002
+	is_triggered_only = yes
+	option = {
+		name = "OK"
+		FROM = { add_accepted_culture = THIS }
+		THIS = { add_accepted_culture = FROM }
+	}
+}
+```
 
 ### Custom tooltip
 ```
