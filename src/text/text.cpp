@@ -79,8 +79,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			pos += 1;
 			section_start = pos;
 			colour_esc = true;
-		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
-							is_qmark_color(*(pos + 3))) {
+		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
 				auto added_key = state.add_to_pool(sv);
@@ -119,7 +118,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			state.text_components.emplace_back(line_break{});
 			section_start = pos += 2;
 		} else {
-			++pos;
+			pos += size_from_utf8(seq_start, seq_end); //skip over multibyte
 		}
 
 		// This colour escape sequence must be followed by something, otherwise
@@ -1283,7 +1282,7 @@ size_t size_from_utf8(char const* start, char const* end) {
 	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
 	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
 		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
-		: 0;
+		: 1;
 }
 bool codepoint_is_space(uint32_t c) noexcept {
 	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
