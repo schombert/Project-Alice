@@ -96,6 +96,7 @@ void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
 
 void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
 	sys::write_save_file(state);
+
 	if(and_quit) {
 		window::close_window(state);
 	}
@@ -130,6 +131,10 @@ bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::sta
 					return false;
 				}
 			}
+			auto prov = state.world.state_instance_get_capital(target_state);
+			auto k = state.world.national_focus_get_limit(focus);
+			if(k && !trigger::evaluate(state, k, trigger::to_generic(prov), trigger::to_generic(state_owner), -1))
+				return false;
 			return num_focuses_set < num_focuses_total || bool(state.world.state_instance_get_owner_focus(target_state));
 		} else {
 			auto pc = state.world.nation_get_primary_culture(source);
@@ -420,12 +425,11 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 		auto& base_cost = state.economy_definitions.building_definitions[int32_t(type)].cost;
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
-				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
 			} else {
 				break;
 			}
 		}
-
 		nations::adjust_foreign_investment(state, source, state.world.province_get_nation_from_province_ownership(p), amount);
 	}
 
@@ -588,19 +592,15 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 
 	if(source != state.world.state_instance_get_nation_from_state_ownership(location)) {
 		float amount = 0.0f;
-
 		auto& base_cost = state.world.factory_type_get_construction_costs(type);
-
 		for(uint32_t j = 0; j < economy::commodity_set::set_size; ++j) {
 			if(base_cost.commodity_type[j]) {
-				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_current_price(base_cost.commodity_type[j]);
+				amount += base_cost.commodity_amounts[j] * state.world.commodity_get_cost(base_cost.commodity_type[j]); //base cost
 			} else {
 				break;
 			}
 		}
-
-		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location),
-				amount);
+		nations::adjust_foreign_investment(state, source, state.world.state_instance_get_nation_from_state_ownership(location), amount);
 	}
 }
 
@@ -2108,25 +2108,25 @@ void make_event_choice(sys::state& state, event::pending_human_f_p_event const& 
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
 	event::take_option(state,
-			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.e, source, e.date, e.pt, e.ft}, e.opt_choice);
+			event::pending_human_n_event {e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
-	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.e, source, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_f_n_event {e.r_lo, e.r_hi, e.date, e.e, source}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.e, e.p, e.date, e.ft}, e.opt_choice);
+	event::take_option(state, event::pending_human_p_event {e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft}, e.opt_choice);
 	event::update_future_events(state);
 }
 void execute_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
 	if(source != state.world.province_get_nation_from_province_ownership(e.p))
 		return;
 
-	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.e, e.p, e.date}, e.opt_choice);
+	event::take_option(state, event::pending_human_f_p_event {e.r_lo, e.r_hi, e.date, e.e, e.p}, e.opt_choice);
 	event::update_future_events(state);
 }
 
@@ -4511,13 +4511,13 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(source == target) //redundant
 		return false;
-	if(!bool(target) || target == state.national_definitions.rebel_id) //Invalid OR rebel nation
+	if(!bool(target) || target == state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id)) //Invalid OR rebel nation
 		return false;
 	// TODO: Support Co-op (one day)
 	return state.world.nation_get_is_player_controlled(target) == false;
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	assert(source && source != state.national_definitions.rebel_id);
+	assert(source && source != state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
 	network::switch_player(state, target, source);
 	state.world.nation_set_is_player_controlled(source, false);
 	state.world.nation_set_is_player_controlled(target, true);

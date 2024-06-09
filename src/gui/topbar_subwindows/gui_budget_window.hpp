@@ -158,7 +158,7 @@ public:
 			auto total = non_colonial > 0.0f ? state.world.nation_get_non_colonial_bureaucrats(n) / non_colonial : 0.0f;
 
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_two_places{ total * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_percentage{ total });
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "admin_explain_2", m);
 			text::close_layout_box(contents, box);
@@ -171,11 +171,9 @@ public:
 			auto from_issues = issue_sum * state.defines.bureaucracy_percentage_increment;
 
 			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::val,
-					text::fp_two_places{ (from_issues + state.defines.max_bureaucracy_percentage) * 100.0f });
-			text::add_to_substitution_map(m, text::variable_type::x,
-					text::fp_two_places{ state.defines.max_bureaucracy_percentage * 100.0f });
-			text::add_to_substitution_map(m, text::variable_type::y, text::fp_two_places{ from_issues * 100.0f });
+			text::add_to_substitution_map(m, text::variable_type::val, text::fp_percentage{ (from_issues + state.defines.max_bureaucracy_percentage) });
+			text::add_to_substitution_map(m, text::variable_type::x, text::fp_percentage{ state.defines.max_bureaucracy_percentage });
+			text::add_to_substitution_map(m, text::variable_type::y, text::fp_percentage{ from_issues });
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, "admin_explain_3", m);
 			text::close_layout_box(contents, box);
@@ -1891,7 +1889,9 @@ public:
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
 		} else if(name == "tariffs_percent") {
-			return make_element_by_type<budget_tariff_percentage_text>(state, id);
+			auto ptr = make_element_by_type<budget_tariff_percentage_text>(state, id);
+			ptr->base_data.position.x += int16_t(10); //nudge
+			return ptr;
 		} else if(name == "total_funds_val") {
 			return make_element_by_type<nation_budget_funds_text>(state, id);
 		} else if(name == "national_bank_val") {

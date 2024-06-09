@@ -1,0 +1,3248 @@
+PROV1;Sitka
+PROV2;Yakutat
+PROV3;Kenai
+PROV4;Dutch Harbor
+PROV5;Bethel
+PROV6;Whitehorse
+PROV7;Dawson
+PROV8;Ross River
+PROV9;Fort Simpson
+PROV10;Inuvik
+PROV11;Echo Bay
+PROV12;Reliance
+PROV13;Vancouver
+PROV14;Vancouver Island
+PROV15;Prince Rupert
+PROV16;Glenora
+PROV17;Atlin
+PROV18;Fort Saint John
+PROV19;Prince George
+PROV20;Kelowna
+PROV21;Vernon
+PROV22;Edmonton
+PROV23;Athabaska Landing
+PROV24;Jasper
+PROV25;Banff
+PROV26;Calgary
+PROV27;Denwood
+PROV28;Fort MacLeod
+PROV29;Medicine Hat
+PROV30;Regina
+PROV31;Stanley
+PROV32;Prince Albert
+PROV33;Asquith
+PROV34;Saskatoon
+PROV35;Maple Creek
+PROV36;Winnipeg
+PROV37;Churchill
+PROV38;Indian Lakes
+PROV39;Norway House
+PROV40;Dauphin
+PROV41;Brandon
+PROV42;Pembina
+PROV43;Arviat
+PROV44;Coral Harbour
+PROV45;Baffin Island
+PROV46;Toronto
+PROV47;Fort Severn
+PROV48;Fort Albany
+PROV49;Dryden
+PROV50;Thunder Bay
+PROV51;Sault Ste Marie
+PROV52;Sudbury
+PROV53;Barrie
+PROV54;Windsor
+PROV55;Hamilton
+PROV56;Kingston
+PROV57;Ottawa
+PROV58;Montreal
+PROV59;Nitchequon
+PROV60;Fort Rupert
+PROV61;Chicoutimi
+PROV62;Sept-Îles
+PROV63;Temiscaming
+PROV64;Trois-Rivičres
+PROV65;Quebec City
+PROV66;Sherbrooke
+PROV67;Rimouski
+PROV68;Fredericton
+PROV69;Bathurst
+PROV70;Prince Edward Island
+PROV71;Halifax
+PROV72;Truro
+PROV73;Cape Breton Island
+PROV74;Saint Johns
+PROV75;Millertown
+PROV76;Hopedale
+PROV77;St Pierre & Miquelon
+PROV78;Seattle
+PROV79;Spokane
+PROV80;Walla Walla
+PROV81;Portland
+PROV82;Baker City
+PROV83;Klamath Falls
+PROV84;San Francisco
+PROV85;Eureka
+PROV86;Sacramento
+PROV87;Monterey
+PROV88;Mariposa
+PROV89;Los Angeles
+PROV90;San Diego
+PROV91;Boise
+PROV92;Coeur D'Alene
+PROV93;Pocatello
+PROV94;Carson City
+PROV95;Elko
+PROV96;Las Vegas
+PROV97;Salt Lake City
+PROV98;Loa
+PROV99;Moab
+PROV100;Phoenix
+PROV101;Flagstaff
+PROV102;Tucson
+PROV103;Santa Fe
+PROV104;Albuquerque
+PROV105;Las Cruces
+PROV106;Denver
+PROV107;Grand Junction
+PROV108;Alamosa
+PROV109;Pueblo
+PROV110;Cheyenne
+PROV111;Cody
+PROV112;Casper
+PROV113;Bozeman
+PROV114;Missoula
+PROV115;Great Falls
+PROV116;Billings
+PROV117;Bismarck
+PROV118;Minot
+PROV119;Dickinson
+PROV120;Sioux Falls
+PROV121;Dupree
+PROV122;Rapid City
+PROV123;Omaha
+PROV124;Alliance
+PROV125;North Platte
+PROV126;Topeka
+PROV127;Goodland
+PROV128;Wichita
+PROV129;Oklahoma City
+PROV130;Tahlequah
+PROV131;Okmulgee
+PROV132;Houston
+PROV133;Austin
+PROV134;Dallas
+PROV135;Lubbock
+PROV136;El Paso
+PROV137;San Antonio
+PROV138;Laredo
+PROV139;New Orleans
+PROV140;Baton Rouge
+PROV141;Lake Charles
+PROV142;Shreveport
+PROV143;Little Rock
+PROV144;Hot Springs
+PROV145;Fayetteville
+PROV146;St Louis
+PROV147;Joplin
+PROV148;Malden
+PROV149;Jefferson City
+PROV150;Kansas City
+PROV151;Des Moines
+PROV152;Oskaloosa
+PROV153;Cedar Rapids
+PROV154;Sioux City
+PROV155;Minneapolis
+PROV156;Granite Falls
+PROV157;Moorhead
+PROV158;Duluth
+PROV159;Milwaukee
+PROV160;Eau Claire
+PROV161;Green Bay
+PROV162;Madison
+PROV163;Chicago
+PROV164;Rockford
+PROV165;Champaign
+PROV166;Peoria
+PROV167;Springfield
+PROV168;Carbondale
+PROV169;Indianapolis
+PROV170;Evansville
+PROV171;South Bend
+PROV172;Fort Wayne
+PROV173;Detroit
+PROV174;Grand Rapids
+PROV175;Saginaw
+PROV176;Traverse City
+PROV177;Marquette
+PROV178;Cleveland
+PROV179;Columbus
+PROV180;Sandusky
+PROV181;Dayton
+PROV182;Cincinnati
+PROV183;Marietta
+PROV184;Louisville
+PROV185;Lexington
+PROV186;Bowling Green
+PROV187;Paducah
+PROV188;Nashville
+PROV189;Memphis
+PROV190;Knoxville
+PROV191;Chattanooga
+PROV192;Jackson
+PROV193;Vicksburg
+PROV194;Biloxi
+PROV195;Montgomery
+PROV196;Tuscaloosa
+PROV197;Mobile
+PROV198;Tallahassee
+PROV199;St Augustine
+PROV200;Tampa
+PROV201;Atlanta
+PROV202;Valdosta
+PROV203;Bermuda
+PROV204;Savannah
+PROV205;Charleston
+PROV206;Columbia
+PROV207;Greenville
+PROV208;Raleigh
+PROV209;Charlotte
+PROV210;Wilmington
+PROV211;Richmond
+PROV212;Manassas
+PROV213;Fredericksburg
+PROV214;Norfolk
+PROV215;Staunton
+PROV216;Roanoke
+PROV217;Wheeling
+PROV218;Huntington
+PROV219;Baltimore
+PROV220;Washington
+PROV221;Hagerstown
+PROV222;Dover
+PROV223;Philadelphia
+PROV224;Scranton
+PROV225;Williamsport
+PROV226;Harrisburg
+PROV227;Pittsburgh
+PROV228;Erie
+PROV229;Newark
+PROV230;Trenton
+PROV231;Atlantic City
+PROV232;New York
+PROV233;Long Island
+PROV234;Albany
+PROV235;Binghamton
+PROV236;Buffalo
+PROV237;Rochester
+PROV238;Syracuse
+PROV239;Watertown
+PROV240;Plattsburgh
+PROV241;Hartford
+PROV242;Providence
+PROV243;Boston
+PROV244;New Bedford
+PROV245;Pittsfield
+PROV246;Burlington
+PROV247;Concord
+PROV248;Lewiston
+PROV249;Bangor
+PROV250;Caribou
+PROV251;Godthab
+PROV252;Iceland
+PROV253;Faroe Islands
+PROV254;Belfast
+PROV255;Londonderry
+PROV256;Armagh
+PROV257;Donegal
+PROV258;Galway
+PROV259;Sligo
+PROV260;Cork
+PROV261;Limerick
+PROV262;Waterford
+PROV263;Dublin
+PROV264;Kildare
+PROV265;Wexford
+PROV266;Aberdeen
+PROV267;Inverness
+PROV268;Dundee
+PROV269;Edinburgh
+PROV270;Stirling
+PROV271;Glasgow
+PROV272;Dumfries
+PROV273;Cardiff
+PROV274;Cardigan
+PROV275;Llandrindod
+PROV276;Holyhead
+PROV277;Liverpool
+PROV278;Manchester
+PROV279;Carlisle
+PROV280;Newcastle-upon-Tyne
+PROV281;Hull
+PROV282;Leeds
+PROV283;Sheffield
+PROV284;Birmingham
+PROV285;Chester
+PROV286;Shrewsbury
+PROV287;Coventry
+PROV288;Nottingham
+PROV289;Leicester
+PROV290;Lincoln
+PROV291;Cambridge
+PROV292;Ipswich
+PROV293;Chelmsford
+PROV294;Oxford
+PROV295;St Albans
+PROV296;Bristol
+PROV297;Salisbury
+PROV298;Bath
+PROV299;Plymouth
+PROV300;London
+PROV301;Canterbury
+PROV302;Brighton
+PROV303;Southampton
+PROV304;Isle of Man
+PROV305;Trondheim
+PROV306;Bodo
+PROV307;Hammerfest
+PROV308;Alesund
+PROV309;Bergen
+PROV310;Christianssand
+PROV311;Skien
+PROV312;Drammen
+PROV313;Christiania
+PROV314;Hamar
+PROV315;Lillehammer
+PROV316;Frederiksstad
+PROV317;Gävle
+PROV318;Sundsvall
+PROV319;Östersund
+PROV320;Umeĺ
+PROV321;Luleĺ
+PROV322;Stockholm
+PROV323;Falun
+PROV324;Uppsala
+PROV325;Norrköping
+PROV326;Västerĺs
+PROV327;Örebro
+PROV328;Karlstad
+PROV329;Göteborg
+PROV330;Borĺs
+PROV331;Gotland
+PROV332;Kalmar
+PROV333;Växjö
+PROV334;Malmö
+PROV335;Karlskrona
+PROV336;Oulu
+PROV337;Kajaani
+PROV338;Tornio
+PROV339;Viipuri
+PROV340;Kotka
+PROV341;Mikkeli
+PROV342;Kuopio
+PROV343;Helsinki
+PROV344;Hämeenlinna
+PROV345;Turku
+PROV346;Vaasa
+PROV347;Tampere
+PROV348;Ĺland Islands
+PROV349;Reval
+PROV350;Narva
+PROV351;Pärnu
+PROV352;Dorpat
+PROV353;Ösel
+PROV354;Riga
+PROV355;Valmiera
+PROV356;Daugavpils
+PROV357;Jelgava
+PROV358;Ventspils
+PROV359;Liepaja
+PROV360;Vilnius
+PROV361;Kaunas
+PROV362;Marijampole
+PROV363;Panevezys
+PROV364;Siauliai
+PROV365;Palanga
+PROV366;Aarhus
+PROV367;Aalborg
+PROV368;Ribe
+PROV369;Kiel
+PROV370;Flensburg
+PROV371;Aabenraa
+PROV372;Copenhagen
+PROV373;Odense
+PROV374;Bornholm
+PROV375;Amsterdam
+PROV376;Rotterdam
+PROV377;Utrecht
+PROV378;Middelburg
+PROV379;Eindhoven
+PROV380;Breda
+PROV381;Maastricht
+PROV382;Arnhem
+PROV383;Groningen
+PROV384;Zwolle
+PROV385;Leeuwarden
+PROV386;Assen
+PROV387;Brussels
+PROV388;Bruges
+PROV389;Ghent
+PROV390;Antwerp
+PROV391;Hasselt
+PROV392;Namur
+PROV393;Tournai
+PROV394;Charleroi
+PROV395;Ličge
+PROV396;Spa
+PROV397;Luxembourg
+PROV398;Arlon
+PROV399;Lille
+PROV400;Dunkirk
+PROV401;Arras
+PROV402;Amiens
+PROV403;Laon
+PROV404;Cambrai
+PROV405;Charleville
+PROV406;Troyes
+PROV407;Chaumont
+PROV408;Chalons
+PROV409;Strasbourg
+PROV410;Colmar
+PROV411;Nancy
+PROV412;Metz
+PROV413;Verdun
+PROV414;Épinal
+PROV415;Rouen
+PROV416;Évreux
+PROV417;Alençon
+PROV418;Caen
+PROV419;Channel Islands
+PROV420;Brest
+PROV421;St Brieuc
+PROV422;Vannes
+PROV423;Nantes
+PROV424;Rennes
+PROV425;Paris
+PROV426;Chartres
+PROV427;Melun
+PROV428;Dijon
+PROV429;Auxerre
+PROV430;Moulins
+PROV431;Macon
+PROV432;Besançon
+PROV433;Lons
+PROV434;Angers
+PROV435;Laval
+PROV436;Le Mans
+PROV437;La Roche
+PROV438;Orléans
+PROV439;Bourges
+PROV440;Blois
+PROV441;Tours
+PROV442;La Rochelle
+PROV443;Poitiers
+PROV444;Angoulęme
+PROV445;Limoges
+PROV446;Châteauroux
+PROV447;Tulle
+PROV448;Clermont-Ferrand
+PROV449;Aurillac
+PROV450;Cahors
+PROV451;Lyon
+PROV452;St Étienne
+PROV453;Valence
+PROV454;Grenoble
+PROV455;Toulouse
+PROV456;Montauban
+PROV457;Foix
+PROV458;Bordeaux
+PROV459;Mont de Marsan
+PROV460;Pau
+PROV461;Montpellier
+PROV462;Rodez
+PROV463;Carcassonne
+PROV464;Perpignan
+PROV465;Annecy
+PROV466;Chambéry
+PROV467;Marseilles
+PROV468;Avignon
+PROV469;Digne
+PROV470;Toulon
+PROV471;Frejus
+PROV472;Nice
+PROV473;Corsica
+PROV474;La Coruńa
+PROV475;Oviedo
+PROV476;Vigo
+PROV477;León
+PROV478;Santander
+PROV479;Burgos
+PROV480;Valladolid
+PROV481;Soria
+PROV482;Salamanca
+PROV483;Ávila
+PROV484;Badajoz
+PROV485;Almendralejo
+PROV486;Cáceres
+PROV487;Madrid
+PROV488;Sigüenza
+PROV489;Toledo
+PROV490;Cuenca
+PROV491;Ciudad Real
+PROV492;Bilbao
+PROV493;Pamplona
+PROV494;Logrońo
+PROV495;Zaragoza
+PROV496;Huesca
+PROV497;Teruel
+PROV498;Barcelona
+PROV499;Gerona
+PROV500;Lérida
+PROV501;Tarragona
+PROV502;Balearic Islands
+PROV503;Valencia
+PROV504;Castellón
+PROV505;Alicante
+PROV506;Cartagena
+PROV507;Murcia
+PROV508;Albacete
+PROV509;Seville
+PROV510;Córdoba
+PROV511;Huelva
+PROV512;Cádiz
+PROV513;Granada
+PROV514;Málaga
+PROV515;Almería
+PROV516;Jaén
+PROV517;Gibraltar
+PROV518;Oporto
+PROV519;Vila Real
+PROV520;Covilhă
+PROV521;Lisbon
+PROV522;Coimbra
+PROV523;Abrantes
+PROV524;Setubal
+PROV525;Évora
+PROV526;Beja
+PROV527;Faro
+PROV528;Hamburg
+PROV529;Lauenburg
+PROV530;Lübeck
+PROV531;Stade
+PROV532;Lüneburg
+PROV533;Heligoland
+PROV534;Hanover
+PROV535;Nienburg
+PROV536;Brunswick
+PROV537;Göttingen
+PROV538;Osnabrück
+PROV539;Bremen
+PROV540;Oldenburg
+PROV541;Cloppenburg
+PROV542;Lingen
+PROV543;Emden
+PROV544;Schwerin
+PROV545;Neustrelitz
+PROV546;Stettin
+PROV547;Swinemünde
+PROV548;Stralsund
+PROV549;Berlin
+PROV550;Prenzlau
+PROV551;Pritzwalk
+PROV552;Cottbus
+PROV553;Magdeburg
+PROV554;Erfurt
+PROV555;Dessau
+PROV556;Halle
+PROV557;Stendal
+PROV558;Dresden
+PROV559;Leipzig
+PROV560;Chemnitz
+PROV561;Weimar
+PROV562;Gotha
+PROV563;Meiningen
+PROV564;Frankfurt
+PROV565;Wiesbaden
+PROV566;Kassel
+PROV567;Giessen
+PROV568;Fulda
+PROV569;Mannheim
+PROV570;Mainz
+PROV571;Kaiserslautern
+PROV572;Trier
+PROV573;Saarbrücken
+PROV574;Kreuznach
+PROV575;Cologne
+PROV576;Aachen
+PROV577;Cleves
+PROV578;Düsseldorf
+PROV579;Koblenz
+PROV580;Dortmund
+PROV581;Münster
+PROV582;Minden
+PROV583;Siegen
+PROV584;Korbach
+PROV585;Detmold
+PROV586;Karlsruhe
+PROV587;Freiburg
+PROV588;Konstanz
+PROV589;Stuttgart
+PROV590;Heilbronn
+PROV591;Tübingen
+PROV592;Augsburg
+PROV593;Ulm
+PROV594;Sigmaringen
+PROV595;Nuremberg
+PROV596;Aschaffenburg
+PROV597;Würzburg
+PROV598;Bayreuth
+PROV599;Munich
+PROV600;Landshut
+PROV601;Ingolstadt
+PROV602;Regensburg
+PROV603;Zurich
+PROV604;Basel
+PROV605;Bern
+PROV606;Lucerne
+PROV607;Geneva
+PROV608;Neuchâtel
+PROV609;Sitten
+PROV610;Ponape
+PROV611;Chur
+PROV612;Innsbruck
+PROV613;Salzburg
+PROV614;Bregenz
+PROV615;Lienz
+PROV616;Graz
+PROV617;Judenburg
+PROV618;Klagenfurt
+PROV619;Vienna
+PROV620;Sankt Pölten
+PROV621;Krems
+PROV622;Linz
+PROV623;Sopron
+PROV624;Eisenstadt
+PROV625;Prague
+PROV626;Hradec Králové
+PROV627;Karlsbad
+PROV628;Aussig
+PROV629;Plzen
+PROV630;Budejovice
+PROV631;Brno
+PROV632;Olomouc
+PROV633;Bratislava
+PROV634;Trencín
+PROV635;Nitra
+PROV636;Banská Bystrica
+PROV637;Košice
+PROV638;Rožnava
+PROV639;Zalaegerszeg
+PROV640;Pécs
+PROV641;Budapest
+PROV642;Gyor
+PROV643;Székesfehérvár
+PROV644;Kaposvár
+PROV645;Kecskemét
+PROV646;Miskolc
+PROV647;Oradea
+PROV648;Debrecen
+PROV649;Szeged
+PROV650;Békéscsaba
+PROV651;Szatmár
+PROV652;Temesvar
+PROV653;Resicabánya
+PROV654;Cluj
+PROV655;Gyulafehervar
+PROV656;Deva
+PROV657;Nagyszeben
+PROV658;Hawaii
+PROV659;Brasso
+PROV660;Udvarhely
+PROV661;Beszterce
+PROV662;Cernauti
+PROV663;Suceava
+PROV664;Bucharest
+PROV665;Tirgu Jiu
+PROV666;Craiova
+PROV667;Tirgoviste
+PROV668;Braila
+PROV669;Calarasi
+PROV670;Iasi
+PROV671;Botosani
+PROV672;Bacau
+PROV673;Galati
+PROV674;Constanta
+PROV675;Tulcea
+PROV676;Chisinau
+PROV677;Balti
+PROV678;Izmail
+PROV679;Kolberg
+PROV680;Köslin
+PROV681;Küstrin
+PROV682;Breslau
+PROV683;Liegnitz
+PROV684;Oppeln
+PROV685;Kattowitz
+PROV686;Line Islands
+PROV687;Görlitz
+PROV688;Troppau
+PROV689;Tesin
+PROV690;Danzig
+PROV691;Tuchel
+PROV692;Deutsch Krone
+PROV693;Elbing
+PROV694;Torun
+PROV695;Königsberg
+PROV696;Allenstein
+PROV697;Gumbinnen
+PROV698;Memel
+PROV699;Posen
+PROV700;Bromberg
+PROV701;Gniezno
+PROV702;Lvov
+PROV703;Krakow
+PROV704;Novy Sacz
+PROV705;Przemysl
+PROV706;Warsaw
+PROV707;Suwalki
+PROV708;Plock
+PROV709;Lomza
+PROV710;Skierniewice
+PROV711;Siedlice
+PROV712;Lodz
+PROV713;Radom
+PROV714;Tarnow
+PROV715;Lublin
+PROV716;Kielce
+PROV717;Kalisz
+PROV718;Minsk
+PROV719;Bialystock
+PROV720;Turin
+PROV721;Aosta
+PROV722;Novara
+PROV723;Alessandria
+PROV724;Genoa
+PROV725;Savona
+PROV726;Milan
+PROV727;Bergamo
+PROV728;Brescia
+PROV729;Venice
+PROV730;Verona
+PROV731;Padua
+PROV732;Treviso
+PROV733;Udine
+PROV734;Trent
+PROV735;Bozen
+PROV736;Trieste
+PROV737;Gorizia
+PROV738;Parma
+PROV739;Modena
+PROV740;Massa
+PROV741;Bologna
+PROV742;Ferrara
+PROV743;Ravenna
+PROV744;Florence
+PROV745;Leghorn
+PROV746;Lucca
+PROV747;Siena
+PROV748;Grosetto
+PROV749;Rome
+PROV750;Viterbo
+PROV751;Perugia
+PROV752;Ancona
+PROV753;Aquila
+PROV754;Naples
+PROV755;Salerno
+PROV756;Bari
+PROV757;Foggia
+PROV758;Brindisi
+PROV759;Reggio di Calabria
+PROV760;Catanzaro
+PROV761;Potenza
+PROV762;Palermo
+PROV763;Messina
+PROV764;Catania
+PROV765;Cagliari
+PROV766;Sassari
+PROV767;Maribor
+PROV768;Ljubljana
+PROV769;Postojna
+PROV770;Pola
+PROV771;Zagreb
+PROV772;Sisak
+PROV773;Karlovac
+PROV774;Senj
+PROV775;Varaždin
+PROV776;Bjelovar
+PROV777;Požega
+PROV778;Fiume
+PROV779;Osijek
+PROV780;Split
+PROV781;Zadar
+PROV782;Dubrovnik
+PROV783;Sarajevo
+PROV784;Bihac
+PROV785;Banja Luka
+PROV786;Tuzla
+PROV787;Foca
+PROV788;Mostar
+PROV789;Livno
+PROV790;Kitwe
+PROV791;Mitrovica
+PROV792;Pancevo
+PROV793;Vukovar
+PROV794;Belgrade
+PROV795;Bor
+PROV796;Kragujevac
+PROV797;Užice
+PROV798;Niš
+PROV799;Leskovac
+PROV800;Ulcinj
+PROV801;Tahiti
+PROV802;Pristina
+PROV803;Prizren
+PROV804;Novi Pazar
+PROV805;Salonika
+PROV806;Skopje
+PROV807;Bitola
+PROV808;Petrich
+PROV809;Sofia
+PROV810;Vidin
+PROV811;Ruse
+PROV812;Pleven
+PROV813;Shumen
+PROV814;Varna
+PROV815;Plovdiv
+PROV816;Stara Zagora
+PROV817;Burgas
+PROV818;Silistre
+PROV819;Florina
+PROV820;Grevena
+PROV821;Edessa
+PROV822;Polygyros
+PROV823;Kavala
+PROV824;Janina
+PROV825;Arta
+PROV826;Corfu
+PROV827;Zante
+PROV828;Edirne
+PROV829;Xanthe
+PROV830;Dedeagatch
+PROV831;Larissa
+PROV832;Volos
+PROV833;Trikkala
+PROV834;Athens
+PROV835;Amfissa
+PROV836;Lamia
+PROV837;Missolonghi
+PROV838;Khalkis
+PROV839;Nafplion
+PROV840;Corinth
+PROV841;Kalamata
+PROV842;Patras
+PROV843;Chios
+PROV844;Myteline
+PROV845;Cyclades
+PROV846;Dodecanese
+PROV847;Chania
+PROV848;Iraklion
+PROV849;Tirana
+PROV850;Shkoder
+PROV851;Durres
+PROV852;Vlore
+PROV853;Gjirokaster
+PROV854;Malta
+PROV855;Nicosia
+PROV856;Limassol
+PROV857;Famagusta
+PROV858;Kirklareli
+PROV859;Gallipoli
+PROV860;Istanbul
+PROV861;Üsküdar
+PROV862;Izmit
+PROV863;Bursa
+PROV864;Balikesir
+PROV865;Canakkale
+PROV866;Afyon
+PROV867;Kütahya
+PROV868;Eskishehir
+PROV869;Izmir
+PROV870;Manisa
+PROV871;Denizli
+PROV872;Mugla
+PROV873;Konya
+PROV874;Burdur
+PROV875;Antalya
+PROV876;Ankara
+PROV877;Amasya
+PROV878;Kayseri
+PROV879;Sivas
+PROV880;Kastamonu
+PROV881;Bolu
+PROV882;Trabzon
+PROV883;Sinop
+PROV884;Giresun
+PROV885;Kars
+PROV886;Ardahan
+PROV887;Erzurum
+PROV888;Erzincan
+PROV889;Malatya
+PROV890;Van
+PROV891;Bitlis
+PROV892;Hakkari
+PROV893;Diyarbakir
+PROV894;Adana
+PROV895;Mersin
+PROV896;Marash
+PROV897;Aleppo
+PROV898;Antep
+PROV899;Urfa
+PROV900;Antioch
+PROV901;Dayr al-Zour
+PROV902;Damascus
+PROV903;Homs
+PROV904;Hama
+PROV905;Latakia
+PROV906;Suwayda
+PROV907;Palmyra
+PROV908;Amman
+PROV909;Jerash
+PROV910;Ruwayshid
+PROV911;Maan
+PROV912;Baalbeck
+PROV913;Beirut
+PROV914;Askaleh
+PROV915;Sidon
+PROV916;Acre
+PROV917;Jerusalem
+PROV918;Nablus
+PROV919;Jaffa
+PROV920;Gaza
+PROV921;Beersheba
+PROV922;Aqaba
+PROV923;Mosul
+PROV924;Arbil
+PROV925;Kirkuk
+PROV926;Baghdad
+PROV927;Samarra
+PROV928;Mendeli
+PROV929;Karbala
+PROV930;Kut
+PROV931;Rutbah
+PROV932;Basra
+PROV933;Nasiriyya
+PROV934;Najaf
+PROV935;Kuwait
+PROV936;Grodno
+PROV937;Brest-Litovsk
+PROV938;Lida
+PROV939;Baranovichi
+PROV940;Pinsk
+PROV941;Slutsk
+PROV942;Mozyr
+PROV943;Smolensk
+PROV944;Orsha
+PROV945;Vitebsk
+PROV946;Polotsk
+PROV947;Pastavy
+PROV948;Mogilev
+PROV949;Gomel
+PROV950;Uzgorord
+PROV951;Stryi
+PROV952;Ternopil
+PROV953;Stanislavov
+PROV954;Vinnitsa
+PROV955;Proskorov
+PROV956;Rovne
+PROV957;Kovel
+PROV958;Kiev
+PROV959;Korosten
+PROV960;Zhitomir
+PROV961;Cherkassy
+PROV962;Chernigov
+PROV963;Poltava
+PROV964;Simferopol
+PROV965;Cherson
+PROV966;Kerch
+PROV967;Sevastopol
+PROV968;Odessa
+PROV969;Pervomaisk
+PROV970;Nikolaev
+PROV971;Krivoy Rog
+PROV972;Ekaterinoslav
+PROV973;Melitopol
+PROV974;Kramatorsk
+PROV975;Yuzovka
+PROV976;Mariupol
+PROV977;Kursk
+PROV978;Kharkov
+PROV979;Rostov
+PROV980;Luhansk
+PROV981;Archangel
+PROV982;Petsamo
+PROV983;Kandalaksha
+PROV984;Kostomushka
+PROV985;Mezen
+PROV986;Naryn Mar
+PROV987;Ust Sysolsk
+PROV988;Povyents
+PROV989;Vologda
+PROV990;Kotlas
+PROV991;Uglich
+PROV992;Belozersk
+PROV993;Vyterga
+PROV994;St Petersburg
+PROV995;Petrozavorsk
+PROV996;Luga
+PROV997;Gdov
+PROV998;Tver
+PROV999;Rzhev
+PROV1000;Staritsa
+PROV1001;Yaroslavl
+PROV1002;Manzhouli
+PROV1003;Novgorod
+PROV1004;Tikhvin
+PROV1005;Borovichi
+PROV1006;Pskov
+PROV1007;Velikiye Luki
+PROV1008;Moscow
+PROV1009;Borodino
+PROV1010;Kaluga
+PROV1011;Tula
+PROV1012;Ryazan
+PROV1013;Vladimir
+PROV1014;Vyazma
+PROV1015;Peremyshl
+PROV1016;Bryansk
+PROV1017;Orel
+PROV1018;Belgorod
+PROV1019;Voronets
+PROV1020;Nizhni Novgorod
+PROV1021;Penza
+PROV1022;Ivanovo
+PROV1023;Kostorma
+PROV1024;Galich
+PROV1025;Tambov
+PROV1026;Perm
+PROV1027;Vetluga
+PROV1028;Vyatkha
+PROV1029;Glasov
+PROV1030;Kazan
+PROV1031;Sarapul
+PROV1032;Chistopol
+PROV1033;Simbirsk
+PROV1034;Samara
+PROV1035;Syzran
+PROV1036;Astrakhan
+PROV1037;Saratov
+PROV1038;Novo Uzensk
+PROV1039;Tsaritsyn
+PROV1040;Zarevka
+PROV1041;Elitsa
+PROV1042;Ufa
+PROV1043;Busuluk
+PROV1044;Orenburg
+PROV1045;Migolinskaya
+PROV1046;Chirskaya
+PROV1047;Azov
+PROV1048;Ekaterinodar
+PROV1049;Novorossiysk
+PROV1050;Stavropol
+PROV1051;Adygei
+PROV1052;Derbent
+PROV1053;Gunib
+PROV1054;Vladikavkaz
+PROV1055;Grozny
+PROV1056;Pyatigorsk
+PROV1057;Kizylyar
+PROV1058;Ekaterinburg
+PROV1059;Chelyabinsk
+PROV1060;Orsk
+PROV1061;Tyumen
+PROV1062;Berezov
+PROV1063;Tomsk
+PROV1064;Omsk
+PROV1065;Nizhnevartovsk
+PROV1066;Tobolsk
+PROV1067;Barnaul
+PROV1068;Ulala
+PROV1069;Vilyuysk
+PROV1070;Bryanka
+PROV1071;Bytantaysk
+PROV1072;Okhotsk
+PROV1073;Yevensk
+PROV1074;Petropavlovsk
+PROV1075;Irkutsk
+PROV1076;Bratsk
+PROV1077;Krasnoyarsk
+PROV1078;Chita
+PROV1079;Nerchinsk
+PROV1080;Chernomin
+PROV1081;Yaksa
+PROV1082;Haishenwai
+PROV1083;Boli
+PROV1084;Utchan
+PROV1085;Ulusamudan
+PROV1086;Pogobi
+PROV1087;Ootomari
+PROV1088;Shumshu
+PROV1089;Etorofu
+PROV1090;Tblisi
+PROV1091;Pasanauri
+PROV1092;Kutaisi
+PROV1093;Akhaltsikhe
+PROV1094;Poti
+PROV1095;Sukhumi
+PROV1096;Batum
+PROV1097;New Caledonia
+PROV1098;Erivan
+PROV1099;Gyumri
+PROV1100;Kapan
+PROV1101;Nakhichevan
+PROV1102;Baku
+PROV1103;Siyazen
+PROV1104;Sheki
+PROV1105;Ganja
+PROV1106;Agdam
+PROV1107;Lankaran
+PROV1108;Tabriz
+PROV1109;Khvoy
+PROV1110;Urumia
+PROV1111;Mahabad
+PROV1112;Ardabil
+PROV1113;Rasht
+PROV1114;Noshehr
+PROV1115;Sari
+PROV1116;Gorgan
+PROV1117;Kermanshah
+PROV1118;Sanandaj
+PROV1119;Ilam
+PROV1120;Khoramabad
+PROV1121;Tehran
+PROV1122;Hamadan
+PROV1123;Zanjan
+PROV1124;Qazvin
+PROV1125;Qom
+PROV1126;Semnan
+PROV1127;Isfahan
+PROV1128;Arak
+PROV1129;Kashan
+PROV1130;Yazd
+PROV1131;Ahvaz
+PROV1132;Abadan
+PROV1133;Dezful
+PROV1134;Dehkord
+PROV1135;Shiraz
+PROV1136;Bushire
+PROV1137;Yasuj
+PROV1138;Kangan
+PROV1139;Sirjan
+PROV1140;Kerman
+PROV1141;Lengeh
+PROV1142;Bandar Abbas
+PROV1143;Bam
+PROV1144;Zahedan
+PROV1145;Jask
+PROV1146;Chabahar
+PROV1147;Mashhad
+PROV1148;Birjand
+PROV1149;Sabzevar
+PROV1150;Bojnurd
+PROV1151;Mecca
+PROV1152;Jidda
+PROV1153;Medina
+PROV1154;Tabuk
+PROV1155;Abha
+PROV1156;Kaf
+PROV1157;Riyadh
+PROV1158;Rafha
+PROV1159;Halaban
+PROV1160;Hail
+PROV1161;Sharurah
+PROV1162;Bahrain
+PROV1163;Qatif
+PROV1164;Hufuf
+PROV1165;Doha
+PROV1166;Muscat
+PROV1167;Abu Dhabi
+PROV1168;Dubai
+PROV1169;Sohar
+PROV1170;Nizwa
+PROV1171;Sur
+PROV1172;Duqm
+PROV1173;Mukalla
+PROV1174;Salalah
+PROV1175;Ghayda
+PROV1176;Bayda
+PROV1177;Socotra
+PROV1178;Sana
+PROV1179;Hodeida
+PROV1180;Taizz
+PROV1181;Qaraganda
+PROV1182;Guryev
+PROV1183;Aqtobe
+PROV1184;Kokshetau
+PROV1185;Yasi
+PROV1186;Alma Ata
+PROV1187;Semipalatinsk
+PROV1188;Qaratal
+PROV1189;Bishkek
+PROV1190;Naryn
+PROV1191;Khiva
+PROV1192;Nukus
+PROV1193;Kyzylorda
+PROV1194;Aqtau
+PROV1195;Tashkent
+PROV1196;Dashhowuz
+PROV1197;Shymkent
+PROV1198;Bukhara
+PROV1199;Samarkand
+PROV1200;Qarshi
+PROV1201;Khojand
+PROV1202;Kokand
+PROV1203;Osh
+PROV1204;Ashkhabad
+PROV1205;Kyzyl Arvat
+PROV1206;Merv
+PROV1207;Kulob
+PROV1208;Khorug
+PROV1209;Kabul
+PROV1210;Faizabad
+PROV1211;Balkh
+PROV1212;Herat
+PROV1213;Bamyan
+PROV1214;Farrah
+PROV1215;Kandahar
+PROV1216;Jalalabad
+PROV1217;Ghazni
+PROV1218;Peshawar
+PROV1219;Quetta
+PROV1220;Dalbandin
+PROV1221;Kalat
+PROV1222;Bela
+PROV1223;Chitral
+PROV1224;Srinagar
+PROV1225;Gilgit
+PROV1226;Leh
+PROV1227;Lahore
+PROV1228;Multan
+PROV1229;Sialkot
+PROV1230;Attock
+PROV1231;Bahawalpur
+PROV1232;Shahpur
+PROV1233;Amritsar
+PROV1234;Firozpur
+PROV1235;Simla
+PROV1236;Delhi
+PROV1237;Panipat
+PROV1238;Dehra Dun
+PROV1239;Meerut
+PROV1240;Agra
+PROV1241;Cawnpore
+PROV1242;Lucknow
+PROV1243;Allahabad
+PROV1244;Fyzabad
+PROV1245;Benares
+PROV1246;Gorakhpur
+PROV1247;Patna
+PROV1248;Gaya
+PROV1249;Kharswari
+PROV1250;Bhagalpur
+PROV1251;Calcutta
+PROV1252;Darjeeling
+PROV1253;Bardwan
+PROV1254;Dacca
+PROV1255;Rajshahi
+PROV1256;Jessore
+PROV1257;Chittagong
+PROV1258;Gauhati
+PROV1259;Imphal
+PROV1260;Dibrugarh
+PROV1261;Cuttack
+PROV1262;Keunjahr
+PROV1263;Sambalpur
+PROV1264;Ajmer
+PROV1265;Jaisalmer
+PROV1266;Jodhpur
+PROV1267;Bikaner
+PROV1268;Jaipur
+PROV1269;Udaipur
+PROV1270;Gwalior
+PROV1271;Indore
+PROV1272;Bhopal
+PROV1273;Chhatarpur
+PROV1274;Rewa
+PROV1275;Jubbulpore
+PROV1276;Hoshangabad
+PROV1277;Nagpur
+PROV1278;Amarati
+PROV1279;Jagdalpur
+PROV1280;Raipur
+PROV1281;Bilaspur
+PROV1282;Raigarh
+PROV1283;Hyderabad
+PROV1284;Aurangabad
+PROV1285;Nizamabad
+PROV1286;Gulbarga
+PROV1287;Warangal
+PROV1288;Karachi
+PROV1289;Sukkur
+PROV1290;Umarkot
+PROV1291;Ahmedabad
+PROV1292;Rajkot
+PROV1293;Mandvi
+PROV1294;Patan
+PROV1295;Baroda
+PROV1296;Surat
+PROV1297;Bombay
+PROV1298;Nasik
+PROV1299;Poona
+PROV1300;Bijapur
+PROV1301;Kolhapur
+PROV1302;Belgaum
+PROV1303;Goa
+PROV1304;Madras
+PROV1305;Vizagapatnam
+PROV1306;Masulipatnam
+PROV1307;Nellore
+PROV1308;Kurnool
+PROV1309;Tanjore
+PROV1310;Madurai
+PROV1311;Coimbatore
+PROV1312;Pondicherry
+PROV1313;Bangalore
+PROV1314;Mysore
+PROV1315;Chitaldroog
+PROV1316;Mangalore
+PROV1317;Calicut
+PROV1318;Cochin
+PROV1319;Trivandrum
+PROV1320;Andaman Islands
+PROV1321;Colombo
+PROV1322;Jaffna
+PROV1323;Kandy
+PROV1324;Trincomalee
+PROV1325;Maldives
+PROV1326;Katmandu
+PROV1327;Jumla
+PROV1328;Tumlong
+PROV1329;Thimpu
+PROV1330;Rangoon
+PROV1331;Bassein
+PROV1332;Pegu
+PROV1333;Toungoo
+PROV1334;Ava
+PROV1335;Kyaukse
+PROV1336;Magwe
+PROV1337;Prome
+PROV1338;Taunggyi
+PROV1339;Haka
+PROV1340;Lashio
+PROV1341;Putao
+PROV1342;Myitkyina
+PROV1343;Moulmein
+PROV1344;Mergui
+PROV1345;Sittwe
+PROV1346;Bangkok
+PROV1347;Lopburi
+PROV1348;Nakhon Sawan
+PROV1349;Sukhothai
+PROV1350;Nakhon Ratchasima
+PROV1351;Prachinburi
+PROV1352;Phuket
+PROV1353;Ratchaburi
+PROV1354;Nakhon Si Thammarat
+PROV1355;Chiang Mai
+PROV1356;Luang Prabang
+PROV1357;Vientiane
+PROV1358;Udon Thani
+PROV1359;Sisaket
+PROV1360;Xiangabouli
+PROV1361;Savannakhet
+PROV1362;Salavan
+PROV1363;Pakche
+PROV1364;Oudong
+PROV1365;Chanthaburi
+PROV1366;Battambang
+PROV1367;Kampot
+PROV1368;Stongtreng
+PROV1369;Hanoi
+PROV1370;Hai Phong
+PROV1371;Cao Bang
+PROV1372;Son La
+PROV1373;Lang Son
+PROV1374;Thanh Hoa
+PROV1375;Hue
+PROV1376;Vinh
+PROV1377;Tourane
+PROV1378;Pleiku
+PROV1379;Qui Nhon
+PROV1380;Saigon
+PROV1381;Dong Quai
+PROV1382;Hatien
+PROV1383;Vinhlong
+PROV1384;Singapore
+PROV1385;Johor Bahru
+PROV1386;Malacca
+PROV1387;Kuala Lumpur
+PROV1388;Penang
+PROV1389;Alor Setar
+PROV1390;Kuantan
+PROV1391;Kota Bahru
+PROV1392;Pattani
+PROV1393;Brunei
+PROV1394;Kuching
+PROV1395;Bintulu
+PROV1396;Api
+PROV1397;Sandakan
+PROV1398;Jambi
+PROV1399;Palembang
+PROV1400;Inderagiri
+PROV1401;Siak
+PROV1402;Tanjungpinang
+PROV1403;Lampung
+PROV1404;Palak Pinang
+PROV1405;Banda Aceh
+PROV1406;Medan
+PROV1407;Tapaktuan
+PROV1408;Padang
+PROV1409;Sibolga
+PROV1410;Bencoolen
+PROV1411;Gunungsitoli
+PROV1412;Aden
+PROV1413;Batavia
+PROV1414;Bogor
+PROV1415;Cirebon
+PROV1416;Yogyakarta
+PROV1417;Semarang
+PROV1418;Surabaya
+PROV1419;Surakarta
+PROV1420;Probolinggo
+PROV1421;Madura
+PROV1422;Muraleve
+PROV1423;Banjarmasin
+PROV1424;Pasir
+PROV1425;Tarakan
+PROV1426;Pontianak
+PROV1427;Kota Waringin
+PROV1428;Sintang
+PROV1429;Samarinda
+PROV1430;Makassar
+PROV1431;Bone
+PROV1432;Mamuju
+PROV1433;Menado
+PROV1434;Luwuk
+PROV1435;Palu
+PROV1436;Kendari
+PROV1437;Bulon
+PROV1438;Bali
+PROV1439;Flores
+PROV1440;Sumbawa
+PROV1441;Sumba
+PROV1442;Lombok
+PROV1443;Roti
+PROV1444;Alor
+PROV1445;Kaupeng
+PROV1446;Dili
+PROV1447;Ternate
+PROV1448;Jilolo
+PROV1449;Ambon
+PROV1450;Ceram
+PROV1451;Aru
+PROV1452;Biak
+PROV1453;Sorong
+PROV1454;Merah
+PROV1455;Manila
+PROV1456;Vigan
+PROV1457;Legazpi
+PROV1458;Mindoro
+PROV1459;Palawan
+PROV1460;Iloilo
+PROV1461;Tacloban
+PROV1462;Zamboanga
+PROV1463;Davao
+PROV1464;Sulu
+PROV1465;Urga
+PROV1466;Dalandzadgad
+PROV1467;Bayan Tumen
+PROV1468;Uliastai
+PROV1469;Kyzyl
+PROV1470;Anqing
+PROV1471;Chizhou
+PROV1472;Fengyang
+PROV1473;Huizhou
+PROV1474;Luzhou
+PROV1475;Ningguo
+PROV1476;Sizhou
+PROV1477;Taiping
+PROV1478;Yingzhou
+PROV1479;Mukden
+PROV1480;Jinzhou
+PROV1481;Port Arthur
+PROV1482;Fuzhou
+PROV1483;Jianning
+PROV1484;Quanzhou
+PROV1485;Taibei
+PROV1486;Tingzhou
+PROV1487;Zhangzhou
+PROV1488;Jiayuguan
+PROV1489;Gongchang
+PROV1490;Lanzhou
+PROV1491;Ningxia
+PROV1492;Pingliang
+PROV1493;Canton
+PROV1494;Chaozhou
+PROV1495;Zhanjiang
+PROV1496;Hong Kong
+PROV1497;Huizhou
+PROV1498;Macao
+PROV1499;Hainan
+PROV1500;Shaozhou
+PROV1501;Zhaoqing
+PROV1502;Nanning
+PROV1503;Guilin
+PROV1504;Pingle
+PROV1505;Guiyang
+PROV1506;Anshun
+PROV1507;Zhenyuan
+PROV1508;Kaifeng
+PROV1509;Guide
+PROV1510;Luoyang
+PROV1511;Zhengzhou
+PROV1512;Chenzhou
+PROV1513;Nanyang
+PROV1514;Runing
+PROV1515;Weihui
+PROV1516;Hanyang
+PROV1517;Dean
+PROV1518;Huangzhou
+PROV1519;Anlu
+PROV1520;Jingzhou
+PROV1521;Shinan
+PROV1522;Wuchang
+PROV1523;Xiangyang
+PROV1524;Changsha
+PROV1525;Changde
+PROV1526;Baoqing
+PROV1527;Hengzhou
+PROV1528;Yuezhou
+PROV1529;Yongshun
+PROV1530;Yongzhou
+PROV1531;New Ireland
+PROV1532;Guihua Tumed
+PROV1533;Jirim Chuulgan
+PROV1534;Ulaan Chab Chuulghan
+PROV1535;Yeke Juu Chuulghan
+PROV1536;Huaian
+PROV1537;Changzhou
+PROV1538;Shanghai
+PROV1539;Suzhou
+PROV1540;Taicangzhou
+PROV1541;Tongzhou
+PROV1542;Xuzhou
+PROV1543;Yangzhou
+PROV1544;Zhenjiang
+PROV1545;Nanchang
+PROV1546;Guangxin
+PROV1547;Jian
+PROV1548;Jianchang
+PROV1549;Jiujiang
+PROV1550;Ganzhou
+PROV1551;Raozhou
+PROV1552;Qiqihar
+PROV1553;Aigun
+PROV1554;Ninguta
+PROV1555;Jilin
+PROV1556;Makhai
+PROV1557;Balekungomi
+PROV1558;Kegudo
+PROV1559;Xian
+PROV1560;Merauke
+PROV1561;Yenan
+PROV1562;Hanzhong
+PROV1563;Jinan
+PROV1564;Caozhou
+PROV1565;Laizhou
+PROV1566;Qingdao
+PROV1567;Qingzhou
+PROV1568;Taian
+PROV1569;Weihaiwei
+PROV1570;Wuding
+PROV1571;Yizhou
+PROV1572;Taiyuan
+PROV1573;Fenzhou
+PROV1574;Luan
+PROV1575;Pingyang
+PROV1576;Datong
+PROV1577;Chongqing
+PROV1578;Chengdu
+PROV1579;Baotung
+PROV1580;Jiading
+PROV1581;Kuizhou
+PROV1582;Longan
+PROV1583;Shunqing
+PROV1584;Tongchuan
+PROV1585;Yibin
+PROV1586;Yazhou
+PROV1587;Lhasa
+PROV1588;Chamdo
+PROV1589;Shigatse
+PROV1590;Lhodrak
+PROV1591;Changtang
+PROV1592;Ngari
+PROV1593;Tawang
+PROV1594;Kashgar
+PROV1595;Ili
+PROV1596;Tulta
+PROV1597;Aksu
+PROV1598;Khotan
+PROV1599;Kumul
+PROV1600;Díhuĕ
+PROV1601;Kunming
+PROV1602;Dali
+PROV1603;Puer
+PROV1604;Hangzhou
+PROV1605;Huzhou
+PROV1606;Jiaxing
+PROV1607;Jinhua
+PROV1608;Ningbo
+PROV1609;Shaoxing
+PROV1610;Taizhou
+PROV1611;Wenzhou
+PROV1612;Beijing
+PROV1613;Chengde
+PROV1614;Daming
+PROV1615;Jizhou
+PROV1616;Tangshan
+PROV1617;Tianjin
+PROV1618;Zhongding
+PROV1619;Pyongyang
+PROV1620;Chonchon
+PROV1621;Hamhung
+PROV1622;Chongjin
+PROV1623;Kimchaek
+PROV1624;Seoul
+PROV1625;Kaesong
+PROV1626;Haeju
+PROV1627;Sariwon
+PROV1628;Inchon
+PROV1629;Wonsan
+PROV1630;Kangnung
+PROV1631;Wonju
+PROV1632;Pusan
+PROV1633;Taegu
+PROV1634;Pohang
+PROV1635;Kwangju
+PROV1636;Taejon
+PROV1637;Cheju
+PROV1638;Hiroshima
+PROV1639;Okayama
+PROV1640;Yamaguchi
+PROV1641;Matsue
+PROV1642;Hakodate
+PROV1643;Ishikara
+PROV1644;Nemuru
+PROV1645;Niigata
+PROV1646;Kanazawa
+PROV1647;Fukui
+PROV1648;Toyama
+PROV1649;Edo
+PROV1650;Chiba
+PROV1651;Yokohama
+PROV1652;Urawa
+PROV1653;Mito
+PROV1654;Bonin
+PROV1655;Osaka
+PROV1656;Wakayama
+PROV1657;Kyoto
+PROV1658;Nara
+PROV1659;Kobe
+PROV1660;Fukuoka
+PROV1661;Nagasaki
+PROV1662;Kagoshima
+PROV1663;Miyazaki
+PROV1664;Kumamoto
+PROV1665;Kochi
+PROV1666;Matsuyama
+PROV1667;Tokushima
+PROV1668;Sendai
+PROV1669;Fukushima
+PROV1670;Morioka
+PROV1671;Akita
+PROV1672;Aomori
+PROV1673;Yamagata
+PROV1674;Utsunomiya
+PROV1675;Nagoya
+PROV1676;Shizuoka
+PROV1677;Nagano
+PROV1678;Okinawa
+PROV1679;Amari
+PROV1680;Fez
+PROV1681;Wazzan
+PROV1682;Meknes
+PROV1683;Taza
+PROV1684;Wujda
+PROV1685;Rabat
+PROV1686;Tangier
+PROV1687;Tetouan
+PROV1688;Ajdir
+PROV1689;Melilla
+PROV1690;Marrakesh
+PROV1691;Casablanca
+PROV1692;Huribka
+PROV1693;Sawira
+PROV1694;Agadir
+PROV1695;Ifni
+PROV1696;Tarfaya
+PROV1697;Figuig
+PROV1698;Rashidia
+PROV1699;Warzazat
+PROV1700;Algiers
+PROV1701;Bougie
+PROV1702;Setif
+PROV1703;Medea
+PROV1704;Oran
+PROV1705;Tlemcen
+PROV1706;Mustaghanim
+PROV1707;Mascara
+PROV1708;Constantine
+PROV1709;Bone
+PROV1710;Biskra
+PROV1711;Ouargla
+PROV1712;Tuggurt
+PROV1713;Laghwat
+PROV1714;Bechar
+PROV1715;Naama
+PROV1716;Tindouf
+PROV1717;Chenachene
+PROV1718;In Salah
+PROV1719;Ilizi
+PROV1720;Timimoun
+PROV1721;In Guezzam
+PROV1722;Tin Zawatene
+PROV1723;Balboa
+PROV1724;Tamanrasset
+PROV1725;Tunis
+PROV1726;Bizerte
+PROV1727;Gafsa
+PROV1728;Kairouan
+PROV1729;Tozeur
+PROV1730;Gabes
+PROV1731;Tripoli
+PROV1732;Gharyan
+PROV1733;Misratah
+PROV1734;Sirt
+PROV1735;Benghazi
+PROV1736;Darna
+PROV1737;Tobruk
+PROV1738;Jaghbub
+PROV1739;Kufra
+PROV1740;Waddan
+PROV1741;Murzuk
+PROV1742;Sabha
+PROV1743;Ghat
+PROV1744;Ghadamis
+PROV1745;Cairo
+PROV1746;Dumyat
+PROV1747;Tanta
+PROV1748;Mansura
+PROV1749;Ziqaziq
+PROV1750;Giza
+PROV1751;Alexandria
+PROV1752;Matruh
+PROV1753;Sidi Barrani
+PROV1754;Siwa
+PROV1755;Suez
+PROV1756;Al Arish
+PROV1757;Sharm al-Shaykh
+PROV1758;Farafra
+PROV1759;Bawiti
+PROV1760;Mut
+PROV1761;Baris
+PROV1762;Asyut
+PROV1763;Bani Suwayf
+PROV1764;Minya
+PROV1765;Fayyum
+PROV1766;Aswan
+PROV1767;Luxor
+PROV1768;Idfu
+PROV1769;Qina
+PROV1770;Qusayr
+PROV1771;Marsa Alam
+PROV1772;Ras Gharib
+PROV1773;Aaiun
+PROV1774;Dakhla
+PROV1775;Nouakchott
+PROV1776;Rosso
+PROV1777;Aleg
+PROV1778;Maghama
+PROV1779;Shingit
+PROV1780;Tichit
+PROV1781;Walata
+PROV1782;Bir Murghayn
+PROV1783;Dakar
+PROV1784;Saint-Louis
+PROV1785;Banjul
+PROV1786;Linguere
+PROV1787;Diourbel
+PROV1788;Kaolack
+PROV1789;Podor
+PROV1790;Matam
+PROV1791;Bakel
+PROV1792;Ziguinchor
+PROV1793;Velingara
+PROV1794;Bamako
+PROV1795;Kayes
+PROV1796;Nioro
+PROV1797;Kita
+PROV1798;Bougouni
+PROV1799;Sikasso
+PROV1800;Segu
+PROV1801;Mourdiah
+PROV1802;Jenne
+PROV1803;Timbuktu
+PROV1804;Bandiagara
+PROV1805;Gao
+PROV1806;Taoudenni
+PROV1807;Tessalit
+PROV1808;Niamey
+PROV1809;Say
+PROV1810;Dosso
+PROV1811;Maradi
+PROV1812;Agades
+PROV1813;Arlit
+PROV1814;Madama
+PROV1815;Zinder
+PROV1816;Kufe
+PROV1817;Bilma
+PROV1818;Massenya
+PROV1819;Moundou
+PROV1820;Bongor
+PROV1821;Abeche
+PROV1822;Am Timan
+PROV1823;Mongo
+PROV1824;Mao
+PROV1825;Zouar
+PROV1826;Faya
+PROV1827;Khartoum
+PROV1828;Wad Madani
+PROV1829;Kassala
+PROV1830;Sennar
+PROV1831;Rabak
+PROV1832;Fashoda
+PROV1833;Suakin
+PROV1834;Halaib
+PROV1835;Dongola
+PROV1836;Hayya
+PROV1837;Atbara
+PROV1838;Obeid
+PROV1839;Nuhud
+PROV1840;Kaduqli
+PROV1841;Fasher
+PROV1842;Junaynah
+PROV1843;Waw
+PROV1844;Bor
+PROV1845;Yambio
+PROV1846;Lado
+PROV1847;Kapoeta
+PROV1848;Asmara
+PROV1849;Massawa
+PROV1850;Akordat
+PROV1851;Assab
+PROV1852;Gonder
+PROV1853;Debre Tabor
+PROV1854;Matamma
+PROV1855;Debre Markos
+PROV1856;Aksum
+PROV1857;Antalo
+PROV1858;Awsa
+PROV1859;Ankober
+PROV1860;Awasa
+PROV1861;Aselia
+PROV1862;Bonga
+PROV1863;Asosa
+PROV1864;Negele
+PROV1865;Harer
+PROV1866;Goba
+PROV1867;Werder
+PROV1868;Mogadishu
+PROV1869;Baidoa
+PROV1870;Kismayo
+PROV1871;Hobyo
+PROV1872;Bosaso
+PROV1873;Berbera
+PROV1874;Zeyla
+PROV1875;Djibuti
+PROV1876;Cape Verde
+PROV1877;Bissau
+PROV1878;Gabu
+PROV1879;Boffa
+PROV1880;Timbo
+PROV1881;Dinguiraye
+PROV1882;Kankan
+PROV1883;Beyla
+PROV1884;Freetown
+PROV1885;Falaba
+PROV1886;Bo
+PROV1887;Monrovia
+PROV1888;Harper
+PROV1889;Bopolu
+PROV1890;Gbarnga
+PROV1891;Zwedru
+PROV1892;Grand Lahou
+PROV1893;Sassandra
+PROV1894;Grand Bassam
+PROV1895;Bouake
+PROV1896;Man
+PROV1897;Akoupe
+PROV1898;Kong
+PROV1899;Bondouku
+PROV1900;Odienne
+PROV1901;Wagadugu
+PROV1902;Wahiguya
+PROV1903;Dori
+PROV1904;Fada Ngourma
+PROV1905;Bobo Dioulasso
+PROV1906;Orodaro
+PROV1907;Accra
+PROV1908;Cape Coast
+PROV1909;Sekondi
+PROV1910;Kumasi
+PROV1911;Kintampo
+PROV1912;Wa
+PROV1913;Tamale
+PROV1914;Lome
+PROV1915;Ho
+PROV1916;Yendi
+PROV1917;Atakpame
+PROV1918;Sokode
+PROV1919;Cotonou
+PROV1920;Abomey
+PROV1921;Nikki
+PROV1922;Jugu
+PROV1923;Lagos
+PROV1924;Abeokuta
+PROV1925;Ibadan
+PROV1926;Ife
+PROV1927;Ilorin
+PROV1928;Benin
+PROV1929;Akure
+PROV1930;Lokoja
+PROV1931;Warri
+PROV1932;Bonny
+PROV1933;Awka
+PROV1934;Calabar
+PROV1935;Aruchukwu
+PROV1936;Makurdi
+PROV1937;Tukari
+PROV1938;Bussa
+PROV1939;Zaria
+PROV1940;Bida
+PROV1941;Abuja
+PROV1942;Bauchi
+PROV1943;Jos
+PROV1944;Gombe
+PROV1945;Kano
+PROV1946;Kebbi
+PROV1947;Katsina
+PROV1948;Sokoto
+PROV1949;Hadejia
+PROV1950;Yola
+PROV1951;Kuka
+PROV1952;Nguru
+PROV1953;Dikoa
+PROV1954;Săo Tomé
+PROV1955;Fernando Pó
+PROV1956;Douala
+PROV1957;Buea
+PROV1958;Kribi
+PROV1959;Yaounde
+PROV1960;Bafoussam
+PROV1961;Bamenda
+PROV1962;Bertoua
+PROV1963;Ngaoundere
+PROV1964;Maroua
+PROV1965;Bangui
+PROV1966;Nola
+PROV1967;Bouar
+PROV1968;Bossangoa
+PROV1969;Zemio
+PROV1970;Bangassou
+PROV1971;Ndele
+PROV1972;Libreville
+PROV1973;Bata
+PROV1974;Mayumbe
+PROV1975;Moanda
+PROV1976;Makokou
+PROV1977;Nkuna
+PROV1978;Madingou
+PROV1979;Biloka
+PROV1980;Djambala
+PROV1981;Impfondo
+PROV1982;Kinshasa
+PROV1983;Boma
+PROV1984;Kananga
+PROV1985;Kumbana
+PROV1986;Lusambo
+PROV1987;Bunkeya
+PROV1988;Mussumba
+PROV1989;Munza
+PROV1990;Nyangwe
+PROV1991;Uvira
+PROV1992;Basoko
+PROV1993;Irebu
+PROV1994;Nsheng
+PROV1995;Gemena
+PROV1996;Kisangani
+PROV1997;Mungbane
+PROV1998;Baramo
+PROV1999;Luanda
+PROV2000;Cabinda
+PROV2001;Mbanza
+PROV2002;Quibala
+PROV2003;Benguela
+PROV2004;Moçâmedes
+PROV2005;Huambo
+PROV2006;Kuito
+PROV2007;Mavinga
+PROV2008;Ondjiva
+PROV2009;Malanje
+PROV2010;Saurimo
+PROV2011;Kubanda
+PROV2012;Lusaka
+PROV2013;Mongu
+PROV2014;Kasempa
+PROV2015;Monzo
+PROV2016;Kazembe
+PROV2017;Kasema
+PROV2018;Chipata
+PROV2019;Entebbe
+PROV2020;Mbarara
+PROV2021;Masindi
+PROV2022;Kitgum
+PROV2023;Jinja
+PROV2024;Nairobi
+PROV2025;Marsabit
+PROV2026;Lodwar
+PROV2027;Nakuru
+PROV2028;Kisumu
+PROV2029;Mombasa
+PROV2030;Lamu
+PROV2031;Wajir
+PROV2032;Garissa
+PROV2033;Voi
+PROV2034;Kigali
+PROV2035;Usumbura
+PROV2036;Dar Es Salaam
+PROV2037;Tanga
+PROV2038;Kilwa
+PROV2039;Lindi
+PROV2040;Songea
+PROV2041;Masasi
+PROV2042;Iringa
+PROV2043;Tabora
+PROV2044;Mwanza
+PROV2045;Morogoro
+PROV2046;Ujiji
+PROV2047;Arusha
+PROV2048;Zanzibar
+PROV2049;Lourenzo Marques
+PROV2050;Chaimate
+PROV2051;Inhambane
+PROV2052;Massekisse
+PROV2053;Sena
+PROV2054;Tete
+PROV2055;Songo
+PROV2056;Zumbo
+PROV2057;Sofala
+PROV2058;Mossurize
+PROV2059;Quelimane
+PROV2060;Moçambique
+PROV2061;Angoche
+PROV2062;Shangzhou
+PROV2063;Ibo
+PROV2064;Nampula
+PROV2065;Milange
+PROV2066;Zomba
+PROV2067;Lilongwe
+PROV2068;Harare
+PROV2069;Gweru
+PROV2070;Mutare
+PROV2071;Bulawayo
+PROV2072;Hwange
+PROV2073;Masvingo
+PROV2074;Gaborone
+PROV2075;Serowe
+PROV2076;Nokaneng
+PROV2077;Tsabong
+PROV2078;Windhoek
+PROV2079;Swakopmund
+PROV2080;Tsumeb
+PROV2081;Linyati
+PROV2082;Otjinene
+PROV2083;Walvis Bay
+PROV2084;Angra Pequena
+PROV2085;Nu-gouses
+PROV2086;Karasburg
+PROV2087;Cape Town
+PROV2088;Springbok
+PROV2089;Worcester
+PROV2090;Swettenham
+PROV2091;Mossel Bay
+PROV2092;Beaufort
+PROV2093;Calvinia
+PROV2094;Kimberley
+PROV2095;Dikathong
+PROV2096;Port Elizabeth
+PROV2097;Graaf Reinet
+PROV2098;Bisho
+PROV2099;Mathele
+PROV2100;Umtata
+PROV2101;Bloemfontein
+PROV2102;Winburg
+PROV2103;Philippolis
+PROV2104;Thaba Bosiu
+PROV2105;Pretoria
+PROV2106;Witwatersrand
+PROV2107;Klerksdorp
+PROV2108;Mosega
+PROV2109;Lydenburg
+PROV2110;Thohoyandu
+PROV2111;Durban
+PROV2112;Ladysmith
+PROV2113;Ulundi
+PROV2114;Mbabane
+PROV2115;Tananarive
+PROV2116;Fianarantsoa
+PROV2117;Ampanihy
+PROV2118;Tolanaro
+PROV2119;Toamasina
+PROV2120;Antsiranana
+PROV2121;Mahajanga
+PROV2122;Toliara
+PROV2123;Comoros
+PROV2124;Mayotte
+PROV2125;Mauritius
+PROV2126;Bourbon
+PROV2127;Seychelles
+PROV2128;Diego Garcia
+PROV2129;Saint Helena
+PROV2130;Ascension
+PROV2131;Falkland Islands
+PROV2132;Tristan da Cunha
+PROV2133;South Georgia
+PROV2134;Azores
+PROV2135;Madeira
+PROV2136;Canary Islands
+PROV2137;Hermosillo
+PROV2138;Loreto
+PROV2139;Rosarito
+PROV2140;Nogales
+PROV2141;Guaymas
+PROV2142;Chihuahua
+PROV2143;Paso del Norte
+PROV2144;Delicias
+PROV2145;Parral
+PROV2146;Monterrey
+PROV2147;Morelos
+PROV2148;Reynosa
+PROV2149;Matamoros
+PROV2150;Ciudad Victoria
+PROV2151;Saltillo
+PROV2152;Monclova
+PROV2153;Durango
+PROV2154;Santa María del Oro
+PROV2155;Torreón
+PROV2156;Mazatlán
+PROV2157;Culiacán
+PROV2158;Zacatecas
+PROV2159;San Luis Potosí
+PROV2160;Aguascalientes
+PROV2161;Tepic
+PROV2162;Veracruz
+PROV2163;Tampico
+PROV2164;Minatitlán
+PROV2165;Villahermosa
+PROV2166;Guadalajara
+PROV2167;Guanajuato
+PROV2168;Puerto Vallarta
+PROV2169;Colima
+PROV2170;Morelia
+PROV2171;Los Albańiles
+PROV2172;Mexico City
+PROV2173;Querétaro
+PROV2174;Toluca
+PROV2175;Tulancingo
+PROV2176;Puebla
+PROV2177;Oaxaca
+PROV2178;Collataro
+PROV2179;Acapulco
+PROV2180;Chilpancingo
+PROV2181;Tuxtla
+PROV2182;Tapachula
+PROV2183;Mérida
+PROV2184;Campeche
+PROV2185;Bacalar
+PROV2186;Guatemala
+PROV2187;Quetzaltenango
+PROV2188;Puerto Barrios
+PROV2189;Sayaxché
+PROV2190;Belize
+PROV2191;San Salvador
+PROV2192;San Miguel
+PROV2193;Comayagua
+PROV2194;San Pedro Sula
+PROV2195;La Ceiba
+PROV2196;Puerto Lempira
+PROV2197;Managua
+PROV2198;Rivas
+PROV2199;León
+PROV2200;Bluefields
+PROV2201;San José
+PROV2202;Liberia
+PROV2203;Limón
+PROV2204;Panama City
+PROV2205;David
+PROV2206;Penonomé
+PROV2207;Sainshand
+PROV2208;Yaviza
+PROV2209;Havana
+PROV2210;Jagua
+PROV2211;Camagüey
+PROV2212;Santiago de Cuba
+PROV2213;Port Au Prince
+PROV2214;Santo Domingo
+PROV2215;Cap Haitien
+PROV2216;La Vega
+PROV2217;Jamaica
+PROV2218;Cayman Islands
+PROV2219;Bahamas
+PROV2220;Turks And Caicos
+PROV2221;Nanjing
+PROV2222;Puerto Rico
+PROV2223;Saint Thomas
+PROV2224;Antigua
+PROV2225;Montserrat
+PROV2226;Tortola
+PROV2227;Saint Kitts
+PROV2228;Martinique
+PROV2229;Barbados
+PROV2230;Guadeloupe
+PROV2231;Saint Lucia
+PROV2232;Dominica
+PROV2233;Grenada
+PROV2234;Curacao
+PROV2235;Aruba
+PROV2236;Saint Martin
+PROV2237;Trinidad
+PROV2238;Tobago
+PROV2239;Georgetown
+PROV2240;Paramaribo
+PROV2241;Cayenne
+PROV2242;Mahdia
+PROV2243;Essequibo
+PROV2244;Christmas Island
+PROV2245;Apetina
+PROV2246;Maripasoula
+PROV2247;Bogotá
+PROV2248;Ibagué
+PROV2249;Tunja
+PROV2250;Manizales
+PROV2251;Cúcuta
+PROV2252;Medellín
+PROV2253;Quibdó
+PROV2254;Cartagena de Indias
+PROV2255;Barranquilla
+PROV2256;Cali
+PROV2257;Popayán
+PROV2258;Buenaventura
+PROV2259;Pasto
+PROV2260;San José del Guaviare
+PROV2261;Obando
+PROV2262;Casanare
+PROV2263;El Encanto
+PROV2264;Caracas
+PROV2265;Guanare
+PROV2266;Calabozo
+PROV2267;Cumaná
+PROV2268;San Felipe
+PROV2269;Güiria
+PROV2270;Maracaibo
+PROV2271;Valera
+PROV2272;Coro
+PROV2273;Barquisimeto
+PROV2274;Barinas
+PROV2275;Angostura
+PROV2276;Curiapo
+PROV2277;El Jobal
+PROV2278;San Fernando de Atabapo
+PROV2279;Quito
+PROV2280;Guayaquil
+PROV2281;Esmereldas
+PROV2282;Loja
+PROV2283;Zamora
+PROV2284;Tena
+PROV2285;Galápagos
+PROV2286;Iquitos
+PROV2287;Yurimaguas
+PROV2288;Yuncos
+PROV2289;Puca Urco
+PROV2290;Cajamarca
+PROV2291;Piura
+PROV2292;Trujillo
+PROV2293;Huánuco
+PROV2294;Moyobamba
+PROV2295;Lima
+PROV2296;Huancavelica
+PROV2297;Ica
+PROV2298;Huaraz
+PROV2299;Ayacucho
+PROV2300;Pucallpa
+PROV2301;Puerto Maldonado
+PROV2302;Cusco
+PROV2303;Puno
+PROV2304;Arequipa
+PROV2305;Antofagasta
+PROV2306;Sorocaba
+PROV2307;Iquique
+PROV2308;Arica
+PROV2309;Calama
+PROV2310;La Paz
+PROV2311;Cochabamba
+PROV2312;Oruro
+PROV2313;Chuquisaca
+PROV2314;Potosí
+PROV2315;Tarija
+PROV2316;Santa Cruz
+PROV2317;San Ignacio
+PROV2318;Roboré
+PROV2319;Santa Ana
+PROV2320;Riberalta
+PROV2321;Cobija
+PROV2322;Copiapó
+PROV2323;La Serena
+PROV2324;Santiago
+PROV2325;Valparaíso
+PROV2326;Vińa del Mar
+PROV2327;Talca
+PROV2328;Valdivia
+PROV2329;Temuco
+PROV2330;Cauquenes
+PROV2331;Chillán
+PROV2332;Osorno
+PROV2333;Puerto Aisén
+PROV2334;Punta Arenas
+PROV2335;Porvenir
+PROV2336;Easter Island
+PROV2337;Fortin Falcon
+PROV2338;Puerto Guaraní
+PROV2339;Asuncion
+PROV2340;Pilar
+PROV2341;Encarnación
+PROV2342;San Pedro
+PROV2343;Concepción
+PROV2344;Montevideo
+PROV2345;Paysandú
+PROV2346;Tacuarembó
+PROV2347;Melo
+PROV2348;Buenos Aires
+PROV2349;Junín
+PROV2350;Azul
+PROV2351;La Plata
+PROV2352;Mar del Plata
+PROV2353;Trenque Lauquen
+PROV2354;Bahía Blanca
+PROV2355;Carmen
+PROV2356;Corrientes
+PROV2357;Curuzú Cuatiá
+PROV2358;Santo Tomás
+PROV2359;Colón
+PROV2360;Paraná
+PROV2361;Sancti Spiritu
+PROV2362;Reconquista
+PROV2363;Rosario
+PROV2364;Resistencia
+PROV2365;Villa Ángela
+PROV2366;Formosa
+PROV2367;Xolotas
+PROV2368;Salta
+PROV2369;Jujuy
+PROV2370;Cochinoca
+PROV2371;Equia
+PROV2372;Rivadavia
+PROV2373;Tucumán
+PROV2374;Catamarca
+PROV2375;Vinchina
+PROV2376;Santiago del Estero
+PROV2377;Ańatuya
+PROV2378;Mailín
+PROV2379;Córdoba de Argentina
+PROV2380;Villa Nueva
+PROV2381;Río Cuarto
+PROV2382;Renancó
+PROV2383;San Luis
+PROV2384;Mercedes
+PROV2385;La Rioja
+PROV2386;Santa Rita
+PROV2387;San Juan
+PROV2388;Calingasta
+PROV2389;Mendoza
+PROV2390;San Rafael
+PROV2391;Neuquén
+PROV2392;Viedma
+PROV2393;Telén
+PROV2394;Bariloche
+PROV2395;Curacó
+PROV2396;Rawson
+PROV2397;Esquel
+PROV2398;Puerto Deseado
+PROV2399;Río Gallegos
+PROV2400;Río Grande
+PROV2401;Marabitanas
+PROV2402;Manaus
+PROV2403;Cachoeira
+PROV2404;Tefe
+PROV2405;Borba
+PROV2406;Cocos Islands
+PROV2407;Tabatinga
+PROV2408;Oriximina
+PROV2409;Saint Vincent
+PROV2410;Belém
+PROV2411;Santarém
+PROV2412;Óbidos
+PROV2413;Marabá
+PROV2414;Amapá
+PROV2415;Macapá
+PROV2416;Dourados
+PROV2417;Vila Bela
+PROV2418;Cuiabá
+PROV2419;Corumbá
+PROV2420;Iguatemi
+PROV2421;Vila Boa
+PROV2422;Aganja
+PROV2423;Palmas
+PROV2424;Săo Luís
+PROV2425;Chapada
+PROV2426;Teresina
+PROV2427;Oeiras
+PROV2428;Paraíba
+PROV2429;Fortaleza
+PROV2430;Crato
+PROV2431;Natal
+PROV2432;Recife
+PROV2433;Cabrobo
+PROV2434;Maceió
+PROV2435;Aracaju
+PROV2436;Salvador de Bahia
+PROV2437;Juazeiro
+PROV2438;Vila do Barra
+PROV2439;Porto Seguro
+PROV2440;Vitória da Conquista
+PROV2441;Ouro Preto
+PROV2442;Sabará
+PROV2443;Januária
+PROV2444;Paracatu
+PROV2445;Uberaba
+PROV2446;Săo Joăo del Rey
+PROV2447;Rio de Janeiro
+PROV2448;Campos
+PROV2449;Vitória
+PROV2450;Săo Paulo
+PROV2451;Santos
+PROV2452;Campinas
+PROV2453;Assis
+PROV2454;Fiji
+PROV2455;Iguape
+PROV2456;Araraquara
+PROV2457;Curitiba
+PROV2458;Guarapuava
+PROV2459;Lajes
+PROV2460;Castro
+PROV2461;Desterro
+PROV2462;Săo Miguel
+PROV2463;Porto Alegre
+PROV2464;Pelotas
+PROV2465;Passo Fundo
+PROV2466;Santa Maria
+PROV2467;Alegrete
+PROV2468;Sydney
+PROV2469;Newcastle
+PROV2470;Port Macquarie
+PROV2471;Ophir
+PROV2472;Eden
+PROV2473;Wagga Wagga
+PROV2474;Moree
+PROV2475;Broken Hill
+PROV2476;Melbourne
+PROV2477;Warmambool
+PROV2478;Ballarat
+PROV2479;Sale
+PROV2480;Beechworth
+PROV2481;Swan Hill
+PROV2482;Tasmania
+PROV2483;Brisbane
+PROV2484;Gladstone
+PROV2485;Clermont
+PROV2486;Toowoomba
+PROV2487;Townsville
+PROV2488;Cooktown
+PROV2489;Longreach
+PROV2490;Charleville
+PROV2491;Adelaide
+PROV2492;Port Lincoln
+PROV2493;Robe
+PROV2494;Port Augusta
+PROV2495;Oodnadatta
+PROV2496;Tarcoola
+PROV2497;Perth
+PROV2498;Kojonup
+PROV2499;Geraldton
+PROV2500;Kalgoorlie
+PROV2501;Broome
+PROV2502;Dampier
+PROV2503;Wiluna
+PROV2504;Esperance
+PROV2505;Palmerston
+PROV2506;Tennant Creek
+PROV2507;Alice Springs
+PROV2508;Norfolk Island
+PROV2509;Auckland
+PROV2510;New Plymouth
+PROV2511;Napier
+PROV2512;Wellington
+PROV2513;Dunedin
+PROV2514;Hokitika
+PROV2515;Christchurch
+PROV2516;Nelson
+PROV2517;Guam
+PROV2518;Palau
+PROV2519;Yap
+PROV2520;Taveuni
+PROV2521;Saipan
+PROV2522;Marshall Islands
+PROV2523;Nauru
+PROV2524;Wake
+PROV2525;Marcus
+PROV2526;Palmyra
+PROV2527;Gilbert Islands
+PROV2528;Port Moresby
+PROV2529;Kerema
+PROV2530;Lae
+PROV2531;Madang
+PROV2532;Forte Săo Joaquim
+PROV2533;Targu Mures
+PROV2534;Solomon Islands
+PROV2535;New Hebrides
+PROV2536;Santa Cruz Islands
+PROV2537;New Britain
+PROV2538;Novi Sad
+PROV2539;Bougainville
+PROV2540;Tonga
+PROV2541;Ellice Islands
+PROV2542;Wallis and Futuna
+PROV2543;Apia
+PROV2544;Pago Pago
+PROV2545;Rarotonga
+PROV2546;Tongareva
+PROV2547;Tokelau
+PROV2548;Niue
+PROV2549;Tarauacá
+PROV2550;Forte do Príncipe
+PROV2551;Marquesas
+PROV2552;Pitcairn
+PROV2553;Tuamotus
+PROV2554;Posadas
+PROV2555;Augusta
+PROV2556;Asheville
+PROV2557;Esbjerg
+PROV2558;De Aar
+PROV2559;Suhaj
+PROV2560;Darmstadt
+PROV2561;Siegburg
+PROV2562;Tainan
+PROV2563;Safi
+PROV2564;Salima
+PROV2565;Cebu
+PROV2566;Agartala
+PROV2567;Gaeta
+PROV2568;Lugano
+PROV2569;Niksic
+PROV2570;Beauvais
+PROV2571;Tauranga
+PROV2572;Nan
+PROV2573;Mboul
+PROV2574;Mochudi
+PROV2575;Ipoh
+PROV2576;Natuna
+PROV2577;Pljevlja
+PROV2578;Tacna
+PROV2579;Truk
+PROV2580;Stara Ladoga
+PROV2581;Mataka
+PROV2582;Kotor
+PROV2583;Cetinje
+PROV2584;Bielsko
+PROV2585;Matan as Sarah
+PROV2586;Al-Ahsa
+PROV2587;Kola
+PROV2588;Onega
+PROV2589;Shoyna
+PROV2590;Ugolnoye
+PROV2591;Holsteinsborg
+PROV2592;Ungava
+PROV2593;Fort George
+PROV2594;Pickle
+PROV2595;Nunavut
+PROV2596;Fort Resolution
+PROV2597;Fort Vermilion
+PROV2598;Fort Liard
+PROV2599;Fairbanks
+PROV2600;Altamira
+PROV2601;Sandy Desert
+PROV2602;Roebourne
+PROV2603;Tanami
+PROV2604;Normanton
+PROV2605;Gibson's Desert
+PROV2606;Zhambyl
+PROV2607;Lop Nur
+PROV2608;Khatgal
+PROV2609;Araouane
+PROV2610;Uralsk
+PROV2611;Turgay
+PROV2612;Aktash
+PROV2613;Nyda
+PROV2614;Mordiyakha
+PROV2615;Krasnoselkup
+PROV2616;Tilichiki
+PROV2617;Saghalian Oula
+PROV2618;Talaya
+PROV2619;Abiy
+PROV2620;Syasir
+PROV2621;Srednekolymsk
+PROV2622;Markovo
+PROV2623;Midway Island
+PROV2624;Loango
+PROV2625;Port Hope Simpson
+PROV2626;Port Harrison
+PROV2627;Fort Chimo
+PROV2628;Attawapiskat
+PROV2629;Beatton River
+PROV2630;Cordova
+PROV2631;Unalakeet
+PROV2632;Ammassalik
+PROV2633;Ossora
+PROV2634;Rassvet
+PROV2635;Kariba
+PROV2636;Egedesminde
+PROV2637;Novo Mariinsk
+PROV2638;Omsukchan
+PROV2639;Susuman
+PROV2640;Ziryanka
+PROV2641;Ayan
+PROV2642;Ust Nera
+PROV2643;Honuu
+PROV2644;Olyekminsk
+PROV2645;Chilchi
+PROV2646;Ases Igan
+PROV2647;Yansk
+PROV2648;Yakutsk
+PROV2649;Zhigansk
+PROV2650;Nyurba
+PROV2651;Udanchniy
+PROV2652;Kular
+PROV2653;Saskylah
+PROV2654;Khatanga
+PROV2655;Tura
+PROV2656;Tayimba
+PROV2657;Svetlogorsk
+PROV2658;Kheta
+PROV2659;Napalkovo
+PROV2660;Bereyezovka
+PROV2661;Nizhnekolymsk
+PROV2662;Cherskiy
+PROV2663;Kamenskoye
+PROV2664;Oyotuni
+PROV2665;Chokurdakh
+PROV2666;Pevek
+PROV2667;Bulun
+PROV2668;Verkhoyansk
+PROV2669;Amga
+PROV2670;Tiksi
+PROV2671;Zhilinda
+PROV2672;Pokrovsk
+PROV2673;Olenyok
+PROV2674;Essey
+PROV2675;Yekonda
+PROV2676;Kirensk
+PROV2677;Dotkon
+PROV2678;Bulgan
+PROV2679;Khovd
+PROV2680;Dudinka
+PROV2681;Kikkiakki
+PROV2682;Aksarka
+PROV2683;Bakchar
+PROV2684;Yar Sale
+PROV2685;Muzhi
+PROV2686;Ishim
+PROV2687;Amderma
+PROV2688;Inta
+PROV2689;Mulda
+PROV2690;Verkhniy Ufaley
+PROV2691;Vorgovo
+PROV2692;Kostino
+PROV2693;Uchami
+PROV2694;Vanavara
+PROV2695;Mukhtuya
+PROV2696;Aldan
+PROV2697;Magdagachi
+PROV2698;Slavgorod
+PROV2699;Izhma
+PROV2700;Usogorsk
+PROV2701;Surinda
+PROV2702;Aralsk
+PROV3246;Jan Mayen
+PROV2703;Vänern
+PROV2704;Vättern
+PROV2705;Gulf of Bothnia
+PROV2706;Ĺlands Hav
+PROV2707;Gulf of Finland
+PROV2708;Western Baltic Sea
+PROV2709;Gulf of Riga
+PROV2710;Southern Baltic Sea
+PROV2711;Öresund
+PROV2712;Kattegat
+PROV2713;Peipsi Järv
+PROV2714;Ladoga
+PROV2715;Onega
+PROV2716;White Sea
+PROV2717;Lofoten Sea
+PROV2718;Northern Norwegian Sea
+PROV2719;Southern Norwegian Sea
+PROV2720;Skagerrack
+PROV2721;Helgoland Bight
+PROV2722;Coast of Holland
+PROV2723;Dogger Bank
+PROV2724;Straits of Dover
+PROV2725;The Channel
+PROV2726;Lands End
+PROV2727;Coast of Britanny
+PROV2728;Quiberon Bay
+PROV2729;Cote D'Argent
+PROV2730;Bay of Biscay
+PROV2731;Cantabrian Sea
+PROV2732;Tyne
+PROV2733;Firth of Forth
+PROV2734;The North Sea
+PROV2735;Moray Firth
+PROV2736;North Channel
+PROV2737;Irish Sea
+PROV2738;St. George's Channel
+PROV2739;Donegal Bay
+PROV2740;Dingle Bay
+PROV2741;Celtic Sea
+PROV2742;Western Approaches
+PROV2743;Finisterre Bay
+PROV2744;Lusitanian Sea
+PROV2745;Gulf of Cadiz
+PROV2746;Straits of Gibraltar
+PROV2747;Gulf of Almería
+PROV2748;Gulf of Valencia
+PROV2749;Gulf of Lion
+PROV2750;Cote D'Azur
+PROV2751;Ligurian Sea
+PROV2752;Gulf of Mallorca
+PROV2753;Western Mediterranean
+PROV2754;Barbary Coast
+PROV2755;Cape Bon
+PROV2756;Tyrrhenian Sea
+PROV2757;Bay of Naples
+PROV2758;Gulf of Gabes
+PROV2759;Malta Channel
+PROV2760;Straits of Messina
+PROV2761;Gulf of Venice
+PROV2762;Adriatic Sea
+PROV2763;Straits of Otranto
+PROV2764;Gulf of Taranto
+PROV2765;Ionian Sea
+PROV2766;Gulf of Sirte
+PROV2767;Gulf of Tobruk
+PROV2768;Bay of Alexandria
+PROV2769;Palestinian Coast
+PROV2770;Gulf of Cyprus
+PROV2771;Sea of Crete
+PROV2772;Aegean Sea
+PROV2773;Sea of Marmara
+PROV2774;Gulf of Varna
+PROV2775;Gulf of Odessa
+PROV2776;Sea of Azov
+PROV2777;Eastern Black Sea
+PROV2778;Lake Balaton
+PROV2779;Caspian Sea
+PROV2780;Aral Sea
+PROV2781;Gulf of Suez
+PROV2782;Red Sea
+PROV2783;Straits of Obokk
+PROV2784;Bal el Mandeb
+PROV2785;Coast of Mascate
+PROV2786;Mascate Coast
+PROV2787;Straits of Hormuz
+PROV2788;Persian Gulf
+PROV2789;Gulf of Indus
+PROV2790;Gulf of Gujarat
+PROV2791;Laquedive Islands
+PROV2792;Coast of Malabar
+PROV2793;Comorin Cape
+PROV2794;Coast of Caramandel
+PROV2795;Coast of Orissa
+PROV2796;Ganges Delta
+PROV2797;Akyab Bay
+PROV2798;Irrawady Delta
+PROV2799;Andaman Sea
+PROV2800;Mergui Archipelago
+PROV2801;Straits of Malacca
+PROV2802;Nicobar Isles
+PROV2803;Coast of Atjeh
+PROV2804;Coast of Sumatra
+PROV2805;Sunda Strait
+PROV2806;Coast of Java
+PROV2807;Coast of Surabaya
+PROV2808;Straits of Lombok
+PROV2809;Timor Sea
+PROV2810;The Moluccas
+PROV2811;Java Sea
+PROV2812;Straits of Makassar
+PROV2813;Karimata Strait
+PROV2814;Straits of Johore
+PROV2815;Malayan Sea
+PROV2816;Coast of Sarawak
+PROV2817;Mekong Delta
+PROV2818;Gulf of Siam
+PROV2819;Cam Ranh Bay
+PROV2820;South China Sea
+PROV2821;Coast of Brunei
+PROV2822;Coast of Annam
+PROV2823;Gulf of Tonkin
+PROV2824;Guangzhou Bay
+PROV2825;Taiwan Strait
+PROV2826;Yang Tse Delta
+PROV2827;Yellow Sea
+PROV2828;Korea Bay
+PROV2829;South Korean Sea
+PROV2830;North Korean Sea
+PROV2831;Coast of Olga
+PROV2832;Tatar Straits
+PROV2833;Amur Delta
+PROV2834;Bay of Ayan
+PROV2835;Bay of Komenskoie
+PROV2836;Coast of Kamchatska
+PROV2837;Okhotsk Sea
+PROV2838;Coast of Sakhalin
+PROV2839;Soya Strait
+PROV2840;Tsugaru Strait
+PROV2841;Sea of Japan
+PROV2842;Amakusa Sea
+PROV2843;Setto Inland Sea
+PROV2844;Tokai Sea
+PROV2845;Ryukyu Islands
+PROV2846;Luzon Strait
+PROV2847;Paracel Islands
+PROV2848;Manila Bay
+PROV2849;Coast of Luzon
+PROV2850;Gulf of Leyte
+PROV2851;Sulu Sea
+PROV2852;Sea of Celebes
+PROV2853;Sea of Ternate
+PROV2854;Sea of Banda
+PROV2855;Philippine Sea
+PROV2856;Palau Islands
+PROV2857;Biak Bay
+PROV2858;Vilian Strait
+PROV2859;Trobrian Islands
+PROV2860;Torres Strait
+PROV2861;Arafuam Sea
+PROV2862;Kolepom Bay
+PROV2863;Gulf of Carpentaria
+PROV2864;Great Barrier Reef
+PROV2865;Capricorn Bay
+PROV2866;Cape Howe
+PROV2867;Bass Strait
+PROV2868;Kangaroo Island
+PROV2869;Great Australian Bight
+PROV2870;Cape Leeuwin
+PROV2871;Shark Bay
+PROV2872;Northwest Cape
+PROV2873;King Sound
+PROV2874;Tasman Plateau
+PROV2875;Toogee Ridge
+PROV2876;Cook Strait
+PROV2877;Northern Tasman Sea
+PROV2878;Cape Farewell
+PROV2879;Coast of New Zealand
+PROV2880;Southern Tasman Sea
+PROV2881;Canterbury Bight
+PROV2882;New Caledonian Sea
+PROV2883;Coral Sea
+PROV2884;Gilbert Sea
+PROV2885;Solomon Sea
+PROV2886;Nauru Island
+PROV2887;Melanesia Sea
+PROV2888;Micronesia Sea
+PROV2889;Philippine Trench
+PROV2890;Philippine Basin
+PROV2891;Tinian Sea
+PROV2892;Iwo Jima Sea
+PROV2893;Taihei Ocean
+PROV2894;The Kuriles
+PROV2895;Bay of Uka
+PROV2896;Bay of Oljut
+PROV2897;Bay of Anadyr
+PROV2898;Yekaterina Plains
+PROV2899;Horn of Africa
+PROV2900;Coast of Pepper
+PROV2901;Zanzibar Strait
+PROV2902;Mozambique Channel
+PROV2903;Diego Suarez Bay
+PROV2904;Western Arabian Sea
+PROV2905;Eastern Arabian Sea
+PROV2906;The Seychelles
+PROV2907;Coast of Tamatave
+PROV2908;The Mascareignes
+PROV2909;Gulf of Zambeze
+PROV2910;Coast of Natal
+PROV2911;Coast of Transkei
+PROV2912;Coast of Ciskei
+PROV2913;Cape of Good Hope
+PROV2914;Coast of Namibia
+PROV2915;Coast of Angola
+PROV2916;Gulf of Kongo
+PROV2917;Coast of Cameroon
+PROV2918;Bight of Benin
+PROV2919;Gold Coast
+PROV2920;Ivory Coast
+PROV2921;Coast of Guinea
+PROV2922;Coast of Senegambia
+PROV2923;Mauritanian Coast
+PROV2924;Canarian Sea
+PROV2925;Coast of Morocco
+PROV2926;Jan Mayen Sea
+PROV2927;Spitzberg Sea
+PROV2928;Icelandic Sea
+PROV2929;Shetland Straits
+PROV2930;Coast of Iceland
+PROV2931;Northeastern Atlantic
+PROV2932;Rockall
+PROV2933;Denmark Strait
+PROV2934;Eastern Coast of Greenland
+PROV2935;Western Coast of Greenland
+PROV2936;Labrador Strait
+PROV2937;Baffin Bay
+PROV2938;Hudson Straits
+PROV2939;James Bay
+PROV2940;Western Hudson Bay
+PROV2941;Eastern Hudson Bay
+PROV2942;Foxe Basin
+PROV2943;Gulf of St. Lawrence
+PROV2944;Cabot Strait
+PROV2945;Bay of Fundy
+PROV2946;Strait of Belle Isle
+PROV2947;Fortune Bay
+PROV2948;Notre Dame Bay
+PROV2949;Labrador Sea
+PROV2950;Greenland Sea
+PROV2951;Hecala Seamount
+PROV2952;Massachusetts Bay
+PROV2953;Chesapeake Bay
+PROV2954;Cape Hatteras
+PROV2955;Coast of Carolina
+PROV2956;Coast of Florida
+PROV2957;Coast of the Bahamas
+PROV2958;Florida Straits
+PROV2959;Apalachee Bay
+PROV2960;Mobile Bay
+PROV2961;Galveston Bay
+PROV2962;Tampico Bay
+PROV2963;Yucatan Sea
+PROV2964;Gulf of Mexico
+PROV2965;Yucatan Channel
+PROV2966;Belize Bay
+PROV2967;Mosquito Coast
+PROV2968;Gulf of Darien
+PROV2969;Jamaica Channel
+PROV2970;Central Caribbean
+PROV2971;Northwestern Caribbean
+PROV2972;Venezuelan Gulf
+PROV2973;Venezuelan Sea
+PROV2974;Eastern Caribbean
+PROV2975;Windward Islands
+PROV2976;Lesser Antilles
+PROV2977;Turks & Caicos Sea
+PROV2978;Coast of Cuba
+PROV2979;Coast of Hispaniola
+PROV2980;Guyana Coast
+PROV2981;Coast of Amapá
+PROV2982;Amazonas Gulf
+PROV2983;Coast of Brazil
+PROV2984;Coast of Recife
+PROV2985;Coast of Pernambuco
+PROV2986;Todos os Santos Bay
+PROV2987;Rio De Janeiro
+PROV2988;Baia Paranaguá
+PROV2989;Rio De La Plata
+PROV2990;Bahia Blanca
+PROV2991;Coast of Patagonia
+PROV2992;Magellan Strait
+PROV2993;South Chilean Coast
+PROV2994;Coast of Chile
+PROV2995;Atacama Coast
+PROV2996;Antofagasta Coast
+PROV2997;Arequipa Bay
+PROV2998;Coast of Peru
+PROV2999;Guayaquil Bay
+PROV3000;Coast of Ecuador
+PROV3001;Gulf of Panama
+PROV3002;Bay of Costa Rica
+PROV3003;Acapulco Bay
+PROV3004;Manzanilla Bay
+PROV3005;Mazatlan Bay
+PROV3006;Gulf of California
+PROV3007;Coast of Baja
+PROV3008;Coast of California
+PROV3009;Santa Catalina Islands
+PROV3010;Coast of Oregon
+PROV3011;Coast of Columbia
+PROV3012;Hecate Strait
+PROV3013;Gulf of Alaska
+PROV3014;Coast of Alaska
+PROV3015;Kuskowim Bay
+PROV3016;Hatton Bank
+PROV3017;Eastern Gibbs Fracture
+PROV3018;Western Gibbs Fracture
+PROV3019;Iberian Shelf
+PROV3020;Sea of Azores
+PROV3021;Corner Seamounts
+PROV3022;New England Seamounts
+PROV3023;Sable Island Bank
+PROV3024;Blake Plateau
+PROV3025;West Bermuda Sea
+PROV3026;East Bermuda Sea
+PROV3027;Canary Current
+PROV3028;Northern Guiana Basin
+PROV3029;Guiana Basin
+PROV3030;Southern Guiana Basin
+PROV3031;Canary Approach
+PROV3032;Cape Verde Approach
+PROV3033;Cruiser Tablemount
+PROV3034;Barracuda Fracture Zone
+PROV3035;Eastern Sargasso Sea
+PROV3036;Central Sargasso Sea
+PROV3037;Romanche Gap
+PROV3038;East Guinea Basin
+PROV3039;West Guinea Basin
+PROV3040;Argentine Sea
+PROV3041;Argentine Rise
+PROV3042;Cornet Bank
+PROV3043;Vema Channel
+PROV3044;South Brazil Basin
+PROV3045;Zapiola Plain
+PROV3046;Argentine Basin
+PROV3047;Falkland Plateau
+PROV3048;Coast of Falklands
+PROV3049;Fernando de Noronha Islands
+PROV3050;North Brazil Basin
+PROV3051;Sierra Leone Basin
+PROV3052;Martin Vaz Ridge
+PROV3053;West Coast of Ascension
+PROV3054;East Coast of Ascension
+PROV3055;Walvis Ridge
+PROV3056;Cape Plain
+PROV3057;Gough Island
+PROV3058;Coast of Tristan da Cunha
+PROV3059;San Marin Gap
+PROV3060;South Sandwich Islands
+PROV3061;Inaccessible Island
+PROV3062;Bouvet Island
+PROV3063;Cape of Storms
+PROV3064;Gulf of Bengal
+PROV3065;Northern Bay of Bengal
+PROV3066;Southern Bay of Bengal
+PROV3067;Ceylon Sea
+PROV3068;Coast of Maldives
+PROV3069;Eight Degree Channel
+PROV3070;Madingley Rise
+PROV3071;Arabian Basin
+PROV3072;One and a Half Degree Channel
+PROV3073;Chagos Archipelago
+PROV3074;Cocos Basin
+PROV3075;Southern Sumatra Trench
+PROV3076;Coast of the Keelings
+PROV3077;Java Trench
+PROV3078;Prince Edward Islands
+PROV3079;Del Cano Rise
+PROV3080;Cape Sainte Marie
+PROV3081;Crozet Island
+PROV3082;Mascarene Plain
+PROV3083;Rodrigues Island
+PROV3084;Southwest Indian Basin
+PROV3085;Kerguelen Islands
+PROV3086;St Paul Island
+PROV3087;Broken Ridge
+PROV3088;South Australian Basin
+PROV3089;Egeria Fracture Zone
+PROV3090;Argo Zone
+PROV3091;Cuvier Basin
+PROV3092;Wallaby Plateau
+PROV3093;Ninety East Ridge
+PROV3094;Roa Rise
+PROV3095;Vening-Meinesz Seamounts
+PROV3096;Wharton Basin
+PROV3097;Northern Cocos Plateau
+PROV3098;Southern Cocos Plateau
+PROV3099;Amsterdam Island
+PROV3100;Marie-Celeste Fracture Zone
+PROV3101;Lake Tchad
+PROV3102;Lake Victoria
+PROV3103;Lake Tanganyika
+PROV3104;Lake Malawi
+PROV3105;Gulden-Draak Seamount
+PROV3106;Lake Balchasj
+PROV3107;Lake Bajkal
+PROV3108;Lake Dongting
+PROV3109;Lake Titicaca
+PROV3110;Lake Nicaragua
+PROV3111;Sedna Basin
+PROV3112;Lake Ontario
+PROV3113;Lake Erie
+PROV3114;Lake Huron
+PROV3115;Lake Michigan
+PROV3116;Lake Superior
+PROV3117;Lake Nipigon
+PROV3118;Lake Winnipeg
+PROV3119;Korskiyev Gulch
+PROV3120;Orsova Bank
+PROV3121;Novarsk Plain
+PROV3122;Sorvskiya Plains
+PROV3123;Yamara Gulch
+PROV3124;Northwest Pacific Basin
+PROV3125;Sevrance Shoals
+PROV3126;Coast of Marcus Island
+PROV3127;Coast of the Mariana Islands
+PROV3128;Maysdale Flats
+PROV3129;Izamo Drop
+PROV3130;North Bering Sea
+PROV3131;South Bering Sea
+PROV3132;Western Aleutian Islands
+PROV3133;Pribilof Islands
+PROV3134;Eastern Aleutian Islands
+PROV3135;Uminak Pass
+PROV3136;Western Aleutian Sea
+PROV3137;Baker Seamount
+PROV3138;Alaska Plain
+PROV3139;Eastern Aleutian Sea
+PROV3140;Explorer Trench
+PROV3141;Moonless Seamounts
+PROV3142;Chinook Basin
+PROV3143;Ulchi Basin
+PROV3144;Jingu Basin
+PROV3145;Chinook Trough
+PROV3146;Stanley Seamount
+PROV3147;Mendocino Escarpment
+PROV3148;California Seamount
+PROV3149;Murray Fracture Zone
+PROV3150;Coast of Hawaii
+PROV3151;Argo Seamount
+PROV3152;Musicians Seamount
+PROV3153;Coast of Midway Island
+PROV3154;Kepler Plain
+PROV3155;Galois Plain
+PROV3156;O'Gorman Rise
+PROV3157;Coast of the Galapagos Islands
+PROV3158;Lapira Plains
+PROV3159;Coast of the Cook Islands
+PROV3160;Clipperton Island
+PROV3161;Henderson Seamount
+PROV3162;Madijera Ridge
+PROV3163;Bauer Basin
+PROV3164;Northeast Pacific Basin
+PROV3165;Discoverer Seamount
+PROV3166;Tasavulu Flats
+PROV3167;Hawaiian Arch
+PROV3168;Radford Basin
+PROV3169;Northern Line Islands
+PROV3170;Coast of the Society Islands
+PROV3171;Peru Basin
+PROV3172;Yupanqui Basin
+PROV3173;Severance Plains
+PROV3174;Altamira Plains
+PROV3175;Southern Line Islands
+PROV3176;Central Pacific Basin
+PROV3177;Coast of Samoa
+PROV3178;Johnston Atoll
+PROV3179;Coast of Tonga
+PROV3180;Coast of the Marquesas
+PROV3181;Resolution Flats
+PROV3182;Coast of the Tuamotus
+PROV3183;Titus Ridge
+PROV3184;Chatham Islands
+PROV3185;Southwest Pacific Basin
+PROV3186;Ludovico Gulch
+PROV3187;Coast of Pitcairn Island
+PROV3188;Rogeveen Basin
+PROV3189;Menard Fracture Zone
+PROV3190;Coast of Easter Island
+PROV3191;Coast of the Ellice Islands
+PROV3192;New Caledonia Basin
+PROV3193;Juan Fernandez Islands
+PROV3194;Selkirk Rise
+PROV3195;Karasev Plains
+PROV3196;Timkin Plain
+PROV3197;Syrus Reef
+PROV3198;Humboldt Plains
+PROV3199;Valdivia Flats
+PROV3200;Coast of South Georgia
+PROV3201;Argentine Plain
+PROV3202;Zapiola Seamount
+PROV3203;West Coast of Saint Helena
+PROV3204;Moore Fracture Zone
+PROV3205;West Demerara Plain
+PROV3206;East Demerara Plain
+PROV3207;Cape Verde Basin
+PROV3208;Nares Plain
+PROV3209;Bahamas Basin
+PROV3210;Western Sargasso Sea
+PROV3211;Bermuda Approaches
+PROV3212;Ceylon Plain
+PROV3213;Sunda Trench
+PROV3214;Northern Sumatra Trench
+PROV3215;Central Indian Basin
+PROV3216;Fiji Basin
+PROV3217;Solace Flats
+PROV3218;Pisaros Pass
+PROV3219;Coast of Fiji
+PROV3220;Coast of Norfolk Island
+PROV3221;Coast of the Gilbert Islands
+PROV3222;Mainu Reef
+PROV3223;Tusei Bank
+PROV3224;Lake Tana
+PROV3225;Great Salt Lake
+PROV3226;South Australian Plain
+PROV3227;Great Slave Lake
+PROV3228;Lake Athabasca
+PROV3229;Reindeer Lake
+PROV3230;Gulf of Ob
+PROV3231;Lake Van
+PROV3232;Lake Urmia
+PROV3233;Issyk Kul
+PROV3234;Qinghai Lake
+PROV3235;Lake Poyang
+PROV3236;Lake Rudolf
+PROV3237;Sohm Plain
+PROV3238;Lake Mweru
+PROV3239;Lake Champlain
+PROV3240;Lake Poopo
+PROV3241;Arctic Ocean
+PROV3242;Maury Sea Channel
+PROV3243;Southeast Pacific Basin
+PROV3244;Jaluit Passage
+PROV3245;Markov Plains
+PROV3247;West Hawaii
+PROV3248;West Magellan Strait

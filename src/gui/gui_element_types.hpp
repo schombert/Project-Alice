@@ -194,10 +194,10 @@ public:
 
 class button_element_base : public opaque_element_base {
 protected:
-
 	std::string stored_text;
 	float text_offset = 0.0f;
 	bool black_text = true;
+	bool using_default = true;
 
 public:
 	button_element_base() {
@@ -352,7 +352,7 @@ class simple_text_element_base : public element_base {
 protected:
 	std::string stored_text;
 	float text_offset = 0.0f;
-
+	bool using_default = true;
 public:
 	bool black_text = true;
 	int32_t data = 0;
@@ -400,6 +400,7 @@ public:
 	virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
 	virtual void edit_box_backtick(sys::state& state) noexcept { }
+	virtual void edit_box_back_slash(sys::state& state) noexcept { }
 	virtual void edit_index_position(sys::state& state, int32_t index) noexcept {
 		edit_index = index;
 	}
@@ -411,7 +412,7 @@ public:
 	}
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
-	void on_text(sys::state& state, char ch) noexcept override;
+	void on_text(sys::state& state, char32_t ch) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };
 
@@ -468,6 +469,10 @@ class checkbox_button : public button_element_base {
 public:
 	virtual bool is_active(sys::state& state) noexcept {
 		return false;
+	}
+
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_checkbox_sound(state);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -635,6 +640,10 @@ public:
 template<class TabT>
 class generic_tab_button : public checkbox_button {
 public:
+	sound::audio_instance& get_click_sound(sys::state& state) noexcept override {
+		return sound::get_subtab_sound(state);
+	}
+
 	bool is_active(sys::state& state) noexcept final {
 		return parent && static_cast<generic_tabbed_window<TabT>*>(parent)->active_tab == target;
 	}
@@ -883,6 +892,7 @@ public:
 	int32_t visible_lines = 0;
 	text::layout internal_layout;
 
+	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 };

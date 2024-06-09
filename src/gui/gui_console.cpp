@@ -1,6 +1,7 @@
 #include <string>
 #include <string_view>
 #include <variant>
+#include <filesystem>
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
@@ -29,8 +30,6 @@ struct command_info {
 		money,
 		westernize,
 		unwesternize,
-		elecwin,
-		mainmenu,
 		cb_progress,
 		crisis,
 		end_game,
@@ -39,8 +38,8 @@ struct command_info {
 		dump_out_of_sync,
 		dump_event_graph,
 		dump_tooltip,
+		dump_tags_and_provinces_csv,
 		ai_elligibility,
-		fog_of_war,
 		prestige,
 		force_ally,
 		win_wars,
@@ -60,8 +59,6 @@ struct command_info {
 		change_control_and_owner,
 		toggle_core,
 		province_id_tooltip,
-		wasd,
-		next_song,
 		add_population,
 		instant_army,
 		instant_navy,
@@ -70,13 +67,13 @@ struct command_info {
 		daily_oos_check,
 		dump_map,
 		province_names,
-		color_blind_mode,
 		list_national_variables,
 		list_global_flags,
 		list_national_flags,
 		list_all_flags,
 		set_auto_choice_all,
 		clear_auto_choice_all,
+		economy_dump
 	} mode = type::none;
 	std::string_view desc;
 	struct argument_info {
@@ -98,7 +95,7 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"abort", command_info::type::abort, "Abnormally terminates execution",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"clr_log", command_info::type::clear_log, "Clears console logs",
+		command_info{"clr", command_info::type::clear_log, "Clears console logs",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
 		command_info{"fps", command_info::type::fps, "Toggles FPS counter",
@@ -138,9 +135,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"unwest", command_info::type::unwesternize, "Unwesternizes",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
-		command_info{"mainmenu", command_info::type::mainmenu, "Shows/Hides Main Menu",
-				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"colour", command_info::type::colour_guide, "An overview of available colors for complex text",
 				{command_info::argument_info{}, command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}}},
@@ -167,12 +161,12 @@ inline constexpr command_info possible_commands[] = {
 		command_info{"dtt", command_info::type::dump_tooltip, "Dump the contents of a tooltip",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
+		command_info{"dxlsl", command_info::type::dump_tags_and_provinces_csv, "Dump tags and province loc",
+			{command_info::argument_info{}, command_info::argument_info{},
+					command_info::argument_info{}}},
 		command_info{"aiel", command_info::type::ai_elligibility, "Display AI elligibility",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}}},
-		command_info{"fow", command_info::type::fog_of_war, "Toggles fog of war ON/OFF",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}}},
 		command_info{"fa", command_info::type::force_ally, "Force an alliance between you and a country",
 				{command_info::argument_info{"country", command_info::argument_info::type::tag, false}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}}},
@@ -231,12 +225,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "provid", command_info::type::province_id_tooltip, "show province id in mouse tooltip",
 				{command_info::argument_info{}, command_info::argument_info{},
 						command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "wasd", command_info::type::wasd, "move camera with wasd",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "nextsong", command_info::type::next_song, "Skips to the next track",
-				{command_info::argument_info{}, command_info::argument_info{},
-						command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "addpop", command_info::type::add_population, "Add a certain ammount of population to your nation",
 				{command_info::argument_info{"ammount", command_info::argument_info::type::numeric, false }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
@@ -258,9 +246,6 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "provnames", command_info::type::province_names, "Toggle daily province names",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
-		command_info{ "cblind", command_info::type::color_blind_mode, "Toggle experimental colour blind mode",
-			{command_info::argument_info{}, command_info::argument_info{},
-					command_info::argument_info{}, command_info::argument_info{}} },
 		command_info{ "lnv", command_info::type::list_national_variables, "List national variables",
 			{command_info::argument_info{}, command_info::argument_info{},
 					command_info::argument_info{}, command_info::argument_info{}} },
@@ -279,7 +264,9 @@ inline constexpr command_info possible_commands[] = {
 		command_info{ "innovate", command_info::type::innovate, "Instantly discovers an innovation. Just use the normal innovation's name with '_' instead of spaces.",
 				{command_info::argument_info{"innovation", command_info::argument_info::type::text }, command_info::argument_info{ },
 						command_info::argument_info{}, command_info::argument_info{}} },
-						
+		command_info{ "ecodump", command_info::type::economy_dump, "Starts writing economy info to the disk. Could deteriorate performance.",
+				{command_info::argument_info{}, command_info::argument_info{},
+						command_info::argument_info{}, command_info::argument_info{}} },
 };
 
 uint32_t levenshtein_distance(std::string_view s1, std::string_view s2) {
@@ -696,15 +683,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		}
 	}
 	switch(pstate.cmd.mode) {
-	case command_info::type::mainmenu:
-		if(!state.ui_state.main_menu) {
-			show_main_menu(state);
-		} else {
-			state.ui_state.main_menu->is_visible() ? state.ui_state.main_menu->set_visible(state, false)
-				: state.ui_state.main_menu->set_visible(state, true);
-			state.ui_state.main_menu->impl_on_update(state);
-		}
-		break;
 	case command_info::type::reload:
 		log_to_console(state, parent, "Reloading...");
 		state.map_state.load_map(state);
@@ -1333,6 +1311,193 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		simple_fs::write_file(sdir, NATIVE("tooltip.txt"), out_text.c_str(), uint32_t(out_text.size()));
 	}
 	break;
+	case command_info::type::dump_tags_and_provinces_csv:
+	{
+		std::string out_text = "\n";
+		for(const auto nid : state.world.in_national_identity) {
+			auto tag = nations::int_to_tag(nid.get_identifying_int());
+			out_text += tag + ";" + text::produce_simple_string(state, nid.get_name()) + "\n";
+			out_text += tag + "_ADJ" + ";" + text::produce_simple_string(state, nid.get_adjective()) + "\n";
+		}
+		for(const auto p : state.world.in_province) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == p.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		auto sdir = simple_fs::get_or_create_oos_directory();
+		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
+		//reset csv
+		out_text = "\n";
+		for(const auto t : state.world.in_technology) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("technologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_invention) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("inventions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_ideology) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("ideologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_issue_option) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("issue_options.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_issue) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("issues.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_culture) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("cultures.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_religion) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("religions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_government_type) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("government_type.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_decision) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
+					break;
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("decisions.csv"), out_text.c_str(), uint32_t(out_text.size()));
+		//
+		out_text = "\n";
+		for(const auto t : state.world.in_national_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_free_national_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_provincial_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		for(const auto t : state.world.in_free_provincial_event) {
+			for(const auto& k : state.key_to_text_sequence) {
+				if(k.second == t.get_name()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+				} else if(k.second == t.get_description()) {
+					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+				} else {
+					for(auto i = 0; i < sys::max_event_options; i++) {
+						if(k.second == t.get_options()[i].name) {
+							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+						}
+					}
+				}
+			}
+		}
+		simple_fs::write_file(sdir, NATIVE("events.csv"), out_text.c_str(), uint32_t(out_text.size()));
+	}
+	break;
 	case command_info::type::dump_event_graph:
 	{
 		struct graph_event_option {
@@ -1573,7 +1738,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto const n = state.local_player_nation;
 		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
-		log_to_console(state, parent, state.world.nation_get_owned_province_count(n) != 0 ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(state.world.nation_get_owned_province_count(n) != 0));
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
@@ -1801,10 +1966,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			ptr_in = sys::serialize(ptr_in, state.text_components);
 			return ptr_in;
 		});
-		write_single_component(state, NATIVE("text_sequences.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_sequences);
-			return ptr_in;
-		});
 		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
 			return ptr_in;
@@ -1832,11 +1993,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		log_to_console(state, parent, "Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
 		window::change_cursor(state, window::cursor_type::normal);
 		break;
-	case command_info::type::fog_of_war:
-		state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
-		state.map_state.map_data.update_fog_of_war(state);
-		log_to_console(state, parent, state.user_settings.fow_enabled ? "\x02" : "\x01");
-		break;
 	case command_info::type::win_wars:
 		break;
 	case command_info::type::toggle_ai:
@@ -1844,23 +2000,23 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
 	case command_info::type::always_allow_wargoals:
-		log_to_console(state, parent, !state.cheat_data.always_allow_wargoals ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_wargoals));
 		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		log_to_console(state, parent, !state.cheat_data.always_allow_reforms ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_reforms));
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_decisions:
-		log_to_console(state, parent, !state.cheat_data.always_allow_decisions ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_decisions));
 		command::c_always_allow_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_potential_decisions:
-		log_to_console(state, parent, !state.cheat_data.always_potential_decisions ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_potential_decisions));
 		command::c_always_potential_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
-		log_to_console(state, parent, !state.cheat_data.always_accept_deals ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_accept_deals));
 		command::c_always_accept_deals(state, state.local_player_nation);
 		break;
 	case command_info::type::set_auto_choice_all:
@@ -1879,17 +2035,19 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				has_us = true;
 				break;
 			}
-		log_to_console(state, parent, !has_us ? "\x02" : "\x01");
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!has_us));
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
-		log_to_console(state, parent, std::string("Great Wars: ") + (state.military_definitions.great_wars_enabled ? "\x02" : "\x01"));
-		log_to_console(state, parent, std::string("World Wars: ") + (state.military_definitions.world_wars_enabled ? "\x02" : "\x01"));
+		log_to_console(state, parent, std::string("Great Wars: "));
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.great_wars_enabled));
+		log_to_console(state, parent, std::string("World Wars: "));
+		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.world_wars_enabled));
 		break;
 	case command_info::type::spectate:
-		command::c_switch_nation(state, state.local_player_nation, state.world.nation_get_identity_from_identity_holder(state.national_definitions.rebel_id));
+		command::c_switch_nation(state, state.local_player_nation, state.national_definitions.rebel_id);
 		break;
 	case command_info::type::conquer_tag:
 	{
@@ -1957,19 +2115,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_id_tooltip:
 	{
 		state.cheat_data.show_province_id_tooltip = not state.cheat_data.show_province_id_tooltip;
-		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "\x02" : "\x01");
-		break;
-	}
-	case command_info::type::wasd:
-	{
-		state.user_settings.wasd_for_map_movement = not state.user_settings.wasd_for_map_movement;
-		log_to_console(state, parent, state.user_settings.wasd_for_map_movement ? "\x02" : "\x01");
-		state.save_user_settings();
-		break;
-	}
-	case command_info::type::next_song:
-	{
-		sound::play_new_track(state);
+		log_to_console(state, parent, state.cheat_data.show_province_id_tooltip ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::add_population:
@@ -1980,26 +2126,26 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	}
 	case command_info::type::instant_army:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_army ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_army ? "✔" : "✘");
 		command::c_instant_army(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_navy:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_navy ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_navy ? "✔" : "✘");
 		command::c_instant_navy(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::instant_industry:
 	{
-		log_to_console(state, parent, !state.cheat_data.instant_industry ? "\x02" : "\x01");
+		log_to_console(state, parent, !state.cheat_data.instant_industry ? "✔" : "✘");
 		command::c_instant_industry(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::daily_oos_check:
 	{
 		state.cheat_data.daily_oos_check = not state.cheat_data.daily_oos_check;
-		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.daily_oos_check ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::dump_map:
@@ -2102,16 +2248,27 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	case command_info::type::province_names:
 	{
 		state.cheat_data.province_names = not state.cheat_data.province_names;
-		log_to_console(state, parent, state.cheat_data.province_names ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.province_names ? "✔" : "✘");
 		break;
 	}
-	case command_info::type::color_blind_mode:
+	case command_info::type::economy_dump:
 	{
-		state.user_settings.color_blind_mode = sys::color_blind_mode(uint8_t(state.user_settings.color_blind_mode) + 1);
-		if(uint8_t(state.user_settings.color_blind_mode) > 4) {
-			state.user_settings.color_blind_mode = sys::color_blind_mode::none;
+		if(state.cheat_data.ecodump) {
+			state.cheat_data.ecodump = false;
+		} else {
+			state.cheat_data.ecodump = true;
+
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				state.cheat_data.prices_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.demand_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+				state.cheat_data.supply_dump_buffer += text::produce_simple_string(state, state.world.commodity_get_name(c)) + ",";
+			});
+
+			state.cheat_data.prices_dump_buffer += "\n";
+			state.cheat_data.demand_dump_buffer += "\n";
+			state.cheat_data.supply_dump_buffer += "\n";
 		}
-		log_to_console(state, parent, state.user_settings.color_blind_mode != sys::color_blind_mode::none ? "\x02" : "\x01");
+		log_to_console(state, parent, state.cheat_data.ecodump ? "✔" : "✘");
 		break;
 	}
 	case command_info::type::list_national_variables:
@@ -2232,6 +2389,9 @@ void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
 	ui::console_window::show_toggle(state);
 }
 void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
+	ui::console_window::show_toggle(state);
+}
+void ui::console_edit::edit_box_back_slash(sys::state& state) noexcept {
 	ui::console_window::show_toggle(state);
 }
 

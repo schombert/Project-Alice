@@ -228,6 +228,9 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
+	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
+	assert(f.loaded);
+
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
 	std::vector<bool> visited(65536, false);
@@ -293,8 +296,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
-
 	for(auto p : state.world.in_province) {
+		if(p.id.index() >= state.province_definitions.first_sea_province.index())
+			break;
 		auto rid = p.get_connected_region_id();
 		if(visited[uint16_t(rid)])
 			continue;
@@ -303,7 +307,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		auto n = p.get_nation_from_province_ownership();
 		n = get_top_overlord(state, n.id);
 
-		// flood fill regions
+		//flood fill regions
 		group_of_regions.clear();
 		group_of_regions.push_back(rid);
 		int first_index = 0;
@@ -311,7 +315,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		while(first_index < vacant_index) {
 			auto current_region = group_of_regions[first_index];
 			first_index++;
-
 			for(auto neighbour_region : regions_graph[current_region]) {
 				if(!visited[neighbour_region]) {
 					group_of_regions.push_back(neighbour_region);
@@ -320,31 +323,50 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-
-		//
-		//
 		if(!n || !n.get_name())
 			continue;
-		std::string name = text::produce_simple_string(state, n.get_name());
 
+		auto nation_name = text::produce_simple_string(state, n.get_name());
+		auto prefix_remove = text::produce_simple_string(state, "map_remove_prefix");
+		if(nation_name.starts_with(prefix_remove)) {
+			nation_name.erase(0, prefix_remove.size());
+		}
+		auto acronym_expand = text::produce_simple_string(state, "map_expand_acronym");
+		if(acronym_expand.size() > 0 && nation_name.starts_with(acronym_expand)) {
+			nation_name.erase(0, acronym_expand.size());
+			auto acronym_expand_to = text::produce_simple_string(state, "map_expand_acronym_to");
+			nation_name.insert(0, acronym_expand_to.data(), acronym_expand_to.size());
+		}
+
+		std::string name = nation_name;
 		bool connected_to_capital = false;
-
 		for(auto visited_region : group_of_regions) {
 			if(n.get_capital().get_connected_region_id() == visited_region) {
 				connected_to_capital = true;
 			}
 		}
-		
+		text::substitution_map sub{};
+		text::add_to_substitution_map(sub, text::variable_type::adj, n.get_adjective());
+		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(nation_name));
+		text::add_to_substitution_map(sub, text::variable_type::province, p);
+		text::add_to_substitution_map(sub, text::variable_type::state, p.get_state_membership());
+		text::add_to_substitution_map(sub, text::variable_type::continentname, p.get_continent().get_name());
 		if(!connected_to_capital) {
 			// Adjective + " " + Continent
-			name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, p.get_continent().get_name());
+			name = text::resolve_string_substitution(state, "map_label_adj_continent", sub);
 			// 66% of the provinces correspond to a single national identity
 			// then it gets named after that identity
 			ankerl::unordered_dense::map<int32_t, uint32_t> map;
 			uint32_t total_provinces = 0;
+			dcon::province_id last_province;
+			bool in_same_state = true;
 			for(auto visited_region : group_of_regions) {
 				for(auto candidate : state.world.in_province) {
 					if(candidate.get_connected_region_id() == visited_region) {
+						if(candidate.get_state_membership() != p.get_state_membership())
+							in_same_state = false;
+
+						last_province = candidate;
 						total_provinces++;
 						for(const auto core : candidate.get_core_as_province()) {
 							uint32_t v = 1;
@@ -356,23 +378,56 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					}
 				}
 			}
-			for(const auto& e : map) {
-				if(float(e.second) / float(total_provinces) >= 0.75f) {
-					// Adjective + " " + National identity
-					auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
-					if(state.world.national_identity_get_nation_from_identity_holder(nid) != n && state.world.national_identity_get_name(nid)) {
-						name = text::produce_simple_string(state, n.get_adjective()) + " " + text::produce_simple_string(state, state.world.national_identity_get_name(nid));
-						break;
+			if(in_same_state == true) {
+				name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
+			}
+			if(total_provinces == 1) {
+				// Adjective + Province name
+				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
+			} else {
+				for(const auto& e : map) {
+					if(float(e.second) / float(total_provinces) >= 0.75f) {
+						// Adjective + " " + National identity
+						auto const nid = dcon::national_identity_id(dcon::national_identity_id::value_base_t(e.first));
+						if(state.world.national_identity_get_name(nid)) {
+							if(nid == n.get_primary_culture().get_group_from_culture_group_membership().get_identity_from_cultural_union_of()
+							|| nid == n.get_identity_from_identity_holder()) {
+								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
+									//cultural union tag -> use our name
+									name = text::produce_simple_string(state, n.get_name());
+									//Get cardinality
+									auto p1 = n.get_capital().get_mid_point();
+									auto p2 = state.world.province_get_mid_point(last_province);
+									auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
+									auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
+									if(degrees < 0.f) {
+										degrees = 360.f + degrees;
+									}
+									assert(degrees >= 0.f && degrees <= 360.f);
+									if(degrees >= 0.f && degrees < 90.f) {
+										name = text::resolve_string_substitution(state, "map_label_east_country", sub);
+									} else if(degrees >= 90.f && degrees < 180.f) {
+										name = text::resolve_string_substitution(state, "map_label_south_country", sub);
+									} else if(degrees >= 180.f && degrees < 270.f) {
+										name = text::resolve_string_substitution(state, "map_label_west_country", sub);
+									} else if(degrees >= 270.f && degrees < 360.f) {
+										name = text::resolve_string_substitution(state, "map_label_north_country", sub);
+									}
+								}
+							} else {
+								text::add_to_substitution_map(sub, text::variable_type::tag, state.world.national_identity_get_name(nid));
+								name = text::resolve_string_substitution(state, "map_label_adj_tag", sub);
+							}
+							break;
+						}
 					}
 				}
 			}
 		}
-		if(name.starts_with("The ")) {
-			name.erase(0, 4);
-		}
+		//name = "جُمْهُورِيَّة ٱلْعِرَاق";
+		//name = "在标准状况下";
 		if(name.empty())
 			continue;
-
 
 		float rough_box_left = std::numeric_limits<float>::max();
 		float rough_box_right = 0;
@@ -720,6 +775,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
+		float name_extent = f.text_extent(state, name.c_str(), uint32_t(name.length()), 1);
+
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
 		// weird lines, for example, lines that go to the infinite
@@ -768,7 +825,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto regularisation_grad = [&]() {
 				return glm::vec4(0, 0, mo[2] / 4.f, mo[3] / 6.f);
 			};
-			float xstep = (1.f / float(name.length() * 2.f));
+
+			float xstep = (1.f / float(name_extent * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {
@@ -814,7 +872,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto dx_fn = [&](float x) {
 				return mo[1] * l_1 + 2.f * mo[2] * x * l_2;
 			};
-			float xstep = (1.f / float(name.length() * 2.f));
+			float xstep = (1.f / float(name_extent * 2.f));
 			for(float x = 0.f; x <= 1.f; x += xstep) {
 				float y = poly_fn(x);
 				if(y < 0.f || y > 1.f) {

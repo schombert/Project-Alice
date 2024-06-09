@@ -452,62 +452,18 @@ bool can_build_province_building(sys::state& state, dcon::province_id id, dcon::
 bool has_an_owner(sys::state& state, dcon::province_id id) {
 	return bool(dcon::fatten(state.world, id).get_nation_from_province_ownership());
 }
-float monthly_net_pop_growth(sys::state& state, dcon::province_id id) {
-	auto nation = state.world.province_get_nation_from_province_ownership(id);
-	float total_pops = state.world.province_get_demographics(id, demographics::total);
-
-	float life_rating = state.world.province_get_life_rating(id) *
-											(1 + state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::life_rating));
-	life_rating = std::clamp(life_rating, 0.f, 40.f);
-
-	if(life_rating > state.defines.min_life_rating_for_growth) {
-		life_rating -= state.defines.min_life_rating_for_growth;
-		life_rating *= state.defines.life_rating_growth_bonus;
-	} else {
-		life_rating = 0;
-	}
-
-	float growth_factor = life_rating * 0.1f + state.defines.base_popgrowth;
-
-	float life_needs = state.world.province_get_demographics(id, demographics::poor_everyday_needs) +
-		 state.world.province_get_demographics(id, demographics::middle_everyday_needs) +
-		 state.world.province_get_demographics(id, demographics::rich_everyday_needs);
-
-	life_needs /= total_pops;
-
-	float growth_modifier_sum = ((life_needs - state.defines.life_need_starvation_limit) * growth_factor * 4 +
-			state.world.province_get_modifier_values(id, sys::provincial_mod_offsets::population_growth) * 0.1f +
-				 state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::pop_growth) * 0.1f); // /state.defines.slave_growth_divisor;
-
-	// TODO: slaves growth
-
-	return growth_modifier_sum * total_pops;
-}
-float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
-}
-float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
-}
-float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id) {
-	// TODO
-	return 0.0f;
-}
 float rgo_maximum_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
+	return economy::rgo_total_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_employment(sys::state& state, dcon::province_id id) {
-	return economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(id), id) *
-				 state.world.province_get_rgo_employment(id);
+	return economy::rgo_total_employment(state, state.world.province_get_nation_from_province_ownership(id), id);
 }
 float rgo_income(sys::state& state, dcon::province_id id) {
 	return state.world.province_get_rgo_full_profit(id);
 }
-float rgo_production_quantity(sys::state& state, dcon::province_id id) {
-	return economy::rgo_full_production_quantity(state, state.world.province_get_nation_from_province_ownership(id), id) *
-				 state.world.province_get_rgo_employment(id);
+float rgo_production_quantity(sys::state& state, dcon::province_id id, dcon::commodity_id c) {
+	auto n = state.world.province_get_nation_from_province_ownership(id);
+	return state.world.province_get_rgo_actual_production_per_good(id, c);
 }
 float rgo_size(sys::state& state, dcon::province_id prov_id) {
 	bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
@@ -835,7 +791,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 				for(const auto src : p.get_pop().get_regiment_source()) {
 					if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
 					&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
-					&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()) {
+					&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
+					&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
 						auto new_u = fatten(state.world, state.world.create_army());
 						new_u.set_controller_from_army_control(new_owner);
 						src.get_regiment().set_army_from_army_membership(new_u);

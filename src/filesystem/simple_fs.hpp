@@ -78,6 +78,7 @@ directory get_or_create_templates_directory();
 directory get_or_create_oos_directory();
 directory get_or_create_scenario_directory();
 directory get_or_create_settings_directory();
+directory get_or_create_data_dumps_directory();
 
 // necessary for reading paths out of data from inside older paradox files:
 // even on linux, this must do something, because win1250 isn't ascii or utf8

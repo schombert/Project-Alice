@@ -125,6 +125,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		break;
 	case GLFW_REPEAT:
 		switch(virtual_key) {
+		case sys::virtual_key::RETURN: [[fallthrough]];
 		case sys::virtual_key::BACK: [[fallthrough]];
 		case sys::virtual_key::DELETE_KEY: [[fallthrough]];
 		case sys::virtual_key::LEFT: [[fallthrough]];
@@ -208,8 +209,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
 	if(state->ui_state.edit_target) {
-		// TODO change UTF32 to (win1250??)
-		state->on_text(char(codepoint));
+		state->on_text(codepoint);
 	}
 }
 

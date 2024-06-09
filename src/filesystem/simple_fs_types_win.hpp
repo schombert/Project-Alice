@@ -23,6 +23,7 @@ class file_system {
 	void operator=(file_system&& other) = delete;
 
 public:
+	friend std::optional<native_string> get_path_to_file(directory const& dir, native_string_view file_name);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	friend void reset(file_system& fs);
 	friend void add_root(file_system& fs, native_string_view root_path);
@@ -48,6 +49,7 @@ public:
 			: relative_path(relative_path), parent_system(parent_system) { }
 
 	friend directory get_root(file_system const& fs);
+	friend std::optional<native_string> get_path_to_file(directory const& dir, native_string_view file_name);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 	friend std::vector<directory> list_subdirectories(directory const& dir);

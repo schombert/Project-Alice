@@ -657,16 +657,18 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_full_reinforce, 1.000000)                                                             \
 	LUA_DEFINES_LIST_ELEMENT(alice_ai_offensive_strength_overestimate, 1.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_military_score_leadership_factor, 1.000000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 0.950000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 0.950000) \
-	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 0.950000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lf_needs_scale, 1.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ev_needs_scale, 1.000000) \
+	LUA_DEFINES_LIST_ELEMENT(alice_lx_needs_scale, 1.500000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_max_event_iterations, 8.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 100000.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 2.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.1) \
-	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.6) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.25) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 50000.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.05) \
+	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.85) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_overhire_multiplier, 10.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_production_scale_neg_delta, 0.001) \
@@ -680,7 +682,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_cleanup_tag_exception, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_disable_divergent_any_country_effect, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_unciv_civ_forbid_war, 0.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_ideology_base_change_rate, 0.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_ideology_base_change_rate, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_nurture_religion_assimilation, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_surrender_on_cores_lost, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_dont_add_redundant_wargoals, 0.0) \

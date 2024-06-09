@@ -235,7 +235,7 @@ modifier_base
 	pop_growth                                value      float            member_fn
 	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
-	seperatism                                value      float            member_fn
+	seperatism                                value      float            member_fn (non_accepted_pop_militancy_modifier)
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard
@@ -565,6 +565,13 @@ pv_state_building
 	building          value          text               member_fn
 	upgrade           value          none               discard
 
+province_rgo_ext_desc
+	trade_good        value          text               member_fn
+	max_employment    value          int                member_fn
+
+province_rgo_ext
+	entry             group          province_rgo_ext_desc  member_fn
+
 province_history_file
 	life_rating       value          uint               member_fn
 	colony            value          uint               member_fn
@@ -582,6 +589,7 @@ province_history_file
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
+	rgo_distribution  group          province_rgo_ext   member_fn
 	#any              value          uint               member_fn
 	#any              extern         enter_dated_block  discard
 
@@ -1093,6 +1101,7 @@ oob_navy
 	name                            value      text                              member_fn
 	location                        value      int                               member_fn
 	ship                            extern     make_oob_ship                     discard
+	leader                          extern     make_navy_leader                  member_fn
 
 oob_file
 	#any                            extern     make_oob_relationship             discard
@@ -1135,13 +1144,13 @@ production_types_file
 alliance
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
-	start_date                      value      date                              discard
+	end_date                        value      date                              member_fn
+	start_date                      value      date                              member_fn
 
 vassal_description
 	first                           value      text                              member_fn
 	second                          value      text                              member_fn
-	end_date                        value      date                              discard
+	end_date                        value      date                              member_fn
 	start_date                      value      date                              member_fn
 
 diplomacy_file
@@ -1219,3 +1228,79 @@ mod_file
 	extend							value		text					discard
 	replace							value		text					member_fn (replace_path)
 	dependencies					group		dependencies_list		member_fn
+
+battleplan_option
+	name					value		text					discard
+	type					value		text					discard
+	red						value		float					discard
+	green					value		float					discard
+	blue					value		float					discard
+
+battleplan_tool_type
+	icon					value		text					discard
+	option					group		battleplan_option		discard
+
+battleplan_settings_file
+	tool_color				group		battleplan_tool_type	discard
+	tool_arrow				group		battleplan_tool_type	discard
+	tool_borders			group		battleplan_tool_type	discard
+	tool_icons				group		battleplan_tool_type	discard
+
+sfx_definition
+	file					value		text					discard
+	volume					value		float					discard
+
+sfx_file
+	click					group	sfx_definition		discard
+	army_move				group	sfx_definition		discard
+	army_selected			group	sfx_definition		discard
+	cavalry_move			group	sfx_definition		discard
+	cavalry_selected		group	sfx_definition		discard
+	navy_move				group	sfx_definition		discard
+	navy_selected			group	sfx_definition		discard
+	steam_move				group	sfx_definition		discard
+	steam_selected			group	sfx_definition		discard
+	declarewar				group	sfx_definition		discard
+	declarewar_onus			group	sfx_definition		discard
+	peace					group	sfx_definition		discard
+	province_event			group	sfx_definition		discard
+	country_event			group	sfx_definition		discard
+	major_event				group	sfx_definition		discard
+	revolt					group	sfx_definition		discard
+	election_event			group	sfx_definition		discard
+	diplomaticfailure		group	sfx_definition		discard
+	diplomaticoffer			group	sfx_definition		discard
+	diplomaticsuccess		group	sfx_definition		discard
+	error					group	sfx_definition		discard
+	land_combat_1			group	sfx_definition		discard
+	land_combat_2			group	sfx_definition		discard
+	land_combat_3			group	sfx_definition		discard
+	land_combat_4			group	sfx_definition		discard
+	land_combat_5			group	sfx_definition		discard
+	land_combat_6			group	sfx_definition		discard
+	naval_combat_1			group	sfx_definition		discard
+	naval_combat_2			group	sfx_definition		discard
+	naval_combat_3			group	sfx_definition		discard
+	naval_combat_4			group	sfx_definition		discard
+	naval_combat_5			group	sfx_definition		discard
+	naval_combat_6			group	sfx_definition		discard
+	pong					group	sfx_definition		discard
+	tech_discovered			group	sfx_definition		discard
+	chat_message			group	sfx_definition		discard
+	new_factory				group	sfx_definition		discard
+	new_naval_base			group	sfx_definition		discard
+	new_fort				group	sfx_definition		discard
+	new_infrastructure		group	sfx_definition		discard
+	new_land_unit			group	sfx_definition		discard
+	new_naval_unit			group	sfx_definition		discard
+	news_printed			group	sfx_definition		discard
+
+bookmark_definition
+	date				value	date					member_fn
+	name				value	text					member_fn
+	desc				value	text					discard
+	camerax				value	uint					discard
+	cameray				value	uint					discard
+
+bookmark_file
+	bookmark			group	bookmark_definition		member_fn

@@ -64,14 +64,10 @@ bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_inst
 
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
-float monthly_net_pop_growth(sys::state& state, dcon::province_id id);
-float monthly_net_pop_promotion_and_demotion(sys::state& state, dcon::province_id id);
-float monthly_net_pop_internal_migration(sys::state& state, dcon::province_id id);
-float monthly_net_pop_external_migration(sys::state& state, dcon::province_id id);
 float rgo_maximum_employment(sys::state& state, dcon::province_id id);
 float rgo_employment(sys::state& state, dcon::province_id id);
 float rgo_income(sys::state& state, dcon::province_id id);
-float rgo_production_quantity(sys::state& state, dcon::province_id id);
+float rgo_production_quantity(sys::state& state, dcon::province_id id, dcon::commodity_id c);
 float rgo_size(sys::state& state, dcon::province_id prov_id);
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
 float crime_fighting_efficiency(sys::state& state, dcon::province_id id);

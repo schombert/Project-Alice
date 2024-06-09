@@ -56,7 +56,7 @@ struct global_national_state {
 	tagged_vector<dcon::text_sequence_id, dcon::global_flag_id> global_flag_variable_names;
 	tagged_vector<dcon::text_sequence_id, dcon::national_variable_id> variable_names;
 
-	dcon::nation_id rebel_id;
+	dcon::national_identity_id rebel_id;
 
 	dcon::modifier_id very_easy_player;
 	dcon::modifier_id easy_player;
@@ -338,6 +338,7 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id i);
 
 float get_foreign_investment(sys::state& state, dcon::nation_id n);
+float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
 float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
 bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 

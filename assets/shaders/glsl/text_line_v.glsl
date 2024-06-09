@@ -2,13 +2,12 @@
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
 layout (location = 2) in vec2 direction;
-layout (location = 3) in vec2 texture_coord;
-layout (location = 4) in float codepoint_tn;
-layout (location = 5) in float thickness;
+layout (location = 3) in vec3 texture_coord;
+layout (location = 4) in float thickness;
 
-out vec2 tex_coord;
-out float type;
+out vec3 tex_coord;
 out float opacity;
+out float text_size;
 
 // Camera position
 layout (location = 0) uniform vec2 offset;
@@ -123,8 +122,9 @@ void main() {
         opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
         
 	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
+    
+    text_size = thickness * zoom;
 
 	gl_Position = temp_result;
 	tex_coord = texture_coord;
-	type = codepoint_tn;
 }

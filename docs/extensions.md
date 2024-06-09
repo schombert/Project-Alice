@@ -23,6 +23,20 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
+- `break_if = { ... }`: Stop exeuction of the effect if the condition is fullfilled.
+- `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
+- `custom_tooltip = { ... }:`: See below for syntax usage
+
+### Custom tooltip
+```
+custom_tooltip = {
+	x = <variable> #$x$
+	y = <variable> #$x$
+	text = "localisation_key"
+}
+```
+Alternatively:
+`custom_tooltip = "localisation_key"`
 
 ### New trigger conditions
 
@@ -219,6 +233,8 @@ Alice adds a handful of new defines:
 - `alice_lx_needs_scale`: Scale multiplier for luxury needs
 - `alice_max_event_iterations`: The maximun number of iterations that are possible within recursive events, by default this will be `8`, so you can only recursively fire events `8` levels deep. If modders wish to increase their "recursiveness" they may uppen this value up to whatever they wish.
 - `alice_needs_scaling_factor`: Scale factor multiplier for all needs
+- `alice_base_rgo_employment_bonus`: Additional rgo size of the main rgo.
+- `alice_base_rgo_efficiency_bonus`: Additional rgo efficiency of the main rgo.
 - `alice_factory_per_level_employment`: Employment per factory level.
 - `alice_domestic_investment_multiplier`: Multiplier of domestic investment.
 - `alice_rgo_boost`: Boost given to RGOs (for example, 1.2 produces 120% more)
@@ -359,4 +375,22 @@ Now you can define ruler names for a specific nation with a specific government 
 ```
 RUS_absolute_monarchy;The Russian Empire
 RUS_absolute_monarchy_ruler;Tsar
+```
+
+## Definitions for multiple goods produced by local RGO
+
+As RGO can produce a whole distribution of goods, you can define your own distribution for specific provinces:
+
+Example (`history\provinces` files):
+```
+rgo_distribution = {
+	entry = {
+        trade_good = silk
+        max_employment = 100000
+	}
+    entry = {
+        trade_good = opium
+        max_employment = 100000
+	}
+}
 ```

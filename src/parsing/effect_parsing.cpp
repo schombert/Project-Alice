@@ -1412,7 +1412,7 @@ int32_t simplify_effect(uint16_t* source) {
 			&& source[1] == 4
 			&& effect::effect_scope_has_single_member(source)) {
 			auto sub_units_start = source + 2 + effect::effect_scope_data_payload(source[0]);
-			auto const old_size = 1 + effect::get_generic_effect_payload_size(sub_units_start);
+			auto const old_size = 1 + effect::get_generic_effect_payload_size(source);
 			if(sub_units_start[0] == effect::change_province_name) {
 				auto const prov = source[2]; //[code] [size] [province]
 				auto const name_1 = sub_units_start[1];
@@ -1679,7 +1679,12 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		std::string new_key_str = std::string("renaming_") + std::string(value);
 		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
 		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
+		context.add_int32_t_to_payload(name.index());
 	}
 }
 void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
@@ -1698,7 +1703,12 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		std::string new_key_str = std::string("renaming_") + std::string(value);
 		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
 		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		auto name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err);
+		dcon::text_sequence_id name;
+		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
+			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+		}
+		context.add_int32_t_to_payload(name.index());
 	}
 }
 void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {

@@ -1,0 +1,82 @@
+language_en-US;Английский (США)
+language_fr-FR;Французский (Франция)
+language_de-DE;Немецкий (Германия)
+language_es-ES;Испанский (Испания)
+language_it-IT;Итальянский (Италия)
+language_sv-SV;Шведский (Швеция)
+language_cs-CZ;Чешский (Чешская Респ.)
+language_hu-HU;Венгерский (Венгрия)
+language_nl-NL;Голландский (Нидерланды)
+language_pt-PT;Португальский (Португалия)
+language_ru-RU;Русский (Россия)
+language_fi-FI;финский (Финляндия)
+language_pl-PL;Польский (Польша)
+language_ar-AR;Арабский (Аравия)
+language_zh-CN;Китайский (Китай)
+language_jp-JP;Японский (Япония)
+language_ko-SK;Корейский (Южная Корея)
+language_ko-NK;Корейский (Северная Корея)
+language_bg-BG;Болгарский (Болгария)
+save_and_exit;Сохранить и выйти
+save;Сохранять
+exit;Выход
+graphics_options;Параметры графики
+sound_options;Параметры звука
+controls_options;Разное. Параметры
+message_settings_options;Настройки сообщения
+window_mode_label;Полноэкранный режим
+map_projection;Проекция
+map_projection_globe;Орфографический
+map_projection_flat;Равнопрямоугольный
+map_projection_globe_perspective;Вертикально
+dm_popup_label;Дипломатическое сообщение в виде всплывающих окон
+ui_scale;Масштаб пользовательского интерфейса
+zoom_mode_label;Стиль масштабирования
+zoom_mode_panning;Панорамирование
+zoom_mode_inverted;Инвертированный
+zoom_mode_centered;По центру
+zoom_mode_to_cursor;К курсору
+zoom_mode_away_from_cursor;Вдали от курсора
+zoom_speed_label;Ускорение масштабирования
+river_label;Реки
+mute_on_focus_lost_label;Отключение звука при потере фокуса
+wasd_for_map_movement_label;WASD для движения
+vassal_color_label;Вассальная раскраска
+vassal_color_inherit;Наследовать
+vassal_color_same;То же самое
+vassal_color_none;Нет
+black_map_font_label;Шрифт черной карты
+edge_scrolling_label;Прокрутка по краю
+color_blind_mode_label;Дальтоник
+color_blind_mode_none;Нет
+color_blind_mode_deutan;Дейтан
+color_blind_mode_protan;Протан
+color_blind_mode_tritan;Тритан
+color_blind_mode_achroma;Ахрома
+render_models_label;Рендеринг моделей
+language_label;Язык
+fow_label;Туман войны
+railroad_label;Железнодорожные сети
+master_volume_label;Основной том
+music_volume_label;Громкость музыки
+interface_volume_label;Громкость интерфейса
+effect_volume_label;Громкость звукового эффекта
+fonts_label;Классические шрифты
+tooltip_mode_label;Плавающая подсказка
+music_player_label;Музыкальный проигрыватель
+gaussianblur_label;Размытие по Гауссу
+gamma_label;Гамма
+map_label;Текст карты
+map_label_0;Нет
+map_label_1;Линейный
+map_label_2;Квадратичный
+map_label_3;Кубический
+message_notify_rebels_defeat_label;Уведомлять при победе над повстанцами?
+antialiasing_label;Сглаживание
+spoilers_label;Спойлеры
+mouse_left_click_mode_label;Нажмите, удерживайте, отпустите
+auto_save_lb;Частота автосохранения
+auto_save_1;Ежедневно
+auto_save_2;Ежемесячно
+auto_save_3;Ежегодно
+auto_save_0;Нет

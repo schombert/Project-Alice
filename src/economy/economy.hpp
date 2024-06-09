@@ -86,7 +86,14 @@ inline std::string_view province_building_type_get_level_text(economy::province_
 	}
 }
 
-inline const float subsistence_factor = 0.45f;
+float get_artisan_distribution_slow(sys::state& state, dcon::nation_id n, dcon::commodity_id c);
+
+// base subsistence
+inline constexpr float subsistence_factor = 5.0f;
+inline constexpr float subsistence_score_life = 20.0f;
+inline constexpr float subsistence_score_everyday = 30.0f;
+inline constexpr float subsistence_score_luxury = 40.0f;
+inline constexpr float subsistence_score_total = subsistence_score_life + subsistence_score_everyday + subsistence_score_luxury;
 
 struct global_economy_state {
 	building_information building_definitions[max_building_types];
@@ -110,16 +117,21 @@ auto desired_needs_spending(sys::state const& state, T pop_indices) {
 
 constexpr inline dcon::commodity_id money(0);
 
-inline constexpr float production_scale_delta = 0.001f;
+inline constexpr float production_scale_delta = 0.1f;
+inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
+inline constexpr float rgo_owners_cut = 0.20f;
 
 void presimulate(sys::state& state);
 
 float commodity_daily_production_amount(sys::state& state, dcon::commodity_id c);
 
-float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p);
-float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p);
-float rgo_max_employment(sys::state const& state, dcon::nation_id n, dcon::province_id p);
+float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
+float rgo_total_effective_size(sys::state& state, dcon::nation_id n, dcon::province_id p);
+float rgo_total_employment(sys::state& state, dcon::nation_id n, dcon::province_id p);
+float rgo_full_production_quantity(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
+float rgo_max_employment(sys::state & state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c);
+float rgo_total_max_employment(sys::state& state, dcon::nation_id n, dcon::province_id p);
 
 float factory_max_employment(sys::state const& state, dcon::factory_id f);
 
@@ -155,15 +167,21 @@ float pop_farmer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_f
 float pop_laborer_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
 float pop_factory_min_wage(sys::state& state, dcon::nation_id n, float min_wage_factor);
 
-std::tuple<float, float, float> rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
-float rgo_overhire_modifier(sys::state& state, dcon::province_id p, dcon::nation_id n);
+struct rgo_workers_breakdown {
+	float paid_workers;
+	float slaves;
+	float total;
+};
+
+rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n);
+
 float rgo_desired_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, float min_wage, float total_relevant_population);
-float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n);
+float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dcon::nation_id n, dcon::commodity_id c);
 
 
 void update_rgo_employment(sys::state& state);
 void update_factory_employment(sys::state& state);
-void daily_update(sys::state& state);
+void daily_update(sys::state& state, bool initiate_building);
 void resolve_constructions(sys::state& state);
 
 float base_artisan_profit(sys::state& state, dcon::nation_id n, dcon::commodity_id c);

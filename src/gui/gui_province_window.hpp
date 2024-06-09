@@ -306,8 +306,8 @@ public:
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
 		return bool(state.world.state_instance_get_owner_focus(content).id)
-							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-							 : 0;
+			? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+			: 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -805,9 +805,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -885,9 +885,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -1209,6 +1209,9 @@ void province_owner_rgo_draw_tooltip(sys::state& state, text::columnar_layout& c
 
 class province_owner_rgo : public province_rgo {
 public:
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		province_owner_rgo_draw_tooltip(state, contents, prov_id);
@@ -1250,7 +1253,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
+		auto max_emp = economy::rgo_total_max_employment(state, owner, prov_id);
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
@@ -1259,20 +1262,11 @@ public:
 		float laborer_min_wage = economy::pop_laborer_min_wage(state, owner, min_wage_factor);
 		float expected_min_wage = is_mine ? laborer_min_wage : farmer_min_wage;
 
-		auto [non_slaves, slaves, total_relevant] = economy::rgo_relevant_population(state, prov_id, owner);
-		//float expected_profit = economy::rgo_expected_profit(state, prov_id, owner, total_relevant);
-		//float desired_profit = economy::rgo_desired_profit(state, prov_id, owner, expected_min_wage, total_relevant);
-
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
 		
-
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / desired profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(desired_profit * 100.f)));
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / expected profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_profit * 100.f)));
 		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
 
@@ -1344,6 +1338,14 @@ public:
 		text::close_layout_box(contents, box);
 	}
 	*/
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::administrative_efficiency_modifier, true);
+	}
 };
 
 class province_rebel_percent_text : public simple_text_element_base {
@@ -1352,11 +1354,9 @@ public:
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::format_float(province::revolt_risk(state, province_id), 2));
 	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
-
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
 		text::add_line(state, contents, "avg_mil_on_map", text::variable_type::value, text::fp_one_place{ province::revolt_risk(state, content) });
@@ -1372,15 +1372,47 @@ public:
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::format_percentage(state.world.province_get_rgo_employment(province_id), 1));
 	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::farm_rgo_eff, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::farm_rgo_size, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::mine_rgo_eff, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::mine_rgo_size, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::local_rgo_input, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::local_rgo_output, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::local_rgo_throughput, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::rgo_input, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::rgo_output, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::rgo_throughput, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::farm_rgo_eff, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::farm_rgo_size, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::mine_rgo_eff, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::mine_rgo_size, true);
+	}
 };
 
 class province_migration_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		auto internal = province::monthly_net_pop_internal_migration(state, province_id);
-		auto external = province::monthly_net_pop_external_migration(state, province_id);
-		set_text(state, text::prettify(int32_t(internal + external)));
+		auto migration = state.world.province_get_daily_net_migration(province_id);
+		auto immigration = state.world.province_get_daily_net_immigration(province_id);
+		set_text(state, text::prettify(int32_t(migration - immigration)));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::immigrant_attract, true);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::immigrant_push, true);
+		if(state.world.province_get_is_colonial(content)) {
+			ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::colonial_migration, true);
+		}
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::global_immigrant_attract, true);
 	}
 };
 
@@ -1388,7 +1420,15 @@ class province_pop_growth_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::prettify(int32_t(province::monthly_net_pop_growth(state, province_id))));
+		set_text(state, text::prettify(int32_t(demographics::get_monthly_pop_increase(state, province_id))));
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		ui::active_modifiers_description(state, contents, content, 0, sys::provincial_mod_offsets::population_growth, true);
+		ui::active_modifiers_description(state, contents, state.world.province_control_get_nation(state.world.province_get_province_control_as_province(content)), 0, sys::national_mod_offsets::pop_growth, true);
 	}
 };
 

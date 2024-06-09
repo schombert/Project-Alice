@@ -1,0 +1,1185 @@
+support_for_blank;поддержка $text$
+uh_support_for_blank;верхняя палата поддерживает $text$
+up_to;до
+scaled_support; пропорционально поддержке $text$
+scaled_unemployment; пропорционален безработице
+stockpile_of;в национальный запас $text$
+create_general;Создан новый генерал
+create_admiral;Создан новый адмирал
+add_war_goal;Добавлена ​​цель войны $text$ против $nation$
+blank_loyalty;$text$ лояльность
+in_blank;в $text$
+no_effect;Нет эффекта
+move_capital_to;Переместить столицу в
+add_x_core;Добавить ядро ​​$adj$
+add_core_to;Добавить ядро ​​в
+Remove_x_core;Удалить ядро ​​$adj$
+Remove_core_from;Удалить ядро ​​из
+change_name_to;Изменить имя на $text$
+change_terrain_to;Изменить местность на $text$
+change_rgo_production_to;Изменить производство РГО на $text$
+make_accepted_culture;$text$ становится принятой культурой
+primary_culture_changes_to;Primary culture changes to $text$
+union_culture_accepted;All cultures in the nation's primary culture group become accepted
+remove_accepted_culture;$text$ stops being an accepted culture
+increase_national_variable_by;Увеличить национальную переменную $text$ на $value$
+decrease_national_variable_by;Уменьшить национальную переменную $text$ на $value$
+life_rating;Life rating
+make_national_religion;$text$ becomes the national religion
+make_slave_state;Becomes a slave state
+make_slave_pop;Becomes a slave
+research_points;Research points
+change_tech_school;Technology school changes to $text$
+change_government_to;Government changes to $text$
+add_to_treasury;Added to treasury
+war_exhaustion;War exhaustion
+become_blank;Becomes $text$
+player_control_change;Player control changes to $text$
+set_national_flag;$text$ is set for this nation
+remove_national_flag;$text$ is unset for this nation
+infamy;позор
+change_province_owner;Изменить владельца провинции на $text$
+annex_effect;Annex $text$
+annexed_by_effect;Is annexed by $text$
+core_return;$adj$ cores are returned to $text$
+core_return_short;$adj$ cores are returned
+change_province_controller;change province controller to $text$
+change_state_controller;change state controller to $text$
+pop_savings;Pop savings
+leadership_points;Leadership points
+release_as_vassal;Release $text$ as a vassal
+end_alliance;End alliance with $text$
+end_war_with;End war with $text$
+enable_ideology;Включить идеологию ?Y$text$?!
+enable_technology;Укажите технологию ?Y$text$?!
+enable_invention;Укажите изобретение ?Y$text$?!
+change_ruling_party;Change ruling party to $text$
+remove_prov_mod;Удалить модификатор провинции $text$
+remove_nat_mod;Удалить национальный модификатор $text$
+make_alliance;Вступить в альянс с $text$
+becomes_independent;$text$ становится независимым государством
+release_as_independent;Выпустить $text$ как независимую нацию
+set_global_flag;Установить $text$ глобально
+remove_global_flag;Удалить $text$ глобально
+change_national_value;Change national value to $text$
+become_civ;Becomes a civilized nation
+become_unciv;Becomes an uncivilized nation
+free_slave_state;Becomes a free state
+free_slave_pop;Is freed from slavery
+hold_election;Hold election
+issue_change;$issue$ changes to $text$
+add_relative_income;Times last income added to treasury
+make_neutral;All alliances ended and all vassals released
+pop_size;Pop size
+move_pop_to;Move pop to $text$
+change_pop_type;Change pop type to $text$
+years_of_research;Years of research
+remove_mil_reforms;Remove $value$ military reforms
+remove_econ_reforms;Remove $value$ economic reforms
+add_crime;Add crime $text$
+remove_crime;Remove active crime
+perform_nationalization;Perform nationalization
+build_factory_in_capital;Build $text$ in capital state
+enable_great_wars;Великие войны включены
+enable_world_wars;Мировые войны включены
+disable_great_wars;Великие войны больше невозможны
+disable_world_wars;Мировые войны больше невозможны
+assimilate_pop;Change culture to $text$
+assimilate_province;Change the culture of all pops to $text$
+owner_primary_culture;its owner's primary culture
+literacy;literacy
+add_crisis_interest;Интересуется текущим кризисом
+crisis_temperature_plain;crisis temperature
+militancy;militancy
+consciousness;consciousness
+rgo_size;РГО size
+trigger_every_revolt;Вызвать восстание каждой повстанческой фракции
+call_allies;Призвать союзников в их текущие войны
+truce_with;Перемирие с $text$ до ?Y$y$?!
+diplomatic_influence_with;дипломатическое влияние с помощью $text$
+relations_with;отношения с $text$
+add_modifier_until;Получает $text$ до $date$
+add_modifier;Получает $text$
+add_cb_months;Получает $name$ повод для войны против $text$ до $date$
+add_cb_no_months;Получает $name$ повод для войны против $text$
+add_cb_reversed_months;$text$ получает $name$ повод для войны против нации до $date$
+add_cb_reversed_no_months;$text$ получает $name$ повод для войны против нации в масштабе
+remove_cb_reversed;Убирает все поводы для войны $name$ против $text$
+remove_cb;$text$ теряет все $name$ поводы для войны против нации в рамках действия
+set_national_variable_to;Установить национальную переменную $text$ в $value$
+event_fires;Событие $text$ срабатывает
+event_fires_in_days;Событие $text$ инициируется через $value$ дней
+railroad_in_capital;?G+1?! уровень железной дороги в столице
+railroad_in_capital_state;?G+1?! уровень железной дороги в столице штата
+fort_in_capital;?G+1?! уровень форта в столице
+fort_in_capital_state;?G+1?! уровень форта в столице штата
+fort_in_capital;?G+1?! уровень форта в столице
+fort_in_capital_state;?G+1?! уровень форта в столице штата
+university_in_capital;?G+1?! университетский уровень в столице
+university_in_capital_state;?G+1?! университетский уровень в столице штата
+bank_in_capital;?G+1?! уровень банка в капитале
+bank_in_capital_state;?G+1?! банковский уровень в столичном государстве
+railroad_level;Уровень железной дороги
+fort_level;уровень форта
+naval_base_level;уровень военно-морской базы
+university_base_level;уровень военно-морской базы
+bank_base_level;уровень военно-морской базы
+apply;Применять
+ok;ХОРОШО
+close;Закрывать
+delete;Удалить
+new;Новый
+reset;Перезагрузить
+every;Каждый
+ready;Готовый
+any;Любой
+none;Никто
+random;A random
+neighboring_province;neighboring province
+where;where: 
+neighboring_nation;neighboring nation
+nation;nation
+continent;continent
+same_continent;on the same continent as
+empty_neighboring_province;Empty neighboring province
+poor_strata_pop;poor strata pop
+middle_strata_pop;middle strata pop
+rich_strata_pop;rich strata pop
+pop;Pop
+owned_province;province belonging to
+singular_nation;that nation
+singular_state;that state
+singular_province;that province
+singular_pop;that pop
+one_of_the_following;one of the following effects:
+this_nation;this nation
+this_state;this state
+this_province;this province
+this_pop;this pop
+from_nation;from nation
+from_state;from state
+from_province;from province
+from_pop;from pop
+province_in;province in
+this_nation_culture;The primary culture of this nation
+from_nation_culture;The primary culture of the from nation
+cultural_union_nation;The cultural union nation for its primary culture
+core_of;core of
+state_of;state of
+chance_of;chance of:
+owner_of;owner of
+controller_of;controller of
+location_of_pop;location of that pop
+nation_of_pop;nation containing that pop
+capital_of;capital of
+containing_state;state containing
+adjacent_sea;adjacent sea zone
+cultural_union_of;cultural union of
+overlord_of;overlord of
+sphere_leader_of;sphere leader of
+crisis_state;crisis state
+reb_independence_nation;rebel independence nation
+flashpoint_nation;flashpoint nation
+rebel;Rebel
+flashpoint_tension_label;Flashpoint tension
+for_text; for $text$
+where_ideology_is;Где его идеология — $text$
+where_culture_is;где ее культура — $text$
+where_religion_is;Где его религия $text$
+of_type;of type $text$
+no_nation;no nation
+declare_war_on;Объявить войну $text$
+attacker_wg_label;Военная цель атакующего: $text$
+defer_wg_label;Военная цель защитника: $text$
+attacker_no_allies;Союзники атакующего не будут вызваны
+attacker_yes_allies;Союзники атакующего будут вызваны
+war_start_date_desc;война началась в ?Y$date$?!
+cmp_ge;по крайней мере
+cmp_le; не более
+cmp_gt;больше, чем
+cmp_lt;меньше чем
+cmp_eq;есть
+cmp_ne;нет
+cmp_has_eq;имеет
+cmp_has_ne;нет
+cmp_has_lt;имеет меньше чем
+cmp_has_gt;имеет более
+cmp_has_ge;имеет как минимум
+cmp_has_le;имеет не более
+all_of_the_following;Все следующее:
+any_of_the_following;Любое из следующего:
+nation_at_war_against;нация воюет против
+core_in;основной вход
+colonial_pop;расположен в колониальной провинции
+substate_of;подсостояние
+nation_in_sphere;нация в сфере
+year;год
+month;месяц
+a_port;порт
+national_rank;национальный рейтинг
+att_technology;технология
+strata;пласты
+rich;богатый
+poor;бедный
+middle;средний
+minimum_state_life_raing;минимальный рейтинг жизни в штате
+an_empy_adj_prov;пустая соседняя провинция
+belongs_to_same_state;принадлежит тому же состоянию, что и $text$
+does_not_belong_to_same_state;не принадлежит тому же состоянию, что и $text$
+contains_blank;contains $text$
+does_not_contain_blank;does not contain $text$
+times_target_needs_spending;times desired needs spending
+unemployment;unemployment
+slavery;рабство
+allowed;допустимый
+a_slave_state;рабовладельческое государство
+a_slave;a slave
+an_independent_nation;an independent nation
+non_prim_culture_pops;non primary-culture pops
+government;government
+capital;capital
+technology_school;technology school
+primary_culture;primary culture
+primary_culture_pop;основная культура нации, в которой находится поп-музыка
+an_accepted_culture;an accepted culture
+culture;Culture
+dominant_culture;доминирующая культура
+a_primary_or_accepted;основная или принятая культура
+rebel_culture;повстанческая культура
+this_nation_prim_culture;основная культура или принятая культура этой нации
+from_nation_prim_culture;основная культура или принятая культура нации
+culture_group;culture group
+dominant_culture_group;dominant culture group
+primary_culture_group;primary culture group
+a_core_ob;a core owned by
+rebel_culture_group;повстанческая культурная группа
+this_nation_culture_group;то же, что и культурная группа этой нации
+from_nation_culture_group;то же, что и культурная группа страны происхождения
+rebel_religion;мятежная религия
+this_nation_religion;национальная религия этой нации
+from_nation_religion;национальная религия нации
+province_terrain;рельеф провинции
+rgo_production;РГО production
+a_secondary_power;колониальная держава
+owner;owner
+an_active_rebel;an active rebel faction
+a_member_of;a member of
+unclaimed_cores;unclaimed cores
+a_cultural_union;a cultural union
+union_for_pop;культурный союз поп-музыки
+union_for_nation;культурный союз нации
+the_rebel_ind_nation;мятежная нация независимости
+capitalists_can_build;капиталистам разрешено строить заводы
+capitalists_cannot_build;капиталистам не разрешено строить заводы
+at_war;на войне
+total_blockade;total blockade
+owns;владеет
+does_not_own;не владеет
+controls;контролируют
+does_not_control;dне контролирует
+a_core_in;ядро в
+a_core_of;ядро
+a_core_of_owner;ядро его владельца
+located_in_a_core_of;located in a core of
+percentage_reb_control;percentage of rebel controlled provinces
+num_of_reb_control;количество провинций, контролируемых повстанцами
+num_owned_provinces;количество принадлежащих провинций
+num_provinces_owned_by;количество провинций, принадлежащих
+num_of_ports;количество портов
+num_of_allies;количество союзников
+num_of_vassals;количество вассалов
+owned_by;owned by
+exists;exists
+does_not_exist;does not exist
+att_set;set
+in;in
+located_in;located in
+the_owner_of_region;the owner of every province in
+a_casus_belli_against;a casus belli against
+military_access_with;military access with
+prestige_of;the prestige of
+prestige;Prestige
+a_railroad;a railroad
+a_fort;a fort
+a_naval_base;a naval base
+a_factory;a factory
+empty;unowned
+blockaded;blockaded
+national_modifier;national modifier
+provincial_modifier;provincial modifier
+part_of;part of
+a_border_with;a border with
+units_in_province;units in province
+units_in_the_province;units in the province
+units_in_the_state;units in the state
+at_war_against;at war against
+num_of_divisions;a number of divisions
+an_ongoing_battle;an ongoing battle
+treasury;treasury
+o_treasury;owner's treasury
+o_of_prov;the owner of the province
+percentage_unowned_cores;percentage of unowned cores
+a_vassal;a vassal
+ruling_party_ideology;ruling party ideology
+ruling_party;ruling party
+enabled;enabled
+political_reform_desire;political reform desire
+social_reform_desire;social reform desire
+num_of_ships;number of ships
+crime_percent;percentage of provinces with crime
+national_religion;the national_religion
+member_of_nat_religion;a member of the national religion
+dominant_religion;the dominant religion
+same_rel_as_this;the same religion as this nation
+this_pop_culture;культура этой поп-музыки
+this_nation_primary_culture;основная культура этой нации
+this_nation_accepted_culture;принятая культура этой нации
+coastal;coastal
+in_sphere_of;in the sphere of
+a_producer_of;a producer of
+next_reform;next reform
+always;always
+never;never
+percentage_recruited;процент завербованного населения
+in_cultural_core_prov;в провинции с ядром той же культуры
+nationalism;nationalism
+overseas;overseas
+overseas_pop;located in an overseas province
+controlled_by_rebel;controlled by rebels
+controlled_by;controlled by
+state_capital;the state capital
+loc_state_capital;located in the state capital
+a_truce_with;a truce with
+att_population;population
+size;size
+pops_of_type;pops of type
+of_type_plain;of type
+ai_controlled;AI controlled
+a_leader_named;a leader named
+a_possible_vassal;a possible vassal
+a_vassal_of;a vassal of
+a_substate_of;a substate of
+allied_to;allied to
+has_recently_lost_war;has recently lost a war
+has_not_recently_lost_war;has not recently lost a war
+mobilized;мобилизованный
+mobilization_size;mobilization size
+admin_spending;administration spending
+greater_than_edu_spending;greater than education spending
+support_for_rp;support for ruling party
+colonial;colonial
+in_default_to;in default to
+in_bnkrpt;bankrupt
+num_of_ports_connected;number of ports connected to capital
+holding_an_election;holding an election
+set_globally;set globally
+national_value;national value
+industrial_score;промышленный рейтинг
+industrial_score_of;промышленный балл
+military_score;военный счет
+military_score_of;военный счет
+civilized;civilized
+percent_occupied;percentage of occupied provinces
+rich_tax;rich tax
+middle_tax;middle tax
+poor_tax;poor tax
+soc_spending;социальные расходы
+edu_spending;расходы на образование
+mil_spending;военные расходы
+colonies;colonies
+dominant_ideology;доминирующая идеология
+dominant_issue;доминирующая проблема
+poor_militancy;бедные слои воинственности
+middle_militancy;воинственность средних слоев
+rich_militancy;богатые слои воинственности
+gt_poor_tax;налог больше, чем налог на бедных
+cultural_union;культурный союз
+same_cultural_union;то же самое, что культурный союз
+non_accepted_pops;непринятые поселения
+crime;crime
+num_substates;количество подсостояний
+num_vassals_no_substates;количество вассалов, не являющихся субгосударствами
+num_regiments;количество полков
+owner_num_regiments;количество полков владельца
+num_regiments_of;количество полков, принадлежащих
+times_num_regiments_of;$x$ умноженное на количество полков, принадлежащих
+fabricating_on;фабриковать повод для войны
+cb_discovered;обнаружена фабрикация повода для войны
+cb_not_discovered;фабрикация повода для войны не обнаружена
+cb_progress;прогресс изготовления повода для войны
+civ_progress;прогресс цивилизации
+constructing_a;изготовление
+casus_belli;casus belli
+nation_in_scope;the nation in scope
+a_substate;a substate
+gw_enabled;великие войны включены
+gw_not_enabled;великие войны отключены
+ww_enabled;мировые войны включены
+ww_not_enabled;мировые войны отключены
+can_perform_nationalization;может национализировать
+can_perform_nationalization;не могу национализировать
+in_sphere;in a sphere of influence
+num_states;number of states
+a_releasable_vassal;a releasable vassal
+recent_immigration;recent immigration
+num_control_days;number of days under current control
+disarmed;disarmed
+social_mov_support;поддержка общественного движения
+political_mov_support;поддержка политического движения
+a_member_of_social_mov;член общественного движения
+a_member_of_politic_mov;член политического движения
+cultural_sphere_members;члены сферы в одной культурной группе
+pops;pops
+this_pop_religion;the religion of this pop
+pops_with;pops with
+life_needs_satisfaction;удовлетворение жизненных потребностей
+everyday_needs_satisfaction;удовлетворение повседневных потребностей
+luxury_needs_satisfaction;роскошь-удовлетворение потребностей
+present_in_state;present in state
+flashpoint;Flashpoint
+plurality_pop;the plurality of the nation the pop is in
+an_ongoing_crisis;an ongoing crisis
+there;There
+current_crisis;current crisis
+liberation_crisis;a liberation crisis
+claim_crisis;a claim crisis
+involved_in_crisis;involved in crisis
+poor_life_needs_satisfaction;удовлетворение жизненных потребностей бедных слоев населения
+poor_everyday_needs_satisfaction;бедные слои — удовлетворение повседневных потребностей
+poor_luxury_needs_satisfaction;бедные слои населения нуждаются в удовлетворении роскоши
+middle_life_needs_satisfaction;удовлетворение жизненных потребностей среднего слоя
+middle_everyday_needs_satisfaction;средний слой — удовлетворение повседневных потребностей
+middle_luxury_needs_satisfaction;средний слой — удовлетворение потребностей в роскоши
+rich_life_needs_satisfaction;удовлетворение жизненных потребностей богатых слоев населения
+rich_everyday_needs_satisfaction;богатые слои — удовлетворение повседневных потребностей
+rich_luxury_needs_satisfaction;богатые слои роскоши нуждаются в удовлетворении
+dip_influence_over;diplomatic influence over
+relationship_with;relationship with
+this_pop_type;this pop type
+nat_variable;national variable
+support_in_uh;support in upper house
+support_in;loyalty in
+scope_province;province in scope
+able_build_rr;можно построить железную дорогу в этой провинции
+able_build_fort;можно построить форт в этой провинции
+able_build_naval_base;можно построить военно-морскую базу в этой провинции
+work;Работа
+available_for;доступно для:
+support;поддержка
+percentage;процент
+stockpile;складировать
+this_nat_religion;национальная религия этой страны
+from_nat_religion;национальная религия страны
+event_show_requirements;Требования к событию
+event_only_other_requirements;Это событие инициируется только другими событиями
+event_show_odds;Коэффициенты события
+value_mod_product;Значение $val$ является произведением:
+value_mod_sum;Значение $val$ — это сумма:
+value_mod_sum_factor;Значение $val$ в $x$ раз превышает сумму:
+admin_explain_1;Модификатор административной эффективности $val$
+admin_explain_2;Применимо к соотношению неколониальных бюрократов: $val$
+admin_explain_3;До необходимого процента: $val$ (база $x$+$y$ от реформ)
+factory_condition_1;Нация цивилизованная
+factory_condition_2;Это не колониальное государство
+factory_condition_3;Правящая партия разрешает строить заводы
+factory_condition_4;В штате меньше $val$ заводов
+cant_subsidize_explanation;Правящая партия не позволяет нам субсидировать заводы
+percent_of_pop_strata;$val$ населения своих слоев
+cant_prioritize_explanation;Правящая партия не позволяет нам менять приоритет фабрики
+factory_upgrade_condition_1;Нация цивилизованная
+factory_upgrade_condition_2;Это не колониальное государство
+factory_upgrade_condition_3;Технологические требования для строительства завода выполнены.
+factory_upgrade_condition_4;Ваша нация является великой державой, а целевая нация — нет.
+factory_upgrade_condition_5;Цель инвестиций цивилизованная
+factory_upgrade_condition_6;Правящая партия инвестиционной цели разрешает иностранные инвестиции
+factory_upgrade_condition_7;Цель инвестиций не воюет с вами
+factory_upgrade_condition_8;Правящая партия разрешает модернизацию заводов
+factory_upgrade_condition_9;Фабрика еще не обновляется
+factory_upgrade_condition_10;Фабрика не на максимальном уровне
+factory_delete_header;Удалить фабрику
+factory_delete_not_allowed;Правящая партия не позволяет нам удалять фабрики
+factory_stats_1;Эта фабрика в настоящее время работает на $val$ мощности.
+factory_stats_2;Эта фабрика нацелена на мощность $val$
+factory_stats_3;За предыдущий день было произведено $val$ единиц $x$
+factory_stats_4;За предыдущий день он получил прибыль в размере $val$.
+factory_stats_5;Наличие входов:
+factory_stats_6;Доступность входов эффективности:
+factory_stats_wage;Заработная плата:
+factory_stats_expenses;Общие расходы
+factory_stats_desired_income;Желаемая чистая прибыль
+speed;$val$ kph
+shift_to_hold_open;Удерживать ?YSHIFT?! чтобы оставить это окно открытым, нажмите ?YSHIFT-щелчок правой кнопкой мыши?! построить это в каждом штате (но не расширять)
+factory_upgrade_shortcuts;?YSHIFT-щелкните левой кнопкой мыши?W модернизируйте ?Gall?!S заводы в штате\n?YSHIFT-щелкните правой кнопкой мыши?W модернизируйте ?Gall прибыльный?W заводы в штате\n?YCTRL-щелкните левой кнопкой мыши?W обновить ?Gall?W фабрики в стране\n?YCTRL-щелкнуть правой кнопкой мыши?W обновить ?Gall прибыльно?W фабрики в стране\n?YCTRL-SHIFT-щелкнуть левой кнопкой мыши?W обновить ?Gall прибыльно при полной занятости?W заводы в штате\n?YCTRL-SHIFT-щелкните правой кнопкой мыши?W обновление ?Галл прибыльен при полной занятости?W заводы в штате
+blank_org_gain;organization gain
+plurality_change_reason;(based on the average consciousness)
+revanchism_reason;Based on the number of unowned cores (cores with your primary culture count for more)
+allow_reform_cond;Requirements:
+reform_effect_if_desc;When activated, if
+reform_effect_then_desc;Then:
+reform_effect_desc;When activated:
+special_rules;Special rules:
+voting_rules;Voting rules:
+hide_decision;Hide the notification for this decision
+sup_point_gain;Monthly suppression point increase: ?G+$val$
+sup_point_explain;From: base rate $x$ x $y$ from bureaucrats x $val$ from our modifier to suppression point gain
+pop_size_1;В ближайший месяц ожидается, что размер этого поселения изменится на:
+pop_size_2;От роста:
+pop_size_3;От повышения и понижения:
+pop_size_4;Из ассимиляции:
+pop_size_5;Из внутренней миграции:
+pop_size_6;От колониальной миграции:
+pop_size_7;Из эмиграции:
+pop_size_8;Из преобразования:
+pop_l_migration_header;?YMigration away: $val$
+pop_l_c_migration_header;?YColonial migration away: $val$
+pop_l_emigration_header;?YEmigration away: $val$
+pop_mig_1;Внутренней миграции из колониальных провинций нет
+pop_mig_2;Подчиненные устройства не мигрируют внутри страны
+pop_mig_3;Количество людей, которые будут мигрировать внутри страны, равно размеру населения, умноженному на масштаб иммиграции ($x$), умноженному на модификатор притока иммигрантов в провинции ($y$), умноженному на коэффициент миграции ($val$).
+pop_mig_4;?YКоэффициент миграции:
+pop_cmig_1;У страны нет колоний
+pop_cmig_2;Колониальной миграции из колониальных провинций нет
+pop_cmig_3;Рабы не мигрируют колониально
+pop_cmig_4;Богатые слои населения не мигрируют колониально
+pop_cmig_5;Фабричные рабочие не мигрируют в колонии
+pop_cmig_6;Количество людей, которые будут мигрировать колониально, равно размеру населения, умноженному на масштаб иммиграции ($x$), умноженному на модификатор притока иммигрантов в провинции ($y$), умноженному на модификатор колониальной миграции в провинции ($num$). ), умноженный на коэффициент колониальной миграции ($val$)
+pop_cmig_7;?YКоэффициент колониальной миграции:
+pop_emg_1;Население может эмигрировать только из цивилизованных стран
+pop_emg_2;Эмиграции из колониальных провинций нет
+pop_emg_3;Рабы не эмигрируют
+pop_emg_4;Появляется без ?Yoverseas?! культура не эмигрирует
+pop_emg_5;Количество людей, которые эмигрируют, равно размеру населения, умноженному на масштаб иммиграции ($x$), умноженному на модификатор притока иммигрантов в провинции ($y$, возведенный в квадрат, если он больше 100%), умноженному на коэффициент эмиграции. ($вал$)
+pop_emg_6;?YКоэффициент эмиграции:
+pop_prom_1;?YКоэффициент продвижения:
+pop_prom_2;Из национального фокуса: ?G$val$
+pop_prom_3;0 (из-за национальной направленности)
+pop_prom_4;?YКоэффициент понижения:
+pop_prom_5;Популяция в настоящее время продвигается по службе, поскольку коэффициент продвижения больше, чем коэффициент понижения
+pop_prom_6;Население в настоящее время понижается в должности, поскольку коэффициент понижения превышает коэффициент повышения.
+pop_prom_7;Поскольку оба фактора отрицательны, популярность в настоящее время не продвигается и не понижается
+pop_prom_8;Количество людей, которые будут продвигаться по службе, равно размеру населения, умноженному на масштаб продвижения ($x$), умноженному на коэффициент продвижения ($val$), умноженному на вашу административную эффективность ($y$).
+pop_prom_9;Количество людей, которые будут понижены в должности, равно размеру населения, умноженному на шкалу продвижения ($x$) и на коэффициент понижения ($val$).
+pop_con_1;Ежемесячное изменение сознания:
+pop_con_2;Является суммой:
+pop_con_3;От удовлетворения потребностей в роскоши: ?G+$x$
+pop_con_4;Из процента местных священнослужителей ($val$): ?R$x$
+pop_con_5;Коэффициент множественности и грамотности: ?G+$x$?!, который является произведением:
+pop_con_6;Множество: $x$
+pop_con_7;Национальный модификатор влияния грамотности на сознание: $x$
+pop_con_8;Импакт-фактор грамотности: $x$
+pop_con_9;Грамотность населения: $x$
+pop_con_10;Фактор колониального сознания: $x$
+pop_con_11;и 0,1
+pop_con_12;Модификатор местного населения:
+pop_con_13;Модификатор национального поп-сознания:
+pop_con_14;Модификатор национального неколониального поп-сознания:
+pop_con_15;Национальный непризнанный модификатор массового сознания:
+pop_mil_1;Ежемесячное изменение воинственности:
+pop_mil_2;Является суммой:
+pop_mil_3;От удовлетворения жизненных потребностей: ?R+$x$
+pop_mil_4;Из удовлетворения повседневных потребностей:
+pop_mil_5;От удовлетворения потребностей в роскоши: ?G$x$
+pop_mil_6;От поддержки консерватизма: ?G$x$
+pop_mil_7;От поддержки правящей партии: ?G$x$
+pop_mil_8;От желания реформы: ?R+$x$
+pop_mil_9;Модификатор воинственности местного населения:
+pop_mil_10;Модификатор воинственности национальной поп-музыки:
+pop_mil_11;Национальный модификатор воинственности неколониальной поп-музыки:
+pop_mil_12;От сепаратизма: ?R+$val$?! (?R+$x$?! умножается на модификатор национального сепаратизма ?R$y$)
+pop_mil_13;От военного истощения ?R+$val$?!
+pop_lit_1;Ежемесячное изменение грамотности:
+pop_lit_2;Является продуктом:
+pop_lit_3;От процента местных священнослужителей ($val$): $x$
+pop_lit_4;Эффективные расходы на образование: $x$
+pop_lit_5;Национальный модификатор эффективности образования: $x$
+pop_lit_6;Модификатор национального модификатора эффективности образования: $x$
+pop_lit_7;Базовая скорость изменения грамотности: $x$
+pop_lit_8;И 0,01
+pop_growth_topbar;Ожидается, что в течение следующего месяца оно вырастет на ?G$x$?W.
+pop_growth_topbar_2;население изменилось на ?G$x$?W за последние ?Y30?W дней.
+pop_growth_topbar_3;Наше взрослое мужское население — ?Y$curr$?W. Наш взрослый мужчина
+pop_growth_topbar_4;Наша общая численность населения составляет ?Y$val$?W.
+pop_growth_1;Ежемесячный прирост населения:
+pop_growth_2;Рабы не растут
+pop_growth_3;Рост населения пропорционален размеру населения, умноженному на сумму:
+pop_growth_4;Фактор качества жизни $x$, который является произведением:
+pop_growth_5;Коэффициент провинции $x$, который сам по себе является суммой:
+pop_growth_6;Рейтинг жизни в провинции $x$ минус минимальный рейтинг жизни $y$, всегда $val$
+pop_growth_7;И базовое значение роста населения $x$
+pop_growth_8;Жизнь населения нуждается в факторе $x$ (жизнь нуждается в удовлетворении $y$ - предел голодания $val$)
+pop_growth_9;И 4
+pop_growth_10;Модификатор роста местного населения $x$
+pop_growth_11;Модификатор национального роста населения $x$
+pop_assim_1;Ежемесячная ассимиляция населения: $x$
+pop_assim_2;Рабы не ассимилируются
+pop_assim_3;Население принятой культуры не ассимилируется
+pop_assim_4;Население в колониальных провинциях не ассимилируется
+pop_assim_5;Поселения в заморских провинциях не ассимилируются
+pop_assim_6;Ассимиляция пропорциональна размеру населения, умноженному на произведение:
+pop_assim_7;Базовый масштаб ассимиляции: $x$
+pop_assim_8;Модификатор национальной скорости ассимиляции: $x$
+pop_assim_9;Модификатор местной скорости ассимиляции: $x$
+pop_assim_10;0.1 за отсутствие зарубежной культуры
+pop_assim_11;$x$ из ядер, присутствующих в провинции
+pop_assim_12;Переменные коэффициенты ассимиляции: $x$
+pop_conver_1;Месячная конверсия: $x$
+pop_conver_2;Поселения государственной религии не конвертируются
+pop_conver_3;Поселения не обращаются в другую веру, если в той же провинции нет населения, исповедующего государственную религию.
+pop_conver_4;Конверсия пропорциональна размеру всплывающего окна, умноженному на произведение:
+pop_conver_5;Базовый масштаб конверсии: $x$
+pop_conver_6;Модификатор национального коэффициента конверсии: $x$
+pop_conver_7;Модификатор локального коэффициента конверсии: $x$
+pop_conver_8;Переменные коэффициенты пересчета: $x$
+pop_issue_attraction_1;Привлекательность проблемы: $x$
+pop_issue_attraction_2;Эта реформа в настоящее время невозможна
+pop_issue_attraction_3;Привлекательность проблемы — это результат:
+pop_issue_attraction_4;Национальный модификатор желания социальных реформ: $x$
+pop_issue_attraction_5;Национальный модификатор желания политических реформ: $x$
+pop_issue_attraction_6;И коэффициент привлекательности выпуска: $x$
+pop_ideology_attraction_1;Идеологическая привлекательность: $x$
+pop_ideology_attraction_2;Эта идеология в настоящее время недоступна
+trade_setting_drawing;Использование запасов
+trade_setting_filling;Пополнение запасов
+trade_setting_stable;Нет активности на складах
+trade_commodity_report_1;Текущий мировой спрос: $x$
+trade_commodity_report_2;Текущее мировое производство: $x$
+trade_commodity_report_3;Текущее мировое потребление: $x$
+trade_commodity_report_4;Объем на мировом рынке: $x$
+trade_fill;Заполнить
+trade_use;Использовать
+trade_stockpile_target;Целевая сумма запасов:
+trade_stockpile_current;Текущий запас:
+diplomacy_wx_1;Ежемесячное истощение войны:
+influence_explain_1;В настоящее время мы забанены и не имеем никакого влияния на эту страну.
+influence_explain_2;У нас перемирие с этой страной и мы не накапливаем на нее никакого влияния
+influence_explain_3;Мы находимся в состоянии войны с этой страной и не имеем на нее никакого влияния
+influence_explain_4;Мы вместе со всеми странами накапливаем в общей сложности $x$ влияния ежедневно.
+influence_explain_5;Это произведение базового коэффициента прироста влияния ($x$), умноженного на наш национальный модификатор влияния ($y$) и на наш модификатор влияния от технологии ($val$).
+influence_explain_6;Национальный модификатор влияния: $x$
+influence_explain_7;Модификатор влияния от технологии: $x$
+influence_explain_8;Это делится между странами, на которые мы влияем, в результате чего базовый ежедневный прирост составляет: $x$
+influence_explain_9;который далее умножается на 1 плюс сумма следующих коэффициентов:
+influence_explain_10;$x$ от дискредитации
+influence_explain_11;$x$ от соседства
+influence_explain_12;$x$ от наличия одного или нескольких участников нашей сферы в качестве соседа
+influence_explain_13;$x$ из-за того, что столица не находится на том же континенте, что и наш.
+influence_explain_14;$x$ от того, что мы являемся нашим субъектом
+influence_explain_15;$x$ от наших отношений
+influence_explain_16;$x$ от наших инвестиций в страну
+influence_explain_17;$x$ от размера целевой нации
+influence_explain_18;$x$ из нашей относительной оценки
+until_date;Until $x$
+add_wg_1;You can't add a war goal against yourself
+add_wg_2;You are at war
+add_wg_3;You have at least $x$ diplomatic point(s)
+add_wg_4;Current jingoism support ($x$) meets the threshold required to add a war goal ($y$)
+add_wg_5;A status quo war goal has not been added to your side
+intervene_1;Вмешаться в войну
+intervene_2;Вмешаться в великую войну
+intervene_3;Это великая держава
+intervene_4;Не участвует в кризисе
+intervene_5;Прошло не менее $x$ месяцев с начала войны
+intervene_6;Вступление в войну не приведет к тому, что вы будете воевать против одной и той же нации дважды или одновременно сражаться с одной и той же нацией и против нее.
+intervene_7;Это не кризисная война
+intervene_8;Присоединение нарушит перемирие
+intervene_9;Поддерживает защитника
+intervene_10;У защитников нет других целей войны, кроме статус-кво
+intervene_11;Военный счет атакующего составляет не менее $x$
+intervene_12;Истощение от войны меньше $x$
+intervene_13;Отношения с военачальником не ниже $x$
+intervene_14;Ни один из участников вашей сферы не находится на противоположной стороне
+intervene_15;Ни один из ваших союзников не находится на противоположной стороне
+intervene_16;Ни одна из ваших армий не находится в провинциях, принадлежащих противоположной стороне
+intervene_17;Основной защитник имеет о вас дружеское мнение
+military_score_explain_1;Оценка капитального корабля: $x$
+military_score_explain_2;Набираемые полки: $x$
+military_score_explain_3;Действующие полки: $x$
+military_score_explain_4;Разоружен? (штрафной коэффициент $x$)
+military_score_explain_5;Модификатор потребления припасов: $x$
+military_score_explain_6;Средний балл наземного подразделения: $x$
+military_score_explain_7;Общее количество лидеров: $x$
+industry_score_explain_2;Следующие иностранные инвестиции также суммируются (весовой коэффициент $x$):
+industry_score_explain_3;$y$ в $x$
+war_goal_1;Добавил: $x$
+war_goal_2;Таргетинг: $x$
+war_goal_3;Для состояния: $x$
+war_goal_4;Вторичная нация: $x$
+war_goal_5;Тикающий счет войны: $x$
+war_goal_6;Если мы оккупируем ?Y$x$?! из провинций мы получим ?Y$y$?! тикающий военный счет (относительно доли оккупированных провинций)
+war_goal_7;У нас есть льготный период ?Y$x$?! дней занять, иначе потеряем ?Y$y$?! ежедневно подсчитывать военные результаты
+war_goal_8;Война началась в ?Y$x$?!, мы должны завершить к ?Y$y$?!, прежде чем льготный период ?R закончится?!
+war_goal_9;Льготный период ?Rис истек?! (период был от ?Y$x$?! до ?Y$y$?!)
+war_goal_10;Вторичный тег: $x$
+utt_unit;($country$) - $unit$ ($leader$)\n ($infantry$ / $cavalry$ / $special$)
+utt_noleader;нет лидера
+war_score_1;От оккупации: $x$
+war_score_2;Из боев: $x$
+war_score_3;От целей войны: $x$
+war_score_4;От блокад: $x$
+dp_inf_tooltip_ban;Посольство забанено до $x$
+dp_inf_tooltip_discredit;Дискредитован до $x$
+discredit_explain_1;Вы не можете дискредитировать себя
+discredit_explain_2;Мнение цели о вас лучше, чем враждебное
+discredit_explain_3;Великая держава не запрещена
+iaction_explain_1;У вас есть как минимум $x$ влияния на цель
+iaction_explain_2;Ваше посольство не забанено
+iaction_explain_3;Вы не находитесь в состоянии войны с целью
+iaction_explain_4;Мнение цели о великой державе в лучшем случае равно ее мнению о вас
+expel_explain_1;Вы не можете исключить собственных советников
+expel_explain_2;Мнение цели о вас как минимум нейтральное
+ban_explain_1;Вы не можете запретить собственное посольство
+ban_explain_2;Мнение цели о вас как минимум дружелюбное
+dec_op_explain_1;Вы не можете ухудшить мнение о себе нации
+dec_op_explain_2;Вы не можете снизить мнение нации о лидере своей сферы
+dec_op_explain_3;Мнение цели о вас лучше, чем враждебное
+dec_op_explain_4;Мнение цели о великой державе не может быть хуже, чем враждебное
+iaction_explain_5;Вы великая держава
+iaction_explain_6;Цель — не великая держава
+state_transfer_di;Передача состояния
+state_transfer_button;Передача состояния
+state_transfer_offer;$actor$ предлагает нам состояния:
+state_transfer_desc;Передает право собственности на одно государство другой нации, что полезно для переговоров, выходящих за рамки игры.
+state_transfer_explain_1;Целевая нация — игрок
+state_transfer_explain_2;В настоящее время кризиса нет
+state_transfer_explain_3;Мы не подданные
+state_transfer_explain_4;Они не субъекты
+state_transfer_explain_5;У нас мир
+state_transfer_explain_6;У нас более 1 штата
+cancel_ally_explain_1;Вы не можете расторгнуть союз с самим собой
+cancel_ally_explain_2;У вас есть как минимум $x$ дипломатических очков
+cancel_ally_explain_3;В настоящее время вы являетесь союзником
+cancel_ally_explain_4;Вы сейчас не воюете вместе
+cancel_ally_explain_5;Вы не являетесь вассалом целевой нации
+ally_explain_1;Вы не можете заключить союз с самим собой
+ally_explain_2;У вас есть как минимум $x$ дипломатических очков
+ally_explain_3;В настоящее время вы не являетесь союзником
+ally_explain_4;Вы обе не великие державы, пока продолжается кризис
+ally_explain_5;Вы не подвластная нация
+ally_explain_6;В настоящее время вы не находитесь в состоянии войны с целью
+ally_explain_7;ИИ примет
+ally_explain_8;Цель не является подчиненной нацией
+call_ally_explain_1;У вас есть союз с этой страной
+call_ally_explain_2;У вас есть как минимум $x$ дипломатических очков
+call_ally_explain_3;Вы находитесь на войне
+call_ally_explain_4;Эта нация может быть призвана в войну
+call_ally_explain_5;ИИ примет
+cancel_access_explain_1;У вас есть как минимум $x$ дипломатических очков
+ask_access_explain_1;Вы не можете получить военный доступ самостоятельно
+ask_access_explain_2;У вас есть как минимум $x$ дипломатических очков
+ask_access_explain_3;ИИ примет
+ask_access_explain_4;В настоящее время вы не находитесь в состоянии войны с целью
+cancel_given_access_explain_1;У вас есть как минимум $x$ дипломатических пунктов
+give_access_explain_1;Вы не можете предоставить себе военный доступ
+give_access_explain_2;У вас есть как минимум $x$ дипломатических очков
+give_access_explain_3;В настоящее время вы не находитесь в состоянии войны с целью
+increase_rel_explain_1;Улучшает наши отношения на ?G+$x$
+increase_rel_explain_2;Вы не можете улучшить свои отношения с самим собой
+increase_rel_explain_3;У вас есть как минимум $x$ дипломатических очков
+increase_rel_explain_4;Текущие отношения меньше 200
+increase_rel_explain_5;В настоящее время вы не находитесь в состоянии войны с целью
+decrease_rel_explain_1;Ухудшает наши отношения на ?R$x$
+decrease_rel_explain_2;Вы не можете ухудшить свои отношения с самим собой
+decrease_rel_explain_3;У вас есть как минимум $x$ дипломатических очков
+decrease_rel_explain_4;Текущие отношения больше -200
+decrease_rel_explain_5;В настоящее время вы не находитесь в состоянии войны с целью
+cancel_w_sub_explain_1;В настоящее время мы субсидируем эту страну ?Y$x$?! в день
+cancel_w_sub_explain_2;У вас есть как минимум $x$ дипломатических очков
+w_sub_explain_1;Вы не можете предлагать себе военные субсидии
+w_sub_explain_2;У вас есть как минимум $x$ дипломатических очков
+w_sub_explain_3;В данный момент вы не находитесь в состоянии войны с целью
+w_sub_explain_4;Цель находится в состоянии войны
+invention_bulb_1;Это изобретение в настоящее время невозможно обнаружить
+invention_bulb_2;Это изобретение возможно обнаружить
+invention_bulb_3;Это изобретение было обнаружено
+not_implemented;Эта функция в настоящее время не реализована
+inc_op_explain_1;Нация относится к вам далеко не дружелюбно
+add_sphere_explain_1;Нация о вас дружелюбного мнения
+add_sphere_explain_2;Нация в настоящее время не находится в сфере другой великой державы
+rem_sphere_explain_1;Нация в настоящее время находится в сфере влияния великой державы
+rem_sphere_explain_2;Нация о вас дружелюбного мнения
+rem_sphere_explain_3;Нация находится в вашей сфере влияния
+rem_sphere_explain_4;Удаление нации из вашей сферы влияния увеличит вашу позорную репутацию на ?R$x$
+rem_sphere_explain_5;Удаление нации из вашей сферы влияния снизит ваш престиж на ?R$x$
+fab_explain_1;Вы не можете оправдать войну против себя
+fab_explain_2;У вас есть как минимум $x$ дипломатических очков
+fab_explain_3;В настоящее время вы не выдумываете повод для войны
+fab_explain_4;Вы — независимая нация или цель — ваш повелитель
+fab_explain_5;Цель не находится в вашей сфере влияния
+fab_explain_6;В настоящее время вы не находитесь в состоянии войны с целью
+fab_explain_7;Вы можете придумать повод для войны
+peace_description;Сделайте мирное предложение, чтобы положить конец военным действиям между вами и этой страной.
+peace_explain_1;Не является подчиненной нацией
+peace_explain_2;Цель не является подчиненной нацией
+peace_explain_3;По крайней мере одна из сторон переговоров является военным лидером своей стороны
+peace_explain_4;Обе стороны являются военными лидерами (кризисная война)
+peace_explain_5;У вас нет других мирных предложений в работе
+war_explain_1;Вы не можете объявить себе войну
+war_explain_2;У вас есть повод для войны, который вы можете использовать против этой нации
+war_explain_3;У вас есть как минимум $x$ дипломатических очков
+war_explain_4;Вы еще не находитесь в состоянии войны с этой страной
+wg_result_1;При добавлении этой военной цели:
+wg_result_2;При достижении этой военной цели:
+wg_result_3;При неспособности достичь этой военной цели:
+wg_not_ready;Вы должны закончить выбор цели войны
+crisis_temperature_ex;Текущая кризисная температура равна ?R$value$?W! Достижение ?R100?W вызовет кризисную войну между двумя сторонами
+crisis_mode_no_crisis;Кризиса нет
+crisis_mode_finding_attacker;Найти покровителя атакующей стороны
+crisis_mode_finding_defender;Найти покровителя для защищающейся стороны
+crisis_mode_heating_up;Кризис накаляется
+crisis_back_explain_1;Вас интересует кризис (на заборе)
+crisis_back_explain_2;Кризис привлек первых сторонников
+crisis_add_interest_button;Поинтересуйтесь этим кризисом
+crisis_add_interest_button_ex_1;Вы великая держава
+crisis_add_interest_button_ex_2;Кризис привлек первых сторонников
+crisis_add_interest_button_ex_3;У вас есть хотя бы 1 дипломатическое очко
+crisis_offer_button;Сделайте предложение этой стране присоединиться к вашей стороне кризиса
+crisis_offer_button_ex_1;Вы являетесь лидером одной из сторон кризиса
+crisis_offer_button_ex_2;Кризис привлек первых сторонников
+crisis_offer_button_ex_3;У вас есть хотя бы 1 дипломатическое очко
+multiunit_header;$x$ Выбрано единиц измерения
+ai_alliance_1;ИИ в настоящее время ищет союзников
+ai_alliance_2;Ваша нация достаточно близко, чтобы помочь в войне
+ai_alliance_3;Нет противоречивых амбиций
+ai_alliance_4;Военные силы вашей страны достаточно сильны
+ai_alliance_5;Обладает общими стратегическими интересами
+ai_access_1;ИИ считает одну из ваших войн выгодной для себя
+col_start_title;Начать колонизацию этого штата
+col_start_1;Колонизаторы отсутствуют или колонизация все еще находится на начальной стадии
+col_start_2;Ранг вашей нации не ниже $x$
+col_start_3;Государство не является объектом колониального кризиса
+col_start_4;Вы не участвуете в кризисной войне
+col_start_5;Минимальный рейтинг жизни, который вы можете колонизировать ($x$), меньше или равен рейтингу жизни государства ($y$)
+col_start_6;База ?Y$x$
+col_start_7;Присутствуют не более трех других колонизаторов
+col_start_8;Вы находитесь рядом с штатом или в пределах досягаемости военно-морского флота.
+col_start_9;У вас есть как минимум $x$ свободных колониальных очков
+col_invest_title;Инвестируйте в свою колонию
+col_invest_1;Ранг вашей нации не ниже $x$
+col_invest_2;Государство не является объектом колониального кризиса
+col_invest_3;Вы не участвуете в кризисной войне
+col_invest_4;Без конкуренции вы сможете превратить это государство в колонию на $x$
+col_invest_5;Прошло $x$ дней с момента вашей последней инвестиции (следующая инвестиция возможна на $y$)
+col_invest_6;У вас есть как минимум $x$ свободных колониальных очков
+activated_by_with_a_chance_of;Активируется ?Y$x$?!, с шансом:
+unit_max_speed;Максимальная скорость ?G$x$?! КПХ
+unit_attack;Атака ?G$x$
+unit_hull;Корпус ?G$x$
+unit_fire_range;Дальность стрельбы ?G$x$
+unit_supply_consumption;Потребление припасов ?R$x$
+unit_supply_load;Вес припасов ?R$x$
+unit_defence;Защита ?G$x$
+unit_discipline;Дисциплина ?G$x$
+unit_maneuver;Маневр ?G$x$
+unit_recon;Разведка ?G$x$
+unit_support;Поддержка ?G$x$
+unit_evasion;Уклонение ?G$x$
+unit_siege;Осада ?G$x$
+unit_torpedo_attack;Торпедная атака ?G$x$
+unit_build_time;$x$ дней
+unit_build_unit_pop_size;$x$k
+unit_build_unit_brigades;$x$/$y$
+uv_sort_a;Att
+uv_sort_b;Def
+uv_sort_c;Org
+uv_sort_d;Mor
+uv_sort_e;Spd
+uv_sort_f;Rec
+uv_sort_g;Rel
+uv_sort_h;Exp
+alice_condition_diplo_points;Has atleast $x$ diplomatic points
+alice_retreat;Retreat from battle
+alice_retreat_1;It has been at least $x$ days since the battle started
+alice_retreat_2;You are the lead attacker or defender
+on;ON
+off;OFF
+province_selector;Selector
+province_immigrator;Immigrator
+tt_a_bank;a bank
+tt_a_university;a university
+et_add_selector;enable province selector
+et_remove_selector;disable province selector
+et_add_immigrator;enable province immigrator
+et_remove_immigrator;disable province immigrator
+et_if;If
+et_else_if;Else
+modifier_province_selector;Province selector
+modifier_province_immigrator;Province immigrator
+modifier_conversion_rate;Conversion Rate
+modifier_attrition;Attrition
+chat_player_joins;@$x$ $playername$ joined
+chat_player_leaves;@$x$ $playername$ left
+chat_player_ban;@$x$ $playername$ was banned
+chat_player_kick;@$x$ $playername$ was kicked
+chat_player_switch;@$x$ $playername$ has choosen $country$
+chat_player_oos;@$x$ $playername$ has OOSed!
+alice_status_stream;Save progress $value$
+alice_play_pending_client;$playername$ is not ready yet
+alice_stockpile_button_0_0;National stockpiles function as a condiment to your usual economic-business activities, where people see ?Ggreen?W lines go up, and ?Rred?W lines go down, as per usual I'm ?Ynot?W a line graph so I mostly go unnoticed :)
+alice_stockpile_button_1_0;If you click me 10 times you will receive nothing in return, just trust me, don't click me... ?ROR ELSE?W
+alice_stockpile_button_1_1;I see, well now I'm not gonna say anything because I know you will keep clicking until I say a ?Ydifferent?W dialogue and that's just boring
+alice_stockpile_button_1_2;Alright I can't make you stop, perhaps this will?
+alice_stockpile_button_2_0;I'm a souless button, move on
+alice_stockpile_button_3_0;Playing with friends aren't we? ?RWELL GOOD LUCK YOU WILL NEED IT?W
+a_alert_reb;У одного или нескольких участников нашей сферы есть активные повстанцы:
+event_auto;Автоматически выбирать эту опцию до конца сеанса.
+event_taken_auto;Эта опция будет автоматически применена ?Y$date$?!.
+alice_load_unload_1;Пришвартованный здесь флот имеет достаточную вместимость
+alice_load_unload_2;Армия перевозится
+alice_load_unload_3;Транспортный флот пристыкован
+alice_load_unload_4;Перевозится одна или несколько армий
+alice_load_unload_5;Флот пристыкован
+alice_unload_fleet;Выгрузить все армии, перевезенные флотом
+monthly_emigration_lab;Ежемесячная эмиграция в (топ-10)
+monthly_immigration_lab;Ежемесячная иммиграция из (топ-10)
+im_em_header;Прогнозируемая иммиграция/эмиграция для
+alice_unit_relative_attrition;$m$ $n$/$x$/$y$ = ?R$val$?! истощение
+ol_unit_standing_text;$m$ $n$/$x$/$y$
+unit_moving_text;$m$ $n$/$x$/$y$ -> $prov$ ($date$) - ?R$cost$?W ($attunit$/$defunit$)
+unit_standing_text;$m$ $n$/$x$/$y$ - ?R$cost$?W ($attunit$/$defunit$)
+disarmed_pop;a member of a disarmed nation
+cancel_fac_construction;Cancel factory construction
+cancel_fac_upgrade;Cancel factory upgrade
+kierkegaard_1;Either
+kierkegaard_2;Or
+open_and_sub;Субсидировать и вновь открыть завод
+o_set_national_flag;Установить национальный флаг $text$ для владельца
+o_add_modifier_until;Владелец провинции получает $text$ до $date$
+o_add_modifier;Владелец провинции получает $text$
+o_relations_with;Владелец связи провинции с $text$
+o_add_to_treasury; для владельца провинции
+w_rgo_prod;Глобальное производство РГО: $x$
+w_artisan_prod;Глобальное ремесленное производство: $x$
+w_artisan_profit;Прибыль национального ремесленника: $x$
+w_artisan_distribution;Национальное распространение ремесленников: $x$
+w_fac_prod;Общее заводское производство: $x$
+alice_lose_gp;Мы теряем ?YВеликую Державу?! положение дел!
+alice_state_select_title;Выбрать штат
+press_esc_to_cancel;Нажмите ?YESC?! отменить
+fort_build_tt_1;Провинция под вашим контролем
+fort_build_tt_2;Провинция не находится в осаде
+fort_build_tt_3;Текущий уровень $x$ плюс уровень сложности провинции $n$ меньше вашего текущего максимального уровня $y$
+nb_build_tt_1;Провинция прибрежная
+nb_build_tt_2;Ни одна другая военно-морская база в штате не построена и не строится
+rr_build_tt_1;Наша правящая партия разрешает правительству строить железные дороги
+tech_ol_tt;?G$x$?! от твоего повелителя, обладающего этой технологией
+tech_year_tt;?G$x$?! с текущего года
+disband_all;Распустить все выбранные отряды
+alice_play_checksum_host;Несовпадение контрольной суммы с хостом, убедитесь, что у вас одинаковые моды и файлы сохранения.
+alice_play_save_stream;Хост передает вам сохранение, подождите, пока оно завершится
+ai_will_accept_po;Они примут это предложение
+ai_will_not_accept_po;Они НЕ примут это предложение
+close_and_del;Закрыть и удалить фабрику
+cb_conditions_header;Условия использования:
+as_a_vassal;как вассал
+Change_state_name_to;изменить имя состояния на $text$
+alice_join_crisis_offer;$ACTOR$ даст нам следующее, если мы присоединимся на их сторону в текущем кризисе:
+alice_unit_disable_rebel_hunt;Прекратить охоту на повстанцев
+alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\nOrganisation: ?Y$organisation$?W\nStrength: ?Y$strength$?W
+understaffed_regiment;?RThis regiment is understaffed and will only have $value$ soldiers!?W
+tech_queue_explain;Press ?YSHIFT?W to add to queue, ?YRight-click?W to remove
+alice_province_building_build;?YSHIFT?W to build on the entire ?Gstate?W.\n?YSHIFT-Right-click?W to build on the entire ?Gcountry?W.
+commodity_shortage;?RThere is a shortage of this commodity
+commodity_surplus;?GThere is a surplus of this commodity
+alice_trade_flow_produced;?YВнутреннее производство:
+alice_trade_flow_consumed;?YВнутреннее потребление:
+alice_trade_flow_label;Обзор рынка:
+alice_trade_flow_piechart_producers;Производители
+alice_trade_flow_piechart_consumers;Потребители
+alice_trade_flow_piechart_workforce;Инвесторы
+alice_diplo_release_subject;Тема выпуска
+alice_diplo_release_subject_desc;Освобождает одного из наших субъектов, делая его больше не нашим субъектом, союзы необходимо разрывать отдельно
+alice_diplo_release_subject_0;Наш объект?
+kill_leader;Kill leader
+annex_null;becomes unowned
+meets_the_conditions_of;соответствует условиям
+does_not_meet_the_conditions_of;не соответствует условиям
+fab_finish_date;Ожидается, что изготовление CB завершится $date$
+fab_is_paused;Изготовление CB в настоящее время приостановлено
+macro_builder;Макростроитель
+macro_total_desc;Общая статистика юнита:
+macro_switch_type_land;Создать армию
+macro_switch_type_naval;Построить флот
+macro_warn_overseas;?RCНевозможно построить этот юнит за рубежом!?!
+macro_warn_culture;?RC Может создаваться только с использованием POP основной культуры!?!
+macro_warn_unlocked;?RUИспользование юнитов, которые еще не разблокированы!?!
+macro_select_province;Пожалуйста, выберите провинцию на карте
+macro_warn_insuff;?RCневозможно собрать $x$ $name$ (только $y$)?!
+macro_warn_invalid_province;?Провинция не является частью региона?!
+shortcut_tooltip;Ярлык: ?Y$x$?!
+filter_all;Показать ?Yall?! соответствующие нации.
+filter_allies;Фильтровать по нациям: у нас есть ?Альянс?! с.\n?YЩелкните правой кнопкой мыши?! фильтровать по странам, которые хотят стать нашими союзниками.
+filter_enemies;Фильтровать по странам, которые являются «врагами» или воюют с нами?!.
+filter_sphere;Фильтровать по странам, которые находятся в нашей «сфере влияния»?!.\n?YНажмите правой кнопкой мыши?! фильтровать по странам, на которые мы влияем, но не в нашей сфере.
+filter_neighbors;Фильтровать по странам, у которых есть общая граница ?Yborder?! с.\n?YЩелкните правой кнопкой мыши?! для фильтрации по странам, у которых есть общая граница?Y! и не являются ?ивасалами?!.
+filter_best_guess;Фильтрация с использованием ?Ybest догадки?! по релевантности сюда входят все «Ялли?!», «Враги?!», «Исферлинги!» и нации, у которых есть общая «граница»?! с.
+alice_warn_war_ends_for_us;?RЭто положит конец войне для всех на нашей стороне?!.
+alice_invention_chance;Шанс обнаружить это ?Изобретение?! следующие:
+is_primary_culture;?Y$NAME$?! является основной культурой.
+is_primary_religion;?Y$NAME$?! является основной религией.
+tt_can_use_nation;Условия, необходимые для использования этой военной цели:
+et_on_add;Эффекты, возникающие при добавлении этой цели в войну:
+et_on_po_accepted;Эффекты принятия мирного предложения с этой военной целью:
+alice_no_possible_units;Ни один из возможных юнитов не может быть построен, и ни один юнит не находится в стадии строительства.
+alice_debt_spending;Включить/отключить расходование долга
+alice_loan_size;Наш текущий максимальный кредит составляет $x$. Долг, превышающий эту сумму, приведет к тому, что мы обанкротимся.
+alice_currently_bankrupt;Мы банкроты (до $x$)
+alice_no_loans_possible;В настоящее время мы не можем брать кредиты
+alice_rf_demands_enforced_trigger;Повстанцы будут выполнять свои требования только в том случае, если:
+alice_rf_demands_enforced_effect;Как только повстанцы выполнят свои требования, они применят следующий эффект:
+alice_rf_siege_won_trigger;Если повстанец выигрывает осаду, проверяется следующее, например, в вашей столице $x$:
+alice_rf_siege_won_effect;И если все вышеперечисленное было правдой, применяются следующие эффекты, например, к вашему капиталу $x$:
+alice_ca_cant_influence;В данный момент мы не можем повысить или понизить мнение других наций
+alice_gp_status_regain_expiration;Если мы не получим ранг ?Y$x$?W или выше, мы потеряем статус ?Ygreat power?W к ?Y$date?W!
+alice_mil_decay_description;Естественный распад ?G-$x$
+alice_con_decay_description;Естественный распад ?R-$x$
+x_from_y;$x$ от $y$
+reinforce_rate;Этот полк может пополнять до $x$ солдат в месяц.
+reinforce_rate_none;Этот полк в настоящее время не может быть усилен.
+alice_domestic_investment_button;Инвестирование в отдельные проекты ?Rустарело?W, вместо этого используйте ползунок ?Yвнутренние инвестиции?W на экране бюджета
+alice_domestic_investment_pops;У нас есть $x$ капиталистов, которым мы можем косвенно сделать щедрые пожертвования
+alice_domestic_investment_needs;Им требуется $x$ каждый день, чтобы удовлетворить свой роскошный образ жизни
+alice_budget_scaled_inc;Доход: ?G$value$
+alice_budget_scaled_1;Плохой налог: ?G$value$
+alice_budget_scaled_2;Средний налог: ?G$value$
+alice_budget_scaled_3;Налог на богатство: ?G$value$
+alice_budget_scaled_4;Тарифы: ?G$value$
+alice_budget_scaled_exp;Расходы: ?R$value$
+alice_budget_scaled_5;Содержание армии: ?R$value$
+alice_budget_scaled_6;Обслуживание ВМФ: ?R$value$
+alice_budget_scaled_7;Конструкция: ?R$value$
+alice_budget_scaled_8;Образование: ?R$value$
+alice_budget_scaled_9;Администрирование: ?R$value$
+alice_budget_scaled_10;Социальные расходы: ?R$value$
+alice_budget_scaled_11;Военные расходы: ?R$value$
+alice_budget_scaled_12;Внутренние инвестиции: ?R$value$
+alice_budget_scaled_13;Зарубежные расходы: ?R$value$
+alice_budget_scaled_14;Заполнение запасов: ?R$value$
+alice_budget_scaled_15;Военные субсидии: ?R$value$
+alice_budget_scaled_16;Дипломатический интерес: ?G$value$
+alice_budget_scaled_17;Производство золота: ?G$value$
+alice_budget_scaled_net;Чистый доход: ?Y$value$
+alice_budget_setting_percent;Установить на уровне $perc$.
+alice_spending_land_construction;Земельное строительство в $name$: ?R$cost$
+alice_spending_naval_construction;Военно-морское строительство в $name$: ?R$cost$
+alice_spending_building_construction;Строительство здания в $name$: ?R$cost$
+alice_spending_factory_construction;Строительство завода в $name$: ?R$cost$
+alice_spending_unit;Общая сумма, потраченная на этот блок в $name$: ?R$cost$
+alice_spending_unit_1;Общая сумма, потраченная на этот блок: ?R$cost$
+alice_spending_total;?YВсего потрачено:?W
+alice_spending_commodity;?R$cost$?W - Требуется $need$ $name$ ($val$)
+alice_spending_commodity_2;?R$cost$?W - Покупка $need$ $name$ (по цене $val$ x единица). Прогресс: $x$/$y$
+alice_recommended_build;?GРекомендуется построить эту фабрику?W
+alice_factory_bonus;Мы получим бонус ?Y$x$?!, если:
+alice_factory_inputs;Необходимые входные данные:
+alice_factory_input_item;?R$cost$?! - Требуется $need$ $name$ ($val$)
+alice_factory_base_workforce;Базовая рабочая сила ?Y$x$
+alice_factory_total_bonus;В сумме это примерно ?Y$x$
+alice_slider_controls;?YLeft-Click?! для увеличения на ?Y$value$?!\n?YSHIFT-щелкните левой кнопкой мыши?! увеличить на ?Y$x$?!\n?YSHIFT-щелчок правой кнопкой мыши?! увеличить до максимума
+alice_slider_controls_2;?YLeft-Click?! для уменьшения на ?Y$value$?!\n?YSHIFT-щелкните левой кнопкой мыши?! уменьшить на ?Y$x$?!\n?YSHIFT-щелчок правой кнопкой мыши?! уменьшить до минимума
+explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+alice_lobby_back;Вернуться в лобби
+alice_lobby_back_tt_1;Ты уже в чертовом вестибюле
+alice_lobby_back_tt_2;Только хост может вернуться в лобби
+reopen_with_tab;Вы можете повторно открыть это окно с помощью ?YTAB?W
+alice_topbar_tab_1;Открыть или закрыть эту вкладку
+alice_topbar_tab_2;Открыть или закрыть вкладку населения
+colonial_points_from_technology;От технологий:
+colonial_points_from_naval_bases;С военно-морских баз:
+colonial_points_from_ships;С кораблей:
+used_colonial_maintenance;Поддержание существующих колоний:
+topbar_pause_speed;Приостанавливает игру, нажмите еще раз, чтобы возобновить паузу
+att_call_will_accept;$x$ присоединится к вашей войне
+att_call_will_decline;$x$ не присоединится к вашей войне
+att_call_is_human;$x$ может присоединиться к вашей войне
+att_call_no_allies;У вас нет союзников!
+отечественный_investment_label;Внутренние инвестиции:
+modifier_min_domestic_investment;Минимальная ставка внутренних инвестиций
+modifier_max_domestic_investment;Максимальный уровень внутренних инвестиций
+alice_supply_limit_desc;Лимит предложения: $x$
+alice_factory_worker_1;Занят: ?G$x$?W
+alice_factory_worker_2;Безработный: ?R$x$?W
+alice_rgo_unemployment_country_alert;В следующих штатах есть безработные ГГО:
+pop_promote_info_on_sel_2;$val$ ожидает изменения $who$ в $where$ в течение следующего месяца.
+alice_readme;?GДобро пожаловать в Project Alice!?W\nProject Alice — это эмуляция (не симулятор!) вашей любимой видеоигры викторианской эпохи. Другими словами, мы настраиваем некоторые механики, чтобы их было легче понять новым игрокам, одновременно делая мир более динамичным и интересным, исправляя старые ошибки (например, связанные с кризисами) и внедряя новые функции качества жизни.\n?GНовые функции!?W\n?YGlobe?W: ?GLLove?W многими, ? Некоторые оценили?W, выключите его, если это вас беспокоит!\n?YТехническая очередь:?W SHIFT-щелкните правой кнопкой мыши, чтобы добавить технологии в техническую очередь! (Нажмите правой кнопкой мыши, чтобы выйти из очереди)\n?YВнутренние инвестиции:?W Вместо того, чтобы инвестировать в отдельные проекты, делайте это за один раз.\n?YПроизводительность:?W Количество тиков в секунду (не FPS) как минимум в 10 раз быстрее\n? YLinter:?W Получайте ошибки покрытия и предупреждения в своих модах, легко выявляйте ошибки и опечатки.\n?YМакросборщик:?W Создавайте юниты с различным составом, используя наш конструктор макросов.\n?Y11 новые режимы карты:?W Религия, форт, занятость, etc\n?YСтроить по всей стране:?W SHIFT Щелкните правой кнопкой мыши, чтобы построить по всей стране!\n?GControls:?W\n?YTAB?W: Открыть окно чата\n?YESC?W: Открыть главное меню и меню настроек\n?YTilde (`)?W или ?YTilde (~)?W: Открыть консоль\n?GНаслаждайтесь игрой! =^w^=?W
+alice_nf_controls;?YЩелкните левой кнопкой мыши?W, чтобы выбрать или заменить\n?YЩелкните правой кнопкой мыши?W, чтобы удалить
+unit_controls_tooltip_1;?YЩелкните левой кнопкой мыши?W выберите (сняв выделение со всего остального)\n?YSHIFT-щелкните левой кнопкой мыши?W добавьте к выделению
+unit_controls_tooltip_2;?YЩелкните правой кнопкой мыши по провинции?W частичное отступление (?Gcycling/rotation?W) в провинцию
+unit_control_group_tooltip;Нажмите от ?YCTRL-1?W до ?YCTRL-9?W, чтобы назначить/отменить назначение этого устройства в группу управления, которую затем можно нажать от ?Y1?W до ?Y9?W, чтобы выбрать
+console_button_tooltip;Открыть командную консоль
+demobilize;Demobilize
+mobilize;Mobilize
+alice_cb_creation_detail_none;Please select a casus belli to start fabricating against $country$.
+alice_cb_creation_detail;We can fabricate a casus belli against $country$ with the reason of ?Y$type$?W. This process may take roughly about ?Y$days$?W, and the potential costs from being discovered will give us ?R$badboy$?W infamy.
+alice_mob_controls;?YRight-click?W to remobilize
+alice_mw_create_1;Add general
+alice_mw_create_2;Add admiral
+alice_mw_create_lpb;?YLeadership points?W will automatically be used to create generals or admirals when hitting the cap
+alice_mw_create_lp;We need ?R$x$?W ?Yleadership points?W to add
+alice_mw_controls_1;?YRight-click?W create ?Gall?W possible as generals
+alice_mw_controls_2;?YRight-click?W create ?Gall?W possible as admirals
+alice_daily_leadership_tt;$poptype$ provides ?G$value$?W leadership points (?Y$fraction$?W of the population, ?Y$optimal$?W is optimal). Extra leadership points will automatically be spent on creating new generals.
+unit_current_supply;This unit received ?Y$val$%?W of the supplies needed in the last day.\nThe amount we could get of our current supply consumption was:
+unit_current_supply_high;$what$: ?Y$val$?W/?Y$value$?! ?l(?W?G$total$%?W?l demand satisfaction)
+unit_current_supply_mid;$what$: ?Y$val$?!/?Y$value$?! ?l(?O$total$%?W?l demand satisfaction)
+unit_current_supply_low;$what$: ?Y$val$?!/?Y$value$?! ?l(?R$total$%?W?l demand satisfaction)
+alice_crisis_inactive;Нет текущего активного кризиса
+alice_crisis_finding_attacker;Нахождение злоумышленника для текущего кризиса
+alice_crisis_finding_defender;Найти защитника от текущего кризиса
+alice_crisis_heating_up;Температура кризиса накаляется, сейчас она составляет ?R$temperature$?W
+alice_last_crisis;Последний кризис произошел в $date$ (между кризисами существует период времени $time$ в месяц)
+alice_crisis_par_1;?RНападавшие?!:
+alice_crisis_par_2;?BЗащитники?!:
+alice_crisis_par_3;?YПросто интересно (нет стороны)?!:
+alice_commodity_cprice;Текущая цена: $x$
+alice_commodity_cost;Стоимость: $x$
+alice_commodity_eprice;Эффективная цена: $x$
+alice_trade_top_producers;Лучшие производители ?Y$value$?W:
+alice_trade_no_producers;?RНикто не производит этот товар?W
+alice_politic_party_trigger;Доступно только с ?Y$date_long_0$?W по ?Y$date_long_1$?W и удовлетворяет следующему триггеру:
+alice_politic_party_no_trigger;Доступно только с ?Y$date_long_0$?W по ?Y$date_long_1$?W
+alice_ai_decision;Шанс ИИ принять это решение будет зависеть от:
+alice_mobilized_is_ai_control;Независимо от того, мобилизованные юниты автоматически перейдут под контроль ИИ
+alice_ai_control_unit;Включить/отключить контроль ИИ над этим отрядом, отряд будет:\n- Автоматически укреплять линии фронта\n- Автоматически осаждать, когда это безопасно\n- Охотиться на повстанцев\n- Формировать оборонительную позицию против стран, которые мы, вероятно, атаковать (это на усмотрение ИИ и только в мирное время)\nЕсли вы хотите, чтобы этот отряд нацелился на конкретную нацию или регион, сначала переместите его ближе к этому региону или нации, а затем включите контроль ИИ - потому что ИИ будет переопределять все ваши команды, пока вы снова не отключите их.
+alice_navy_allocation_tt;С кораблями ?Y$curr$?W мы накапливаем общую пропускную способность снабжения ?Y$tot$?W, что требует ?Y$req$?W для наших флотов. Подробная сводка потребления каждого военно-морского флота:
+alice_navy_allocation_2;$name$: ?Y$value$?W (?Y$perc$?W)
+alice_wg_condition_1;Не имеет статус-кво в качестве защитника
+alice_wg_condition_2;Находится с нами в войне
+alice_wg_condition_3;Уникальная цель войны (не является дубликатом другой цели войны)
+alice_wg_condition_4;Не на нашей стороне
+alice_wg_condition_5;Удовлетворяет триггерам для цели войны
+alice_wg_condition_6;Хватит шовинизма (нужен $need$, есть $value$)
+alice_wg_condition_7;Можно построить цель войны
+alice_tt_wg_infamy_limit;?RЭта цель войны превысит лимит позорной славы?W
+alice_wg_usage_trigger;Можно использовать только в том случае, если выполнен следующий триггер:
+province_id;Идентификатор провинции
+nation_tag;Тег нации
+alice_rgo_trade_prod_1;РГО Сельскохозяйственное производство: $x$ ($y$)
+alice_rgo_trade_prod_2;РГО Горное производство: $x$ ($y$)
+alice_rgo_trade_prod_3;РГО Добыча монет: $x$ ($y$)
+alice_artisan_trade_prod;Ремесленное производство: $x$ ($y$)
+alice_factory_trade_prod;Заводское производство: $x$ ($y$)
+alice_all_trade_prod;Общий объем производства: $x$
+alice_interested_in_alliance;(применяется только к странам ИИ) Отметьте, что мы заинтересованы в союзе с этой страной и немедленно примем предложения союза.
+alice_merge_rally_point_why;Объединить точки сбора устарело, точки сбора теперь будут автоматически объединяться
+alice_mvcap_1;Переносит столицу в эту провинцию
+alice_mvcap_2;Нет текущего кризиса
+alice_mvcap_3;С миром
+alice_mvcap_4;Уже не столица
+alice_mvcap_5;Не колониальный
+alice_mvcap_6;На том же континенте, что и текущая столица
+alice_mvcap_7;Доминирующая принятая культура
+alice_mvcap_8;Эта провинция не находится в осаде
+alice_mvcap_9;Текущая столица не находится в осаде
+alice_mvcap_10;Принадлежит вам
+alice_mvcap_11;Управляется вами
+alice_mvcap_12;Является владельцем ядра
+alice_pnt_pops;?YНаселение:?! $x$
+alice_pnt_rpops;?YРич Страта:?! $x$ ($y$)
+alice_pnt_mpops;?YСредние слои:?! $x$ ($y$)
+alice_pnt_ppops;?YБедные слои:?! $x$ ($y$)
+alice_pnt_culture;?YКультура:?! $x$
+alice_pnt_religion;?YReligion:?! $x$
+alice_pnt_dominant_religion;?YДоминирующая религия:?! $x$
+alice_pnt_dominant_ideology;?YДоминантная идеология:?! $x$
+ledger_ppp_gdp;ВВП(ППС)
+ledger_ppp_gdp_per_capita;ВВП(ППС) на 1 млн человек

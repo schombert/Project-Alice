@@ -306,12 +306,7 @@ public:
 		text::add_line_with_condition(state, contents, "factory_upgrade_condition_10", fat.get_level() < 255);
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line(state, contents, "alice_expand_factory_controls_1");
-		text::add_line(state, contents, "alice_expand_factory_controls_2");
-		text::add_line(state, contents, "alice_expand_factory_controls_3");
-		text::add_line(state, contents, "alice_expand_factory_controls_4");
-		text::add_line(state, contents, "alice_expand_factory_controls_5");
-		text::add_line(state, contents, "alice_expand_factory_controls_6");
+		text::add_line(state, contents, "factory_upgrade_shortcuts");
 	}
 };
 
@@ -1074,7 +1069,7 @@ public:
 				dcon::factory_id fid = content.id;
 				fat_btid = state.world.factory_get_building_type(fid);
 
-				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::production_scale_delta;
+				bool is_closed = dcon::fatten(state.world, fid).get_production_scale() < economy::factory_closed_threshold;
 				for(auto const& e : factory_elements)
 					e->set_visible(state, true);
 				for(auto const& e : upgrade_elements)
@@ -1289,14 +1284,15 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1358,14 +1354,15 @@ public:
 
 		{
 			auto box = text::open_layout_box(contents);
-			if(num_factories < int32_t(state.defines.factories_per_state)) {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x02"), text::text_color::green);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, contents.fixed_parameters.font_id)].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::green);
 			} else {
-				text::add_to_layout_box(state, contents, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, contents, box, std::string_view(str), text::text_color::red);
 			}
 			text::add_space_to_layout_box(state, contents, box);
-			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val,
-					int64_t(state.defines.factories_per_state));
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
 			text::close_layout_box(contents, box);
 		}
 	}
@@ -1671,20 +1668,19 @@ class commodity_primary_worker_amount : public simple_text_element_base {
 		float total = 0.0f;
 
 		auto nation = dcon::fatten(state.world, state.local_player_nation);
+
 		switch (commodity_type) {
 		case economy::commodity_production_type::primary:
 		case economy::commodity_production_type::both:
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
-
-				if(province.get_rgo() == content) {
-					total += economy::rgo_max_employment(state, nation, province) * state.world.province_get_rgo_employment(province);
-				}
+				total += state.world.province_get_rgo_employment(province);
 			}
 			break;
 
+
 		case economy::commodity_production_type::derivative:
-			total += nation.get_artisan_distribution(content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
+			total += economy::get_artisan_distribution_slow(state, nation, content) * nation.get_demographics(demographics::to_key(state, state.culture_definitions.artisans));
 			for(auto province_ownership : state.world.nation_get_province_ownership(nation)) {
 				auto province = province_ownership.get_province();
 				for(auto fac : province.get_factory_location()) {

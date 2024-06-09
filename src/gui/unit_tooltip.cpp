@@ -46,7 +46,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 
 	auto controller = army.get_controller_from_army_control();
 	if(!controller) {
-		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+		controller = dcon::fatten(state.world, state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
 	}
 
 	float total_cost = 0.f;
@@ -66,7 +66,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x03";
+	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "@(A)";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));
@@ -93,7 +93,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 
 	auto controller = navy.get_controller_from_navy_control();
 	if(!controller) {
-		controller = dcon::fatten(state.world, state.national_definitions.rebel_id);
+		controller = dcon::fatten(state.world, state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
 	}
 
 	float total_cost = 0.f;
@@ -113,7 +113,7 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 	}
 
 	text::substitution_map sub;
-	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "\x04";
+	auto tag_str = std::string("@") + nations::int_to_tag(controller.get_identity_from_identity_holder().get_identifying_int()) + "@(N)";
 	text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 	text::add_to_substitution_map(sub, text::variable_type::n, int64_t(amounts.type1));
 	text::add_to_substitution_map(sub, text::variable_type::x, int64_t(amounts.type2));

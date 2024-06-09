@@ -561,6 +561,18 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, cul
 		case culture::flag_type::slot4:
 			file_str += NATIVE("_slot4");
 			break;
+		case culture::flag_type::anarcho_liberal:
+			file_str += NATIVE("_anarcho_liberal");
+			break;
+		case culture::flag_type::green:
+			file_str += NATIVE("_green");
+			break;
+		case culture::flag_type::traditionalist:
+			file_str += NATIVE("_traditionalist");
+			break;
+		case culture::flag_type::ultranationalist:
+			file_str += NATIVE("_ultranationalist");
+			break;
 		}
 		file_str += NATIVE(".tga");
 		GLuint p_tex = load_file_and_return_handle(file_str, state.common_fs, state.open_gl.asset_textures[id], false);

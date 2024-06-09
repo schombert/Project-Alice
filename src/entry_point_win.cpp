@@ -138,14 +138,84 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin"))) {
 				// scenario making functions
 				parsers::error_handler err{ "" };
-				game_state.load_scenario_data(err);
-				if(!err.accumulated_errors.empty())
-					window::emit_error_message(err.accumulated_errors, true);
-				sys::write_scenario_file(game_state, NATIVE("development_test_file.bin"), 0);
-				game_state.loaded_scenario_file = NATIVE("development_test_file.bin");
-			} else {
-				game_state.fill_unsaved_data();
+
+				simple_fs::file_system fs_root;
+				simple_fs::add_root(fs_root, L".");
+
+				auto root = get_root(fs_root);
+				auto common = open_directory(root, NATIVE("common"));
+
+				parsers::bookmark_context bookmark_context;
+				if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
+					auto bookmark_content = simple_fs::view_contents(*f);
+					err.file_name = "bookmarks.txt";
+					parsers::token_generator gen(bookmark_content.data, bookmark_content.data + bookmark_content.file_size);
+					parsers::parse_bookmark_file(gen, err, bookmark_context);
+					assert(!bookmark_context.bookmark_dates.empty());
+				} else {
+					err.accumulated_errors += "File common/bookmarks.txt could not be opened\n";
+				}
+
+				auto to_hex = [](uint64_t v) {
+					native_string ret;
+					constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
+					do {
+						ret += digits[v & 0x0F];
+						v = v >> 4;
+					} while(v != 0);
+					return ret;
+				};
+
+				sys::checksum_key scenario_key;
+				for(uint32_t date_index = 0; date_index < uint32_t(bookmark_context.bookmark_dates.size()); date_index++) {
+					err.accumulated_errors.clear();
+					err.accumulated_warnings.clear();
+					//
+					auto inner_game_state = std::make_unique<sys::state>();
+					simple_fs::add_root(inner_game_state->common_fs, L".");
+
+					inner_game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);
+					if(err.fatal)
+						break;
+					if(date_index == 0) {
+						auto sdir = simple_fs::get_or_create_scenario_directory();
+						int32_t append = 0;
+						auto time_stamp = uint64_t(std::time(0));
+						auto selected_scenario_file = native_string(NATIVE("development_test_file.bin"));
+						sys::write_scenario_file(*inner_game_state, selected_scenario_file, 0);
+						if(auto of = simple_fs::open_file(sdir, selected_scenario_file); of) {
+							auto content = view_contents(*of);
+							auto desc = sys::extract_mod_information(reinterpret_cast<uint8_t const*>(content.data), content.file_size);
+						}
+						scenario_key = inner_game_state->scenario_checksum;
+					} else {
+						inner_game_state->scenario_checksum = scenario_key;
+						sys::write_save_file(*inner_game_state, sys::save_type::bookmark, bookmark_context.bookmark_dates[date_index].name_);
+					}
+				}
+
+				if(!err.accumulated_errors.empty()) {
+					auto assembled_file = std::string("You can still play the mod, but it might be unstable\r\nThe following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
+					auto pdir = simple_fs::get_or_create_settings_directory();
+					simple_fs::write_file(pdir, NATIVE("scenario_errors.txt"), assembled_file.data(), uint32_t(assembled_file.length()));
+
+					auto fname = simple_fs::get_full_name(pdir) + NATIVE("\\scenario_errors.txt");
+					ShellExecuteW(
+							nullptr,
+							L"open",
+							fname.c_str(),
+							nullptr,
+							nullptr,
+							SW_NORMAL
+						);
+					
+					std::abort();
+				}
+				if(!sys::try_read_scenario_and_save_file(game_state, NATIVE("development_test_file.bin")))
+					std::abort();
 			}
+
+			game_state.fill_unsaved_data();
 #endif
 		} else {
 			for(int i = 1; i < num_params; ++i) {

@@ -789,7 +789,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto local_mod = (pmod + omod) + cmod;
 
 		auto sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
-				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+				(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 						state.defines.mil_non_accepted);
 		auto ln_mod = ve::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 		auto en_mod_a =
@@ -832,7 +832,7 @@ float get_estimated_mil_change(sys::state& state, dcon::pop_id ids) {
 	float local_mod = (pmod + omod) + cmod;
 
 	float sep_mod = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), 0.0f,
-			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 					state.defines.mil_non_accepted);
 	float ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 	float en_mod_a =
@@ -956,6 +956,10 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 	x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) /
 	(define:MAX_CLERGY_FOR_LITERACY
 	- define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0).
+
+	(by peter) additional multiplier to make getting/losing high literacy harder:
+	change = change * (1 - current-literacy)
+
 	Literacy cannot drop below 0.01.
 	*/
 
@@ -971,12 +975,30 @@ void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
 		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 		auto espending = 0.5f + 
 				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner) * 0.5f;
-		auto cmod = ve::max(0.0f, ve::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
-																	(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
+		auto cmod = ve::max(
+			0.0f,
+			ve::min(
+				1.0f,
+				(cfrac - state.defines.base_clergy_for_literacy)
+				/ (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)
+			)
+		);
 
 		auto old_lit = state.world.pop_get_literacy(ids);
 		auto new_lit = ve::min(
-				ve::max(old_lit + (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod)), 0.01f), 1.0f);
+				ve::max(
+					old_lit
+					+ (0.01f * state.defines.literacy_change_speed)
+					* (
+						(
+							(espending * cmod)
+							* (tmod * nmod)
+						) *
+						(
+							1.f - old_lit
+						)
+					), 0.01f
+				), 1.0f);
 
 		state.world.pop_set_literacy(ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
 	});
@@ -1336,6 +1358,12 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					float base_amount = promoting
 						? (std::ceil(promotion_chance * state.world.nation_get_administrative_efficiency(owner) * state.defines.promotion_scale * current_size))
 						: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
+
+					if(!promoting) {
+						if(ptype == state.culture_definitions.artisans) {
+							base_amount *= 10.f;
+						}
+					}
 
 					/*if(current_size < small_pop_size && base_amount > 0.0f) {
 						pbuf.amounts.set(p, current_size);
