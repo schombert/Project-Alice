@@ -258,10 +258,14 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::technology_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, content);
-		auto name = fat_id.get_name();
-		if(bool(name)) {
+		if(auto name = fat_id.get_name(); name) {
 			auto box = text::open_layout_box(contents, 0);
 			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		if(auto desc = fat_id.get_desc(); desc) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, desc);
 			text::close_layout_box(contents, box);
 		}
 		technology_description(state, contents, content);
@@ -392,16 +396,19 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::invention_id>(state, parent);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, stored_text), text::text_color::yellow);
-		text::close_layout_box(contents, box);
+		if(auto name = state.world.invention_get_name(content); name) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
+			text::close_layout_box(contents, box);
+		}
+		if(auto desc = state.world.invention_get_name(content); desc) {
+			auto box = text::open_layout_box(contents, 0);
+			text::add_to_layout_box(state, contents, box, desc);
+			text::close_layout_box(contents, box);
+		}
 		text::add_line_break_to_layout(state, contents);
 		invention_description(state, contents, content, 0);
 		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "alice_invention_chance");
-		auto mod_k = state.world.invention_get_chance(content);
-		additive_value_modifier_description(state, contents, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 	}
 };
 
@@ -422,6 +429,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(auto content = retrieve<dcon::invention_id>(state, parent); content) {
+			text::add_line(state, contents, "alice_invention_chance");
 			auto mod_k = state.world.invention_get_chance(content);
 			additive_value_modifier_description(state, contents, mod_k, trigger::to_generic(state.local_player_nation), trigger::to_generic(state.local_player_nation), 0);
 		}
