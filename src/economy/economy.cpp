@@ -642,9 +642,9 @@ void initialize(sys::state& state) {
 			continent_sum += per_continent_distribution_buffer[i][j];
 		}
 		for(uint32_t j = 0; j < csize; j++) {
-			per_climate_distribution_buffer[i][j] /= climate_sum;
-			per_terrain_distribution_buffer[i][j] /= terrain_sum;
-			per_continent_distribution_buffer[i][j] /= continent_sum;
+			per_climate_distribution_buffer[i][j] *= climate_sum == 0.f ? 1.f : 1.f / climate_sum;
+			per_terrain_distribution_buffer[i][j] *= terrain_sum == 0.f ? 1.f : 1.f / terrain_sum;
+			per_continent_distribution_buffer[i][j] *= continent_sum == 0.f ? 1.f : 1.f / continent_sum;
 		}
 	}
 
@@ -662,7 +662,7 @@ void initialize(sys::state& state) {
 		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
 
 		//max size of exploitable land:
-		auto max_rgo_size = std::ceil(1000.f / rgo_per_size_employment
+		auto max_rgo_size = std::ceil(1000.f / state.defines.alice_rgo_per_size_employment
 			* state.map_state.map_data.province_area[province::to_map_id(p)]);
 		
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -680,9 +680,10 @@ void initialize(sys::state& state) {
 			}
 		}
 
-		auto size_at_the_start_of_the_game = std::ceil(pop_amount / rgo_per_size_employment);
+		auto size_at_the_start_of_the_game = std::ceil(pop_amount / state.defines.alice_rgo_per_size_employment);
 		auto real_size = std::min(size_at_the_start_of_the_game * 2.f, max_rgo_size);
 
+		assert(std::isfinite(real_size));
 		fp.set_rgo_size(real_size);
 
 		static std::vector<float> true_distribution;
@@ -698,12 +699,14 @@ void initialize(sys::state& state) {
 		});
 
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			assert(total > 0.f && std::isfinite(total));
 			true_distribution[c.index()] /= total;
 		});
 
 		// distribution of rgo land per good		
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto fc = fatten(state.world, c);
+			assert(std::isfinite(true_distribution[c.index()]));
 			state.world.province_get_rgo_max_size_per_good(fp, c) += real_size * true_distribution[c.index()];
 		});
 	});
@@ -846,7 +849,7 @@ float rgo_effective_size(sys::state const& state, dcon::nation_id n, dcon::provi
 	auto rgo = state.world.province_get_rgo(p);
 	if(rgo == c) {
 		// set main rgo size to a fixed number for now: allow modders to replace it later per province basis...
-		base = state.defines.alice_base_rgo_employment_bonus / rgo_per_size_employment;
+		base = state.defines.alice_base_rgo_employment_bonus / state.defines.alice_rgo_per_size_employment;
 	}
 
 	// - We calculate its effective size which is its base size x (technology-bonus-to-specific-rgo-good-size +
@@ -877,7 +880,7 @@ float rgo_total_employment(sys::state & state, dcon::nation_id n, dcon::province
 }
 
 float rgo_max_employment(sys::state & state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c) {
-	return rgo_per_size_employment * rgo_effective_size(state, n, p, c);
+	return state.defines.alice_rgo_per_size_employment * rgo_effective_size(state, n, p, c);
 }
 
 float rgo_total_max_employment(sys::state& state, dcon::nation_id n, dcon::province_id p) {
@@ -1684,7 +1687,7 @@ float rgo_expected_worker_norm_profit(sys::state& state, dcon::province_id p, dc
 		consumed_ratio
 		* efficiency
 		* current_price
-		/ rgo_per_size_employment;
+		/ state.defines.alice_rgo_per_size_employment;
 }
 
 float convex_function(float x) {
