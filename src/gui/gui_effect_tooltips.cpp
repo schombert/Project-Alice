@@ -441,6 +441,23 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_DISPLAY_PARAMS) {
 		r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
 		indentation + indentation_amount);
 }
+uint32_t es_from_bounce(EFFECT_DISPLAY_PARAMS) {
+	//NOTE: The entire point is to bounce FROM, so the repeated primary_slot on from_slot is intentional
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "becomes_from"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, primary_slot, this_slot, primary_slot, indentation);
+	return display_subeffects(ws, tval, layout, primary_slot, this_slot, primary_slot, r_lo, r_hi + 1, indentation + indentation_amount);
+}
+uint32_t es_this_bounce(EFFECT_DISPLAY_PARAMS) {
+	//See es_from_bounce, similarly here, but for THIS
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "becomes_this"));
+	text::close_layout_box(layout, box);
+	show_limit(ws, tval, layout, primary_slot, primary_slot, from_slot, indentation);
+	return display_subeffects(ws, tval, layout, primary_slot, primary_slot, from_slot, r_lo, r_hi + 1, indentation + indentation_amount);
+}
+
 uint32_t es_x_country_scope(EFFECT_DISPLAY_PARAMS) {
 	return es_x_country_scope_nation(ws, tval, layout, trigger::to_generic(dcon::nation_id{}), this_slot, from_slot, r_lo, r_hi, indentation);
 }
@@ -7142,6 +7159,8 @@ es_x_event_country_scope, // constexpr inline uint16_t x_event_country_scope = f
 es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 es_x_event_country_scope_nation,//constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
 es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
+es_from_bounce, // constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
+es_this_bounce, // constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0041;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {
