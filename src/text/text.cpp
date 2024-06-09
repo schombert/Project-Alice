@@ -106,9 +106,15 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
-			pos += 1;
+			pos += 2;
 			section_start = pos;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
@@ -116,7 +122,13 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 				state.text_components.emplace_back(added_key);
 			}
 			section_start = pos += 3;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
@@ -125,7 +137,13 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			}
 			pos += 1;
 			section_start = pos;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(*pos == '$') {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
@@ -149,14 +167,6 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			section_start = pos += 2;
 		} else {
 			pos += size_from_utf8(seq_start, seq_end); //skip over multibyte
-		}
-
-		// This colour escape sequence must be followed by something, otherwise
-		// we should probably discard the last colour command
-		if(colour_esc && pos < seq_end) {
-			state.text_components.emplace_back(char_to_color(*pos));
-			pos += 1;
-			section_start = pos;
 		}
 	}
 
