@@ -1339,22 +1339,27 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	while(end_position < txt.length()) {
 		size_t next_wb = std::string::npos;
 		size_t next_word = std::string::npos;
-		for(size_t i = end_position; i < txt.size(); ) {
-			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
-			if(c == 0) {
-				next_wb = i;
-				next_word = next_wb + 1;
-				break;
-			}
-			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
-				if(next_wb == std::string::npos) { //first of whitespace
+		if(state.languages[state.user_settings.current_language].script == text::language_script::chinese) {
+			next_wb = size_from_utf8(txt.data() + end_position, txt.data() + txt.size());
+			next_word = next_wb + 1;
+		} else {
+			for(size_t i = end_position; i < txt.size(); ) {
+				uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+				if(c == 0) {
 					next_wb = i;
+					next_word = next_wb + 1;
+					break;
 				}
-			} else if(next_wb != std::string::npos) { //first not of whitespace
-				next_word = i;
-				break;
+				if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
+					if(next_wb == std::string::npos) { //first of whitespace
+						next_wb = i;
+					}
+				} else if(next_wb != std::string::npos) { //first not of whitespace
+					next_word = i;
+					break;
+				}
+				i += size_from_utf8(txt.data() + i, txt.data() + txt.size());
 			}
-			i += size_from_utf8(txt.data() + i, txt.data() + txt.size());
 		}
 		//
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
