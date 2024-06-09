@@ -87,22 +87,23 @@ bool codepoint_is_line_break(uint32_t c) noexcept {
 }
 
 text_sequence create_text_sequence(sys::state& state, std::string_view content, text::language_encoding enc) {
-	char const* seq_start = content.data();
-	char const* seq_end = content.data() + content.size();
-	char const* section_start = seq_start;
 	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
 		if(enc == text::language_encoding::win1252) {
 			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
 		}
 		return std::string(s);
 	};
+	auto utf8_content = convert_to_utf8(content);
+	char const* seq_start = utf8_content.data();
+	char const* seq_end = utf8_content.data() + utf8_content.size();
+	char const* section_start = seq_start;
 
 	const auto component_start_index = state.text_components.size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
-		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*pos + 1) == 0xA7) {
+		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*(pos + 1)) == 0xA7) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -117,7 +118,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			}
 		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -131,7 +132,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			}
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -146,7 +147,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			}
 		} else if(*pos == '$') {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -159,7 +160,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -171,7 +172,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	}
 
 	if(section_start < seq_end) {
-		auto sv = convert_to_utf8(std::string_view(section_start, seq_end - section_start));
+		auto sv = std::string_view(section_start, seq_end - section_start);
 		auto added_key = state.add_to_pool(sv);
 		state.text_components.emplace_back(added_key);
 	}
