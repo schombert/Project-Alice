@@ -70,7 +70,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	const auto component_start_index = state.text_components.size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
-		if(uint8_t(*pos) == 0xA7) {
+		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*pos + 1) == 0xA7) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
 				auto added_key = state.add_to_pool(sv);
