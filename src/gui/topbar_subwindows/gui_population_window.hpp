@@ -368,17 +368,7 @@ public:
 
 		auto fat_id = dcon::fatten(state.world, content);
 		auto box = text::open_layout_box(contents, 0);
-		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val,
-				text::fp_currency{state.world.pop_get_savings(fat_id.id)});
-		text::add_divider_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_needs"), text::variable_type::val,
-				text::fp_currency{1984});
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_salary"), text::variable_type::val,
-				text::fp_currency{1984});
-		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_single_sub_box(state, contents, box, std::string_view("available_in_bank"), text::variable_type::val,
-				text::fp_currency{1984});
+		text::localised_single_sub_box(state, contents, box, std::string_view("pop_daily_money"), text::variable_type::val, text::fp_currency{state.world.pop_get_savings(fat_id.id)});
 		text::close_layout_box(contents, box);
 	}
 };
