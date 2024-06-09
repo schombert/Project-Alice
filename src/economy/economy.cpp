@@ -3145,10 +3145,6 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 		/*
 		consumption updates
 		*/
-
-		static std::vector<dcon::commodity_id> artisan_prefs;
-		//generate_national_artisan_prefs(state, n, artisan_prefs);
-
 		auto cap_prov = state.world.nation_get_capital(n);
 		auto cap_continent = state.world.province_get_continent(cap_prov);
 		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
@@ -3172,10 +3168,6 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 						&& p.get_province().get_continent() != cap_continent // is overseas
 				);
 			}
-
-			// artisan
-			//update_province_artisan_consumption(state, p.get_province(), n, mobilization_impact, artisan_min_wage,
-			//		p.get_province().get_nation_from_province_control() != n, artisan_prefs);
 
 			// rgo
 			bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p.get_province()));
@@ -4049,7 +4041,6 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 				static std::vector<dcon::factory_type_id> desired_types;
 				desired_types.clear();
 
-
 				static std::vector<dcon::state_instance_id> states_in_order;
 				states_in_order.clear();
 				for(auto si : n.get_state_ownership()) {
@@ -4191,7 +4182,6 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 
 
 				if((nation_rules & issue_rule::pop_build_factory) != 0) {
-
 					static std::vector<std::pair<dcon::province_id, int32_t>> provinces_in_order;
 					provinces_in_order.clear();
 					for(auto si : n.get_state_ownership()) {

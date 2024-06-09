@@ -272,7 +272,7 @@ uint32_t es_x_decision_country_scope_nation(EFFECT_PARAMTERS) {
 		return i;
 	}
 }
-uint32_t es_from_bounce(EFFECT_PARAMTERS) {
+uint32_t es_from_bounce_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		if(trigger::evaluate(ws, limit, primary_slot, this_slot, primary_slot)) {
@@ -282,7 +282,7 @@ uint32_t es_from_bounce(EFFECT_PARAMTERS) {
 	}
 	return apply_subeffects(tval, ws, primary_slot, this_slot, primary_slot, r_hi, r_lo + 1, els);
 }
-uint32_t es_this_bounce(EFFECT_PARAMTERS) {
+uint32_t es_this_bounce_scope(EFFECT_PARAMTERS) {
 	if((tval[0] & effect::scope_has_limit) != 0) {
 		auto limit = trigger::payload(tval[2]).tr_id;
 		if(trigger::evaluate(ws, limit, primary_slot, primary_slot, from_slot)) {
@@ -5127,8 +5127,8 @@ inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 		es_x_event_country_scope_nation,//constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
 		es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
-		es_from_bounce,//constexpr inline uint16_t from_bounce = first_scope_code + 0x0041;
-		es_this_bounce,//constexpr inline uint16_t this_bounce = first_scope_code + 0x0042;
+		es_from_bounce_scope,//constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
+		es_this_bounce_scope,//constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

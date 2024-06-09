@@ -156,7 +156,7 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 
 void ef_scope_from_bounce(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
-	context.compiled_effect.push_back(uint16_t(effect::from_bounce | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::from_bounce_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();
@@ -172,7 +172,7 @@ void ef_scope_from_bounce(token_generator& gen, error_handler& err, effect_build
 }
 void ef_scope_this_bounce(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
-	context.compiled_effect.push_back(uint16_t(effect::this_bounce | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(effect::this_bounce_scope | effect::scope_has_limit));
 	context.compiled_effect.push_back(uint16_t(0));
 	auto payload_size_offset = context.compiled_effect.size() - 1;
 	context.limit_position = context.compiled_effect.size();

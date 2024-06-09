@@ -531,8 +531,8 @@ constexpr inline uint16_t x_event_country_scope = first_scope_code + 0x003D;
 constexpr inline uint16_t x_decision_country_scope = first_scope_code + 0x003E;
 constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
 constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
-constexpr inline uint16_t es_from_bounce = first_scope_code + 0x0041;
-constexpr inline uint16_t es_this_bounce = first_scope_code + 0x0042;
+constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
+constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
 
 constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0043;
 

@@ -304,14 +304,6 @@ public:
 	}
 };
 
-class province_state_name_text : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		dcon::province_id result = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::get_province_state_name(state, result));
-	}
-};
-
 class province_national_focus_button : public right_click_button_element_base {
 public:
 	int32_t get_icon_frame(sys::state& state) noexcept {
