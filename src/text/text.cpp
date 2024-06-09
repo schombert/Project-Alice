@@ -56,6 +56,36 @@ std::string lowercase_str(std::string_view sv) {
 	return result;
 }
 
+uint32_t codepoint_from_utf8(char const* start, char const* end) {
+	uint8_t byte1 = uint8_t(start + 0 < end ? start[0] : 0);
+	uint8_t byte2 = uint8_t(start + 1 < end ? start[1] : 0);
+	uint8_t byte3 = uint8_t(start + 2 < end ? start[2] : 0);
+	uint8_t byte4 = uint8_t(start + 3 < end ? start[3] : 0);
+	if((byte1 & 0x80) == 0) {
+		return uint32_t(byte1);
+	} else if((byte1 & 0xE0) == 0xC0) {
+		return uint32_t(byte2 & 0x3F) | (uint32_t(byte1 & 0x1F) << 6);
+	} else  if((byte1 & 0xF0) == 0xE0) {
+		return uint32_t(byte3 & 0x3F) | (uint32_t(byte2 & 0x3F) << 6) | (uint32_t(byte1 & 0x0F) << 12);
+	} else if((byte1 & 0xF8) == 0xF0) {
+		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
+	}
+	return 0;
+}
+size_t size_from_utf8(char const* start, char const* end) {
+	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
+	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
+		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
+		: 1;
+}
+bool codepoint_is_space(uint32_t c) noexcept {
+	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
+		|| c == 0x0085 || c <= 0x0020 || (0x2000 <= c && c <= 0x200A));
+}
+bool codepoint_is_line_break(uint32_t c) noexcept {
+	return  c == 0x2029 || c == 0x2028 || c == uint32_t('\n') || c == uint32_t('\r');
+}
+
 text_sequence create_text_sequence(sys::state& state, std::string_view content, text::language_encoding enc) {
 	char const* seq_start = content.data();
 	char const* seq_end = content.data() + content.size();
@@ -70,7 +100,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	const auto component_start_index = state.text_components.size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
-		if(uint8_t(*pos) == 0xA7) {
+		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*pos + 1) == 0xA7) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
 				auto added_key = state.add_to_pool(sv);
@@ -79,8 +109,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			pos += 1;
 			section_start = pos;
 			colour_esc = true;
-		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD &&
-							is_qmark_color(*(pos + 3))) {
+		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
 				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
 				auto added_key = state.add_to_pool(sv);
@@ -119,7 +148,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			state.text_components.emplace_back(line_break{});
 			section_start = pos += 2;
 		} else {
-			++pos;
+			pos += size_from_utf8(seq_start, seq_end); //skip over multibyte
 		}
 
 		// This colour escape sequence must be followed by something, otherwise
@@ -709,6 +738,7 @@ variable_type variable_type_from_name(std::string_view v) {
 		CT_STRING_ENUM(tag_0_3_adj)
 		CT_STRING_ENUM(temperature)
 		CT_STRING_ENUM(fromcapital)
+		CT_STRING_ENUM(thiscountry)
 	} else if(v.length() == 12) {
 		if(false) { }
 		CT_STRING_ENUM(construction)
@@ -1260,36 +1290,6 @@ void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	auto line_height = text_height + dest.fixed_parameters.leading;
 	dest.base_layout.number_of_lines += 1;
 	dest.y_cursor += line_height;
-}
-
-uint32_t codepoint_from_utf8(char const* start, char const* end) {
-	uint8_t byte1 = uint8_t(start + 0 < end ? start[0] : 0);
-	uint8_t byte2 = uint8_t(start + 1 < end ? start[1] : 0);
-	uint8_t byte3 = uint8_t(start + 2 < end ? start[2] : 0);
-	uint8_t byte4 = uint8_t(start + 3 < end ? start[3] : 0);
-	if((byte1 & 0x80) == 0) {
-		return uint32_t(byte1);
-	} else if((byte1 & 0xE0) == 0xC0) {
-		return uint32_t(byte2 & 0x3F) | (uint32_t(byte1 & 0x1F) << 6);
-	} else  if((byte1 & 0xF0) == 0xE0) {
-		return uint32_t(byte3 & 0x3F) | (uint32_t(byte2 & 0x3F) << 6) | (uint32_t(byte1 & 0x0F) << 12);
-	} else if((byte1 & 0xF8) == 0xF0) {
-		return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
-	}
-	return 0;
-}
-size_t size_from_utf8(char const* start, char const* end) {
-	uint8_t b = uint8_t(start + 0 < end ? start[0] : 0);
-	return ((b & 0x80) == 0) ? 1 : ((b & 0xE0) == 0xC0) ? 2
-		: ((b & 0xF0) == 0xE0) ? 3 : ((b & 0xF8) == 0xF0) ? 4
-		: 0;
-}
-bool codepoint_is_space(uint32_t c) noexcept {
-	return (c == 0x3000 || c == 0x205F || c == 0x202F || c == 0x2029 || c == 0x2028 || c == 0x00A0
-		|| c == 0x0085 || c <= 0x0020 || (0x2000 <= c && c <= 0x200A));
-}
-bool codepoint_is_line_break(uint32_t c) noexcept {
-	return  c == 0x2029 || c == 0x2028 || c == uint32_t('\n') || c == uint32_t('\r');
 }
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color,

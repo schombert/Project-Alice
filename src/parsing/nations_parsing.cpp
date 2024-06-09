@@ -22,8 +22,9 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "war")
 		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "tag")
-		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "any")) {
-		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a built-in 'war', 'any' or 'tag'\n";
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "any")
+		|| is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "log")) {
+		err.accumulated_errors += err.file_name + " line " + std::to_string(line) + ": A tag which conflicts with a built-in 'war', 'any', 'log' or 'tag'\n";
 		return;
 	}
 
@@ -35,10 +36,7 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
-	// Recognize the cleanup utility tag
-	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "cln")) {
-		context.state.national_definitions.cleanup_tag = new_ident;
-	} else if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
+	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
 		context.state.national_definitions.rebel_id = new_ident;
 	}
 
@@ -706,7 +704,13 @@ void make_event_modifier(std::string_view name, token_generator& gen, error_hand
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
-	context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, std::string(name) + "_desc"));
+	auto desc_1 = text::find_key(context.state, std::string(name) + "_desc");
+	if(desc_1) {
+		context.state.world.modifier_set_desc(new_modifier, desc_1);
+	} else {
+		//some province modifiers have descriptions like these... gorgeous
+		context.state.world.modifier_set_desc(new_modifier, text::find_key(context.state, "desc_" + std::string(name)));
+	}
 
 	context.state.world.modifier_set_province_values(new_modifier, parsed_modifier.peek_province_mod());
 	context.state.world.modifier_set_national_values(new_modifier, parsed_modifier.peek_national_mod());

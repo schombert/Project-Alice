@@ -1192,3 +1192,5 @@ alice_pnt_dominant_religion;?Y主导宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主导意识形态：?! $x$
 ledger_ppp_gdp;国内生产总值（购买力平价）
 ledger_ppp_gdp_per_capita;每百万人国内生产总值（购买力平价）
+becomes_from;Scoped becomes from
+becomes_this;Scoped becomes this

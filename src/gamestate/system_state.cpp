@@ -3323,6 +3323,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(auto rgo = world.province_get_rgo(p); !rgo) {
 			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+			world.province_set_rgo(p, economy::money);
 		}
 	});
 

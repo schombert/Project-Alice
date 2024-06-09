@@ -322,20 +322,20 @@ bool font::can_display(char32_t ch_in) const {
 
 std::string font::get_conditional_indicator(bool v) const {
 	if(v) {
-		if(can_display(U'✔')) {
-			return "✔";
-		}
-		if(can_display(U'✓')) {
-			return "✓";
-		}
+		//if(can_display(U'✔')) {
+		//	return "✔";
+		//}
+		//if(can_display(U'✓')) {
+		//	return "✓";
+		//}
 		return "@(T)";
 	} else {
-		if(can_display(U'✘')) {
-			return "✘";
-		}
-		if(can_display(U'✗')) {
-			return "✗";
-		}
+		//if(can_display(U'✘')) {
+		//	return "✘";
+		//}
+		//if(can_display(U'✗')) {
+		//	return "✗";
+		//}
 		return "@(F)";
 	}
 }

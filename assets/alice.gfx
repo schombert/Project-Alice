@@ -468,4 +468,9 @@ spriteTypes = {
 		effectFile = "gfx\\FX\\buttonstate.fx"
 		transparencecheck = yes
 	}
+
+	spriteType = {
+		name = "GFX_move_capital"
+		texturefile = "assets\\move_cap.png"
+	}
 }
