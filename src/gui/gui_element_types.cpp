@@ -466,6 +466,7 @@ void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 		if(ch >= 32 && ch != U'`' && ch != 127) {
 			auto s = std::string(get_text(state));
 			s += char(ch & 0xff);
+			edit_index++;
 			set_text(state, s);
 			edit_box_update(state, s);
 		}
