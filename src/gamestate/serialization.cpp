@@ -258,7 +258,6 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.num_allocated_global_flags);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.flashpoint_focus);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.flashpoint_amount);
-		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.cleanup_tag);
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_yearly_pulse);
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_quarterly_pulse);
 		ptr_in = deserialize(ptr_in, state.national_definitions.on_battle_won);
@@ -449,7 +448,6 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.num_allocated_global_flags);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.flashpoint_focus);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.flashpoint_amount);
-		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.cleanup_tag);
 		ptr_in = serialize(ptr_in, state.national_definitions.on_yearly_pulse);
 		ptr_in = serialize(ptr_in, state.national_definitions.on_quarterly_pulse);
 		ptr_in = serialize(ptr_in, state.national_definitions.on_battle_won);
@@ -634,7 +632,6 @@ size_t sizeof_scenario_section(sys::state& state) {
 		sz += sizeof(state.national_definitions.num_allocated_global_flags);
 		sz += sizeof(state.national_definitions.flashpoint_focus);
 		sz += sizeof(state.national_definitions.flashpoint_amount);
-		sz += sizeof(state.national_definitions.cleanup_tag);
 		sz += serialize_size(state.national_definitions.on_yearly_pulse);
 		sz += serialize_size(state.national_definitions.on_quarterly_pulse);
 		sz += serialize_size(state.national_definitions.on_battle_won);
