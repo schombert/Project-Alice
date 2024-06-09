@@ -1149,11 +1149,12 @@ void close_expired_event_windows(sys::state& state) {
 }
 
 void clear_event_windows(sys::state& state) {
-	for(const auto& pool : ui::event_pool) {
-		for(const auto& win : pool) {
-			win->set_visible(state, false);
+	for(auto const& slot_pool : ui::event_pool) {
+		for(auto const& win : slot_pool) {
+			pending_closure.push_back(win.get());
 		}
 	}
+	close_expired_event_windows(state);
 }
 
 bool events_pause_test(sys::state& state) {
