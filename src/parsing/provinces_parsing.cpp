@@ -413,7 +413,7 @@ void province_rgo_ext::entry(province_rgo_ext_desc const& value, error_handler& 
 	if(value.trade_good_id) {
 		auto p = context.id;
 		context.outer_context.state.world.province_set_rgo_max_size_per_good(p, value.trade_good_id, value.max_employment_value / economy::rgo_per_size_employment);
-		context.outer_context.state.world.province_set_rgo_was_set_during_scenario_creation(p, 1);
+		context.outer_context.state.world.province_set_rgo_was_set_during_scenario_creation(p, true);
 	}
 }
 

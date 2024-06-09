@@ -725,78 +725,40 @@ void initialize(sys::state& state) {
 		ff.set_production_scale(1.0f);
 	});
 
-
-	std::map<uint32_t, std::vector<float>> per_climate_distribution_buffer;
-	std::map<uint32_t, std::vector<float>> per_terrain_distribution_buffer;
-	std::map<uint32_t, std::vector<float>> per_continent_distribution_buffer;
-
-
 	// learn some weights for rgo from initial territories:
 	auto csize = state.world.commodity_size();
+	std::vector<std::vector<float>> per_climate_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));
+	std::vector<std::vector<float>> per_terrain_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));
+	std::vector<std::vector<float>> per_continent_distribution_buffer(state.world.modifier_size() + 1, std::vector<float>(csize + 1, 0.f));
 
 	// init the map for climates
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto fp = fatten(state.world, p);
 		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
-
 		dcon::modifier_id climate = fp.get_climate();
 		dcon::modifier_id terrain = fp.get_terrain();
 		dcon::modifier_id continent = fp.get_continent();
-
-		if(!per_climate_distribution_buffer.contains(climate.index())) {
-			std::vector<float> weights;
-			weights.resize(csize);
-			per_climate_distribution_buffer[climate.index()] = weights;
-		}
-		per_climate_distribution_buffer[climate.index()][main_trade_good.index()] += 1.f;
-
-		if(!per_terrain_distribution_buffer.contains(terrain.index())) {
-			std::vector<float> weights;
-			weights.resize(csize);
-			per_terrain_distribution_buffer[terrain.index()] = weights;
-		}
-		per_terrain_distribution_buffer[terrain.index()][main_trade_good.index()] += 1.f;
-
-		if(!per_continent_distribution_buffer.contains(continent.index())) {
-			std::vector<float> weights;
-			weights.resize(csize);
-			per_continent_distribution_buffer[continent.index()] = weights;
-		}
-		per_continent_distribution_buffer[continent.index()][main_trade_good.index()] += 1.f;
+		per_climate_distribution_buffer[climate.value][main_trade_good.value] += 1.f;
+		per_terrain_distribution_buffer[terrain.value][main_trade_good.value] += 1.f;
+		per_continent_distribution_buffer[continent.value][main_trade_good.value] += 1.f;
 	});
 
 	// normalisation
-	for(auto& [key, val] : per_climate_distribution_buffer) {
-		float sum = 0.f;
-		for(uint32_t i = 0; i < csize; ++i) {
-			sum += val[i];
+	for(uint32_t i = 0; i < uint32_t(state.world.modifier_size()); i++) {
+		float climate_sum = 0.f;
+		float terrain_sum = 0.f;
+		float continent_sum = 0.f;
+		for(uint32_t j = 0; j < csize; j++) {
+			climate_sum += per_climate_distribution_buffer[i][j];
+			terrain_sum += per_terrain_distribution_buffer[i][j];
+			continent_sum += per_continent_distribution_buffer[i][j];
 		}
-
-		for(uint32_t i = 0; i < csize; ++i) {
-			val[i] /= sum;
-		}
-	}
-	for(auto& [key, val] : per_terrain_distribution_buffer) {
-		float sum = 0.f;
-		for(uint32_t i = 0; i < csize; ++i) {
-			sum += val[i];
-		}
-
-		for(uint32_t i = 0; i < csize; ++i) {
-			val[i] /= sum;
+		for(uint32_t j = 0; j < csize; j++) {
+			per_climate_distribution_buffer[i][j] /= climate_sum;
+			per_terrain_distribution_buffer[i][j] /= terrain_sum;
+			per_continent_distribution_buffer[i][j] /= continent_sum;
 		}
 	}
-	for(auto& [key, val] : per_continent_distribution_buffer) {
-		float sum = 0.f;
-		for(uint32_t i = 0; i < csize; ++i) {
-			sum += val[i];
-		}
-
-		for(uint32_t i = 0; i < csize; ++i) {
-			val[i] /= sum;
-		}
-	}
-
 
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		if(state.world.province_get_rgo_was_set_during_scenario_creation(p)) {
@@ -804,7 +766,6 @@ void initialize(sys::state& state) {
 		}
 
 		auto fp = fatten(state.world, p);
-
 		dcon::modifier_id climate = fp.get_climate();
 		dcon::modifier_id terrain = fp.get_terrain();
 		dcon::modifier_id continent = fp.get_continent();
@@ -813,12 +774,8 @@ void initialize(sys::state& state) {
 		bool is_mine = state.world.commodity_get_is_mine(main_trade_good);
 
 		//max size of exploitable land:
-		auto max_rgo_size = std::ceil(
-			1000.f
-			/ rgo_per_size_employment
-			* state.map_state.map_data.province_area[province::to_map_id(p)]
-		);
-
+		auto max_rgo_size = std::ceil(1000.f / rgo_per_size_employment
+			* state.map_state.map_data.province_area[province::to_map_id(p)]);
 		
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			fp.set_rgo_employment_per_good(c, 0.f);
@@ -836,7 +793,6 @@ void initialize(sys::state& state) {
 		}
 
 		auto size_at_the_start_of_the_game = std::ceil(pop_amount / rgo_per_size_employment);
-
 		auto real_size = std::min(size_at_the_start_of_the_game * 2.f, max_rgo_size);
 
 		fp.set_rgo_size(real_size);
@@ -846,10 +802,9 @@ void initialize(sys::state& state) {
 
 		float total = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			float current = per_climate_distribution_buffer[climate.index()][c.index()]
-				* per_terrain_distribution_buffer[terrain.index()][c.index()]
-				* per_continent_distribution_buffer[continent.index()][c.index()];
-
+			float current = per_climate_distribution_buffer[climate.value][c.value]
+				* per_terrain_distribution_buffer[terrain.value][c.value]
+				* per_continent_distribution_buffer[continent.value][c.value];
 			true_distribution[c.index()] = current;
 			total += current;
 		});
