@@ -4150,4 +4150,9 @@ guiTypes = {
 		position = { 0 0 }
 		quadTextureSprite = "GFX_checkbox_default"	
 	}
+	guiButtonType = {
+		name = "alice_move_capital"
+		position = { 0 0 }
+		quadTextureSprite = "GFX_move_capital"	
+	}
 }

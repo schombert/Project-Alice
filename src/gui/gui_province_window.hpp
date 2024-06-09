@@ -527,11 +527,12 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
-			auto btn = make_element_by_type<province_move_capital_button>(state, id);
-			btn->base_data.position.x -= btn->base_data.size.x * 2;
-			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
+			//...
+			auto btn = make_element_by_type<province_move_capital_button>(state, "alice_move_capital");
+			btn->base_data.position.x -= colony_button->base_data.size.x * 2;
+			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
