@@ -532,7 +532,7 @@ public:
 			//...
 			auto btn = make_element_by_type<province_move_capital_button>(state, "alice_move_capital");
 			btn->base_data.position = colony_button->base_data.position;
-			btn->base_data.position.y -= 4;
+			btn->base_data.position.y -= 3;
 			btn->base_data.position.x -= colony_button->base_data.size.x * 2;
 			add_child_to_front(std::move(btn));
 			return ptr;
