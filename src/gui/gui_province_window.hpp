@@ -248,9 +248,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		dcon::province_id p = retrieve<dcon::province_id>(state, parent);
+		dcon::province_id prov = retrieve<dcon::province_id>(state, parent);
+		if(!state.world.state_instance_get_flashpoint_tag(state.world.province_get_state_membership(prov)))
+			return;
+
 		text::substitution_map sub_map{};
-		text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(p)) });
+		text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(prov)) });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("flashpoint_tension"), sub_map);
 		text::close_layout_box(contents, box);
@@ -268,30 +271,40 @@ public:
 		return dcon::national_identity_id{};
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller = prov_fat.get_province_control_as_province().get_nation();
+		auto rebel_faction = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+		if(!controller && !rebel_faction)
+			return;
+		flag_button::render(state, x, y);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller = prov_fat.get_province_control_as_province().get_nation();
+		auto rebel_faction = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+		if(!controller && !rebel_faction)
+			return;
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
 		text::add_space_to_layout_box(state, contents, box);
-
-		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
-		auto prov_fat = dcon::fatten(state.world, province_id);
-		dcon::nation_id controller_id = prov_fat.get_province_control_as_province().get_nation().id;
-		if(bool(controller_id)) {
-			auto controller_name = state.world.nation_get_name(controller_id);
-			text::add_to_layout_box(state, contents, box, controller_name);
+		if(controller) {
+			text::add_to_layout_box(state, contents, box, controller.get_name());
 		} else {
-			auto rebel_faction_id = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
-			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction_id));
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction));
 		}
 		text::close_layout_box(contents, box);
 	}
 };
 
-class province_state_name_text_SCH : public simple_text_element_base {
+class province_state_name_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		dcon::province_id result = retrieve<dcon::province_id>(state, parent);
@@ -491,7 +504,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
-			return make_element_by_type<province_state_name_text_SCH>(state, id);
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "province_name") {
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
