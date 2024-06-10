@@ -789,6 +789,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent = 0);
+size_t size_from_utf8(char const* start, char const* end);
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
