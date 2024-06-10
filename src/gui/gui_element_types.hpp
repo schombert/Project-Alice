@@ -879,6 +879,7 @@ public:
 	text::layout internal_layout;
 
 	void on_create(sys::state& state) noexcept override;
+	void on_reset_text(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;

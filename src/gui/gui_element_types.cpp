@@ -843,6 +843,10 @@ void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	}
 }
 
+void multiline_text_element_base::on_reset_text(sys::state& state) noexcept {
+
+}
+
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		for(auto& t : internal_layout.contents) {
@@ -958,6 +962,12 @@ message_result multiline_text_element_base::test_mouse(sys::state& state, int32_
 }
 
 void multiline_button_element_base::on_reset_text(sys::state& state) noexcept {
+	on_create(state);
+}
+
+void multiline_button_element_base::on_create(sys::state& state) noexcept {
+	button_element_base::on_create(state);
+	set_button_text(state, "");
 	if(base_data.get_element_type() == element_type::button) {
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		line_height = state.font_collection.line_height(state, base_data.data.button.font_handle);
@@ -965,12 +975,6 @@ void multiline_button_element_base::on_reset_text(sys::state& state) noexcept {
 			return;
 		visible_lines = base_data.size.y / int32_t(line_height);
 	}
-}
-
-void multiline_button_element_base::on_create(sys::state& state) noexcept {
-	button_element_base::on_create(state);
-	set_button_text(state, "");
-	on_reset_text(state);
 }
 
 void multiline_button_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
