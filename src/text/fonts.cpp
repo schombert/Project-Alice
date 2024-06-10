@@ -327,7 +327,13 @@ std::string font::get_conditional_indicator(bool v) const {
 		return "@(F)";
 	}
 }
+float font::base_glyph_width(char32_t ch_in) {
+	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
+		return glyph_advances[ch_in];
 
+	make_glyph(ch_in);
+	return glyph_advances[ch_in];
+}
 void font::make_glyph(char32_t ch_in) {
 	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
 		return;

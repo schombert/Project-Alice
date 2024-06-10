@@ -86,6 +86,7 @@ public:
 	bool can_display(char32_t ch_in) const;
 	std::string get_conditional_indicator(bool v) const;
 	void make_glyph(char32_t ch_in);
+	float base_glyph_width(char32_t ch_in);
 	float line_height(int32_t size) const;
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;

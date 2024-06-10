@@ -697,11 +697,11 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		auto glyphid = FT_Get_Char_Index(font.font_face, 0x2026);
 
 		bool ellipsis_valid = true;
-		auto width_of_ellipsis = float(font.glyph_advances[glyphid]) * text::size_from_font_id(font_handle) / 64.f;
+		auto width_of_ellipsis = font.base_glyph_width(glyphid) * text::size_from_font_id(font_handle) / 64.f;
 		
 		if(width_of_ellipsis <= 0 || glyphid == 0) {
 			ellipsis_valid = false;
-			width_of_ellipsis = float(font.glyph_advances[FT_Get_Char_Index(font.font_face, '.')]) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
+			width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
 		}
 		uint32_t m = 0;
 		uint32_t last_good_m = 0;

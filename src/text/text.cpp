@@ -1449,8 +1449,9 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			first_in_line = true;
 		} else if(next_word >= all_glyphs.glyph_count) {
 			// we've reached the end of the text
+			extent = font.text_extent(state, all_glyphs, start_position, next_word - start_position, font_size);
 			dest.base_layout.contents.push_back(
-					text_chunk{ text::stored_text(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+					text_chunk{ text::stored_text(all_glyphs, start_position, next_word - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1589,7 +1590,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
 	auto glyphid = FT_Get_Char_Index(font.font_face, ' ');
-	box.x_position += float(font.glyph_advances[glyphid]) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;
+	box.x_position += font.base_glyph_width(glyphid) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;
 }
 
 layout_box open_layout_box(layout_base& dest, int32_t indent) {
