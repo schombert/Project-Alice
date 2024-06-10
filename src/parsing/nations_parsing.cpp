@@ -828,15 +828,24 @@ void make_focus_group(std::string_view name, token_generator& gen, error_handler
 	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "party_loyalty_focus"))
 		t = nations::focus_type::party_loyalty_focus;
 	// non vanilla but present in some MP mods
-	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_1_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_2_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_3_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_4_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_5_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_6_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_7_focus")
-		|| is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
-		t = nations::focus_type::promotion_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "policy_focus"))
+		t = nations::focus_type::policy_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_1_focus"))
+		t = nations::focus_type::tier_1_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_2_focus"))
+		t = nations::focus_type::tier_2_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_3_focus"))
+		t = nations::focus_type::tier_3_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_4_focus"))
+		t = nations::focus_type::tier_4_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_5_focus"))
+		t = nations::focus_type::tier_5_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_6_focus"))
+		t = nations::focus_type::tier_6_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_7_focus"))
+		t = nations::focus_type::tier_7_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
+		t = nations::focus_type::tier_8_focus;
 	else
 		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
 

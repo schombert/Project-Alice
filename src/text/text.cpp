@@ -1119,6 +1119,24 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 		return text::produce_simple_string(state, "production_focus");
 	case nations::focus_type::party_loyalty_focus:
 		return text::produce_simple_string(state, "party_loyalty_focus");
+	case nations::focus_type::policy_focus:
+		return text::produce_simple_string(state, "policy_focus");
+	case nations::focus_type::tier_1_focus:
+		return text::produce_simple_string(state, "tier_1_focus");
+	case nations::focus_type::tier_2_focus:
+		return text::produce_simple_string(state, "tier_2_focus");
+	case nations::focus_type::tier_3_focus:
+		return text::produce_simple_string(state, "tier_3_focus");
+	case nations::focus_type::tier_4_focus:
+		return text::produce_simple_string(state, "tier_4_focus");
+	case nations::focus_type::tier_5_focus:
+		return text::produce_simple_string(state, "tier_5_focus");
+	case nations::focus_type::tier_6_focus:
+		return text::produce_simple_string(state, "tier_6_focus");
+	case nations::focus_type::tier_7_focus:
+		return text::produce_simple_string(state, "tier_7_focus");
+	case nations::focus_type::tier_8_focus:
+		return text::produce_simple_string(state, "tier_8_focus");
 	default:
 		return text::produce_simple_string(state, "category");
 	}
