@@ -1362,7 +1362,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	auto find_non_ws = [&](uint32_t start) {
 		for(uint32_t i = start; i < all_glyphs.glyph_count; ++i) {
-			uint32_t c = all_glyphs.glyph_info[i].codepoint;
+			uint32_t c = text::codepoint_from_utf8(txt.data() + all_glyphs.glyph_info[i].cluster, txt.data() + txt.size());
 			if(!codepoint_is_space(c) && !codepoint_is_line_break(c))
 				return i;
 		}
@@ -1375,7 +1375,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		bool force_end_of_line = false;
 
 		for(uint32_t i = end_position; i < all_glyphs.glyph_count; ++i) {
-			uint32_t c = all_glyphs.glyph_info[i].codepoint;
+			uint32_t c = text::codepoint_from_utf8(txt.data() + all_glyphs.glyph_info[i].cluster, txt.data() + txt.size());
 
 			if(c == 0) {
 				next_wb = i;

@@ -704,22 +704,20 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
 		}
 		uint32_t m = 0;
-		uint32_t last_good_m = 0;
-		text::stored_text temp;
 
-		while(m < stored_text.base_text.length()) {
+		while(m < stored_text.glyph_count) {
 			m += uint32_t(text::size_from_utf8(stored_text.base_text.c_str() + m, stored_text.base_text.c_str() + stored_text.base_text.length()));
-			temp.set_text(stored_text.base_text.substr(0, m), font);
 
-			if(font.text_extent(state, temp, 0, temp.glyph_count, text::size_from_font_id(font_handle)) + width_of_ellipsis > base_data.size.x)
+			if(font.text_extent(state, stored_text, 0, m, text::size_from_font_id(font_handle)) + width_of_ellipsis > base_data.size.x)
 				break;
-
-			last_good_m = m;
 		}
+
+		auto last_cluster = m >= stored_text.glyph_count ? stored_text.base_text.length() : stored_text.glyph_info[m].cluster;
+
 		if(ellipsis_valid)
-			stored_text.set_text(stored_text.base_text.substr(0, last_good_m) + "…", font);
+			stored_text.set_text(stored_text.base_text.substr(0, last_cluster) + "…", font);
 		else
-			stored_text.set_text(stored_text.base_text.substr(0, last_good_m) + "...", font);
+			stored_text.set_text(stored_text.base_text.substr(0, last_cluster) + "...", font);
 		extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 	}
 
