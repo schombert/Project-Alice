@@ -87,48 +87,67 @@ bool codepoint_is_line_break(uint32_t c) noexcept {
 }
 
 text_sequence create_text_sequence(sys::state& state, std::string_view content, text::language_encoding enc) {
-	char const* seq_start = content.data();
-	char const* seq_end = content.data() + content.size();
-	char const* section_start = seq_start;
 	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
 		if(enc == text::language_encoding::win1252) {
 			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
 		}
 		return std::string(s);
 	};
+	auto utf8_content = convert_to_utf8(content);
+	char const* seq_start = utf8_content.data();
+	char const* seq_end = utf8_content.data() + utf8_content.size();
+	char const* section_start = seq_start;
 
 	const auto component_start_index = state.text_components.size();
 	for(char const* pos = seq_start; pos < seq_end;) {
 		bool colour_esc = false;
-		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*pos + 1) == 0xA7) {
+		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*(pos + 1)) == 0xA7) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
-			pos += 1;
+			pos += 2;
 			section_start = pos;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			section_start = pos += 3;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
 			pos += 1;
 			section_start = pos;
-			colour_esc = true;
+			// This colour escape sequence must be followed by something, otherwise
+			// we should probably discard the last colour command
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
+			}
 		} else if(*pos == '$') {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -141,7 +160,7 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
 			if(section_start != pos) {
-				auto sv = convert_to_utf8(std::string_view(section_start, pos - section_start));
+				auto sv = std::string_view(section_start, pos - section_start);
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
 			}
@@ -150,18 +169,10 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 		} else {
 			pos += size_from_utf8(seq_start, seq_end); //skip over multibyte
 		}
-
-		// This colour escape sequence must be followed by something, otherwise
-		// we should probably discard the last colour command
-		if(colour_esc && pos < seq_end) {
-			state.text_components.emplace_back(char_to_color(*pos));
-			pos += 1;
-			section_start = pos;
-		}
 	}
 
 	if(section_start < seq_end) {
-		auto sv = convert_to_utf8(std::string_view(section_start, seq_end - section_start));
+		auto sv = std::string_view(section_start, seq_end - section_start);
 		auto added_key = state.add_to_pool(sv);
 		state.text_components.emplace_back(added_key);
 	}
@@ -1332,7 +1343,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
 			if(c == 0) {
 				next_wb = i;
-				next_word = next_wb + 1;
+				next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
 				break;
 			}
 			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
@@ -1348,24 +1359,31 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		//
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
-			next_word = next_wb + 1;
+			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
 		}
 
 		auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
 		std::string_view segment = txt.substr(start_position, num_chars);
-		float extent =
-				state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
+		float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
+		if(box.x_position + extent >= dest.fixed_parameters.right) {
+			next_wb = end_position;
+			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
+			num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
+			segment = txt.substr(start_position, num_chars);
+			extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
+		}
 
 		if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position &&
 				box.x_position + extent >= dest.fixed_parameters.right) {
 			// the current word is too long for the text box, just let it overflow
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(segment), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
+				text_chunk{std::string(segment), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+					int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
 			box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
 			box.x_position += extent;
+
 			impl::lb_finish_line(dest, box, line_height);
 
 			start_position = next_word;

@@ -29,6 +29,22 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
 
+### New trigger conditions
+
+- `test = name_of_scripted_trigger`: evaluates a scripted trigger (see below)
+- `any_country = { ... }`: tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
+- `any_known_country = { ... }`: same as above, alias
+- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
+- `has_global_flag = project_alice`: true if playing on Project Alice, false if not
+- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
+- `any_war_countries = { ... }`: Equivalent to `war_countries`
+- `all_state = { ... }`: All states must fulfill condition, similar to `any_state`
+- `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
+- `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
+- `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
+- `all_greater_power = { ... }`: All greater powers must fullfill condition.
+- `any_owned = { ... }`: Shorthand for `any_owned_province`.
+
 ### FROM bounce
 FROM bouncing is a technique where before, modders would do:
 ```
@@ -117,22 +133,6 @@ custom_tooltip = {
 ```
 Alternatively:
 `custom_tooltip = "localisation_key"`
-
-### New trigger conditions
-
-- `test = name_of_scripted_trigger`: evaluates a scripted trigger (see below)
-- `any_country = { ... }`: tests whether any existent country satisfies the conditions given in `...`. This is essentially just mirroring how the existing `any_country` effect scope works but for trigger conditions.
-- `any_known_country = { ... }`: same as above, alias
-- `every_country = { ... }`: Like `any_country`, but applies to EVERY country.
-- `has_global_flag = project_alice`: true if playing on Project Alice, false if not
-- `all_war_countries = { ... }`: All countries we're at war with MUST fullfill the condition, as opposed to `war_countries` were only one country has to fullfill the condition
-- `any_war_countries = { ... }`: Equivalent to `war_countries`
-- `all_state = { ... }`: All states must fulfill condition, similar to `any_state`
-- `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
-- `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
-- `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
-- `all_greater_power = { ... }`: All greater powers must fullfill condition.
-- `any_owned = { ... }`: Shorthand for `any_owned_province`.
 
 ### Lambda events
 
