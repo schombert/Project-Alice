@@ -451,48 +451,36 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 
 void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	ui::edit_box_element_base::render(state, x, y);
-	/*
-	// Render the suggestions given (after the inputted text obv)
-	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
-			base_data.data.text.font_handle);
-	if(lhs_suggestion.length() > 0) {
-		char const* start_text = lhs_suggestion.data();
-		char const* end_text = lhs_suggestion.data() + lhs_suggestion.length();
-		std::string text(std::string_view(start_text, end_text));
-		if(!text.empty()) {
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
-					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
-			x_offs += state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
-		}
-	}
 
-	if(rhs_suggestion.length() > 0) {
-		char const* start_text = rhs_suggestion.data();
-		char const* end_text = rhs_suggestion.data() + rhs_suggestion.length();
-		std::string text(std::string_view(start_text, end_text));
-		if(!text.empty()) {
-			if(text.length() > 36) {
-				text.resize(36);
-				text[text.length() - 1] = '\x85';
-			}
-			// Place text right before it ends (centered right)
-			x_offs = float(base_data.size.x);
-			x_offs -= 24;
-			x_offs -= state.font_collection.text_extent(state, text.c_str(), uint32_t(text.length()), base_data.data.text.font_handle);
-			ogl::render_text(state, text.c_str(), uint32_t(text.length()), ogl::color_modification::none,
-					float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
-					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
-		}
+	auto font_handle = base_data.data.text.font_handle;
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
+	// Render the suggestions given (after the inputted text obv)
+	float x_offs = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+	if(lhs_suggestion.glyph_count > 0) {
+		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
+			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
+		x_offs += font.text_extent(state, lhs_suggestion, 0, lhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
 	}
-	*/
+	if(rhs_suggestion.glyph_count > 0) {
+		// Place text right before it ends (centered right)
+		x_offs = float(base_data.size.x);
+		x_offs -= 24;
+		x_offs -= font.text_extent(state, rhs_suggestion, 0, rhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
+		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
+			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
+			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
+	}
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
-	lhs_suggestion.clear();
-	rhs_suggestion.clear();
+	lhs_suggestion.base_text.clear();
+	rhs_suggestion.base_text.clear();
 	if(s.empty())
 		return;
+
+	auto font_handle = base_data.data.text.font_handle;
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
 
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
@@ -513,8 +501,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		}
 		// Only suggest the "unfinished" part of the command and provide a brief description of it
 		if(closest_match.second->name.length() > s.length())
-			lhs_suggestion = closest_match.second->name.substr(s.length());
-		rhs_suggestion = std::string(closest_match.second->desc);
+			lhs_suggestion.set_text(std::string(closest_match.second->name.substr(s.length())), font);
+		rhs_suggestion.set_text(std::string(closest_match.second->desc), font);
 	} else {
 		// Specific suggestions for each command
 		if(s.starts_with("tag") && pos + 1 < s.size()) {
@@ -541,14 +529,14 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 				if(tag.size() < name.size()) {
-					lhs_suggestion = name.substr(tag.size());
+					lhs_suggestion.set_text(name.substr(tag.size()), font);
 				}
-				rhs_suggestion = name + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid));
+				rhs_suggestion.set_text(std::string(name) + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid)), font);
 			} else {
 				if(tag.size() == 1)
-					rhs_suggestion = tag + "?? - ???";
+					rhs_suggestion.set_text(tag + "?? - ???", font);
 				else if(tag.size() == 2)
-					rhs_suggestion = tag + "? - ???";
+					rhs_suggestion.set_text(tag + "? - ???", font);
 			}
 		} else if(s.starts_with("innovate") && pos + 1 < s.size()) {
 			std::string inputted = std::string(s.substr(pos + 1));
@@ -575,9 +563,9 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				if(inputted.size() < name.size()) {
 					std::string canon_name = name;
 					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return char(c == ' ' ? '_' : c); });
-					lhs_suggestion = canon_name.substr(inputted.size());
+					lhs_suggestion.set_text(std::string(canon_name.substr(inputted.size())), font);
 				}
-				rhs_suggestion = name;
+				rhs_suggestion.set_text(name, font);
 			}
 		}
 	}
@@ -1306,7 +1294,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				}
 				out_text += " ";
 				// the raw text data is not stored, only the shaped glyphs
-				// out_text += e.win1250chars;
+				out_text += e.unicodechars.base_text;
 			}
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
