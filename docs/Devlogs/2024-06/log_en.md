@@ -6,6 +6,34 @@ It's now pride month, and it's interesting how far we've come in regards to our 
 
 So we want to thank all of you who have continued to support us through our 1.5 years of existence.
 
+## Mod compatibility
+
+Special care has been took this month to increase the compatibility of mods.
+
+Most notably, various outstanding issues with GFM have been fixed, issues such as `war_countries`, `any_country` differing between decisions and events, and other quirks.
+
+While not perfect, it is undeniably better than it was before.
+
+Most notably dismantlement got fixed, allowing you to use the complex web of events involving dismantlement, depending on Victoria 2 behaviour such as tags not properly cleaning up.
+
+Other issues such as declaring to become independent as Wallachia instantly got fixed too, fixing also other issues with mods such as TOL with a similar casus belli.
+
+Mods such as IGoR_PuIR would report tier_1_focus was not a valid focus category, but that's no longer the case, now Alice made accomodations for the new categories of national foci.
+
+Renaming issues also got fixed, so now renaming doesn't give provinces the name of "Farmlands".
+
+And it's a good time to say that Alice allows you to tweak AI behaviour or parser behaviour via defines, consult the docs/extensions.md file for more information, but you can tweak the GP limit for AI, the behaviour of `any_country`, and other quirks.
+
+![](./images/gfm.png)
+
+### FROM bouncing and THIS bouncing
+
+A very useful feature, trivial to add is FROM bouncing - but without having to use 3 country events to do it. Now you can inline your FROM scoping and THIS scoping without recurring to many events. Consult the extensions documentation.
+
+### Lambda events
+
+Another useful feature is defining events within events, inline. Consult the extensions documentation.
+
 ## Economy Reworks
 
 Multiple RGOs per province are now possible!
