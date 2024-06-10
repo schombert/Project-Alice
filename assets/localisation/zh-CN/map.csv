@@ -1,0 +1,15 @@
+﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
+#CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
+compose_dynamic_adj_state;$adj$ $state$;;;;;;;;;;;;x
+map_remove_prefix;The;;;;;;;;;;;;x
+map_expand_acronym;美国;;;;;;;;;;;;x
+map_expand_acronym_to;美国;;;;;;;;;;;;x
+map_label_country;$country$;;;;;;;;;;;;x
+map_label_adj_continent;$adj$ $continentname$;;;;;;;;;;;;x
+map_label_adj_state;$adj$ $state$;;;;;;;;;;;;x
+map_label_adj_province;$adj$ $province$;;;;;;;;;;;;x
+map_label_west_country;西$country$;;;;;;;;;;;;x
+map_label_east_country;东$country$;;;;;;;;;;;;x
+map_label_north_country;北$country$;;;;;;;;;;;;x
+map_label_south_country;南$country$;;;;;;;;;;;;x
+map_label_adj_tag;$adj$ $tag$;;;;;;;;;;;;x
