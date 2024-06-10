@@ -21,7 +21,6 @@
 #include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
-#include "bmfont.cpp"
 #include "rebels.cpp"
 #include "politics.cpp"
 #include "events.cpp"

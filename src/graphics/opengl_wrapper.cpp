@@ -1,6 +1,7 @@
 #include "opengl_wrapper.hpp"
 #include "system_state.hpp"
 #include "simple_fs.hpp"
+#include "fonts.hpp"
 
 namespace ogl {
 
@@ -715,12 +716,10 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 	return bool(ident);
 }
 
-void internal_text_render(sys::state& state, char const* codepoints, uint32_t count, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
-	auto it = f.get_cached_glyphs(codepoints, count);
-	assert(it != f.cached_text.end());
-	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
-	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
-	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
+void internal_text_render(sys::state& state, text::stored_text const& txt, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
+	auto const* glyph_pos = txt.glyph_pos.data();
+	auto const* glyph_info = txt.glyph_info.data();
+	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_count);
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
@@ -778,132 +777,19 @@ void internal_text_render(sys::state& state, char const* codepoints, uint32_t co
 	}
 }
 
-void render_new_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
+void render_new_text(sys::state& state, text::stored_text const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::filter};
 	GLuint icon_subroutines[2] = {map_color_modification_to_index(enabled), parameters::no_filter};
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-	internal_text_render(state, codepoints, count, x, y + size, size, f, subroutines, icon_subroutines);
+	internal_text_render(state, txt, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
-void render_classic_text(sys::state& state, float x, float y, char const* codepoints, uint32_t count,
-		color_modification enabled, color3f const& c, text::bm_font const& font) {
-	float adv = 1.0f / font.width; // Font texture atlas spacing.
 
-	bind_vertices_by_rotation(state, ui::rotation::upright, false);
-
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
-	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-
-	// Set Text Color, all one color for now.
-
-	//------ FOR SCHOMBERT ------//
-	// Every iteration of this loop draws one character of the string 'fmt'.
-	//'texlst' contains information for each vertex of each rectangle for each character.
-	// Every 4 elements in 'texlst' is one complete rectangle, and one character.
-	//'texlst[i].texx' and 'texlst[i].texy' are the intended texture coordinates of a vertex on the texture.
-	//'texlst[i].x' and 'texlst[i].y' are the coordinates of a vertex of the rendered rectangle in the window.
-	// The color variables are unused currently.
-	//
-	// Spacing, kearning, etc. are already applied.
-	// Scaling (unintentionally) is also applied (by whatever part of Alice scales the normal fonts).
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, font.ftexid);
-
-	for(uint32_t i = 0; i < count; ++i) {
-		if(uint8_t(codepoints[i]) == '@') {
-			auto const& f = font.chars[0x4D];
-			float scaling = 1.f;
-			float offset = 0.f;
-			float CurX = x + f.x_offset - (float(f.width) * offset);
-			float CurY = y + f.y_offset - (float(f.height) * offset);
-			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
-			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
-				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
-				glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width) * scaling, float(f.height) * scaling);
-				GLuint icon_tex = 0;
-				if(uint8_t(tag[1]) == 'F')
-					icon_tex = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan) ? state.open_gl.color_blind_cross_icon_tex : state.open_gl.cross_icon_tex;
-				else if(uint8_t(tag[1]) == 'T')
-					icon_tex = state.open_gl.checkmark_icon_tex;
-				else if(uint8_t(tag[1]) == 'A')
-					icon_tex = state.open_gl.army_icon_tex;
-				else if(uint8_t(tag[1]) == 'N')
-					icon_tex = state.open_gl.navy_icon_tex;
-				glBindTexture(GL_TEXTURE_2D, icon_tex);
-				glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-				glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-						float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-						float(f.height) / float(font.width) /* y height */
-				);
-				glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-				// Restore affected state
-				glBindTexture(GL_TEXTURE_2D, font.ftexid);
-				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-				x += f.x_offset - (float(f.width) * offset) + float(f.width) * scaling;
-				i += 3;
-				continue;
-			} else {
-				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-				if(flag_texture_handle != 0) {
-					GLuint flag_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
-					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, flag_subroutines);
-					glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.height) * 1.5f * scaling, float(f.height) * scaling);
-					glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
-					glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-					glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-							float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-							float(f.height) / float(font.width) /* y height */
-					);
-					glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-					// Restore affected state
-					glBindTexture(GL_TEXTURE_2D, font.ftexid);
-					glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-					x += f.x_offset - (float(f.width) * offset) + float(f.height) * 1.5f * scaling;
-					i += 3;
-					continue;
-				}
-			}
-		}
-		uint8_t ch = uint8_t(codepoints[i]);
-		if(i != 0 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
-			ch = 0xA3;
-			i++;
-		} else if(ch == 0xA4) {
-			ch = 0xA3;
-		}
-		auto const& f = font.chars[ch];
-		float CurX = x + f.x_offset;
-		float CurY = y + f.y_offset;
-		glUniform4f(ogl::parameters::drawing_rectangle, CurX, CurY, float(f.width), float(f.height));
-		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
-		glUniform4f(ogl::parameters::subrect, float(f.x) / float(font.width) /* x offset */,
-				float(f.width) / float(font.width) /* x width */, float(f.y) / float(font.width) /* y offset */,
-				float(f.height) / float(font.width) /* y height */
-		);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		// Only check kerning if there is greater then 1 character and
-		// if the check character is 1 less then the end of the string.
-		if(i != count - 1) {
-			x += font.get_kerning_pair(ch, codepoints[i + 1]);
-		}
-		x += f.x_advance * (ch == 0xA3 ? 0.25f : 1.f);
-	}
-}
-
-void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y,
+void render_text(sys::state& state, text::stored_text const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id) {
-	if(state.user_settings.use_classic_fonts) {
-		render_classic_text(state, x, y, codepoints, count, enabled, c, text::get_bm_font(state, font_id));
-	} else {
-		render_new_text(state, codepoints, count, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1]);
-	}
+	render_new_text(state, txt, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1]);
 }
 
 void lines::set_y(float* v) {

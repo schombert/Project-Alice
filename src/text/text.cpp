@@ -1351,52 +1351,71 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		}
 	}
 
-	size_t start_position = 0;
-	size_t end_position = 0;
+	uint32_t start_position = 0;
+	uint32_t end_position = 0;
 	bool first_in_line = true;
-	while(end_position < txt.length()) {
-		size_t next_wb = std::string::npos;
-		size_t next_word = std::string::npos;
-		for(size_t i = end_position; i < txt.size(); ) {
-			uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
+	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
+
+	text::stored_text all_glyphs(std::string(txt), font);
+
+	auto find_non_ws = [&](uint32_t start) {
+		for(uint32_t i = start; i < all_glyphs.glyph_count; ++i) {
+			uint32_t c = all_glyphs.glyph_info[i].codepoint;
+			if(!codepoint_is_space(c) && !codepoint_is_line_break(c))
+				return i;
+		}
+		return all_glyphs.glyph_count;
+	};
+
+	while(end_position < all_glyphs.glyph_count) {
+		uint32_t next_wb = all_glyphs.glyph_count;
+		uint32_t next_word = all_glyphs.glyph_count;
+		bool force_end_of_line = false;
+
+		for(uint32_t i = end_position; i < all_glyphs.glyph_count; ++i) {
+			uint32_t c = all_glyphs.glyph_info[i].codepoint;
+
 			if(c == 0) {
 				next_wb = i;
-				next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
+				next_word = find_non_ws(i);
 				break;
 			}
-			if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
-				if(next_wb == std::string::npos) { //first of whitespace
-					next_wb = i;
-				}
-			} else if(next_wb != std::string::npos) { //first not of whitespace
-				next_word = i;
+
+			if(codepoint_is_line_break(c)) {
+				next_wb = i;
+				next_word = find_non_ws(i);
+				force_end_of_line = true;
 				break;
 			}
-			i += size_from_utf8(txt.data() + i, txt.data() + txt.size());
-		}
-		//
-		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
-			next_wb = end_position;
-			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
-		}
-
-		auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
-		std::string_view segment = txt.substr(start_position, num_chars);
-		float extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
-		if(box.x_position + extent >= dest.fixed_parameters.right) {
-			next_wb = end_position;
-			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
-			num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
-			segment = txt.substr(start_position, num_chars);
-			extent = state.font_collection.text_extent(state, txt.data() + start_position, num_chars, dest.fixed_parameters.font_id);
+			if(codepoint_is_space(c)) {
+				next_wb = i;
+				next_word = find_non_ws(i);
+				break;
+			}
 		}
 
-		if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position &&
-				box.x_position + extent >= dest.fixed_parameters.right) {
-			// the current word is too long for the text box, just let it overflow
+		float extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
+
+		if(first_in_line && int32_t(box.x_offset + dest.fixed_parameters.left) == box.x_position && box.x_position + extent >= dest.fixed_parameters.right) {
+			// the current word is too long for the text box, break it internally
+
+			auto sub_end_pos = start_position + 1;
+			auto sub_prev_end_pos = sub_end_pos;
+			while(sub_end_pos < next_wb) {
+				extent = font.text_extent(state, all_glyphs, start_position, sub_end_pos - start_position, font_size);
+				if(box.x_position + extent >= dest.fixed_parameters.right)
+					break;
+
+				sub_prev_end_pos = sub_end_pos;
+				++sub_end_pos;
+			}
+			
+			extent = font.text_extent(state, all_glyphs, start_position, sub_prev_end_pos - start_position, font_size);
+
 			dest.base_layout.contents.push_back(
-				text_chunk{std::string(segment), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-					int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
+				text_chunk{ text::stored_text(all_glyphs, start_position, sub_prev_end_pos - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
 			box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
@@ -1404,40 +1423,40 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 			impl::lb_finish_line(dest, box, line_height);
 
-			start_position = next_word;
-			end_position = next_word;
-		} else if(box.x_position + extent >= dest.fixed_parameters.right) {
-			if(end_position != start_position) {
-				std::string_view section{segment.data(), end_position - start_position};
-				float prev_extent = state.font_collection.text_extent(state, txt.data() + start_position,
-						uint32_t(end_position - start_position), dest.fixed_parameters.font_id);
+			start_position = sub_prev_end_pos;
+			end_position = sub_prev_end_pos;
+		} else if(force_end_of_line || box.x_position + extent >= dest.fixed_parameters.right) {
+			if(box.x_position + extent >= dest.fixed_parameters.right) {
+				next_wb = end_position;
+				next_word = find_non_ws(end_position);
+				extent = font.text_extent(state, all_glyphs, start_position, next_wb - start_position, font_size);
+			}
+
+			if(next_wb != start_position) {
 				dest.base_layout.contents.push_back(
-						text_chunk{std::string(section), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-								int16_t(box.y_position), int16_t(prev_extent), int16_t(text_height), tmp_color});
+						text_chunk{ text::stored_text(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+								int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
-				box.x_size = std::max(box.x_size, int32_t(box.x_position + prev_extent));
+				box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
 
-				box.x_position += prev_extent;
+				box.x_position += extent;
 			}
 			impl::lb_finish_line(dest, box, line_height);
 
-			start_position = end_position;
+			end_position = next_word;
+			start_position = next_word;
 			first_in_line = true;
-		} else if(next_word >= txt.length()) {
+		} else if(next_word >= all_glyphs.glyph_count) {
 			// we've reached the end of the text
-			std::string_view remainder = txt.substr(start_position);
-			float rem_extent =
-					state.font_collection.text_extent(state, remainder.data(), uint32_t(remainder.length()), dest.fixed_parameters.font_id);
-
 			dest.base_layout.contents.push_back(
-					text_chunk{std::string(remainder), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
-							int16_t(box.y_position), int16_t(rem_extent), int16_t(text_height), tmp_color});
+					text_chunk{ text::stored_text(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
-			box.x_size = std::max(box.x_size, int32_t(box.x_position + rem_extent));
+			box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
 
-			box.x_position += rem_extent;
+			box.x_position += extent;
 			break;
 		} else {
 			end_position = next_word;
@@ -1568,8 +1587,9 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	add_to_layout_box(state, dest, box, std::string_view(val), color, std::monostate{});
 }
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto amount = state.font_collection.text_extent(state, " ", uint32_t(1), dest.fixed_parameters.font_id);
-	box.x_position += amount;
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
+	auto glyphid = FT_Get_Char_Index(font.font_face, ' ');
+	box.x_position += float(font.glyph_advances[glyphid]) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;
 }
 
 layout_box open_layout_box(layout_base& dest, int32_t indent) {

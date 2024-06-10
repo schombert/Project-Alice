@@ -451,7 +451,7 @@ parser_state parse_command(sys::state& state, std::string_view text) {
 
 void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	ui::edit_box_element_base::render(state, x, y);
-
+	/*
 	// Render the suggestions given (after the inputted text obv)
 	float x_offs = state.font_collection.text_extent(state, stored_text.c_str(), uint32_t(stored_text.length()),
 			base_data.data.text.font_handle);
@@ -485,6 +485,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 					get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 		}
 	}
+	*/
 }
 
 void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
@@ -1304,7 +1305,8 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 					old_y = e.y;
 				}
 				out_text += " ";
-				out_text += e.win1250chars;
+				// the raw text data is not stored, only the shaped glyphs
+				// out_text += e.win1250chars;
 			}
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
@@ -2360,8 +2362,10 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 }
 
 void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	ui::simple_text_element_base::render(state, x, y);
+	/*
 	float x_offs = 0.f;
-	if(stored_text.length() > 0) {
+	if(stored_text.glyph_count > 0) {
 		auto text_color = text::text_color::white;
 		for(char const* start_text = stored_text.data(); start_text < stored_text.data() + stored_text.length();) {
 			char const* end_text = start_text;
@@ -2383,6 +2387,7 @@ void ui::console_text::render(sys::state& state, int32_t x, int32_t y) noexcept 
 			start_text = end_text;
 		}
 	}
+	*/
 }
 
 void ui::console_edit::edit_box_esc(sys::state& state) noexcept {

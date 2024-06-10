@@ -69,7 +69,6 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/scripting/effects.cpp"
 	"src/scripting/events.cpp"
 	"src/scripting/triggers.cpp"
-	"src/text/bmfont.cpp"
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
@@ -396,12 +395,6 @@ add_custom_command(
 	COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/parsing/trigger_parser_defs.txt
 	DEPENDS ${PROJECT_SOURCE_DIR}/src/parsing/trigger_parser_defs.txt
 	VERBATIM)
-
-add_custom_command(
-  OUTPUT ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
-  COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
-  DEPENDS ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
-  VERBATIM)
 
 add_custom_command(
   OUTPUT ${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp

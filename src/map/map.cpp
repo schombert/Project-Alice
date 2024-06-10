@@ -1739,9 +1739,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
 
-		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
+		float text_length = f.text_extent(state, e.text, 0, e.text.glyph_count, 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
-		float x_step = (result_interval / float(e.text.length() * 32.f));
+		float x_step = (result_interval / float(e.text.glyph_count * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		if(is_linear) {
 			float height = poly_fn(right) - poly_fn(left);
@@ -1804,11 +1804,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			accumulated_length += added_distance;
 		}
 
-		auto it = f.get_cached_glyphs(e.text.data(), uint32_t(e.text.size()));
-		assert(it != f.cached_text.end());
-		hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
-		hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
-		unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
+		hb_glyph_position_t const* glyph_pos = e.text.glyph_pos.data();
+		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
+		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
@@ -1874,14 +1872,14 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 
 		auto effective_ratio = e.ratio.x * map_x_scaling / e.ratio.y;
 
-		float text_length = f.text_extent(state, e.text.data(), uint32_t(e.text.length()), 1);
+		float text_length = f.text_extent(state, e.text, 0, e.text.glyph_count, 1);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		// y = a + bx + cx^2 + dx^3
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 			};
-		float x_step = (1.f / float(e.text.length() * 32.f));
+		float x_step = (1.f / float(e.text.glyph_count * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
 		for(float x = 0.f; x <= 1.f; x += x_step)
 			curve_length += 2.0f * glm::length(glm::vec2(x_step * e.ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
@@ -1911,17 +1909,12 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 			features[0].value = 1;
 			num_features = 1;
 		}
-		hb_buffer_t* buf = hb_buffer_create();
-		hb_buffer_add_utf8(buf, e.text.c_str(), int(e.text.length()), 0, -1);
-		hb_buffer_guess_segment_properties(buf);
-		hb_shape(f.hb_font_face, buf, features, num_features);
-		unsigned int glyph_count = 0;
-		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(buf, &glyph_count);
-		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
-		for(unsigned int i = 0; i < glyph_count; i++) {
-			f.make_glyph(glyph_info[i].codepoint);
-		}
-		for(unsigned int i = 0; i < glyph_count; i++) {
+
+		unsigned int glyph_count = e.text.glyph_count;
+		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
+		auto const* glyph_pos = e.text.glyph_pos.data();
+
+		for(unsigned int i = 0; i < e.text.glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
 			float x_advance = float(f.glyph_advances[glyphid]);
@@ -1970,7 +1963,6 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 				glyph_length += added_distance;
 			}
 		}
-		hb_buffer_destroy(buf);
 	}
 	if(province_text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);

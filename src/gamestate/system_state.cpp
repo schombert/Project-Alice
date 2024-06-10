@@ -1573,11 +1573,8 @@ void state::on_create() {
 		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
 	}
 	map_mode::set_map_mode(*this, map_mode::mode::political);
-	if(user_settings.use_classic_fonts) {
-		ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
-	} else {
-		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
-	}
+	
+	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 }
 //
 // string pool functions
@@ -1755,7 +1752,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_is_globe);
 	US_SAVE(autosaves);
 	US_SAVE(bind_tooltip_mouse);
-	US_SAVE(use_classic_fonts);
+	US_SAVE(UNUSED_BOOL);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
 	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
@@ -1818,7 +1815,7 @@ void state::load_user_settings() {
 			US_LOAD(map_is_globe);
 			US_LOAD(autosaves);
 			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(use_classic_fonts);
+			US_LOAD(UNUSED_BOOL);
 			US_LOAD(outliner_views);
 			constexpr size_t lower_half_count = 98;
 

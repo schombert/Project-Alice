@@ -1,10 +1,8 @@
 #pragma once
 
-//#include "ft2build.h"
 #include "freetype/freetype.h"
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
-#include "bmfont.hpp"
 #include "hb.h"
 
 namespace sys {
@@ -27,15 +25,27 @@ struct glyph_sub_offset {
 
 class font_manager;
 
-
 enum class font_feature {
 	none, small_caps
 };
 
-struct cached_text_entry {
+class font;
+
+struct stored_text {
+	std::string base_text;
 	unsigned int glyph_count = 0;
 	std::vector<hb_glyph_info_t> glyph_info;
 	std::vector<hb_glyph_position_t> glyph_pos;
+
+	stored_text() = default;
+	stored_text(stored_text const& other) noexcept = default;
+	stored_text(stored_text&& other) noexcept = default;
+	stored_text(std::string const& s, font& fnt);
+	stored_text(stored_text& other, uint32_t offset, uint32_t count);
+
+	stored_text(std::string&& s, font& fnt);
+	void set_text(std::string const& s, font& fnt);
+	void set_text(std::string&& s, font& fnt);
 };
 
 class font {
@@ -47,7 +57,6 @@ private:
 	font() = default;
 
 public:
-	ankerl::unordered_dense::map<std::string, cached_text_entry> cached_text;
 	FT_Face font_face;
 	hb_font_t* hb_font_face = nullptr;
 	uint8_t const* gs = nullptr;
@@ -81,8 +90,8 @@ public:
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
-	float text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size);
-	decltype(cached_text)::iterator get_cached_glyphs(char const* codepoints, uint32_t count);
+	float text_extent(sys::state& state, stored_text const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
+	void remake_cache(stored_text& txt);
 
 	friend class font_manager;
 };
@@ -93,7 +102,6 @@ public:
 	~font_manager();
 
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
-	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 	font fonts[12];
 	bool map_font_is_black = false;
@@ -102,9 +110,7 @@ public:
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
-	float text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id);
 };
 
 void load_standard_fonts(sys::state& state);
-void load_bmfonts(sys::state& state);
 } // namespace text
