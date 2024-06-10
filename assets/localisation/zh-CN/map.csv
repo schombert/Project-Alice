@@ -1,7 +1,7 @@
 ﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
 #CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
 compose_dynamic_adj_state;$adj$ $state$;;;;;;;;;;;;x
-map_remove_prefix;The;;;;;;;;;;;;x
+map_remove_prefix;;;;;;;;;;;;;x
 map_expand_acronym;美国;;;;;;;;;;;;x
 map_expand_acronym_to;美国;;;;;;;;;;;;x
 map_label_country;$country$;;;;;;;;;;;;x
