@@ -403,20 +403,20 @@ char font::codepoint_to_alnum(char32_t codepoint) {
 	return 0;
 }
 
-stored_text::stored_text(std::string const& s, font& fnt) : base_text(s) {
-	glyph_count = 0;
-
-	if(!base_text.empty())
-		fnt.remake_cache(*this);
+stored_text::stored_text(std::string const& s, font& fnt) : stored_glyphs(s,fnt), base_text(s) {
 }
-stored_text::stored_text(std::string&& s, font& fnt) : base_text(std::move(s)) {
-	glyph_count = 0;
-
-	if(!base_text.empty())
-		fnt.remake_cache(*this);
+stored_text::stored_text(std::string&& s, font& fnt) : stored_glyphs(s, fnt), base_text(std::move(s)) {
 }
 
-stored_text::stored_text(stored_text& other, uint32_t offset, uint32_t count) {
+stored_glyphs::stored_glyphs(std::string const& s, font& fnt) {
+	fnt.remake_cache(*this, s);
+}
+
+void stored_glyphs::set_text(std::string const& s, font& fnt) {
+	fnt.remake_cache(*this, s);
+}
+
+stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count) {
 	glyph_count = count;
 	glyph_info.resize(count);
 	glyph_pos.resize(count);
@@ -427,29 +427,19 @@ stored_text::stored_text(stored_text& other, uint32_t offset, uint32_t count) {
 void stored_text::set_text(std::string const& s, font& fnt) {
 	if(base_text != s) {
 		base_text = s;
-		glyph_count = 0;
-		glyph_info.clear();
-		glyph_pos.clear();
-
-		if(!base_text.empty())
-			fnt.remake_cache(*this);
+		stored_glyphs::set_text(s, fnt);
 	}
 }
 void stored_text::set_text(std::string&& s, font& fnt) {
 	if(base_text != s) {
+		stored_glyphs::set_text(s, fnt);
 		base_text = std::move(s);
-		glyph_count = 0;
-		glyph_info.clear();
-		glyph_pos.clear();
-
-		if(!base_text.empty())
-			fnt.remake_cache(*this);
 	}
 }
 
-void font::remake_cache(stored_text& txt) {
+void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 	hb_buffer_clear_contents(hb_buf);
-	hb_buffer_add_utf8(hb_buf, txt.base_text.c_str(), int(txt.base_text.length()), 0, int(txt.base_text.length()));
+	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
 	hb_buffer_guess_segment_properties(hb_buf);
 	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
 	
@@ -465,7 +455,7 @@ void font::remake_cache(stored_text& txt) {
 
 }
 
-float font::text_extent(sys::state& state, stored_text const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
+float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
 	float x_total = 0.0f;
 
 	hb_glyph_position_t const* glyph_pos = txt.glyph_pos.data() + starting_offset;

@@ -31,19 +31,29 @@ enum class font_feature {
 
 class font;
 
-struct stored_text {
-	std::string base_text;
-	unsigned int glyph_count = 0;
+struct stored_glyphs {
 	std::vector<hb_glyph_info_t> glyph_info;
 	std::vector<hb_glyph_position_t> glyph_pos;
+	unsigned int glyph_count = 0;
+
+	stored_glyphs() = default;
+	stored_glyphs(stored_glyphs const& other) noexcept = default;
+	stored_glyphs(stored_glyphs&& other) noexcept = default;
+	stored_glyphs(std::string const& s, font& fnt);
+	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
+
+	void set_text(std::string const& s, font& fnt);
+};
+
+struct stored_text : public stored_glyphs {
+	std::string base_text;
 
 	stored_text() = default;
 	stored_text(stored_text const& other) noexcept = default;
 	stored_text(stored_text&& other) noexcept = default;
 	stored_text(std::string const& s, font& fnt);
-	stored_text(stored_text& other, uint32_t offset, uint32_t count);
-
 	stored_text(std::string&& s, font& fnt);
+
 	void set_text(std::string const& s, font& fnt);
 	void set_text(std::string&& s, font& fnt);
 };
@@ -91,8 +101,8 @@ public:
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
-	float text_extent(sys::state& state, stored_text const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
-	void remake_cache(stored_text& txt);
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
+	void remake_cache(stored_glyphs& txt, std::string const& source);
 
 	friend class font_manager;
 };

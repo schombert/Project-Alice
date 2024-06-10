@@ -624,7 +624,7 @@ using substitution = std::variant<std::string_view, dcon::text_key, dcon::provin
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {
-	text::stored_text unicodechars;
+	text::stored_glyphs unicodechars;
 	float x = 0; // yes, there is a reason the x offset is a floating point value while the y offset is an integer
 	substitution source = std::monostate{};
 	int16_t y = 0;

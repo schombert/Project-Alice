@@ -430,26 +430,27 @@ ogl::color3f get_text_color(sys::state& state, text::text_color text_color) {
 
 void button_element_base::set_button_text(sys::state& state, std::string const& new_text) {
 	stored_text.set_text(new_text, state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1]);
-	using_default = false;
-	on_reset_text(state);
+	format_text(state);
 }
 
-void button_element_base::on_reset_text(sys::state& state) noexcept {
-	if(using_default) {
-		if(base_data.get_element_type() == element_type::button) {
-			auto base_text_handle = base_data.data.button.txt;
-			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-			if(base_text_handle) {
-				stored_text.base_text.clear();
-				auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
-				stored_text.set_text(text::produce_simple_string(state, base_data.data.button.txt), font);
-			}
-		}
-	}
+void button_element_base::format_text(sys::state& state) {
 	if(stored_text.glyph_count > 0) {
 		auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
 		text_offset = (base_data.size.x - font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(base_data.data.button.font_handle))) / 2.0f;
 	}
+}
+
+void button_element_base::on_reset_text(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		auto base_text_handle = base_data.data.button.txt;
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		if(base_text_handle) {
+			stored_text.base_text.clear();
+			auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
+			stored_text.set_text(text::produce_simple_string(state, base_data.data.button.txt), font);
+		}
+	}
+	format_text(state);
 }
 
 void button_element_base::on_create(sys::state& state) noexcept {
@@ -659,25 +660,10 @@ void simple_text_element_base::set_text(sys::state& state, std::string const& ne
 		auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.text.font_handle) - 1];
 		stored_text.set_text(new_text, font);
 	}
-	using_default = false;
-	on_reset_text(state);
+	format_text(state);
 }
 
-void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
-	if(using_default) {
-		if(base_data.get_element_type() == element_type::button) {
-			auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
-			stored_text.base_text.clear();
-			stored_text.set_text(text::produce_simple_string(state, base_data.data.button.txt), font);
-			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-		} else if(base_data.get_element_type() == element_type::text) {
-			auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.text.font_handle) - 1];
-			stored_text.base_text.clear();
-			stored_text.set_text(text::produce_simple_string(state, base_data.data.text.txt), font);
-			black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-		}
-	}
-
+void simple_text_element_base::format_text(sys::state& state) {
 	if(stored_text.glyph_count == 0)
 		return;
 
@@ -688,7 +674,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	else if(base_data.get_element_type() == element_type::text)
 		font_handle = base_data.data.text.font_handle;
 
-	
+
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
 	extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 
@@ -700,7 +686,7 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 
 		bool ellipsis_valid = true;
 		auto width_of_ellipsis = font.base_glyph_width(glyphid) * text::size_from_font_id(font_handle) / 64.f;
-		
+
 		if(width_of_ellipsis <= 0 || glyphid == 0) {
 			ellipsis_valid = false;
 			width_of_ellipsis = font.base_glyph_width(FT_Get_Char_Index(font.font_face, '.')) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
@@ -743,13 +729,28 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 			text_offset = (base_data.size.x - extent - base_data.data.text.border_size.x) / 2.0f;
 			break;
 		case alignment::right:
-			text_offset = (base_data.size.x - extent -  base_data.data.text.border_size.x);
+			text_offset = (base_data.size.x - extent - base_data.data.text.border_size.x);
 			break;
 		case alignment::left:
 			text_offset = base_data.data.text.border_size.x;
 			break;
 		}
 	}
+}
+
+void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
+	if(base_data.get_element_type() == element_type::button) {
+		auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
+		stored_text.base_text.clear();
+		stored_text.set_text(text::produce_simple_string(state, base_data.data.button.txt), font);
+		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+	} else if(base_data.get_element_type() == element_type::text) {
+		auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.text.font_handle) - 1];
+		stored_text.base_text.clear();
+		stored_text.set_text(text::produce_simple_string(state, base_data.data.text.txt), font);
+		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+	}
+	format_text(state);
 }
 void simple_text_element_base::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
