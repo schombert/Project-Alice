@@ -1340,14 +1340,14 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		size_t next_wb = std::string::npos;
 		size_t next_word = std::string::npos;
 		if(state.languages[state.user_settings.current_language].script == text::language_script::chinese) {
-			next_wb = size_from_utf8(txt.data() + end_position, txt.data() + txt.size());
-			next_word = next_wb + 1;
+			next_wb = end_position;
+			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
 		} else {
 			for(size_t i = end_position; i < txt.size(); ) {
 				uint32_t c = codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
 				if(c == 0) {
 					next_wb = i;
-					next_word = next_wb + 1;
+					next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
 					break;
 				}
 				if(codepoint_is_space(c) || codepoint_is_line_break(c)) {
@@ -1364,7 +1364,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		//
 		if(txt.at(end_position) == '\x97' && end_position + 2 < txt.length()) {
 			next_wb = end_position;
-			next_word = next_wb + 1;
+			next_word = next_wb + size_from_utf8(txt.data() + next_wb, txt.data() + txt.size());
 		}
 
 		auto num_chars = uint32_t(std::min(next_wb, txt.length()) - start_position);
