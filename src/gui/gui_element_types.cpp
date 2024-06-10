@@ -695,8 +695,14 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		// 0x2026
 		// utf8: 0xe2 0x80 0xa6
 		auto glyphid = FT_Get_Char_Index(font.font_face, 0x2026);
-		auto width_of_ellipsis = float(font.glyph_advances[glyphid]) * text::size_from_font_id(font_handle) / 64.f;
 
+		bool ellipsis_valid = true;
+		auto width_of_ellipsis = float(font.glyph_advances[glyphid]) * text::size_from_font_id(font_handle) / 64.f;
+		
+		if(width_of_ellipsis <= 0 || glyphid == 0) {
+			ellipsis_valid = false;
+			width_of_ellipsis = float(font.glyph_advances[FT_Get_Char_Index(font.font_face, '.')]) * 3.0f * text::size_from_font_id(font_handle) / 64.f;
+		}
 		uint32_t m = 0;
 		uint32_t last_good_m = 0;
 		text::stored_text temp;
@@ -710,7 +716,11 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 
 			last_good_m = m;
 		}
-		temp.set_text(stored_text.base_text.substr(0, last_good_m) + "…", font);
+		if(ellipsis_valid)
+			stored_text.set_text(stored_text.base_text.substr(0, last_good_m) + "…", font);
+		else
+			stored_text.set_text(stored_text.base_text.substr(0, last_good_m) + "...", font);
+		extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 	}
 
 	if(base_data.get_element_type() == element_type::button) {
