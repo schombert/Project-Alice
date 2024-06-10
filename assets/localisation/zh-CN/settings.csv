@@ -41,7 +41,7 @@ zoom_mode_to_cursor;随光标;;;;;;;;;;;;x
 zoom_mode_away_from_cursor;远离光标;;;;;;;;;;;;x
 zoom_speed_label;缩放加速度;;;;;;;;;;;;x
 river_label;河流;;;;;;;;;;;;x
-mute_on_focus_lost_label;Mute on focus lost;;;;;;;;;;;;x
+mute_on_focus_lost_label;当游戏不是主要视窗时静音;;;;;;;;;;;;x
 wasd_for_map_movement_label;使用WASD移动;;;;;;;;;;;;x
 vassal_color_label;附庸着色;;;;;;;;;;;;x
 vassal_color_inherit;继承;;;;;;;;;;;;x
@@ -74,4 +74,4 @@ map_label_1;线性;;;;;;;;;;;;x
 map_label_2;二次线性;;;;;;;;;;;;x
 map_label_3;立体;;;;;;;;;;;;x
 antialiasing_label;反锯齿;;;;;;;;;;;;x
-spoilers_label;Spoilers;;;;;;;;;;;;x
+spoilers_label;遮挡任务栏;;;;;;;;;;;;x
