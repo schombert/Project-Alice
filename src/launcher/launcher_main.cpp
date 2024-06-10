@@ -19,7 +19,7 @@
 #include "effects.cpp"
 #include "economy.cpp"
 #include "demographics.cpp"
-#include "bmfont.cpp"
+//#include "bmfont.cpp"
 #include "rebels.cpp"
 #include "politics.cpp"
 #include "events.cpp"
@@ -1690,12 +1690,10 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void internal_text_render(char const* codepoints, uint32_t count, float x, float baseline_y, float size, ::text::font& f) {
-	auto it = f.get_cached_glyphs(codepoints, count);
-	assert(it != f.cached_text.end());
-	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
-	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
-	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
+void internal_text_render(text::stored_text const& txt, float x, float baseline_y, float size, ::text::font& f) {
+	auto const* glyph_pos = txt.glyph_pos.data();
+	auto const* glyph_info = txt.glyph_info.data();
+	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_count);
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
@@ -1714,13 +1712,13 @@ void internal_text_render(char const* codepoints, uint32_t count, float x, float
 	}
 }
 
-void render_new_text(char const* codepoints, uint32_t count, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
+void render_new_text(text::stored_text const& txt, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
 	glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines);
-	internal_text_render(codepoints, count, x, y + size, size, f);
+	internal_text_render(txt, x, y + size, size, f);
 }
 
 } // launcher::ogl
@@ -1791,7 +1789,7 @@ void render() {
 
 	launcher::ogl::render_textured_rect(launcher::ogl::color_modification::none, 0, 0, int32_t(base_width), int32_t(base_height), bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
-	launcher::ogl::render_new_text("Project Alice", 13, launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(std::string("Project Alice"), font_collection.fonts[1]), launcher::ogl::color_modification::none, 83, 5, 26, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_close ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_close].x,
@@ -1853,11 +1851,11 @@ void render() {
 		if(selected_scenario_file.empty()) {
 			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_scenario)];
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		} else {
 			auto sv = launcher::localised_strings[uint8_t(launcher::string_index::recreate_scenario)];
 			float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-			launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+			launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, x_pos, ui_rects[ui_obj_create_scenario].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 		}
 	} else {
 		launcher::ogl::render_textured_rect(launcher::ogl::color_modification::disabled,
@@ -1876,17 +1874,17 @@ void render() {
 		}
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::working)];
 		float x_pos = ui_rects[ui_obj_create_scenario].x + ui_rects[ui_obj_create_scenario].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+		launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, x_pos, 50.0f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 	}
 
 	{
 		// Create a new scenario file for the selected mods
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::create_a_new_scenario)];
 		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, xoffset, 94.0f + 0 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 		sv = launcher::localised_strings[uint8_t(launcher::string_index::for_the_selected_mods)];
 		xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, xoffset, 94.0f + 1 * 18.0f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	if(file_is_ready.load(std::memory_order::memory_order_acquire) && !selected_scenario_file.empty()) {
@@ -1933,11 +1931,11 @@ void render() {
 
 		auto sv = launcher::localised_strings[uint8_t(launcher::string_index::no_scenario_found)];
 		auto xoffset = 830.0f - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]);
-		launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, xoffset, ui_rects[ui_obj_play_game].y + 48.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	auto sv = launcher::localised_strings[uint8_t(launcher::string_index::ip_address)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ui_rects[ui_obj_ip_addr].x + ui_rects[ui_obj_ip_addr].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_ip_addr].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_ip_addr ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_ip_addr].x,
 		ui_rects[ui_obj_ip_addr].y,
@@ -1946,7 +1944,7 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::password)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ui_rects[ui_obj_password].x + ui_rects[ui_obj_password].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_password].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_password ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_password].x,
 		ui_rects[ui_obj_password].y,
@@ -1955,7 +1953,7 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::nickname)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ui_rects[ui_obj_player_name].x + ui_rects[ui_obj_player_name].width - base_text_extent(sv.data(), uint32_t(sv.size()), 14, font_collection.fonts[0]), ui_rects[ui_obj_player_name].y - 21.f, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	launcher::ogl::render_textured_rect(obj_under_mouse == ui_obj_player_name ? launcher::ogl::color_modification::interactable : launcher::ogl::color_modification::none,
 		ui_rects[ui_obj_player_name].x,
 		ui_rects[ui_obj_player_name].y,
@@ -1964,34 +1962,34 @@ void render() {
 		line_bg_tex.get_texture_handle(), ui::rotation::upright, false);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::singleplayer)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_play_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::start_game)];
 	float sg_x_pos = ui_rects[ui_obj_play_game].x + ui_rects[ui_obj_play_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, sg_x_pos, ui_rects[ui_obj_play_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::multiplayer)];
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]), ui_rects[ui_obj_host_game].y - 32.f, 22.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	// Join and host game buttons
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::host)];
 	float hg_x_pos = ui_rects[ui_obj_host_game].x + ui_rects[ui_obj_host_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, hg_x_pos, ui_rects[ui_obj_host_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::join)];
 	float jg_x_pos = ui_rects[ui_obj_join_game].x + ui_rects[ui_obj_join_game].width / 2 - base_text_extent(sv.data(), uint32_t(sv.size()), 22, font_collection.fonts[1]) / 2.0f;
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, jg_x_pos, ui_rects[ui_obj_join_game].y + 2.f, 22.0f, launcher::ogl::color3f{ 50.0f / 255.0f, 50.0f / 255.0f, 50.0f / 255.0f }, font_collection.fonts[1]);
 
 	// Text fields
 	float ia_x_pos = ui_rects[ui_obj_ip_addr].x + 6.f;// ui_rects[ui_obj_ip_addr].width - base_text_extent(ip_addr.c_str(), uint32_t(ip_addr.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(ip_addr.c_str(), uint32_t(ip_addr.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(ip_addr.c_str(), font_collection.fonts[0]), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_ip_addr].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 	float ps_x_pos = ui_rects[ui_obj_password].x + 6.f;
-	launcher::ogl::render_new_text(password.c_str(), uint32_t(password.size()), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(password.c_str(), font_collection.fonts[0]), launcher::ogl::color_modification::none, ia_x_pos, ui_rects[ui_obj_password].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 	float pn_x_pos = ui_rects[ui_obj_player_name].x + 6.f;// ui_rects[ui_obj_player_name].width - base_text_extent(player_name.c_str(), uint32_t(player_name.length()), 14, font_collection.fonts[0]) - 4.f;
-	launcher::ogl::render_new_text(player_name.c_str(), uint32_t(player_name.size()), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
+	launcher::ogl::render_new_text(text::stored_text(player_name.c_str(), font_collection.fonts[0]), launcher::ogl::color_modification::none, pn_x_pos, ui_rects[ui_obj_player_name].y + 3.f, 14.0f, launcher::ogl::color3f{ 255.0f, 255.0f, 255.0f }, font_collection.fonts[0]);
 
 	sv = launcher::localised_strings[uint8_t(launcher::string_index::mod_list)];
 	auto ml_xoffset = list_text_right_align - base_text_extent(sv.data(), uint32_t(sv.size()), 24, font_collection.fonts[1]);
-	launcher::ogl::render_new_text(sv.data(), uint32_t(sv.size()), launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
+	launcher::ogl::render_new_text(text::stored_text(sv.data(), font_collection.fonts[1]), launcher::ogl::color_modification::none, ml_xoffset, 45.0f, 24.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[1]);
 
 	int32_t list_offset = launcher::frame_in_list * launcher::ui_list_count;
 
@@ -2057,7 +2055,7 @@ void render() {
 
 		auto xoffset = list_text_right_align - base_text_extent(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), 14, font_collection.fonts[0]);
 
-		launcher::ogl::render_new_text(mod_ref.name_.data(), uint32_t(mod_ref.name_.length()), launcher::ogl::color_modification::none, xoffset, 75.0f + 7.0f + i * ui_row_height, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
+		launcher::ogl::render_new_text(text::stored_text(mod_ref.name_.data(), font_collection.fonts[0]), launcher::ogl::color_modification::none, xoffset, 75.0f + 7.0f + i * ui_row_height, 14.0f, launcher::ogl::color3f{ 255.0f / 255.0f, 230.0f / 255.0f, 153.0f / 255.0f }, font_collection.fonts[0]);
 	}
 
 	SwapBuffers(opengl_window_dc);
