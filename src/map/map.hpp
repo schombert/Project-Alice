@@ -67,8 +67,8 @@ struct text_line_vertex {
 
 struct text_line_generator_data {
 	text_line_generator_data() { };
-	text_line_generator_data(text::stored_text&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
-	text::stored_text text;
+	text_line_generator_data(text::stored_glyphs&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	text::stored_glyphs text;
 	glm::vec4 coeff{0.f};
 	glm::vec2 basis{0.f};
 	glm::vec2 ratio{0.f};

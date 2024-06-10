@@ -716,7 +716,7 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 	return bool(ident);
 }
 
-void internal_text_render(sys::state& state, text::stored_text const& txt, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
+void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f, GLuint const* subroutines, GLuint const* icon_subroutines) {
 	auto const* glyph_pos = txt.glyph_pos.data();
 	auto const* glyph_info = txt.glyph_info.data();
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_count);
@@ -777,7 +777,7 @@ void internal_text_render(sys::state& state, text::stored_text const& txt, float
 	}
 }
 
-void render_new_text(sys::state& state, text::stored_text const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
+void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 	glUniform1f(parameters::border_size, 0.08f * 16.0f / size);
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::filter};
@@ -787,7 +787,7 @@ void render_new_text(sys::state& state, text::stored_text const& txt, color_modi
 }
 
 
-void render_text(sys::state& state, text::stored_text const& txt, color_modification enabled, float x, float y,
+void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id) {
 	render_new_text(state, txt, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1]);
 }

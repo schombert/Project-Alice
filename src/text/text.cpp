@@ -1358,7 +1358,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 
-	text::stored_text all_glyphs(std::string(txt), font);
+	text::stored_glyphs all_glyphs(std::string(txt), font);
 
 	auto find_non_ws = [&](uint32_t start) {
 		for(uint32_t i = start; i < all_glyphs.glyph_count; ++i) {
@@ -1415,7 +1415,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			extent = font.text_extent(state, all_glyphs, start_position, sub_prev_end_pos - start_position, font_size);
 
 			dest.base_layout.contents.push_back(
-				text_chunk{ text::stored_text(all_glyphs, start_position, sub_prev_end_pos - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
+				text_chunk{ text::stored_glyphs(all_glyphs, start_position, sub_prev_end_pos - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
 			box.x_size = std::max(box.x_size, int32_t(box.x_position + extent));
@@ -1434,7 +1434,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 			if(next_wb != start_position) {
 				dest.base_layout.contents.push_back(
-						text_chunk{ text::stored_text(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+						text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_wb - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 								int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1451,7 +1451,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 			// we've reached the end of the text
 			extent = font.text_extent(state, all_glyphs, start_position, next_word - start_position, font_size);
 			dest.base_layout.contents.push_back(
-					text_chunk{ text::stored_text(all_glyphs, start_position, next_word - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
+					text_chunk{ text::stored_glyphs(all_glyphs, start_position, next_word - start_position), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{},
 							int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color});
 
 			box.y_size = std::max(box.y_size, box.y_position + line_height);
