@@ -2,6 +2,10 @@
 
 Oh dear it's been so long since we haven't met each other (it's been 1 month).
 
+It's now pride month, and it's interesting how far we've come in regards to our first release, v1.0 looked radically different than Alice does now.
+
+So we want to thank all of you who have continued to support us through our 1.5 years of existence.
+
 ## Economy Reworks
 
 Multiple RGOs per province are now possible!
@@ -58,3 +62,11 @@ Previously they would just overflow, which was less than ideal.
 RTL text is now supported too! (Bidirectionality is still a work in progress through). However now you can enjoy your RTL text on events and such!
 
 ![](./images/rtl.png)
+
+## Thanks you for reading!
+
+As always, minor bugfixes were done, balancing issues fixed and other quirks ironed out.
+
+Expect increased mod compatibility in this release.
+
+And as always, thank you <3
