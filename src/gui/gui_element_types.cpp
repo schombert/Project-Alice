@@ -667,10 +667,12 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(using_default) {
 		if(base_data.get_element_type() == element_type::button) {
 			auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
+			stored_text.base_text.clear();
 			stored_text.set_text(text::produce_simple_string(state, base_data.data.button.txt), font);
 			black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		} else if(base_data.get_element_type() == element_type::text) {
 			auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.text.font_handle) - 1];
+			stored_text.base_text.clear();
 			stored_text.set_text(text::produce_simple_string(state, base_data.data.text.txt), font);
 			black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 		}
