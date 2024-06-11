@@ -26,13 +26,13 @@ font = { #Font used for normal, regular text
 }
 font = { #Font used for headers and "bold" text
 	id = 5
-	path = "assets/fonts/NotoSerifSC-Bold.ttf"
-	smallCaps = yes
+	path = "assets/fonts/NotoSerifSC-Regular.ttf"
+	smallCaps = no
 }
 font = { #Font used for the map labels
 	id = 6
 	path = "assets/fonts/NotoSerifSC-Regular.ttf"
-	smallCaps = yes
+	smallCaps = no
 }
 
 ##ARABIC
@@ -44,12 +44,12 @@ font = { #Font used for normal, regular text
 font = { #Font used for headers and "bold" text
 	id = 8
 	path = "assets/fonts/NotoNaskhArabic-Bold.ttf"
-	smallCaps = yes
+	smallCaps = no
 }
 font = { #Font used for the map labels
 	id = 9
 	path = "assets/fonts/NotoNaskhArabic-Regular.ttf"
-	smallCaps = yes
+	smallCaps = no
 }
 
 ##CYRILLIC
