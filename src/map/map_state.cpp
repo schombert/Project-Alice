@@ -365,9 +365,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					if(candidate.get_connected_region_id() == visited_region) {
 						if(candidate.get_state_membership() != p.get_state_membership())
 							in_same_state = false;
-
-						last_province = candidate;
-						total_provinces++;
+						++total_provinces;
 						for(const auto core : candidate.get_core_as_province()) {
 							uint32_t v = 1;
 							if(auto const it = map.find(core.get_identity().id.index()); it != map.end()) {
@@ -381,7 +379,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			if(in_same_state == true) {
 				name = text::resolve_string_substitution(state, "map_label_adj_state", sub);
 			}
-			if(total_provinces == 1) {
+			if(total_provinces <= 2) {
 				// Adjective + Province name
 				name = text::resolve_string_substitution(state, "map_label_adj_province", sub);
 			} else {
@@ -397,7 +395,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 									name = text::produce_simple_string(state, n.get_name());
 									//Get cardinality
 									auto p1 = n.get_capital().get_mid_point();
-									auto p2 = state.world.province_get_mid_point(last_province);
+									auto p2 = p.get_mid_point();
 									auto radians = glm::atan(p1.y - p2.y, p2.x - p1.x);
 									auto degrees = std::fmod(glm::degrees(radians) + 45.f, 360.f);
 									if(degrees < 0.f) {

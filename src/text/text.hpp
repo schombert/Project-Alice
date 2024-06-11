@@ -608,9 +608,6 @@ struct fp_percentage {
 struct fp_percentage_one_place {
 	float value = 0.0f;
 };
-struct dp_percentage {
-	double value = 0.0f;
-};
 struct int_percentage {
 	int32_t value = 0;
 };
@@ -619,7 +616,7 @@ struct int_wholenum {
 };
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
 		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
-		fp_currency, pretty_integer, dp_percentage, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum, dcon::text_sequence_id,
+		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum, dcon::text_sequence_id,
 		dcon::state_definition_id>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 

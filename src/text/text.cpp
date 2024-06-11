@@ -1116,8 +1116,12 @@ std::string get_province_state_name(sys::state& state, dcon::province_id prov_id
 		return get_dynamic_state_name(state, state_instance_id);
 	} else {
 		auto sdef = fat_id.get_abstract_state_membership_as_province().get_state();
-		if(!sdef.get_name())
-			return get_name_as_string(state, fat_id.get_state_membership().get_capital());
+		if(!sdef.get_name()) {
+			auto lprovs = sdef.get_abstract_state_membership();
+			if(lprovs.begin() != lprovs.end())
+				return get_name_as_string(state, (*lprovs.begin()).get_province());
+			return "NO_TEXT_KEY";
+		}
 		return get_name_as_string(state, sdef);
 	}
 }
@@ -1188,15 +1192,35 @@ std::string format_float(float num, size_t digits) {
 	default:
 		// fallthrough
 	case 3:
+		if(num > 0.f && num < 0.001f) {
+			return std::string(">0.000");
+		} else if(num > -0.001f && num < 0.f) {
+			return std::string("<0.000");
+		}
 		snprintf(buffer, sizeof(buffer), "%.3f", num);
 		break;
 	case 2:
+		if(num > 0.f && num < 0.01f) {
+			return std::string(">0.00");
+		} else if(num > -0.01f && num < 0.f) {
+			return std::string("<0.00");
+		}
 		snprintf(buffer, sizeof(buffer), "%.2f", num);
 		break;
 	case 1:
+		if(num > 0.f && num < 0.1f) {
+			return std::string(">0.0");
+		} else if(num > -0.1f && num < 0.f) {
+			return std::string("<0.0");
+		}
 		snprintf(buffer, sizeof(buffer), "%.1f", num);
 		break;
 	case 0:
+		if(num > 0.f && num < 1.f) {
+			return std::string(">0");
+		} else if(num > -1.f && num < 0.f) {
+			return std::string("<0");
+		}
 		return std::to_string(int64_t(num));
 	}
 	return std::string(buffer);
@@ -1507,44 +1531,23 @@ std::string lb_resolve_substitution(sys::state& state, substitution sub, substit
 	} else if(std::holds_alternative<int64_t>(sub)) {
 		return std::to_string(std::get<int64_t>(sub));
 	} else if(std::holds_alternative<fp_one_place>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.1f", std::get<fp_one_place>(sub).value);
-		return std::string(buffer);
+		return text::format_float(std::get<fp_one_place>(sub).value, 1);
 	} else if(std::holds_alternative<fp_two_places>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.2f", std::get<fp_two_places>(sub).value);
-		return std::string(buffer);
+		return text::format_float(std::get<fp_two_places>(sub).value, 2);
 	} else if(std::holds_alternative<fp_three_places>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.3f",
-				std::get<fp_three_places>(sub)
-						.value); // snprintf used to use "%.2f" this appears to be a clerical mistake so i fixed it -breizh
-		return std::string(buffer);
+		return text::format_float(std::get<fp_three_places>(sub).value, 3);
 	} else if(std::holds_alternative<fp_four_places>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.4f", std::get<fp_four_places>(sub).value);
-		return std::string(buffer);
+		return text::format_float(std::get<fp_four_places>(sub).value, 4);
 	} else if(std::holds_alternative<sys::date>(sub)) {
 		return date_to_string(state, std::get<sys::date>(sub));
-		/// fp_currency, pretty_integer, fp_percentage, int_percentage
 	} else if(std::holds_alternative<fp_currency>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, " %.2f £", std::get<fp_currency>(sub).value);
-		return std::string(buffer);
+		return text::format_money(std::get<fp_currency>(sub).value);
 	} else if(std::holds_alternative<pretty_integer>(sub)) {
 		return prettify(std::get<pretty_integer>(sub).value);
 	} else if(std::holds_alternative<fp_percentage>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.0f%%", std::get<fp_percentage>(sub).value * 100.0f);
-		return std::string(buffer);
+		return text::format_percentage(std::get<fp_percentage>(sub).value, 0);
 	} else if(std::holds_alternative<fp_percentage_one_place>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.1f%%", std::get<fp_percentage_one_place>(sub).value * 100.0f);
-		return std::string(buffer);
-	} else if(std::holds_alternative<dp_percentage>(sub)) {
-		char buffer[200] = {0};
-		snprintf(buffer, 200, "%.0f%%", std::get<dp_percentage>(sub).value * 100.0f);
-		return std::string(buffer);
+		return text::format_percentage(std::get<fp_percentage_one_place>(sub).value, 1);
 	} else if(std::holds_alternative<int_percentage>(sub)) {
 		return std::to_string(std::get<int_percentage>(sub).value) + "%";
 	} else if(std::holds_alternative<int_wholenum>(sub)) {
