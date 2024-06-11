@@ -9,6 +9,7 @@
 
 #include <Windows.h>
 #include <shellapi.h>
+#include <shellscalingapi.h>
 #include "Objbase.h"
 #include "window.hpp"
 
@@ -114,7 +115,27 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		signal(SIGABRT, signal_abort_handler);
 	}
 
-	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	// Workaround for old machines
+	if(HINSTANCE hUser32dll = LoadLibrary(L"User32.dll"); hUser32dll) {
+		auto pSetProcessDpiAwarenessContext = (decltype(&SetProcessDpiAwarenessContext))GetProcAddress(hUser32dll, "SetProcessDpiAwarenessContext");
+		if(pSetProcessDpiAwarenessContext != NULL) {
+			pSetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		} else {
+			// windows 8.1 (not present on windows 8 and only available on desktop apps)
+			if(HINSTANCE hShcoredll = LoadLibrary(L"Shcore.dll"); hShcoredll) {
+				auto pSetProcessDpiAwareness = (decltype(&SetProcessDpiAwareness))GetProcAddress(hShcoredll, "SetProcessDpiAwareness");
+				if(pSetProcessDpiAwareness != NULL) {
+					pSetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+				} else {
+					SetProcessDPIAware(); //vista+
+				}
+				FreeLibrary(hShcoredll);
+			} else {
+				SetProcessDPIAware(); //vista+
+			}
+		}
+		FreeLibrary(hUser32dll);
+	}
 
 	if(SUCCEEDED(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED))) {
 		// do everything here: create a window, read messages
