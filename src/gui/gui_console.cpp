@@ -457,7 +457,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	// Render the suggestions given (after the inputted text obv)
 	float x_offs = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 	if(lhs_suggestion.glyph_count > 0) {
-		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
+		ogl::render_text(state, lhs_suggestion, ogl::color_modification::none,
 			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
 			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
 		x_offs += font.text_extent(state, lhs_suggestion, 0, lhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
