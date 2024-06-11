@@ -723,7 +723,8 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(f.glyph_advances[glyphid]);
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+
 		float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
 		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 		bool draw_icon = false;
@@ -774,6 +775,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 		x += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		baseline_y += (float(glyph_pos[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
 	}
 }
 

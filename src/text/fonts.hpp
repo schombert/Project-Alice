@@ -12,6 +12,8 @@ struct state;
 namespace text {
 
 inline constexpr uint32_t max_texture_layers = 256;
+inline constexpr int magnification_factor = 4;
+inline constexpr int dr_size = 64 * magnification_factor;
 
 uint16_t name_into_font_id(sys::state& state, std::string_view text);
 int32_t size_from_font_id(uint16_t id);
