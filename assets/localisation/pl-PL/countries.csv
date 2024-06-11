@@ -13,17 +13,17 @@ GER_ADJ;Niemiecki
 AUS;Austria
 AUS_ADJ;austriacki
 USA;Ameryka
-USA_ADJ;ameryka?ski
+USA_ADJ;amerykałski
 JAP;Japonia
-JAP_ADJ;j?zyk japo?ski
-ITA;W?ochy
-ITA_ADJ;W?oski
-KUK;Austro-W?gry
-KUK_ADJ;Austro-W?gier
+JAP_ADJ;jłzyk japołski
+ITA;Włochy
+ITA_ADJ;Włoski
+KUK;Austro-Włgry
+KUK_ADJ;Austro-Włgier
 DEN;Dania
-DEN_ADJ;du?ski
+DEN_ADJ;dułski
 FIN;Finlandia
-FIN_ADJ;fi?ski
+FIN_ADJ;fiłski
 NOR;Norwegia
 NOR_ADJ;norweski
 SCA;Skandynawia
@@ -33,7 +33,7 @@ SWE_ADJ;szwedzki
 BEL;Belgia
 BEL_ADJ;belgijski
 CAT;Katalonia
-CAT_ADJ;Katalo?ski
+CAT_ADJ;Katalołski
 FLA;Flandria
 FLA_ADJ;flamandzki
 IRE;Irlandia
@@ -45,9 +45,9 @@ POR_ADJ;portugalski
 SCO;Szkocja
 SCO_ADJ;szkocki
 SPA;Hiszpania
-SPA_ADJ;hiszpa?ski
+SPA_ADJ;hiszpałski
 WLL;Walonia
-WLL_ADJ;Walo?ski
+WLL_ADJ;Walołski
 ANH;Anhalt
 ANH_ADJ;Anhaltian
 BAD;Badenia
@@ -60,10 +60,10 @@ BRE;Brema
 BRE_ADJ;Bremian
 COB;Saxe-Coburg-Gotha
 COB_ADJ;Sas
-DZG;Gda?sk
-DZG_ADJ;Gda?sk
+DZG;Gdałsk
+DZG_ADJ;Gdałsk
 FRM;Frankfurt nad Menem
-FRM_ADJ;Par�wka
+FRM_ADJ;Parówka
 HAM;Hamburg
 HAM_ADJ;Hamburger
 HAN;Hanower
@@ -73,7 +73,7 @@ HES_ADJ;heski
 HEK;Hesja-Kassel
 HEK_ADJ;heski
 HOL;Holsztyn
-HOL_ADJ;holszty?ski
+HOL_ADJ;holsztyłski
 LIP;Lippe-Detmold
 LIP_ADJ;Lipski
 LUB;Lubeka
@@ -86,15 +86,15 @@ MEI;Saksonia-Meiningen
 MEI_ADJ;Sas
 NAS;Nassau
 NAS_ADJ;Nassauan
-NGF;Federacja P�?nocnoniemiecka
-NGF_ADJ;P�?nocne Niemcy
+NGF;Federacja Północnoniemiecka
+NGF_ADJ;Północne Niemcy
 OLD;Oldenburga
 OLD_ADJ;Oldenburski
 SAX;Saksonia
 SAX_ADJ;Sas
 SCH;Szlezwik
 SCH_ADJ;Szlezwik
-SGF;Federacja Po?udniowoniemiecka
+SGF;Federacja Południowoniemiecka
 SGF_ADJ;Niemiecki
 WEI;Saksonia-Weimar
 WEI_ADJ;Sas
@@ -105,8 +105,8 @@ LOM_ADJ;Lombardii
 LUC;Lukka
 LUC_ADJ;Luccan
 MOD;Modena
-MOD_ADJ;Mode?ski
-PAP;Pa?stwa Ko?cielne
+MOD_ADJ;Modełski
+PAP;Pałstwa Kołcielne
 PAP_ADJ;Papieski
 PAR;Parmie
 PAR_ADJ;Parmez
@@ -117,69 +117,69 @@ SIC_ADJ;sycylijski
 TRE;Triest
 TRE_ADJ;Triestian
 TUS;Toskania
-TUS_ADJ;toska?ski
+TUS_ADJ;toskałski
 VEN;Wenecja
 VEN_ADJ;wenecki
 BOH;Czechy-Morawy
 BOH_ADJ;Czech
-KRA;Krak�w
+KRA;Kraków
 KRA_ADJ;krakowski
 CRI;Krym
 CRI_ADJ;krymski
 EST;Estonia
-EST_ADJ;esto?ski
-HUN;W?gry
-HUN_ADJ;j?zyk w?gierski
+EST_ADJ;estołski
+HUN;Włgry
+HUN_ADJ;jłzyk włgierski
 LIT;Litwa
 LIT_ADJ;litewski
-LAT;?otwa
-LAT_ADJ;?otewski
+LAT;łotwa
+LAT_ADJ;łotewski
 POL;Polska
 POL_ADJ;Polski
-SLV;S?owacja
-SLV_ADJ;s?owacki
+SLV;Słowacja
+SLV_ADJ;słowacki
 SWI;Szwajcaria
 SWI_ADJ;szwajcarski
-RUT;Ru?
+RUT;Ruł
 RUT_ADJ;ruski
-SIE;Siebenb�rgen
+SIE;Siebenbürgen
 SIE_ADJ;Transylwanii
 UKR;Ukraina
-UKR_ADJ;ukrai?ski
-CZH;Czechos?owacja
-CZH_ADJ;czechos?owacki
+UKR_ADJ;ukraiłski
+CZH;Czechosłowacja
+CZH_ADJ;czechosłowacki
 ALB;Albania
-ALB_ADJ;alba?ski
-BOS;Bo?nia i Hercegowina
-BOS_ADJ;bo?niacki
-BUL;Bu?garia
-BUL_ADJ;bu?garski
+ALB_ADJ;albałski
+BOS;Bołnia i Hercegowina
+BOS_ADJ;bołniacki
+BUL;Bułgaria
+BUL_ADJ;bułgarski
 CRE;Kreta
-CRE_ADJ;krete?ski
+CRE_ADJ;kretełski
 CRO;Chorwacja
 CRO_ADJ;chorwacki
 CYP;Cypr
 CYP_ADJ;Cypryjczyk
 GRE;Grecja
 GRE_ADJ;grecki
-ION;Wyspy Jo?skie
-ION_ADJ;jo?ski
-MOL;Mo?dawia
-MOL_ADJ;mo?dawski
-MON;Czarnog�ra
-MON_ADJ;czarnog�rski
+ION;Wyspy Jołskie
+ION_ADJ;jołski
+MOL;Mołdawia
+MOL_ADJ;mołdawski
+MON;Czarnogóra
+MON_ADJ;czarnogórski
 ROM;Rumunia
-ROM_ADJ;rumu?ski
+ROM_ADJ;rumułski
 SER;Serbia
 SER_ADJ;Serb
-SLO;S?owenia
-SLO_ADJ;s?owe?ski
-TUR;Imperium Osma?skie
+SLO;Słowenia
+SLO_ADJ;słowełski
+TUR;Imperium Osmałskie
 TUR_ADJ;Otomana
-WAL;Wo?oszczyzna
-WAL_ADJ;Wo?oski
-YUG;Jugos?awia
-YUG_ADJ;jugos?owia?ski
+WAL;Wołoszczyzna
+WAL_ADJ;Wołoski
+YUG;Jugosławia
+YUG_ADJ;jugosłowiałski
 ALD;Algieria
 ALD_ADJ;algierski
 CNG;Kongo
@@ -193,19 +193,19 @@ MAD_ADJ;Madagaskarski
 LIB;Liberia
 LIB_ADJ;Liberyjski
 MOR;Maroko
-MOR_ADJ;Maroka?ski
+MOR_ADJ;Marokałski
 NAL;Natalia
 NAL_ADJ;Nataliana
 ORA;Oranje
 ORA_ADJ;Oranjeana
-SAF;Afryka Po?udniowa
-SAF_ADJ;Po?udniowa Afryka
+SAF;Afryka Południowa
+SAF_ADJ;Południowa Afryka
 SOK;Sokoto
 SOK_ADJ;Sokot
-RHO;Rodezja Po?udniowa
+RHO;Rodezja Południowa
 RHO_ADJ;rodezyjski
 TRI;Trypolis
-TRI_ADJ;Trypolita?ski
+TRI_ADJ;Trypolitałski
 TRN;Transwal
 TRN_ADJ;Transwal
 TUN;Tunis
@@ -217,17 +217,17 @@ ZUL_ADJ;Zulus
 ABU;Abu Dabi
 ABU_ADJ;Abu Zabian
 AFG;Afganistan
-AFG_ADJ;afga?ski
+AFG_ADJ;afgałski
 ARM;Armenia
-ARM_ADJ;ormia?ski
-AZB;Azerbejd?an
-AZB_ADJ;azerbejd?a?ski
+ARM_ADJ;ormiałski
+AZB;Azerbejdłan
+AZB_ADJ;azerbejdłałski
 BUK;Buchara
 BUK_ADJ;Bukkharan
 GEO;Gruzja
-GEO_ADJ;gruzi?ski
+GEO_ADJ;gruziłski
 HDJ;Hedjaz
-HDJ_ADJ;Hed?azi
+HDJ_ADJ;Hedłazi
 IRQ;Irak
 IRQ_ADJ;iracki
 KHI;Chiwa
@@ -235,7 +235,7 @@ KHI_ADJ;Chiwan
 KOK;Kokand
 KOK_ADJ;Kokandi
 MUG;Mogolastan
-MUG_ADJ;Mogo?�w
+MUG_ADJ;Mogołów
 NEJ;Nejd
 NEJ_ADJ;Nejdi
 OMA;Oman
@@ -268,7 +268,7 @@ JAI;Jaipur
 JAI_ADJ;Jaipuri
 JAS;Jaisalmer
 JAS_ADJ;Jaisalmeri
-JOD;D?odhpur
+JOD;Dłodhpur
 JOD_ADJ;Jodhpuri
 KAL;Kalat
 KAL_ADJ;Kalati
@@ -290,7 +290,7 @@ NEP;Nepal
 NEP_ADJ;Nepalski
 ORI;Orisa
 ORI_ADJ;Orissan
-PAN;Pand?ab
+PAN;Pandłab
 PAN_ADJ;Panjabi
 SHI;Shimla
 SHI_ADJ;Shimlan
@@ -305,21 +305,21 @@ ATJ_ADJ;Atjehnese
 BAL;Bali
 BAL_ADJ;balijski
 BHU;Bhutan
-BHU_ADJ;Bhuta?czyk
+BHU_ADJ;Bhutałczyk
 BRU;Brunei
 BRU_ADJ;Brunei
 BUR;Birma
-BUR_ADJ;Birma?czyk
-CAM;Kambod?a
-CAM_ADJ;Kambod?a?ska
+BUR_ADJ;Birmałczyk
+CAM;Kambodła
+CAM_ADJ;Kambodłałska
 CHI;Chiny
-CHI_ADJ;chi?ski
+CHI_ADJ;chiłski
 DAI;Dai Nam
 DAI_ADJ;wietnamski
 JAV;Jawa
 JAV_ADJ;jawajski
 KOR;Korea
-KOR_ADJ;korea?ski
+KOR_ADJ;koreałski
 LUA;Luang Prabang
 LUA_ADJ;Luang Prabangi
 JOH;Johor
@@ -327,15 +327,15 @@ JOH_ADJ;Johoriana
 SIA;Syjam
 SIA_ADJ;syjamski
 TIB;Tybet
-TIB_ADJ;tybeta?ski
+TIB_ADJ;tybetałski
 MGL;Mongolia
 MGL_ADJ;mongolski
 WIA;Wiang Chhana
 WIA_ADJ;Wientian
 PHI;Filipiny
 PHI_ADJ;Filipiny
-MCK;Mand?ukuo
-MCK_ADJ;Mand?urski
+MCK;Mandłukuo
+MCK_ADJ;Mandłurski
 GXI;Klika Guangxi
 GXI_ADJ;Kuangsi
 SXI;Klika Shanxi
@@ -355,27 +355,27 @@ CHE_ADJ;Czirokez
 COL;Kolumbia
 COL_ADJ;Kolumbijczyk
 COS;Kostaryka
-COS_ADJ;Kostaryka?czyk
+COS_ADJ;Kostarykałczyk
 CSA;Ameryka
 CSA_ADJ;Konfederat
 CUB;Kuba
-CUB_ADJ;kuba?ski
+CUB_ADJ;kubałski
 DES;Pustynia
 DES_ADJ;Mormon
 DOM;Republika Dominikany
-DOM_ADJ;dominika?ski
+DOM_ADJ;dominikałski
 ELS;Salwador
 ELS_ADJ;Salwadorczyk
 GUA;Gwatemala
 GUA_ADJ;Gwatemalski
 HAI;Haiti
-HAI_ADJ;haita?ski
+HAI_ADJ;haitałski
 HAW;Hawaje
 HAW_ADJ;hawajski
 MAN;Gmina Manhattan
 MAN_ADJ;Manhattanit
 MEX;Meksyk
-MEX_ADJ;Meksyka?ski
+MEX_ADJ;Meksykałski
 MTC;Konfederacja Metis
 MTC_ADJ;Metys
 HON;Honduras
@@ -385,17 +385,17 @@ NEN_ADJ;Nowy angielski
 NEW;Nowy
 NEW_ADJ;Nowofundlandczyk
 NIC;Nikaragua
-NIC_ADJ;Nikaragua?czyk
+NIC_ADJ;Nikaraguałczyk
 PNM;Panama
 PNM_ADJ;panamski
 QUE;Quebec
 QUE_ADJ;Quebec
 TEX;Teksas
-TEX_ADJ;Teksa?czyk
-UCA;Stany Zjednoczone Ameryki ?rodkowej
-UCA_ADJ;Ameryka ?rodkowa
+TEX_ADJ;Teksałczyk
+UCA;Stany Zjednoczone Ameryki łrodkowej
+UCA_ADJ;Ameryka łrodkowa
 ARG;Argentyna
-ARG_ADJ;Argenty?czyk
+ARG_ADJ;Argentyłczyk
 BOL;Boliwia
 BOL_ADJ;boliwijski
 BRZ;Brazylia
@@ -407,7 +407,7 @@ CLM_ADJ;Kolumbijczyk
 ECU;Ekwador
 ECU_ADJ;ekwadorski
 PEU;Peru
-PEU_ADJ;peruwia?ski
+PEU_ADJ;peruwiałski
 PRG;Paragwaj
 PRG_ADJ;Paragwajski
 URU;Urugwaj
@@ -425,52 +425,52 @@ BYZ_ADJ;bizantyjski
 ICL;Islandia
 ICL_ADJ;islandzki
 BAB;Babilon
-BAB_ADJ;babilo?ski
-TPG;Kr�lestwo Niebieskie
+BAB_ADJ;babilołski
+TPG;Królestwo Niebieskie
 TPG_ADJ;Taiping
 ARA;Arabia
 ARA_ADJ;Arab
-UBD;Zjednoczone Prowincje Ba?tyckie
-UBD_ADJ;ba?tycki
-BYE;Bia?oru?
-BYE_ADJ;bia?oruski
+UBD;Zjednoczone Prowincje Bałtyckie
+UBD_ADJ;bałtycki
+BYE;Białoruł
+BYE_ADJ;białoruski
 PLC;Polska-Litwa
 PLC_ADJ;polsko-litewski
 GCO;Wielka Kolumbia
 GCO_ADJ;Gran Kolumbijska
 JAN;Jana Mayena
 JAN_ADJ;Jana Mayena
-D01;Kr�lestwo $region$
-D01_ADJ;Kr�lowie
+D01;Królestwo $region$
+D01_ADJ;Królowie
 D02;Konfederacja $region$
 D02_ADJ;Konfederat
-D03;Wsp�lnota $region$
-D03_ADJ;Wsp�lnota
+D03;Wspólnota $region$
+D03_ADJ;Wspólnota
 D04;Republika $region$
-D04_ADJ;Republika?ski
+D04_ADJ;Republikałski
 D05;Stan $region$
-D05_ADJ;Pa?stwowa
+D05_ADJ;Pałstwowa
 D06;Republika Ludowa $region$
-D06_ADJ;Republika?ski
-D07;Wolne Pa?stwo $region$
+D06_ADJ;Republikałski
+D07;Wolne Pałstwo $region$
 D07_ADJ;Freestator
 D08;Wielki stan $region$
 D08_ADJ;Grandstator
 D09;Stan $region$
-D09_ADJ;Pa?stwowa
-D10;Ksi?stwo $region$
-D10_ADJ;Ksi???cy
+D09_ADJ;Pałstwowa
+D10;Ksiłstwo $region$
+D10_ADJ;Ksiłłłcy
 D11;Demokratyczna Republika $region$
 D11_ADJ;Republikanin
 D12;Unia $region$
 D12_ADJ;Unionista
-D13;Kr�lestwo $region$
-D13_ADJ;Kr�lowie
+D13;Królestwo $region$
+D13_ADJ;Królowie
 D14;Dominium $region$
 D14_ADJ;Panowanie
-D15;Wielkie Ksi?stwo $region$
+D15;Wielkie Ksiłstwo $region$
 D15_ADJ;Grand
-D16;$region$ Nar�d
+D16;$region$ Naród
 D16_ADJ;Krajowy
 D17;Federacja $region$
 D17_ADJ;Federacja
@@ -478,33 +478,33 @@ D18;Stany Zjednoczone $region$
 D18_ADJ;Unia
 D19;Unia Demokratyczna $region$
 D19_ADJ;Unia
-D20;Ksi?stwo $region$
-D20_ADJ;Ksi???cy
-D21;Zwi?zek $region$
+D20;Ksiłstwo $region$
+D20_ADJ;Ksiłłłcy
+D21;Zwiłzek $region$
 D21_ADJ;Unionista
 D22;$region$, Republika Ludowo-Demokratyczna
 D22_ADJ;PDR
 D23;Obszar $region$
 D23_ADJ;Areona
 D24;Chwalebna Unia $region$
-D24_ADJ;Wspania?y
-D25;Pot??ny $region$
-D25_ADJ;Pot??ny
-D26;$region$ Wolne Pa?stwo
+D24_ADJ;Wspaniały
+D25;Potłłny $region$
+D25_ADJ;Potłłny
+D26;$region$ Wolne Pałstwo
 D26_ADJ;Freestator
-D27;$region$ Wsp�lnota Narod�w
-D27_ADJ;Wsp�lnota
+D27;$region$ Wspólnota Narodów
+D27_ADJ;Wspólnota
 D28;Konfederacja $region$
 D28_ADJ;Konfederat
 D29;Wolni ludzie $region$
 D29_ADJ;Wolni ludzie
 D30;Republika $region$
-D30_ADJ;Republika?ski
-D31;?wi?ta Unia $region$
+D30_ADJ;Republikałski
+D31;łwiłta Unia $region$
 D31_ADJ;Gorliwiec
-D32;Zwi?zek Ludowy $region$
+D32;Zwiłzek Ludowy $region$
 D32_ADJ;Unionista
-D33;Kraje zwi?zkowe $region$
+D33;Kraje zwiłzkowe $region$
 D33_ADJ;Federacja
 D34;$region$ Stan federalny
 D34_ADJ;Federacja
@@ -512,31 +512,31 @@ D35;Konfederacja $region$
 D35_ADJ;Konfederat
 D36;Federacja $region$
 D36_ADJ;Federacja
-D37;Pobo?na Unia $region$
-D37_ADJ;Pobo?ny
-D38;? Grunt
-D38_ADJ;L?downik
+D37;Pobołna Unia $region$
+D37_ADJ;Pobołny
+D38;ł Grunt
+D38_ADJ;Lłdownik
 D39;Najspokojniejsza republika $region$
 D39_ADJ;Spokojny
-D40;Sekretne kr�lestwo $region$
+D40;Sekretne królestwo $region$
 D40_ADJ;Sekret
 D41;Gmina $region$
 D41_ADJ;komunistyczny
 D42;Gmina $region$
 D42_ADJ;komunistyczny
-D43;Zwi?zek Robotniczy $region$
+D43;Zwiłzek Robotniczy $region$
 D43_ADJ;Pracownik
 D44;Landgraf $region$
 D44_ADJ;Landgravina
-D45;Nar�d $region$
-D45_ADJ;Narodowo??
-D46;?wi?ty $region$
+D45;Naród $region$
+D45_ADJ;Narodowołł
+D46;łwiłty $region$
 D46_ADJ;Gorliwy
 D47;Dominium $region$
 D47_ADJ;Dominator
-D48;Pa?stwo Ludowe $region$
+D48;Pałstwo Ludowe $region$
 D48_ADJ;Popularny
-D49;Wysokie Kr�lestwo $region$
-D49_ADJ;Najwy?szy
-D50;Ma?e Ksi?stwo $region$
-D50_ADJ;Ksi?stwo
+D49;Wysokie Królestwo $region$
+D49_ADJ;Najwyłszy
+D50;Małe Ksiłstwo $region$
+D50_ADJ;Ksiłstwo

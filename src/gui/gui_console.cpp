@@ -465,7 +465,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	if(rhs_suggestion.glyph_count > 0) {
 		// Place text right before it ends (centered right)
 		x_offs = float(base_data.size.x);
-		x_offs -= 24;
+		x_offs -= 24.f;
 		x_offs -= font.text_extent(state, rhs_suggestion, 0, rhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
 		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
 			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
@@ -1294,7 +1294,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				}
 				out_text += " ";
 				// the raw text data is not stored, only the shaped glyphs
-				out_text += e.unicodechars.base_text;
+				//out_text += e.unicodechars.glyph_info[0].codepoint;
 			}
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
