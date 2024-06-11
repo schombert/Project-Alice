@@ -1715,7 +1715,7 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		dcon::text_sequence_id name;
 		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
 			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
 		}
 		context.add_int32_t_to_payload(name.index());
 	}
@@ -1739,7 +1739,7 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		dcon::text_sequence_id name;
 		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
 			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
 		}
 		context.add_int32_t_to_payload(name.index());
 	}

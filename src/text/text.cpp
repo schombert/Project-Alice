@@ -86,56 +86,81 @@ bool codepoint_is_line_break(uint32_t c) noexcept {
 	return  c == 0x2029 || c == 0x2028 || c == uint32_t('\n') || c == uint32_t('\r');
 }
 
-text_sequence create_text_sequence(sys::state& state, std::string_view content, text::language_encoding enc) {
-	auto const convert_to_utf8 = [enc](std::string_view s) -> std::string {
-		if(enc == text::language_encoding::win1252) {
-			return simple_fs::native_to_utf8(simple_fs::win1250_to_native(s));
-		}
-		return std::string(s);
-	};
-	auto utf8_content = convert_to_utf8(content);
-	char const* seq_start = utf8_content.data();
-	char const* seq_end = utf8_content.data() + utf8_content.size();
+text_sequence create_text_sequence(sys::state& state, std::string_view content, bool as_unicode) {
+	char const* seq_start = content.data();
+	char const* seq_end = content.data() + content.size();
 	char const* section_start = seq_start;
 
 	const auto component_start_index = state.text_components.size();
-	for(char const* pos = seq_start; pos < seq_end;) {
-		bool colour_esc = false;
-		if(pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*(pos + 1)) == 0xA7) {
-			if(section_start != pos) {
-				auto sv = std::string_view(section_start, pos - section_start);
+
+	auto add_text_range = [&](std::string_view sv) {
+		if(sv.length() > 0) {
+			if(as_unicode) {
 				auto added_key = state.add_to_pool(sv);
 				state.text_components.emplace_back(added_key);
+			} else {
+				std::string temp;
+				for(auto c : sv) {
+					auto unicode = text::win1250toUTF16(c);
+					if(unicode == 0x00A7)
+						unicode = uint16_t('?'); // convert section symbol to ?
+
+					if(unicode <= 0x007F) {
+						temp.push_back(char(unicode));
+					} else if(unicode <= 0x7FF) {
+						temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+						temp.push_back(char(uint8_t(0x3F & unicode)));
+					} else { // if unicode <= 0xFFFF
+						temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+						temp.push_back(char(uint8_t(0x3F & (unicode >> 6))));
+						temp.push_back(char(uint8_t(0x3F & unicode)));
+					}
+				}
+				auto added_key = state.add_to_pool(temp);
+				state.text_components.emplace_back(added_key);
 			}
-			pos += 2;
+		}
+	};
+
+	for(char const* pos = seq_start; pos < seq_end;) {
+		bool colour_esc = false;
+		if(!as_unicode && uint8_t(*pos) == 0xA7) {
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
+
+			pos += 1;
 			section_start = pos;
-			// This colour escape sequence must be followed by something, otherwise
-			// we should probably discard the last colour command
 			if(pos < seq_end) {
 				state.text_components.emplace_back(char_to_color(*pos));
 				pos += 1;
 				section_start = pos;
 			}
-		} else if(pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
-			if(section_start != pos) {
-				auto sv = std::string_view(section_start, pos - section_start);
-				auto added_key = state.add_to_pool(sv);
-				state.text_components.emplace_back(added_key);
+		} else if(as_unicode && pos + 1 < seq_end && uint8_t(*pos) == 0xC2 && uint8_t(*(pos + 1)) == 0xA7) {
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
+
+			pos += 2;
+			section_start = pos;
+			if(pos < seq_end) {
+				state.text_components.emplace_back(char_to_color(*pos));
+				pos += 1;
+				section_start = pos;
 			}
+		} else if(as_unicode && pos + 2 < seq_end && uint8_t(*pos) == 0xEF && uint8_t(*(pos + 1)) == 0xBF && uint8_t(*(pos + 2)) == 0xBD && is_qmark_color(*(pos + 3))) {
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
+
 			section_start = pos += 3;
-			// This colour escape sequence must be followed by something, otherwise
-			// we should probably discard the last colour command
+
 			if(pos < seq_end) {
 				state.text_components.emplace_back(char_to_color(*pos));
 				pos += 1;
 				section_start = pos;
 			}
 		} else if(pos + 1 < seq_end && *pos == '?' && is_qmark_color(*(pos + 1))) {
-			if(section_start != pos) {
-				auto sv = std::string_view(section_start, pos - section_start);
-				auto added_key = state.add_to_pool(sv);
-				state.text_components.emplace_back(added_key);
-			}
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
+
 			pos += 1;
 			section_start = pos;
 			// This colour escape sequence must be followed by something, otherwise
@@ -146,11 +171,9 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 				section_start = pos;
 			}
 		} else if(*pos == '$') {
-			if(section_start != pos) {
-				auto sv = std::string_view(section_start, pos - section_start);
-				auto added_key = state.add_to_pool(sv);
-				state.text_components.emplace_back(added_key);
-			}
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
+
 			const char* vend = pos + 1;
 			for(; vend != seq_end && *vend != '$'; ++vend)
 				;
@@ -159,23 +182,17 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 			pos = vend + 1;
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
-			if(section_start != pos) {
-				auto sv = std::string_view(section_start, pos - section_start);
-				auto added_key = state.add_to_pool(sv);
-				state.text_components.emplace_back(added_key);
-			}
+			add_text_range(std::string_view(section_start, pos - section_start));
+
 			state.text_components.emplace_back(line_break{});
 			section_start = pos += 2;
 		} else {
-			pos += size_from_utf8(seq_start, seq_end); //skip over multibyte
+			++pos;
 		}
 	}
 
-	if(section_start < seq_end) {
-		auto sv = std::string_view(section_start, seq_end - section_start);
-		auto added_key = state.add_to_pool(sv);
-		state.text_components.emplace_back(added_key);
-	}
+	if(section_start < seq_end)
+		add_text_range(std::string_view(section_start, seq_end - section_start));
 
 	// TODO: Emit error when 64K boundary is violated
 	assert(state.text_components.size() < std::numeric_limits<uint32_t>::max());
@@ -186,9 +203,9 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 	};
 }
 
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language) {
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language, bool as_unicode) {
 	auto to_lower_temp = lowercase_str(key);
-	auto sequence_record = create_text_sequence(state, content, state.languages[language].encoding);
+	auto sequence_record = create_text_sequence(state, content, as_unicode);
 	if(auto it = state.key_to_text_sequence.find(to_lower_temp); it != state.key_to_text_sequence.end()) {
 		//err.accumulated_warnings += "Repeated definition '" + std::string(to_lower_temp) + "' in file " + err.file_name + "\n";
 		if(state.languages[language].text_sequences.size() <= size_t(it->second.value)) {
@@ -206,22 +223,22 @@ dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key
 	}
 }
 
-void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err) {
+void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, bool as_unicode) {
 	auto cpos = (file_size != 0 && file_content[0] == '#')
 		? parsers::csv_advance_to_next_line(file_content, file_content + file_size)
 		: file_content;
 	while(cpos < file_content + file_size) {
 		cpos = parsers::parse_first_and_fixed_amount_csv_values<6>(cpos, file_content + file_size, ';', [&](std::string_view key, std::string_view content, uint32_t column) {
-			create_text_entry(state, key, content, err, column);
+			create_text_entry(state, key, content, err, column, as_unicode);
 		});
 	}
 }
 
-void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, uint32_t language) {
+void consume_new_csv_file(sys::state& state, char const* file_content, uint32_t file_size, parsers::error_handler& err, uint32_t language, bool as_unicode) {
 	auto cpos = file_content;
 	while(cpos < file_content + file_size) {
 		cpos = parsers::parse_fixed_amount_csv_values<2>(cpos, file_content + file_size, ';', [&](std::string_view const* values) {
-			create_text_entry(state, values[0], values[1], err, language);
+			create_text_entry(state, values[0], values[1], err, language, as_unicode);
 		});
 	}
 }
@@ -303,14 +320,14 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err, false);
 		}
 	}
 	for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
 		if(auto ofile = open_file(file); ofile) {
 			auto content = view_contents(*ofile);
 			err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-			consume_csv_file(state, content.data, content.file_size, err);
+			consume_csv_file(state, content.data, content.file_size, err, false);
 		}
 	}
 
@@ -325,7 +342,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				if(auto ofile = open_file(file); ofile) {
 					auto content = view_contents(*ofile);
 					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-					consume_new_csv_file(state, content.data, content.file_size, err, i);
+					consume_new_csv_file(state, content.data, content.file_size, err, i, true);
 				}
 			}
 			auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
@@ -333,7 +350,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 				if(auto ofile = open_file(file); ofile) {
 					auto content = view_contents(*ofile);
 					err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-					consume_new_csv_file(state, content.data, content.file_size, err, i);
+					consume_new_csv_file(state, content.data, content.file_size, err, i, true);
 				}
 			}
 		}
@@ -343,7 +360,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-				consume_new_csv_file(state, content.data, content.file_size, err, i);
+				consume_new_csv_file(state, content.data, content.file_size, err, i, true);
 			}
 		}
 		auto assets_lang_dir = open_directory(assets_dir, lang_dir_name);
@@ -351,7 +368,7 @@ void load_text_data(sys::state& state, parsers::error_handler& err) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				err.file_name = simple_fs::native_to_utf8(simple_fs::get_file_name(file));
-				consume_new_csv_file(state, content.data, content.file_size, err, i);
+				consume_new_csv_file(state, content.data, content.file_size, err, i, true);
 			}
 		}
 	}
@@ -921,7 +938,7 @@ dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view txt) 
 		for(uint32_t i = 0; i < uint32_t(state.languages.size()); i++) {
 			if(state.languages[i].encoding == text::language_encoding::none)
 				break;
-			seq = create_text_entry(state, local_key_copy, txt, err, i);
+			seq = create_text_entry(state, local_key_copy, txt, err, i, false);
 		}
 		return seq;
 	}

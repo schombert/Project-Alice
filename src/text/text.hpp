@@ -725,14 +725,14 @@ void close_layout_box(layout_base& dest, layout_box& box);
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 void add_to_substitution_map(substitution_map& mp, variable_type key, std::string const&); // DO NOT USE THIS FUNCTION
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err);
+void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err, bool as_unicode);
 variable_type variable_type_from_name(std::string_view);
 void load_text_data(sys::state& state, parsers::error_handler& err);
 void finish_text_data(sys::state& state);
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language);
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language, bool as_unicode);
 dcon::text_sequence_id find_key(sys::state& state, std::string_view txt);
 dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 std::string date_to_string(sys::state& state, sys::date date);
