@@ -288,7 +288,7 @@ struct tr_work_available {
 
 struct tr_news_data_parameters {
 	std::vector<std::string> list;
-	void free(association_type, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+	void free_value(std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
 		list.push_back(std::string(value));
 	}
 	void finish(trigger_building_context&) { }
@@ -5749,6 +5749,7 @@ struct trigger_body {
 	void values_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
 	void dates_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
 	void length_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void news_printing_count(association_type a, int32_t value, error_handler& err, int32_t line, trigger_building_context& context);
 
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {

@@ -3673,6 +3673,17 @@ struct effect_body {
 	}
 };
 
+struct ef_clear_news_scopes {
+	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) {
+		// TODO: news scopes limit
+		//context.compiled_effect[context.limit_position] = trigger::payload(lim).value;
+	}
+	void type(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
+		// TODO: Type
+	}
+	void finish(effect_building_context& context) { }
+};
+
 struct event_option : public effect_body {
 	dcon::value_modifier_key ai_chance;
 	dcon::text_sequence_id name_;
