@@ -1019,11 +1019,11 @@ decision
 	effect                          extern     make_decision_effect              member_fn
 	ai_will_do                      extern     make_decision_ai_choice           member_fn
 	news                            value      bool                              discard
-	news_desc_long                  value      text                              discard
-	news_desc_medium                value      text                              discard
-	news_desc_short                 value      text                              discard
-	news_title                              value      text                              discard
-	news_picture                              value      text                              discard
+	news_desc_long                  value      text                              member_fn
+	news_desc_medium                value      text                              member_fn
+	news_desc_short                 value      text                              member_fn
+	news_title                              value      text                      member_fn
+	news_picture                              value      text                    member_fn
 	alert                           value      bool                              discard
 	picture                         value      text                              member_fn
 
@@ -1050,11 +1050,11 @@ generic_event
 	option                          extern     make_event_option                 member_fn
 	immediate                       extern     make_immediate_effect             member_fn
 	news                            value      bool                              discard
-	news_desc_long                  value      text                              discard
-	news_desc_medium                value      text                              discard
-	news_desc_short                 value      text                              discard
-	news_title                      value      text                              discard
-	news_picture                              value      text                              discard
+	news_desc_long                  value      text                              member_fn
+	news_desc_medium                value      text                              member_fn
+	news_desc_short                 value      text                              member_fn
+	news_title                      value      text                              member_fn
+	news_picture                              value      text                              member_fn
 	major                           value      bool                              member
 	picture                         value      text                              member_fn
 	fire_only_once                  value      bool                              member

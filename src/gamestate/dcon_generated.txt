@@ -4563,6 +4563,31 @@ object {
 		type{ uint8_t }
 	}
 	property{
+		name{ news_long_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_medium_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_short_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_picture }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+	property{
 		name{ allow_multiple_instances }
 		type{ bitfield }
 		tag{ scenario }
@@ -4598,6 +4623,31 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+	}
+	property{
+		name{ news_long_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_medium_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_short_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_picture }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
 	}
 }
 
@@ -4667,6 +4717,31 @@ object {
 		name{ auto_choice }
 		type{ uint8_t }
 	}
+	property{
+		name{ news_long_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_medium_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_short_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_picture }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4719,6 +4794,31 @@ object {
 	property{
 		name{ auto_choice }
 		type{ uint8_t }
+	}
+	property{
+		name{ news_long_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_medium_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_short_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_picture }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
 	}
 }
 
@@ -4849,6 +4949,58 @@ object {
 		name{ hide_notification }
 		type{ bitfield }
 		tag{ save }
+	}
+	property{
+		name{ news_long_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_medium_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_short_desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_title }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ news_picture }
+		type{ dcon::gfx_object_id }
+		tag{ scenario }
+	}
+}
+
+object {
+	name{ news_article_generator }
+	storage_type{ contiguous }
+	size{ 500 }
+	tag{ scenario }
+	property{
+		name{ flags }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ picture_case }
+		type{ std::array<sys::news_picture_case,sys::max_news_generator_cases> }
+		tag{ scenario }
+	}
+	property{
+		name{ title_case }
+		type{ std::array<sys::news_text_case,sys::max_news_generator_cases> }
+		tag{ scenario }
+	}
+	property{
+		name{ desc_case }
+		type{ std::array<sys::news_text_case,sys::max_news_generator_cases> }
+		tag{ scenario }
 	}
 }
 

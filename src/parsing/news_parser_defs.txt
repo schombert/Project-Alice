@@ -1,27 +1,33 @@
-news_picture_case
-	trigger			group	none			discard
-	picture			value	text			discard
-
 news_text_add
-	#free			value	text			discard
+	#free				value	text				member_fn
 
-news_text_case
-	trigger			group	none			discard
-	text_add		value	news_text_add		discard
+news_picture_case
+	trigger				extern	make_news_trigger	member
+	picture				value	text				member_fn
 
-news_generator
-	type			value	text			discard
-	name			value	text			discard
-	size			value	text			discard
-	picture_case		group	news_picture_case	discard
-	title_case		group	news_text_case		discard
-	description_case	group	news_text_case		discard
+news_title_case
+	trigger				extern	make_news_trigger	member
+	text_add			group	news_text_add		member_fn
+
+news_desc_case
+	trigger				extern	make_news_trigger	member
+	text_add			group	news_text_add		member_fn
 
 news_generator_selector
-	#base news_generator
+	type				value	text				discard
+	name				value	text				discard
+	size				value	text				discard
+	picture_case		group	news_picture_case	discard
+	title_case			group	news_title_case		discard
+	description_case	group	news_desc_case		discard
 
 news_generate_article
-	#base news_generator
+	type				value	text				member_fn
+	name				value	text				discard
+	size				value	text				member_fn
+	picture_case		group	news_picture_case	member_fn
+	title_case			group	news_title_case		member_fn
+	description_case	group	news_desc_case		member_fn
 
 news_pattern
 	name			value	text			member_fn

@@ -286,6 +286,14 @@ struct tr_work_available {
 	void finish(trigger_building_context&) { }
 };
 
+struct tr_news_data_parameters {
+	std::vector<std::string> list;
+	void free(association_type, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		list.push_back(std::string(value));
+	}
+	void finish(trigger_building_context&) { }
+};
+
 inline bool is_from(std::string_view value) {
 	return is_fixed_token_ci(value.data(), value.data() + value.length(), "from");
 }
@@ -5719,6 +5727,28 @@ struct trigger_body {
 		}
 		context.compiled_trigger.push_back(trigger::payload(value.pop_type_list[0]).value);
 	}
+
+	// news xxx_eq
+	void tags_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_eq(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_greater
+	void tags_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_match
+	void tags_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_match(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	//news xxx_greater
+	void tags_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void strings_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void values_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void dates_contains(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
+	void length_greater(tr_news_data_parameters const& value, error_handler& err, int32_t line, trigger_building_context& context);
 
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
