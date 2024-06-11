@@ -109,11 +109,11 @@ text_sequence create_text_sequence(sys::state& state, std::string_view content, 
 						temp.push_back(char(unicode));
 					} else if(unicode <= 0x7FF) {
 						temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
-						temp.push_back(char(uint8_t(0x3F & unicode)));
+						temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 					} else { // if unicode <= 0xFFFF
 						temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
-						temp.push_back(char(uint8_t(0x3F & (unicode >> 6))));
-						temp.push_back(char(uint8_t(0x3F & unicode)));
+						temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+						temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 					}
 				}
 				auto added_key = state.add_to_pool(temp);
