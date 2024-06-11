@@ -1303,11 +1303,6 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(economy::money), text::text_color::yellow);
-		text::add_to_layout_box(state, contents, box, std::string_view(":"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::fp_currency{ fat_id.get_stockpiles(economy::money) }, text::text_color::green);
-		text::add_line_break_to_layout_box(state, contents, box);
 		auto total = fat_id.get_demographics(demographics::total);
 		if(total > 0.f) {
 			{
