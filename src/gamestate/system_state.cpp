@@ -1908,7 +1908,8 @@ void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
 	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
 	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
-	ui_state.outliner_window->impl_on_update(*this);
+	if(ui_state.outliner_window)
+		ui_state.outliner_window->impl_on_update(*this);
 	// TODO move windows
 }
 
