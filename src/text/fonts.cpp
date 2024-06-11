@@ -163,8 +163,7 @@ int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t bt
 		return bmp_x + bmp_y * (int32_t)pitch;
 }
 
-constexpr int magnification_factor = 4;
-constexpr int dr_size = 64 * magnification_factor;
+
 constexpr float rt_2 = 1.41421356237309504f;
 
 void init_in_map(bool in_map[dr_size * dr_size], uint8_t const* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
@@ -464,7 +463,7 @@ float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t st
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = glyph_positions[glyphid];
-		float x_advance = float(glyph_advances[glyphid]);
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		bool draw_icon = false;
 		bool draw_flag = false;
 		if(glyphid == FT_Get_Char_Index(font_face, '@')) {
