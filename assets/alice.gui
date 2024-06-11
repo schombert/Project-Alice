@@ -119,22 +119,6 @@ guiTypes = {
 				position = { 51 99 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
-			# Use classic fonts (Y/N)
-			instantTextBoxType = {
-				name = "fonts_label"
-				position = { 194 100 }
-				text = "fonts_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = left
-			}
-			guiButtonType = {
-				name = "fonts_checkbox"
-				position = { 167 99 }
-				quadTextureSprite = "GFX_checkbox_default"
-			}
 			# Fog of War (Y/N)
 			instantTextBoxType = {
 				name = "fow_label"
@@ -4149,5 +4133,10 @@ guiTypes = {
 		name = "alice_interested_in_alliance"
 		position = { 0 0 }
 		quadTextureSprite = "GFX_checkbox_default"	
+	}
+	guiButtonType = {
+		name = "alice_move_capital"
+		position = { 0 0 }
+		quadTextureSprite = "GFX_move_capital"	
 	}
 }

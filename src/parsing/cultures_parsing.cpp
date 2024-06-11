@@ -312,6 +312,7 @@ void register_technology(std::string_view name, token_generator& gen, error_hand
 
 	auto name_id = text::find_or_add_key(context.state, name);
 	context.state.world.technology_set_name(new_id, name_id);
+	context.state.world.technology_set_desc(new_id, text::find_or_add_key(context.state, std::string(name) + "_desc"));
 
 	context.map_of_technologies.insert_or_assign(std::string(name), pending_tech_content{gen, new_id});
 
@@ -366,6 +367,7 @@ void register_invention(std::string_view name, token_generator& gen, error_handl
 
 	auto name_id = text::find_or_add_key(context.outer_context.state, name);
 	context.outer_context.state.world.invention_set_name(new_id, name_id);
+	context.outer_context.state.world.invention_set_desc(new_id, text::find_or_add_key(context.outer_context.state, std::string(name) + "_desc"));
 	context.outer_context.state.world.invention_set_technology_type(new_id, uint8_t(context.category));
 
 	context.outer_context.map_of_inventions.insert_or_assign(std::string(name), pending_invention_content{gen, new_id});

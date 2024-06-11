@@ -331,6 +331,8 @@ effect_body
 	any_defined_country             extern      ef_scope_any_defined_country  discard
 	any_existing_country_except_scoped	extern	ef_scope_any_existing_country_except_scoped  discard
 	random_neighbor_country         extern      ef_scope_random_neighbor_country    discard
+	from_bounce						extern		ef_scope_from_bounce		discard
+	this_bounce						extern		ef_scope_this_bounce		discard
 	#any                            extern      ef_scope_variable           discard
 
 event_option

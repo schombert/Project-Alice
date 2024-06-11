@@ -1755,7 +1755,7 @@ public:
 		}
 		image_element_base::render(state, x, y);
 		ogl::color3f color{ 0.f, 0.f, 0.f };
-		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
+		//ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 
@@ -1771,7 +1771,7 @@ public:
 		}
 		image_element_base::render(state, x, y);
 		ogl::color3f color{ 0.f, 0.f, 0.f };
-		ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
+		//ogl::render_text(state, &cached_level, 1, ogl::color_modification::none, float(x + 16 + 1.0f), float(y + 1.0f), color, 1);
 	}
 };
 

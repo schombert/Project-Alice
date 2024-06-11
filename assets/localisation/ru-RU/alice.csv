@@ -1183,3 +1183,5 @@ alice_pnt_dominant_religion;?YДоминирующая религия:?! $x$
 alice_pnt_dominant_ideology;?YДоминантная идеология:?! $x$
 ledger_ppp_gdp;ВВП(ППС)
 ledger_ppp_gdp_per_capita;ВВП(ППС) на 1 млн человек
+becomes_from;Scoped becomes from
+becomes_this;Scoped becomes this

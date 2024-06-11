@@ -23,20 +23,11 @@ In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when t
 - `any_existing_country_except_scoped`: Same behaviour of `any_country` on decisions, any existing nation except the one scoped
 - `any_defined_country`: Same behaviour of `any_country` on events, scope all countries even those that don't exist and includes the current country
 - `random_neighbor_country`: A random neighbouring country.
-- `break_if = { ... }`: Stop exeuction of the effect if the condition is fullfilled.
+- `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
+- `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
+- `this_bounce = { ... }`: Same as above but with `THIS`.
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
-
-### Custom tooltip
-```
-custom_tooltip = {
-	x = <variable> #$x$
-	y = <variable> #$x$
-	text = "localisation_key"
-}
-```
-Alternatively:
-`custom_tooltip = "localisation_key"`
 
 ### New trigger conditions
 
@@ -51,6 +42,97 @@ Alternatively:
 - `all_substate = { ... }`: All substates must fulfill condition, similar to `any_substate`
 - `all_sphere_member = { ... }`: All sphere members must fulfill condition, similar to `any_sphere_member`
 - `all_pop = { ... }`: All POPs must fulfill condition, similar to `any_pop`
+- `all_greater_power = { ... }`: All greater powers must fullfill condition.
+- `any_owned = { ... }`: Shorthand for `any_owned_province`.
+
+### FROM bounce
+FROM bouncing is a technique where before, modders would do:
+```
+country_event (THIS = USA, FROM = ---) -> fire for X
+country_event (THIS = X, FROM = USA) -> Fire for Y
+country_event (THIS = Y, FROM = X) -> <Dynamic effects>
+```
+However this can be tedious to perform, hence we added a `from_bounce` effect scope, that can be used as follows:
+```
+any_country = {
+	#Assume FROM = ENG
+	from_bounce = {
+		FROM = { add_accepted_culture = THIS }
+		THIS = { add_accepted_culture = FROM }
+	}
+	#FROM is now again = ENG
+}
+```
+
+You can even nest them! Why would you want this? Up to you really.
+
+```
+any_country = {
+	limit = { has_country_flag = paid_the_sultan }
+	from_bounce = {
+		prestige = 5
+		SUL = { random_owned = { annex_to = FROM } } #Partition the sultan
+		any_country = {
+			#All countries at war with us will get annexed
+			limit = { war_with = FROM }
+			from_bounce = { inherit = FROM }
+		}
+	}
+}
+```
+
+If the `from_bounce` has a limit, it will evaluate with FROM-relativity:
+```
+ENG = {
+	from_bounce = {
+		limit = { FROM = { tag != ENG } }
+		prestige = 5
+	}
+}
+```
+The above code will never execute because it will never be true. Same applies for `this_bounce`.
+
+Before, this would've required something akin to:
+```
+country_event = { #Setup THIS
+	id = 50000
+	option = {
+		name = "Ok"
+		any_country = { country_event = 50001 }
+	}
+}
+country_event = { #Setup THIS-FROM
+	id = 50001
+	is_triggered_only = yes
+	option = {
+		name = "Ok"
+		any_country = {
+			limit = { NOT = { tag = FROM } }
+			country_event = 50002
+		}
+	}
+}
+country_event = {
+	id = 50002
+	is_triggered_only = yes
+	option = {
+		name = "OK"
+		FROM = { add_accepted_culture = THIS }
+		THIS = { add_accepted_culture = FROM }
+	}
+}
+```
+
+### Custom tooltip
+```
+custom_tooltip = {
+	x = <variable> #$x$
+	y = <variable> #$x$
+	text = "localisation_key"
+}
+```
+Alternatively:
+`custom_tooltip = "localisation_key"`
 
 ### Lambda events
 
@@ -250,14 +332,14 @@ Alice adds a handful of new defines:
 - `alice_needs_lx_spend`: See above, but luxury needs
 - `alice_sat_delay_factor`: Satisfaction delay factor
 - `alice_need_drift_speed`: Drift speed of need weights for POPs
-- `alice_cleanup_tag_exception`: Set to 1 to activate the `CLN` tag exception, allowing AI to take decisions on the `CLN` tag even if it doesn't own any provinces, set to 0 to revert this behaviour
 - `alice_disable_divergent_any_country_effect`: On events, `any_country = { ... }` refers to any country, including non-existant and the one scoped, in decisions, `any_country = { ... }` refers only to existing nations and not the one on scope. Set 0 to keep this behaviour, set 1 to use a universal `any_country = { ... }` that scopes existing countries including the currently scoped nation.
 - `alice_unciv_civ_forbid_war`: Forbids civilized nations from aiding uncivilized ones except via scripted events
 - `alice_ideology_base_change_rate`: Base change rate for ideology for pops
 - `alice_nurture_religion_assimilation`: Whetever religion assimilation should also convert pops or not (0 = yes, 1 = no)
 - `alice_surrender_on_cores_lost`: Force AI to surrender when they have lost their cores, or if they have no cores, all of their land
-- `alice_dont_add_redundant_wargoals`: Don't add redundant wargoals
 - `alice_artificial_gp_limitant`: Limit the number of GP allies the AI can have
+- `alice_rename_dont_use_localisation`: Keys specified on `change_region_name` or `change_province_name` will be treated as CSV keys, otherwise they will define in-line.
+- `alice_spherelings_only_ally_sphere`: Spherelings will only ally their spherelord.
 
 ### Dense CSV pop listing
 
@@ -299,6 +381,8 @@ template = "test.txt"
 
 Where `test.txt` would be in `common/templates/test.txt`.
 
+This works as a general "copy and paste" macro to use, so you can put anything that is valid for a country file within the template, as long as it's things for the root (i.e you can't specify a template inside a last names list).
+
 ### New event substitutions
 
 **Events-only:**
@@ -317,6 +401,12 @@ Where `test.txt` would be in `common/templates/test.txt`.
 - `$DATE$`: Date that the event fired on.
 - `$CONTROL$`: Nation that is currently controlling `THIS` province.
 - `$OWNER$`: Nation that has ownership over `THIS` province.
+
+If THIS/FROM is a nation, the state and province are deduced from the capital.
+If THIS/FROM is a state, the nation is deduced from the owner, and the province from the state capital.
+If THIS/FROM is a province, the nation is deduced from the owner and the state from the state it pertains to (but it will only choose the state instance of the owner).
+
+For example, Nejd and Hedjaz share state ENG_1, the FROM is on a province owned by Nejd on ENG_1, then the state will refer to the state owned by Nejd not by Hedjaz.
 
 **Decision and events:**
 
@@ -343,6 +433,14 @@ Decisions now can use crisis substitutions: `$CRISISTAKER$`, `$CRISISTAKER_ADJ$`
 - `$CRISISATTACKER_CONTINENT$`: Continent of attacker, based from capital.
 - `$CRISISDEFENDER_CAPITAL$`: Capital of defender.
 - `$CRISISDEFENDER_CONTINENT$`: Continent of attacker, based from capital.
+
+**New modifier description substitutions**
+
+- `$COUNTRY$`: The nation of the modifier.
+- `$COUNTRY_ADJ$`: The adjective of the nation of the modifier.
+- `$CAPITAL$`: The capital of the nation of the modifier.
+- `$CONTINENTNAME$`: The continent of the modifier (capital used as reference if national modifier).
+- `$PROVINCENAME$`: The province of the modifier (capital used as reference if national modifier).
 
 ### Political party triggers
 

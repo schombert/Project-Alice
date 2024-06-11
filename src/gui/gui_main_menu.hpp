@@ -38,11 +38,6 @@ public:
 class projection_mode_display : public simple_text_element_base {
 	void on_update(sys::state& state) noexcept override;
 };
-class fonts_mode_checkbox : public checkbox_button {
-public:
-	void button_action(sys::state& state) noexcept override;
-	bool is_active(sys::state& state) noexcept override;
-};
 
 class left_mouse_click_mode_checkbox : public checkbox_button {
 public:
@@ -339,8 +334,6 @@ class options_menu_window : public window_element_base {
 			return make_element_by_type<projection_mode_right>(state, id);
 		} else if(name == "projection_value") {
 			return make_element_by_type<projection_mode_display>(state, id);
-		} else if(name == "fonts_checkbox") {
-			return make_element_by_type<fonts_mode_checkbox>(state, id);
 		} else if(name == "mouse_left_click_mode_checkbox") {
 			return make_element_by_type<left_mouse_click_mode_checkbox>(state, id);
 		} else if(name == "fow_checkbox") {

@@ -1,4 +1,4 @@
-date_string_ymd;$day$ de $month$ del $year$
+date_string_ymd;$day$ de $month$, $year$
 date_is_leap;
 date_is_not_leap;
 topbar_date_season_nh;

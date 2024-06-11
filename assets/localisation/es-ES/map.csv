@@ -11,8 +11,3 @@ map_label_east_country;$country$ Oriental
 map_label_north_country;$country$ del Norte
 map_label_south_country;$country$ del Sur
 map_label_adj_tag;$tag$ $adj$
-TUR_africa;Africa Otomana
-TUR_north_america;America Otomana
-TUR_south_america;Sudamerica Otomana
-TUR_europe;Europa Otomana
-TUR_oceania;Oceania Otomana

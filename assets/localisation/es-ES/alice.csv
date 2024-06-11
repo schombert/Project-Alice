@@ -1192,3 +1192,5 @@ alice_pnt_dominant_religion;
 alice_pnt_dominant_ideology;
 ledger_ppp_gdp;
 ledger_ppp_gdp_per_capita;
+becomes_from;Scoped becomes from
+becomes_this;Scoped becomes this

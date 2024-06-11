@@ -8,6 +8,7 @@
 #include "dcon_generated.hpp"
 #include "nations.hpp"
 #include "unordered_dense.h"
+#include "fonts.hpp"
 
 namespace sys {
 struct state;
@@ -413,6 +414,8 @@ enum class variable_type : uint16_t {
 	infantry,
 	cavalry,
 	special,
+	//vanilla but forgot
+	thiscountry,
 	//non-vanilla
 	fromcontinent,
 	fromcapital,
@@ -621,7 +624,7 @@ using substitution = std::variant<std::string_view, dcon::text_key, dcon::provin
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
 struct text_chunk {
-	std::string win1250chars;
+	text::stored_glyphs unicodechars;
 	float x = 0; // yes, there is a reason the x offset is a floating point value while the y offset is an integer
 	substitution source = std::monostate{};
 	int16_t y = 0;
@@ -722,14 +725,14 @@ void close_layout_box(layout_base& dest, layout_box& box);
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 void add_to_substitution_map(substitution_map& mp, variable_type key, std::string const&); // DO NOT USE THIS FUNCTION
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err);
+void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err, bool as_unicode);
 variable_type variable_type_from_name(std::string_view);
 void load_text_data(sys::state& state, parsers::error_handler& err);
 void finish_text_data(sys::state& state);
 char16_t win1250toUTF16(char in);
 std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language);
+dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language, bool as_unicode);
 dcon::text_sequence_id find_key(sys::state& state, std::string_view txt);
 dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
 std::string date_to_string(sys::state& state, sys::date date);
@@ -786,6 +789,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent = 0);
+size_t size_from_utf8(char const* start, char const* end);
 
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 

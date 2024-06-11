@@ -154,6 +154,39 @@ void ef_scope_any_country(token_generator& gen, error_handler& err, effect_build
 	context.main_slot = old_main;
 }
 
+void ef_scope_from_bounce(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	context.compiled_effect.push_back(uint16_t(effect::from_bounce_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+	//
+	auto old_from = context.from_slot;
+	context.from_slot = context.main_slot;
+	parse_effect_body(gen, err, context);
+	context.from_slot = old_from;
+	//
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+}
+void ef_scope_this_bounce(token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+	context.compiled_effect.push_back(uint16_t(effect::this_bounce_scope | effect::scope_has_limit));
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+	//
+	auto old_this = context.this_slot;
+	context.this_slot = context.main_slot;
+	parse_effect_body(gen, err, context);
+	context.this_slot = old_this;
+	//
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.limit_position = old_limit_offset;
+}
+
 void ef_scope_any_existing_country_except_scoped(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
@@ -1682,7 +1715,7 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		dcon::text_sequence_id name;
 		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
 			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
 		}
 		context.add_int32_t_to_payload(name.index());
 	}
@@ -1706,7 +1739,7 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		dcon::text_sequence_id name;
 		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
 			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i);
+				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
 		}
 		context.add_int32_t_to_payload(name.index());
 	}

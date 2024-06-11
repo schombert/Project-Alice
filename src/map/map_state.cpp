@@ -775,7 +775,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
-		float name_extent = f.text_extent(state, name.c_str(), uint32_t(name.length()), 1);
+
+		auto prepared_name = text::stored_glyphs(name, f);
+		float name_extent = f.text_extent(state, prepared_name, 0, prepared_name.glyph_count, 1);
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
@@ -842,7 +844,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}			
 
 			if(!use_quadratic)
-				text_data.emplace_back(name, mo, basis, ratio);
+				text_data.emplace_back(std::move(prepared_name), mo, basis, ratio);
 		}
 
 		bool use_linear = false;
@@ -887,7 +889,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 			if(!use_linear)
-				text_data.emplace_back(name, glm::vec4(mo, 0.f), basis, ratio);
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f), basis, ratio);
 		}
 
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
@@ -947,7 +949,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 
 			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
-				text_data.emplace_back(name, glm::vec4(mo, 0.f, 0.f), basis, ratio);
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f, 0.f), basis, ratio);
 		}
 	}
 	map_data.set_text_lines(state, text_data);
@@ -957,7 +959,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for(auto p : state.world.in_province) {
 			if(p.get_name()) {
 				std::string name = text::produce_simple_string(state, p.get_name());
-				p_text_data.emplace_back(name, glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+				p_text_data.emplace_back(text::stored_glyphs(name, f), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
 			}
 		}
 		map_data.set_province_text_lines(state, p_text_data);
