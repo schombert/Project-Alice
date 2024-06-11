@@ -1,0 +1,345 @@
+message_settings_spectator;Предустановка: только наблюдение
+msg_revolt_title;Восстание повстанцев
+msg_revolt_1;$x$ повстанцы поднялись в следующих провинциях:
+msg_revolt_2;$x$ повстанцы восстали (безуспешно)
+msg_war_title;Война объявлена
+msg_war_1;$x$ объявил войну $y$, начав $val$.
+msg_wargoal_title;Добавлена ​​цель войны
+msg_wargoal_1;$x$ добавил в нашу войну следующую военную цель:
+msg_war_join_title;Нация присоединяется к войне
+msg_war_join_1;$x$ присоединился к продолжающемуся $val$
+msg_war_becomes_great_title;Война обостряется
+msg_war_becomes_great_1;$x$ стал $y$
+msg_siegeover_title;Осада завершена
+msg_siegeover_1;Осада $x$ закончилась.
+msg_siegeover_2;$y$ больше не контролирует провинцию.
+msg_siegeover_3;$y$ повстанцы больше не контролируют провинцию.
+msg_siegeover_4;Теперь провинцией управляет $y$.
+msg_siegeover_5;Провинция теперь контролируется повстанцами $y$.
+msg_new_crisis_title;Назревание кризиса
+msg_new_crisis_1;Назревает кризис вокруг владения $x$.
+msg_new_crisis_2;Назревает кризис из-за колонизации $x$.
+msg_tech_title;Исследованная технология
+msg_tech_1;$x$ было исследовано со следующими эффектами:
+msg_inv_title;Обнаружено изобретение
+msg_inv_1;$x$ был обнаружен со следующими эффектами:
+msg_fab_discovered_title;Обнаружено производство
+msg_fab_discovered_1;Наша фабрикация повода для войны раскрыта, что привело к ?R$x$?! позор.
+msg_fab_discovered_2;$x$ был обнаружен при фабрикации повода для войны по $y$
+msg_fab_canceled_title;Изготовление отменено
+msg_fab_canceled_1;Придуманный нами повод к войне стал недействительным, и производство было отменено.
+msg_fab_finished_title;Изготовление завершено
+msg_fab_finished_1;Мы закончили выдумывать $x$ повод для войны против $y$.
+msg_leader_died_title;Умер военачальник
+msg_leader_died_1;Один из наших генералов, возглавлявший армию в $y$, $x$, умер.
+msg_leader_died_2;Один из наших адмиралов, командующий флотом в $y$, $x$, умер.
+msg_peace_offer_accepted_title;Мирное предложение принято
+msg_peace_offer_accepted_1;$x$ принял мирное предложение от $y$ как часть $val$.
+msg_peace_offer_rejected_title;Мирное предложение отклонено
+msg_peace_offer_rejected_1;$x$ отклонил мирное предложение от $y$ как часть $val$.
+msg_upper_house_title;Сформирована Верхняя палата
+msg_upper_house_1;Собран новый верхний дом следующего состава:
+msg_upper_house_2;$x$%: $y$
+msg_election_start_title;Выборы начинаются
+msg_election_start_1;Выборы завершатся $x$.
+msg_dec_rel_title;Отношения ухудшились
+msg_dec_rel_1;$x$ уменьшило свои отношения с $y$.
+msg_inc_rel_title;Улучшены отношения
+msg_inc_rel_1;$x$ улучшили свои отношения с $y$.
+msg_add_sphere_title;Сфера нации
+msg_add_sphere_1;$x$ добавил $y$ в свою сферу влияния.
+msg_rem_sphere_title;Нация удалена из сферы
+msg_rem_sphere_1;$x$ удалил $y$ из своей сферы влияния.
+msg_rem_sphere_2;$x$ удалил $y$ из сферы влияния $val$.
+msg_op_dec_title;Мнение понизилось
+msg_op_dec_1;$x$ снизил мнение $y$ о $val$.
+msg_op_inc_title;Мнение возросло
+msg_op_inc_1;$x$ повысил мнение о них у $y$.
+msg_expel_title;Советники исключены
+msg_expel_1;$x$ исключил советников $val$ в $y$.
+msg_ban_title;Посольство забанено
+msg_ban_1;$x$ привел к запрету посольства $val$ в $y$.
+msg_ban_2;Это продлится до $x$.
+msg_discredit_title;Нация дискредитирована
+msg_discredit_1;$x$ привел к дискредитации $val$ с помощью $y$.
+msg_discredit_2;Это продлится до $x$.
+msg_ally_call_accepted_title;Уважение Альянса
+msg_ally_call_accepted_1;$x$ подтвердил свой союз с $y$ и присоединился к $val$.
+msg_ally_call_declined_title;Альянс опозорен
+msg_ally_call_decline_1;$x$ отказался соблюдать свой союз с $y$ и присоединиться к $val$.
+msg_alliance_declined_title;Альянс отказался
+msg_alliance_declined_1;$x$ отклонил предложение $y$ сформировать альянс.
+msg_alliance_starts_title;Альянс сформирован
+msg_alliance_starts_1;$x$ и $y$ заключили альянс.
+msg_alliance_ends_title;Альянс распался
+msg_alliance_ends_1;Альянс между $x$ и $y$ распался.
+msg_access_refused_title;В доступе отказано
+msg_access_refused_1;$x$ отказался предоставить $y$ военный доступ в свою страну.
+msg_access_granted_title;Доступ предоставлен
+msg_access_granted_1;$x$ предоставил $y$ военный доступ к своей стране.
+msg_access_canceled_a_title;Доступ отозван
+msg_access_canceled_a_1;$x$ отозвал военный доступ у $y$.
+msg_access_canceled_b_title;Доступ отменен
+msg_access_canceled_b_1;$x$ больше не требует военного доступа к $y$.
+msg_wsub_start_title;Начало военных субсидий
+msg_wsub_start_1;$x$ начал субсидировать текущие войны $y$.
+msg_wsub_end_title;Окончание военных субсидий
+msg_wsub_end_1;$x$ прекратил субсидировать текущие войны $y$.
+msg_new_gp_title;Новая великая держава
+msg_new_gp_1;$x$ теперь является великой силой.
+msg_lost_gp_title;Потерянная великая держава
+msg_lost_gp_1;$x$ больше не считается великой державой.
+msg_decision_title;Решение принято
+msg_decision_1;$x$ принял решение $y$
+msg_decision_2;Эффект:
+msg_rebels_win_title;Победа повстанцев
+msg_rebels_win_1;$x$ повстанцев победили.
+msg_rebels_win_2;?R$x$?! престиж потерян
+msg_rebels_win_3;Правительство меняется на $x$
+msg_rebels_win_4;Идеология правительства изменена на $x$
+msg_rebels_win_5;Все дипломатические отношения прекращены
+msg_rebels_win_6;Эффект:
+msg_election_end_title;Выборы завершены
+msg_election_end_1;$x$ — новая правящая партия, получившая $y$ голосов.
+msg_election_end_2;$x$ — новая правящая партия в составе коалиционного правительства, получившая $y$ голосов.
+msg_crisis_joffer_accepted;Нация принимает сторону
+msg_crisis_joffer_accepted_1;$x$ принял предложение $y$ принять их сторону в нынешнем кризисе.
+msg_crisis_joffer_rejected;Нация остается нейтральной
+msg_crisis_joffer_reject_1;$x$ отклонил предложение $y$ принять их сторону в нынешнем кризисе.
+msg_crisis_settled_title;Кризис разрешен
+msg_crisis_settled_1;$x$ принял предложение $y$ по разрешению текущего кризиса.
+msg_crisis_not_settled_title;Разрешение кризиса отклонено
+msg_crisis_not_settled_1;$x$ отклонил предложение $y$ по разрешению текущего кризиса.
+msg_crisis_escalates_title;Кризис обостряется
+msg_crisis_escalates_1;Текущий кризис перерос в $x$.
+msg_crisis_fizzle_title;Кризис объявлен
+msg_crisis_fizzle_1;Назревающий кризис не смог привлечь международного внимания.
+msg_crisis_fizzle_2;Назревающий кризис не смог привлечь защитника
+msg_crisis_attacker_title;Кризисный покровитель
+msg_crisis_attacker_1;$x$ оказался вовлеченным в текущий кризис, поддерживая злоумышленника.
+msg_crisis_defender_title;Кризисный спонсор
+msg_crisis_defender_1;$x$ оказался вовлеченным в текущий кризис, поддерживая защитника.
+msg_crisis_vol_join_title;Нация принимает сторону
+msg_crisis_vol_join_1;$x$ решил присоединиться к текущему кризису на стороне злоумышленников.
+msg_crisis_vol_join_2;$x$ решил присоединиться к текущему кризису на стороне защитников.
+msg_entered_automatic_alliance_title;Вступил в альянс автоматически
+msg_entered_automatic_alliance_1;$x$ автоматически вступил с нами в союз, поскольку мы отметили, что заинтересованы в том, чтобы вступить с ними в союз, если это возможно.
+msg_chat_message_title;Сообщение в чате
+msg_chat_message_1;$x$ говорит:
+msg_chat_message_2;$x$
+msg_n_event_title;Национальное событие
+msg_p_event_title;Провинциальное событие
+msg_m_event_title;Крупное событие
+msg_revolt;Когда происходит восстание
+msg_war_on_nation;Когда мы объявим войну
+msg_war_by_nation;Когда нам объявят войну
+msg_wargoal_added;При добавлении цели войны
+msg_siegeover_by_nation;Нас устроили осада
+msg_siegeover_on_nation;Против них проведена осада
+msg_colony_finished;Когда мы закончим колонизацию
+msg_reform_gained;Когда мы добьемся реформы
+msg_reform_lost;Когда мы теряем реформу
+msg_ruling_party_change;Когда меняется правящая партия
+msg_upperhouse;Когда меняется верхняя палата
+msg_electionstart;Когда начнутся выборы
+msg_electiondone;Когда выборы закончатся
+msg_breakcountry;Когда страна разрушена
+msg_peace_accepted_from_nation;Когда мы принимаем мирное предложение
+msg_peace_rejected_from_nation;Когда мы отклоняем мирное предложение
+msg_peace_accepted_by_nation;Когда они принимают мирное предложение
+msg_peace_rejected_by_nation;Когда они отклоняют мирное предложение
+msg_mobilization_start;Когда мы мобилизуемся
+msg_mobilization_end;Когда мы демобилизуемся
+msg_factory_complete;Когда будет построена фабрика
+msg_rr_complete;Когда будет построена железная дорога
+msg_fort_complete;Когда будет построен форт
+msg_naval_base_complete;Когда будет построена военно-морская база
+msg_province_event;Когда происходит событие провинции
+msg_national_event;Когда происходит национальное событие
+msg_major_event;Когда происходит важное событие
+msg_invention;Когда обнаружено изобретение
+msg_tech;Когда мы закончим исследование
+msg_leader_dies;Когда умирает лидер
+msg_land_combat_starts_on_nation;Когда мы начнем наземный бой
+msg_naval_combat_starts_on_nation;Когда мы начнем морской бой
+msg_land_combat_starts_by_nation;Когда начинается наземный бой
+msg_naval_combat_starts_by_nation;Когда начинается морской бой
+msg_movement_finishes;Когда движение закончится
+msg_decision;Когда решение принято
+msg_lose_great_power;Когда мы потеряем великую державу
+msg_become_great_power;Когда мы станем великой державой
+msg_war_subsidies_start_by_nation;Когда предоставляются военные субсидии
+msg_war_subsidies_start_on_nation;Когда мы даем военные субсидии
+msg_war_subsidies_end_by_nation;Когда военные субсидии прекратятся
+msg_war_subsidies_end_on_nation;Когда мы прекратим военные субсидии
+msg_reparations_start_by_nation;Когда размещаются военные репарации
+msg_reparations_start_on_nation;Когда мы платим военные репарации
+msg_reparations_end_by_nation;Когда будут выплачены военные репарации
+msg_reparations_end_on_nation;Когда мы выплатим военные репарации
+msg_mil_access_start_by_nation;Когда нам дадут военный доступ
+msg_mil_access_start_on_nation;Когда мы предоставим военный доступ
+msg_mil_access_end_by_nation;
+msg_mil_access_end_on_nation;
+msg_mil_access_declined_by_nation;
+msg_mil_access_declined_on_nation;
+msg_alliance_starts;
+msg_alliance_ends;
+msg_alliance_declined_by_nation;
+msg_alliance_declined_on_nation;
+msg_ally_called_accepted_by_nation;
+msg_ally_called_declined_by_nation;
+msg_discredit_by_nation;
+msg_ban_by_nation;
+msg_expell_by_nation;
+msg_discredit_on_nation;
+msg_ban_on_nation;
+msg_expell_on_nation;
+msg_increase_opinion;
+msg_decrease_opinion_by_nation;
+msg_decrease_opinion_on_nation;
+msg_rem_sphere_by_nation;
+msg_rem_sphere_on_nation;
+msg_removed_from_sphere;
+msg_add_sphere;When we add to our sphere
+msg_added_to_sphere;When we are added to a sphere
+msg_increase_relation_by_nation;When they increase relations
+msg_increase_relation_on_nation;When we increase relations
+msg_decrease_relation_by_nation;When they decrease relations
+msg_decrease_relation_on_nation;When we decrease relations
+msg_join_war_by_nation;When a nation joins a war
+msg_join_war_on_nation;When we join a war
+msg_gw_unlocked;When great wars are unlocked
+msg_war_becomes_great;When a war becomes a great war
+msg_cb_detected_on_nation;
+msg_cb_detected_by_nation;
+msg_crisis_join_offer_accepted_by_nation;
+msg_crisis_join_offer_declined_by_nation;
+msg_crisis_join_offer_accepted_from_nation;
+msg_crisis_join_offer_declined_from_nation;
+msg_crisis_resolution_accepted;When a crisis resolution is accepted
+msg_crisis_becomes_war;When a crisis war starts
+msg_crisis_resolution_declined_from_nation;
+msg_crisis_starts;
+msg_crisis_attacker_backer;
+msg_crisis_defender_backer;
+msg_crisis_fizzle;
+msg_war_join_by;
+msg_war_join_on;
+msg_cb_fab_finished;
+msg_cb_fab_cancelled;
+msg_crisis_voluntary_join;
+msg_bankruptcy_title;Bankruptcy
+amsg_bankruptcy;When a nation goes bankrupt
+msg_bankruptcy_1;$x$ has gone bankrupt
+message_name_text;Message
+msg_for_us;About: your nation
+msg_for_interesting;Interesting nations
+msg_for_other;Other nations
+msg_handling_ignore;Ignore the message
+msg_handling_log;Log the message
+msg_handling_sound;Log the message with a sound effect
+msg_handling_popup;Pop up a notification for the message
+msg_handling_pause;Pop up a notification for the message and pause the game until it's dismissed
+amsg_revolt;В стране происходит восстание
+amsg_war_on_nation;Нации объявлена ​​война
+amsg_war_by_nation;Война объявлена ​​нацией
+amsg_wargoal_added;Нация добавляет цель войны
+amsg_siegeover_by_nation;Нация завершает осаду
+amsg_siegeover_on_nation;Осада провинции, контролируемой нацией, завершается
+amsg_colony_finished;Нация завершает создание колонии
+amsg_reform_gained;Нация проводит реформу
+amsg_reform_lost;Нация проигрывает реформу
+amsg_ruling_party_change;Правящая партия нации меняется
+amsg_upperhouse;Изменяется состав верхней палаты нации
+amsg_electionstart;В стране начинаются выборы
+amsg_electiondone;В стране завершаются выборы
+amsg_breakcountry;Повстанцы навязывают свои требования нации
+amsg_peace_accepted_from_nation;Мирное предложение страны принято
+amsg_peace_rejected_from_nation;Мирное предложение страны отклонено
+amsg_peace_accepted_by_nation;Нация принимает мирное предложение
+amsg_peace_rejected_by_nation;Нация отклоняет мирное предложение
+amsg_mobilization_start;Нация мобилизуется
+amsg_mobilization_end;Нация прекращает мобилизацию
+amsg_factory_complete;Нация завершает строительство завода
+amsg_rr_complete;Нация завершает строительство железной дороги
+amsg_fort_complete;Нация завершает строительство форта
+amsg_naval_base_complete;Нация завершает строительство военно-морской базы
+amsg_province_event;Провинциальное событие происходит с нацией
+amsg_national_event;национальное событие случается с нацией
+amsg_major_event;В стране происходит важное событие
+amsg_invention;Нация открывает изобретение
+amsg_tech;Нация завершает исследование технологии
+amsg_leader_dies;Умер один из военачальников страны
+amsg_land_combat_starts_on_nation;Одна из армий страны атакована
+amsg_naval_combat_starts_on_nation;Один из военно-морских сил страны атакован
+amsg_land_combat_starts_by_nation;Одна из армий страны совершает атаку
+amsg_naval_combat_starts_by_nation;Один из военно-морских сил страны совершает атаку
+amsg_movement_finishes;Один из отрядов страны завершает движение
+amsg_decision;Нация принимает решение
+amsg_lose_great_power;Нация теряет статус великой державы
+amsg_become_great_power;Нация получает статус великой державы
+amsg_war_subsidies_start_by_nation;Нация начинает предоставлять военные субсидии
+amsg_war_subsidies_start_on_nation;Нация начинает получать военные субсидии
+amsg_war_subsidies_end_by_nation;Нация прекращает предоставлять военные субсидии
+amsg_war_subsidies_end_on_nation;Нация перестает получать военные субсидии
+amsg_reparations_start_by_nation;Нация начинает выплачивать репарации
+amsg_reparations_start_on_nation;Нации начнут выплачивать репарации
+amsg_reparations_end_by_nation;Нация прекращает выплачивать репарации
+amsg_reparations_end_on_nation;Репарации перестают выплачиваться нации
+amsg_mil_access_start_by_nation;Нация начинает предоставлять военный доступ
+amsg_mil_access_start_on_nation;Нация начинает получать военный доступ
+amsg_mil_access_end_by_nation;Нация прекращает предоставлять военный доступ
+amsg_mil_access_end_on_nation;Нация перестает получать военный доступ
+amsg_mil_access_declined_by_nation;Запрос на военный доступ страны отклонен
+amsg_mil_access_declined_on_nation;Нация отклоняет запрос на военный доступ
+amsg_alliance_starts;Нация вступает в новый альянс
+amsg_alliance_ends;Нация прекращает союз
+amsg_alliance_declined_by_nation;Нация отклоняет предложение союза
+amsg_alliance_declined_on_nation;Предложение нации о союзе отклонено
+amsg_ally_called_accepted_by_nation;Нация чтит призыв к оружию
+amsg_ally_called_declined_by_nation;Нация отклоняет призыв к оружию
+amsg_discredit_by_nation;Нация дискредитирует другую нацию
+amsg_ban_by_nation;Нация запрещает посольство другой нации
+amsg_expell_by_nation;Нация изгоняет советников другой нации
+amsg_discredit_on_nation;Нация дискредитирована
+amsg_ban_on_nation;Посольство страны запрещено
+amsg_expell_on_nation;Советники нации изгнаны
+amsg_increase_opinion;Нация повышает мнение о себе другой нации
+amsg_decrease_opinion_by_nation;Нация вызывает снижение мнения другой нации
+amsg_decrease_opinion_on_nation;Мнение этой нации снижается
+amsg_rem_sphere_by_nation;Нация удаляет другую нацию из сферы влияния
+amsg_rem_sphere_on_nation;У нации есть другая нация, удаленная из ее сферы влияния
+amsg_removed_from_sphere;Нация выведена из сферы влияния
+amsg_add_sphere;Нация добавляет другую нацию в свою сферу влияния
+amsg_added_to_sphere;Нация добавлена ​​в сферу влияния
+amsg_increase_relation_by_nation;Нация усиливает отношения с другой нацией
+amsg_increase_relation_on_nation;Отношения нации с кем-то еще улучшились
+amsg_decrease_relation_by_nation;Нация ухудшает отношения с другой нацией
+amsg_decrease_relation_on_nation;Отношения нации с кем-то еще уменьшились
+amsg_join_war_by_nation;Нация присоединяется к существующей войне
+amsg_join_war_on_nation;Новая нация присоединяется к уже существующей войне против этой нации
+amsg_gw_unlocked;Великие войны разблокированы
+amsg_war_becomes_great;Война с участием этой нации становится великой
+amsg_cb_detected_on_nation;Обнаружено обоснование CB, нацеленное на эту страну
+amsg_cb_detected_by_nation;Эта нация обнаружена, что оправдывает CB
+amsg_crisis_join_offer_accepted_by_nation;Нация принимает предложение присоединиться к кризису
+amsg_crisis_join_offer_declined_by_nation;Нация отклоняет предложение присоединиться к кризису
+amsg_crisis_join_offer_accepted_from_nation;Предложение присоединиться к кризису от этой страны принято
+amsg_crisis_join_offer_declined_from_nation;Предложение присоединиться к кризису из этой страны отклонено
+amsg_crisis_solve_accepted;Решение кризиса принято
+amsg_crisis_becomes_war;Кризис становится войной
+amsg_crisis_solved_declined_from_nation;Предложение по разрешению кризиса от этой страны отклонено
+amsg_crisis_starts;Начинается новый кризис
+amsg_crisis_attacker_backer;Великая держава становится основным атакующим в кризисе
+amsg_crisis_defender_backer;Великая держава становится главным защитником в кризисе
+amsg_crisis_fizzle;Кризис не может привлечь интерес великих держав
+amsg_war_join_by;Нация присоединяется к войне
+amsg_war_join_on;Нация присоединяется к войне против этой нации
+amsg_cb_fab_finished;Нация завершила изготовление CB
+amsg_cb_fab_cancelled;Изготовление CB нацией отменено
+amsg_crisis_voluntary_join;Нация присоединяется к кризису без предложения
+amsg_army_built;Нация построила армию
+amsg_navy_built;Нация построила флот
+amsg_bankruptcy;Нация становится банкротом
+amsg_entered_automatic_alliance;Нация автоматически становится союзником другой
+amsg_chat_message;Нация отправила сообщение в чат

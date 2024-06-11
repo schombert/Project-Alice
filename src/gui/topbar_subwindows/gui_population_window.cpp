@@ -364,7 +364,7 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 	float local_mod = (pmod + omod) + cmod;
 
 	float sep_mod = (state.world.pop_get_is_primary_or_accepted_culture(ids) ? 0.0f :
-			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f) *
+			(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f) *
 					state.defines.mil_non_accepted);
 	float ln_mod = std::min((state.world.pop_get_life_needs_satisfaction(ids) - 0.5f), 0.0f) * state.defines.mil_no_life_need;
 	float en_mod_a =
@@ -446,8 +446,8 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		text::add_line(state, contents, "pop_mil_12",
 			text::variable_type::val, text::fp_two_places{sep_mod},
 			text::variable_type::x, text::fp_two_places{state.defines.mil_non_accepted},
-			text::variable_type::y, text::fp_percentage{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::seperatism) + 1.0f});
-		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::seperatism, false);
+			text::variable_type::y, text::fp_percentage{state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::non_accepted_pop_militancy_modifier) + 1.0f});
+		active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::non_accepted_pop_militancy_modifier, false);
 	}
 	if(war_exhaustion > 0) {
 		text::add_line(state, contents, "pop_mil_13", text::variable_type::val, text::fp_three_places{war_exhaustion});

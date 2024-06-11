@@ -248,9 +248,12 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		dcon::province_id p = retrieve<dcon::province_id>(state, parent);
+		dcon::province_id prov = retrieve<dcon::province_id>(state, parent);
+		if(!state.world.state_instance_get_flashpoint_tag(state.world.province_get_state_membership(prov)))
+			return;
+
 		text::substitution_map sub_map{};
-		text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(p)) });
+		text::add_to_substitution_map(sub_map, text::variable_type::value, text::fp_two_places{ state.world.state_instance_get_flashpoint_tension(state.world.province_get_state_membership(prov)) });
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("flashpoint_tension"), sub_map);
 		text::close_layout_box(contents, box);
@@ -268,34 +271,36 @@ public:
 		return dcon::national_identity_id{};
 	}
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller = prov_fat.get_province_control_as_province().get_nation();
+		auto rebel_faction = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+		if(!controller && !rebel_faction)
+			return;
+		flag_button::render(state, x, y);
+	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
+		auto prov_fat = dcon::fatten(state.world, province_id);
+		auto controller = prov_fat.get_province_control_as_province().get_nation();
+		auto rebel_faction = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
+		if(!controller && !rebel_faction)
+			return;
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
 		text::add_space_to_layout_box(state, contents, box);
-
-		dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
-		auto prov_fat = dcon::fatten(state.world, province_id);
-		dcon::nation_id controller_id = prov_fat.get_province_control_as_province().get_nation().id;
-		if(bool(controller_id)) {
-			auto controller_name = state.world.nation_get_name(controller_id);
-			text::add_to_layout_box(state, contents, box, controller_name);
+		if(controller) {
+			text::add_to_layout_box(state, contents, box, controller.get_name());
 		} else {
-			auto rebel_faction_id = prov_fat.get_province_rebel_control_as_province().get_rebel_faction();
-			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction_id));
+			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction));
 		}
 		text::close_layout_box(contents, box);
-	}
-};
-
-class province_state_name_text_SCH : public simple_text_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		dcon::province_id result = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::get_province_state_name(state, result));
 	}
 };
 
@@ -306,8 +311,8 @@ public:
 		if(state.world.state_instance_get_nation_from_flashpoint_focus(content) == state.local_player_nation)
 			return state.world.national_focus_get_icon(state.national_definitions.flashpoint_focus) - 1;
 		return bool(state.world.state_instance_get_owner_focus(content).id)
-							 ? state.world.state_instance_get_owner_focus(content).get_icon() - 1
-							 : 0;
+			? state.world.state_instance_get_owner_focus(content).get_icon() - 1
+			: 0;
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -491,7 +496,7 @@ private:
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "state_name") {
-			return make_element_by_type<province_state_name_text_SCH>(state, id);
+			return make_element_by_type<province_state_name_text>(state, id);
 		} else if(name == "province_name") {
 			return make_element_by_type<generic_name_text<dcon::province_id>>(state, id);
 		} else if(name == "prov_terrain") {
@@ -522,11 +527,14 @@ public:
 		} else if(name == "occupation_flag") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "colony_button") {
-			auto btn = make_element_by_type<province_move_capital_button>(state, id);
-			btn->base_data.position.x -= btn->base_data.size.x * 2;
-			add_child_to_front(std::move(btn));
 			auto ptr = make_element_by_type<province_colony_button>(state, id);
 			colony_button = ptr.get();
+			//...
+			auto btn = make_element_by_type<province_move_capital_button>(state, "alice_move_capital");
+			btn->base_data.position = colony_button->base_data.position;
+			btn->base_data.position.y -= 3;
+			btn->base_data.position.x -= colony_button->base_data.size.x * 2;
+			add_child_to_front(std::move(btn));
 			return ptr;
 		} else if(name == "national_focus") {
 			return make_element_by_type<province_national_focus_button>(state, id);
@@ -805,9 +813,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -885,9 +893,9 @@ public:
 		}
 
 		if(found) {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_on"));
+			set_button_text(state, text::produce_simple_string(state, "on"));
 		} else {
-			set_button_text(state, text::produce_simple_string(state, "alice_province_selector_off"));
+			set_button_text(state, text::produce_simple_string(state, "off"));
 		}
 	}
 	void button_action(sys::state& state) noexcept override {
@@ -1253,7 +1261,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto prov_id = retrieve<dcon::province_id>(state, parent);
 		auto owner = state.world.province_get_nation_from_province_ownership(prov_id);
-		auto max_emp = economy::rgo_max_employment(state, owner, prov_id);
+		auto max_emp = economy::rgo_total_max_employment(state, owner, prov_id);
 		auto employment_ratio = state.world.province_get_rgo_employment(prov_id);
 
 		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(prov_id));
@@ -1262,20 +1270,11 @@ public:
 		float laborer_min_wage = economy::pop_laborer_min_wage(state, owner, min_wage_factor);
 		float expected_min_wage = is_mine ? laborer_min_wage : farmer_min_wage;
 
-		auto [non_slaves, slaves, total_relevant] = economy::rgo_relevant_population(state, prov_id, owner);
-		//float expected_profit = economy::rgo_expected_profit(state, prov_id, owner, total_relevant);
-		//float desired_profit = economy::rgo_desired_profit(state, prov_id, owner, expected_min_wage, total_relevant);
-
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(employment_ratio * max_emp)));
 		text::add_to_layout_box(state, contents, box, std::string_view{" / "});
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(max_emp)));
 		
-
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / desired profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(desired_profit * 100.f)));
-		//text::add_to_layout_box(state, contents, box, std::string_view{ " / expected profit: " });
-		//text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_profit * 100.f)));
 		text::add_to_layout_box(state, contents, box, std::string_view{ " / expected min wage: " });
 		text::add_to_layout_box(state, contents, box, int64_t(std::ceil(expected_min_wage)));
 

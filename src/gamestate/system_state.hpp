@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
-
+//#include <fstream>
 
 #include "window.hpp"
 #include "constants.hpp"
@@ -50,7 +50,7 @@ struct user_settings_s {
 	projection_mode map_is_globe = projection_mode::globe_ortho;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
-	bool use_classic_fonts = false;
+	bool UNUSED_BOOL = false;
 	bool left_mouse_click_hold_and_release = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
 	uint8_t self_message_settings[int32_t(sys::message_setting_type::count)] = {
@@ -387,6 +387,7 @@ struct user_settings_s {
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
 	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
+	uint32_t current_language = 0;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -402,6 +403,15 @@ struct cheat_data_s {
 	std::vector<dcon::nation_id> instant_research_nations;
 	bool daily_oos_check = false;
 	bool province_names = false;
+
+	bool ecodump = false;
+
+	std::string national_economy_dump_buffer;
+	std::string prices_dump_buffer;
+	std::string demand_dump_buffer;
+	std::string supply_dump_buffer;
+	std::string demand_by_category_dump_buffer;
+
 	bool instant_navy = false;
 	bool always_allow_decisions = false;
 	bool always_potential_decisions = false;
@@ -481,9 +491,8 @@ struct alignas(64) state {
 
 	std::vector<char> text_data; // stores string data in the win1250 codepage
 	std::vector<text::text_component> text_components;
-	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq>
-			key_to_text_sequence;
+	std::array<text::language_table, sys::max_languages> languages;
+	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -651,7 +660,7 @@ struct alignas(64) state {
 	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
-	void on_text(char c); // c is a win1250 codepage value
+	void on_text(char32_t c); // c is a win1250 codepage value
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
 	               // for vsync
 

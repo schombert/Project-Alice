@@ -107,23 +107,6 @@ void close_window(sys::state& game_state) {
 		PostMessageW(game_state.win_ptr->hwnd, WM_CLOSE, 0, 0);
 }
 
-bool is_low_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xDC00 && char_code <= 0xDFFF;
-}
-bool is_high_surrogate(uint16_t char_code) noexcept {
-	return char_code >= 0xD800 && char_code <= 0xDBFF;
-}
-
-char process_utf16_to_win1250(wchar_t c) {
-	if(c <= 127)
-		return char(c);
-	if(is_low_surrogate(c) || is_high_surrogate(c))
-		return 0;
-	char char_out = 0;
-	WideCharToMultiByte(1250, 0, &c, 1, &char_out, 1, nullptr, nullptr);
-	return char_out;
-}
-
 sys::key_modifiers get_current_modifiers() {
 	uint32_t val =
 			uint32_t((GetKeyState(VK_CONTROL) & 0x8000) ? sys::key_modifiers::modifiers_ctrl : sys::key_modifiers::modifiers_none) |
@@ -311,9 +294,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_CHAR:
 	{
 		if(state->ui_state.edit_target) {
-			char turned_into = process_utf16_to_win1250(wchar_t(wParam));
-			if(turned_into)
-				state->on_text(turned_into);
+			state->on_text(char32_t(wParam));
 		}
 		return 0;
 	}

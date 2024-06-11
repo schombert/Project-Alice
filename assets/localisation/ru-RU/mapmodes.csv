@@ -1,0 +1,161 @@
+mapmode_1;Ландшафт
+mapmode_2;Политический
+mapmode_3;Revoltrisk
+mapmode_4;Дипломатический
+mapmode_5;Регион
+mapmode_6;Инфраструктура
+mapmode_7;Колониальный
+mapmode_8;Администрирование
+mapmode_9;Набор персонала
+mapmode_10;Национальный фокус
+mapmode_11;РГО
+mapmode_12;Население
+mapmode_13;Культуры
+mapmode_14;Сфера влияния
+mapmode_15;Припасы
+mapmode_16;Верность
+mapmode_17;Рейтинг
+mapmode_18;Миграция
+mapmode_19;Уровень цивилизации
+mapmode_20;Отношения
+mapmode_21;Кризис
+mapmode_22;Морской
+mapmode_23;Религия
+mapmode_24;Форты
+mapmode_25;Идеология
+mapmode_26;Доход
+mapmode_27;Сознание
+mapmode_28;Воинственность
+mapmode_29;Грамотность
+mapmode_30;Занятость
+mapmode_31;Заводы
+mapmode_32;Проблемы
+mapmode_33;Рост
+mapmode_34;Игроки
+mapmode_35;Жизненные потребности
+mapmode_36;Повседневные потребности
+mapmode_37;Роскошные потребности
+mapmode_38;Офицеры
+mapmode_39;Соотношение служащих и мастеров
+mapmode_40;Рейтинг жизни
+mapmode_41;Преступность
+mapmode_42;Ралли
+mapmode_43;Рабочая сила
+mapmode_44;Мобилизация
+legend_min_mapmode_8;Низкий уровень администратора
+legend_min_mapmode_19;Нецивилизованный
+legend_min_mapmode_7;Неколонизированный
+legend_min_mapmode_21;Низкое напряжение
+legend_min_mapmode_18;Эмиграция
+legend_min_mapmode_12;Низкая плотность
+legend_min_mapmode_17;Низкий ранг
+legend_min_mapmode_20;Низкие отношения
+legend_min_mapmode_3;Низкий риск восстания
+legend_min_mapmode_11;Низкий выход РГО
+legend_min_mapmode_15;Низкий запас
+legend_min_mapmode_26;Низкий доход
+legend_min_mapmode_27;Низкое сознание
+legend_min_mapmode_28;Низкая воинственность
+legend_min_mapmode_29;Низкая грамотность
+legend_min_mapmode_30;Низкая занятость
+legend_min_mapmode_33;Низкий рост
+legend_min_mapmode_35;Низкая удовлетворенность
+legend_min_mapmode_36;Низкая удовлетворенность
+legend_min_mapmode_37;Низкая удовлетворенность
+legend_min_mapmode_38;Низкая сумма
+legend_min_mapmode_39;Плохое соотношение CTC
+legend_min_mapmode_40;Низкий рейтинг жизни
+legend_min_mapmode_44;Малое количество полков
+legend_max_mapmode_8;Высший администратор
+legend_max_mapmode_19;Цивилизованный
+legend_max_mapmode_7;Колонизуемый
+legend_max_mapmode_21;Высокое напряжение
+legend_max_mapmode_18;Иммиграция
+legend_max_mapmode_12;Высокая плотность
+legend_max_mapmode_17;Высокий ранг
+legend_max_mapmode_20;Высокие отношения
+legend_max_mapmode_3;Высокий риск восстания
+legend_max_mapmode_11;Высокий выход РГО
+legend_max_mapmode_15;Высокий запас
+legend_max_mapmode_26;Высокий доход
+legend_max_mapmode_27;Высокое сознание
+legend_max_mapmode_28;Высокая воинственность
+legend_max_mapmode_29;Высокая грамотность
+legend_max_mapmode_30;Высокая занятость
+legend_max_mapmode_33;Высокий рост
+legend_max_mapmode_35;Высокая удовлетворенность
+legend_max_mapmode_36;Высокая удовлетворенность
+legend_max_mapmode_37;Высокая удовлетворенность
+legend_max_mapmode_38;Большое количество
+legend_max_mapmode_39;Большой коэффициент CTC
+legend_max_mapmode_40;Высокий рейтинг жизни
+legend_max_mapmode_44;Высокое количество полков
+mapmode_tooltip_34;Игрок: $x$
+mapmode_tooltip_34_you_sp;Это вы!
+mapmode_tooltip_34_you;Игрок: $x$ (Это ты!)
+mapmode_tooltip_34_ai;Управляется ИИ
+mapmode_tooltip_35;Жизненные потребности удовлетворены: $x$
+mapmode_tooltip_36;Удовлетворение повседневных потребностей: $x$
+mapmode_tooltip_37;Потребности в роскоши удовлетворены: $x$
+mapmode_tooltip_38;Всего офицеров: $x$ ($y$ населения, $value$ оптимально)
+mapmode_tooltip_39;Соотношение клерков и мастеров: $fraction$ ($x$/$y$), $value$ оптимально
+mapmode_tooltip_40;Рейтинг жизни: $x$
+mapmode_tooltip_41;Преступление: $x$
+mapmode_tooltip_42_1;Наземная точка сбора
+mapmode_tooltip_42_2;Точка сбора ВМФ
+mapmode_tooltip_43;Распределение рабочей силы:
+mapmode_tooltip_44;Мобилизованных полков из этой провинции: $x$ (из возможных $y$)
+mapmode_tooltip_44_2;Нет возможных полков
+mapmode_tooltip_name;$state$ ($name$ - )
+mapmode_tooltip_core_entry;$$faction$ - $name$
+mapmode_tooltip_state_entry; - $state$ \n $contentname$
+mapmode_tooltip_culture_majorities;Культуры в ?Y$PROV$?W:
+mapmode_tooltip_religion_majorities;Религии в ?Y$PROV$?W:
+mapmode_tooltip_dominant_issues;Проблемы в ?Y$PROV$?W:
+mapmode_tooltip_total_income;Общий дневной доход:
+mapmode_tooltip_dominant_ideology;Идеологии в ?Y$PROV$?W:
+mapmode_tooltip_con_average;Среднее сознание: ?Y$val$?W
+mapmode_tooltip_total_employment;Занятость:
+mapmode_tooltip_literacy_rate;Грамотность:
+mapmode_tooltip_factory_count;Заводы в ?Y$state$?W:
+mapmode_tooltip_fort_level;Уровень форта
+mapmode_tooltip_fort_being_built;Здесь строится уровень форта.
+mapmode_tooltip_can_build_fort;Здесь можно построить новый уровень форта.
+mapmode_tooltip_population_change;Месячное изменение численности населения:
+mapmode_tooltip_rebels_amount;Повстанцы активны в провинции:
+mapmode_tooltip_rebels_none;В этой провинции нет повстанцев.
+aml_civ_s1;Цивилизованный
+aml_civ_s2;Неколонизированный
+aml_civ_s3;100% вестернизированный
+aml_civ_s4;0% вестернизированный
+aml_civ_s5;Колония
+aml_col_s1;Потенциал
+aml_col_s2;Нет данных
+aml_col_s3;Можно инвестировать
+aml_col_s4;Колонизация
+aml_dip_s1;Точка обзора
+aml_dip_s2;Союзник
+aml_dip_s3;Враг
+aml_dip_s4;Марионетка
+aml_dip_s5;Сфера
+aml_dip_s6;Другое
+aml_dip_s7;Ядро
+aml_dip_s8;Неосновной
+aml_dip_s9;Объединенное ядро
+aml_rr_s1;Уровень 0
+aml_rr_s2;Уровень 6
+aml_rr_s3;Обновление
+aml_rr_s4;Максимальный уровень
+aml_rr_s5;Заблокировано
+aml_nav_s1;Нет базы
+aml_nav_s2;Максимальный уровень
+aml_nav_s3;Обновление
+aml_nav_s4;Обновляемый
+aml_nav_s5;Конструируемый
+aml_rank_s1;Отлично
+aml_rank_s2;Вторичный
+aml_rank_s3;Civ
+aml_rank_s4;Unciv
+aml_rec_s1;Доступно
+aml_rec_s2;Все использовано
+aml_rec_s3;Нет

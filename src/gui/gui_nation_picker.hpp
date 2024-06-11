@@ -569,14 +569,6 @@ class playable_nations_window : public window_element_base {
 	}
 };
 
-class nation_picker_hidden : public element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		element_base::on_create(state);
-		set_visible(state, false);
-	}
-};
-
 class date_label : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -589,10 +581,6 @@ public:
 
 class start_game_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-	}
-
 	void button_action(sys::state& state) noexcept override {
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
@@ -633,7 +621,7 @@ public:
 			if(state.network_state.save_stream) {
 				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
 			} else {
-				set_button_text(state, text::produce_simple_string(state, "alice_status_ready"));
+				set_button_text(state, text::produce_simple_string(state, "ready"));
 			}
 			button_element_base::render(state, x, y);
 		} else {
@@ -669,10 +657,6 @@ public:
 
 class quit_game_button : public button_element_base {
 public:
-	void on_create(sys::state& state) noexcept override {
-		button_element_base::on_create(state);
-		set_button_text(state, text::produce_simple_string(state, "alice_exit"));
-	}
 	void button_action(sys::state& state) noexcept override {
 		window::close_window(state);
 	}
@@ -680,10 +664,18 @@ public:
 
 class multiplayer_status_text : public simple_text_element_base {
 public:
+	void on_update(sys::state& state) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		if(state.network_mode == sys::network_mode_type::host) {
+			// on render
+		} else {
+			set_text(state, text::produce_simple_string(state, "ready"));
+		}
+	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		if(state.network_mode == sys::network_mode_type::host) {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready")); // default
+			set_text(state, text::produce_simple_string(state, "ready")); // default
 			if(state.network_state.is_new_game == false) {
 				for(auto const& c : state.network_state.clients) {
 					if(c.is_active() && c.playing_as == n) {
@@ -701,8 +693,6 @@ public:
 					}
 				}
 			}
-		} else {
-			set_text(state, text::produce_simple_string(state, "alice_status_ready"));
 		}
 		simple_text_element_base::render(state, x, y);
 	}
@@ -802,28 +792,12 @@ public:
 
 class nation_alice_readme_text : public scrollable_text {
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
-		text::add_line(state, contents, "alice_info_box_1");
-		text::add_line(state, contents, "alice_info_box_2");
-		text::add_line(state, contents, "alice_info_box_3");
-		text::add_line(state, contents, "alice_info_box_4");
-		text::add_line(state, contents, "alice_info_box_5");
-		text::add_line(state, contents, "alice_info_box_6");
-		text::add_line(state, contents, "alice_info_box_7");
-		text::add_line(state, contents, "alice_info_box_8");
-		text::add_line(state, contents, "alice_info_box_9");
-		text::add_line(state, contents, "alice_info_box_10");
-		text::add_line(state, contents, "alice_info_box_11");
-		text::add_line(state, contents, "alice_info_box_12");
-		text::add_line(state, contents, "alice_info_box_13");
-		text::add_line(state, contents, "alice_info_box_14");
-		text::add_line(state, contents, "alice_info_box_15");
-		text::add_line(state, contents, "alice_info_box_16");
+		text::add_line(state, contents, "alice_readme");
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "gc_desc");
 	}
 public:
-	void on_create(sys::state& state) noexcept override {
-		scrollable_text::on_create(state);
+	void on_reset_text(sys::state& state) noexcept override {
 		auto container = text::create_endless_layout(delegate->internal_layout,
 		text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y),
 			base_data.data.text.font_handle, 0, text::alignment::left,
@@ -831,6 +805,10 @@ public:
 			false });
 		populate_layout(state, container);
 		calibrate_scrollbar(state);
+	}
+	void on_create(sys::state& state) noexcept override {
+		scrollable_text::on_create(state);
+		on_reset_text(state);
 	}
 };
 
@@ -840,11 +818,11 @@ public:
 		if(name == "frontend_chat_bg") {
 			return make_element_by_type<image_element_base>(state, id);
 		} else if(name == "lobby_chat_edit") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "newgame_tab") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "savedgame_tab") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "year_label") {
 			return make_element_by_type<date_label>(state, id);
 		} else if(name == "multiplayer") {
@@ -854,7 +832,7 @@ public:
 		} else if(name == "save_games") {
 			return make_element_by_type<saves_window>(state, id);
 		} else if(name == "bookmarks") {
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "playable_countries_window") {
 			return make_element_by_type<playable_nations_window>(state, id);
 		} else if(name == "back_button") {
@@ -864,7 +842,7 @@ public:
 		} else if(name == "chatlog") {
 			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find("alice_readme_text")->second.definition);
 			add_child_to_front(std::move(ptr));
-			return make_element_by_type<nation_picker_hidden>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		}
 		return nullptr;
 	}

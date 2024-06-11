@@ -12,6 +12,7 @@
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "triggers.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -157,7 +158,7 @@ public:
 	virtual void populate_layout(sys::state& state, text::endless_layout& contents) noexcept { }
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(!state.user_settings.use_classic_fonts) {
+		
 			auto old_handle = base_data.data.text_common.font_handle;
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
@@ -167,9 +168,7 @@ public:
 			multiline_text_element_base::render(state, x, y);
 
 			base_data.data.text_common.font_handle = old_handle;
-		} else {
-			multiline_text_element_base::render(state, x, y);
-		}
+		
 	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
@@ -187,7 +186,7 @@ public:
 
 		auto color = black_text ? text::text_color::black : text::text_color::white;
 
-		if(!state.user_settings.use_classic_fonts) {
+		
 			auto old_handle = base_data.data.text_common.font_handle;
 			base_data.data.text_common.font_handle &= ~(0x01 << 7);
 			auto old_value = base_data.data.text_common.font_handle & 0x3F;
@@ -209,21 +208,7 @@ public:
 			populate_layout(state, container);
 
 			base_data.data.text_common.font_handle = old_handle;
-		} else {
-			auto container = text::create_endless_layout(
-				internal_layout,
-				text::layout_parameters{
-				border.x,
-					border.y,
-					int16_t(base_data.size.x - border.x * 2),
-					int16_t(base_data.size.y - border.y * 2),
-					base_data.data.text.font_handle,
-					0,
-					align,
-					color,
-					false});
-			populate_layout(state, container);
-		}
+		
 	}
 };
 
@@ -604,14 +589,14 @@ public:
 		}
 		float total_invest = nations::get_foreign_investment(state, n);
 		if(total_invest > 0.f) {
-			text::add_line(state, contents, "alice_indscore_2", text::variable_type::x, text::fp_four_places{ iweight });
+			text::add_line(state, contents, "industry_score_explain_2", text::variable_type::x, text::fp_four_places{ iweight });
 			for(auto ur : state.world.nation_get_unilateral_relationship_as_source(n)) {
 				if(ur.get_foreign_investment() > 0.f) {
 					text::substitution_map sub{};
 					text::add_to_substitution_map(sub, text::variable_type::x, ur.get_target());
 					text::add_to_substitution_map(sub, text::variable_type::y, text::fp_currency{ ur.get_foreign_investment() });
 					auto box = text::open_layout_box(contents);
-					text::localised_format_box(state, contents, box, std::string_view("alice_indscore_3"), sub);
+					text::localised_format_box(state, contents, box, std::string_view("industry_score_explain_3"), sub);
 					text::close_layout_box(contents, box);
 				}
 			}
@@ -641,14 +626,14 @@ public:
 		auto gen_range = state.world.nation_get_leader_loyalty(n);
 		auto num_leaders = float((gen_range.end() - gen_range.begin()));
 		auto num_capital_ships = state.world.nation_get_capital_ship_score(n);
-		text::add_line(state, contents, "alice_milscore_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
-		text::add_line(state, contents, "alice_milscore_2", text::variable_type::x, text::int_wholenum{ recruitable });
-		text::add_line(state, contents, "alice_milscore_3", text::variable_type::x, text::int_wholenum{ active_regs });
-		text::add_line_with_condition(state, contents, "alice_milscore_4", is_disarmed, text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
-		text::add_line(state, contents, "alice_milscore_5", text::variable_type::x, text::fp_two_places{ supply_mod });
+		text::add_line(state, contents, "military_score_explain_1", text::variable_type::x, text::fp_two_places{ num_capital_ships });
+		text::add_line(state, contents, "military_score_explain_2", text::variable_type::x, text::int_wholenum{ recruitable });
+		text::add_line(state, contents, "military_score_explain_3", text::variable_type::x, text::int_wholenum{ active_regs });
+		text::add_line_with_condition(state, contents, "military_score_explain_4", is_disarmed, text::variable_type::x, text::fp_two_places{ state.defines.disarmament_army_hit });
+		text::add_line(state, contents, "military_score_explain_5", text::variable_type::x, text::fp_two_places{ supply_mod });
 		active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::supply_consumption, true);
-		text::add_line(state, contents, "alice_milscore_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
-		text::add_line(state, contents, "alice_milscore_7", text::variable_type::x, text::fp_two_places{ num_leaders });
+		text::add_line(state, contents, "military_score_explain_6", text::variable_type::x, text::fp_two_places{ avg_land_score });
+		text::add_line(state, contents, "military_score_explain_7", text::variable_type::x, text::fp_two_places{ num_leaders });
 	}
 };
 
@@ -658,6 +643,32 @@ public:
 		auto fat_id = dcon::fatten(state.world, nation_id);
 		return std::to_string(
 				int32_t(nations::prestige_score(state, nation_id) + fat_id.get_industrial_score() + fat_id.get_military_score()));
+	}
+};
+
+class nation_ppp_gdp_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		float costs =
+			state.world.nation_get_life_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_everyday_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_luxury_needs_costs(nation_id, state.culture_definitions.primary_factory_worker);
+
+		return text::format_float(state.world.nation_get_gdp(nation_id) / costs);
+	}
+};
+
+class nation_ppp_gdp_per_capita_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		float costs =
+			state.world.nation_get_life_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_everyday_needs_costs(nation_id, state.culture_definitions.primary_factory_worker)
+			+ state.world.nation_get_luxury_needs_costs(nation_id, state.culture_definitions.primary_factory_worker);
+
+		float population = state.world.nation_get_demographics(nation_id, demographics::total);
+
+		return text::format_float(state.world.nation_get_gdp(nation_id) / costs / population * 1000000.f);
 	}
 };
 
@@ -753,14 +764,13 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto fat_id = dcon::fatten(state.world, n);
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::country, n);
 		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
 		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 		text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
-		text::add_to_layout_box(state, contents, box, fat_id.get_government_type().get_desc(), sub);
+		text::add_to_layout_box(state, contents, box, state.world.government_type_get_desc(state.world.nation_get_government_type(n)), sub);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -1511,7 +1521,32 @@ class province_goods_produced_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(province::rgo_production_quantity(state, province_id), 3));
+		set_text(state, text::format_float(province::rgo_production_quantity(state, province_id, state.world.province_get_rgo(province_id)), 3));
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto production = province::rgo_production_quantity(state, p, c);
+
+			if(production < 0.0001f) {
+				return;
+			}
+
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto production_box = base_box;
+			production_box.x_position += 120.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+			text::add_to_layout_box(state, contents, production_box, text::format_money(production));
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
 	}
 };
 
@@ -1520,6 +1555,35 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
 		set_text(state, text::format_money(province::rgo_income(state, province_id)));
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto p = retrieve<dcon::province_id>(state, parent);
+
+		auto n = state.world.province_get_nation_from_province_ownership(p);
+
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto profit = state.world.province_get_rgo_profit_per_good(p, c);
+
+			if(profit < 0.0001f) {
+				return;
+			}
+
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto profit_box = base_box;
+			profit_box.x_position += 120.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+			text::add_to_layout_box(state, contents, profit_box, text::format_money(profit));
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
 	}
 };
 
@@ -1536,33 +1600,49 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto p = retrieve<dcon::province_id>(state, parent);
-		auto rgo_max = economy::rgo_max_employment(state, state.world.province_get_nation_from_province_ownership(p), p) * state.world.province_get_rgo_production_scale(p);
-		bool is_mine = state.world.commodity_get_is_mine(state.world.province_get_rgo(p));
-		float worker_pool = 0.0f;
-		for(auto wt : state.culture_definitions.rgo_workers) {
-			worker_pool += state.world.province_get_demographics(p, demographics::to_key(state, wt));
-		}
-		float slave_pool = state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-		float labor_pool = worker_pool + slave_pool;
 
-		text::add_line(state, contents, "provinceview_employment", text::variable_type::value, int64_t(std::min(rgo_max, labor_pool)));
-		text::add_line_break_to_layout(state, contents);
-		{
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "base_rgo_size");
-			text::add_to_layout_box(state, contents, box, int64_t(economy::rgo_per_size_employment * state.world.province_get_rgo_size(p)));
-			text::close_layout_box(contents, box);
-		}
+		auto n = state.world.province_get_nation_from_province_ownership(p);
 
-		if(is_mine) {
-			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
-			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
-				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, false);
-		} else {
-			active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, false);
-			if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
-				active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, false);
-		}
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto rgo_employment = state.world.province_get_rgo_employment_per_good(p, c);
+			auto current_employment = int64_t(rgo_employment);
+			auto max_employment = int64_t(economy::rgo_max_employment(state, n, p, c));
+			auto expected_profit = economy::rgo_expected_worker_norm_profit(state, p, n, c);
+
+			if(max_employment < 1.f) {
+				return;
+			}
+			auto base_box = text::open_layout_box(contents);
+			auto name_box = base_box;
+			name_box.x_size = 75;
+			auto employment_box = base_box;
+			employment_box.x_position += 120.f;
+			auto max_employment_box = base_box;
+			max_employment_box.x_position += 180.f;
+			auto expected_profit_box = base_box;
+			expected_profit_box.x_position += 250.f;
+
+			text::add_to_layout_box(state, contents, name_box, text::get_name_as_string(state, dcon::fatten(state.world, c)));
+
+			
+			text::add_to_layout_box(state, contents, employment_box, current_employment);
+			text::add_to_layout_box(state, contents, max_employment_box, max_employment);
+			text::add_to_layout_box(state, contents, expected_profit_box, text::format_money(expected_profit));
+
+			//text::close_layout_box(contents, name_box);
+			//text::close_layout_box(contents, employment_box);
+			//text::close_layout_box(contents, max_employment_box);
+
+			text::add_to_layout_box(state, contents, base_box, std::string(" "));
+			text::close_layout_box(contents, base_box);
+		});
+
+		active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, false);
+		if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+			active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::mine_rgo_size, false);
+		active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, false);
+		if(auto owner = state.world.province_get_nation_from_province_ownership(p); owner)
+			active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::farm_rgo_size, false);
 	}
 };
 
@@ -1570,7 +1650,7 @@ class province_rgo_size_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto province_id = retrieve<dcon::province_id>(state, parent);
-		set_text(state, text::format_float(economy::rgo_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2));
+		set_text(state, text::format_float(economy::rgo_total_effective_size(state, state.world.province_get_nation_from_province_ownership(province_id), province_id), 2));
 	}
 };
 
@@ -1866,6 +1946,8 @@ public:
 			if(auto mid = state.world.national_focus_get_modifier(content);  mid) {
 				modifier_description(state, contents, mid, 15);
 			}
+
+			ui::trigger_description(state, contents, state.world.national_focus_get_limit(content), trigger::to_generic(sid), trigger::to_generic(state.local_player_nation), -1);
 		}
 	}
 
@@ -2167,28 +2249,25 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
 		switch(category) {
 		case country_list_filter::all:
-			text::add_line(state, contents, "alice_filter_all");
+			text::add_line(state, contents, "filter_all");
 			break;
 		case country_list_filter::neighbors:
 		case country_list_filter::neighbors_no_vassals:
-			text::add_line(state, contents, "alice_filter_neighbors");
-			text::add_line(state, contents, "alice_filter_neighbors_right");
+			text::add_line(state, contents, "filter_neighbors");
 			break;
 		case country_list_filter::sphere:
 		case country_list_filter::influenced:
-			text::add_line(state, contents, "alice_filter_sphere");
-			text::add_line(state, contents, "alice_filter_sphere_right");
+			text::add_line(state, contents, "filter_sphere");
 			break;
 		case country_list_filter::enemies:
-			text::add_line(state, contents, "alice_filter_enemies");
+			text::add_line(state, contents, "filter_enemies");
 			break;
 		case country_list_filter::find_allies:
 		case country_list_filter::allies:
-			text::add_line(state, contents, "alice_filter_allies");
-			text::add_line(state, contents, "alice_filter_allies_right");
+			text::add_line(state, contents, "filter_allies");
 			break;
 		case country_list_filter::best_guess:
-			text::add_line(state, contents, "alice_filter_best_guess");
+			text::add_line(state, contents, "filter_best_guess");
 			break;
 		default:
 			break;

@@ -56,20 +56,19 @@ struct textured_line_vertex_b {
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float type, float thickness)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), type_{ type }, thickness_{ thickness }  { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec3 texture_coord, float thickness)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }  { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
-	glm::vec2 texture_coord_;
-	float type_ = 0.f;
+	glm::vec3 texture_coord_;
 	float thickness_ = 0.f;
 };
 
 struct text_line_generator_data {
 	text_line_generator_data() { };
-	text_line_generator_data(std::string text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(text_), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
-	std::string text{};
+	text_line_generator_data(text::stored_glyphs&& text_, glm::vec4 coeff_, glm::vec2 basis_, glm::vec2 ratio_) : text(std::move(text_)), coeff{ coeff_ }, basis{ basis_ }, ratio{ ratio_ } { };
+	text::stored_glyphs text;
 	glm::vec4 coeff{0.f};
 	glm::vec2 basis{0.f};
 	glm::vec2 ratio{0.f};

@@ -69,7 +69,6 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/scripting/effects.cpp"
 	"src/scripting/events.cpp"
 	"src/scripting/triggers.cpp"
-	"src/text/bmfont.cpp"
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
@@ -182,6 +181,7 @@ target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
 target_link_libraries(AliceCommon INTERFACE freetype)
+target_link_libraries(AliceCommon INTERFACE harfbuzz)
 target_link_libraries(AliceCommon INTERFACE glm)
 if (WIN32)
 	target_link_libraries(AliceCommon INTERFACE ws2_32)
@@ -397,12 +397,6 @@ add_custom_command(
 	VERBATIM)
 
 add_custom_command(
-  OUTPUT ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
-  COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
-  DEPENDS ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
-  VERBATIM)
-
-add_custom_command(
   OUTPUT ${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp
   COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/text/font_defs.txt
   DEPENDS ${PROJECT_SOURCE_DIR}/src/text/font_defs.txt
@@ -417,7 +411,6 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/parsing/news_parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/parsing/effect_parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/parsing/trigger_parser_defs_generated.hpp
-	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)

@@ -125,6 +125,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::statename, target_state);
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::countryname, target_nation);
+	text::add_to_substitution_map(sub, text::variable_type::thiscountry, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
@@ -184,7 +185,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::resource, state.world.province_get_rgo(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::terrain, state.world.province_get_terrain(target_province).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::numfactories, text::pretty_integer{ economy::state_factory_count(state, target_state, target_nation) });
-	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.government_type_get_ruler_name(state.world.nation_get_government_type(from_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::fromruler, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(from_nation), state.world.nation_get_government_type(from_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::focus, state.world.state_instance_get_owner_focus(target_state).get_name());
 	text::add_to_substitution_map(sub, text::variable_type::nf, state.world.state_instance_get_owner_focus(target_state).get_name());
 	auto names_pair = rng::get_random_pair(state, uint32_t(target_nation.index()) << 6, uint32_t(event_date.value));
@@ -1148,11 +1149,12 @@ void close_expired_event_windows(sys::state& state) {
 }
 
 void clear_event_windows(sys::state& state) {
-	for(const auto& pool : ui::event_pool) {
-		for(const auto& win : pool) {
-			win->set_visible(state, false);
+	for(auto const& slot_pool : ui::event_pool) {
+		for(auto const& win : slot_pool) {
+			pending_closure.push_back(win.get());
 		}
 	}
+	close_expired_event_windows(state);
 }
 
 bool events_pause_test(sys::state& state) {

@@ -391,6 +391,10 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ demand_by_category }
+		type{ array{int32_t}{float} }
+	}
+	property{
 		name{ total_consumption }
 		type{ float }
 		tag{ save }
@@ -1488,15 +1492,6 @@ object {
 		name{ is_owner_core }
 		type{ bitfield }
 	}
-	property{
-		name{ rgo_production_scale }
-		type{ float }
-		tag{ save }
-	}
-	property{
-		name{ rgo_actual_production }
-		type{ float }
-	}
 	property {
 		name{ rgo_full_profit }
 		type{ float }
@@ -1510,6 +1505,38 @@ object {
 		name{ rgo_size }
 		type{ float }
 		tag{ scenario }
+	}
+	property{
+		name{ subsistence_score }
+		type{ float }
+	}
+	property{
+		name{ rgo_was_set_during_scenario_creation }
+		type{ bitfield }
+	}
+	property{
+		name{ rgo_max_size_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_target_employment_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_employment_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_profit_per_good }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}	
+	property{
+		name{ rgo_actual_production_per_good }
+		type{ array{commodity_id}{float} }
 	}
 	property{
 		name{ daily_net_migration }
@@ -2869,6 +2896,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ desc }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
 		name{ modifier }
 		type{ modifier_id }
 		tag{ scenario }
@@ -2957,6 +2989,11 @@ object {
 
 	property{
 		name{ name }
+		type{ text_sequence_id }
+		tag{ scenario }
+	}
+	property{
+		name{ desc }
 		type{ text_sequence_id }
 		tag{ scenario }
 	}
@@ -3526,6 +3563,11 @@ object {
 		type{ uint16_t }
 	}
 	property {
+		name{ gdp }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ effective_prices }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -3554,6 +3596,10 @@ object {
 		name{ real_demand }
 		type{ array{commodity_id}{float} }
 		tag{ save }
+	}
+	property {
+		name{ intermediate_demand }
+		type{ array{commodity_id}{float} }
 	}
 	property {
 		name{ imports }

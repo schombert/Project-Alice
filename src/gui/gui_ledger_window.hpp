@@ -44,7 +44,9 @@ enum class ledger_sort_type {
 	profit,
 	employment,
 	rgo_size,
-	factory_level
+	factory_level,
+	gdp,
+	gdp_capita
 };
 
 struct ledger_sort {
@@ -116,7 +118,7 @@ public:
 		auto button_def = state.ui_state.defs_by_name.find("ledger_default_button")->second.definition;
 
 		xy_pair cell_offset{ int16_t(24), 0 };
-		auto cell_width = (972 - cell_offset.x) / 6;
+		auto cell_width = (972 - cell_offset.x) / 8;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
@@ -159,6 +161,18 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
+		{
+			auto ptr = make_element_by_type<ledger_generic_sort_button>(state, button_def, ledger_sort_type::gdp);
+			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_ppp_gdp"));
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<ledger_generic_sort_button>(state, button_def, ledger_sort_type::gdp_capita);
+			ptr->set_button_text(state, text::produce_simple_string(state, "ledger_ppp_gdp_per_capita"));
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
 	}
 };
 
@@ -176,7 +190,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		xy_pair cell_offset{int16_t(country_flag->base_data.position.x + country_flag->base_data.size.x), 0};
-		auto cell_width = (972 - cell_offset.x) / 6;
+		auto cell_width = (972 - cell_offset.x) / 8;
 		auto apply_offset = [&](auto& ptr) {
 			ptr->base_data.position = cell_offset;
 			ptr->base_data.size.x = int16_t(cell_width);
@@ -220,6 +234,18 @@ public:
 		// Total score
 		{
 			auto ptr = make_element_by_type<nation_total_score_text>(state,
+					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<nation_ppp_gdp_text>(state,
+					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
+			apply_offset(ptr);
+			add_child_to_front(std::move(ptr));
+		}
+		{
+			auto ptr = make_element_by_type<nation_ppp_gdp_per_capita_text>(state,
 					state.ui_state.defs_by_name.find("ledger_default_textbox")->second.definition);
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
@@ -297,6 +323,45 @@ public:
 						return state.world.nation_get_military_score(a) + state.world.nation_get_industrial_score(a) + nations::prestige_score(state, a) < state.world.nation_get_military_score(b) + state.world.nation_get_industrial_score(b) + nations::prestige_score(state, b);
 					} else {
 						return state.world.nation_get_military_score(a) + state.world.nation_get_industrial_score(a) + nations::prestige_score(state, a) > state.world.nation_get_military_score(b) + state.world.nation_get_industrial_score(b) + nations::prestige_score(state, b);
+					}
+				});
+				break;
+			case ledger_sort_type::gdp_capita:
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+					float a_costs =
+						state.world.nation_get_life_needs_costs(a, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_everyday_needs_costs(a, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_luxury_needs_costs(a, state.culture_definitions.primary_factory_worker);
+					float b_costs =
+						state.world.nation_get_life_needs_costs(b, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_everyday_needs_costs(b, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_luxury_needs_costs(b, state.culture_definitions.primary_factory_worker);
+
+					float a_population = state.world.nation_get_demographics(a, demographics::total);
+					float b_population = state.world.nation_get_demographics(b, demographics::total);
+
+					if(lsort.reversed) {
+						return state.world.nation_get_gdp(a) / a_costs / a_population < state.world.nation_get_gdp(b) / b_costs / b_population;
+					} else {
+						return state.world.nation_get_gdp(a) / a_costs / a_population > state.world.nation_get_gdp(b) / b_costs / b_population;
+					}
+				});
+				break;
+			case ledger_sort_type::gdp:	
+				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
+					float a_costs =
+						state.world.nation_get_life_needs_costs(a, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_everyday_needs_costs(a, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_luxury_needs_costs(a, state.culture_definitions.primary_factory_worker);
+					float b_costs =
+						state.world.nation_get_life_needs_costs(b, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_everyday_needs_costs(b, state.culture_definitions.primary_factory_worker)
+						+ state.world.nation_get_luxury_needs_costs(b, state.culture_definitions.primary_factory_worker);
+
+					if(lsort.reversed) {
+						return state.world.nation_get_gdp(a) / a_costs < state.world.nation_get_gdp(b) / b_costs;
+					} else {
+						return state.world.nation_get_gdp(a) / a_costs > state.world.nation_get_gdp(b) / b_costs;
 					}
 				});
 				break;
@@ -1663,6 +1728,7 @@ public:
 				}
 			});
 			break;
+		/*
 		case ledger_sort_type::output_amount:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1672,6 +1738,7 @@ public:
 				}
 			});
 			break;
+		*/
 		case ledger_sort_type::profit:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1690,6 +1757,7 @@ public:
 				}
 			});
 			break;
+		/*
 		case ledger_sort_type::rgo_size:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {
@@ -1699,6 +1767,7 @@ public:
 				}
 			});
 			break;
+		*/
 		default:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::province_id a, dcon::province_id b) {
 				if(lsort.reversed) {

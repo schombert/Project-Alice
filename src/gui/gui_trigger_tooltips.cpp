@@ -149,20 +149,18 @@ void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
 
 void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
 	if(show_condition) {
-
-			if(trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(ws, layout, box, std::string_view("\x02"), text::text_color::green);
-				text::add_space_to_layout_box(ws, layout, box);
-			} else {
-				text::add_to_layout_box(ws, layout, box, std::string_view("\x01"), text::text_color::red);
-				text::add_space_to_layout_box(ws, layout, box);
-			}
-
+		auto r = trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
+		auto str = ws.font_collection.fonts[text::font_index_from_font_id(ws, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
+		if(r) {
+			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::green);
+			text::add_space_to_layout_box(ws, layout, box);
+		} else {
+			text::add_to_layout_box(ws, layout, box, std::string_view(str), text::text_color::red);
+			text::add_space_to_layout_box(ws, layout, box);
+		}
 	} else {
-
-		text::add_to_layout_box(ws, layout, box, std::string_view("\x95"), text::text_color::white);
+		text::add_to_layout_box(ws, layout, box, std::string_view("•"), text::text_color::white);
 		text::add_space_to_layout_box(ws, layout, box);
-
 	}
 }
 
@@ -1395,7 +1393,7 @@ void tf_unemployment_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_is_slave_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"), text::produce_simple_string(ws, "allowed"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "slavery"), text::produce_simple_string(ws, "allowed"),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -4863,14 +4861,14 @@ void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4879,7 +4877,7 @@ void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4891,7 +4889,7 @@ void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4903,7 +4901,7 @@ void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4915,7 +4913,7 @@ void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4928,7 +4926,7 @@ void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
-	display_with_comparison(tval[0], text::produce_simple_string(ws, "alice_military_score"),
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -8491,11 +8489,13 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
-			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x02"), text::text_color::green);
+			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 
@@ -8545,11 +8545,13 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
 
-			if(trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot)) {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x02"), text::text_color::green);
+			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
+			auto str = state.font_collection.fonts[text::font_index_from_font_id(state, layout.fixed_parameters.font_id) - 1].get_conditional_indicator(r);
+			if(r) {
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
 				text::add_space_to_layout_box(state, layout, box);
 			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view("\x01"), text::text_color::red);
+				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
 				text::add_space_to_layout_box(state, layout, box);
 			}
 

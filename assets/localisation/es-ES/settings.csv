@@ -1,0 +1,74 @@
+language_en-US;Ingles (EEUU)
+language_fr-FR;Frances (Francia)
+language_de-DE;Aleman (Alemania)
+language_es-ES;Espaniol (Espania)
+language_it-IT;Italiano (Italia)
+language_sv-SE;Sueco (Suecia)
+language_cs-CZ;Checo (Chequia)
+language_hu-HU;Hungaro (Hungria)
+language_nl-NL;Holandes (Holanda)
+language_pt-PT;Portugues (Portugal)
+language_ru-RU;Ruso (Rusia)
+language_fi-FI;Finlandes (Finlandia)
+language_pl-PL;Polaco (Polonia)
+language_ar-AR;Arabe (Arabia)
+language_zh-CN;Chino (China)
+language_jp-JP;Japones (Japon)
+language_ko-SK;Koreano (Korea del Sur)
+language_ko-NK;Koreano (Korea del Norte)
+language_bg-BG;Bulgaro (Bulgaria)
+save_and_exit;Salir y Guardar
+save;Guardar
+exit;Salir
+graphics_options;Opciones graficas
+sound_options;Opciones de audio
+controls_options;Opciones extra
+window_mode_label;Pantalla completa
+map_projection;Proyeccion
+map_projection_globe;Ortografica
+map_projection_flat;Equirectangular
+map_projection_globe_perspective;Vertical
+dm_popup_label;Mensajes diplomaticos son Pop-Ups
+ui_scale;Escala de la interfaz
+zoom_mode_label;Estilo del zoom
+zoom_mode_panning;Panoramico
+zoom_mode_inverted;Invertido
+zoom_mode_centered;Centrado
+zoom_mode_to_cursor;Al cursor
+zoom_mode_away_from_cursor;Alejandose
+zoom_speed_label;Aceleracion de zoom
+river_label;Rios
+mute_on_focus_lost_label;Mutear al salir del enfoque
+wasd_for_map_movement_label;WASD para moverse
+vassal_color_label;Color de vasallios
+vassal_color_inherit;Heredar
+vassal_color_same;Igual
+vassal_color_none;Ninguno
+black_map_font_label;Texto negro
+edge_scrolling_label;Scroll al borde
+color_blind_mode_label;Deficit de color
+color_blind_mode_none;Ninguno
+color_blind_mode_deutan;Deutan
+color_blind_mode_protan;Protan
+color_blind_mode_tritan;Tritan
+color_blind_mode_achroma;Acroma
+render_models_label;Mostrar modelos 3D
+language_label;Lenguaje
+fow_label;Neblina de guerra
+railroad_label;Redes de ferrocarriles
+master_volume_label;Volumen total
+music_volume_label;Volumen de la musica
+interface_volume_label;Volumen de la interfaz
+effect_volume_label;Volumen de los efectos de sonido
+fonts_label;Letra clasica
+tooltip_mode_label;Sobrellevar tooltip
+music_player_label;Reproductor de musica
+gaussianblur_label;Desenfoque guassian
+gamma_label;Gamma
+map_label;Texto del mapa
+map_label_0;Ninguna
+map_label_1;Linear
+map_label_2;Cuadratica
+map_label_3;Cubica
+antialiasing_label;Antialiasing
+spoilers_label;Spoilers

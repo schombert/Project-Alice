@@ -1,0 +1,18 @@
+map_remove_prefix;Les ;
+map_expand_acronym;;
+map_expand_acronym_to;;
+map_label_country;$country$
+map_label_adj_continent;$continentname$ $adj$
+map_label_adj_state;$state$ $adj$
+map_label_adj_province;$province$ $adj$
+map_label_west_country;Zachodnia $country$
+map_label_east_country;Wschodnia $country$
+map_label_north_country;Południowa $country$
+map_label_south_country;Północna $country$
+map_label_adj_tag;$tag$ $adj$
+africa;Afryka
+europe;Europa
+south_america;Ameryka Południowa
+north_america;Ameryka Północna
+oceania;Oceania
+asia;Azja

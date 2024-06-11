@@ -1,0 +1,19 @@
+compose_dynamic_adj_state;$adj$ $state$
+map_remove_prefix;A ;
+map_expand_acronym;USA
+map_expand_acronym_to;United States
+map_label_country;$country$
+map_label_adj_continent;$adj$ $continentname$
+map_label_adj_state;$adj$ $state$
+map_label_adj_province;$adj$ $province$
+map_label_west_country;Nyugat $country$
+map_label_east_country;Kelet $country$
+map_label_north_country;Dél $country$
+map_label_south_country;Észak $country$
+map_label_adj_tag;$adj$ $tag$
+africa;Afrika
+europe;Európa
+south_america;Dél Amerika
+north_america;Észak Amerika
+oceania;Óceánia
+asia;Ázsia

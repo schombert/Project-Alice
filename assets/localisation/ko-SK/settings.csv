@@ -1,0 +1,75 @@
+language_en-US;영어(미국)
+language_fr-FR;프랑스어(프랑스)
+language_de-DE;독일어(독일)
+language_es-ES;스페인어(스페인)
+language_it-IT;이탈리아어(이탈리아)
+language_sv-SE;스웨덴어(스웨덴)
+language_cs-CZ;체코어(체코 공화국)
+language_hu-HU;헝가리어(헝가리)
+language_nl-NL;네덜란드어(네덜란드)
+language_pt-PT;포르투갈어(포르투갈)
+language_ru-RU;러시아어(러시아)
+language_fi-FI;핀란드어(핀란드)
+language_pl-PL;폴란드어(폴란드)
+language_ar-AR;아랍어(아라비아)
+language_zh-CN;중국어(중국)
+language_jp-JP;일본어(일본)
+language_ko-SK;한국어(대한민국)
+language_ko-NK;한국어(북한)
+language_bg-BG;불가리아어(불가리아)
+save_and_exit;저장 및 종료
+save;구하다
+exit;출구
+graphics_options;그래픽 옵션
+sound_options;사운드 옵션
+controls_options;기타 옵션
+message_settings_options;메시지 설정
+window_mode_label;전체 화면
+map_projection;투사
+map_projection_globe;직교
+map_projection_flat;등장방형
+map_projection_globe_perspective;수직의
+dm_popup_label;외교 메시지를 팝업으로 표시
+ui_scale;UI 규모
+zoom_mode_label;줌 스타일
+zoom_mode_panning;패닝
+zoom_mode_inverted;거꾸로
+zoom_mode_centered;가운데 맞춤
+zoom_mode_to_cursor;커서로
+zoom_mode_away_from_cursor;커서에서 멀어짐
+zoom_speed_label;줌 가속
+river_label;강하
+mute_on_focus_lost_label;초점 상실 시 음소거
+wasd_for_map_movement_label;이동용 WASD
+vassal_color_label;가신 색칠
+vassal_color_inherit;상속
+vassal_color_same;같은
+vassal_color_none;없음
+black_map_font_label;검은 지도 글꼴
+edge_scrolling_label;가장자리 스크롤
+color_blind_mode_label;색맹
+color_blind_mode_none;없음
+color_blind_mode_deutan;듀탄
+color_blind_mode_protan;프로탄
+color_blind_mode_tritan;트라이탄
+color_blind_mode_achroma;아크로마
+render_models_label;모델 렌더링
+language_label;언어
+fow_label;전쟁의 안개
+railroad_label;철도망
+master_volume_label;마스터 볼륨
+music_volume_label;음악 볼륨
+interface_volume_label;인터페이스 볼륨
+effect_volume_label;음향 효과 볼륨
+fonts_label;클래식 글꼴
+tooltip_mode_label;부동 툴팁
+music_player_label;뮤직 플레이어
+gaussianblur_label;가우스 흐림
+gamma_label;감마
+map_label;지도 텍스트
+map_label_0;없음
+map_label_1;선의
+map_label_2;이차
+map_label_3;큐빅
+antialiasing_label;안티 앨리어싱
+spoilers_label;스포일러

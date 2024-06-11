@@ -582,9 +582,9 @@ public:
 		if(com != economy::money) {
 			auto sat = state.world.nation_get_demand_satisfaction(state.local_player_nation, com);
 			if(sat < 0.5f) {
-				text::add_line(state, contents, "alice_commodity_shortage");
+				text::add_line(state, contents, "commodity_shortage");
 			} else if(sat >= 1.f) {
-				text::add_line(state, contents, "alice_commodity_surplus");
+				text::add_line(state, contents, "commodity_surplus");
 			}
 			text::add_line(state, contents, "alice_commodity_cprice", text::variable_type::x, text::format_money(state.world.commodity_get_current_price(com)));
 			text::add_line(state, contents, "alice_commodity_cost", text::variable_type::x, text::format_money(state.world.commodity_get_cost(com)));
@@ -601,6 +601,7 @@ public:
 			dcon::nation_id n;
 		};
 		static std::vector<tagged_value> producers;
+
 		producers.clear();
 		for(auto n : state.world.in_nation) {
 			if(n.get_domestic_market_pool(com) >= 0.05f) {
@@ -630,8 +631,7 @@ public:
 			float r_total = 0.0f;
 			for(auto p : state.world.in_province) {
 				if(p.get_nation_from_province_ownership()) {
-					if(p.get_rgo() == com)
-						r_total += p.get_rgo_actual_production();
+					r_total += p.get_rgo_actual_production_per_good(com);
 				}
 			}
 			float a_total = 0.0f;
@@ -664,7 +664,7 @@ public:
 					text::variable_type::x, text::fp_one_place{ a_total },
 					text::variable_type::y, text::fp_percentage{ a_total / total });
 				text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ state.world.nation_get_artisan_distribution(state.local_player_nation, com) * 100.f });
+				text::add_line(state, contents, "w_artisan_distribution", text::variable_type::x, text::fp_one_place{ economy::get_artisan_distribution_slow(state, state.local_player_nation, com) * 100.f });
 			}
 			if(f_total > 0.f) {
 				text::add_line(state, contents, "alice_factory_trade_prod",
@@ -770,6 +770,7 @@ public:
 
 class trade_flow_data {
 public:
+	dcon::commodity_id trade_good;
 	enum class type : uint8_t {
 		factory,
 		province,
@@ -886,7 +887,7 @@ public:
 			auto pid = content.data.province_id;
 			switch(content.value_type) {
 			case trade_flow_data::value_type::produced_by: {
-				amount += state.world.province_get_rgo_actual_production(pid);
+				amount += state.world.province_get_rgo_actual_production_per_good(pid, content.trade_good);
 			} break;
 			case trade_flow_data::value_type::used_by:
 			case trade_flow_data::value_type::may_be_used_by:
@@ -928,15 +929,17 @@ protected:
 						td.type = trade_flow_data::type::factory;
 						td.value_type = vt;
 						td.data.factory_id = fid;
+						td.trade_good = commodity_id;
 						row_contents.push_back(td);
 					}
 				});
 				if(vt == trade_flow_data::value_type::produced_by)
-					if(state.world.province_get_rgo(pid) == commodity_id) {
+					if(state.world.province_get_rgo_actual_production_per_good(pid, commodity_id) > 0.f) {
 						trade_flow_data td{};
 						td.type = trade_flow_data::type::province;
 						td.value_type = vt;
 						td.data.province_id = pid;
+						td.trade_good = commodity_id;
 						row_contents.push_back(td);
 					}
 			});
@@ -1046,8 +1049,7 @@ public:
 		{
 			float amount = 0.f;
 			for(const auto pc : state.world.nation_get_province_control(state.local_player_nation)) {
-				if(pc.get_province().get_rgo() == com)
-					amount += pc.get_province().get_rgo_actual_production();
+				amount += pc.get_province().get_rgo_actual_production_per_good(com);
 			}
 			total += amount;
 			distribution.emplace_back(state.culture_definitions.aristocrat, amount);
@@ -1149,7 +1151,7 @@ public:
 						amount += state.world.factory_get_actual_production(fid);
 				});
 				if(state.world.province_get_rgo(pid) == commodity_id)
-					amount += state.world.province_get_rgo_actual_production(pid);
+					amount += state.world.province_get_rgo_actual_production_per_good(pid, commodity_id);
 			});
 		}
 

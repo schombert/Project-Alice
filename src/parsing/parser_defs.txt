@@ -235,7 +235,7 @@ modifier_base
 	pop_growth                                value      float            member_fn
 	global_pop_growth                                value      float            member_fn (pop_growth)
 	colonial_life_rating                      value      float            member_fn
-	seperatism                                value      float            member_fn
+	seperatism                                value      float            member_fn (non_accepted_pop_militancy_modifier)
 	colonial_prestige                         value      float            member_fn
 	unit_start_experience                     value      float            member_fn
 	unit_recruitment_time        value        float        discard
@@ -565,6 +565,13 @@ pv_state_building
 	building          value          text               member_fn
 	upgrade           value          none               discard
 
+province_rgo_ext_desc
+	trade_good        value          text               member_fn
+	max_employment    value          int                member_fn
+
+province_rgo_ext
+	entry             group          province_rgo_ext_desc  member_fn
+
 province_history_file
 	life_rating       value          uint               member_fn
 	colony            value          uint               member_fn
@@ -582,6 +589,7 @@ province_history_file
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
+	rgo_distribution  group          province_rgo_ext   member_fn
 	#any              value          uint               member_fn
 	#any              extern         enter_dated_block  discard
 

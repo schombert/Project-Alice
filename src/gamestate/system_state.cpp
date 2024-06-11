@@ -769,7 +769,7 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 
 	map_state.on_key_up(keycode, mod);
 }
-void state::on_text(char c) { // c is win1250 codepage value
+void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
@@ -786,8 +786,9 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
-		if(user_settings.map_label != sys::map_label_mode::none)
+		if(user_settings.map_label != sys::map_label_mode::none) {
 			map::update_text_lines(*this, map_state.map_data);
+		}
 	}
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
@@ -1255,7 +1256,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip != tooltip_probe.under_mouse) {
 		ui_state.last_tooltip = tooltip_probe.under_mouse;
+
 		if(tooltip_probe.under_mouse) {
+			if(tooltip_probe.under_mouse->base_data.get_element_type() == ui::element_type::button) {
+				sound::play_interface_sound(*this, sound::get_hover_sound(*this), user_settings.interface_volume * user_settings.master_volume);
+			}
 			auto type = ui_state.last_tooltip->has_tooltip(*this);
 			if(type != ui::tooltip_behavior::no_tooltip) {
 				auto container = text::create_columnar_layout(ui_state.tooltip->internal_layout,
@@ -1568,11 +1573,8 @@ void state::on_create() {
 		ui_state.nation_picker->add_child_to_front(std::move(new_elm));
 	}
 	map_mode::set_map_mode(*this, map_mode::mode::political);
-	if(user_settings.use_classic_fonts) {
-		ui_state.tooltip_font = text::name_into_font_id(*this, "vic_18_black");
-	} else {
-		ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
-	}
+	
+	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 }
 //
 // string pool functions
@@ -1750,7 +1752,7 @@ void state::save_user_settings() const {
 	US_SAVE(map_is_globe);
 	US_SAVE(autosaves);
 	US_SAVE(bind_tooltip_mouse);
-	US_SAVE(use_classic_fonts);
+	US_SAVE(UNUSED_BOOL);
 	US_SAVE(outliner_views);
 	constexpr size_t lower_half_count = 98;
 	std::memcpy(ptr, user_settings.self_message_settings, lower_half_count);
@@ -1786,6 +1788,7 @@ void state::save_user_settings() const {
 	US_SAVE(wasd_for_map_movement);
 	US_SAVE(notify_rebels_defeat);
 	US_SAVE(color_blind_mode);
+	US_SAVE(current_language);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1812,7 +1815,7 @@ void state::load_user_settings() {
 			US_LOAD(map_is_globe);
 			US_LOAD(autosaves);
 			US_LOAD(bind_tooltip_mouse);
-			US_LOAD(use_classic_fonts);
+			US_LOAD(UNUSED_BOOL);
 			US_LOAD(outliner_views);
 			constexpr size_t lower_half_count = 98;
 
@@ -1852,6 +1855,7 @@ void state::load_user_settings() {
 			US_LOAD(wasd_for_map_movement);
 			US_LOAD(notify_rebels_defeat);
 			US_LOAD(color_blind_mode);
+			US_LOAD(current_language);
 #undef US_LOAD
 		} while(false);
 
@@ -1954,7 +1958,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, 2, err); // 2 = English
+	text::load_text_data(*this, err);
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
@@ -2463,27 +2467,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// add special names
 	for(auto ident : world.in_national_identity) {
-		auto tagi = ident.get_identifying_int();
-		auto tag = nations::int_to_tag(tagi);
-		tag[0] = char(std::tolower(tag[0]));
-		tag[1] = char(std::tolower(tag[1]));
-		tag[2] = char(std::tolower(tag[2]));
-		tag += "_";
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first;
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_name(named_gov.second, ident.get_name());
-			}
-		}
-		for(auto& named_gov : context.map_of_governments) {
-			auto special_ident = tag + named_gov.first + "_ruler";
-			if(auto it = key_to_text_sequence.find(special_ident); it != key_to_text_sequence.end()) {
-				ident.set_government_ruler_name(named_gov.second, it->second);
-			} else {
-				ident.set_government_ruler_name(named_gov.second, world.government_type_get_ruler_name(named_gov.second));
-			}
+		auto const tag = nations::int_to_tag(ident.get_identifying_int());
+		for(auto const& named_gov : context.map_of_governments) {
+			auto const name = tag + "_" + named_gov.first;
+			auto name_k = text::find_or_use_default_key(*this, name, ident.get_name());
+			ident.set_government_name(named_gov.second, name_k);
+			auto const ruler = tag + "_" + named_gov.first + "_ruler";
+			auto ruler_k = text::find_or_use_default_key(*this, ruler, world.government_type_get_ruler_name(named_gov.second));
+			ident.set_government_ruler_name(named_gov.second, ruler_k);
 		}
 	}
 
@@ -2510,6 +2501,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::parse_country_file(gen, err, c_context);
 		}
 	});
+
+	world.province_resize_rgo_max_size_per_good(world.commodity_size());
 
 	// load province history files
 	auto history = open_directory(root, NATIVE("history"));
@@ -3025,10 +3018,16 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_modifier_values(provincial_mod_offsets::count);
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
+
 	world.province_resize_demographics(demographics::size(*this));
+	world.province_resize_rgo_profit_per_good(world.commodity_size());
+	world.province_resize_rgo_actual_production_per_good(world.commodity_size());
+	world.province_resize_rgo_employment_per_good(world.commodity_size());
+	world.province_resize_rgo_target_employment_per_good(world.commodity_size());
 
 	world.nation_resize_domestic_market_pool(world.commodity_size());
 	world.nation_resize_real_demand(world.commodity_size());
+	world.nation_resize_intermediate_demand(world.commodity_size());
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
 	world.nation_resize_life_needs_costs(world.pop_type_size());
@@ -3321,6 +3320,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(auto rgo = world.province_get_rgo(p); !rgo) {
 			auto name = world.province_get_name(p);
 			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+			world.province_set_rgo(p, economy::money);
 		}
 	});
 
@@ -3335,6 +3335,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+
+	text::finish_text_data(*this);
 }
 
 void state::preload() {
@@ -3874,7 +3876,7 @@ void state::single_game_tick() {
 		}
 	});
 
-	economy::daily_update(*this);
+	economy::daily_update(*this, true);
 
 	military::recover_org(*this);
 	military::update_siege_progress(*this);

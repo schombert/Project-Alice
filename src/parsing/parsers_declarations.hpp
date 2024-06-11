@@ -805,7 +805,6 @@ public:
 		}
 	}
 	MOD_NAT_FUNCTION(colonial_life_rating)
-	MOD_NAT_FUNCTION(seperatism)
 	MOD_NAT_FUNCTION(colonial_prestige)
 
 	template<typename T>
@@ -1478,6 +1477,19 @@ struct pv_state_building {
 	void finish(province_file_context&) { }
 };
 
+struct province_rgo_ext_desc {
+	dcon::commodity_id trade_good_id;
+	float max_employment_value;
+	void max_employment(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
+	void trade_good(association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&);
+};
+
+struct province_rgo_ext {
+	void entry(province_rgo_ext_desc const& value, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) { }
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1490,8 +1502,8 @@ struct province_history_file {
 	void party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line, province_file_context& context);
 	void state_building(pv_state_building const& value, error_handler& err, int32_t line, province_file_context& context);
 	void is_slave(association_type, bool value, error_handler& err, int32_t line, province_file_context& context);
-	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line,
-			province_file_context& context);
+	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
+	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
 

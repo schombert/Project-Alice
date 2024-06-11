@@ -50,38 +50,27 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view("rank_prestige"), text::substitution_map{});
 		text::add_line_break_to_layout_box(state, contents, box);
 		switch(nations::get_status(state, nation_id)) {
 		case(nations::status::great_power):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"),
-					text::substitution_map{});
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_greatnation_status"), text::substitution_map{});
 			break;
 		case(nations::status::secondary_power):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"),
-					text::substitution_map{});
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_colonialnation_status"), text::substitution_map{});
 			break;
 		case(nations::status::civilized):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"),
-					text::substitution_map{});
-			// Civil
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_civilizednation_status"), text::substitution_map{});
 			break;
 		case(nations::status::westernizing):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"),
-					text::substitution_map{});
-			// ???
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_almost_western_nation_status"), text::substitution_map{});
 			break;
 		case(nations::status::uncivilized):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"),
-					text::substitution_map{});
-			// Nothing
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_uncivilizednation_status"), text::substitution_map{});
 			break;
 		case(nations::status::primitive):
-			text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"),
-					text::substitution_map{});
-			// Nothing
+			text::localised_format_box(state, contents, box, std::string_view("diplomacy_primitivenation_status"), text::substitution_map{});
 			break;
 		default:
 			break;
@@ -177,12 +166,9 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
 		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] -
-				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] -
-																				state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
+			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
+		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
 		datapoints[0] = datapoints[1]; // otherwise you will store the difference between two non-consecutive days here
-
 		set_data_points(state, datapoints);
 	}
 };
@@ -239,20 +225,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
-
 		auto box = text::open_layout_box(contents, 0);
 		auto fat_id = dcon::fatten(state.world, nation_id);
-		text::localised_single_sub_box(state, contents, box, std::string_view("diplomacy_infamy"), text::variable_type::value,
-				text::fp_two_places{fat_id.get_infamy()});
-		text::add_divider_to_layout_box(state, contents, box);
-		// text::add_to_layout_box(state, contents, box, text::format_ratio(fat_id.get_infamy(), ));
+		text::localised_format_box(state, contents, box, "infamy");
+		text::add_to_layout_box(state, contents, box, std::string_view(":"));
+		text::add_space_to_layout_box(state, contents, box);
 		text::add_to_layout_box(state, contents, box, text::fp_two_places{fat_id.get_infamy()});
 		text::add_to_layout_box(state, contents, box, std::string_view("/"));
 		text::add_to_layout_box(state, contents, box, text::fp_two_places{state.defines.badboy_limit});
 		text::add_line_break_to_layout_box(state, contents, box);
-		text::localised_format_box(state, contents, box, std::string_view("badboy_dro_1"));
+		text::localised_format_box(state, contents, box, "badboy_dro_1");
 		text::close_layout_box(contents, box);
-
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::badboy, false);
 	}
 };
@@ -303,7 +286,6 @@ public:
 		text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
 		text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
 		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
-		text::add_line(state, contents, "separation_topbar");
 		text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
 		text::add_line_break_to_layout(state, contents);
@@ -943,33 +925,33 @@ public:
 
 		auto ymd = state.current_date.to_ymd(state.start_date);
 		if(sys::is_leap_year(ymd.year)) {
-			text::add_line(state, contents, "topbar_date_leap");
+			text::add_line(state, contents, "date_is_leap");
 		} else {
-			text::add_line(state, contents, "topbar_date_not_leap");
+			text::add_line(state, contents, "date_is_not_leap");
 		}
 
 		float nh_temp = 15.f;
 		std::string nh_season;
 		if(ymd.month == 12 || ymd.month <= 2) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+			nh_season = text::produce_simple_string(state, "winter");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+			nh_season = text::produce_simple_string(state, "spring");
 		} else if(ymd.month >= 6 && ymd.month <= 8) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+			nh_season = text::produce_simple_string(state, "summer");
 		} else if(ymd.month >= 9 && ymd.month <= 11) {
-			nh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+			nh_season = text::produce_simple_string(state, "autumn");
 		}
 		text::add_line(state, contents, "topbar_date_season_nh", text::variable_type::x, std::string_view(nh_season));
 
 		std::string sh_season;
 		if(ymd.month >= 6 && ymd.month <= 8) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_winter");
+			sh_season = text::produce_simple_string(state, "winter");
 		} else if(ymd.month >= 9 && ymd.month <= 11) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_spring");
+			sh_season = text::produce_simple_string(state, "spring");
 		} else if(ymd.month == 12 || ymd.month <= 2) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_summer");
+			sh_season = text::produce_simple_string(state, "summer");
 		} else if(ymd.month >= 3 && ymd.month <= 5) {
-			sh_season = text::produce_simple_string(state, "topbar_date_season_fall");
+			sh_season = text::produce_simple_string(state, "autumn");
 		}
 		text::add_line(state, contents, "topbar_date_season_sh", text::variable_type::x, std::string_view(sh_season));
 
