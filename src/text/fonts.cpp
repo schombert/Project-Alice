@@ -8,7 +8,6 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
-#include "bmfont.hpp"
 
 namespace text {
 
@@ -164,8 +163,7 @@ int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t bt
 		return bmp_x + bmp_y * (int32_t)pitch;
 }
 
-constexpr int magnification_factor = 4;
-constexpr int dr_size = 64 * magnification_factor;
+
 constexpr float rt_2 = 1.41421356237309504f;
 
 void init_in_map(bool in_map[dr_size * dr_size], uint8_t const* bmp_data, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height, uint32_t pitch) {
@@ -302,18 +300,7 @@ float font::top_adjustment(int32_t size) const {
 }
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) const {
-	if(state.user_settings.use_classic_fonts) {
-		return text::get_bm_font(state, font_id).get_height();
-	} else {
-		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].line_height(text::size_from_font_id(font_id)));
-	}
-}
-float font_manager::text_extent(sys::state& state, char const* codepoints, uint32_t count, uint16_t font_id) {
-	if(state.user_settings.use_classic_fonts) {
-		return text::get_bm_font(state, font_id).get_string_width(state, codepoints, count);
-	} else {
-		return float(fonts[text::font_index_from_font_id(state, font_id) - 1].text_extent(state, codepoints, count, text::size_from_font_id(font_id)));
-	}
+	return float(fonts[text::font_index_from_font_id(state, font_id) - 1].line_height(text::size_from_font_id(font_id)));
 }
 
 bool font::can_display(char32_t ch_in) const {
@@ -339,7 +326,13 @@ std::string font::get_conditional_indicator(bool v) const {
 		return "@(F)";
 	}
 }
+float font::base_glyph_width(char32_t ch_in) {
+	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
+		return glyph_advances[ch_in];
 
+	make_glyph(ch_in);
+	return glyph_advances[ch_in];
+}
 void font::make_glyph(char32_t ch_in) {
 	if(glyph_loaded.find(ch_in) != glyph_loaded.end())
 		return;
@@ -409,43 +402,68 @@ char font::codepoint_to_alnum(char32_t codepoint) {
 	return 0;
 }
 
-decltype(font::cached_text)::iterator font::get_cached_glyphs(char const* codepoints, uint32_t count) {
-	auto s = std::string(std::string_view(codepoints, codepoints + count));
-	if(auto it = cached_text.find(s); it != cached_text.end()) {
-		return it;
-	} else {
-		hb_buffer_clear_contents(hb_buf);
-		hb_buffer_add_utf8(hb_buf, codepoints, int(count), 0, -1);
-		hb_buffer_guess_segment_properties(hb_buf);
-		hb_shape(hb_font_face, hb_buf, hb_features, num_features);
-		unsigned int glyph_count;
-		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
-		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
-		for(unsigned int i = 0; i < glyph_count; i++) { // Preload glyphs
-			make_glyph(glyph_info[i].codepoint);
-		}
-		text::cached_text_entry entry{};
-		entry.glyph_info.resize(size_t(glyph_count));
-		std::memcpy(entry.glyph_info.data(), glyph_info, glyph_count * sizeof(glyph_info[0]));
-		entry.glyph_pos.resize(size_t(glyph_count));
-		std::memcpy(entry.glyph_pos.data(), glyph_pos, glyph_count * sizeof(glyph_pos[0]));
-		cached_text.insert_or_assign(s, entry);
-		return cached_text.find(s);
+stored_text::stored_text(std::string const& s, font& fnt) : stored_glyphs(s,fnt), base_text(s) {
+}
+stored_text::stored_text(std::string&& s, font& fnt) : stored_glyphs(s, fnt), base_text(std::move(s)) {
+}
+
+stored_glyphs::stored_glyphs(std::string const& s, font& fnt) {
+	fnt.remake_cache(*this, s);
+}
+
+void stored_glyphs::set_text(std::string const& s, font& fnt) {
+	fnt.remake_cache(*this, s);
+}
+
+stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count) {
+	glyph_count = count;
+	glyph_info.resize(count);
+	glyph_pos.resize(count);
+	std::copy_n(other.glyph_info.data() + offset, count, glyph_info.data());
+	std::copy_n(other.glyph_pos.data() + offset, count, glyph_pos.data());
+}
+
+void stored_text::set_text(std::string const& s, font& fnt) {
+	if(base_text != s) {
+		base_text = s;
+		stored_glyphs::set_text(s, fnt);
+	}
+}
+void stored_text::set_text(std::string&& s, font& fnt) {
+	if(base_text != s) {
+		stored_glyphs::set_text(s, fnt);
+		base_text = std::move(s);
 	}
 }
 
-float font::text_extent(sys::state& state, char const* codepoints, uint32_t count, int32_t size) {
-	auto it = get_cached_glyphs(codepoints, count);
-	assert(it != cached_text.end());
-	hb_glyph_position_t* glyph_pos = it->second.glyph_pos.data();
-	hb_glyph_info_t* glyph_info = it->second.glyph_info.data();
-	unsigned int glyph_count = static_cast<unsigned int>(it->second.glyph_info.size());
-	//
-	float total = 0.0f;
+void font::remake_cache(stored_glyphs& txt, std::string const& s) {
+	hb_buffer_clear_contents(hb_buf);
+	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
+	hb_buffer_guess_segment_properties(hb_buf);
+	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
+	
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
+	for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
+		make_glyph(glyph_info[i].codepoint);
+	}
+	txt.glyph_info.resize(size_t(txt.glyph_count));
+	std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
+	txt.glyph_pos.resize(size_t(txt.glyph_count));
+	std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
+
+}
+
+float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
+	float x_total = 0.0f;
+
+	hb_glyph_position_t const* glyph_pos = txt.glyph_pos.data() + starting_offset;
+	hb_glyph_info_t const* glyph_info = txt.glyph_info.data() + starting_offset;
+	unsigned int glyph_count = static_cast<unsigned int>(count);
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
 		auto gso = glyph_positions[glyphid];
-		float x_advance = float(glyph_advances[glyphid]);
+		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		bool draw_icon = false;
 		bool draw_flag = false;
 		if(glyphid == FT_Get_Char_Index(font_face, '@')) {
@@ -454,22 +472,19 @@ float font::text_extent(sys::state& state, char const* codepoints, uint32_t coun
 			tag[1] = (i + 2 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 2].codepoint) : 0;
 			tag[2] = (i + 3 < glyph_count) ? codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
 			if(tag[0] == '(' && tag[2] == ')') {
-				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
-					draw_icon = true;
-				} else { //(A)rmy or (N)avy
-					draw_icon = true;
-				}
-			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
 				draw_icon = true;
+			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
 				draw_flag = true;
+				draw_icon = true;
 			}
 			if(draw_icon) {
 				i += 3;
 			}
 		}
-		total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
+		x_total += x_advance * (draw_flag ? 1.5f : 1.f) * size / 64.f;
 	}
-	return total;
+
+	return x_total;
 }
 
 } // namespace text
@@ -526,8 +541,6 @@ void load_standard_fonts(sys::state& state) {
 		state.font_collection.map_font_is_black = font.blackmapfont;
 	}
 }
-
-void load_bmfonts(sys::state& state) { }
 
 void font_manager::load_all_glyphs() {
 	//for(uint32_t j = 0; j < std::extent_v<decltype(fonts)>; ++j) {

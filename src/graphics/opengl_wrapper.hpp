@@ -287,9 +287,9 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped);
 void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
 		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped);
-void render_new_text(sys::state const& state, char const* codepoints, uint32_t count, color_modification enabled, float x,
+void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x,
 		float y, float size, color3f const& c, text::font& f);
-void render_text(sys::state& state, char const* codepoints, uint32_t count, color_modification enabled, float x, float y,
+void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id);
 
 bool msaa_enabled(sys::state const& state);

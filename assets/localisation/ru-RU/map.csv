@@ -1,0 +1,19 @@
+compose_dynamic_adj_state;$adj$ $state$
+map_remove_prefix;A ;
+map_expand_acronym;USA
+map_expand_acronym_to;United States
+map_label_country;$country$
+map_label_adj_continent;$adj$ $continentname$
+map_label_adj_state;$adj$ $state$
+map_label_adj_province;$adj$ $province$
+map_label_west_country;Западная $country$
+map_label_east_country;Восточная $country$
+map_label_north_country;Южная $country$
+map_label_south_country;Северная $country$
+map_label_adj_tag;$adj$ $tag$
+africa;Африка
+europe;Европа
+south_america;Южная Америка
+north_america;Северная Америка
+oceania;Океания
+asia;Азия
