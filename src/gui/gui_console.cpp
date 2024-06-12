@@ -453,20 +453,19 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 
 	auto font_handle = base_data.data.text.font_handle;
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
 	// Render the suggestions given (after the inputted text obv)
-	float x_offs = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+	float x_offs = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
 	if(lhs_suggestion.glyph_count > 0) {
 		ogl::render_text(state, lhs_suggestion, ogl::color_modification::none,
 			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
 			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);
-		x_offs += font.text_extent(state, lhs_suggestion, 0, lhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
+		x_offs += state.font_collection.text_extent(state, lhs_suggestion, 0, lhs_suggestion.glyph_count, font_handle);
 	}
 	if(rhs_suggestion.glyph_count > 0) {
 		// Place text right before it ends (centered right)
 		x_offs = float(base_data.size.x);
 		x_offs -= 24.f;
-		x_offs -= font.text_extent(state, rhs_suggestion, 0, rhs_suggestion.glyph_count, text::size_from_font_id(font_handle));
+		x_offs -= state.font_collection.text_extent(state, rhs_suggestion, 0, rhs_suggestion.glyph_count, font_handle);
 		ogl::render_text(state, rhs_suggestion, ogl::color_modification::none,
 			float(x + text_offset) + x_offs, float(y + base_data.data.text.border_size.y),
 			get_text_color(state, text::text_color::light_grey), base_data.data.button.font_handle);

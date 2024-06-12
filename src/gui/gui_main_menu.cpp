@@ -518,22 +518,6 @@ void color_blind_display::on_update(sys::state& state) noexcept {
 	}
 }
 
-/*
-class autosave_left : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-class autosave_right : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-class autosave_display : public simple_text_element_base {
-	void on_update(sys::state& state) noexcept override;
-};
-*/
-
 void window_mode_checkbox::on_update(sys::state& state) noexcept {
 
 }

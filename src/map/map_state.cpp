@@ -427,6 +427,12 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(name.empty())
 			continue;
 
+		if(state.user_settings.use_classic_fonts) {
+			std::transform(name.begin(), name.end(), name.begin(), [&](char ch) {
+				return char(std::toupper(ch));
+			});
+		}
+
 		float rough_box_left = std::numeric_limits<float>::max();
 		float rough_box_right = 0;
 		float rough_box_bottom = std::numeric_limits<float>::max();

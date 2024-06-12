@@ -435,8 +435,7 @@ void button_element_base::set_button_text(sys::state& state, std::string const& 
 
 void button_element_base::format_text(sys::state& state) {
 	if(stored_text.glyph_count > 0) {
-		auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, base_data.data.button.font_handle) - 1];
-		text_offset = (base_data.size.x - font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(base_data.data.button.font_handle))) / 2.0f;
+		text_offset = (base_data.size.x - state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, base_data.data.button.font_handle)) / 2.0f;
 	}
 }
 
@@ -675,7 +674,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 		font_handle = base_data.data.text.font_handle;
 
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
-	extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+	extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
 
 	if(/*stored_text.glyph_info[stored_text.glyph_count - 1].codepoint != 0x2026 && */ int16_t(extent) > base_data.size.x) {
 		// …
@@ -695,7 +694,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 		while(m < stored_text.glyph_count) {
 			m += uint32_t(text::size_from_utf8(stored_text.base_text.c_str() + m, stored_text.base_text.c_str() + stored_text.base_text.length()));
 
-			if(font.text_extent(state, stored_text, 0, m, text::size_from_font_id(font_handle)) + width_of_ellipsis > base_data.size.x)
+			if(state.font_collection.text_extent(state, stored_text, 0, m, font_handle) + width_of_ellipsis > base_data.size.x)
 				break;
 		}
 
@@ -705,7 +704,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 			stored_text.set_text(stored_text.base_text.substr(0, last_cluster) + "…", font);
 		else
 			stored_text.set_text(stored_text.base_text.substr(0, last_cluster) + "...", font);
-		extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
+		extent = state.font_collection.text_extent(state, stored_text, 0, stored_text.glyph_count, font_handle);
 	}
 
 	if(base_data.get_element_type() == element_type::button) {

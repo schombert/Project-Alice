@@ -1900,16 +1900,6 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 			accumulated_length += added_distance;
 		}
 
-		hb_feature_t features[1];
-		unsigned int num_features = 0;
-		if(f.features == text::font_feature::small_caps) {
-			features[0].tag = hb_tag_from_string("smcp", 4);
-			features[0].start = 0; /* Start point in text */
-			features[0].end = (unsigned int)-1; /* End point in text */
-			features[0].value = 1;
-			num_features = 1;
-		}
-
 		unsigned int glyph_count = e.text.glyph_count;
 		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
 		auto const* glyph_pos = e.text.glyph_pos.data();

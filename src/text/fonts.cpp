@@ -576,4 +576,17 @@ void font_manager::load_all_glyphs() {
 	//}
 }
 
+float font_manager::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint32_t font_handle) {
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, uint16_t(font_handle)) - 1];
+	if(state.user_settings.use_classic_fonts) {
+		std::string codepoints = "";
+		for(uint32_t i = 0; i < uint32_t(txt.glyph_count); i++) {
+			codepoints += font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
+		}
+		uint32_t count = uint32_t(codepoints.length());
+		return text::get_bm_font(state, font_handle).get_string_width(state, codepoints.c_str(), count);
+	}
+	return font.text_extent(state, txt, 0, txt.glyph_count, text::size_from_font_id(font_handle));
+}
+
 } // namespace text

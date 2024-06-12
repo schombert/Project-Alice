@@ -127,6 +127,7 @@ public:
 	void load_all_glyphs();
 
 	float line_height(sys::state& state, uint16_t font_id) const;
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint32_t font_handle);
 };
 
 void load_standard_fonts(sys::state& state);
