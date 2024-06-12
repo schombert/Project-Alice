@@ -72,6 +72,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/text/fonts.cpp"
 	"src/text/text.cpp"
 	"src/zstd/zstd.cpp"
+	"src/news/news.cpp"
 )
 
 if(WIN32)
@@ -217,6 +218,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/zstd
+	${PROJECT_SOURCE_DIR}/src/news
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 
