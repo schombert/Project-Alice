@@ -269,7 +269,6 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
 	FT_Set_Pixel_Sizes(fnt.font_face, dr_size, dr_size);
 	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
-	//hb_font_set_scale(fnt.hb_font_face, dr_size, dr_size);
 	fnt.hb_buf = hb_buffer_create();
 	if(fnt.features == text::font_feature::small_caps) {
 		fnt.hb_features[0].tag = hb_tag_from_string("smcp", 4);
@@ -439,7 +438,13 @@ void stored_text::set_text(std::string&& s, font& fnt) {
 void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 	hb_buffer_clear_contents(hb_buf);
 	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
-	hb_buffer_guess_segment_properties(hb_buf);
+
+	hb_buffer_set_direction(hb_buf, HB_DIRECTION_LTR);
+	hb_buffer_set_script(hb_buf, HB_SCRIPT_LATIN);
+	hb_buffer_set_language(hb_buf, hb_language_from_string("en", -1));
+
+	//hb_buffer_guess_segment_properties(hb_buf);
+
 	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
 	
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);

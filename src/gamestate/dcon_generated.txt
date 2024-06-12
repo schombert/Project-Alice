@@ -4852,6 +4852,81 @@ object {
 	}
 }
 
+object {
+	name{ locale }
+	storage_type{ contiguous }
+	size{ 2000 }
+	tag{ scenario }
+
+	property{
+		name{ native_rtl }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ prevent_letterspace }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
+		name{ display_name }
+		type{vector_pool{5000}{uint8_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ locale_name }
+		type{vector_pool{5000}{uint8_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ hb_script }
+		type{ uint32_t }
+		tag{ scenario }
+	}
+	property{
+		name{ resolved_body_font }
+		type{ uint16_t }
+	}
+	property{
+		name{ resolved_header_font }
+		type{ uint16_t }
+	}
+	property{
+		name{ resolved_map_font }
+		type{ uint16_t }
+	}
+	property{
+		name{ body_font }
+		type{vector_pool{5000}{uint8_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ header_font }
+		type{vector_pool{5000}{uint8_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ map_font }
+		type{vector_pool{5000}{uint8_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ body_font_features }
+		type{vector_pool{1000}{uint32_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ header_font_features }
+		type{vector_pool{1000}{uint32_t}}
+		tag{ scenario }
+	}
+	property{
+		name{ map_font_features }
+		type{vector_pool{1000}{uint32_t}}
+		tag{ scenario }
+	}
+}
+
 load_save{
 	name{store_scenario}
 	only_objects{scenario}
