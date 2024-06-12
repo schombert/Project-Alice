@@ -267,9 +267,9 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
-	FT_Set_Pixel_Sizes(fnt.font_face, 0, dr_size);
+	FT_Set_Pixel_Sizes(fnt.font_face, dr_size, dr_size);
 	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
-	hb_font_set_scale(fnt.hb_font_face, dr_size, dr_size);
+	//hb_font_set_scale(fnt.hb_font_face, dr_size, dr_size);
 	fnt.hb_buf = hb_buffer_create();
 	if(fnt.features == text::font_feature::small_caps) {
 		fnt.hb_features[0].tag = hb_tag_from_string("smcp", 4);
