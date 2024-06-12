@@ -1,6 +1,7 @@
 #include "parsers_declarations.hpp"
 #include "system_state.hpp"
 #include "rebels.hpp"
+#include "fonts.hpp"
 
 namespace parsers {
 
@@ -3349,5 +3350,61 @@ void mod_file::add_to_file_system(simple_fs::file_system& fs){
 	mod_path += simple_fs::correct_slashes(simple_fs::utf8_to_native(path_));
 	add_root(fs, mod_path);
 }
+
+
+void locale_parser::body_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&) {
+	body_features.push_back(hb_tag_from_string(value.data(), int(value.length())));
+}
+void locale_parser::header_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&) {
+	header_features.push_back(hb_tag_from_string(value.data(), int(value.length())));
+}
+void locale_parser::map_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&) {
+	map_features.push_back(hb_tag_from_string(value.data(), int(value.length())));
+}
+
+void add_locale(sys::state& state, std::string_view locale_name, char const* data_start, char const* data_end) {
+	parsers::token_generator gen(data_start, data_end);
+	parsers::error_handler err("");
+
+	locale_parser new_locale = parsers::parse_locale_parser(gen, err, state);
+	hb_language_t lang = nullptr;
+
+	auto new_locale_id = state.world.create_locale();
+	auto new_locale_obj = fatten(state.world, new_locale_id);
+	new_locale_obj.set_hb_script(hb_script_from_string(new_locale.script.c_str(), int(new_locale.script.length())));
+	new_locale_obj.set_native_rtl(new_locale.rtl);
+	if(new_locale.prevent_map_letterspacing)
+		new_locale_obj.set_prevent_letterspace(*new_locale.prevent_map_letterspacing);
+
+	{
+		auto f = new_locale_obj.get_body_font();
+		f.load_range((uint8_t const*)new_locale.body_font.c_str(), (uint8_t const*)new_locale.body_font.c_str() + new_locale.body_font.length());
+	}
+	{
+		auto f = new_locale_obj.get_header_font();
+		f.load_range((uint8_t const*)new_locale.header_font.c_str(), (uint8_t const*)new_locale.header_font.c_str() + new_locale.header_font.length());
+	}
+	{
+		auto f = new_locale_obj.get_map_font();
+		f.load_range((uint8_t const*)new_locale.map_font.c_str(), (uint8_t const*)new_locale.map_font.c_str() + new_locale.map_font.length());
+	}
+	{
+		auto f = new_locale_obj.get_body_font_features();
+		f.load_range(new_locale.body_features.data(), new_locale.body_features.data() + new_locale.body_features.size());
+	}
+	{
+		auto f = new_locale_obj.get_header_font_features();
+		f.load_range(new_locale.header_features.data(), new_locale.header_features.data() + new_locale.header_features.size());
+	}
+	{
+		auto f = new_locale_obj.get_map_font_features();
+		f.load_range(new_locale.map_features.data(), new_locale.map_features.data() + new_locale.map_features.size());
+	}
+	{
+		auto f = new_locale_obj.get_locale_name();
+		f.load_range((uint8_t const*)locale_name.data(), (uint8_t const*)locale_name.data() + locale_name.length());
+	}
+}
+
 
 } // namespace parsers

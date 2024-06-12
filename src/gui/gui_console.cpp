@@ -453,7 +453,7 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 
 	auto font_handle = base_data.data.text.font_handle;
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
 	// Render the suggestions given (after the inputted text obv)
 	float x_offs = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 	if(lhs_suggestion.glyph_count > 0) {
@@ -480,7 +480,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		return;
 
 	auto font_handle = base_data.data.text.font_handle;
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
 
 	std::size_t pos = s.find_last_of(' ');
 	if(pos == std::string::npos) {
@@ -501,8 +501,8 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 		}
 		// Only suggest the "unfinished" part of the command and provide a brief description of it
 		if(closest_match.second->name.length() > s.length())
-			lhs_suggestion.set_text(std::string(closest_match.second->name.substr(s.length())), font);
-		rhs_suggestion.set_text(std::string(closest_match.second->desc), font);
+			lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(closest_match.second->name.substr(s.length())));
+		rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(closest_match.second->desc));
 	} else {
 		// Specific suggestions for each command
 		if(s.starts_with("tag") && pos + 1 < s.size()) {
@@ -529,14 +529,14 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				dcon::nation_id nid = state.world.identity_holder_get_nation(state.world.national_identity_get_identity_holder(closest_match.second));
 				std::string name = nations::int_to_tag(state.world.national_identity_get_identifying_int(closest_match.second));
 				if(tag.size() < name.size()) {
-					lhs_suggestion.set_text(name.substr(tag.size()), font);
+					lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), name.substr(tag.size()));
 				}
-				rhs_suggestion.set_text(std::string(name) + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid)), font);
+				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(name) + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid)));
 			} else {
 				if(tag.size() == 1)
-					rhs_suggestion.set_text(tag + "?? - ???", font);
+					rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), tag + "?? - ???");
 				else if(tag.size() == 2)
-					rhs_suggestion.set_text(tag + "? - ???", font);
+					rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), tag + "? - ???");
 			}
 		} else if(s.starts_with("innovate") && pos + 1 < s.size()) {
 			std::string inputted = std::string(s.substr(pos + 1));
@@ -563,9 +563,9 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				if(inputted.size() < name.size()) {
 					std::string canon_name = name;
 					std::transform(canon_name.begin(), canon_name.end(), canon_name.begin(), [](unsigned char c) { return char(c == ' ' ? '_' : c); });
-					lhs_suggestion.set_text(std::string(canon_name.substr(inputted.size())), font);
+					lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(canon_name.substr(inputted.size())));
 				}
-				rhs_suggestion.set_text(name, font);
+				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), name);
 			}
 		}
 	}
@@ -1728,7 +1728,7 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 	{
 		auto const n = state.local_player_nation;
 		log_to_console(state, parent, "Owned provinces: " + std::to_string(state.world.nation_get_owned_province_count(n)));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(state.world.nation_get_owned_province_count(n) != 0));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(state.world.nation_get_owned_province_count(n) != 0));
 	}
 	break;
 	case command_info::type::dump_out_of_sync:
@@ -1990,23 +1990,23 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			command::c_toggle_ai(state, state.local_player_nation, n);
 		break;
 	case command_info::type::always_allow_wargoals:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_wargoals));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.cheat_data.always_allow_wargoals));
 		command::c_always_allow_wargoals(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_reforms:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_reforms));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.cheat_data.always_allow_reforms));
 		command::c_always_allow_reforms(state, state.local_player_nation);
 		break;
 	case command_info::type::always_allow_decisions:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_allow_decisions));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.cheat_data.always_allow_decisions));
 		command::c_always_allow_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_potential_decisions:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_potential_decisions));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.cheat_data.always_potential_decisions));
 		command::c_always_potential_decisions(state, state.local_player_nation);
 		break;
 	case command_info::type::always_accept_deals:
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.cheat_data.always_accept_deals));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.cheat_data.always_accept_deals));
 		command::c_always_accept_deals(state, state.local_player_nation);
 		break;
 	case command_info::type::set_auto_choice_all:
@@ -2025,16 +2025,16 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				has_us = true;
 				break;
 			}
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!has_us));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!has_us));
 		command::c_instant_research(state, state.local_player_nation);
 		break;
 	}
 	case command_info::type::game_info:
 		log_to_console(state, parent, "Seed: " + std::to_string(state.game_seed));
 		log_to_console(state, parent, std::string("Great Wars: "));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.great_wars_enabled));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.military_definitions.great_wars_enabled));
 		log_to_console(state, parent, std::string("World Wars: "));
-		log_to_console(state, parent, state.font_collection.fonts[1].get_conditional_indicator(!state.military_definitions.world_wars_enabled));
+		log_to_console(state, parent, state.font_collection.get_font(state, text::font_selection::body_font).get_conditional_indicator(!state.military_definitions.world_wars_enabled));
 		break;
 	case command_info::type::spectate:
 		command::c_switch_nation(state, state.local_player_nation, state.national_definitions.rebel_id);

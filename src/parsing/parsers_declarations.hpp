@@ -2809,6 +2809,27 @@ struct bookmark_file {
 	}
 };
 
+struct locale_parser {
+	bool rtl = false;
+	std::optional<bool> prevent_map_letterspacing;
+	std::string display_name;
+	std::string script = "Latn";
+	std::string body_font;
+	std::string header_font;
+	std::string map_font;
+	std::vector<uint32_t> body_features;
+	std::vector<uint32_t> header_features;
+	std::vector<uint32_t> map_features;
+
+	void body_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void header_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+	void map_feature(association_type, std::string_view value, error_handler& err, int32_t line, sys::state&);
+
+	void finish(sys::state& context) { }
+};
+
+void add_locale(sys::state& state, std::string_view locale_name, char const* data_start, char const* data_end);
+
 } // namespace parsers
 
 #include "trigger_parsing.hpp"

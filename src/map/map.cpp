@@ -752,7 +752,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
-		auto const& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
+		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
 		glActiveTexture(GL_TEXTURE0);
@@ -1675,8 +1675,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 	text_line_vertices.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
-	assert(f.loaded);
+	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
 
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
@@ -1863,8 +1862,8 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
-	assert(f.loaded);
+	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
+	
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
@@ -1900,16 +1899,6 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 			accumulated_length += added_distance;
 		}
 
-		hb_feature_t features[1];
-		unsigned int num_features = 0;
-		if(f.features == text::font_feature::small_caps) {
-			features[0].tag = hb_tag_from_string("smcp", 4);
-			features[0].start = 0; /* Start point in text */
-			features[0].end = (unsigned int)-1; /* End point in text */
-			features[0].value = 1;
-			num_features = 1;
-		}
-
 		unsigned int glyph_count = e.text.glyph_count;
 		hb_glyph_info_t const* glyph_info = e.text.glyph_info.data();
 		auto const* glyph_pos = e.text.glyph_pos.data();
@@ -1917,7 +1906,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 		for(unsigned int i = 0; i < e.text.glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(f.glyph_advances[glyphid]);
+			float x_advance = float(gso.x_advance);
 			float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
 			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
 			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {

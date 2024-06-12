@@ -228,8 +228,7 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
-	auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, 0x80)];
-	assert(f.loaded);
+	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
 
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
@@ -774,7 +773,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 
-		auto prepared_name = text::stored_glyphs(name, f);
+		auto prepared_name = text::stored_glyphs(state, text::font_selection::map_font, name);
 		float name_extent = f.text_extent(state, prepared_name, 0, prepared_name.glyph_count, 1);
 
 		bool use_quadratic = false;
@@ -957,7 +956,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for(auto p : state.world.in_province) {
 			if(p.get_name()) {
 				std::string name = text::produce_simple_string(state, p.get_name());
-				p_text_data.emplace_back(text::stored_glyphs(name, f), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+				p_text_data.emplace_back(text::stored_glyphs(state, text::font_selection::map_font, name), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
 			}
 		}
 		map_data.set_province_text_lines(state, p_text_data);

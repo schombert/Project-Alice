@@ -5,6 +5,7 @@ include{"date_interface.hpp"}
 include{"container_types.hpp"}
 include{"military.hpp"}
 include{<glm/glm.hpp>}
+include{"hb.h"}
 
 make_index{text_key}{uint32_t}
 make_index{text_sequence_id}{uint32_t}
@@ -4877,6 +4878,10 @@ object {
 		name{ locale_name }
 		type{vector_pool{5000}{uint8_t}}
 		tag{ scenario }
+	}
+	property{
+		name{ resolved_language }
+		type{ hb_language_t }
 	}
 	property{
 		name{ hb_script }

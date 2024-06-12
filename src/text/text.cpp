@@ -1334,8 +1334,8 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height) {
 void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
-	auto& font = state.font_collection.fonts[font_index - 1];
+
+	auto& font = state.font_collection.get_font(state, font_index );
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
@@ -1344,8 +1344,8 @@ void add_line_break_to_layout_box(sys::state& state, layout_base& dest, layout_b
 void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
-	auto& font = state.font_collection.fonts[font_index - 1];
+	
+	auto& font = state.font_collection.get_font(state, font_index);
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 	dest.base_layout.number_of_lines += 1;
@@ -1354,8 +1354,8 @@ void add_line_break_to_layout(sys::state& state, columnar_layout& dest) {
 void add_line_break_to_layout(sys::state& state, endless_layout& dest) {
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
-	auto& font = state.font_collection.fonts[font_index - 1];
+
+	auto& font = state.font_collection.get_font(state, font_index);
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 	dest.base_layout.number_of_lines += 1;
@@ -1368,7 +1368,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		dest.fixed_parameters.align = alignment::right;
 	}
 
-	auto text_height = int32_t(std::ceil(state.font_collection.line_height(state, dest.fixed_parameters.font_id)));
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
+	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
 	auto tmp_color = color;
@@ -1396,10 +1397,10 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	uint32_t end_position = 0;
 	bool first_in_line = true;
 
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
+	
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
 
-	text::stored_glyphs all_glyphs(std::string(txt), font);
+	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::string(txt));
 
 	auto find_non_ws = [&](uint32_t start) {
 		for(uint32_t i = start; i < all_glyphs.glyph_count; ++i) {
@@ -1570,8 +1571,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 	auto current_color = dest.fixed_parameters.color;
 	auto font_index = text::font_index_from_font_id(state, dest.fixed_parameters.font_id);
 	auto font_size = text::size_from_font_id(dest.fixed_parameters.font_id);
-	assert(font_index >= 1 && font_index <= std::extent_v<decltype(state.font_collection.fonts)>);
-	auto& font = state.font_collection.fonts[font_index - 1];
+
+	auto& font = state.font_collection.get_font(state, font_index);
 	auto text_height = int32_t(std::ceil(font.line_height(font_size)));
 	auto line_height = text_height + dest.fixed_parameters.leading;
 
@@ -1608,7 +1609,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	add_to_layout_box(state, dest, box, std::string_view(val), color, std::monostate{});
 }
 void add_space_to_layout_box(sys::state& state, layout_base& dest, layout_box& box) {
-	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, dest.fixed_parameters.font_id) - 1];
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto glyphid = FT_Get_Char_Index(font.font_face, ' ');
 	box.x_position += font.base_glyph_width(glyphid) * text::size_from_font_id(dest.fixed_parameters.font_id) / 64.f;
 }
@@ -1747,7 +1748,7 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, int32_
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
+	auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).get_conditional_indicator(condition_met);
 	if(condition_met) {
 		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
@@ -1766,7 +1767,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
+	auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).get_conditional_indicator(condition_met);
 	if(condition_met) {
 		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
@@ -1787,7 +1788,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
+	auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).get_conditional_indicator(condition_met);
 	if(condition_met) {
 		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
@@ -1809,7 +1810,7 @@ void add_line_with_condition(sys::state& state, layout_base& dest, std::string_v
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, variable_type subkey, substitution value, variable_type subkeyb, substitution valueb, variable_type subkeyc, substitution valuec, int32_t indent) {
 	auto box = text::open_layout_box(dest, indent);
 
-	auto str = state.font_collection.fonts[1].get_conditional_indicator(condition_met);
+	auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id)).get_conditional_indicator(condition_met);
 	if(condition_met) {
 		text::add_to_layout_box(state, dest, box, std::string_view(str), text::text_color::green);
 	} else {
