@@ -1810,9 +1810,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = glyph_info[i].codepoint;
 			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(f.glyph_advances[glyphid]);
-			float x_offset = float(glyph_pos[i].x_offset) / 4.f + float(gso.x);
-			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / 4.f;
+			float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+			float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
+			float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
 			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
 				// Add up baseline and kerning offsets
 				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
