@@ -583,9 +583,9 @@ float font_manager::text_extent(sys::state& state, stored_glyphs const& txt, uin
 		for(uint32_t i = uint32_t(starting_offset); i < uint32_t(txt.glyph_count); i++) {
 			codepoints += font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
 		}
-		return text::get_bm_font(state, font_handle).get_string_width(state, codepoints.c_str(), count);
+		return text::get_bm_font(state, uint16_t(font_handle)).get_string_width(state, codepoints.c_str(), count);
 	}
-	return font.text_extent(state, txt, starting_offset, count, text::size_from_font_id(font_handle));
+	return font.text_extent(state, txt, starting_offset, count, text::size_from_font_id(uint16_t(font_handle)));
 }
 
 } // namespace text
