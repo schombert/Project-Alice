@@ -1,0 +1,346 @@
+message_notify_rebels_defeat_label;يخطر عند هزيمة المتمردين؟
+message_settings_spectator;الإعداد المسبق: المشاهدة فقط
+msg_revolt_title;انتفاضة المتمردين
+msg_revolt_1;لقد نهض متمردو $x$ في المحافظات التالية:
+msg_revolt_2;لقد نهض المتمردون $x$ (دون جدوى)
+msg_war_title;أعلنت الحرب
+msg_war_1;أعلن $x$ الحرب على $y$، بدءًا من $val$.
+msg_wargoal_title;تمت إضافة هدف الحرب
+msg_wargoal_1;لقد أضاف $x$ إلى حربنا الهدف الحربي التالي:
+msg_war_join_title;الأمة تنضم إلى الحرب
+msg_war_join_1;انضم $x$ إلى $val$ المستمر
+msg_war_becomes_great_title;تصاعد الحرب
+msg_war_becomes_great_1;أصبح $x$ هو $y$
+msg_siegeover_title;انتهاء الحصار
+msg_siegeover_1;انتهى حصار $x$.
+msg_siegeover_2;$y$ لم يعد يسيطر على المقاطعة.
+msg_siegeover_3;ولم يعد متمردو $y$ يسيطرون على المحافظة.
+msg_siegeover_4;يتم التحكم في المقاطعة الآن بواسطة $y$.
+msg_siegeover_5;وتخضع المحافظة الآن لسيطرة المتمردين.
+msg_new_crisis_title;تخمير الأزمة
+msg_new_crisis_1;هناك أزمة تختمر حول ملكية $x$.
+msg_new_crisis_2;هناك أزمة تختمر حول استعمار $x$.
+msg_tech_title;بحثت التكنولوجيا
+msg_tech_1;لقد تم البحث عن $x$، مع التأثيرات التالية:
+msg_inv_title;تم اكتشاف الاختراع
+msg_inv_1;تم اكتشاف $x$، مع التأثيرات التالية:
+msg_fab_discovered_title;تم اكتشاف التصنيع
+msg_fab_discovered_1;لقد تم اكتشاف تصنيع سبب الحرب الخاص بنا، مما أدى إلى ?R$x$؟! العار.
+msg_fab_discovered_2;تم اكتشاف $x$ وهو يختلق سببًا للحرب على $y$
+msg_fab_canceled_title;تم إلغاء التصنيع
+msg_fab_canceled_1;لقد أصبح سبب الحرب الذي كنا نفتريه باطلاً وتم إلغاء الافتراء.
+msg_fab_finished_title;اكتمال التصنيع
+msg_fab_finished_1;لقد انتهينا من تصنيع $x$ سببًا للحرب مقابل $y$.
+msg_leader_died_title;وفاة قائد عسكري
+msg_leader_died_1;لقد توفي أحد جنرالاتنا الذي يقود جيشًا في $y$، $x$.
+msg_leader_died_2;لقد توفي أحد أدميرالاتنا الذي يقود البحرية في $y$، $x$.
+msg_peace_offer_accepted_title;قبول عرض السلام
+msg_peace_offer_accepted_1;لقد قبل $x$ عرض السلام من $y$ كجزء من $val$.
+msg_peace_offer_rejected_title;رفض عرض السلام
+msg_peace_offer_rejected_1;لقد رفض $x$ عرض السلام المقدم من $y$ كجزء من $val$.
+msg_upper_house_title;تشكيل المجلس الأعلى
+msg_upper_house_1;تم تشكيل مجلس عليا جديد بالتشكيلة التالية:
+msg_upper_house_2;$x$%: $y$
+msg_election_start_title;بدء الانتخابات
+msg_election_start_1;ستنتهي الانتخابات عند $x$.
+msg_dec_rel_title;ساءت العلاقات
+msg_dec_rel_1;$x$ قد قلص علاقاتهم مع $y$.
+msg_inc_rel_title;تحسنت العلاقات
+msg_inc_rel_1;قام $x$ بتحسين علاقاته مع $y$.
+msg_add_sphere_title;أمة كروية
+msg_add_sphere_1;لقد أضاف $x$ $y$ إلى مجال نفوذهم.
+msg_rem_sphere_title;الأمة أخرجت من المجال
+msg_rem_sphere_1;قام $x$ بإزالة $y$ من مجال نفوذهم.
+msg_rem_sphere_2;قام $x$ بإزالة $y$ من مجال تأثير $val$.
+msg_op_dec_title;انخفض الرأي
+msg_op_dec_1;لقد أدى $x$ إلى خفض رأي $y$ بشأن $val$.
+msg_op_inc_title;زاد الرأي
+msg_op_inc_1;لقد زاد $x$ رأي $y$ بهم.
+msg_expel_title;طرد المستشارين
+msg_expel_1;قام $x$ بطرد مستشاري $val$ إلى $y$.
+msg_ban_title;السفارة محظورة
+msg_ban_1;تسبب $x$ في حظر سفارة $val$ إلى $y$.
+msg_ban_2;سيستمر هذا حتى $x$.
+msg_discredit_title;الأمة فقدت مصداقيتها
+msg_discredit_1;تسبب $x$ في فقدان مصداقية $val$ بـ $y$.
+msg_discredit_2;سيستمر هذا حتى $x$.
+msg_ally_call_accepted_title;تكريم التحالف
+msg_ally_call_accepted_1;لقد كرم $x$ تحالفه مع $y$ وانضم إلى $val$.
+msg_ally_call_declined_title;التحالف غير محترم
+msg_ally_call_decline_1;رفض $x$ احترام تحالفه مع $y$ والانضمام إلى $val$.
+msg_alliance_declined_title;رفض التحالف
+msg_alliance_declined_1;لقد رفض $x$ عرض $y$ لتشكيل تحالف.
+msg_alliance_starts_title;تم تشكيل التحالف
+msg_alliance_starts_1;لقد شكل $x$ و$y$ تحالفًا.
+msg_alliance_ends_title;التحالف مكسور
+msg_alliance_ends_1;انتهى التحالف بين $x$ و$y$.
+msg_access_refused_title;تم رفض الوصول
+msg_access_refused_1;رفض $x$ منح $y$ حق الوصول العسكري إلى بلادهم.
+msg_access_granted_title;لقد تم منح الوصول
+msg_access_granted_1;لقد منح $x$ $y$ إمكانية الوصول العسكري إلى أمتهم.
+msg_access_canceled_a_title;تم إبطال الوصول
+msg_access_canceled_a_1;قام $x$ بإلغاء الوصول العسكري من $y$.
+msg_access_canceled_b_title;تم إلغاء الوصول
+msg_access_canceled_b_1;لم يعد $x$ يتطلب الوصول العسكري إلى $y$.
+msg_wsub_start_title;بدء إعانات الحرب
+msg_wsub_start_1;بدأ $x$ في دعم حروب $y$ الحالية.
+msg_wsub_end_title;نهاية إعانات الحرب
+msg_wsub_end_1;توقف $x$ عن دعم حروب $y$ الحالية.
+msg_new_gp_title;قوة عظمى جديدة
+msg_new_gp_1;$x$ هي الآن قوة عظمى.
+msg_lost_gp_title;فقدت القوة العظمى
+msg_lost_gp_1;لم تعد $x$ تعتبر قوة عظمى.
+msg_decision_title;تم اتخاذ القرار
+msg_decision_1;لقد اتخذ $x$ القرار $y$
+msg_decision_2;تأثير:
+msg_rebels_win_title;انتصار المتمردين
+msg_rebels_win_1;لقد فاز المتمردون $x$.
+msg_rebels_win_2;?R$x$؟! فقدت هيبة
+msg_rebels_win_3;التغييرات الحكومية إلى $x$
+msg_rebels_win_4;تغيرت أيديولوجية الحكومة إلى $x$
+msg_rebels_win_5;انتهت جميع العلاقات الدبلوماسية
+msg_rebels_win_6;تأثير:
+msg_election_end_title;انتهت الانتخابات
+msg_election_end_1;$x$ هو الحزب الحاكم الجديد، الذي يحصل على $y$ من الأصوات.
+msg_election_end_2;$x$ هو الحزب الحاكم الجديد، كجزء من حكومة ائتلافية، ويحصل على $y$ من الأصوات.
+msg_crisis_joffer_accepted;الأمة تأخذ جانبا
+msg_crisis_joffer_accepted_1;قبلت $x$ عرضًا من $y$ للوقوف إلى جانبهم في الأزمة الحالية.
+msg_crisis_joffer_rejected;الأمة تبقى محايدة
+msg_crisis_joffer_reject_1;رفضت $x$ عرضًا مقدمًا من $y$ للوقوف إلى جانبها في الأزمة الحالية.
+msg_crisis_settled_title;حل الأزمة
+msg_crisis_settled_1;قبلت $x$ عرضًا مقدمًا من $y$ لحل الأزمة الحالية.
+msg_crisis_not_settled_title;رفض حل الأزمة
+msg_crisis_not_settled_1;لقد رفض $x$ عرضًا مقدمًا من $y$ لحل الأزمة الحالية.
+msg_crisis_escalates_title;تصاعد الأزمة
+msg_crisis_escalates_1;لقد تصاعدت الأزمة الحالية إلى $x$.
+msg_crisis_fizzle_title;إعلان الأزمة
+msg_crisis_fizzle_1;لقد فشلت الأزمة المختمرة في جذب الاهتمام الدولي.
+msg_crisis_fizzle_2;فشلت الأزمة المختمرة في جذب مدافع
+msg_crisis_attacker_title;الداعم للأزمة
+msg_crisis_attacker_1;لقد أصبح $x$ متورطًا في الأزمة الحالية، حيث يدعم المهاجم.
+msg_crisis_defender_title;الداعم للأزمة
+msg_crisis_defender_1;لقد أصبح $x$ متورطًا في الأزمة الحالية، حيث يدعم المدافع.
+msg_crisis_vol_join_title;الأمة تأخذ جانبا
+msg_crisis_vol_join_1;قرر $x$ الانضمام إلى الأزمة الحالية إلى جانب المهاجمين.
+msg_crisis_vol_join_2;قرر $x$ الانضمام إلى الأزمة الحالية إلى جانب المدافعين.
+msg_entered_automatic_alliance_title;دخلت التحالف تلقائيا
+msg_entered_automatic_alliance_1;لقد دخل $x$ في تحالف معنا تلقائيًا، لأننا أوضحنا أننا مهتمون بالتحالف معهم إن أمكن
+msg_chat_message_title;رسالة الدردشة
+msg_chat_message_1;يقول $x$:
+msg_chat_message_2;$x$
+msg_n_event_title;الحدث الوطني
+msg_p_event_title;حدث المقاطعة
+msg_m_event_title;حدث هام
+msg_revolt;عندما تحدث ثورة
+msg_war_on_nation;عندما نعلن الحرب
+msg_war_by_nation;عندما نعلن الحرب
+msg_wargoal_added;عند إضافة هدف حربي
+msg_siegeover_by_nation;لقد تم الحصار علينا
+msg_siegeover_on_nation;تم الحصار عليهم
+msg_colony_finished;عندما ننتهي من الاستعمار
+msg_reform_gained;عندما نحقق الإصلاح
+msg_reform_lost;عندما نفقد الإصلاح
+msg_ruling_party_change;عندما يتغير الحزب الحاكم
+msg_upperhouse;عندما يتغير المجلس الأعلى
+msg_electionstart;عندما تبدأ الانتخابات
+msg_electiondone;عندما تنتهي الانتخابات
+msg_breakcountry;عندما تنكسر الدولة
+msg_peace_accepted_from_nation;عندما نقبل عرض السلام
+msg_peace_rejected_from_nation;عندما نرفض عرض السلام
+msg_peace_accepted_by_nation;عندما يقبلون عرض السلام
+msg_peace_rejected_by_nation;عندما يرفضون عرض السلام
+msg_mobilization_start;عندما نحشد
+msg_mobilization_end;عندما نقوم بالتسريح
+msg_factory_complete;عندما يتم بناء المصنع
+msg_rr_complete;عندما يتم بناء السكك الحديدية
+msg_fort_complete;عندما يتم بناء الحصن
+msg_naval_base_complete;عندما يتم إنشاء قاعدة بحرية
+msg_province_event;عندما يحدث حدث المقاطعة
+msg_national_event;عندما يحدث حدث وطني
+msg_major_event;عندما يقع حدث كبير
+msg_invention;عندما يتم اكتشاف الاختراع
+msg_tech;عندما ننتهي من البحث
+msg_leader_dies;عندما يموت القائد
+msg_land_combat_starts_on_nation;عندما نبدأ القتال البري
+msg_naval_combat_starts_on_nation;عندما نبدأ القتال البحري
+msg_land_combat_starts_by_nation;عندما يبدأ القتال البري
+msg_naval_combat_starts_by_nation;عندما يبدأ القتال البحري
+msg_movement_finishes;عندما تنتهي الحركة
+msg_decision;عندما يتم اتخاذ القرار
+msg_lose_great_power;عندما نفقد القوة العظمى
+msg_become_great_power;عندما نصبح قوة عظمى
+msg_war_subsidies_start_by_nation;عندما يتم منح إعانات الحرب
+msg_war_subsidies_start_on_nation;عندما نعطي إعانات الحرب
+msg_war_subsidies_end_by_nation;عندما تنتهي إعانات الحرب
+msg_war_subsidies_end_on_nation;عندما ننهي إعانات الحرب
+msg_reparations_start_by_nation;عندما يتم وضع تعويضات الحرب
+msg_reparations_start_on_nation;عندما ندفع يجب أن ندفع تعويضات الحرب
+msg_reparations_end_by_nation;عندما يتم دفع تعويضات الحرب
+msg_reparations_end_on_nation;عندما ندفع تعويضات الحرب
+msg_mil_access_start_by_nation;عندما يتم منحنا الوصول العسكري
+msg_mil_access_start_on_nation;عندما نمنح الوصول العسكري
+msg_mil_access_end_by_nation;
+msg_mil_access_end_on_nation;
+msg_mil_access_declined_by_nation;
+msg_mil_access_declined_on_nation;
+msg_alliance_starts;
+msg_alliance_ends;
+msg_alliance_declined_by_nation;
+msg_alliance_declined_on_nation;
+msg_ally_called_accepted_by_nation;
+msg_ally_called_declined_by_nation;
+msg_discredit_by_nation;
+msg_ban_by_nation;
+msg_expell_by_nation;
+msg_discredit_on_nation;
+msg_ban_on_nation;
+msg_expell_on_nation;
+msg_increase_opinion;
+msg_decrease_opinion_by_nation;
+msg_decrease_opinion_on_nation;
+msg_rem_sphere_by_nation;
+msg_rem_sphere_on_nation;
+msg_removed_from_sphere;
+msg_add_sphere;عندما نضيف إلى مجالنا
+msg_added_to_sphere;عندما نضيف إلى المجال
+msg_increase_relation_by_nation;عندما تزيد العلاقات
+msg_increase_relation_on_nation;عندما نزيد العلاقات
+msg_decrease_relation_by_nation;عندما تقلل العلاقات
+msg_decrease_relation_on_nation;عندما نقلل العلاقات
+msg_join_war_by_nation;عندما تنضم دولة إلى الحرب
+msg_join_war_on_nation;عندما ننضم إلى الحرب
+msg_gw_unlocked;عندما يتم فتح الحروب الكبرى
+msg_war_becomes_great;عندما تصبح الحرب حربا عظيمة
+msg_cb_detected_on_nation;
+msg_cb_detected_by_nation;
+msg_crisis_join_offer_accepted_by_nation;
+msg_crisis_join_offer_declined_by_nation;
+msg_crisis_join_offer_accepted_from_nation;
+msg_crisis_join_offer_declined_from_nation;
+msg_crisis_resolution_accepted;عندما يتم قبول حل الأزمة
+msg_crisis_becomes_war;عندما تبدأ حرب الأزمة
+msg_crisis_resolution_declined_from_nation;
+msg_crisis_starts;
+msg_crisis_attacker_backer;
+msg_crisis_defender_backer;
+msg_crisis_fizzle;
+msg_war_join_by;
+msg_war_join_on;
+msg_cb_fab_finished;
+msg_cb_fab_cancelled;
+msg_crisis_voluntary_join;
+msg_bankruptcy_title;إفلاس
+amsg_bankruptcy;عندما تفلس الأمة
+msg_bankruptcy_1;لقد أفلس $x$
+message_name_text;رسالة
+msg_for_us;عن: أمتك
+msg_for_interesting;دول مثيرة للاهتمام
+msg_for_other;دول أخرى
+msg_handling_ignore;تجاهل الرسالة
+msg_handling_log;قم بتسجيل الرسالة
+msg_handling_sound;قم بتسجيل الرسالة بتأثير صوتي
+msg_handling_popup;ينبثق إشعار للرسالة
+msg_handling_pause;انبثق إشعارًا بالرسالة وأوقف اللعبة مؤقتًا حتى يتم رفضها
+amsg_revolt;تحدث ثورة في الأمة
+amsg_war_on_nation;أعلنت الحرب على الأمة
+amsg_war_by_nation;أعلنت الحرب من قبل الأمة
+amsg_wargoal_added;الأمة تضيف هدف الحرب
+amsg_siegeover_by_nation;الأمة تكمل الحصار
+amsg_siegeover_on_nation;انتهاء الحصار على المقاطعة التي تسيطر عليها الدولة
+amsg_colony_finished;الأمة تنهي مستعمرة
+amsg_reform_gained;الأمة تمر بالإصلاح
+amsg_reform_lost;الأمة تخسر الإصلاح
+amsg_ruling_party_change;يتغير الحزب الحاكم في البلاد
+amsg_upperhouse;يتغير تكوين مجلس الشيوخ في البلاد
+amsg_electionstart;تبدأ الانتخابات في البلاد
+amsg_electiondone;تنتهي الانتخابات في الأمة
+amsg_breakcountry;الثوار يفرضون مطالبهم على الأمة
+amsg_peace_accepted_from_nation;تم قبول عرض السلام الذي قدمته الأمة
+amsg_peace_rejected_from_nation;تم رفض عرض السلام الذي قدمته الأمة
+amsg_peace_accepted_by_nation;الأمة تقبل عرض السلام
+amsg_peace_rejected_by_nation;الأمة ترفض عرض السلام
+amsg_mobilization_start;الأمة تحشد
+amsg_mobilization_end;الأمة تنهي تعبئتها
+amsg_factory_complete;الأمة تنتهي من بناء المصنع
+amsg_rr_complete;تنتهي الأمة من بناء خط السكة الحديد
+amsg_fort_complete;الأمة تنتهي من بناء الحصن
+amsg_naval_base_complete;الأمة تنتهي من بناء قاعدة بحرية
+amsg_province_event;حدث إقليمي يحدث للأمة
+amsg_national_event;حدث وطني يحدث للأمة
+amsg_major_event;حدث كبير يحدث للأمة
+amsg_invention;الأمة تكتشف اختراعا
+amsg_tech;تنتهي الأمة من البحث عن التكنولوجيا
+amsg_leader_dies;وفاة أحد القادة العسكريين في البلاد
+amsg_land_combat_starts_on_nation;تعرض أحد جيوش البلاد للهجوم
+amsg_naval_combat_starts_on_nation;تعرضت إحدى القوات البحرية في البلاد للهجوم
+amsg_land_combat_starts_by_nation;أحد جيوش الأمة يقوم بالهجوم
+amsg_naval_combat_starts_by_nation;إحدى القوات البحرية في البلاد تقوم بهجوم
+amsg_movement_finishes;إحدى وحدات الأمة تنتهي من التحرك
+amsg_decision;الأمة تتخذ القرار
+amsg_lose_great_power;تفقد الأمة مكانتها كقوة عظمى
+amsg_become_great_power;تكتسب الأمة مكانة القوة العظمى
+amsg_war_subsidies_start_by_nation;تبدأ الأمة في تقديم إعانات الحرب
+amsg_war_subsidies_start_on_nation;تبدأ الأمة في الحصول على إعانات الحرب
+amsg_war_subsidies_end_by_nation;تتوقف الأمة عن تقديم إعانات الحرب
+amsg_war_subsidies_end_on_nation;توقف تزويد الأمة بإعانات الحرب
+amsg_reparations_start_by_nation;تبدأ الأمة بدفع التعويضات
+amsg_reparations_start_on_nation;تبدأ الأمة في دفع التعويضات
+amsg_reparations_end_by_nation;توقف الأمة عن دفع التعويضات
+amsg_reparations_end_on_nation;توقف دفع التعويضات للأمة
+amsg_mil_access_start_by_nation;تبدأ الأمة في منح حق الوصول العسكري
+amsg_mil_access_start_on_nation;تبدأ الأمة في الحصول على الوصول العسكري
+amsg_mil_access_end_by_nation;توقفت الأمة عن منح حق الوصول العسكري
+amsg_mil_access_end_on_nation;تتوقف الأمة عن الحصول على الوصول العسكري
+amsg_mil_access_declined_by_nation;تم رفض طلب الوصول العسكري للدولة
+amsg_mil_access_declined_on_nation;الأمة ترفض طلب الوصول العسكري
+amsg_alliance_starts;الأمة تدخل في تحالف جديد
+amsg_alliance_ends;الأمة تنهي التحالف
+amsg_alliance_declined_by_nation;الأمة ترفض عرض التحالف
+amsg_alliance_declined_on_nation;تم رفض عرض تحالف الأمة
+amsg_ally_called_accepted_by_nation;الأمة تكرم الدعوة إلى حمل السلاح
+amsg_ally_called_declined_by_nation;الأمة ترفض دعوة لحمل السلاح
+amsg_discredit_by_nation;أمة تشوه سمعة أمة أخرى
+amsg_ban_by_nation;الأمة تحظر سفارة دولة أخرى
+amsg_expell_by_nation;أمة تطرد مستشاري أمة أخرى
+amsg_discredit_on_nation;الأمة فقدت مصداقيتها
+amsg_ban_on_nation;سفارة الدولة محظورة
+amsg_expell_on_nation;يتم طرد مستشاري الأمة
+amsg_increase_opinion;وتزيد الأمة رأي أمة أخرى فيهم
+amsg_decrease_opinion_by_nation;الأمة تتسبب في انخفاض رأي أمة أخرى
+amsg_decrease_opinion_on_nation;رأي هذه الأمة هو سبب في الانخفاض
+amsg_rem_sphere_by_nation;الأمة تزيل أمة أخرى من دائرة النفوذ
+amsg_rem_sphere_on_nation;إن الأمة لديها أمة أخرى أخرجت من دائرة نفوذها
+amsg_removed_from_sphere;يتم إخراج الأمة من دائرة النفوذ
+amsg_add_sphere;تضيف الأمة أمة أخرى إلى مجال نفوذها
+amsg_added_to_sphere;تضاف الأمة إلى مجال النفوذ
+amsg_increase_relation_by_nation;الأمة تزيد علاقة أمة أخرى بها
+amsg_increase_relation_on_nation;الأمة زادت علاقتها بغيرها
+amsg_decrease_relation_by_nation;الأمة تقلل من علاقة أمة أخرى بها
+amsg_decrease_relation_on_nation;الأمة لديها علاقتها مع شخص آخر انخفضت
+amsg_join_war_by_nation;الأمة تنضم إلى حرب قائمة
+amsg_join_war_on_nation;أمة جديدة تنضم إلى الحرب القائمة ضد هذه الأمة
+amsg_gw_unlocked;الحروب الكبرى مقفلة
+amsg_war_becomes_great;الحرب التي تشمل هذه الأمة تصبح عظيمة
+amsg_cb_detected_on_nation;تم اكتشاف مبرر CB الذي يستهدف هذه الأمة
+amsg_cb_detected_by_nation;تم اكتشاف هذه الأمة وهي تبرر CB
+amsg_crisis_join_offer_accepted_by_nation;الأمة تقبل عرضا للانضمام إلى الأزمة
+amsg_crisis_join_offer_declined_by_nation;الأمة ترفض عرضا للانضمام إلى الأزمة
+amsg_crisis_join_offer_accepted_from_nation;تم قبول عرض الانضمام إلى أزمة من هذه الأمة
+amsg_crisis_join_offer_declined_from_nation;تم رفض عرض الانضمام إلى أزمة هذه الأمة
+amsg_crisis_resolution_accepted;يتم قبول حل الأزمة
+amsg_crisis_becomes_war;الأزمة تتحول إلى حرب
+amsg_crisis_resolution_declined_from_nation;تم رفض عرض حل الأزمة المقدم من هذه الأمة
+amsg_crisis_starts;تبدأ أزمة جديدة
+amsg_crisis_attacker_backer;تصبح القوة العظمى هي المهاجم الأساسي في الأزمات
+amsg_crisis_defender_backer;تصبح القوة العظمى المدافع الأساسي في الأزمات
+amsg_crisis_fizzle;تفشل الأزمة في جذب اهتمام القوى العظمى
+amsg_war_join_by;الأمة تنضم إلى الحرب
+amsg_war_join_on;أمة تنضم إلى حرب ضد هذه الأمة
+amsg_cb_fab_finished;انتهت الأمة من تصنيع CB
+amsg_cb_fab_cancelled;تم إلغاء تصنيع CB من قبل الأمة
+amsg_crisis_voluntary_join;الأمة تنضم إلى الأزمة دون عرض
+amsg_army_built;قامت الأمة ببناء جيش
+amsg_navy_built;قامت الأمة ببناء البحرية
+amsg_bankruptcy;الأمة تفلس
+amsg_entered_automatic_alliance;الأمة تتحالف تلقائيا مع دولة أخرى
+amsg_chat_message;أرسلت الأمة رسالة في الدردشة
