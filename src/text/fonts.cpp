@@ -8,6 +8,7 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#include "bmfont.hpp"
 
 namespace text {
 
@@ -299,6 +300,9 @@ float font::top_adjustment(int32_t size) const {
 }
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) const {
+	if(state.user_settings.use_classic_fonts) {
+		return text::get_bm_font(state, font_id).get_height();
+	}
 	return float(fonts[text::font_index_from_font_id(state, font_id) - 1].line_height(text::size_from_font_id(font_id)));
 }
 

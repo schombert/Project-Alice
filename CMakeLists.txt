@@ -402,6 +402,12 @@ add_custom_command(
   DEPENDS ${PROJECT_SOURCE_DIR}/src/text/font_defs.txt
   VERBATIM)
 
+add_custom_command(
+  OUTPUT ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
+  COMMAND ParserGenerator ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
+  DEPENDS ${PROJECT_SOURCE_DIR}/src/text/bmfont_defs.txt
+  VERBATIM)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/parsing/parser_defs_generated.hpp
@@ -411,6 +417,7 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/parsing/news_parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/parsing/effect_parser_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/parsing/trigger_parser_defs_generated.hpp
+	${PROJECT_SOURCE_DIR}/src/text/bmfont_defs_generated.hpp
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)

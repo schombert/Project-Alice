@@ -9,6 +9,7 @@
 #include "text.cpp"
 #include "float_from_chars.cpp"
 #include "fonts.cpp"
+#include "bmfont.cpp"
 #include "texture.cpp"
 #include "date_interface.cpp"
 #include "serialization.cpp"

@@ -573,6 +573,33 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 	set_text(state, text::produce_simple_string(state, it));
 }
 
+void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
+	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
+	send(state, parent, notify_setting_update{});
+	if(state.ui_state.units_root)
+		state.ui_state.units_root->impl_on_reset_text(state);
+	if(state.ui_state.rgos_root)
+		state.ui_state.rgos_root->impl_on_reset_text(state);
+	if(state.ui_state.root)
+		state.ui_state.root->impl_on_reset_text(state);
+	if(state.ui_state.nation_picker)
+		state.ui_state.nation_picker->impl_on_reset_text(state);
+	if(state.ui_state.select_states_legend)
+		state.ui_state.select_states_legend->impl_on_reset_text(state);
+	if(state.ui_state.end_screen)
+		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
+	//if(state.user_settings.use_classic_fonts) {
+	//	state.ui_state.tooltip_font = text::name_into_font_id(state, "vic_18_black");
+	//} else {
+	//	state.ui_state.tooltip_font = text::name_into_font_id(state, "ToolTip_Font");
+	//}
+}
+bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
+	return state.user_settings.use_classic_fonts;
+}
+
 void left_mouse_click_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.left_mouse_click_hold_and_release = !state.user_settings.left_mouse_click_hold_and_release;
 	send(state, parent, notify_setting_update{});
