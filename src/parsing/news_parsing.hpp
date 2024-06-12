@@ -108,7 +108,7 @@ struct news_style {
 	void finish(news_context& context) { }
 };
 struct news_file {
-	void generate_article(news_generate_article&, error_handler& err, int32_t line, news_context& context) {
+	void generate_article(news_generate_article, error_handler& err, int32_t line, news_context& context) {
 		
 	}
 	void any_group(std::string_view name, news_pattern_instance, error_handler& err, int32_t line, news_context& context) {
