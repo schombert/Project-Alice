@@ -34,10 +34,11 @@ static_assert(sizeof(news_scope) ==
 
 struct global_news_state {
 	news_scope currently_collected; //currently collected
-	news_scope article_pool[8];
-	news_scope small_articles[6];
-	news_scope medium_articles[3];
+	news_scope article_pool[5 + 2 + 1];
+	news_scope small_articles[5];
+	news_scope medium_articles[2];
 	news_scope large_articles[1];
+	uint32_t num_collected = 0;
 	dcon::effect_key on_collect_effect[sys::max_news_generator_types];
 	dcon::trigger_key on_collect_trigger[sys::max_news_generator_types];
 	dcon::effect_key on_printing_effect[sys::max_news_generator_types];
@@ -46,6 +47,7 @@ struct global_news_state {
 };
 // TODO: Make memcpyable
 
+void collect_scope(sys::state& state, news_scope& scope);
 void issue_newspaper(sys::state& state, dcon::nation_id reader);
 
 }

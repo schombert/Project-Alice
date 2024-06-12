@@ -576,6 +576,7 @@ enum class news_generator_type {
 	count
 };
 constexpr uint32_t max_news_generator_types = uint32_t(news_generator_type::count);
+constexpr inline uint32_t news_type_mask = 0x7f;
 constexpr inline uint8_t news_size_small = 0x00;
 constexpr inline uint8_t news_size_medium = 0x80;
 constexpr inline uint8_t news_size_huge = 0xC0;

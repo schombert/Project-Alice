@@ -931,6 +931,14 @@ void update_research(sys::state& state, uint32_t current_year) {
 						sys::message_base_type::tech
 					});
 
+					news::news_scope scope;
+					scope.type = sys::news_generator_type::research_complete;
+					scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(n);
+					scope.strings[0][0] = state.world.technology_get_name(n.get_current_research());
+					scope.strings[0][1] = state.world.technology_get_name(n.get_current_research());
+					scope.dates[0][0] = state.current_date;
+					news::collect_news_scope(state, scope);
+
 					n.set_current_research(dcon::technology_id{});
 				}
 			}
@@ -973,6 +981,13 @@ void discover_inventions(sys::state& state) {
 									n, dcon::nation_id{}, dcon::nation_id{},
 									sys::message_base_type::invention
 								});
+								news::news_scope scope;
+								scope.type = sys::news_generator_type::invention;
+								scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(n);
+								scope.strings[0][0] = state.world.invention_get_name(inv);
+								scope.strings[0][1] = state.world.invention_get_name(inv);
+								scope.dates[0][0] = state.current_date;
+								news::collect_news_scope(state, scope);
 							}
 						}
 					}, nids, chances, may_discover);
@@ -1001,6 +1016,13 @@ void discover_inventions(sys::state& state) {
 									n, dcon::nation_id{}, dcon::nation_id{},
 									sys::message_base_type::invention
 								});
+								news::news_scope scope;
+								scope.type = sys::news_generator_type::invention;
+								scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(n);
+								scope.strings[0][0] = state.world.invention_get_name(inv);
+								scope.strings[0][1] = state.world.invention_get_name(inv);
+								scope.dates[0][0] = state.current_date;
+								news::collect_news_scope(state, scope);
 							}
 						}
 					}, nids, chances, may_not_discover);
