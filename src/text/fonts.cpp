@@ -124,6 +124,7 @@ uint32_t font_index_from_font_id(sys::state& state, uint16_t id) {
 	uint32_t offset = 0;
 	switch(state.languages[state.user_settings.current_language].script) {
 	case text::language_script::chinese:
+	case text::language_script::korean:
 		offset += 3;
 		break;
 	case text::language_script::arabic:

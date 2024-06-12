@@ -2129,7 +2129,6 @@ void update_crisis(sys::state& state) {
 					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
 					sys::message_base_type::crisis_starts
 				});
-
 				break;
 			}
 		}
@@ -2274,6 +2273,14 @@ void update_crisis(sys::state& state) {
 				secondary_attacker = state.world.national_identity_get_nation_from_identity_holder(state.crisis_liberation_tag);
 			}
 
+			news::news_scope scope;
+			scope.type = sys::news_generator_type::crisis_started;
+			scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(state.primary_crisis_defender);
+			scope.tags[0][1] = state.world.nation_get_identity_from_identity_holder(state.primary_crisis_attacker);
+			scope.strings[0][0] = state.world.state_definition_get_name(state.world.state_instance_get_definition(state.crisis_state));
+			scope.dates[0][0] = state.current_date;
+			news::collect_news_scope(state, scope);
+
 			for(auto& i : state.crisis_participants) {
 				if(i.id && i.merely_interested == true && state.world.nation_get_is_player_controlled(i.id) == false) {
 					if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_attacker
@@ -2313,7 +2320,7 @@ void update_crisis(sys::state& state) {
 					}
 				}
 				if(!i.id)
-					break;;
+					break;
 			}
 		}
 	} else if(state.current_crisis_mode == sys::crisis_mode::heating_up) {

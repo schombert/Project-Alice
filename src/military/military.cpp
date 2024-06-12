@@ -2290,6 +2290,17 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 		primary_attacker, primary_defender, dcon::nation_id{},
 		sys::message_base_type::war
 	});
+	news::news_scope scope;
+	scope.type = sys::news_generator_type::war_declared;
+	scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(primary_attacker);
+	scope.tags[0][1] = state.world.nation_get_identity_from_identity_holder(primary_defender);
+	scope.tags[1][0] = primary_wargoal_tag;
+	scope.tags[1][1] = state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary);
+	scope.strings[0][0] = state.world.cb_type_get_name(primary_wargoal);
+	scope.strings[0][1] = state.world.cb_type_get_name(primary_wargoal);
+	scope.strings[0][2] = state.world.war_get_name(new_war);
+	scope.dates[0][0] = state.current_date;
+	news::collect_news_scope(state, scope);
 
 	return new_war;
 }
@@ -3205,6 +3216,16 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			target, from, dcon::nation_id{},
 			sys::message_base_type::peace_accepted
 		});
+
+		news::news_scope scope;
+		scope.type = sys::news_generator_type::peace_offer_accept;
+		scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(state.world.war_get_primary_attacker(war));
+		scope.tags[0][1] = state.world.nation_get_identity_from_identity_holder(state.world.war_get_primary_defender(war));
+		scope.strings[0][0] = state.world.war_get_name(war);
+		//string_9_0 -> cb
+		scope.dates[0][0] = state.world.war_get_start_date(war);
+		scope.dates[0][1] = state.current_date;
+		news::collect_news_scope(state, scope);
 	}
 
 	bool contains_sq = false;

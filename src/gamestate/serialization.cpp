@@ -728,10 +728,12 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.future_n_event);
 	ptr_in = deserialize(ptr_in, state.future_p_event);
 
+	{ // news definitions
+		ptr_in = memcpy_deserialize(ptr_in, state.news_definitions);
+	}
 	{ // national definitions
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 	}
-
 	{ // military definitions
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
@@ -776,6 +778,9 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
 
+	{ // news definitions
+		ptr_in = memcpy_serialize(ptr_in, state.news_definitions);
+	}
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
 	}
@@ -824,6 +829,9 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
 
+	{ // news definitions
+		sz += sizeof(state.news_definitions);
+	}
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
 	}

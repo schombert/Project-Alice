@@ -142,6 +142,10 @@ ef_build_university_in_capital
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
+ef_clear_news_scopes
+	type							value		text				member
+	limit							extern		ef_limit			member_fn
+
 effect_body
 	if                              extern      ef_scope_if         discard
 	else_if                         extern      ef_scope_else_if    discard
@@ -316,6 +320,7 @@ effect_body
 	state_scope                     extern      ef_state_scope              discard
 	random                          extern      ef_scope_random             discard
 	random_list                     extern      ef_scope_random_list        discard
+	clear_news_scopes				group		ef_clear_news_scopes		discard
 	increment_variable              value       text                        member_fn
 	decrement_variable              value       text                        member_fn
 	set_variable_to_zero            value       text                        member_fn

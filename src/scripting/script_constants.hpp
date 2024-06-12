@@ -1354,12 +1354,29 @@ TRIGGER_BYTECODE_ELEMENT(0x02DB, is_coastal_state, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_bank, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DD, has_building_university, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DE, test, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02DF, tags_eq, 5) \
+TRIGGER_BYTECODE_ELEMENT(0x02E0, strings_eq, 6) \
+TRIGGER_BYTECODE_ELEMENT(0x02E1, values_eq, 6) \
+TRIGGER_BYTECODE_ELEMENT(0x02E2, dates_eq, 5) \
+TRIGGER_BYTECODE_ELEMENT(0x02E3, tags_match, 8) \
+TRIGGER_BYTECODE_ELEMENT(0x02E4, strings_match, 8) \
+TRIGGER_BYTECODE_ELEMENT(0x02E5, values_match, 8) \
+TRIGGER_BYTECODE_ELEMENT(0x02E6, dates_match, 8) \
+TRIGGER_BYTECODE_ELEMENT(0x02E7, tags_contains, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x02E8, strings_contains, 4) \
+TRIGGER_BYTECODE_ELEMENT(0x02E9, values_contains, 4) \
+TRIGGER_BYTECODE_ELEMENT(0x02EA, dates_contains, 3) \
+TRIGGER_BYTECODE_ELEMENT(0x02EB, news_printing_count, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02EC, length_greater_tags, 4) \
+TRIGGER_BYTECODE_ELEMENT(0x02ED, length_greater_strings, 4) \
+TRIGGER_BYTECODE_ELEMENT(0x02EE, length_greater_values, 4) \
+TRIGGER_BYTECODE_ELEMENT(0x02EF, length_greater_dates, 4) \
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02DF;
+constexpr inline uint16_t first_scope_code = 0x02F0;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2

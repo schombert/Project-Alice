@@ -181,6 +181,17 @@ void create_in_game_windows(sys::state& state) {
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
 	}
 	{
+		auto new_elm = make_element_by_type<news_icon_window>(state, "news_icon");
+		//some mods think they are funny by taking away newspapers
+		new_elm->base_data.position = xy_pair{ 426, 80 };
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elm = make_element_by_type<news_page_window>(state, "news_window_default");
+		state.ui_state.news_page_window = new_elm.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
 		auto legend_win = ui::make_element_by_type<ui::map_legend_gradient>(state, "alice_map_legend_gradient_window");
 		state.ui_state.map_gradient_legend = legend_win.get();
 		state.ui_state.root->add_child_to_front(std::move(legend_win));

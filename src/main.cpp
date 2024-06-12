@@ -50,6 +50,7 @@
 #include "prng.cpp"
 #include "blake2.cpp"
 #include "zstd.cpp"
+#include "news.cpp"
 #endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"

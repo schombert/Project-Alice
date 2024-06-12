@@ -5779,6 +5779,58 @@ TRIGGER_FUNCTION(tf_has_building_university) {
 	return compare_to_true(tval[0], ws.world.province_get_building_level(to_prov(primary_slot), economy::province_building_type::university) != 0);
 }
 
+TRIGGER_FUNCTION(tf_tags_eq) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_strings_eq) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_values_eq) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_dates_eq) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_tags_match) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_strings_match) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_values_match) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_dates_match) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_tags_contains) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_strings_contains) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_values_contains) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_dates_contains) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_news_printing_count) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_length_greater_tags) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_length_greater_strings) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_length_greater_values) {
+	return true;
+}
+TRIGGER_FUNCTION(tf_length_greater_dates) {
+	return true;
+}
+
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(

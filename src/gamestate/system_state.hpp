@@ -30,6 +30,7 @@
 #include "events.hpp"
 #include "notifications.hpp"
 #include "network.hpp"
+#include "news.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -478,6 +479,7 @@ struct alignas(64) state {
 	military::global_military_state military_definitions;
 	nations::global_national_state national_definitions;
 	province::global_provincial_state province_definitions;
+	news::global_news_state news_definitions;
 
 	absolute_time_point start_date;
 	absolute_time_point end_date;
