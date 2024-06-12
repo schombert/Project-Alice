@@ -889,8 +889,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	if(state_is_new && old_owner) {
 		news::news_scope scope;
 		scope.type = sys::news_generator_type::province_change_owner;
-		scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(new_owner);
-		scope.tags[0][1] = state.world.nation_get_identity_from_identity_holder(old_owner);
+		scope.tags[0][0] = state.world.nation_get_identity_from_identity_holder(old_owner);
+		scope.tags[0][1] = state.world.nation_get_identity_from_identity_holder(new_owner);
 		scope.strings[0][0] = state.world.province_get_name(id);
 		scope.strings[0][1] = state.world.modifier_get_name(state.world.province_get_continent(id));
 		scope.strings[1][0] = state.world.state_definition_get_name(state.world.state_instance_get_definition(new_si));

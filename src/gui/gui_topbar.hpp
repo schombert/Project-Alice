@@ -1880,13 +1880,13 @@ template<uint8_t size, uint8_t index>
 class news_article_title : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		dcon::text_sequence_id k;
+		news::news_scope scope;
 		if constexpr(size == sys::news_size_huge) {
-			k = state.news_definitions.large_articles[index].title;
+			scope = state.news_definitions.large_articles[index];
 		} else if constexpr(size == sys::news_size_medium) {
-			k = state.news_definitions.medium_articles[index].title;
+			scope = state.news_definitions.medium_articles[index];
 		} else if constexpr(size == sys::news_size_small) {
-			k = state.news_definitions.small_articles[index].title;
+			scope = state.news_definitions.small_articles[index];
 		}
 		auto contents = text::create_endless_layout(internal_layout,
 			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
@@ -1895,7 +1895,29 @@ public:
 		});
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};
-		text::add_to_layout_box(state, contents, box, k, sub);
+		text::add_to_substitution_map(sub, text::variable_type::string_0_0, scope.strings[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::string_0_1, scope.strings[0][1]);
+		text::add_to_substitution_map(sub, text::variable_type::string_0_2, scope.strings[0][2]);
+		text::add_to_substitution_map(sub, text::variable_type::string_0_3, scope.strings[0][3]);
+		text::add_to_substitution_map(sub, text::variable_type::string_0_4, scope.strings[0][4]);
+		text::add_to_substitution_map(sub, text::variable_type::value_int_0_0, scope.values[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::value_int_0_1, scope.values[0][1]);
+		text::add_to_substitution_map(sub, text::variable_type::value_int_0_2, scope.values[0][2]);
+		text::add_to_substitution_map(sub, text::variable_type::value_int_0_3, scope.values[0][3]);
+		text::add_to_substitution_map(sub, text::variable_type::date_long_0, scope.dates[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::date_long_1, scope.dates[0][1]);
+		text::add_to_substitution_map(sub, text::variable_type::date_short_0, scope.dates[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::tag0_0, scope.tags[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_0, scope.tags[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_0_, scope.tags[0][0]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_0_adj, state.world.national_identity_get_adjective(scope.tags[0][0]));
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_1, scope.tags[0][1]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_1_adj, state.world.national_identity_get_adjective(scope.tags[0][1]));
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_2, scope.tags[0][2]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_2_adj, state.world.national_identity_get_adjective(scope.tags[0][2]));
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_3, scope.tags[0][3]);
+		text::add_to_substitution_map(sub, text::variable_type::tag_0_3_adj, state.world.national_identity_get_adjective(scope.tags[0][3]));
+		text::add_to_layout_box(state, contents, box, scope.title, sub);
 		text::close_layout_box(contents, box);
 	}
 };

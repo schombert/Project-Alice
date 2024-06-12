@@ -10,15 +10,53 @@ void collect_news_scope(sys::state& state, news_scope& scope) {
 	++state.news_definitions.num_collected;
 	if(state.news_definitions.num_collected >= std::extent_v<decltype(state.news_definitions.article_pool)>) {
 		issue_newspaper(state, dcon::nation_id{ 1 }); //static
+		state.news_definitions.num_collected = 0;
 	}
+}
+
+dcon::text_sequence_id generator_get_title(sys::state& state, dcon::news_article_generator_id gen, dcon::nation_id n) {
+	auto const& list = state.world.news_article_generator_get_title_case(gen);
+	for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
+		if(!list[i].text)
+			break;
+		auto k = list[i].trigger;
+		if(!k || trigger::evaluate(state, k, trigger::to_generic(n), -1, -1)) {
+			return list[i].text;
+		}
+	}
+	return list[0].text;
+}
+dcon::text_sequence_id generator_get_desc(sys::state& state, dcon::news_article_generator_id gen, dcon::nation_id n) {
+	auto const& list = state.world.news_article_generator_get_desc_case(gen);
+	for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
+		if(!list[i].text)
+			break;
+		auto k = list[i].trigger;
+		if(!k || trigger::evaluate(state, k, trigger::to_generic(n), -1, -1)) {
+			return list[i].text;
+		}
+	}
+	return list[0].text;
+}
+dcon::gfx_object_id generator_get_picture(sys::state& state, dcon::news_article_generator_id gen, dcon::nation_id n) {
+	auto const& list = state.world.news_article_generator_get_picture_case(gen);
+	for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
+		if(!list[i].picture)
+			break;
+		auto k = list[i].trigger;
+		if(!k || trigger::evaluate(state, k, trigger::to_generic(n), -1, -1)) {
+			return list[i].picture;
+		}
+	}
+	return list[0].picture;
 }
 
 void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 	uint8_t small_article_count = 0;
 	uint8_t medium_article_count = 0;
 	uint8_t large_article_count = 0;
-	for(uint32_t i = 0; i < state.news_definitions.num_collected; i++) {
-		auto& ar = state.news_definitions.article_pool[i];
+	for(uint32_t j = 0; j < state.news_definitions.num_collected; j++) {
+		auto& ar = state.news_definitions.article_pool[j];
 		for(auto gen : state.world.in_news_article_generator) {
 			if((gen.get_flags() & sys::news_type_mask) != uint8_t(ar.type))
 				continue;
@@ -29,36 +67,9 @@ void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 			} else if((gen.get_flags() & sys::news_size_mask) == sys::news_size_huge && large_article_count >= 1) {
 				continue;
 			}
-			auto title = gen.get_title_case()[0].text;
-			for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
-				if(!gen.get_title_case()[i].text)
-					break;
-				auto k = gen.get_title_case()[i].trigger;
-				if(!k || trigger::evaluate(state, k, trigger::to_generic(reader), -1, -1)) {
-					title = gen.get_title_case()[i].text;
-					break;
-				}
-			}
-			auto desc = gen.get_desc_case()[0].text;
-			for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
-				if(!gen.get_desc_case()[i].text)
-					break;
-				auto k = gen.get_desc_case()[i].trigger;
-				if(!k || trigger::evaluate(state, k, trigger::to_generic(reader), -1, -1)) {
-					desc = gen.get_desc_case()[i].text;
-					break;
-				}
-			}
-			auto picture = gen.get_picture_case()[0].picture;
-			for(uint32_t i = 0; i < sys::max_news_generator_cases; i++) {
-				if(!gen.get_picture_case()[i].picture)
-					break;
-				auto k = gen.get_picture_case()[i].trigger;
-				if(!k || trigger::evaluate(state, k, trigger::to_generic(reader), -1, -1)) {
-					picture = gen.get_picture_case()[i].picture;
-					break;
-				}
-			}
+			auto title = generator_get_title(state, gen, reader);
+			auto desc = generator_get_desc(state, gen, reader);
+			auto picture = generator_get_picture(state, gen, reader);
 			if((gen.get_flags() & sys::news_size_mask) == sys::news_size_small) {
 				state.news_definitions.small_articles[small_article_count].title = title;
 				state.news_definitions.small_articles[small_article_count].desc = desc;
@@ -92,6 +103,21 @@ void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 			}
 		}
 	}
+	//generate fake news
+	if(large_article_count == 0) {
+		for(auto gen : state.world.in_news_article_generator) {
+			if(large_article_count >= 1)
+				break;
+			auto title = generator_get_title(state, gen, reader);
+			auto desc = generator_get_desc(state, gen, reader);
+			auto picture = generator_get_picture(state, gen, reader);
+			state.news_definitions.large_articles[large_article_count].title = title;
+			state.news_definitions.large_articles[large_article_count].desc = desc;
+			state.news_definitions.large_articles[large_article_count].picture = picture;
+			++large_article_count;
+		}
+	}
+
 	state.news_definitions.last_print = state.current_date;
 }
 }

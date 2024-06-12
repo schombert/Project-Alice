@@ -1001,11 +1001,11 @@ void trigger_body::tags_eq(tr_news_data_parameters const& value, error_handler& 
 		err.accumulated_errors += "tags_eq trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	context.compiled_trigger.push_back(uint16_t(trigger::tags_eq));
-	context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
-	context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
 	if(auto it = context.outer_context.map_of_ident_names.find(parse_tag(value.list[2], line, err));
 		it != context.outer_context.map_of_ident_names.end()) {
+		context.compiled_trigger.push_back(uint16_t(trigger::tags_eq));
+		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
+		context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
 		context.compiled_trigger.push_back(trigger::payload(it->second).value);
 	} else {
 		err.accumulated_errors += "tags_eq trigger supplied with an invalid tag \"" + std::string(value.list[2]) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1050,11 +1050,11 @@ void trigger_body::tags_greater(tr_news_data_parameters const& value, error_hand
 		err.accumulated_errors += "tags_greater trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	context.compiled_trigger.push_back(uint16_t(trigger::tags_eq | trigger::association_gt));
-	context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
-	context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
 	if(auto it = context.outer_context.map_of_ident_names.find(parse_tag(value.list[2], line, err));
 		it != context.outer_context.map_of_ident_names.end()) {
+		context.compiled_trigger.push_back(uint16_t(trigger::tags_eq | trigger::association_gt));
+		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
+		context.add_int32_t_to_payload(parse_int(value.list[1], line, err));
 		context.compiled_trigger.push_back(trigger::payload(it->second).value);
 	} else {
 		err.accumulated_errors += "tags_greater trigger supplied with an invalid tag \"" + std::string(value.list[2]) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -1145,10 +1145,10 @@ void trigger_body::tags_contains(tr_news_data_parameters const& value, error_han
 		err.accumulated_errors += "tags_contains trigger supplied with insufficient parameters (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	context.compiled_trigger.push_back(uint16_t(trigger::tags_contains));
-	context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
 	if(auto it = context.outer_context.map_of_ident_names.find(parse_tag(value.list[1], line, err));
 		it != context.outer_context.map_of_ident_names.end()) {
+		context.compiled_trigger.push_back(uint16_t(trigger::tags_contains));
+		context.add_int32_t_to_payload(parse_int(value.list[0], line, err));
 		context.compiled_trigger.push_back(trigger::payload(it->second).value);
 	} else {
 		err.accumulated_errors += "tags_contains trigger supplied with an invalid tag \"" + std::string(value.list[2]) + "\" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
