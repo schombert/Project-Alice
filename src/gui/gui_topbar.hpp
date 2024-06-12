@@ -1930,7 +1930,6 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::date_long_0, scope.dates[0][0]);
 		text::add_to_substitution_map(sub, text::variable_type::date_long_1, scope.dates[0][1]);
 		text::add_to_substitution_map(sub, text::variable_type::date_short_0, scope.dates[0][0]);
-		text::add_to_substitution_map(sub, text::variable_type::date_short_1, scope.dates[0][1]);
 		text::add_to_substitution_map(sub, text::variable_type::tag0_0, scope.tags[0][0]);
 		text::add_to_substitution_map(sub, text::variable_type::tag_0_0, scope.tags[0][0]);
 		text::add_to_substitution_map(sub, text::variable_type::tag_0_0_, scope.tags[0][0]);
@@ -1941,8 +1940,6 @@ public:
 		text::add_to_substitution_map(sub, text::variable_type::tag_0_2_adj, state.world.national_identity_get_adjective(scope.tags[0][2]));
 		text::add_to_substitution_map(sub, text::variable_type::tag_0_3, scope.tags[0][3]);
 		text::add_to_substitution_map(sub, text::variable_type::tag_0_3_adj, state.world.national_identity_get_adjective(scope.tags[0][3]));
-		text::add_to_substitution_map(sub, text::variable_type::tag_0_4, scope.tags[0][4]);
-		text::add_to_substitution_map(sub, text::variable_type::tag_0_4_adj, state.world.national_identity_get_adjective(scope.tags[0][4]));
 		text::add_to_layout_box(state, contents, box, scope.desc, sub);
 		text::close_layout_box(contents, box);
 	}

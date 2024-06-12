@@ -47,7 +47,7 @@ struct global_news_state {
 };
 // TODO: Make memcpyable
 
-void collect_scope(sys::state& state, news_scope& scope);
+void collect_news_scope(sys::state& state, news_scope& scope);
 void issue_newspaper(sys::state& state, dcon::nation_id reader);
 
 }

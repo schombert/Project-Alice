@@ -6,6 +6,7 @@
 #include "province_templates.hpp"
 #include "system_state.hpp"
 #include "triggers.hpp"
+#include "news.hpp"
 
 namespace culture {
 
