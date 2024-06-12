@@ -4,6 +4,7 @@
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
 #include "hb.h"
+#include "bmfont.hpp"
 
 namespace sys {
 struct state;
@@ -115,6 +116,7 @@ public:
 	~font_manager();
 
 	ankerl::unordered_dense::map<uint16_t, dcon::text_key> font_names;
+	ankerl::unordered_dense::map<uint16_t, bm_font> bitmap_fonts;
 	FT_Library ft_library;
 	font fonts[12];
 	bool map_font_is_black = false;
