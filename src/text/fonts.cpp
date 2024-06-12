@@ -278,6 +278,17 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 		fnt.hb_features[0].value = 1;
 		fnt.num_features = 1;
 	}
+	// fill win1252 table
+	FT_UInt gindex = 0;
+	FT_ULong u16_ch = FT_Get_First_Char(fnt.font_face, &gindex);
+	while(gindex != 0 && u16_ch < 0x80) {
+		fnt.win1252_codepoints[uint8_t(u16_ch)] = gindex;
+		u16_ch = FT_Get_Next_Char(fnt.font_face, u16_ch, &gindex);
+	}
+	for(uint32_t ch = 0x80; ch <= 0xff; ch++) {
+		fnt.win1252_codepoints[ch] = FT_Get_Char_Index(fnt.font_face, win1250toUTF16(char(ch)));
+	}
+
 	fnt.loaded = true;
 
 	fnt.internal_line_height = float(fnt.font_face->size->metrics.height) / float((1 << 6) * magnification_factor);
@@ -398,10 +409,10 @@ void font::make_glyph(char32_t ch_in) {
 }
 
 char font::codepoint_to_alnum(char32_t codepoint) {
-	std::string_view alnum_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789()";
-	for(const auto c : alnum_table)
-		if(codepoint == FT_Get_Char_Index(font_face, c))
-			return c;
+	for(uint32_t ch = 0x20; ch <= 0xff; ch++) {
+		if(win1252_codepoints[ch] == codepoint)
+			return char(ch);
+	}
 	return 0;
 }
 

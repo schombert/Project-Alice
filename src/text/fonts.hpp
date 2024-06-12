@@ -90,6 +90,7 @@ public:
 	ankerl::unordered_dense::map<char32_t, float> glyph_advances;
 	ankerl::unordered_dense::map<char32_t, bool> glyph_loaded;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
+	std::array<FT_ULong, 256> win1252_codepoints;
 
 	std::unique_ptr<FT_Byte[]> file_data;
 

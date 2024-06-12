@@ -898,11 +898,11 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 }
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id) {
-	auto const& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1];
+	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1];
 	if(state.user_settings.use_classic_fonts) {
 		std::string buffer = "";
 		for(uint32_t i = 0; i < uint32_t(txt.glyph_count); i++) {
-			buffer += char(txt.glyph_info[i].codepoint);
+			buffer += font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
 		}
 		render_classic_text(state, x, y, buffer.c_str(), uint32_t(buffer.length()), enabled, c, text::get_bm_font(state, font_id));
 		return;
