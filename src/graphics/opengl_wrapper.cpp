@@ -790,8 +790,13 @@ void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_mo
 	internal_text_render(state, txt, x, y + size, size, f, subroutines, icon_subroutines);
 }
 
-void render_classic_text(sys::state& state, float x, float y, char const* codepoints, uint32_t count,
-		color_modification enabled, color3f const& c, text::bm_font const& font) {
+void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
+	std::string codepoints = "";
+	for(uint32_t i = 0; i < uint32_t(txt.glyph_count); i++) {
+		codepoints += base_font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
+	}
+	uint32_t count = uint32_t(codepoints.length());
+
 	float adv = 1.0f / font.width; // Font texture atlas spacing.
 	bind_vertices_by_rotation(state, ui::rotation::upright, false);
 	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::subsprite_b };
@@ -812,7 +817,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, font.ftexid);
 
-	for(uint32_t i = 0; i < count; ++i) {
+	for(uint32_t i = 0; i < txt.glyph_count; ++i) {
 		if(uint8_t(codepoints[i]) == '@') {
 			auto const& f = font.chars[0x4D];
 			float scaling = 1.f;
@@ -820,9 +825,9 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			float CurX = x + f.x_offset - (float(f.width) * offset);
 			float CurY = y + f.y_offset - (float(f.height) * offset);
 			char tag[3] = { 0, 0, 0 };
-			tag[0] = (i + 1 < count) ? char(codepoints[i + 1]) : 0;
-			tag[1] = (i + 2 < count) ? char(codepoints[i + 2]) : 0;
-			tag[2] = (i + 3 < count) ? char(codepoints[i + 3]) : 0;
+			tag[0] = (i + 1 < txt.glyph_count) ? char(codepoints[i + 1]) : 0;
+			tag[1] = (i + 2 < txt.glyph_count) ? char(codepoints[i + 2]) : 0;
+			tag[2] = (i + 3 < txt.glyph_count) ? char(codepoints[i + 3]) : 0;
 			if(uint8_t(tag[0]) == '(' || uint8_t(codepoints[2]) == ')') {
 				GLuint money_subroutines[2] = { map_color_modification_to_index(enabled), parameters::no_filter };
 				glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, money_subroutines);
@@ -872,7 +877,7 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 			}
 		}
 		uint8_t ch = uint8_t(codepoints[i]);
-		if(i != 0 && i < count - 1 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
+		if(i != 0 && i < txt.glyph_count - 1 && ch == 0xC2 && uint8_t(codepoints[i + 1]) == 0xA3) {
 			ch = 0xA3;
 			i++;
 		} else if(ch == 0xA4) {
@@ -888,23 +893,15 @@ void render_classic_text(sys::state& state, float x, float y, char const* codepo
 				float(f.height) / float(font.width) /* y height */
 		);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		// Only check kerning if there is greater then 1 character and
-		// if the check character is 1 less then the end of the string.
-		if(i < count - 1) {
-			x += font.get_kerning_pair(ch, codepoints[i + 1]);
-		}
-		x += f.x_advance * (ch == 0xA3 ? 0.25f : 1.f);
+		//float x_advance = float(txt.glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+		x += f.x_advance;
 	}
 }
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id) {
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1];
 	if(state.user_settings.use_classic_fonts) {
-		std::string buffer = "";
-		for(uint32_t i = 0; i < uint32_t(txt.glyph_count); i++) {
-			buffer += font.codepoint_to_alnum(txt.glyph_info[i].codepoint);
-		}
-		render_classic_text(state, x, y, buffer.c_str(), uint32_t(buffer.length()), enabled, c, text::get_bm_font(state, font_id));
+		render_classic_text(state, txt, x, y, float(text::size_from_font_id(font_id)), enabled, c, text::get_bm_font(state, font_id), font);
 		return;
 	}
 	render_new_text(state, txt, enabled, x, y, float(text::size_from_font_id(font_id)), c, font);

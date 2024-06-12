@@ -460,7 +460,7 @@ void font::remake_cache(stored_glyphs& txt, std::string const& s) {
 
 	//hb_buffer_guess_segment_properties(hb_buf);
 
-	hb_shape(hb_font_face, hb_buf, hb_features, num_features);
+	hb_shape(hb_font_face, hb_buf, hb_features, scmp_override ? 0 : num_features);
 	
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
@@ -559,6 +559,10 @@ void load_standard_fonts(sys::state& state) {
 		parsers::token_generator gen(content.data, content.data + content.file_size);
 		auto font = parse_font_file(gen, err, context);
 		state.font_collection.map_font_is_black = font.blackmapfont;
+	}
+
+	for(auto& font : state.font_collection.fonts) {
+		font.scmp_override = state.user_settings.use_classic_fonts;
 	}
 }
 

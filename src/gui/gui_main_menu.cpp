@@ -575,7 +575,9 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
-	send(state, parent, notify_setting_update{});
+	for(auto& font : state.font_collection.fonts) {
+		font.scmp_override = state.user_settings.use_classic_fonts;
+	}
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
 	if(state.ui_state.rgos_root)
@@ -590,11 +592,7 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 		state.ui_state.end_screen->impl_on_reset_text(state);
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
-	//if(state.user_settings.use_classic_fonts) {
-	//	state.ui_state.tooltip_font = text::name_into_font_id(state, "vic_18_black");
-	//} else {
-	//	state.ui_state.tooltip_font = text::name_into_font_id(state, "ToolTip_Font");
-	//}
+	send(state, parent, notify_setting_update{});
 }
 bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.use_classic_fonts;

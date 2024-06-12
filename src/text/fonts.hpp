@@ -76,6 +76,7 @@ public:
 	hb_buffer_t* hb_buf = nullptr;
 	hb_feature_t hb_features[1];
 	unsigned int num_features = 0;
+	bool scmp_override = false;
 
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
