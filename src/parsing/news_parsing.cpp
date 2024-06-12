@@ -133,6 +133,7 @@ void news_generate_article::finish(news_context& context) {
 	context.outer_context.state.world.news_article_generator_set_picture_case(id, picture_cases);
 	context.outer_context.state.world.news_article_generator_set_title_case(id, title_cases);
 	context.outer_context.state.world.news_article_generator_set_desc_case(id, desc_cases);
+	context.outer_context.state.world.news_article_generator_set_flags(id, flags);
 }
 
 void news_text_add::free_value(std::string_view value, error_handler& err, int32_t line, news_context& context) {

@@ -1857,7 +1857,12 @@ public:
 
 template<uint8_t size, uint8_t index>
 class news_article_picture : public image_element_base {
+	dcon::gfx_object_id no_news_image;
 public:
+	void on_create(sys::state& state) noexcept override {
+		image_element_base::on_create(state);
+		no_news_image = base_data.data.image.gfx_object;
+	}
 	void on_update(sys::state& state) noexcept override {
 		if constexpr(size == sys::news_size_huge) {
 			base_data.data.image.gfx_object = state.news_definitions.large_articles[index].picture;
@@ -1866,10 +1871,13 @@ public:
 		} else if constexpr(size == sys::news_size_small) {
 			base_data.data.image.gfx_object = state.news_definitions.small_articles[index].picture;
 		}
+		if(!base_data.data.image.gfx_object) {
+			base_data.data.image.gfx_object = no_news_image;
+		}
 	}
 };
 template<uint8_t size, uint8_t index>
-class news_article_title : public scrollable_text {
+class news_article_title : public multiline_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		dcon::text_sequence_id k;
@@ -1880,10 +1888,10 @@ public:
 		} else if constexpr(size == sys::news_size_small) {
 			k = state.news_definitions.small_articles[index].title;
 		}
-		auto contents = text::create_endless_layout(delegate->internal_layout,
+		auto contents = text::create_endless_layout(internal_layout,
 			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
-			delegate->base_data.data.text.font_handle, 0, text::alignment::left,
-			delegate->black_text ? text::text_color::black : text::text_color::white, false
+			base_data.data.text.font_handle, 0, text::alignment::left,
+			black_text ? text::text_color::black : text::text_color::white, false
 		});
 		auto box = text::open_layout_box(contents);
 		text::substitution_map sub{};

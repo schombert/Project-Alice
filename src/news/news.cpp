@@ -2,6 +2,7 @@
 #include "triggers.hpp"
 #include "system_state.hpp"
 
+namespace news {
 void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 	/*
 	news_scope currently_collected; //currently collected
@@ -18,11 +19,11 @@ void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 	uint8_t medium_article_count = 0;
 	uint8_t large_article_count = 0;
 	for(auto gen : state.world.in_news_article_generator) {
-		if(gen.get_flags() == sys::news_size_small && small_article_count >= 6) {
+		if((gen.get_flags() & sys::news_size_mask) == sys::news_size_small && small_article_count >= 6) {
 			continue;
-		} else if(gen.get_flags() == sys::news_size_medium && medium_article_count >= 3) {
+		} else if((gen.get_flags() & sys::news_size_mask) == sys::news_size_medium && medium_article_count >= 3) {
 			continue;
-		} else if(gen.get_flags() == sys::news_size_huge && large_article_count >= 1) {
+		} else if((gen.get_flags() & sys::news_size_mask) == sys::news_size_huge && large_article_count >= 1) {
 			continue;
 		}
 		auto title = gen.get_title_case()[0].text;
@@ -55,17 +56,17 @@ void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 				break;
 			}
 		}
-		if(gen.get_flags() == sys::news_size_small) {
+		if((gen.get_flags() & sys::news_size_mask) == sys::news_size_small) {
 			state.news_definitions.small_articles[small_article_count].title = title;
 			state.news_definitions.small_articles[small_article_count].desc = desc;
 			state.news_definitions.small_articles[small_article_count].picture = picture;
 			++small_article_count;
-		} else if(gen.get_flags() == sys::news_size_medium) {
+		} else if((gen.get_flags() & sys::news_size_mask) == sys::news_size_medium) {
 			state.news_definitions.medium_articles[medium_article_count].title = title;
 			state.news_definitions.medium_articles[medium_article_count].desc = desc;
 			state.news_definitions.medium_articles[medium_article_count].picture = picture;
 			++medium_article_count;
-		} else if(gen.get_flags() == sys::news_size_huge) {
+		} else if((gen.get_flags() & sys::news_size_mask) == sys::news_size_huge) {
 			state.news_definitions.large_articles[large_article_count].title = title;
 			state.news_definitions.large_articles[large_article_count].desc = desc;
 			state.news_definitions.large_articles[large_article_count].picture = picture;
@@ -73,4 +74,5 @@ void issue_newspaper(sys::state& state, dcon::nation_id reader) {
 		}
 	}
 	state.news_definitions.last_print = state.current_date;
+}
 }
