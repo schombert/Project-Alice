@@ -2,15 +2,15 @@ news_text_add
 	#free				value	text				member_fn
 
 news_picture_case
-	trigger				extern	make_news_trigger	member
+	trigger				extern	make_news_case_trigger	member
 	picture				value	text				member_fn
 
 news_title_case
-	trigger				extern	make_news_trigger	member
+	trigger				extern	make_news_case_trigger	member
 	text_add			group	news_text_add		member_fn
 
 news_desc_case
-	trigger				extern	make_news_trigger	member
+	trigger				extern	make_news_case_trigger	member
 	text_add			group	news_text_add		member_fn
 
 news_generator_selector
@@ -77,6 +77,7 @@ news_article_types
 	ai_afraid_of			value	int	member
 	ai_likes_very_much		value	int	member
 	fake				value	int	member
+	invention				value	int	member
 
 news_style_article
 	size			value	text			discard
@@ -99,7 +100,7 @@ news_file
 	ailoves			group	none			discard
 	newgp			group	none			discard
 	generator_selector	group	news_generator		discard
-	generate_article	group	news_generate_article	discard
+	generate_article	group	news_generate_article	member_fn
 	news_priority		group	news_priority		discard
 	on_printing		group	news_on_printing	discard
 	on_collection		group	news_on_collection	discard

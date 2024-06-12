@@ -1848,6 +1848,43 @@ public:
 	}
 };
 
+class news_page_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "window_bg") {
+			return make_element_by_type<draggable_target>(state, id);
+		} else if(name == "close_button") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+class news_open_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		state.ui_state.news_page_window->set_visible(state, !state.ui_state.news_page_window->is_visible());
+	}
+};
+class news_open_label : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, "!");
+	}
+};
+class news_icon_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "button") {
+			return make_element_by_type<news_open_button>(state, id);
+		} else if(name == "label") {
+			return make_element_by_type<news_open_label>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class topbar_window : public window_element_base {
 private:
 	dcon::nation_id current_nation{};

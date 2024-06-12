@@ -2,6 +2,10 @@
 #include "dcon_generated.hpp"
 #include "date_interface.hpp"
 
+namespace sys {
+struct state;
+}
+
 namespace news {
 
 struct news_scope {
@@ -37,5 +41,7 @@ struct global_news_state {
 	dcon::effect_key on_printing_effect[24];
 	dcon::trigger_key on_printing_trigger[24];
 };
+
+void issue_paper(sys::state& state);
 
 }

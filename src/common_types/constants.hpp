@@ -572,6 +572,7 @@ enum class news_generator_type {
 	ai_afraid_of,
 	ai_likes_very_much,
 	fake,
+	invention,
 };
 constexpr inline uint8_t news_size_small = 0x00;
 constexpr inline uint8_t news_size_medium = 0x80;

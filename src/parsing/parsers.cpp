@@ -402,4 +402,5 @@ std::string_view remove_surrounding_whitespace(std::string_view txt) {
 #include "provinces_parsing.cpp"
 #include "trigger_parsing.cpp"
 #include "effect_parsing.cpp"
+#include "news_parsing.cpp"
 #include "parsers_declarations.cpp"

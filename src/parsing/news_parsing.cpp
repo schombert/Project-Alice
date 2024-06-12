@@ -2,7 +2,7 @@
 
 namespace parsers {
 
-void news_picture_case::picture(association_type, std::string_view value, error_handler& err, int32_t line, news_context& context) {
+void news_picture_case::picture(association_type, std::string_view name, error_handler& err, int32_t line, news_context& context) {
 	auto root = get_root(context.outer_context.state.common_fs);
 	auto gfx = open_directory(root, NATIVE("gfx"));
 	auto pictures = open_directory(gfx, NATIVE("pictures"));
@@ -80,6 +80,8 @@ void news_generate_article::type(association_type, std::string_view value, error
 		flags |= uint8_t(sys::news_generator_type::ai_likes_very_much);
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "fake")) {
 		flags |= uint8_t(sys::news_generator_type::fake);
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "invention")) {
+		flags |= uint8_t(sys::news_generator_type::invention);
 	} else {
 		err.accumulated_errors += "Unknown news type " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
@@ -90,43 +92,47 @@ void news_generate_article::size(association_type, std::string_view value, error
 		flags |= sys::news_size_small;
 	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "medium")) {
 		flags |= sys::news_size_medium;
-	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "huge")) {
+	} else if(is_fixed_token_ci(value.data(), value.data() + value.length(), "huge")
+		|| is_fixed_token_ci(value.data(), value.data() + value.length(), "large")) {
 		flags |= sys::news_size_huge;
 	} else {
 		err.accumulated_errors += "Unknown news size " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	}
 }
 
-void news_generate_article::picture_case(association_type, news_picture_case value, error_handler& err, int32_t line, news_context& context) {
+void news_generate_article::picture_case(news_picture_case value, error_handler& err, int32_t line, news_context& context) {
 	if(last_picture_case >= sys::max_news_generator_cases) {
-		err.accumulated_errors += "Too many picture cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_errors += "Too many picture cases (" + std::to_string(last_picture_case) + ") in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	} else {
-		picture_cases[last_picture_case] = value;
+		picture_cases[last_picture_case].trigger = value.trigger;
+		picture_cases[last_picture_case].picture = value.picture_;
 		++last_picture_case;
 	}
 }
-void news_generate_article::title_case(association_type, news_title_case value, error_handler& err, int32_t line, news_context& context) {
+void news_generate_article::title_case(news_title_case value, error_handler& err, int32_t line, news_context& context) {
 	if(last_title_case >= sys::max_news_generator_cases) {
-		err.accumulated_errors += "Too many title cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_errors += "Too many title cases (" + std::to_string(last_title_case) + ") in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	} else {
-		title_cases[last_title_case] = value;
+		title_cases[last_title_case].trigger = value.trigger;
+		title_cases[last_title_case].text = value.text;
 		++last_title_case;
 	}
 }
-void news_generate_article::description_case(association_type, news_desc_case value, error_handler& err, int32_t line, news_context& context) {
+void news_generate_article::description_case(news_desc_case value, error_handler& err, int32_t line, news_context& context) {
 	if(last_desc_case >= sys::max_news_generator_cases) {
-		err.accumulated_errors += "Too many description cases " + std::string(value) + " in file " + err.file_name + " line " + std::to_string(line) + "\n";
+		err.accumulated_errors += "Too many description cases (" + std::to_string(last_desc_case) + ") in file " + err.file_name + " line " + std::to_string(line) + "\n";
 	} else {
-		desc_cases[last_desc_case] = value;
+		desc_cases[last_desc_case].trigger = value.trigger;
+		desc_cases[last_desc_case].text = value.text;
 		++last_desc_case;
 	}
 }
 
 void news_generate_article::finish(news_context& context) {
-	auto id = state.world.create_news_generator();
-	state.world.news_generator_set_picture_case(picture_cases);
-	state.world.news_generator_set_title_case(title_cases);
-	state.world.news_generator_set_desc_case(desc_cases);
+	auto id = context.outer_context.state.world.create_news_article_generator();
+	context.outer_context.state.world.news_article_generator_set_picture_case(id, picture_cases);
+	context.outer_context.state.world.news_article_generator_set_title_case(id, title_cases);
+	context.outer_context.state.world.news_article_generator_set_desc_case(id, desc_cases);
 }
 
 void news_text_add::free_value(std::string_view value, error_handler& err, int32_t line, news_context& context) {
@@ -134,7 +140,13 @@ void news_text_add::free_value(std::string_view value, error_handler& err, int32
 }
 
 dcon::trigger_key make_news_trigger(token_generator& gen, error_handler& err, news_context& context) {
-	trigger_building_context t_context{ context, trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty };
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty };
 	return make_trigger(gen, err, t_context);
 }
+
+dcon::trigger_key make_news_case_trigger(token_generator& gen, error_handler& err, news_context& context) {
+	trigger_building_context t_context{ context.outer_context, trigger::slot_contents::nation, trigger::slot_contents::empty, trigger::slot_contents::empty };
+	return make_trigger(gen, err, t_context);
+}
+
 }
