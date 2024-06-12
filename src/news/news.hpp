@@ -19,6 +19,7 @@ struct news_scope {
 	sys::news_generator_type type; //1
 	uint8_t padding = 0;
 };
+/*
 static_assert(sizeof(news_scope) ==
 	sizeof(news_scope::strings)
 	+ sizeof(news_scope::tags)
@@ -29,19 +30,22 @@ static_assert(sizeof(news_scope) ==
 	+ sizeof(news_scope::desc)
 	+ sizeof(news_scope::type)
 	+ sizeof(news_scope::padding));
+*/
 
 struct global_news_state {
 	news_scope currently_collected; //currently collected
 	news_scope article_pool[8];
 	news_scope small_articles[6];
 	news_scope medium_articles[3];
-	news_scope large_article;
-	dcon::effect_key on_collect_effect[24];
-	dcon::trigger_key on_collect_trigger[24];
-	dcon::effect_key on_printing_effect[24];
-	dcon::trigger_key on_printing_trigger[24];
+	news_scope large_articles[1];
+	dcon::effect_key on_collect_effect[sys::max_news_generator_types];
+	dcon::trigger_key on_collect_trigger[sys::max_news_generator_types];
+	dcon::effect_key on_printing_effect[sys::max_news_generator_types];
+	dcon::trigger_key on_printing_trigger[sys::max_news_generator_types];
+	sys::date last_print;
 };
+// TODO: Make memcpyable
 
-void issue_paper(sys::state& state);
+void issue_newspaper(sys::state& state, dcon::nation_id reader);
 
 }

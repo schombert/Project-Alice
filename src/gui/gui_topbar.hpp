@@ -1848,6 +1848,87 @@ public:
 	}
 };
 
+class news_page_date : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		set_text(state, text::date_to_string(state, state.news_definitions.last_print));
+	}
+};
+
+template<uint8_t size, uint8_t index>
+class news_article_picture : public image_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		if constexpr(size == sys::news_size_huge) {
+			base_data.data.image.gfx_object = state.news_definitions.large_articles[index].picture;
+		} else if constexpr(size == sys::news_size_medium) {
+			base_data.data.image.gfx_object = state.news_definitions.medium_articles[index].picture;
+		} else if constexpr(size == sys::news_size_small) {
+			base_data.data.image.gfx_object = state.news_definitions.small_articles[index].picture;
+		}
+	}
+};
+template<uint8_t size, uint8_t index>
+class news_article_title : public scrollable_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		dcon::text_sequence_id k;
+		if constexpr(size == sys::news_size_huge) {
+			k = state.news_definitions.large_articles[index].title;
+		} else if constexpr(size == sys::news_size_medium) {
+			k = state.news_definitions.medium_articles[index].title;
+		} else if constexpr(size == sys::news_size_small) {
+			k = state.news_definitions.small_articles[index].title;
+		}
+		auto contents = text::create_endless_layout(delegate->internal_layout,
+			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
+			delegate->base_data.data.text.font_handle, 0, text::alignment::left,
+			delegate->black_text ? text::text_color::black : text::text_color::white, false
+		});
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		text::add_to_layout_box(state, contents, box, k, sub);
+		text::close_layout_box(contents, box);
+	}
+};
+template<uint8_t size, uint8_t index>
+class news_article_desc : public scrollable_text {
+public:
+	void on_update(sys::state& state) noexcept override {
+		dcon::text_sequence_id k;
+		if constexpr(size == sys::news_size_huge) {
+			k = state.news_definitions.large_articles[index].desc;
+		} else if constexpr(size == sys::news_size_medium) {
+			k = state.news_definitions.medium_articles[index].desc;
+		} else if constexpr(size == sys::news_size_small) {
+			k = state.news_definitions.small_articles[index].desc;
+		}
+		auto contents = text::create_endless_layout(delegate->internal_layout,
+			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y),
+			delegate->base_data.data.text.font_handle, 0, text::alignment::left,
+			delegate->black_text ? text::text_color::black : text::text_color::white, false
+		});
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		text::add_to_layout_box(state, contents, box, k, sub);
+		text::close_layout_box(contents, box);
+	}
+};
+template<uint8_t size, uint8_t index>
+class news_article_window : public window_element_base {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "image") {
+			return make_element_by_type<news_article_picture<size, index>>(state, id);
+		} else if(name == "title") {
+			return make_element_by_type<news_article_title<size, index>>(state, id);
+		} else if(name == "desc") {
+			return make_element_by_type<news_article_desc<size, index>>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
 class news_page_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1855,6 +1936,24 @@ public:
 			return make_element_by_type<draggable_target>(state, id);
 		} else if(name == "close_button") {
 			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "date") {
+			return make_element_by_type<news_page_date>(state, id);
+		} else if(name == "article_main") {
+			return make_element_by_type<news_article_window<sys::news_size_huge, 0>>(state, id);
+		} else if(name == "article_medium_1") {
+			return make_element_by_type<news_article_window<sys::news_size_medium, 0>>(state, id);
+		} else if(name == "article_medium_2") {
+			return make_element_by_type<news_article_window<sys::news_size_medium, 1>>(state, id);
+		} else if(name == "article_small_1") {
+			return make_element_by_type<news_article_window<sys::news_size_small, 0>>(state, id);
+		} else if(name == "article_small_2") {
+			return make_element_by_type<news_article_window<sys::news_size_small, 1>>(state, id);
+		} else if(name == "article_small_3") {
+			return make_element_by_type<news_article_window<sys::news_size_small, 2>>(state, id);
+		} else if(name == "article_small_4") {
+			return make_element_by_type<news_article_window<sys::news_size_small, 3>>(state, id);
+		} else if(name == "article_small_5") {
+			return make_element_by_type<news_article_window<sys::news_size_small, 4>>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1863,6 +1962,7 @@ public:
 class news_open_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
+		news::issue_newspaper(state, state.local_player_nation);
 		state.ui_state.news_page_window->set_visible(state, !state.ui_state.news_page_window->is_visible());
 	}
 };

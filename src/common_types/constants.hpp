@@ -573,11 +573,13 @@ enum class news_generator_type {
 	ai_likes_very_much,
 	fake,
 	invention,
+	count
 };
+constexpr uint32_t max_news_generator_types = uint32_t(news_generator_type::count);
 constexpr inline uint8_t news_size_small = 0x00;
 constexpr inline uint8_t news_size_medium = 0x80;
 constexpr inline uint8_t news_size_huge = 0xC0;
-constexpr int32_t max_news_generator_cases = 4;
+constexpr int32_t max_news_generator_cases = 8;
 
 } // namespace sys
 
