@@ -674,7 +674,6 @@ void simple_text_element_base::format_text(sys::state& state) {
 	else if(base_data.get_element_type() == element_type::text)
 		font_handle = base_data.data.text.font_handle;
 
-
 	auto& font = state.font_collection.fonts[text::font_index_from_font_id(state, font_handle) - 1];
 	extent = font.text_extent(state, stored_text, 0, stored_text.glyph_count, text::size_from_font_id(font_handle));
 

@@ -111,6 +111,7 @@ void language_left::button_action(sys::state& state) noexcept {
 	}
 	state.user_settings.current_language = i;
 	//
+	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
 	if(state.ui_state.rgos_root)
@@ -125,8 +126,10 @@ void language_left::button_action(sys::state& state) noexcept {
 		state.ui_state.end_screen->impl_on_reset_text(state);
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
 	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
 }
 void language_left::on_update(sys::state& state) noexcept {
 
@@ -139,6 +142,7 @@ void language_right::button_action(sys::state& state) noexcept {
 	}
 	state.user_settings.current_language = i;
 	//
+	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
 	if(state.ui_state.rgos_root)
@@ -153,8 +157,10 @@ void language_right::button_action(sys::state& state) noexcept {
 		state.ui_state.end_screen->impl_on_reset_text(state);
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+	state.ui_state.tooltip->set_visible(state, false);
+	state.ui_state.last_tooltip = nullptr;
 	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
 }
 void language_right::on_update(sys::state& state) noexcept {
 
@@ -578,6 +584,8 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	for(auto& font : state.font_collection.fonts) {
 		font.scmp_override = state.user_settings.use_classic_fonts;
 	}
+	//
+	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)
 		state.ui_state.units_root->impl_on_reset_text(state);
 	if(state.ui_state.rgos_root)
@@ -590,9 +598,12 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 		state.ui_state.select_states_legend->impl_on_reset_text(state);
 	if(state.ui_state.end_screen)
 		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.province_ownership_changed.store(true, std::memory_order::release); //update map
+	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
 	send(state, parent, notify_setting_update{});
+	window::change_cursor(state, window::cursor_type::normal);
 }
 bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.use_classic_fonts;
