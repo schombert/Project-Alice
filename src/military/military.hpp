@@ -168,14 +168,12 @@ struct global_military_state {
 struct available_cb {
 	sys::date expiration; //2
 	dcon::nation_id target; //2
-	dcon::cb_type_id cb_type; //1
-	uint8_t padding = 0; //1
+	dcon::cb_type_id cb_type; //2
 };
 static_assert(sizeof(available_cb) ==
 	+ sizeof(available_cb::target)
 	+ sizeof(available_cb::expiration)
-	+ sizeof(available_cb::cb_type)
-	+ sizeof(available_cb::padding));
+	+ sizeof(available_cb::cb_type));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
