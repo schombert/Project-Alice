@@ -933,7 +933,7 @@ public:
 
 class single_multiline_text_element_base : public multiline_text_element_base {
 public:
-	dcon::text_sequence_id text_id{};
+	dcon::text_key text_id{};
 
 	void on_update(sys::state& state) noexcept override {
 		auto layout = text::create_endless_layout(internal_layout,

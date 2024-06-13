@@ -436,54 +436,6 @@ enum class variable_type : uint16_t {
 
 struct line_break { };
 
-struct text_sequence {
-	uint32_t starting_component = 0; // 4
-	uint16_t component_count = 0; // 6
-	uint16_t padding = 0; // 8
-};
-static_assert(sizeof(text_sequence) == 8);
-
-enum class text_component_type : uint8_t {
-	line_break, text_color, variable_type, text_key
-};
-struct text_component {
-	union text_component_data {
-		text::line_break line_break;
-		text::text_color text_color;
-		text::variable_type variable_type;
-		dcon::text_key text_key;
-		text_component_data() {
-			std::memset(this, 0, sizeof(*this));
-		}
-	} data;
-	text_component_type type = text_component_type::line_break;
-	uint8_t padding[3] = {};
-
-	text_component() {
-		std::memset(this, 0, sizeof(*this));
-	}
-	text_component(line_break const& o) {
-		std::memset(this, 0, sizeof(*this));
-		type = text_component_type::line_break;
-		data.line_break = o;
-	}
-	text_component(text_color const& o) {
-		std::memset(this, 0, sizeof(*this));
-		type = text_component_type::text_color;
-		data.text_color = o;
-	}
-	text_component(variable_type const& o) {
-		std::memset(this, 0, sizeof(*this));
-		type = text_component_type::variable_type;
-		data.variable_type = o;
-	}
-	text_component(dcon::text_key const& o) {
-		std::memset(this, 0, sizeof(*this));
-		type = text_component_type::text_key;
-		data.text_key = o;
-	}
-};
-static_assert(sizeof(text_component) == 8);
 
 struct vector_backed_hash {
 	using is_avalanching = void;
@@ -584,6 +536,218 @@ struct vector_backed_eq {
 	}
 };
 
+namespace detail {
+inline void mum(uint64_t* a, uint64_t* b) {
+#    if defined(__SIZEOF_INT128__)
+	__uint128_t r = *a;
+	r *= *b;
+	*a = static_cast<uint64_t>(r);
+	*b = static_cast<uint64_t>(r >> 64U);
+#    elif defined(_MSC_VER) && defined(_M_X64)
+	*a = _umul128(*a, *b, b);
+#    else
+	uint64_t ha = *a >> 32U;
+	uint64_t hb = *b >> 32U;
+	uint64_t la = static_cast<uint32_t>(*a);
+	uint64_t lb = static_cast<uint32_t>(*b);
+	uint64_t hi{};
+	uint64_t lo{};
+	uint64_t rh = ha * hb;
+	uint64_t rm0 = ha * lb;
+	uint64_t rm1 = hb * la;
+	uint64_t rl = la * lb;
+	uint64_t t = rl + (rm0 << 32U);
+	auto c = static_cast<uint64_t>(t < rl);
+	lo = t + (rm1 << 32U);
+	c += static_cast<uint64_t>(lo < t);
+	hi = rh + (rm0 >> 32U) + (rm1 >> 32U) + c;
+	*a = lo;
+	*b = hi;
+#    endif
+}
+
+// multiply and xor mix function, aka MUM
+[[nodiscard]] inline auto mix(uint64_t a, uint64_t b) -> uint64_t {
+	mum(&a, &b);
+	return a ^ b;
+}
+
+// read functions. WARNING: we don't care about endianness, so results are different on big endian!
+[[nodiscard]] inline auto r8(const uint8_t* p) -> uint64_t {
+	uint64_t v{};
+	std::memcpy(&v, p, 8U);
+	return v | 0x2020202020202020;
+}
+
+[[nodiscard]] inline auto r4(const uint8_t* p) -> uint64_t {
+	uint32_t v{};
+	std::memcpy(&v, p, 4);
+	return v | 0x20202020;
+}
+
+// reads 1, 2, or 3 bytes
+[[nodiscard]] inline auto r3(const uint8_t* p, size_t k) -> uint64_t {
+	return (static_cast<uint64_t>(p[0] | 0x20) << 16U) | (static_cast<uint64_t>(p[k >> 1U] | 0x20) << 8U) | p[k - 1] | 0x20;
+}
+
+[[nodiscard]] inline auto ci_wyhash(void const* key, size_t len) -> uint64_t {
+	static constexpr auto secret = std::array{ UINT64_C(0xa0761d6478bd642f),
+						  UINT64_C(0xe7037ed1a0b428db),
+						  UINT64_C(0x8ebc6af09c88c6e3),
+						  UINT64_C(0x589965cc75374cc3) };
+
+	auto const* p = static_cast<uint8_t const*>(key);
+	uint64_t seed = secret[0];
+	uint64_t a{};
+	uint64_t b{};
+	if(ANKERL_UNORDERED_DENSE_LIKELY(len <= 16)) {
+		if(ANKERL_UNORDERED_DENSE_LIKELY(len >= 4)) {
+			a = (r4(p) << 32U) | r4(p + ((len >> 3U) << 2U));
+			b = (r4(p + len - 4) << 32U) | r4(p + len - 4 - ((len >> 3U) << 2U));
+		} else if(ANKERL_UNORDERED_DENSE_LIKELY(len > 0)) {
+			a = r3(p, len);
+			b = 0;
+		} else {
+			a = 0;
+			b = 0;
+		}
+	} else {
+		size_t i = len;
+		if(ANKERL_UNORDERED_DENSE_UNLIKELY(i > 48)) {
+			uint64_t see1 = seed;
+			uint64_t see2 = seed;
+			do {
+				seed = mix(r8(p) ^ secret[1], r8(p + 8) ^ seed);
+				see1 = mix(r8(p + 16) ^ secret[2], r8(p + 24) ^ see1);
+				see2 = mix(r8(p + 32) ^ secret[3], r8(p + 40) ^ see2);
+				p += 48;
+				i -= 48;
+			} while(ANKERL_UNORDERED_DENSE_LIKELY(i > 48));
+			seed ^= see1 ^ see2;
+		}
+		while(ANKERL_UNORDERED_DENSE_UNLIKELY(i > 16)) {
+			seed = mix(r8(p) ^ secret[1], r8(p + 8) ^ seed);
+			i -= 16;
+			p += 16;
+		}
+		a = r8(p + i - 16);
+		b = r8(p + i - 8);
+	}
+
+	return mix(secret[1] ^ len, mix(a ^ secret[1], b ^ seed));
+}
+
+bool lazy_ci_eq(std::string_view a, std::string_view b) {
+	if(a.length() != b.length())
+		return false;
+	for(uint32_t i = 0; i < a.length(); ++i) {
+		if((a[i] | 0x20) != (b[i] | 0x20))
+			return false;
+	}
+	return true;
+}
+
+}
+
+struct vector_backed_ci_hash {
+	using is_avalanching = void;
+	using is_transparent = void;
+
+	std::vector<char>& text_data;
+
+	vector_backed_ci_hash(std::vector<char>& text_data) : text_data(text_data) { }
+
+	auto operator()(std::string_view sv) const noexcept -> uint64_t {
+		return detail::ci_wyhash(sv.data(), sv.size());
+	}
+	auto operator()(dcon::text_key tag) const noexcept -> uint64_t {
+		auto sv = [&]() {
+			if(!tag)
+				return std::string_view();
+			auto start_position = text_data.data() + tag.index();
+			auto data_size = text_data.size();
+			auto end_position = start_position;
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
+					break;
+			}
+			return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
+			}();
+		return detail::ci_wyhash(sv.data(), sv.size());
+	}
+};
+struct vector_backed_ci_eq {
+	using is_transparent = void;
+
+	std::vector<char>& text_data;
+
+	vector_backed_ci_eq(std::vector<char>& text_data) : text_data(text_data) { }
+
+	bool operator()(dcon::text_key l, dcon::text_key r) const noexcept {
+		return l == r;
+	}
+	bool operator()(dcon::text_key l, std::string_view r) const noexcept {
+		auto sv = [&]() {
+			if(!l)
+				return std::string_view();
+			auto start_position = text_data.data() + l.index();
+			auto data_size = text_data.size();
+			auto end_position = start_position;
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
+					break;
+			}
+			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
+			}();
+			return detail::lazy_ci_eq(sv, r);
+	}
+	bool operator()(std::string_view r, dcon::text_key l) const noexcept {
+		auto sv = [&]() {
+			if(!l)
+				return std::string_view();
+			auto start_position = text_data.data() + l.index();
+			auto data_size = text_data.size();
+			auto end_position = start_position;
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
+					break;
+			}
+			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
+			}();
+			return detail::lazy_ci_eq(sv, r);
+	}
+	bool operator()(dcon::text_key l, std::string const& r) const noexcept {
+		auto sv = [&]() {
+			if(!l)
+				return std::string_view();
+			auto start_position = text_data.data() + l.index();
+			auto data_size = text_data.size();
+			auto end_position = start_position;
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
+					break;
+			}
+			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
+			}();
+			return detail::lazy_ci_eq(sv, r);
+	}
+	bool operator()(std::string const& r, dcon::text_key l) const noexcept {
+		auto sv = [&]() {
+			if(!l)
+				return std::string_view();
+			auto start_position = text_data.data() + l.index();
+			auto data_size = text_data.size();
+			auto end_position = start_position;
+			for(; end_position < text_data.data() + data_size; ++end_position) {
+				if(*end_position == 0)
+					break;
+			}
+			return std::string_view(text_data.data() + l.index(), size_t(end_position - start_position));
+			}();
+			return detail::lazy_ci_eq(sv, r);
+	}
+};
+
 struct fp_one_place {
 	float value = 0.0f;
 };
@@ -616,7 +780,7 @@ struct int_wholenum {
 };
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
 		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
-		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum, dcon::text_sequence_id,
+		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum,
 		dcon::state_definition_id>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
@@ -703,7 +867,7 @@ columnar_layout create_columnar_layout(layout& dest, layout_parameters const& pa
 
 layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 void close_layout_box(columnar_layout& dest, layout_box& box);
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_sequence_id source_text,
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dcon::text_key source_text,
 		substitution_map const& mp = substitution_map{});
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view,
 		text_color color = text_color::white, substitution source = std::monostate{});
@@ -722,16 +886,16 @@ void close_layout_box(layout_base& dest, layout_box& box);
 void add_to_substitution_map(substitution_map& mp, variable_type key, substitution value);
 void add_to_substitution_map(substitution_map& mp, variable_type key, std::string const&); // DO NOT USE THIS FUNCTION
 
-void consume_csv_file(sys::state& state, uint32_t language, char const* file_content, uint32_t file_size, parsers::error_handler& err, bool as_unicode);
+void consume_csv_file(sys::state& state, char const* file_content, uint32_t file_size, int32_t target_column, bool as_unicode);
 variable_type variable_type_from_name(std::string_view);
-void load_text_data(sys::state& state, parsers::error_handler& err);
-void finish_text_data(sys::state& state);
 char16_t win1250toUTF16(char in);
-std::string produce_simple_string(sys::state const& state, dcon::text_sequence_id id);
 std::string produce_simple_string(sys::state const& state, std::string_view key);
-dcon::text_sequence_id create_text_entry(sys::state& state, std::string_view key, std::string_view content, parsers::error_handler& err, uint32_t language, bool as_unicode);
-dcon::text_sequence_id find_key(sys::state& state, std::string_view txt);
-dcon::text_sequence_id find_or_add_key(sys::state& state, std::string_view key);
+std::string produce_simple_string(sys::state const& state, dcon::text_key id);
+text::alignment localized_alignment(sys::state& state, text::alignment in);
+ui::alignment localized_alignment(sys::state& state, ui::alignment in);
+
+dcon::text_key find_or_add_key(sys::state& state, std::string_view key, bool as_unicode);
+
 std::string date_to_string(sys::state& state, sys::date date);
 
 std::string prettify(int64_t num);
@@ -742,18 +906,26 @@ std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
 template<class T>
-std::string get_name_as_string(sys::state const& state, T t) {
+std::string get_name_as_string(sys::state& state, T t) {
 	return text::produce_simple_string(state, t.get_name());
 }
 template<class T>
-std::string get_adjective_as_string(sys::state const& state, T t) {
+std::string get_adjective_as_string(sys::state& state, T t) {
 	return text::produce_simple_string(state, t.get_adjective());
 }
-std::string get_short_state_name(sys::state const& state, dcon::state_instance_id state_id);
+std::string get_short_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state& state, dcon::province_id prov_id);
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category);
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
+dcon::text_key get_name(sys::state& state, dcon::nation_id n);
+dcon::text_key get_adjective(sys::state& state, dcon::nation_id n);
+inline std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_name(state, n));
+}
+inline std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
 
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
 		substitution_map const& sub = substitution_map{});
@@ -772,14 +944,14 @@ void add_line(sys::state& state, layout_base& dest, std::string_view key, variab
 void add_line(sys::state& state, layout_base& dest, std::string_view key, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
 		substitution value_d, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, int32_t indent = 0);
+void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, variable_type subkey, substitution value,
 		int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, int32_t indent = 0);
-void add_line(sys::state& state, layout_base& dest, dcon::text_sequence_id txt, variable_type subkey, substitution value,
+void add_line(sys::state& state, layout_base& dest, dcon::text_key txt, variable_type subkey, substitution value,
 		variable_type subkey_b, substitution value_b, variable_type subkey_c, substitution value_c, variable_type subkey_d,
 		substitution value_d, int32_t indent = 0);
 void add_line_with_condition(sys::state& state, layout_base& dest, std::string_view key, bool condition_met, int32_t indent = 0);
@@ -791,33 +963,7 @@ size_t size_from_utf8(char const* start, char const* end);
 void add_divider_to_layout_box(sys::state& state, layout_base& dest, layout_box& box);
 
 std::string resolve_string_substitution(sys::state& state, std::string_view key, substitution_map const& mp);
-std::string resolve_string_substitution(sys::state& state, dcon::text_sequence_id key, substitution_map const& mp);
+std::string resolve_string_substitution(sys::state& state, dcon::text_key key, substitution_map const& mp);
 
-dcon::text_sequence_id find_or_use_default_key(sys::state& state, std::string_view k, dcon::text_sequence_id v);
-
-enum class language_encoding : uint8_t {
-	none = 0,
-	win1252,
-	utf8,
-	gb18030
-};
-
-enum class language_script : uint8_t {
-	latin = 0,
-	arabic,
-	chinese,
-	japanese,
-	korean,
-	cyrillic,
-};
-
-struct language_table {
-	std::vector<char> iso_code;
-	tagged_vector<text::text_sequence, dcon::text_sequence_id> text_sequences;
-	language_encoding encoding = language_encoding::none;
-	language_script script = language_script::latin;
-	bool rtl = false;
-	bool no_spacing = false;
-};
 
 } // namespace text

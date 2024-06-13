@@ -2864,7 +2864,7 @@ TRIGGER_FUNCTION(tf_ruling_party_ideology_province) {
 }
 TRIGGER_FUNCTION(tf_ruling_party) {
 	auto rp = ws.world.nation_get_ruling_party(to_nation(primary_slot));
-	dcon::text_sequence_id name{dcon::text_sequence_id::value_base_t(read_int32_t_from_payload(tval + 1)) };
+	dcon::text_key name{dcon::text_key::value_base_t(read_int32_t_from_payload(tval + 1)) };
 	return compare_values_eq(tval[0], ws.world.political_party_get_name(rp), name);
 }
 TRIGGER_FUNCTION(tf_is_ideology_enabled) {

@@ -72,9 +72,9 @@ void decline(sys::state& state, message const& m) {
 			[from = m.from, to = m.to, pa = state.world.war_get_primary_attacker(m.data.war), pd = state.world.war_get_primary_defender(m.data.war), name = state.world.war_get_name(m.data.war), tag = state.world.war_get_over_tag(m.data.war), st = state.world.war_get_over_state(m.data.war)](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 				text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, st);
 
@@ -332,9 +332,9 @@ void accept(sys::state& state, message const& m) {
 			[from = m.from, to = m.to, pa = state.world.war_get_primary_attacker(m.data.war), pd = state.world.war_get_primary_defender(m.data.war), name = state.world.war_get_name(m.data.war), tag = state.world.war_get_over_tag(m.data.war), st = state.world.war_get_over_state(m.data.war)](sys::state& state, text::layout_base& contents) {
 				text::substitution_map sub;
 				text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-				text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+				text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 				text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-				text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+				text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 				text::add_to_substitution_map(sub, text::variable_type::third, tag);
 				text::add_to_substitution_map(sub, text::variable_type::state, st);
 

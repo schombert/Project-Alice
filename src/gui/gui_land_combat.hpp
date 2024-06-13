@@ -897,7 +897,7 @@ public:
 			std::string tag_str = "";
 			if(bool(n)) {
 				tag_str = std::string("@") + nations::int_to_tag(dcon::fatten(state.world, n).get_identity_from_identity_holder().get_identifying_int());
-				tag_str += " " + text::produce_simple_string(state, state.world.nation_get_name(n));
+				tag_str += " " + text::produce_simple_string(state, text::get_name(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::m, std::string_view{ tag_str });
 			} else {
 				auto rf = state.world.army_get_controller_from_army_rebel_control(state.world.regiment_get_army_from_army_membership(reg));

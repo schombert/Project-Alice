@@ -103,7 +103,7 @@ uint16_t name_into_font_id(sys::state& state, std::string_view txt) {
 		++individuator;
 		it = state.font_collection.font_names.find(uint16_t(base_id | (individuator << 8)));
 	}
-	auto new_key = state.add_to_pool(txt_copy);
+	auto new_key = state.add_key_utf8(txt_copy);
 	auto new_handle = uint16_t(base_id | (individuator << 8));
 	state.font_collection.font_names.insert_or_assign(new_handle, new_key);
 	return new_handle;
@@ -362,6 +362,8 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 
 		state.world.locale_set_resolved_map_font(l, count);
 	}
+
+	state.load_locale_strings(localename_sv);
 }
 
 font& font_manager::get_font(sys::state& state, font_selection s) {
@@ -374,6 +376,8 @@ font& font_manager::get_font(sys::state& state, font_selection s) {
 		return font_array[state.world.locale_get_resolved_header_font(current_locale)];
 	case font_selection::map_font:
 		return font_array[state.world.locale_get_resolved_map_font(current_locale)];
+	default:
+		return font_array[state.world.locale_get_resolved_body_font(current_locale)];
 	}
 	
 }

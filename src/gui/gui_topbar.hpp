@@ -1670,21 +1670,21 @@ public:
 			text::add_line(state, contents, std::string_view("alice_crisis_par_1"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//defenders
 			text::add_line(state, contents, std::string_view("alice_crisis_par_2"));
 			for(const auto par : state.crisis_participants) {
 				if(!par.merely_interested && !par.supports_attacker) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 			//merely interested
 			text::add_line(state, contents, std::string_view("alice_crisis_par_3"));
 			for(const auto par : state.crisis_participants) {
 				if(par.merely_interested) {
-					text::add_line(state, contents, state.world.nation_get_name(par.id));
+					text::add_line(state, contents, text::get_name(state, par.id));
 				}
 			}
 		}

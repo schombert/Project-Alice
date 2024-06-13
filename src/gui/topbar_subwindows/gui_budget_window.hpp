@@ -22,14 +22,14 @@ public:
 	}
 };
 class pop_satisfaction_wrapper_fat {
-	static text_sequence_id names[5];
+	static dcon::text_key names[5];
 
 public:
 	uint8_t value = 0;
-	void set_name(text_sequence_id text) noexcept {
+	void set_name(dcon::text_key text) noexcept {
 		names[value] = text;
 	}
-	text_sequence_id get_name() noexcept {
+	dcon::text_key get_name() noexcept {
 		switch(value) {
 		case 0: // No needs fulfilled
 		case 1: // Some life needs
@@ -38,7 +38,7 @@ public:
 		case 4: // All luxury
 			return names[value];
 		}
-		return text_sequence_id{0};
+		return dcon::text_key{0};
 	}
 };
 inline pop_satisfaction_wrapper_fat fatten(data_container const& c, pop_satisfaction_wrapper_id id) noexcept {
@@ -1709,7 +1709,7 @@ class debtor_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		debt_item_data dat = retrieve< debt_item_data>(state, parent);
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(dat.n)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, dat.n)));
 	}
 };
 

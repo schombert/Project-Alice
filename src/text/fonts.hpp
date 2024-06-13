@@ -72,12 +72,12 @@ struct stored_text : public stored_glyphs {
 class font {
 private:
 	font(font const&) = delete;
-	font(font&&) = default;
 	font& operator=(font const&) = delete;
-	font& operator=(font&&) noexcept = default;
-	font() = default;
-
 public:
+	font(font&&) noexcept = default;
+	font() = default;
+	font& operator=(font&&) noexcept = default;
+
 	std::string file_name;
 	FT_Face font_face;
 	hb_font_t* hb_font_face = nullptr;

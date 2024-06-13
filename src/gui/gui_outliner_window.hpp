@@ -385,7 +385,7 @@ public:
 			auto status = state.world.gp_relationship_get_status(grid);
 			auto influence = state.world.gp_relationship_get_influence(grid);
 
-			auto full_str = text::produce_simple_string(state, state.world.nation_get_name(nid)) + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")";
+			auto full_str = text::produce_simple_string(state, text::get_name(state, nid)) + " (" + text::get_influence_level_name(state, status) + ", " + text::format_float(influence, 0) + ")";
 
 			color = text::text_color::white;
 			set_text(state, full_str);
@@ -425,7 +425,7 @@ public:
 		} else if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 			auto plcid = std::get<dcon::province_land_construction_id>(content);
 			auto utid = state.world.province_land_construction_get_type(plcid);
-			auto name = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_sequence_id{};
+			auto name = utid ? state.military_definitions.unit_base_definitions[utid].name : dcon::text_key{};
 			float progress = economy::unit_construction_progress(state, plcid);
 
 			auto full_str = text::produce_simple_string(state, name) + " (" + text::format_percentage(progress, 0) + ")";

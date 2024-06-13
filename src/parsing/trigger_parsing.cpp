@@ -904,7 +904,7 @@ void make_stored_trigger(std::string_view name, token_generator& gen, error_hand
 
 	if(can_store) {
 		auto saved_trigger = context.state.commit_trigger_data(tcontext.compiled_trigger);
-		auto name_id = text::find_or_add_key(context.state, name);
+		auto name_id = text::find_or_add_key(context.state, name, false);
 
 		auto stored_t_id = context.state.world.create_stored_trigger();
 		context.state.world.stored_trigger_set_function(stored_t_id, saved_trigger);
@@ -978,7 +978,7 @@ void trigger_body::ruling_party(association_type a, std::string_view value, erro
 		err.accumulated_errors += "ruling_party trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	auto name_id = text::find_or_add_key(context.outer_context.state, value);
+	auto name_id = text::find_or_add_key(context.outer_context.state, value, false);
 	context.add_int32_t_to_payload(name_id.index());
 }
 

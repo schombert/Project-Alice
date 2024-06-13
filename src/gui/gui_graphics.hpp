@@ -105,7 +105,7 @@ enum class orientation : uint8_t { // 3 bits
 struct text_base_data {
 	static constexpr uint8_t alignment_mask = 0x03;
 
-	dcon::text_sequence_id txt; // 4bytes
+	dcon::text_key txt; // 4bytes
 	uint16_t font_handle = 0; // 6bytes
 	uint8_t flags = 0; // 7bytes
 

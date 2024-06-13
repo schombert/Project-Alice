@@ -707,7 +707,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 	}
 
 	if(base_data.get_element_type() == element_type::button) {
-		switch(base_data.data.button.get_alignment()) {
+		switch(text::localized_alignment(state, base_data.data.button.get_alignment())) {
 		case alignment::centered:
 		case alignment::justified:
 			text_offset = (base_data.size.x - extent) / 2.0f;
@@ -720,7 +720,7 @@ void simple_text_element_base::format_text(sys::state& state) {
 			break;
 		}
 	} else if(base_data.get_element_type() == element_type::text) {
-		switch(base_data.data.button.get_alignment()) {
+		switch(text::localized_alignment(state, base_data.data.button.get_alignment())) {
 		case alignment::centered:
 		case alignment::justified:
 			text_offset = (base_data.size.x - extent - base_data.data.text.border_size.x) / 2.0f;
@@ -760,7 +760,7 @@ void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) n
 					float(x + int32_t(text_offset)), float(y + base_data.data.text.border_size.y),
 					black_text ? ogl::color3f{0.0f, 0.0f, 0.0f} : ogl::color3f{1.0f, 1.0f, 1.0f}, base_data.data.button.font_handle);
 		} else {
-			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+			auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
 			if(linesz == 0)
 				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
@@ -818,7 +818,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 			ogl::render_text(state, stored_text, ogl::color_modification::none,
 				float(x + text_offset), float(y + base_data.data.text.border_size.y), get_text_color(state, color), base_data.data.button.font_handle);
 		} else {
-			auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+			auto linesz = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.button.font_handle)).line_height(text::size_from_font_id(base_data.data.button.font_handle));
 			if(linesz == 0)
 				return;
 			auto ycentered = (base_data.size.y - linesz) / 2;
@@ -832,7 +832,7 @@ void color_text_element::render(sys::state& state, int32_t x, int32_t y) noexcep
 void multiline_text_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-		line_height = state.font_collection.line_height(state, base_data.data.text.font_handle);
+		line_height = state.font_collection.get_font(state, text::font_index_from_font_id(state, base_data.data.text.font_handle)).line_height(text::size_from_font_id(base_data.data.text.font_handle));
 		visible_lines = base_data.size.y / std::max<int32_t>(int32_t(line_height), 1);
 	}
 }
@@ -844,7 +844,7 @@ void multiline_text_element_base::on_reset_text(sys::state& state) noexcept {
 void multiline_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(base_data.get_element_type() == element_type::text) {
 		for(auto& t : internal_layout.contents) {
-			auto& f = state.font_collection.fonts[text::font_index_from_font_id(state, state.ui_state.tooltip_font) - 1];
+			auto& f = state.font_collection.get_font(state, text::font_index_from_font_id(state, state.ui_state.tooltip_font));
 			float line_offset = t.y - line_height * float(current_line);
 			if(0 <= line_offset && line_offset < base_data.size.y) {
 				ogl::render_text(state, t.unicodechars, ogl::color_modification::none,

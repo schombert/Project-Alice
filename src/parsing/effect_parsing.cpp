@@ -1705,20 +1705,9 @@ void effect_body::change_province_name(association_type t, std::string_view valu
 		err.accumulated_errors += "change_province_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	} else {
-		std::string new_key_str = std::string("renaming_") + std::string(value);
-		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
-		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		dcon::text_sequence_id name;
-		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
-			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
-		}
-		context.add_int32_t_to_payload(name.index());
-	}
+	
+	auto name = text::find_or_add_key(context.outer_context.state, value, false);
+	context.add_int32_t_to_payload(name.index());
 }
 void effect_body::change_region_name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(context.main_slot == trigger::slot_contents::state) {
@@ -1729,20 +1718,9 @@ void effect_body::change_region_name(association_type t, std::string_view value,
 		err.accumulated_errors += "change_region_name effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
 		return;
 	}
-	if(bool(context.outer_context.state.defines.alice_rename_dont_use_localisation)) {
-		auto name = text::find_or_add_key(context.outer_context.state, value);
-		context.add_int32_t_to_payload(name.index());
-	} else {
-		std::string new_key_str = std::string("renaming_") + std::string(value);
-		auto new_key = context.outer_context.state.add_to_pool_lowercase(new_key_str);
-		std::string local_key_copy{ context.outer_context.state.to_string_view(new_key) };
-		dcon::text_sequence_id name;
-		for(uint32_t i = 0; i < context.outer_context.state.languages.size(); i++) {
-			if(context.outer_context.state.languages[i].encoding != text::language_encoding::none)
-				name = text::create_text_entry(context.outer_context.state, local_key_copy, value, err, i, false);
-		}
-		context.add_int32_t_to_payload(name.index());
-	}
+	
+	auto name = text::find_or_add_key(context.outer_context.state, value, false);
+	context.add_int32_t_to_payload(name.index());
 }
 void effect_body::enable_canal(association_type t, int32_t value, error_handler& err, int32_t line, effect_building_context& context) {
 	if(1 <= value && value <= int32_t(context.outer_context.state.province_definitions.canals.size())) {

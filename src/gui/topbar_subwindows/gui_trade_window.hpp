@@ -622,7 +622,7 @@ public:
 				std::string tag_str = std::string("@") + nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(producers[i].n)));
 				text::add_to_layout_box(state, contents, box, tag_str);
 				text::add_space_to_layout_box(state, contents, box);
-				text::add_to_layout_box(state, contents, box, state.world.nation_get_name(producers[i].n));
+				text::add_to_layout_box(state, contents, box, text::get_name(state, producers[i].n));
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, text::fp_one_place{ producers[i].v });
 				text::close_layout_box(contents, box);
@@ -1184,24 +1184,24 @@ public:
 			return make_element_by_type<commodity_image>(state, id);
 		} else if(name == "header_produced_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_produced");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_produced", true);
 			return ptr;
 		} else if(name == "header_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_consumed");
+			ptr->text_id = text::find_or_add_key(state, "alice_trade_flow_consumed", true);
 			return ptr;
 		} else if(name == "header_may_be_used_by") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_may_be_used");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_may_be_used", true);
 			return ptr;
 		} else if(name == "total_produced_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_produced", true);
 			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_used_text") {
 			auto ptr = make_element_by_type<single_multiline_text_element_base>(state, id);
-			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used");
+			ptr->text_id = text::find_or_add_key(state, "trade_flow_total_used", true);
 			ptr->base_data.position.x += 48; // Nudge
 			return ptr;
 		} else if(name == "total_produced_value") {

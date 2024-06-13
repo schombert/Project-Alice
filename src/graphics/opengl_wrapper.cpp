@@ -317,7 +317,6 @@ void initialize_opengl(sys::state& state) {
 	state.map_state.load_map(state);
 
 	load_special_icons(state);
-	state.font_collection.load_all_glyphs();
 
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
@@ -792,7 +791,7 @@ void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_mo
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
 		color3f const& c, uint16_t font_id) {
-	render_new_text(state, txt, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.fonts[text::font_index_from_font_id(state, font_id) - 1]);
+	render_new_text(state, txt, enabled, x, y, float(text::size_from_font_id(font_id)), c, state.font_collection.get_font(state, text::font_index_from_font_id(state, font_id)));
 }
 
 void lines::set_y(float* v) {

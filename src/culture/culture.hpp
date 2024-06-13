@@ -97,7 +97,7 @@ constexpr inline uint64_t to_bits(dcon::ideology_id id) {
 }
 
 struct crime_info {
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	dcon::modifier_id modifier;
 	dcon::trigger_key trigger;
 	bool available_by_default = false;
@@ -106,7 +106,7 @@ struct crime_info {
 enum class tech_category : uint8_t { army, navy, commerce, culture, industry, unknown };
 
 struct folder_info {
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	tech_category category = tech_category::army;
 };
 

@@ -113,7 +113,7 @@ static_assert(sizeof(value_modifier_description) ==
 	+ sizeof(value_modifier_description::segments_count));
 
 struct event_option {
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	dcon::value_modifier_key ai_chance;
 	dcon::effect_key effect;
 };

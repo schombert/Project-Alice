@@ -126,9 +126,9 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::country, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::countryname, target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::thiscountry, target_nation);
-	text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(target_nation));
+	text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, target_nation));
 	text::add_to_substitution_map(sub, text::variable_type::cb_target_name, state.world.nation_get_constructing_cb_target(target_nation));
-	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, state.world.nation_get_adjective(state.world.nation_get_constructing_cb_target(target_nation)));
+	text::add_to_substitution_map(sub, text::variable_type::cb_target_name_adj, text::get_adjective(state, state.world.nation_get_constructing_cb_target(target_nation)));
 	text::add_to_substitution_map(sub, text::variable_type::capital, target_capital);
 	text::add_to_substitution_map(sub, text::variable_type::monarchtitle, state.world.national_identity_get_government_ruler_name(state.world.nation_get_identity_from_identity_holder(target_nation), state.world.nation_get_government_type(target_nation)));
 	// TODO: Is this correct? I remember in vanilla it could vary
@@ -139,13 +139,13 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::countryculture, state.world.culture_get_name(pc));
 	auto sm = state.world.nation_get_in_sphere_of(target_nation);
 	text::add_to_substitution_map(sub, text::variable_type::spheremaster, sm);
-	text::add_to_substitution_map(sub, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	text::add_to_substitution_map(sub, text::variable_type::spheremaster_adj, text::get_adjective(state, sm));
 	auto smpc = state.world.nation_get_primary_culture(sm);
 	text::add_to_substitution_map(sub, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
 	// From
 	text::add_to_substitution_map(sub, text::variable_type::fromcountry, from_nation);
-	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, state.world.nation_get_adjective(from_nation));
+	text::add_to_substitution_map(sub, text::variable_type::fromcountry_adj, text::get_adjective(state, from_nation));
 	text::add_to_substitution_map(sub, text::variable_type::fromprovince, from_province);
 
 	// Global crisis stuff
@@ -160,7 +160,7 @@ void populate_event_submap(sys::state& state, text::substitution_map& sub, std::
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(sub, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(sub, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
 	text::add_to_substitution_map(sub, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(sub, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// Dates
@@ -349,7 +349,7 @@ void event_desc_text::on_update(sys::state& state) noexcept {
 
 	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
-	dcon::text_sequence_id description{};
+	dcon::text_key description{};
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		description = state.world.national_event_get_description(phe.e);
@@ -424,7 +424,7 @@ void event_name_text::on_update(sys::state& state) noexcept {
 
 	auto box = text::open_layout_box(contents);
 	text::substitution_map sub{};
-	dcon::text_sequence_id name{};
+	dcon::text_key name{};
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto phe = std::get<event::pending_human_n_event>(content);
 		name = state.world.national_event_get_name(phe.e);
@@ -536,18 +536,18 @@ void event_state_name_text::on_update(sys::state& state) noexcept {
 	event_data_wrapper content = retrieve<event_data_wrapper>(state, parent);
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto n = dcon::fatten(state.world, std::get<event::pending_human_n_event>(content).n);
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto n = dcon::fatten(state.world, std::get<event::pending_human_f_n_event>(content).n);
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto p = dcon::fatten(state.world, std::get<event::pending_human_p_event>(content).p);
 		auto n = p.get_nation_from_province_ownership();
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto p = dcon::fatten(state.world, std::get<event::pending_human_f_p_event>(content).p);
 		auto n = p.get_nation_from_province_ownership();
-		set_text(state, text::produce_simple_string(state, n.get_name()));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n.id)));
 	}
 }
 

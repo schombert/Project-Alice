@@ -9,17 +9,17 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 	assert(context.ui_defs.textures.size() == size_t(0));
 	{
 		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\small_tiles_dialog.tga"));
-		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped_name));
 		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::small_tiles_dialog);
 	}
 	{
 		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\tiles_dialog.tga"));
-		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped_name));
 		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::tiles_dialog);
 	}
 	{
 		auto stripped_name = simple_fs::remove_double_backslashes(std::string_view("gfx\\interface\\transparency.tga"));
-		context.ui_defs.textures.emplace_back(context.full_state.add_to_pool(stripped_name));
+		context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped_name));
 		context.map_of_texture_names.insert_or_assign(stripped_name, definitions::transparency);
 	}
 

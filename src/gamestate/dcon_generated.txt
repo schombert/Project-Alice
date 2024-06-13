@@ -8,7 +8,6 @@ include{<glm/glm.hpp>}
 include{"hb.h"}
 
 make_index{text_key}{uint32_t}
-make_index{text_sequence_id}{uint32_t}
 make_index{texture_id}{uint16_t}
 make_index{gfx_object_id}{uint16_t}
 make_index{gui_def_id}{uint16_t}
@@ -39,12 +38,12 @@ object{
 	}
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ adjective }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -81,12 +80,12 @@ object{
 	}
 	property{
 		name{ government_name }
-		type{ array{government_type_id}{text_sequence_id} }
+		type{ array{government_type_id}{text_key} }
 		tag{ scenario }
 	}
 	property{
 		name{ government_ruler_name }
-		type{ array{government_type_id}{text_sequence_id} }
+		type{ array{government_type_id}{text_key} }
 		tag{ scenario }
 	}
 	property{
@@ -124,7 +123,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -180,7 +179,7 @@ object{
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -208,7 +207,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -233,7 +232,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -303,7 +302,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -431,12 +430,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -464,12 +463,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -558,7 +557,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 }
@@ -572,7 +571,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -653,12 +652,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -690,17 +689,17 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ movement_name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -760,12 +759,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -792,12 +791,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -856,27 +855,27 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ short_desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ shortest_desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ long_desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ war_name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -1004,7 +1003,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -1057,7 +1056,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 
@@ -1172,22 +1171,22 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ title }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ army_name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -1295,17 +1294,17 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ ruler_name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -1344,7 +1343,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ save }
 	}
 	property{
@@ -2448,7 +2447,7 @@ object {
 	}
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ save }
 	}
 	property{
@@ -2653,7 +2652,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ save }
 	}
 	property{
@@ -2818,7 +2817,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 }
@@ -2893,12 +2892,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -2990,12 +2989,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ desc }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -3105,14 +3104,6 @@ object {
 	property{
 		name{ color }
 		type{ uint32_t }
-	}
-	property{
-		name{ name }
-		type{ text_sequence_id }
-	}
-	property{
-		name{ adjective }
-		type{ text_sequence_id }
 	}
 	property{
 		name{ primary_culture }
@@ -4531,12 +4522,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4578,12 +4569,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4611,12 +4602,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4679,12 +4670,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4731,7 +4722,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4795,7 +4786,7 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
@@ -4813,12 +4804,12 @@ object {
 
 	property{
 		name{ name }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{
 		name{ description }
-		type{ text_sequence_id }
+		type{ text_key }
 		tag{ scenario }
 	}
 	property{

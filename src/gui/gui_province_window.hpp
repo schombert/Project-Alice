@@ -296,7 +296,7 @@ public:
 		text::localised_format_box(state, contents, box, std::string_view("pv_controller"));
 		text::add_space_to_layout_box(state, contents, box);
 		if(controller) {
-			text::add_to_layout_box(state, contents, box, controller.get_name());
+			text::add_to_layout_box(state, contents, box, text::get_name(state, controller));
 		} else {
 			text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, rebel_faction));
 		}
@@ -396,7 +396,7 @@ public:
 			if(state.world.modifier_get_desc(mod.mod_id)) {
 				text::substitution_map sub{};
 				text::add_to_substitution_map(sub, text::variable_type::country, n);
-				text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+				text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, n));
 				text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(n));
 				text::add_to_substitution_map(sub, text::variable_type::continentname, state.world.modifier_get_name(state.world.province_get_continent(state.world.nation_get_capital(n))));
 				text::add_to_substitution_map(sub, text::variable_type::provincename, p);

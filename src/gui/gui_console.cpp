@@ -371,10 +371,10 @@ dcon::national_identity_id smart_get_national_identity_from_tag(sys::state& stat
 		if(tag.size() == 3) {
 			auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 			log_to_console(state, parent,
-			"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
+			"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "\xA7W) Id #" + std::to_string(closest_tag_match.second.value));
 		} else {
 			auto fat_id = dcon::fatten(state.world, closest_name_match.second);
-			log_to_console(state, parent, "Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
+			log_to_console(state, parent, "Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" + text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "\xA7W) Id #" + std::to_string(closest_name_match.second.value));
 		}
 		if(tag.size() != 3)
 			log_to_console(state, parent, "You need to use \xA7Ytags\xA7W (3-letters) instead of the full name");
@@ -531,7 +531,7 @@ void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) no
 				if(tag.size() < name.size()) {
 					lhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), name.substr(tag.size()));
 				}
-				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(name) + "-" + text::produce_simple_string(state, state.world.nation_get_name(nid)));
+				rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), std::string(name) + "-" + text::produce_simple_string(state, text::get_name(state, nid)));
 			} else {
 				if(tag.size() == 1)
 					rhs_suggestion.set_text(state, text::font_index_from_font_id(state, font_handle), tag + "?? - ???");
@@ -726,13 +726,13 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 				auto fat_id = dcon::fatten(state.world, closest_tag_match.second);
 				log_to_console(state, parent,
 						"Tag could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+								text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "\xA7W) Id #" +
 								std::to_string(closest_tag_match.second.value));
 			} else {
 				auto fat_id = dcon::fatten(state.world, closest_name_match.second);
 				log_to_console(state, parent,
 						"Name could refer to @" + nations::int_to_tag(fat_id.get_identifying_int()) + " \"\xA7Y" + nations::int_to_tag(fat_id.get_identifying_int()) + "\xA7W\" (\xA7Y" +
-								text::produce_simple_string(state, fat_id.get_nation_from_identity_holder().get_name()) + "\xA7W) Id #" +
+								text::produce_simple_string(state, text::get_name(state, fat_id.get_nation_from_identity_holder().id)) + "\xA7W) Id #" +
 								std::to_string(closest_name_match.second.value));
 			}
 
@@ -1310,180 +1310,180 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 			out_text += tag + "_ADJ" + ";" + text::produce_simple_string(state, nid.get_adjective()) + "\n";
 		}
 		for(const auto p : state.world.in_province) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == p.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == p.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, p.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		auto sdir = simple_fs::get_or_create_oos_directory();
 		simple_fs::write_file(sdir, NATIVE("pandn_localisations.txt"), out_text.c_str(), uint32_t(out_text.size()));
 		//reset csv
 		out_text = "\n";
 		for(const auto t : state.world.in_technology) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("technologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_invention) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("inventions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_ideology) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("ideologies.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_issue_option) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		out_text += "movement_" + std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_movement_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("issue_options.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_issue) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("issues.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_culture) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("cultures.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_religion) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("religions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_government_type) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_desc()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("government_type.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_decision) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-					out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
-					break;
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//		out_text += std::string(state.to_string_view(k.first)) + "_desc;" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//		break;
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("decisions.csv"), out_text.c_str(), uint32_t(out_text.size()));
 		//
 		out_text = "\n";
 		for(const auto t : state.world.in_national_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_free_national_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_provincial_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		for(const auto t : state.world.in_free_provincial_event) {
-			for(const auto& k : state.key_to_text_sequence) {
-				if(k.second == t.get_name()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
-				} else if(k.second == t.get_description()) {
-					out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
-				} else {
-					for(auto i = 0; i < sys::max_event_options; i++) {
-						if(k.second == t.get_options()[i].name) {
-							out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
-						}
-					}
-				}
-			}
+			//for(const auto& k : state.key_to_text_sequence) {
+			//	if(k.second == t.get_name()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_name()) + "\n";
+			//	} else if(k.second == t.get_description()) {
+			//		out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_description()) + "\n";
+			//	} else {
+			//		for(auto i = 0; i < sys::max_event_options; i++) {
+			//			if(k.second == t.get_options()[i].name) {
+			//				out_text += std::string(state.to_string_view(k.first)) + ";" + text::produce_simple_string(state, t.get_options()[i].name) + "\n";
+			//			}
+			//		}
+			//	}
+			//}
 		}
 		simple_fs::write_file(sdir, NATIVE("events.csv"), out_text.c_str(), uint32_t(out_text.size()));
 	}
@@ -1946,18 +1946,6 @@ void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noe
 		});
 		write_single_component(state, NATIVE("value_modifiers.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
 			ptr_in = sys::serialize(ptr_in, state.value_modifiers);
-			return ptr_in;
-		});
-		write_single_component(state, NATIVE("text_data.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_data);
-			return ptr_in;
-		});
-		write_single_component(state, NATIVE("text_components.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.text_components);
-			return ptr_in;
-		});
-		write_single_component(state, NATIVE("key_to_text_sequence.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {
-			ptr_in = sys::serialize(ptr_in, state.key_to_text_sequence);
 			return ptr_in;
 		});
 		write_single_component(state, NATIVE("ui_defs_gfx.bin"), [&](uint8_t* ptr_in, sys::state& state) -> uint8_t* {

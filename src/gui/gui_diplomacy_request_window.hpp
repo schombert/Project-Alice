@@ -83,9 +83,9 @@ class diplomacy_request_desc_text : public scrollable_text {
 			dcon::nation_id primary_defender = state.world.war_get_primary_defender(war);
 			text::substitution_map wsub;
 			text::add_to_substitution_map(wsub, text::variable_type::order, std::string_view(""));
-			text::add_to_substitution_map(wsub, text::variable_type::second, state.world.nation_get_adjective(primary_defender));
+			text::add_to_substitution_map(wsub, text::variable_type::second, text::get_adjective(state, primary_defender));
 			text::add_to_substitution_map(wsub, text::variable_type::second_country, primary_defender);
-			text::add_to_substitution_map(wsub, text::variable_type::first, state.world.nation_get_adjective(primary_attacker));
+			text::add_to_substitution_map(wsub, text::variable_type::first, text::get_adjective(state, primary_attacker));
 			text::add_to_substitution_map(wsub, text::variable_type::third, war.get_over_tag());
 			text::add_to_substitution_map(wsub, text::variable_type::state, war.get_over_state());
 			auto war_name = text::resolve_string_substitution(state, state.world.war_get_name(war), wsub);

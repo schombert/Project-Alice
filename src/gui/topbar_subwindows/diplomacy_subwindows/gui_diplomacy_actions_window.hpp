@@ -1467,7 +1467,7 @@ class select_gp_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto n = nations::get_nth_great_power(state, uint16_t(retrieve<gp_choice_num>(state, parent).value));
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(n)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, n)));
 	}
 };
 

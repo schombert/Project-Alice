@@ -1583,50 +1583,212 @@ void state::on_create() {
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
-	auto start_position = text_data.data() + tag.index();
-	auto data_size = text_data.size();
+
+	auto start_position = key_data.data() + tag.index();
+	auto data_size = key_data.size();
 	auto end_position = start_position;
-	for(; end_position < text_data.data() + data_size; ++end_position) {
+	for(; end_position < key_data.data() + data_size; ++end_position) {
 		if(*end_position == 0)
 			break;
 	}
-	return std::string_view(text_data.data() + tag.index(), size_t(end_position - start_position));
+	return std::string_view(key_data.data() + tag.index(), size_t(end_position - start_position));
 }
 
-dcon::text_key state::add_to_pool_lowercase(std::string const& new_text) {
-	auto res = add_to_pool(new_text);
-	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+std::string_view state::locale_string_view(uint32_t tag) const {
+	auto start_position = locale_text_data.data() + tag;
+	auto data_size = locale_text_data.size();
+	auto end_position = start_position;
+	for(; end_position < locale_text_data.data() + data_size; ++end_position) {
+		if(*end_position == 0)
+			break;
 	}
-	return res;
+	return std::string_view(locale_text_data.data() + tag, size_t(end_position - start_position));
 }
-dcon::text_key state::add_to_pool_lowercase(std::string_view new_text) {
-	auto res = add_to_pool(new_text);
-	for(auto i = 0; i < int32_t(new_text.length()); ++i) {
-		text_data[res.index() + i] = char(tolower(text_data[res.index() + i]));
+
+void state::reset_locale_pool() {
+	locale_text_data.clear();
+	locale_key_to_text_sequence.clear();
+	locale_text_data.push_back(0);
+}
+
+void state::load_locale_strings(std::string_view locale_name) {
+	reset_locale_pool();
+
+	auto root_dir = get_root(common_fs);
+	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
+
+	auto load_base_files = [&](int32_t column) {
+		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
+		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				text::consume_csv_file(*this, content.data, content.file_size, column, false);
+			}
+		}
+		for(auto& file : list_files(assets_dir, NATIVE(".csv"))) {
+			if(auto ofile = open_file(file); ofile) {
+				auto content = view_contents(*ofile);
+				text::consume_csv_file(*this, content.data, content.file_size, column, false);
+			}
+		}
+	};
+
+	if(locale_name.starts_with("en")) {
+		load_base_files(1);
+	} else if(locale_name.starts_with("fr")) {
+		load_base_files(2);
+	} else if(locale_name.starts_with("de")) {
+		load_base_files(3);
+	} else if(locale_name.starts_with("pl")) {
+		load_base_files(4);
+	} else if(locale_name.starts_with("es")) {
+		load_base_files(5);
+	} else if(locale_name.starts_with("it")) {
+		load_base_files(6);
+	} else if(locale_name.starts_with("sv")) {
+		load_base_files(7);
+	} else if(locale_name.starts_with("cs")) {
+		load_base_files(8);
+	} else if(locale_name.starts_with("hu")) {
+		load_base_files(9);
+	} else if(locale_name.starts_with("nl")) {
+		load_base_files(10);
+	} else if(locale_name.starts_with("pt")) {
+		load_base_files(11);
+	} else if(locale_name.starts_with("ru")) {
+		load_base_files(12);
+	} else if(locale_name.starts_with("fi")) {
+		load_base_files(13);
 	}
-	return res;
+
+	auto locale_dir = open_directory(assets_dir, simple_fs::utf8_to_native(locale_name));
+	for(auto& file : list_files(locale_dir, NATIVE(".csv"))) {
+		if(auto ofile = open_file(file); ofile) {
+			auto content = view_contents(*ofile);
+			text::consume_csv_file(*this, content.data, content.file_size, 1, true);
+		}
+	}
 }
-dcon::text_key state::add_to_pool(std::string const& new_text) {
-	auto start = text_data.size();
-	auto size = new_text.length();
-	if(size == 0)
-		return dcon::text_key();
-	text_data.resize(start + size + 1, char(0));
-	std::copy_n(new_text.c_str(), size + 1, text_data.data() + start);
-	return dcon::text_key(uint32_t(start));
+
+bool state::key_is_localized(dcon::text_key tag) const {
+	return locale_key_to_text_sequence.find(tag) != locale_key_to_text_sequence.end();
 }
-dcon::text_key state::add_to_pool(std::string_view new_text) {
-	auto start = text_data.size();
+bool state::key_is_localized(std::string_view key) const {
+	return locale_key_to_text_sequence.find(key) != locale_key_to_text_sequence.end();
+}
+dcon::text_key state::lookup_key(std::string_view text) const {
+	if(auto it = untrans_key_to_text_sequence.find(text); it != untrans_key_to_text_sequence.end()) {
+		return *it;
+	}
+	return dcon::text_key{};
+}
+
+dcon::text_key state::add_key_win1252(std::string const& text) {
+	return add_key_win1252(std::string_view(text));
+}
+dcon::text_key state::add_key_win1252(std::string_view text) {
+	std::string temp;
+
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+
+		if(unicode <= 0x007F) {
+			temp.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			temp.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			temp.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			temp.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+
+	return add_key_utf8(temp);
+}
+dcon::text_key state::add_key_utf8(std::string const& new_text) {
+	auto ekey = lookup_key(new_text);
+	if(ekey)
+		return ekey;
+
+	auto start = key_data.size();
 	auto length = new_text.length();
 	if(length == 0)
 		return dcon::text_key();
-	text_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, text_data.data() + start);
-	text_data.back() = 0;
-	return dcon::text_key(uint32_t(start));
+	key_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, key_data.data() + start);
+	key_data.back() = 0;
+
+	auto ret = dcon::text_key(uint32_t(start));
+	untrans_key_to_text_sequence.insert(ret);
+	return ret;
+}
+dcon::text_key state::add_key_utf8(std::string_view new_text) {
+	auto ekey = lookup_key(new_text);
+	if(ekey)
+		return ekey;
+
+	auto start = key_data.size();
+	auto length = new_text.length();
+	if(length == 0)
+		return dcon::text_key();
+	key_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, key_data.data() + start);
+	key_data.back() = 0;
+
+	auto ret = dcon::text_key(uint32_t(start));
+	untrans_key_to_text_sequence.insert(ret);
+	return ret;
+}
+uint32_t state::add_locale_data_win1252(std::string const& text) {
+	return add_locale_data_utf8(std::string_view(text));
+}
+uint32_t state::add_locale_data_win1252(std::string_view text) {
+	auto start = locale_text_data.size();
+	for(auto c : text) {
+		auto unicode = text::win1250toUTF16(c);
+		if(unicode == 0x00A7)
+			unicode = uint16_t('?'); // convert section symbol to ?
+
+		if(unicode <= 0x007F) {
+			locale_text_data.push_back(char(unicode));
+		} else if(unicode <= 0x7FF) {
+			locale_text_data.push_back(char(0xC0 | uint8_t(0x1F & (unicode >> 6))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		} else { // if unicode <= 0xFFFF
+			locale_text_data.push_back(char(0xE0 | uint8_t(0x0F & (unicode >> 12))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & (unicode >> 6))));
+			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & unicode)));
+		}
+	}
+	key_data.push_back(0);
+	return uint32_t(start);
+}
+uint32_t state::add_locale_data_utf8(std::string const& new_text) {
+	auto start = locale_text_data.size();
+	auto length = new_text.length();
+	if(length == 0)
+		return 0;
+	locale_text_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, locale_text_data.data() + start);
+	locale_text_data.back() = 0;
+	return uint32_t(start);
+}
+uint32_t state::add_locale_data_utf8(std::string_view new_text) {
+	auto start = locale_text_data.size();
+	auto length = new_text.length();
+	if(length == 0)
+		return 0;
+	locale_text_data.resize(start + length + 1, char(0));
+	std::copy_n(new_text.data(), length, locale_text_data.data() + start);
+	locale_text_data.back() = 0;
+	return uint32_t(start);
 }
 
+
+/*
 dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 	if(new_text.length() > 0) {
 		auto search_result = std::search(text_data.data(), text_data.data() + text_data.size(),
@@ -1640,6 +1802,7 @@ dcon::text_key state::add_unique_to_pool(std::string const& new_text) {
 		return dcon::text_key();
 	}
 }
+*/
 
 dcon::unit_name_id state::add_unit_name(std::string_view text) {
 	auto start = unit_names.size();
@@ -1934,7 +2097,7 @@ void list_pop_types(sys::state& state, parsers::scenario_building_context& conte
 		}
 		auto utf8typename = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
 
-		auto name_id = text::find_or_add_key(context.state, utf8typename);
+		auto name_id = text::find_or_add_key(context.state, utf8typename, true);
 		auto type_id = state.world.create_pop_type();
 		state.world.pop_type_set_name(type_id, name_id);
 		context.map_of_poptypes.insert_or_assign(std::string(utf8typename), type_id);
@@ -1959,7 +2122,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	parsers::scenario_building_context context(*this);
 
-	text::load_text_data(*this, err);
 	text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
 
@@ -2471,10 +2633,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto const tag = nations::int_to_tag(ident.get_identifying_int());
 		for(auto const& named_gov : context.map_of_governments) {
 			auto const name = tag + "_" + named_gov.first;
-			auto name_k = text::find_or_use_default_key(*this, name, ident.get_name());
+			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
-			auto ruler_k = text::find_or_use_default_key(*this, ruler, world.government_type_get_ruler_name(named_gov.second));
+			auto ruler_k = add_key_win1252(ruler);
 			ident.set_government_ruler_name(named_gov.second, ruler_k);
 		}
 	}
@@ -3266,7 +3428,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
 		if(!(n.get_owned_province_count() == 0 || world.government_type_is_valid(g))) {
-			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, n.get_name()) + "' (" + name + ") is not valid\n";
+			err.accumulated_errors += "Government for '" + text::produce_simple_string(*this, text::get_name(*this, n)) + "' (" + name + ") is not valid\n";
 		}
 	}
 	for(auto g : world.in_government_type) {
@@ -3336,8 +3498,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
-
-	text::finish_text_data(*this);
 }
 
 void state::preload() {

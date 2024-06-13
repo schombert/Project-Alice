@@ -368,9 +368,9 @@ public:
 			default:
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(lsort.reversed) {
-						return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+						return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 					} else {
-						return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+						return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 					}
 				});
 				break;
@@ -632,9 +632,9 @@ public:
 		default:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				if(lsort.reversed) {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 				} else {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 				}
 			});
 			break;
@@ -818,9 +818,9 @@ public:
 		default:
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				if(lsort.reversed) {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 				} else {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 				}
 			});
 			break;
@@ -973,9 +973,9 @@ public:
 		} else {
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				if(lsort.reversed) {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 				} else {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 				}
 			});
 		}
@@ -1010,9 +1010,9 @@ public:
 		} else {
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				if(lsort.reversed) {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 				} else {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 				}
 			});
 		}
@@ -1149,9 +1149,9 @@ public:
 		} else {
 			std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 				if(lsort.reversed) {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) > text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) > text::produce_simple_string(state, text::get_name(state, b));
 				} else {
-					return text::produce_simple_string(state, state.world.nation_get_name(a)) < text::produce_simple_string(state, state.world.nation_get_name(b));
+					return text::produce_simple_string(state, text::get_name(state, a)) < text::produce_simple_string(state, text::get_name(state, b));
 				}
 			});
 		}

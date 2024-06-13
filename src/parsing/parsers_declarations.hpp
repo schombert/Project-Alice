@@ -2241,8 +2241,8 @@ struct generic_event {
 	bool fire_only_once = false;
 	bool allow_multiple_instances = false;
 	dcon::gfx_object_id picture_;
-	dcon::text_sequence_id title_;
-	dcon::text_sequence_id desc_;
+	dcon::text_key title_;
+	dcon::text_key desc_;
 	dcon::issue_id issue_group_;
 
 	void title(association_type, std::string_view value, error_handler& err, int32_t line, event_building_context& context);

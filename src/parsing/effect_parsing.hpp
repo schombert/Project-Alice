@@ -3675,10 +3675,10 @@ struct effect_body {
 
 struct event_option : public effect_body {
 	dcon::value_modifier_key ai_chance;
-	dcon::text_sequence_id name_;
+	dcon::text_key name_;
 
 	void name(association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context) {
-		name_ = text::find_or_add_key(context.outer_context.state, value);
+		name_ = text::find_or_add_key(context.outer_context.state, value, false);
 	}
 };
 

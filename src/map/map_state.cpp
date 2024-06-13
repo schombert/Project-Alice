@@ -218,7 +218,7 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 	auto ol = state.world.overlord_get_ruler(olr);
 	auto ol_temp = n;
 
-	while(ol && state.world.nation_get_name(ol)) {
+	while(ol && state.world.nation_get_owned_province_count(ol) > 0) {
 		olr = state.world.nation_get_overlord_as_subject(ol);
 		ol_temp = ol;
 		ol = state.world.overlord_get_ruler(olr);
@@ -322,10 +322,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 			}
 		}
-		if(!n || !n.get_name())
+		if(!n || n.get_owned_province_count() == 0)
 			continue;
 
-		auto nation_name = text::produce_simple_string(state, n.get_name());
+		auto nation_name = text::produce_simple_string(state, text::get_name(state, n));
 		auto prefix_remove = text::produce_simple_string(state, "map_remove_prefix");
 		if(nation_name.starts_with(prefix_remove)) {
 			nation_name.erase(0, prefix_remove.size());
@@ -345,7 +345,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 		text::substitution_map sub{};
-		text::add_to_substitution_map(sub, text::variable_type::adj, n.get_adjective());
+		text::add_to_substitution_map(sub, text::variable_type::adj, text::get_adjective(state, n));
 		text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(nation_name));
 		text::add_to_substitution_map(sub, text::variable_type::province, p);
 		text::add_to_substitution_map(sub, text::variable_type::state, p.get_state_membership());
@@ -391,7 +391,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 							|| nid == n.get_identity_from_identity_holder()) {
 								if(n.get_capital().get_continent() == state.world.province_get_continent(last_province)) {
 									//cultural union tag -> use our name
-									name = text::produce_simple_string(state, n.get_name());
+									name = text::produce_simple_string(state, text::get_name(state, n));
 									//Get cardinality
 									auto p1 = n.get_capital().get_mid_point();
 									auto p2 = p.get_mid_point();

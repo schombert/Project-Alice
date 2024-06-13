@@ -19,10 +19,10 @@ void reform_description(sys::state& state, text::columnar_layout& contents, dcon
 		text::add_to_layout_box(state, contents, box, reform.get_name(), text::text_color::yellow);
 		text::close_layout_box(contents, box);
 	}
-	if(reform.get_desc()) {
+	if(state.key_is_localized(reform.get_desc())) {
 		text::substitution_map sub{};
 		text::add_to_substitution_map(sub, text::variable_type::country, state.local_player_nation);
-		text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.nation_get_adjective(state.local_player_nation));
+		text::add_to_substitution_map(sub, text::variable_type::country_adj, text::get_adjective(state, state.local_player_nation));
 		text::add_to_substitution_map(sub, text::variable_type::capital, state.world.nation_get_capital(state.local_player_nation));
 		auto box = text::open_layout_box(contents);
 		text::add_to_layout_box(state, contents, box, reform.get_desc(), sub);

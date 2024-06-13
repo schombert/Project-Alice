@@ -201,7 +201,7 @@ class propose_defender_solution_button : public button_element_base {
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_attacker)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, state.primary_crisis_attacker)));
 	}
 };
 
@@ -366,7 +366,7 @@ public:
 class diplomacy_crisis_defender_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_defender)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, state.primary_crisis_defender)));
 	}
 };
 

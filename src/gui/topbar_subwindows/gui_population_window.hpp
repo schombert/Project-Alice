@@ -1814,7 +1814,7 @@ public:
 			text::substitution_map sub;
 
 			auto nation = state.world.rebel_faction_get_ruler_from_rebellion_within(faction);
-			text::add_to_substitution_map(sub, text::variable_type::country, state.world.nation_get_adjective(nation));
+			text::add_to_substitution_map(sub, text::variable_type::country, text::get_adjective(state, nation));
 			auto culture = state.world.rebel_faction_get_primary_culture(faction);
 			auto defection_target = state.world.rebel_faction_get_defection_target(faction);
 			if(culture) {
@@ -2253,10 +2253,10 @@ public:
 						int32_t(state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, content)))});
 
 		text::add_to_substitution_map(sub, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub, text::variable_type::where, nation_fat.get_name());
+		text::add_to_substitution_map(sub, text::variable_type::where, text::get_name(state, state.local_player_nation));
 
 		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
-		text::add_to_substitution_map(sub2, text::variable_type::where, nation_fat.get_name());
+		text::add_to_substitution_map(sub2, text::variable_type::where, text::get_name(state, state.local_player_nation));
 		
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
