@@ -387,7 +387,8 @@ struct user_settings_s {
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
 	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
-	uint32_t current_language = 0;
+	uint32_t UNUSED_UINT32_T = 0;
+	char locale[16] = "en-US";
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario

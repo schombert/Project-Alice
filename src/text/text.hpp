@@ -637,7 +637,7 @@ inline void mum(uint64_t* a, uint64_t* b) {
 	return mix(secret[1] ^ len, mix(a ^ secret[1], b ^ seed));
 }
 
-bool lazy_ci_eq(std::string_view a, std::string_view b) {
+inline bool lazy_ci_eq(std::string_view a, std::string_view b) {
 	if(a.length() != b.length())
 		return false;
 	for(uint32_t i = 0; i < a.length(); ++i) {
@@ -924,6 +924,12 @@ inline std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
 	return text::produce_simple_string(state, get_name(state, n));
 }
 inline std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
+inline std::string get_name_as_string(sys::state& state, dcon::nation_fat_id n) {
+	return text::produce_simple_string(state, get_name(state, n));
+}
+inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_id n) {
 	return text::produce_simple_string(state, get_adjective(state, n));
 }
 

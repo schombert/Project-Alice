@@ -1951,7 +1951,8 @@ void state::save_user_settings() const {
 	US_SAVE(wasd_for_map_movement);
 	US_SAVE(notify_rebels_defeat);
 	US_SAVE(color_blind_mode);
-	US_SAVE(current_language);
+	US_SAVE(UNUSED_UINT32_T);
+	US_SAVE(locale);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -2018,7 +2019,8 @@ void state::load_user_settings() {
 			US_LOAD(wasd_for_map_movement);
 			US_LOAD(notify_rebels_defeat);
 			US_LOAD(color_blind_mode);
-			US_LOAD(current_language);
+			US_LOAD(UNUSED_UINT32_T);
+			US_LOAD(locale);
 #undef US_LOAD
 		} while(false);
 
@@ -2064,6 +2066,36 @@ void state::load_user_settings() {
 				}
 			}
 		}
+	}
+
+	user_settings.locale[15] = 0;
+	std::string lname(user_settings.locale);
+	bool locale_loaded = false;
+
+	for(auto l : world.in_locale) {
+		auto ln = l.get_locale_name();
+		auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
+
+		if(ln_sv == lname) {
+			font_collection.change_locale(*this, l);
+			locale_loaded = true;
+		}
+	}
+
+	if(!locale_loaded) {
+		for(auto l : world.in_locale) {
+			auto ln = l.get_locale_name();
+			auto ln_sv = std::string_view{ (char const*)ln.begin(), ln.size() };
+
+			if(ln_sv == "en-US") {
+				font_collection.change_locale(*this, l);
+				locale_loaded = true;
+			}
+		}
+	}
+
+	if(!locale_loaded) {
+		font_collection.change_locale(*this, dcon::locale_id{ 0 });
 	}
 }
 

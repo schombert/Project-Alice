@@ -1421,7 +1421,7 @@ public:
 		}
 		for(auto o : fat_id.get_war_participant()) {
 			if(o.get_is_attacker() == IsAttacker) {
-				auto name = o.get_nation().get_name();
+				auto name = text::get_name(state, o.get_nation().id);
 				auto box = text::open_layout_box(contents, 0);
 				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, name), text::text_color::yellow);
 				text::add_to_layout_box(state, contents, box, std::string{":"}, text::text_color::yellow);
