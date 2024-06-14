@@ -1165,7 +1165,7 @@ void random_by_modifier(token_generator& gen, error_handler& err, effect_buildin
 	context.limit_position = old_limit_offset;
 }
 
-dcon::value_modifier_key read_chance_modifier(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
+dcon::value_modifier_key read_chance_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
 	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
 	return make_value_modifier(gen, err, t_context);
 }

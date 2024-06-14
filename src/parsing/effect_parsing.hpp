@@ -3735,7 +3735,7 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 void ef_scope_random_list(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_variable(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_substate(token_generator& gen, error_handler& err, effect_building_context& context);
-dcon::value_modifier_key read_chance_modifier(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
+dcon::value_modifier_key read_chance_modifier(token_generator& gen, error_handler& err, effect_building_context& context);
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context);
