@@ -1,4 +1,4 @@
-﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
+#Powered_by_ParaTranz;;;;;;;;;;;;;x
 #CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
 support_for_blank;支持$text$;;;;;;;;;;;;x
 uh_support_for_blank;上议院支持$text$;;;;;;;;;;;;x
@@ -317,6 +317,7 @@ units_in_the_state;位于地区;;;;;;;;;;;;x
 at_war_against;交战于;;;;;;;;;;;;x
 num_of_divisions;部队数;;;;;;;;;;;;x
 an_ongoing_battle;持续的战斗;;;;;;;;;;;;x
+an_assigned_leader;an assigned leader
 treasury;国库;;;;;;;;;;;;x
 o_treasury;所有者国库;;;;;;;;;;;;x
 o_of_prov;该省所属;;;;;;;;;;;;x

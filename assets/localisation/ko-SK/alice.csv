@@ -315,6 +315,7 @@ units_in_the_state;주에 있는 단위
 at_war_against;전쟁 중
 num_of_divisions;여러 가지 부문
 an_ongoing_battle;계속되는 전투
+an_assigned_leader;an assigned leader
 treasury;국고
 o_treasury;주인의 금고
 o_of_prov;지방의 주인

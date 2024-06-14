@@ -1354,12 +1354,13 @@ TRIGGER_BYTECODE_ELEMENT(0x02DB, is_coastal_state, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_bank, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DD, has_building_university, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DE, test, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02DF, unit_has_leader, 0)
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02DF;
+constexpr inline uint16_t first_scope_code = 0x02E0;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
