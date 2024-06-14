@@ -375,7 +375,7 @@ public:
 
 	void on_create(sys::state& state) noexcept override {
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find("build_resource_cost")->second.definition);
+			auto ptr = make_element_by_type<resource_cost>(state, state.ui_state.defs_by_name.find(state.lookup_key("build_resource_cost"))->second.definition);
 			resource_cost_elements.push_back(ptr.get());
 			add_child_to_front(std::move(ptr));
 		}

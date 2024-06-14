@@ -19,7 +19,7 @@ struct building_information {
 	int32_t max_level = 6;
 	int32_t time = 1080;
 	float infrastructure = 0.16f;
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 	dcon::modifier_id province_modifier;
 	uint16_t padding2 = 0;
 	bool defined = false;

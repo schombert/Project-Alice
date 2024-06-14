@@ -9,7 +9,7 @@
 namespace ui {
 
 inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
-	text::add_to_substitution_map(m, text::variable_type::country_adj, state.world.nation_get_adjective(n));
+	text::add_to_substitution_map(m, text::variable_type::country_adj, text::get_adjective(state, n));
 	text::add_to_substitution_map(m, text::variable_type::country, n);
 	text::add_to_substitution_map(m, text::variable_type::countryname, n);
 	text::add_to_substitution_map(m, text::variable_type::thiscountry, n);
@@ -22,7 +22,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::day, int32_t(state.current_date.to_ymd(state.start_date).day));
 	auto sm = state.world.nation_get_in_sphere_of(n);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster, sm);
-	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, state.world.nation_get_adjective(sm));
+	text::add_to_substitution_map(m, text::variable_type::spheremaster_adj, text::get_adjective(state, sm));
 	auto smpc = state.world.nation_get_primary_culture(sm);
 	text::add_to_substitution_map(m, text::variable_type::spheremaster_union_adj, smpc.get_group_from_culture_group_membership().get_identity_from_cultural_union_of().get_adjective());
 
@@ -48,7 +48,7 @@ inline void produce_decision_substitutions(sys::state& state, text::substitution
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_capital, state.world.nation_get_capital(state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisdefender_continent, state.world.nation_get_capital(state.primary_crisis_defender).get_continent().get_name());
 	text::add_to_substitution_map(m, text::variable_type::crisistarget, state.primary_crisis_defender);
-	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, state.world.nation_get_adjective(state.primary_crisis_defender));
+	text::add_to_substitution_map(m, text::variable_type::crisistarget_adj, text::get_adjective(state, state.primary_crisis_defender));
 	text::add_to_substitution_map(m, text::variable_type::crisisarea, state.crisis_state);
 	text::add_to_substitution_map(m, text::variable_type::temperature, text::fp_two_places{ state.crisis_temperature });
 	// TODO: Is this correct? I remember in vanilla it could vary
@@ -216,7 +216,7 @@ public:
 
 class decision_desc : public scrollable_text {
 private:
-	dcon::text_sequence_id description;
+	dcon::text_key description;
 	void populate_layout(sys::state& state, text::endless_layout& contents) noexcept {
 		auto box = text::open_layout_box(contents);
 		text::substitution_map m;

@@ -72,16 +72,13 @@ struct stored_text : public stored_glyphs {
 class font {
 private:
 	font(font const&) = delete;
-	font(font&&) = default;
 	font& operator=(font const&) = delete;
-	font& operator=(font&&) noexcept = default;
+public:
 	font() = default;
 
-public:
 	std::string file_name;
-	FT_Face font_face;
+	FT_Face font_face = nullptr;
 	hb_font_t* hb_font_face = nullptr;
-	//uint8_t const* gs = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
 
 	float internal_line_height = 0.0f;
@@ -109,6 +106,38 @@ public:
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
 
 	friend class font_manager;
+
+	font(font&& o) noexcept : file_name(std::move(o.file_name)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
+		font_face = o.font_face;
+		o.font_face = nullptr;
+		hb_font_face = o.hb_font_face;
+		o.hb_font_face = nullptr;
+		hb_buf = o.hb_buf;
+		o.hb_buf = nullptr;
+		internal_line_height = o.internal_line_height;
+		internal_ascender = o.internal_ascender;
+		internal_descender = o.internal_descender;
+		internal_top_adj = o.internal_top_adj;
+		texture_array = o.texture_array;
+		o.texture_array = 0;
+	}
+	font& operator=(font&& o) noexcept {
+		file_name = std::move(o.file_name);
+		file_data = std::move(o.file_data);
+		glyph_positions = std::move(o.glyph_positions);
+		font_face = o.font_face;
+		o.font_face = nullptr;
+		hb_font_face = o.hb_font_face;
+		o.hb_font_face = nullptr;
+		hb_buf = o.hb_buf;
+		o.hb_buf = nullptr;
+		internal_line_height = o.internal_line_height;
+		internal_ascender = o.internal_ascender;
+		internal_descender = o.internal_descender;
+		internal_top_adj = o.internal_top_adj;
+		texture_array = o.texture_array;
+		o.texture_array = 0;
+	}
 };
 
 class font_manager {

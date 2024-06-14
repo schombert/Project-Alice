@@ -104,7 +104,7 @@ struct unit_definition : public sys::unit_variable_stats {
 	int32_t icon = 0;
 	int32_t naval_icon = 0;
 
-	dcon::text_sequence_id name;
+	dcon::text_key name;
 
 	bool is_land = true;
 	bool capital = false;

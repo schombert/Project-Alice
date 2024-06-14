@@ -165,12 +165,12 @@ public:
 
 
 		xy_pair base_sort_template_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("sort_by_pop_template_offset")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template_offset"))->second.definition].position;
 		xy_pair sort_template_offset = base_sort_template_offset;
 		sort_template_offset.y += 233;
 
 		auto ptr = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.primary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 0;
@@ -178,7 +178,7 @@ public:
 		add_child_to_back(std::move(ptr));
 
 		auto ptr2 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr2->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.secondary_factory_worker)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 1;
@@ -186,7 +186,7 @@ public:
 		add_child_to_back(std::move(ptr2));
 
 		auto ptr3 = make_element_by_type<button_element_base>(state,
-				state.ui_state.defs_by_name.find("sort_by_pop_template")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("sort_by_pop_template"))->second.definition);
 		ptr3->set_button_text(state,
 				text::produce_simple_string(state, state.world.pop_type_get_name(state.culture_definitions.capitalists)));
 		sort_template_offset.x = 478 + base_sort_template_offset.x * 2;

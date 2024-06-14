@@ -37,10 +37,8 @@ void sort_countries(sys::state& state, std::vector<dcon::nation_id>& list, count
 	switch(sort) {
 	case country_list_sort::country: {
 		auto f = [&](dcon::nation_id a, dcon::nation_id b) {
-			dcon::nation_fat_id a_fat_id = dcon::fatten(state.world, a);
-			auto a_name = text::produce_simple_string(state, a_fat_id.get_name());
-			dcon::nation_fat_id b_fat_id = dcon::fatten(state.world, b);
-			auto b_name = text::produce_simple_string(state, b_fat_id.get_name());
+			auto a_name = text::produce_simple_string(state, text::get_name(state, a));
+			auto b_name = text::produce_simple_string(state, text::get_name(state, b));
 			return a_name < b_name;
 		};
 		std::stable_sort(list.begin(), list.end(), f);

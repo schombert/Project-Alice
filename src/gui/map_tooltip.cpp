@@ -64,7 +64,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
 		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, owner.get_name());
+		text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 		text::add_to_layout_box(state, contents, box, std::string_view{ ")" });
 	} else {
 		text::add_to_layout_box(state, contents, box, fat.get_name());
@@ -121,7 +121,7 @@ void political_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		std::string formatted_tag = std::string("@") + nations::int_to_tag(fat_id.get_identity_from_identity_holder().get_identifying_int());
 		text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, fat_id.get_name());
+		text::add_to_layout_box(state, contents, box, text::get_name(state, n));
 		text::close_layout_box(contents, box);
 	} else if(auto rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov); rf) {
 		auto fat_id = dcon::fatten(state.world, rf);
@@ -549,7 +549,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(owner.get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, owner.get_name());
+			text::add_to_layout_box(state, contents, box, text::get_name(state, owner.id));
 			text::close_layout_box(contents, box);
 		}
 		struct nation_and_value {
@@ -606,7 +606,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, positive_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, state.world.nation_get_name(positive_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, positive_vals[i].n));
 
 			text::close_layout_box(contents, box);
 		}
@@ -630,7 +630,7 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			std::string formatted_tag = std::string("@") + nations::int_to_tag(fatten(state.world, neg_vals[i].n).get_identity_from_identity_holder().get_identifying_int());
 			text::add_to_layout_box(state, contents, box, std::string_view{ formatted_tag });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, state.world.nation_get_name(neg_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, neg_vals[i].n));
 
 			text::close_layout_box(contents, box);
 		}
@@ -1270,7 +1270,7 @@ void picking_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 	if(auto n = state.world.province_get_nation_from_province_ownership(prov); n) {
 		auto fat_id = dcon::fatten(state.world, n);
 		auto box = text::open_layout_box(contents);
-		text::add_to_layout_box(state, contents, box, fat_id.get_name(), text::text_color::yellow);
+		text::add_to_layout_box(state, contents, box, text::get_name(state, n), text::text_color::yellow);
 		text::add_line_break_to_layout_box(state, contents, box);
 		auto total = fat_id.get_demographics(demographics::total);
 		if(total > 0.f) {

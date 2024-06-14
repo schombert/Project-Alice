@@ -18,7 +18,7 @@ namespace ui {
 
 template<typename T, typename ...Params>
 std::unique_ptr<element_base> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
-	auto it = state.ui_state.defs_by_name.find(name);
+	auto it = state.ui_state.defs_by_name.find(state.lookup_key(name));
 	if(it != state.ui_state.defs_by_name.end()) {
 		auto res = std::make_unique<T>(std::forward<Params>(params)...);
 		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
@@ -933,7 +933,7 @@ public:
 
 class single_multiline_text_element_base : public multiline_text_element_base {
 public:
-	dcon::text_sequence_id text_id{};
+	dcon::text_key text_id{};
 
 	void on_update(sys::state& state) noexcept override {
 		auto layout = text::create_endless_layout(internal_layout,

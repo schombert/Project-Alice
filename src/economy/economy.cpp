@@ -4068,7 +4068,7 @@ void daily_update(sys::state& state, bool initiate_buildings) {
 				+ state.world.nation_get_everyday_needs_costs(n, state.culture_definitions.primary_factory_worker)
 				+ state.world.nation_get_luxury_needs_costs(n, state.culture_definitions.primary_factory_worker);
 			auto tag = nations::int_to_tag(state.world.national_identity_get_identifying_int(state.world.nation_get_identity_from_identity_holder(n)));
-			auto name = text::produce_simple_string(state, state.world.nation_get_name(n));
+			auto name = text::produce_simple_string(state, text::get_name(state, n));
 			state.cheat_data.national_economy_dump_buffer +=
 				tag + ","
 				+ name + ","

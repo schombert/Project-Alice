@@ -1316,3 +1316,4 @@ locale_parser
 	body_feature     value      text      member_fn
 	header_feature     value      text      member_fn
 	map_feature     value      text      member_fn
+	fallback     value      text      member

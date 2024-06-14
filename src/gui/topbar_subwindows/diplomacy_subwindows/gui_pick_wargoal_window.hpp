@@ -1367,7 +1367,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		set_button_text(state, text::produce_simple_string(state, dcon::fatten(state.world, n).get_name()));
+		set_button_text(state, text::produce_simple_string(state, text::get_name(state, n)));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

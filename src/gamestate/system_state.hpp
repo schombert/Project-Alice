@@ -387,7 +387,8 @@ struct user_settings_s {
 	bool wasd_for_map_movement = false;
 	bool notify_rebels_defeat = true;
 	sys::color_blind_mode color_blind_mode = sys::color_blind_mode::none;
-	uint32_t current_language = 0;
+	uint32_t UNUSED_UINT32_T = 0;
+	char locale[16] = "en-US";
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -489,10 +490,10 @@ struct alignas(64) state {
 	std::vector<value_modifier_segment> value_modifier_segments;
 	tagged_vector<value_modifier_description, dcon::value_modifier_key> value_modifiers;
 
-	std::vector<char> text_data; // stores string data in the win1250 codepage
-	std::vector<text::text_component> text_components;
-	std::array<text::language_table, sys::max_languages> languages;
-	ankerl::unordered_dense::map<dcon::text_key, dcon::text_sequence_id, text::vector_backed_hash, text::vector_backed_eq> key_to_text_sequence;
+	std::vector<char> key_data;
+	std::vector<char> locale_text_data;
+	ankerl::unordered_dense::set<dcon::text_key, text::vector_backed_ci_hash, text::vector_backed_ci_eq> untrans_key_to_text_sequence;
+	ankerl::unordered_dense::map<dcon::text_key, uint32_t, text::vector_backed_ci_hash, text::vector_backed_ci_eq> locale_key_to_text_sequence;
 
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
@@ -677,17 +678,23 @@ struct alignas(64) state {
 
 	// the following function are for interacting with the string pool
 
-	std::string_view to_string_view(dcon::text_key tag) const; // takes a stored tag and give you the text
+	std::string_view to_string_view(dcon::text_key tag) const;
+	std::string_view locale_string_view(uint32_t tag) const;
+	bool key_is_localized(dcon::text_key tag) const;
+	bool key_is_localized(std::string_view key) const;
+	dcon::text_key lookup_key(std::string_view text) const;
 
-	dcon::text_key add_to_pool(std::string const& text); // returns the newly added text
-	dcon::text_key add_to_pool(std::string_view text);
-	dcon::text_key add_to_pool_lowercase(std::string const& text); // these functions are as above, but force the text into lower case
-	dcon::text_key add_to_pool_lowercase(std::string_view text);
+	void reset_locale_pool();
+	void load_locale_strings(std::string_view locale_name);
 
-	// searches the string pool for any existing string, appends if it is new
-	// use this function sparingly; i.e. only when you think it is likely that
-	// the text has already been added. Searching *all* the text may not be cheap
-	dcon::text_key add_unique_to_pool(std::string const& text);
+	dcon::text_key add_key_win1252(std::string const& text);
+	dcon::text_key add_key_win1252(std::string_view text);
+	dcon::text_key add_key_utf8(std::string const& text);
+	dcon::text_key add_key_utf8(std::string_view text);
+	uint32_t add_locale_data_win1252(std::string const& text);
+	uint32_t add_locale_data_win1252(std::string_view text);
+	uint32_t add_locale_data_utf8(std::string const& text);
+	uint32_t add_locale_data_utf8(std::string_view text);
 
 	dcon::unit_name_id add_unit_name(std::string_view text);       // returns the newly added text
 	std::string_view to_string_view(dcon::unit_name_id tag) const; // takes a stored tag and give you the text
@@ -695,7 +702,10 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : key_to_text_sequence(0, text::vector_backed_hash(text_data), text::vector_backed_eq(text_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) { }
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+
+		key_data.push_back(0);
+	}
 
 	~state() = default;
 

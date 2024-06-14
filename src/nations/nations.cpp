@@ -235,10 +235,10 @@ void global_national_state::set_global_flag_variable(dcon::global_flag_id id, bo
 		dcon::bit_vector_set(global_flag_variables.data(), id.index(), state);
 }
 
-dcon::text_sequence_id name_from_tag(sys::state const& state, dcon::national_identity_id tag) {
+dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag) {
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(tag);
 	if(holder)
-		return state.world.nation_get_name(holder);
+		return text::get_name(state, holder);
 	else
 		return state.world.national_identity_get_name(tag);
 }
@@ -1479,7 +1479,7 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 			break_alliance(state, r);
 			if(a != state.local_player_nation) {
 				notification::post(state, notification::message{
-					[from = state.world.nation_get_name(a), to = state.world.nation_get_name(b)](sys::state& state, text::layout_base& contents) {
+					[from = text::get_name(state, a), to = text::get_name(state, b)](sys::state& state, text::layout_base& contents) {
 						text::add_line(state, contents, "msg_alliance_ends_1", text::variable_type::x, to, text::variable_type::y, from);
 					},
 					"msg_alliance_ends_title",
@@ -2434,10 +2434,7 @@ void update_crisis(sys::state& state) {
 
 				if(gp_attackers >= 2 && gp_defenders >= 2) {
 					state.world.war_set_is_great(war, true);
-					auto it = state.key_to_text_sequence.find(std::string_view{"great_war_name"});
-					if(it != state.key_to_text_sequence.end()) {
-						state.world.war_set_name(war, it->second);
-					}
+					state.world.war_set_name(war, state.lookup_key(std::string_view{ "great_war_name" }));
 				}
 			}
 
@@ -2449,9 +2446,9 @@ void update_crisis(sys::state& state) {
 					text::substitution_map sub;
 
 					text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
-					text::add_to_substitution_map(sub, text::variable_type::second, state.world.nation_get_adjective(pd));
+					text::add_to_substitution_map(sub, text::variable_type::second, text::get_adjective(state, pd));
 					text::add_to_substitution_map(sub, text::variable_type::second_country, pd);
-					text::add_to_substitution_map(sub, text::variable_type::first, state.world.nation_get_adjective(pa));
+					text::add_to_substitution_map(sub, text::variable_type::first, text::get_adjective(state, pa));
 					text::add_to_substitution_map(sub, text::variable_type::third, tag);
 					text::add_to_substitution_map(sub, text::variable_type::state, st);
 					text::add_to_substitution_map(sub, text::variable_type::country_adj, state.world.national_identity_get_adjective(tag));

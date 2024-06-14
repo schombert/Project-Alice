@@ -201,7 +201,7 @@ class propose_defender_solution_button : public button_element_base {
 class diplomacy_crisis_attacker_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_attacker)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, state.primary_crisis_attacker)));
 	}
 };
 
@@ -366,7 +366,7 @@ public:
 class diplomacy_crisis_defender_name : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		set_text(state, text::produce_simple_string(state, state.world.nation_get_name(state.primary_crisis_defender)));
+		set_text(state, text::produce_simple_string(state, text::get_name(state, state.primary_crisis_defender)));
 	}
 };
 
@@ -697,49 +697,49 @@ public:
 		window_element_base::on_create(state);
 
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(0);
 			ptr->base_data.position.y = int16_t(0);
 			ptr->index = 0;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(70 * 1);
 			ptr->base_data.position.y = int16_t(0);
 			ptr->index = 1;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(70 * 2);
 			ptr->base_data.position.y = int16_t(0);
 			ptr->index = 2;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(0);
 			ptr->base_data.position.y = int16_t(75);
 			ptr->index = 3;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(70 * 1);
 			ptr->base_data.position.y = int16_t(75);
 			ptr->index = 4;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find("fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_interested_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(70 * 2);
 			ptr->base_data.position.y = int16_t(75);
 			ptr->index = 5;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<diplomacy_crisis_join_container>(state, state.ui_state.defs_by_name.find("join_fence_sitter_entry")->second.definition);
+			auto ptr = make_element_by_type<diplomacy_crisis_join_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("join_fence_sitter_entry"))->second.definition);
 			ptr->base_data.position.x = int16_t(70 * 2 - 3);
 			ptr->base_data.position.y = int16_t(58);
 			add_child_to_front(std::move(ptr));

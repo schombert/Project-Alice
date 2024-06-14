@@ -1788,7 +1788,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		auto real_text_size = size / (size_x * 2.0f);
 
 		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
-		if(state.languages[state.user_settings.current_language].no_spacing) {
+		if(state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale())) {
 			letter_spacing_map = 0.f;
 		}
 

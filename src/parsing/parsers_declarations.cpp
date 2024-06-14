@@ -342,7 +342,7 @@ void climate_definition::free_value(int32_t value, error_handler& err, int32_t l
 }
 
 void tech_folder_list::free_value(std::string_view name, error_handler& err, int32_t line, tech_group_context& context) {
-	auto name_id = text::find_or_add_key(context.outer_context.state, name);
+	auto name_id = text::find_or_add_key(context.outer_context.state, name, false);
 	auto cindex = context.outer_context.state.culture_definitions.tech_folders.size();
 	context.outer_context.state.culture_definitions.tech_folders.push_back(::culture::folder_info{name_id, context.category});
 	context.outer_context.map_of_tech_folders.insert_or_assign(std::string(name), int32_t(cindex));
@@ -382,7 +382,7 @@ void party::ideology(association_type, std::string_view text, error_handler& err
 }
 
 void party::name(association_type, std::string_view text, error_handler& err, int32_t line, party_context& context) {
-	auto name_id = text::find_or_add_key(context.outer_context.state, text);
+	auto name_id = text::find_or_add_key(context.outer_context.state, text, false);
 	context.outer_context.state.world.political_party_set_name(context.id, name_id);
 }
 
@@ -893,7 +893,7 @@ void cb_body::po_destroy_naval_bases(association_type, bool value, error_handler
 void cb_body::war_name(association_type, std::string_view value, error_handler& err, int32_t line,
 		individual_cb_context& context) {
 	context.outer_context.state.world.cb_type_set_war_name(context.id,
-			text::find_or_add_key(context.outer_context.state, std::string("normal_") + std::string(value)));
+			text::find_or_add_key(context.outer_context.state, std::string("normal_") + std::string(value), false));
 }
 
 void cb_body::badboy_factor(association_type, float value, error_handler& err, int32_t line, individual_cb_context& context) {
@@ -2303,7 +2303,7 @@ void decision::picture(association_type, std::string_view value, error_handler& 
 			new_obj.primary_texture_handle = itb->second;
 		} else {
 			auto index = context.outer_context.state.ui_defs.textures.size();
-			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
 			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
 		}
@@ -2891,51 +2891,42 @@ void country_history_file::ruling_party(association_type, std::string_view value
 	if(!context.holder_id)
 		return;
 
-	auto value_key = [&]() {
-		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value));
-		if(it != context.outer_context.state.key_to_text_sequence.end()) {
-			return it->second;
-		}
-		return dcon::text_sequence_id();
-	}();
+	auto value_key = context.outer_context.state.lookup_key(value);
 
-	auto first_party = context.outer_context.state.world.national_identity_get_political_party_first(context.nat_ident);
-	auto party_count = context.outer_context.state.world.national_identity_get_political_party_count(context.nat_ident);
-	for(uint32_t i = 0; i < party_count; ++i) {
-		dcon::political_party_id pid{dcon::political_party_id::value_base_t(first_party.id.index() + i)};
-		auto name = context.outer_context.state.world.political_party_get_name(pid);
-		if(name == value_key) {
-			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
-			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
-				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
-						context.outer_context.state.world.political_party_get_party_issues(pid, p_issue));
+	if(value_key) {
+		auto first_party = context.outer_context.state.world.national_identity_get_political_party_first(context.nat_ident);
+		auto party_count = context.outer_context.state.world.national_identity_get_political_party_count(context.nat_ident);
+		for(uint32_t i = 0; i < party_count; ++i) {
+			dcon::political_party_id pid{ dcon::political_party_id::value_base_t(first_party.id.index() + i) };
+			auto name = context.outer_context.state.world.political_party_get_name(pid);
+			if(name == value_key) {
+				context.outer_context.state.world.nation_set_ruling_party(context.holder_id, pid);
+				for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
+					context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
+							context.outer_context.state.world.political_party_get_party_issues(pid, p_issue));
+				}
+				return;
 			}
-			return;
 		}
-	}
-	// alright, it didn't belong to that nation -- try checking everything to help broken mods work anyways
-	err.accumulated_warnings += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
-	for(auto p : context.outer_context.state.world.in_political_party) {
-		auto name = p.get_name();
-		if(name == value_key) {
-			context.outer_context.state.world.nation_set_ruling_party(context.holder_id, p);
-			for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
-				context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
-						context.outer_context.state.world.political_party_get_party_issues(p, p_issue));
+		// alright, it didn't belong to that nation -- try checking everything to help broken mods work anyways
+		err.accumulated_warnings += "invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		for(auto p : context.outer_context.state.world.in_political_party) {
+			auto name = p.get_name();
+			if(name == value_key) {
+				context.outer_context.state.world.nation_set_ruling_party(context.holder_id, p);
+				for(auto p_issue : context.outer_context.state.culture_definitions.party_issues) {
+					context.outer_context.state.world.nation_set_issues(context.holder_id, p_issue,
+							context.outer_context.state.world.political_party_get_party_issues(p, p_issue));
+				}
+				return;
 			}
-			return;
 		}
 	}
 	err.accumulated_errors += "globally invalid political party " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 }
 
 void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
-	auto value_key = [&]() {
-		auto it = context.outer_context.state.key_to_text_sequence.find(lowercase_str(value) + "_title");
-		if(it != context.outer_context.state.key_to_text_sequence.end())
-			return it->second;
-		return dcon::text_sequence_id();
-	}();
+	auto value_key = context.outer_context.state.lookup_key(std::string{ value } + "_title");
 
 	if(!value_key) {
 		err.accumulated_errors += "no decision named " + std::string(value) + " found  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2987,12 +2978,12 @@ void country_file::any_group(std::string_view name, color_from_3i c, error_handl
 
 void generic_event::title(association_type, std::string_view value, error_handler& err, int32_t line,
 		event_building_context& context) {
-	title_ = text::find_or_add_key(context.outer_context.state, value);
+	title_ = text::find_or_add_key(context.outer_context.state, value, false);
 }
 
 void generic_event::desc(association_type, std::string_view value, error_handler& err, int32_t line,
 		event_building_context& context) {
-	desc_ = text::find_or_add_key(context.outer_context.state, value);
+	desc_ = text::find_or_add_key(context.outer_context.state, value, false);
 }
 
 void generic_event::issue_group(association_type, std::string_view name, error_handler& err, int32_t line, event_building_context& context) {
@@ -3007,7 +2998,7 @@ void generic_event::option(sys::event_option const& value, error_handler& err, i
 	if(last_option_added < sys::max_event_options) {
 		options[last_option_added] = value;
 		if(!value.name && !value.effect) {
-			options[last_option_added].name = text::find_or_add_key(context.outer_context.state, "alice_option_no_name");
+			options[last_option_added].name = text::find_or_add_key(context.outer_context.state, "alice_option_no_name", true);
 			err.accumulated_warnings += "Event with an option with no name (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 		++last_option_added;
@@ -3051,7 +3042,7 @@ void generic_event::picture(association_type, std::string_view name, error_handl
 			new_obj.primary_texture_handle = itb->second;
 		} else {
 			auto index = context.outer_context.state.ui_defs.textures.size();
-			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_to_pool(file_name));
+			context.outer_context.state.ui_defs.textures.emplace_back(context.outer_context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
 			context.outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
 		}
@@ -3134,7 +3125,7 @@ void make_leader_images(scenario_building_context& outer_context) {
 			new_obj.primary_texture_handle = itb->second;
 		} else {
 			auto index = outer_context.state.ui_defs.textures.size();
-			outer_context.state.ui_defs.textures.emplace_back(outer_context.state.add_to_pool(file_name));
+			outer_context.state.ui_defs.textures.emplace_back(outer_context.state.add_key_win1252(file_name));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
 			outer_context.gfx_context.map_of_texture_names.insert_or_assign(file_name, dcon::texture_id(uint16_t(index)));
 		}
@@ -3282,11 +3273,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_original_target(context.defenders[0]);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
-		auto it = context.outer_context.state.key_to_text_sequence.find(
-				std::string_view{"agression_war_name"}); // misspelling is intentional; DO NOT CORRECT
-		if(it != context.outer_context.state.key_to_text_sequence.end()) {
-			new_war.set_name(it->second);
-		}
+		new_war.set_name(context.outer_context.state.lookup_key(std::string_view{ "agression_war_name" }));// misspelling is intentional; DO NOT CORRECT
 
 		for(auto n : context.attackers) {
 			auto rel = context.outer_context.state.world.force_create_war_participant(new_war, n);
@@ -3373,8 +3360,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 	auto new_locale_obj = fatten(state.world, new_locale_id);
 	new_locale_obj.set_hb_script(hb_script_from_string(new_locale.script.c_str(), int(new_locale.script.length())));
 	new_locale_obj.set_native_rtl(new_locale.rtl);
-	if(new_locale.prevent_map_letterspacing)
-		new_locale_obj.set_prevent_letterspace(*new_locale.prevent_map_letterspacing);
+	new_locale_obj.set_prevent_letterspace(new_locale.prevent_map_letterspacing);
 
 	{
 		auto f = new_locale_obj.get_body_font();
@@ -3403,6 +3389,14 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 	{
 		auto f = new_locale_obj.get_locale_name();
 		f.load_range((uint8_t const*)locale_name.data(), (uint8_t const*)locale_name.data() + locale_name.length());
+	}
+	{
+		auto f = new_locale_obj.get_fallback();
+		f.load_range((uint8_t const*)new_locale.fallback.data(), (uint8_t const*)new_locale.fallback.data() + new_locale.fallback.length());
+	}
+	{
+		auto f = new_locale_obj.get_display_name();
+		f.load_range((uint8_t const*)new_locale.display_name.data(), (uint8_t const*)new_locale.display_name.data() + new_locale.display_name.length());
 	}
 }
 
