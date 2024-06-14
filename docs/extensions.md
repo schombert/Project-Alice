@@ -6,13 +6,37 @@ This document covers modding extensions that have been added to Project Alice in
 
 In Victoria 2, a trigger condition such as as `prestige = 5` will trigger when the nation's prestige is greater than or equal to 5. If you want to test whether the value is less than 5, you would have to bury it inside a `NOT` scope. And testing for exact equality would be even more complicated. To simplify things, we support replacing the `=` with one of the following tokens: `==`, `!=`, `<`, `>`, `<=`, `>=`. `==` tests for exact equality, `!=` for inequality, and the rest have their ordinary meanings. We also support replacing `=` with `!=` in most situations. For example, `tag != USA` is the same as `NOT = { tag = USA }`.
 
+Additionally, any effect scope can have a limit, in the original, `THIS`, `TAG`, `FROM`, `overlord`, `capital_scope` and `any_greater_power` couldn't reliably have a `limit = { ... }` defined within them. However Alice supports defining limits for any of them.
+
+Also, province scopes will not crash the game, take for example:
+
+```
+252 = {
+	owner = { prestige = 5 }
+	owner = { badboy = 0.2 }
+	secede_province = THIS
+}
+```
+
+This would certainly be unthinkable, as in the original, anything after the first owner gets ignored. But not anymore.
+
+```
+ENG_52 = {
+	secede_province = QQQ
+	change_region_name = "Test"
+	secede_province = THIS
+}
+```
+
+This often caused crashes if not handled carefully (especially the seceding to a null tag part). Not anymore.
+
 ### New effects
 
 - `increment_variable = ...`: Shorthand to increment by 1
 - `decrement_variable = ...`: Shorthand to decrement by 1
 - `set_variable_to_zero = ...`: Shorthand to set a variable to 0
 - `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
-- `add_accepted_culture = culture/THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
+- `add_accepted_culture = THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
 - `kill_leader = "name of leader"`: kills a leader (admiral or general) belonging to the nation in scope with the given name. Note that this will only reliably function if you have explicitly created a leader with that name via effect or via definition in the history files.
 - `annex_to = null`: this turns all the provinces owned by the nation in scope into unowned provinces (which defeats the nation, liberates its puppets, etc).

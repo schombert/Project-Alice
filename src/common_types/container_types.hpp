@@ -139,15 +139,13 @@ struct crisis_join_offer {
 	dcon::national_identity_id wargoal_tag;
 	dcon::nation_id wargoal_secondary_nation;
 	dcon::cb_type_id wargoal_type;
-	uint8_t padding = 0;
 };
 static_assert(sizeof(crisis_join_offer) ==
 	sizeof(crisis_join_offer::target)
 	+ sizeof(crisis_join_offer::wargoal_type)
 	+ sizeof(crisis_join_offer::wargoal_state)
 	+ sizeof(crisis_join_offer::wargoal_tag)
-	+ sizeof(crisis_join_offer::wargoal_secondary_nation)
-	+ sizeof(crisis_join_offer::padding));
+	+ sizeof(crisis_join_offer::wargoal_secondary_nation));
 
 } // namespace sys
 

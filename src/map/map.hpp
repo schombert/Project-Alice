@@ -141,6 +141,7 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
+	std::vector<GLuint> text_line_texture_per_quad;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
