@@ -576,28 +576,28 @@ void base_event_option_listbox::on_update(sys::state& state) noexcept {
 	if(std::holds_alternative<event::pending_human_n_event>(content)) {
 		auto e = std::get<event::pending_human_n_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.national_event_get_options(e)[i].effect && !state.world.national_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.national_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_n_event>(content)) {
 		auto e = std::get<event::pending_human_f_n_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.free_national_event_get_options(e)[i].effect && !state.world.free_national_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.free_national_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_p_event>(content)) {
 		auto e = std::get<event::pending_human_p_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.provincial_event_get_options(e)[i].effect && !state.world.provincial_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.provincial_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
 	} else if(std::holds_alternative<event::pending_human_f_p_event>(content)) {
 		auto e = std::get<event::pending_human_f_p_event>(content).e;
 		for(int32_t i = 0; i < sys::max_event_options; ++i) {
-			if(!state.world.free_provincial_event_get_options(e)[i].effect && !state.world.free_provincial_event_get_options(e)[i].name)
+			if(!event::is_valid_option(state.world.free_provincial_event_get_options(e)[i]))
 				break;
 			row_contents.push_back(i);
 		}
