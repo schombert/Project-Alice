@@ -2000,15 +2000,18 @@ public:
 	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<nations::focus_type>()) {
 			auto category = any_cast<nations::focus_type>(payload);
-			category_label->set_text(state, text::get_focus_category_name(state, category));
+			if(category_label)
+				category_label->set_text(state, text::get_focus_category_name(state, category));
 
-			focus_list->row_contents.clear();
-			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
-				auto fat_id = dcon::fatten(state.world, focus_id);
-				if(fat_id.get_type() == uint8_t(category))
-					focus_list->row_contents.push_back(focus_id);
-			});
-			focus_list->update(state);
+			if(focus_list) {
+				focus_list->row_contents.clear();
+				state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
+					auto fat_id = dcon::fatten(state.world, focus_id);
+					if(fat_id.get_type() == uint8_t(category))
+						focus_list->row_contents.push_back(focus_id);
+				});
+				focus_list->update(state);
+			}
 			return message_result::consumed;
 		} else {
 			return message_result::unseen;

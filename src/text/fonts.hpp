@@ -46,7 +46,6 @@ class font;
 struct stored_glyphs {
 	std::vector<hb_glyph_info_t> glyph_info;
 	std::vector<hb_glyph_position_t> glyph_pos;
-	std::vector<uint32_t> glyph_texture_indices;
 	unsigned int glyph_count = 0;
 
 	stored_glyphs() = default;
@@ -96,9 +95,8 @@ public:
 	float internal_ascender = 0.0f;
 	float internal_descender = 0.0f;
 	float internal_top_adj = 0.0f;
-	
-	ankerl::unordered_dense::map<uint16_t, uint32_t> texture_slots;
 	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
+	ankerl::unordered_dense::map<uint16_t, uint32_t> texture_slots;
 
 	std::unique_ptr<FT_Byte[]> file_data;
 
@@ -118,7 +116,7 @@ public:
 
 	friend class font_manager;
 
-	font(font&& o) noexcept : file_name(std::move(o.file_name)), texture_slots(std::move(texture_slots)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
+	font(font&& o) noexcept : file_name(std::move(o.file_name)), texture_slots(std::move(o.texture_slots)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)) {
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
