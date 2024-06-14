@@ -1804,11 +1804,11 @@ public:
 		window_element_base::on_create(state);
 
 		xy_pair gp_base_select_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("gpselectoptionpos")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("gpselectoptionpos"))->second.definition].position;
 		xy_pair gp_select_offset = gp_base_select_offset;
 		for(uint8_t i = 0; i < uint8_t(state.defines.great_nations_count); i++) {
 			auto ptr = make_element_by_type<diplomacy_action_gp_dialog_select_window>(state,
-					state.ui_state.defs_by_name.find("gpselectoption")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("gpselectoption"))->second.definition);
 			ptr->base_data.position = gp_select_offset;
 			ptr->rank = i;
 			// Arrange in columns of 2 elements each...

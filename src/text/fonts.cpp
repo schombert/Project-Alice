@@ -363,6 +363,14 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 		state.world.locale_set_resolved_map_font(l, count);
 	}
 
+	state.reset_locale_pool();
+
+	auto fb_name = state.world.locale_get_fallback(l);
+	if(fb_name.size() > 0) {
+		std::string_view fb_name_sv((char const*)fb_name.begin(), fb_name.size());
+		state.load_locale_strings(fb_name_sv);
+	}
+
 	state.load_locale_strings(localename_sv);
 }
 

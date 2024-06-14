@@ -1848,32 +1848,32 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find("take_loan_window")->second.definition);
+		auto win1337 = make_element_by_type<budget_take_loan_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("take_loan_window"))->second.definition);
 		budget_take_loan_win = win1337.get();
 		win1337->base_data.position.y -= 66; // Nudge >w<
 		win1337->set_visible(state, false);
 		add_child_to_front(std::move(win1337));
 
-		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find("repay_loan_window")->second.definition);
+		auto win101 = make_element_by_type<budget_repay_loan_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("repay_loan_window"))->second.definition);
 		budget_repay_loan_win = win101.get();
 		win101->base_data.position.y -= 66; // Nudge >w<
 		win101->set_visible(state, false);
 		add_child_to_front(std::move(win101));
 
 		{
-			auto elm = make_element_by_type<enable_debt_toggle>(state, state.ui_state.defs_by_name.find("alice_debt_checkbox")->second.definition);
+			auto elm = make_element_by_type<enable_debt_toggle>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_debt_checkbox"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
 		{
-			auto elm = make_element_by_type<domestic_investment_slider>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_slider")->second.definition);
+			auto elm = make_element_by_type<domestic_investment_slider>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_domestic_investment_slider"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
 		{
-			auto elm = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_label")->second.definition);
+			auto elm = make_element_by_type<simple_text_element_base>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_domestic_investment_label"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
 		{
-			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find("alice_domestic_investment_value")->second.definition);
+			auto elm = make_element_by_type<domestic_investment_estimated_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_domestic_investment_value"))->second.definition);
 			add_child_to_front(std::move(elm));
 		}
 		set_visible(state, false);

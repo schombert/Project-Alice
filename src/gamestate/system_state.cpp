@@ -42,13 +42,13 @@ namespace ui {
 void create_in_game_windows(sys::state& state) {
 	state.ui_state.lazy_load_in_game = true;
 
-	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find("alice_grid_panel")->second.definition);
+	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_grid_panel"))->second.definition);
 	state.ui_state.unit_details_box->set_visible(state, false);
 	//
-	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find("alice_select_legend_window")->second.definition);
+	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
 	state.ui_state.end_screen = std::make_unique<ui::container_base>();
 	{
-		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find("back_end")->second.definition);
+		auto ewin = ui::make_element_by_type<ui::end_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("back_end"))->second.definition);
 		state.ui_state.end_screen->add_child_to_front(std::move(ewin));
 	}
 	{
@@ -1168,7 +1168,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 			while(c7) {
 				if(ui_state.endof_navalcombat_windows.size() == 0) {
 					ui_state.endof_navalcombat_windows.push_back(ui::make_element_by_type<ui::naval_combat_end_popup>(*this,
-						ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition));
+						ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition));
 				}
 				//static_cast<ui::naval_combat_window*>(ui_state.navalcombat_windows.back().get())->messages.push_back(*c7);
 				static_cast<ui::naval_combat_end_popup*>(ui_state.endof_navalcombat_windows.back().get())->report = *c7;
@@ -1510,56 +1510,54 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 void state::on_create() {
 	// Clear "center" property so they don't look messed up!
-	ui_defs.gui[ui_state.defs_by_name.find("state_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("production_goods_name")->second.definition].flags &=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("state_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("production_goods_name"))->second.definition].flags &=
 		~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("factory_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("new_factory_option")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("ledger_legend_entry")->second.definition].flags &= ~ui::element_data::orientation_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("project_info")->second.definition].flags &= ~ui::element_data::orientation_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("factory_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("new_factory_option"))->second.definition].flags &= ~ui::element_data::orientation_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger_legend_entry"))->second.definition].flags &= ~ui::element_data::orientation_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("project_info"))->second.definition].flags &= ~ui::element_data::orientation_mask;
 	// Allow mobility of those windows who can be moved, and shall be moved
-	ui_defs.gui[ui_state.defs_by_name.find("pop_details_win")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("pop_details_win"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("trade_flow")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("event_election_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("invest_project_window")->second.definition].data.window.flags |=
-		ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("trade_flow"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("event_election_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("invest_project_window"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
 	// if(!user_settings.use_new_ui) {	TODO - this should only trigger if youre not on faithful mode, in Vic2, none of these
 	// windows are moveable
-	ui_defs.gui[ui_state.defs_by_name.find("ledger")->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("province_view")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ledger"))->second.definition].data.window.flags |= ui::window_data::is_moveable_mask;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("province_view"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("releaseconfirm")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("releaseconfirm"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("build_factory")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("build_factory"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("defaultdiplomacydialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("gpselectdiplomacydialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("makecbdialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("makecbdialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("declarewardialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("declarewardialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setuppeacedialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setuppeacedialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("setupcrisisbackdowndialog")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("setupcrisisbackdowndialog"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("endofnavalcombatpopup")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endofnavalcombatpopup"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("endoflandcombatpopup")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("endoflandcombatpopup"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
-	ui_defs.gui[ui_state.defs_by_name.find("ingame_lobby_window")->second.definition].data.window.flags |=
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("ingame_lobby_window"))->second.definition].data.window.flags |=
 		ui::window_data::is_moveable_mask;
 	// Nudge, overriden by V2 to be 0 always
-	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.x = 0;
-	ui_defs.gui[ui_state.defs_by_name.find("decision_entry")->second.definition].position.y = 0;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.x = 0;
+	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position.y = 0;
 	//}
 	// Find the object id for the main_bg displayed (so we display it before the map)
-	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find("bg_main_menus")->second.definition].data.image.gfx_object;
+	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
 
-	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find("lobby")->second.definition);
+	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
 	{
 		auto window = ui::make_element_by_type<ui::console_window>(*this, "console_wnd");
 		ui_state.console_window_r = window.get();
@@ -1612,8 +1610,6 @@ void state::reset_locale_pool() {
 }
 
 void state::load_locale_strings(std::string_view locale_name) {
-	reset_locale_pool();
-
 	auto root_dir = get_root(common_fs);
 	auto assets_dir = open_directory(root_dir, NATIVE("assets\\localisation"));
 
@@ -1763,7 +1759,7 @@ uint32_t state::add_locale_data_win1252(std::string_view text) {
 			locale_text_data.push_back(char(0x80 | uint8_t(0x3F & unicode)));
 		}
 	}
-	key_data.push_back(0);
+	locale_text_data.push_back(0);
 	return uint32_t(start);
 }
 uint32_t state::add_locale_data_utf8(std::string const& new_text) {
@@ -2071,6 +2067,19 @@ void state::load_user_settings() {
 	user_settings.locale[15] = 0;
 	std::string lname(user_settings.locale);
 	bool locale_loaded = false;
+
+	auto rt = get_root(common_fs);
+	auto assets = simple_fs::open_directory(rt, NATIVE("assets"));
+	auto loc = simple_fs::open_directory(assets, NATIVE("localisation"));
+	for(auto& ld : simple_fs::list_subdirectories(loc)) {
+		auto def_file = simple_fs::open_file(ld, NATIVE("locale.txt"));
+		if(def_file) {
+			auto contents = simple_fs::view_contents(*def_file);
+			auto ld_name = simple_fs::get_full_name(ld);
+			auto dir_lname = ld_name.substr(ld_name.find_last_of(NATIVE_DIR_SEPARATOR) + 1);
+			parsers::add_locale(*this, simple_fs::native_to_utf8(dir_lname), contents.data, contents.data + contents.file_size);
+		}
+	}
 
 	for(auto l : world.in_locale) {
 		auto ln = l.get_locale_name();

@@ -1,0 +1,13 @@
+display_name = "中文（中国）"
+script = Hani
+
+body_font = NotoSerifSC-Regular.ttf
+
+header_font = NotoSerifSC-Regular.ttf
+
+map_font = NotoSerifSC-Regular.ttf
+
+fallback = en-US
+
+prevent_map_letterspacing = yes
+rtl = no

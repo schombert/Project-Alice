@@ -2926,7 +2926,7 @@ void country_history_file::ruling_party(association_type, std::string_view value
 }
 
 void country_history_file::decision(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
-	auto value_key = context.outer_context.state.lookup_key(value);
+	auto value_key = context.outer_context.state.lookup_key(std::string{ value } + "_title");
 
 	if(!value_key) {
 		err.accumulated_errors += "no decision named " + std::string(value) + " found  (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -3360,8 +3360,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 	auto new_locale_obj = fatten(state.world, new_locale_id);
 	new_locale_obj.set_hb_script(hb_script_from_string(new_locale.script.c_str(), int(new_locale.script.length())));
 	new_locale_obj.set_native_rtl(new_locale.rtl);
-	if(new_locale.prevent_map_letterspacing)
-		new_locale_obj.set_prevent_letterspace(*new_locale.prevent_map_letterspacing);
+	new_locale_obj.set_prevent_letterspace(new_locale.prevent_map_letterspacing);
 
 	{
 		auto f = new_locale_obj.get_body_font();
@@ -3390,6 +3389,14 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 	{
 		auto f = new_locale_obj.get_locale_name();
 		f.load_range((uint8_t const*)locale_name.data(), (uint8_t const*)locale_name.data() + locale_name.length());
+	}
+	{
+		auto f = new_locale_obj.get_fallback();
+		f.load_range((uint8_t const*)new_locale.fallback.data(), (uint8_t const*)new_locale.fallback.data() + new_locale.fallback.length());
+	}
+	{
+		auto f = new_locale_obj.get_display_name();
+		f.load_range((uint8_t const*)new_locale.display_name.data(), (uint8_t const*)new_locale.display_name.data() + new_locale.display_name.length());
 	}
 }
 

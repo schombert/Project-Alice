@@ -1015,7 +1015,7 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat) {
 }
 
 std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name) {
-	auto it = state.ui_state.defs_by_name.find(name);
+	auto it = state.ui_state.defs_by_name.find(state.lookup_key(name));
 	if(it != state.ui_state.defs_by_name.end()) {
 		if(it->second.generator) {
 			auto res = it->second.generator(state, it->second.definition);

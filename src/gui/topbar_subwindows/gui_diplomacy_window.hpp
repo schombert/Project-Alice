@@ -1122,7 +1122,7 @@ public:
 		window_element_base::on_create(state);
 		uint32_t row_count = uint32_t(state.defines.great_nations_count) / 2;
 		for(uint32_t i = 0; i < uint32_t(state.defines.great_nations_count); i++) {
-			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_info")->second.definition);
+			auto win = make_element_by_type<great_power_inf_detail>(state, state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_non_gp_extra_info"))->second.definition);
 			win->gp_num = int32_t(i);
 			win->base_data.position = sub_window_top_left;
 			win->base_data.position.x += win->base_data.size.x * int16_t(i / row_count);
@@ -1167,7 +1167,7 @@ public:
 		} else if(name == "nongp_extra_info_bg") {
 			auto ptr = make_element_by_type<image_element_base>(state, id);
 			non_gp_elements[0] = ptr.get();
-			auto const& def = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_non_gp_extra_fact_pos")->second.definition];
+			auto const& def = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_non_gp_extra_fact_pos"))->second.definition];
 			sub_window_top_left = def.position;
 			return ptr;
 		} else if(name == "country_flag") {
@@ -2080,7 +2080,7 @@ private:
 
 	template<typename T>
 	void add_action_button(sys::state& state, xy_pair offset) noexcept {
-		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find("diplomacy_option")->second.definition);
+		auto ptr = make_element_by_type<T>(state, state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition);
 		ptr->base_data.position = offset;
 		action_buttons.push_back(ptr.get());
 		add_child_to_front(std::move(ptr));
@@ -2092,11 +2092,11 @@ public:
 		state.ui_state.diplomacy_subwindow = this;
 
 		xy_pair base_gp_info_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_greatpower_pos")->second.definition].position;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_greatpower_pos"))->second.definition].position;
 		xy_pair gp_info_offset = base_gp_info_offset;
 		for(uint8_t i = 0; i < uint8_t(state.defines.great_nations_count); i++) {
 			auto ptr = make_element_by_type<diplomacy_greatpower_info>(state,
-					state.ui_state.defs_by_name.find("diplomacy_greatpower_info")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_greatpower_info"))->second.definition);
 			ptr->base_data.position = gp_info_offset;
 			ptr->rank = i;
 			// Increment gp offset
@@ -2111,8 +2111,8 @@ public:
 
 		// Fill out all the options for the diplomacy window
 		xy_pair options_base_offset =
-				state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_actions_pos")->second.definition].position;
-		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find("diplomacy_option")->second.definition].size;
+				state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_actions_pos"))->second.definition].position;
+		xy_pair options_size = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("diplomacy_option"))->second.definition].size;
 		xy_pair options_offset = options_base_offset;
 		add_action_button<diplomacy_action_window<diplomacy_action_ally_button>>(state, options_offset);
 		options_offset.y += options_size.y;
@@ -2153,45 +2153,45 @@ public:
 		add_action_button<diplomacy_action_window<diplomacy_action_state_transfer_button>>(state, options_offset);
 
 		auto new_win1 = make_element_by_type<diplomacy_action_dialog_window>(state,
-				state.ui_state.defs_by_name.find("defaultdiplomacydialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("defaultdiplomacydialog"))->second.definition);
 		new_win1->set_visible(state, false);
 		action_dialog_win = new_win1.get();
 		add_child_to_front(std::move(new_win1));
 
 		auto new_win2 = make_element_by_type<diplomacy_gp_action_dialog_window>(state,
-				state.ui_state.defs_by_name.find("gpselectdiplomacydialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("gpselectdiplomacydialog"))->second.definition);
 		new_win2->set_visible(state, false);
 		gp_action_dialog_win = new_win2.get();
 		add_child_to_front(std::move(new_win2));
 
 		auto new_win3 = make_element_by_type<diplomacy_declare_war_dialog>(state,
-				state.ui_state.defs_by_name.find("declarewardialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("declarewardialog"))->second.definition);
 		new_win3->set_visible(state, false);
 		declare_war_win = new_win3.get();
 		add_child_to_front(std::move(new_win3));
 
 		{
 			auto new_winc = make_element_by_type<offer_war_goal_dialog>(state,
-				state.ui_state.defs_by_name.find("declarewardialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("declarewardialog"))->second.definition);
 			new_winc->set_visible(state, false);
 			offer_goal_win = new_winc.get();
 			add_child_to_front(std::move(new_winc));
 		}
 
 		auto new_win4 = make_element_by_type<diplomacy_setup_peace_dialog>(state,
-				state.ui_state.defs_by_name.find("setuppeacedialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("setuppeacedialog"))->second.definition);
 		new_win4->set_visible(state, false);
 		setup_peace_win = new_win4.get();
 		add_child_to_front(std::move(new_win4));
 
 		auto new_win5 = make_element_by_type<diplomacy_make_cb_window>(state,
-				state.ui_state.defs_by_name.find("makecbdialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("makecbdialog"))->second.definition);
 		new_win5->set_visible(state, false);
 		make_cb_win = new_win5.get();
 		add_child_to_front(std::move(new_win5));
 
 		auto new_win6 = make_element_by_type<crisis_resolution_dialog>(state,
-				state.ui_state.defs_by_name.find("setuppeacedialog")->second.definition);
+				state.ui_state.defs_by_name.find(state.lookup_key("setuppeacedialog"))->second.definition);
 		new_win6->set_visible(state, false);
 		crisis_backdown_win = new_win6.get();
 		add_child_to_front(std::move(new_win6));

@@ -1,0 +1,13 @@
+display_name = "English (US)"
+script = Latn
+
+body_font = LibreCaslonText-Regular.ttf
+
+header_font = SourceSerif4Subhead-Regular.ttf
+header_feature = smcp
+
+map_font = SourceSerif4Subhead-Regular.ttf
+map_feature = smcp
+
+prevent_map_letterspacing = no
+rtl = no

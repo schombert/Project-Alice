@@ -573,28 +573,28 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<grid_row>::on_create(state);
 		{
-			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find("alice_base_unit_icon")->second.definition);
+			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_base_unit_icon"))->second.definition);
 			win->base_data.position.x = int16_t(3 + 67 * 0);
 			win->base_data.position.y = int16_t(3);
 			grid_items[0] = win.get();
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find("alice_base_unit_icon")->second.definition);
+			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_base_unit_icon"))->second.definition);
 			win->base_data.position.x = int16_t(3 + 67 * 1);
 			win->base_data.position.y = int16_t(3);
 			grid_items[1] = win.get();
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find("alice_base_unit_icon")->second.definition);
+			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_base_unit_icon"))->second.definition);
 			win->base_data.position.x = int16_t(3 + 67 * 2);
 			win->base_data.position.y = int16_t(3);
 			grid_items[2] = win.get();
 			add_child_to_front(std::move(win));
 		}
 		{
-			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find("alice_base_unit_icon")->second.definition);
+			auto win = make_element_by_type<base_unit_container>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_base_unit_icon"))->second.definition);
 			win->base_data.position.x = int16_t(3 + 67 * 3);
 			win->base_data.position.y = int16_t(3);
 			grid_items[3] = win.get();

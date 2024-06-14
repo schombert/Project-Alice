@@ -2811,12 +2811,13 @@ struct bookmark_file {
 
 struct locale_parser {
 	bool rtl = false;
-	std::optional<bool> prevent_map_letterspacing;
+	bool prevent_map_letterspacing = false;
 	std::string display_name;
 	std::string script = "Latn";
 	std::string body_font;
 	std::string header_font;
 	std::string map_font;
+	std::string fallback;
 	std::vector<uint32_t> body_features;
 	std::vector<uint32_t> header_features;
 	std::vector<uint32_t> map_features;

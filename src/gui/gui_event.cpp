@@ -613,46 +613,46 @@ void base_event_window::on_create(sys::state& state) noexcept {
 	if(get_pool_slot() == event_pool_slot::province) {
 		image->set_visible(state, false);
 		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_requirements"))->second.definition);
 			ptr->base_data.position.y = int16_t(355);
 			ptr->base_data.position.x += int16_t(ptr->base_data.size.x + 140);
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_odds"))->second.definition);
 			ptr->base_data.position.y = int16_t(355);
 			ptr->base_data.position.x += int16_t(ptr->base_data.size.x * 2 + 140);
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(get_option_start_element_name())->second.definition].position;
+			xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(get_option_start_element_name()))->second.definition].position;
 			cur_offset.y += 22;
-			auto ptr = make_element_by_type<provincial_event_listbox>(state, state.ui_state.defs_by_name.find("alice_povince_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<provincial_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_povince_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y -= 150; // Omega nudge??
 			add_child_to_front(std::move(ptr));
 		}
 	} else {
 		{
-			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find("alice_event_requirements")->second.definition);
+			auto ptr = make_element_by_type<event_requirements_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_requirements"))->second.definition);
 			ptr->base_data.position.y = 20;
 			ptr->base_data.position.x += ptr->base_data.size.x;
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find("alice_event_odds")->second.definition);
+			auto ptr = make_element_by_type<event_odds_icon>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_event_odds"))->second.definition);
 			ptr->base_data.position.y = 20;
 			ptr->base_data.position.x += ptr->base_data.size.x * 2;
 			add_child_to_front(std::move(ptr));
 		}
-		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(get_option_start_element_name())->second.definition].position;
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(get_option_start_element_name()))->second.definition].position;
 		if(get_pool_slot() == event_pool_slot::country_election) {
-			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find("alice_election_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<national_election_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_election_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y += 5;
 			add_child_to_front(std::move(ptr));
 		} else {
-			auto ptr = make_element_by_type<national_event_listbox>(state, state.ui_state.defs_by_name.find("alice_nation_event_opts_list")->second.definition);
+			auto ptr = make_element_by_type<national_event_listbox>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_nation_event_opts_list"))->second.definition);
 			ptr->base_data.position = cur_offset;
 			ptr->base_data.position.y += 5;
 			add_child_to_front(std::move(ptr));
@@ -1007,7 +1007,7 @@ std::unique_ptr<element_base> base_event_window::make_child(sys::state& state, s
 		return ptr;
 	} else if(name == "event_separator_image") {
 		auto ptr = make_element_by_type<image_element_base>(state, id);
-		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("event_province_option_start")->second.definition].position;
+		xy_pair cur_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("event_province_option_start"))->second.definition].position;
 		ptr->base_data.position.y = cur_offset.y;
 		ptr->base_data.position.y -= 150; // Omega nudge??
 		return ptr;
@@ -1179,7 +1179,7 @@ void new_event_window_1(sys::state& state, event_data_wrapper& dat, event_pool_s
 		event_pool[slot].pop_back();
 		ptr->event_data = dat;
 		if(!ptr->is_visible())
-			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(T::window_element_name)->second.definition].position;
+			ptr->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key(T::window_element_name))->second.definition].position;
 		ptr->set_visible(state, true);
 		state.ui_state.root->add_child_to_front(std::move(ptr));
 	}

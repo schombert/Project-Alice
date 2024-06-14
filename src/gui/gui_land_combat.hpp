@@ -945,7 +945,7 @@ public:
 		window_element_base::on_create(state);
 		state.ui_state.army_combat_window = this;
 
-		auto def = state.ui_state.defs_by_name.find("counter")->second.definition;
+		auto def = state.ui_state.defs_by_name.find(state.lookup_key("counter"))->second.definition;
 		for(int32_t i = 0; i < 30; ++i) {
 			int32_t s = (i < 15) ? 28 - i * 2 : (i - 15) * 2 + 1;
 			{

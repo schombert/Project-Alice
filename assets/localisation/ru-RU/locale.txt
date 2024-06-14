@@ -1,0 +1,15 @@
+display_name = Русский
+script = Cyrl
+
+body_font = NotoSerif-Regular.ttf
+
+header_font = NotoSerif-Regular.ttf
+header_feature = smcp
+
+map_font = NotoSerif-Regular.ttf
+map_feature = smcp
+
+fallback = en-US
+
+prevent_map_letterspacing = no
+rtl = no

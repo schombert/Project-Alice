@@ -4848,27 +4848,26 @@ object {
 	name{ locale }
 	storage_type{ contiguous }
 	size{ 2000 }
-	tag{ scenario }
 
 	property{
 		name{ native_rtl }
 		type{ bitfield }
-		tag{ scenario }
 	}
 	property{
 		name{ prevent_letterspace }
 		type{ bitfield }
-		tag{ scenario }
 	}
 	property{
 		name{ display_name }
 		type{vector_pool{5000}{uint8_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ locale_name }
 		type{vector_pool{5000}{uint8_t}}
-		tag{ scenario }
+	}
+	property{
+		name{ fallback }
+		type{vector_pool{5000}{uint8_t}}
 	}
 	property{
 		name{ resolved_language }
@@ -4877,7 +4876,6 @@ object {
 	property{
 		name{ hb_script }
 		type{ uint32_t }
-		tag{ scenario }
 	}
 	property{
 		name{ resolved_body_font }
@@ -4894,32 +4892,26 @@ object {
 	property{
 		name{ body_font }
 		type{vector_pool{5000}{uint8_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ header_font }
 		type{vector_pool{5000}{uint8_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ map_font }
 		type{vector_pool{5000}{uint8_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ body_font_features }
 		type{vector_pool{1000}{uint32_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ header_font_features }
 		type{vector_pool{1000}{uint32_t}}
-		tag{ scenario }
 	}
 	property{
 		name{ map_font_features }
 		type{vector_pool{1000}{uint32_t}}
-		tag{ scenario }
 	}
 }
 

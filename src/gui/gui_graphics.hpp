@@ -364,6 +364,17 @@ struct chat_message {
 	}
 };
 
+struct hash_text_key {
+	using is_avalanching = void;
+	using is_transparent = void;
+
+	hash_text_key() { }
+
+	auto operator()(dcon::text_key sv) const noexcept -> uint64_t {
+		return ankerl::unordered_dense::detail::wyhash::hash(&sv, sizeof(sv));
+	}
+};
+
 struct state {
 	element_base* under_mouse = nullptr;
 	element_base* left_mouse_hold_target = nullptr;
@@ -391,7 +402,7 @@ struct state {
 	std::unique_ptr<element_base> select_states_legend;
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
-	ankerl::unordered_dense::map<std::string_view, element_target> defs_by_name;
+	ankerl::unordered_dense::map<dcon::text_key, element_target, hash_text_key> defs_by_name;
 
 	// elements we are keeping track of
 	element_base* main_menu = nullptr; // Settings window

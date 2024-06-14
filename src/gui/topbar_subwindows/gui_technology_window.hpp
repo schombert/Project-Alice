@@ -856,11 +856,11 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		generic_tabbed_window::on_create(state);
 
-		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("folder_offset")->second.definition].position;
+		xy_pair folder_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("folder_offset"))->second.definition].position;
 		for(auto curr_folder = culture::tech_category::army; curr_folder != culture::tech_category(5);
 				curr_folder = static_cast<culture::tech_category>(static_cast<uint8_t>(curr_folder) + 1)) {
 			auto ptr = make_element_by_type<technology_folder_tab_button>(state,
-					state.ui_state.defs_by_name.find("folder_window")->second.definition);
+					state.ui_state.defs_by_name.find(state.lookup_key("folder_window"))->second.definition);
 			ptr->set_category(state, curr_folder);
 			ptr->base_data.position = folder_offset;
 			folder_offset.x += ptr->base_data.size.x;
@@ -889,8 +889,8 @@ public:
 		std::vector<size_t> items_per_folder(state.culture_definitions.tech_folders.size(), 0);
 
 		xy_pair base_group_offset =
-			state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_group_offset")->second.definition].position;
-		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find("tech_offset")->second.definition].position;
+			state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_group_offset"))->second.definition].position;
+		xy_pair base_tech_offset = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("tech_offset"))->second.definition].position;
 
 		for(auto cat = culture::tech_category::army; cat != culture::tech_category(5);
 				cat = static_cast<culture::tech_category>(static_cast<uint8_t>(cat) + 1)) {
@@ -901,7 +901,7 @@ public:
 					continue;
 
 				auto ptr = make_element_by_type<technology_tech_group_window>(state,
-						state.ui_state.defs_by_name.find("tech_group")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("tech_group"))->second.definition);
 
 				ptr->category = cat;
 				Cyto::Any payload = culture::folder_info(folder);
@@ -922,7 +922,7 @@ public:
 					return;
 
 				auto ptr = make_element_by_type<technology_item_window>(state,
-						state.ui_state.defs_by_name.find("tech_window")->second.definition);
+						state.ui_state.defs_by_name.find(state.lookup_key("tech_window"))->second.definition);
 
 				Cyto::Any payload = tid;
 				ptr->impl_set(state, payload);

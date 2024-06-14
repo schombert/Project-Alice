@@ -840,7 +840,7 @@ public:
 		} else if(name == "play_button") {
 			return make_element_by_type<start_game_button>(state, id);
 		} else if(name == "chatlog") {
-			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find("alice_readme_text")->second.definition);
+			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<invisible_element>(state, id);
 		}
