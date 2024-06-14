@@ -1008,7 +1008,7 @@ uint32_t es_random_scope(EFFECT_PARAMTERS) {
 	return 1;
 }
 uint32_t es_random_by_modifier_scope(EFFECT_PARAMTERS) {
-	auto mod_k = dcon::value_modifier_key(dcon::value_modifier_key::value_base_t(tval[2]));
+	auto mod_k = dcon::value_modifier_key{ dcon::value_modifier_key::value_base_t(tval[2]) };
 	auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
 	assert(chance >= 0.f);
 	auto r = int32_t(rng::get_random(ws, r_hi, r_lo) % 100);

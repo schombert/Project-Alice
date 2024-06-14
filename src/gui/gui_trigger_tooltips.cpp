@@ -8474,7 +8474,7 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		int32_t primary_slot, int32_t this_slot, int32_t from_slot) {
 	auto base = state.value_modifiers[modifier];
 
-	{
+	if(primary_slot != -1) {
 		text::substitution_map map{};
 		text::add_to_substitution_map(map, text::variable_type::val,
 				text::fp_two_places{trigger::evaluate_multiplicative_modifier(state, modifier, primary_slot, this_slot, from_slot)});
@@ -8495,24 +8495,14 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
 
-			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, layout.fixed_parameters.font_id)).get_conditional_indicator(r);
-			if(r) {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
-				text::add_space_to_layout_box(state, layout, box);
-			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
-				text::add_space_to_layout_box(state, layout, box);
-			}
-
-			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor},
-					seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor}, seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-					trigger_tooltip::indentation_amount * 2, true);
+				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
 		}
 	}
 }
@@ -8551,24 +8541,15 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
-
-			auto r = trigger::evaluate(state, seg.condition, primary_slot, this_slot, from_slot);
-			auto str = state.font_collection.get_font(state, text::font_index_from_font_id(state, layout.fixed_parameters.font_id)).get_conditional_indicator(r);
-			if(r) {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::green);
-				text::add_space_to_layout_box(state, layout, box);
-			} else {
-				text::add_to_layout_box(state, layout, box, std::string_view(str), text::text_color::red);
-				text::add_space_to_layout_box(state, layout, box);
-			}
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
 
 			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor},
 					seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
-					state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-					trigger_tooltip::indentation_amount * 2, true);
+				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
 		}
 	}
 }

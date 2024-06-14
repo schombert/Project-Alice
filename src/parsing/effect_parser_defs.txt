@@ -328,7 +328,7 @@ effect_body
 	random_neighbor_country         extern      ef_scope_random_neighbor_country    discard
 	from_bounce						extern		ef_scope_from_bounce		discard
 	this_bounce						extern		ef_scope_this_bounce		discard
-	random_by_modifier				extern		random_by_modifier			discard
+	random_by_modifier				extern		ef_random_by_modifier		discard
 	#any                            extern      ef_scope_variable           discard
 
 ef_scope_random_by_modifier
