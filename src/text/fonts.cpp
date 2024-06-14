@@ -463,7 +463,6 @@ void font::make_glyph(char32_t ch_in) {
 		gso.x = (hb_x - float(btmap_x_off)) * 1.0f / float(magnification_factor);
 		gso.y = (-hb_y - float(btmap_y_off)) * 1.0f / float(magnification_factor);
 		gso.x_advance = float(font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
-		glyph_positions.insert_or_assign(index_in_this_font, gso);
 
 		bool in_map[dr_size * dr_size] = {false};
 		float distance_map[dr_size * dr_size] = {0.0f};
@@ -479,22 +478,24 @@ void font::make_glyph(char32_t ch_in) {
 			}
 		}
 		//The array
-		auto texture_number = (ch_in >> 6) % text::max_texture_layers;
-		if(texture_array == 0) {
-			glGenTextures(1, &texture_array);
-			glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
-			glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_R8, 64 * 8, 64 * 8, GLsizei(text::max_texture_layers));
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		gso.texture_slot = (ch_in >> 6);
+		if(auto it = texture_slots.find(gso.texture_slot); it != texture_slots.end()) {
+			glBindTexture(GL_TEXTURE_2D, it->second);
 		} else {
-			glBindTexture(GL_TEXTURE_2D_ARRAY, texture_array);
+			GLuint texid = 0;
+			glGenTextures(1, &texid);
+			glBindTexture(GL_TEXTURE_2D, texid);
+			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			texture_slots.insert_or_assign(gso.texture_slot, texid);
 		}
-		if(texture_array) {
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, GLint(texture_number), 64, 64, 1, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
-		}
+		glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
 		FT_Done_Glyph(g_result);
+		//after texture slot
+		glyph_positions.insert_or_assign(index_in_this_font, gso);
 	}
 }
 
