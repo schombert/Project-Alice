@@ -54,6 +54,11 @@ struct stored_glyphs {
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
+	void clear() {
+		glyph_info.clear();
+		glyph_pos.clear();
+		glyph_count = 0;
+	}
 };
 
 struct stored_text : public stored_glyphs {
@@ -67,6 +72,10 @@ struct stored_text : public stored_glyphs {
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
 	void set_text(sys::state& state, font_selection type, std::string&& s);
+	void clear() {
+		base_text.clear();
+		stored_glyphs::clear();
+	}
 };
 
 class font {

@@ -445,7 +445,7 @@ void button_element_base::on_reset_text(sys::state& state) noexcept {
 		auto base_text_handle = base_data.data.button.txt;
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 		if(base_text_handle) {
-			stored_text.base_text.clear();
+			stored_text.clear();
 			stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), text::produce_simple_string(state, base_data.data.button.txt));
 		}
 	}
@@ -737,10 +737,11 @@ void simple_text_element_base::format_text(sys::state& state) {
 
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
+		stored_text.clear();
 		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.button.font_handle), text::produce_simple_string(state, base_data.data.button.txt));
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 	} else if(base_data.get_element_type() == element_type::text) {
-		stored_text.base_text.clear();
+		stored_text.clear();
 		stored_text.set_text(state, text::font_index_from_font_id(state, base_data.data.text.font_handle), text::produce_simple_string(state, base_data.data.text.txt));
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 	}
