@@ -333,7 +333,7 @@ effect_body
 
 ef_scope_random_by_modifier
 	#base		effect_body
-	chance		extern		read_chance_modifier		discard
+	chance		extern		read_chance_modifier	member (chance_modifier)
 
 event_option
 	#base    effect_body

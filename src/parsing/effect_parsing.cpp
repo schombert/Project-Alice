@@ -1160,7 +1160,7 @@ void random_by_modifier(token_generator& gen, error_handler& err, effect_buildin
 	auto read_body = parse_ef_scope_random_by_modifier(gen, err, context);
 
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
-	context.compiled_effect[payload_size_offset + 2] = uint16_t(read_body.chance.value);
+	context.compiled_effect[payload_size_offset + 2] = uint16_t(read_body.chance_modifier.value);
 	static_assert(sizeof(dcon::value_modifier_key::value_base_t) == sizeof(uint16_t));
 	context.limit_position = old_limit_offset;
 }

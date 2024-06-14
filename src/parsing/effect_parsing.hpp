@@ -3674,7 +3674,7 @@ struct effect_body {
 };
 
 struct ef_scope_random_by_modifier : public effect_body {
-	dcon::value_modifier_key chance;
+	dcon::value_modifier_key chance_modifier;
 	void finish(effect_building_context&) { }
 };
 void random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context);
