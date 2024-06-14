@@ -105,32 +105,7 @@ struct crime_info {
 
 enum class tech_category : uint8_t { army, navy, commerce, culture, industry, military_theory, population, diplomacy, flavor, unknown };
 
-std::string get_tech_category_name(tech_category t) {
-	switch(t) {
-	case culture::tech_category::army:
-		return "army_tech";
-	case culture::tech_category::navy:
-		return "navy_tech";
-	case culture::tech_category::commerce:
-		return "commerce_tech";
-	case culture::tech_category::culture:
-		return "culture_tech";
-	case culture::tech_category::industry:
-		return "industry_tech";
-	//non-vanilla
-	case culture::tech_category::military_theory:
-		return "military_theory_tech";
-	case culture::tech_category::population:
-		return "population_tech";
-	case culture::tech_category::diplomacy:
-		return "diplomacy_tech";
-	case culture::tech_category::flavor:
-		return "flavor_tech";
-	default:
-		break;
-	}
-	return "none";
-}
+std::string get_tech_category_name(tech_category t);
 
 struct folder_info {
 	dcon::text_key name;
