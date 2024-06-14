@@ -755,16 +755,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
 		load_shader(shaders[shader_text_line]);
 		glUniform1f(12, state.user_settings.black_map_font ? 1.f : 0.f);
-		glUniform1f(15, 0.f);
-		glBindVertexArray(vao_array[vo_text_line]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-		for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, text_line_texture_per_quad[i]);
-			if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-				glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_line_vertices.size());
+		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
+			glUniform1f(15, 0.f);
+			glBindVertexArray(vao_array[vo_text_line]);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
+			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, text_line_texture_per_quad[i]);
+				glDrawArrays(GL_TRIANGLES, i * 6, 6);
 			}
 		}
+	}
 
 		/*
 		else if(state.cheat_data.province_names) {
@@ -773,8 +774,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_province_text_line]);
 			glDrawArrays(GL_TRIANGLES, 0, (GLsizei)province_text_line_vertices.size());
 		}
-		*/
-	}
+		
+	}*/
 
 	if(zoom > map::zoom_very_close && state.user_settings.render_models) {
 		constexpr float dist_step = 1.77777f;
