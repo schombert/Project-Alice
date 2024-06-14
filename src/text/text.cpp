@@ -876,7 +876,7 @@ dcon::text_key get_name(sys::state& state, dcon::nation_id id) {
 dcon::text_key get_adjective(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
 	//government specific adjective
-	if(auto k = state.world.national_identity_get_government_adjective(ident, state.world.nation_get_government_type(id)); k) {
+	if(auto k = state.world.national_identity_get_government_adjective(ident, state.world.nation_get_government_type(id)); state.key_is_localized(k)) {
 		return k;
 	}
 	return state.world.national_identity_get_adjective(ident);

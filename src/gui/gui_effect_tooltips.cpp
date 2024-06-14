@@ -1028,14 +1028,16 @@ uint32_t es_random_scope(EFFECT_DISPLAY_PARAMS) {
 	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 }
 uint32_t es_random_by_modifier_scope(EFFECT_DISPLAY_PARAMS) {
-	auto mod_k = dcon::value_modifier_key(dcon::value_modifier_key::value_base_t(tval[2]));
-	auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
-	assert(chance >= 0.f);
-	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / 100.f });
-	text::add_space_to_layout_box(ws, layout, box);
-	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
-	text::close_layout_box(layout, box);
+	auto mod_k = dcon::value_modifier_key{ dcon::value_modifier_key::value_base_t(tval[2]) };
+	if(primary_slot != -1) {
+		auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
+		assert(chance >= 0.f);
+		auto box = text::open_layout_box(layout, indentation);
+		text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / 100.f });
+		text::add_space_to_layout_box(ws, layout, box);
+		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
+		text::close_layout_box(layout, box);
+	}
 	ui::multiplicative_value_modifier_description(ws, layout, mod_k, primary_slot, this_slot, from_slot);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
