@@ -646,7 +646,7 @@ void scrollbar::icontype(image const& v, error_handler& err, int32_t line, build
 auto find_in_children(std::string_view name, std::vector<ui::element_data> const& v, sys::state const& state) {
 	auto lname = lowercase_str(name);
 	for(size_t i = v.size(); i-- > 0;) {
-		if(state.to_string_view(v[i].name) == lname) {
+		if(lowercase_str(state.to_string_view(v[i].name)) == lname) {
 			return i;
 		}
 	}
