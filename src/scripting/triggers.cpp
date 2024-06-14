@@ -2820,7 +2820,7 @@ TRIGGER_FUNCTION(tf_unit_in_battle) {
 	return compare_to_true(tval[0], military::battle_is_ongoing_in_province(ws, to_prov(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_unit_has_leader) {
-	auto result ve::apply([&ws](dcon::province_id a) {
+	auto result = ve::apply([&ws](dcon::province_id a) {
 		for(const auto ar : ws.world.province_get_army_location(to_prov(primary_slot))) {
 			if(ws.world.army_leadership_get_general(ws.world.army_get_army_leadership(ws.world.army_location_get_army(ar)))) {
 				return compare_to_true(tval[0], true);
