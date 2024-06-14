@@ -1007,6 +1007,15 @@ uint32_t es_random_scope(EFFECT_PARAMTERS) {
 		return 1 + apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, els);
 	return 1;
 }
+uint32_t es_random_by_modifier_scope(EFFECT_PARAMTERS) {
+	auto mod_k = dcon::value_modifier_key(dcon::value_modifier_key::value_base_t(tval[2]));
+	auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
+	assert(chance >= 0.f);
+	auto r = int32_t(rng::get_random(ws, r_hi, r_lo) % 100);
+	if(r < chance)
+		return 1 + apply_subeffects(tval, ws, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, els);
+	return 1;
+}
 uint32_t es_owner_scope_state(EFFECT_PARAMTERS) {
 	if(auto owner = ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)); owner)
 		return apply_subeffects(tval, ws, trigger::to_generic(owner), this_slot, from_slot, r_hi, r_lo, els);
@@ -5129,6 +5138,7 @@ inline constexpr uint32_t(*effect_functions[])(EFFECT_PARAMTERS) = {
 		es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
 		es_from_bounce_scope,//constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
 		es_this_bounce_scope,//constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
+		es_random_by_modifier_scope,//constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
 };
 
 uint32_t internal_execute_effect(EFFECT_PARAMTERS) {

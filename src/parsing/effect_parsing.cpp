@@ -1144,6 +1144,31 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 	context.limit_position = old_limit_offset;
 }
 
+void effect_body::random_by_modifier(ef_scope_random_by_modifier const& value, token_generator& gen, error_handler& err, effect_building_context& context) {
+	auto old_limit_offset = context.limit_position;
+
+	context.compiled_effect.push_back(uint16_t(effect::random_by_modifier_scope | effect::scope_has_limit));
+
+	context.compiled_effect.push_back(uint16_t(0));
+	auto payload_size_offset = context.compiled_effect.size() - 1;
+
+	context.limit_position = context.compiled_effect.size();
+	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
+	context.compiled_effect.push_back(uint16_t(0));
+
+	auto read_body = parse_effect_body(gen, err, context);
+
+	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
+	context.compiled_effect[payload_size_offset + 2] = uint16_t(value.chance.value);
+	static_assert(sizeof(dcon::value_modifier_key::value_base_t) == sizeof(uint16_t));
+	context.limit_position = old_limit_offset;
+}
+
+dcon::value_modifier_key read_chance_modifier(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
+	trigger_building_context t_context{ context.outer_context, context.main_slot, context.this_slot, context.from_slot };
+	return make_value_modifier(gen, err, t_context);
+}
+
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto ivalue = parse_int(label, 0, err);
 	context.compiled_effect.push_back(uint16_t(ivalue));
