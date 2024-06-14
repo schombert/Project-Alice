@@ -1144,7 +1144,7 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 	context.limit_position = old_limit_offset;
 }
 
-void effect_body::random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
+void random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
 	context.compiled_effect.push_back(uint16_t(effect::random_by_modifier_scope | effect::scope_has_limit));
