@@ -891,13 +891,20 @@ float effective_technology_cost(sys::state& state, uint32_t current_year, dcon::
 		case tech_category::navy:
 			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::navy_tech_research_bonus) + 1.0f;
 		case tech_category::commerce:
-			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) +
-						 1.0f;
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::commerce_tech_research_bonus) + 1.0f;
 		case tech_category::culture:
 			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::culture_tech_research_bonus) + 1.0f;
 		case tech_category::industry:
-			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) +
-						 1.0f;
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::industry_tech_research_bonus) + 1.0f;
+		//non vanilla
+		case tech_category::military_theory:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::military_theory_tech_research_bonus) + 1.0f;
+		case tech_category::population:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::population_tech_research_bonus) + 1.0f;
+		case tech_category::diplomacy:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::diplomacy_tech_research_bonus) + 1.0f;
+		case tech_category::flavor:
+			return state.world.nation_get_modifier_values(target_nation, sys::national_mod_offsets::flavor_tech_research_bonus) + 1.0f;
 		default:
 			return 1.0f;
 		}

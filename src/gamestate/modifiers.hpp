@@ -190,8 +190,12 @@ namespace sys {
 	MOD_LIST_ELEMENT(117, permanent_prestige, true, modifier_display_type::fp_two_places, "permanent_prestige_tech")			   \
 	MOD_LIST_ELEMENT(118, global_conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
 	MOD_LIST_ELEMENT(119, min_domestic_investment, false, modifier_display_type::percent, "modifier_min_domestic_investment") \
-	MOD_LIST_ELEMENT(120, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment")
-#define MOD_NAT_LIST_COUNT 121
+	MOD_LIST_ELEMENT(120, max_domestic_investment, true, modifier_display_type::percent, "modifier_max_domestic_investment") \
+	MOD_LIST_ELEMENT(121, military_theory_tech_research_bonus, true, modifier_display_type::percent, "military_theory_tech_research_bonus") \
+	MOD_LIST_ELEMENT(122, population_tech_research_bonus, true, modifier_display_type::percent, "population_tech_research_bonus") \
+	MOD_LIST_ELEMENT(123, diplomacy_tech_research_bonus, true, modifier_display_type::percent, "diplomacy_theory_tech_research_bonus") \
+	MOD_LIST_ELEMENT(124, flavor_tech_research_bonus, true, modifier_display_type::percent, "flavor_theory_tech_research_bonus") \
+#define MOD_NAT_LIST_COUNT 125
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \
