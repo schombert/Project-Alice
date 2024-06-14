@@ -4,6 +4,15 @@
 #include "fonts.hpp"
 
 namespace parsers {
+std::string lowercase_str(std::string_view sv) {
+	std::string result;
+	result.reserve(sv.length());
+	for(auto ch : sv) {
+		result += char(tolower(ch));
+	}
+	return result;
+}
+
 struct obj_and_horizontal {
 	ui::gfx_object* obj = nullptr;
 	bool horizontal = false;
@@ -36,7 +45,7 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 			new_obj.primary_texture_handle = it->second;
 		} else {
 			auto index = context.ui_defs.textures.size();
-			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped));
+			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(lowercase_str(stripped)));
 			new_obj.primary_texture_handle = dcon::texture_id(uint16_t(index));
 			context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
 		}
@@ -47,7 +56,7 @@ obj_and_horizontal common_create_object(gfx_object const& obj_in, building_gfx_c
 			new_obj.type_dependent = uint16_t(it->second.index() + 1);
 		} else {
 			auto index = context.ui_defs.textures.size();
-			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(stripped));
+			context.ui_defs.textures.emplace_back(context.full_state.add_key_win1252(lowercase_str(stripped)));
 			new_obj.type_dependent = uint16_t(index + 1);
 			context.map_of_texture_names.insert_or_assign(stripped, dcon::texture_id(uint16_t(index)));
 		}
@@ -158,7 +167,7 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 }
 void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
-	target.name = context.full_state.add_key_win1252(txt);
+	target.name = context.full_state.add_key_win1252(lowercase_str(txt));
 }
 void gui_element_common::rotation(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
@@ -402,17 +411,8 @@ void button::shortcut(association_type, std::string_view t, error_handler& err, 
 	}
 }
 
-std::string lowercase_str(std::string_view sv) {
-	std::string result;
-	result.reserve(sv.length());
-	for(auto ch : sv) {
-		result += char(tolower(ch));
-	}
-	return result;
-}
-
 void button::buttontext(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.button.txt = context.full_state.add_key_win1252(txt);
+	target.data.button.txt = context.full_state.add_key_win1252(lowercase_str(txt));
 }
 
 void button::buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
@@ -507,7 +507,7 @@ void textbox::format(association_type, std::string_view t, error_handler& err, i
 	}
 }
 void textbox::text(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
-	target.data.text.txt = context.full_state.add_key_win1252(txt);
+	target.data.text.txt = context.full_state.add_key_win1252(lowercase_str(txt));
 }
 void textbox::texturefile(association_type, std::string_view t, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(t.length() == 0) {

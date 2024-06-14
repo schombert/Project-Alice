@@ -187,12 +187,14 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef);
 		}
+		context.state.world.region_set_name(rdef, name_id);
 	} else {
 		auto sdef = context.state.world.create_state_definition();
 		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_abstract_state_membership(prov, sdef);
 		}
+		context.state.world.state_definition_set_name(sdef, name_id);
 	}
 }
 

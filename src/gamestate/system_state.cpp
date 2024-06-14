@@ -1739,7 +1739,7 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	return ret;
 }
 uint32_t state::add_locale_data_win1252(std::string const& text) {
-	return add_locale_data_utf8(std::string_view(text));
+	return add_locale_data_win1252(std::string_view(text));
 }
 uint32_t state::add_locale_data_win1252(std::string_view text) {
 	auto start = locale_text_data.size();
