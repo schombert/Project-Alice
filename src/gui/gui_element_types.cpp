@@ -122,7 +122,7 @@ void container_base::add_child_to_back(std::unique_ptr<element_base> child) noex
 	children.emplace_back(std::move(child));
 }
 element_base* container_base::get_child_by_name(sys::state const& state, std::string_view name) noexcept {
-	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return state.to_string_view(p->base_data.name) == name; }); it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return parsers::lowercase_str(state.to_string_view(p->base_data.name)) == parsers::lowercase_str(name); }); it != children.end()) {
 		return it->get();
 	}
 	return nullptr;
@@ -1049,7 +1049,7 @@ void window_element_base::on_create(sys::state& state) noexcept {
 		auto num_children = base_data.data.window.num_children;
 		for(uint32_t i = num_children; i-- > 0;) {
 			auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
-			auto ch_res = make_child(state, state.to_string_view(state.ui_defs.gui[child_tag].name), child_tag);
+			auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[child_tag].name)), child_tag);
 			if(!ch_res) {
 				ch_res = ui::make_element_immediate(state, child_tag);
 			}

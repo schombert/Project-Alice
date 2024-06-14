@@ -3673,6 +3673,12 @@ struct effect_body {
 	}
 };
 
+struct ef_scope_random_by_modifier : public effect_body {
+	dcon::value_modifier_key chance_modifier;
+	void finish(effect_building_context&) { }
+};
+void random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context);
+
 struct event_option : public effect_body {
 	dcon::value_modifier_key ai_chance;
 	dcon::text_key name_;
@@ -3729,6 +3735,7 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 void ef_scope_random_list(token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_variable(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 void ef_scope_any_substate(token_generator& gen, error_handler& err, effect_building_context& context);
+dcon::value_modifier_key read_chance_modifier(token_generator& gen, error_handler& err, effect_building_context& context);
 int32_t add_to_random_list(std::string_view label, token_generator& gen, error_handler& err, effect_building_context& context);
 
 dcon::effect_key make_effect(token_generator& gen, error_handler& err, effect_building_context& context);

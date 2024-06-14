@@ -1739,7 +1739,7 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	return ret;
 }
 uint32_t state::add_locale_data_win1252(std::string const& text) {
-	return add_locale_data_utf8(std::string_view(text));
+	return add_locale_data_win1252(std::string_view(text));
 }
 uint32_t state::add_locale_data_win1252(std::string_view text) {
 	auto start = locale_text_data.size();
@@ -2591,6 +2591,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				cat = culture::tech_category::culture;
 			} else if(simple_fs::get_file_name(invf) == NATIVE("industry_inventions.txt")) {
 				cat = culture::tech_category::industry;
+				//non vanilla
+			} else if(simple_fs::get_file_name(invf) == NATIVE("military_theory_inventions.txt")) {
+				cat = culture::tech_category::military_theory;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("diplomacy_inventions.txt")) {
+				cat = culture::tech_category::diplomacy;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("population_inventions.txt")) {
+				cat = culture::tech_category::population;
+			} else if(simple_fs::get_file_name(invf) == NATIVE("flavor_inventions.txt")) {
+				cat = culture::tech_category::flavor;
 			}
 
 			parsers::tech_group_context invention_context{ context, cat };
@@ -2666,6 +2675,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	world.national_identity_resize_government_flag_type(world.government_type_size());
 	world.national_identity_resize_government_name(world.government_type_size());
+	world.national_identity_resize_government_adjective(world.government_type_size());
 	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
@@ -2676,6 +2686,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto const name = tag + "_" + named_gov.first;
 			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
+			auto const adj = tag + "_" + named_gov.first + "_ADJ";
+			auto adj_k = add_key_win1252(name);
+			ident.set_government_adjective(named_gov.second, adj_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
 			auto ruler_k = add_key_win1252(ruler);
 			ident.set_government_ruler_name(named_gov.second, ruler_k);

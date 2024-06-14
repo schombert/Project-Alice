@@ -842,6 +842,10 @@ void make_focus_group(std::string_view name, token_generator& gen, error_handler
 		t = nations::focus_type::tier_7_focus;
 	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "tier_8_focus"))
 		t = nations::focus_type::tier_8_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "building_focus"))
+		t = nations::focus_type::building_focus;
+	else if(is_fixed_token_ci(name.data(), name.data() + name.length(), "population_focus"))
+		t = nations::focus_type::population_focus;
 	else
 		err.accumulated_errors += "Unknown national focus group name " + std::string(name) + " (" + err.file_name + ")\n";
 

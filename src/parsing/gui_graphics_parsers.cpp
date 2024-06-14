@@ -4,6 +4,15 @@
 #include "fonts.hpp"
 
 namespace parsers {
+std::string lowercase_str(std::string_view sv) {
+	std::string result;
+	result.reserve(sv.length());
+	for(auto ch : sv) {
+		result += char(tolower(ch));
+	}
+	return result;
+}
+
 struct obj_and_horizontal {
 	ui::gfx_object* obj = nullptr;
 	bool horizontal = false;
@@ -402,15 +411,6 @@ void button::shortcut(association_type, std::string_view t, error_handler& err, 
 	}
 }
 
-std::string lowercase_str(std::string_view sv) {
-	std::string result;
-	result.reserve(sv.length());
-	for(auto ch : sv) {
-		result += char(tolower(ch));
-	}
-	return result;
-}
-
 void button::buttontext(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	target.data.button.txt = context.full_state.add_key_win1252(txt);
 }
@@ -646,7 +646,7 @@ void scrollbar::icontype(image const& v, error_handler& err, int32_t line, build
 auto find_in_children(std::string_view name, std::vector<ui::element_data> const& v, sys::state const& state) {
 	auto lname = lowercase_str(name);
 	for(size_t i = v.size(); i-- > 0;) {
-		if(state.to_string_view(v[i].name) == lname) {
+		if(lowercase_str(state.to_string_view(v[i].name)) == lname) {
 			return i;
 		}
 	}

@@ -241,6 +241,10 @@ modifier_base
 	unit_recruitment_time        value        float        discard
 	conversion_rate                     	  value      float            member_fn
 	global_conversion_rate                    value      float            member_fn
+	military_theory_tech_research_bonus              value      float            member_fn
+	diplomacy_tech_research_bonus              value      float            member_fn
+	population_tech_research_bonus              value      float            member_fn
+	flavor_tech_research_bonus              value      float            member_fn
 
 int_vector
 	#free          value      int              member_fn

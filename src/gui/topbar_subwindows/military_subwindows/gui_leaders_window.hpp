@@ -90,30 +90,42 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		auto name_id = state.world.leader_get_name(content);
-		auto name_content = state.to_string_view(name_id);
-		leader_name->set_text(state, std::string(name_content));
+		if(leader_name) {
+			auto name_id = state.world.leader_get_name(content);
+			auto name_content = state.to_string_view(name_id);
+			leader_name->set_text(state, std::string(name_content));
+		}
 
-		auto background_id = state.world.leader_get_background(content).get_name();
-		auto background_content = text::produce_simple_string(state, background_id);
-		background->set_text(state, background_content);
+		if(background) {
+			auto background_id = state.world.leader_get_background(content).get_name();
+			auto background_content = text::produce_simple_string(state, background_id);
+			background->set_text(state, background_content);
+		}
 
-		auto personality_id = state.world.leader_get_personality(content).get_name();
-		auto personality_content = text::produce_simple_string(state, personality_id);
-		personality->set_text(state, personality_content);
+		if(personality) {
+			auto personality_id = state.world.leader_get_personality(content).get_name();
+			auto personality_content = text::produce_simple_string(state, personality_id);
+			personality->set_text(state, personality_content);
+		}
 
 		auto army_id = state.world.leader_get_army_from_army_leadership(content);
 		if(army_id.value == 0) {
-			army->set_text(state, "Unassigned");
-			location->set_text(state, "");
+			if(army) {
+				army->set_text(state, text::produce_simple_string(state, "unassigned"));
+			}
+			if(location) {
+				location->set_text(state, "");
+			}
 		} else {
-			auto army_content = state.to_string_view(state.world.army_get_name(army_id));
-			army->set_text(state, std::string(army_content));
-			//army->set_text(state, "");
-
-			auto location_content = text::produce_simple_string(state,
-					state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
-			location->set_text(state, std::string(location_content));
+			if(army) {
+				auto army_content = state.to_string_view(state.world.army_get_name(army_id));
+				army->set_text(state, std::string(army_content));
+				//army->set_text(state, "");
+			}
+			if(location) {
+				auto location_content = text::produce_simple_string(state, state.world.province_get_name(state.world.army_location_get_location(state.world.army_get_army_location(army_id))));
+				location->set_text(state, std::string(location_content));
+			}
 		}
 
 		Cyto::Any payload = content;

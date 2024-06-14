@@ -272,7 +272,6 @@ class military_unit_entry : public listbox_row_element_base<military_unit_info<T
 	image_element_base* unit_moving_icon = nullptr;
 	image_element_base* unit_digin_icon = nullptr;
 	image_element_base* unit_combat_icon = nullptr;
-
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "military_unit_entry_bg") {
@@ -281,7 +280,6 @@ public:
 			auto ptr = make_element_by_type<military_unit_building_progress_bar<T>>(state, id);
 			unit_building_progress = ptr.get();
 			return ptr;
-
 		} else if(name == "leader") {
 			auto ptr = make_element_by_type<leader_in_army_img<T>>(state, id);
 			leader_icon = ptr.get();
@@ -350,14 +348,12 @@ public:
 		if(is_building) {
 			if(std::holds_alternative<dcon::province_land_construction_id>(content)) {
 				auto c = std::get<dcon::province_land_construction_id>(content);
-				unit_icon->frame =
-					state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
-				unit_building_progress->progress = economy::unit_construction_progress(state, c);
+				if(unit_icon) unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_land_construction_get_type(c)].icon - 1;
+				if(unit_building_progress) unit_building_progress->progress = economy::unit_construction_progress(state, c);
 			} else if(std::holds_alternative<dcon::province_naval_construction_id>(content)) {
 				auto c = std::get<dcon::province_naval_construction_id>(content);
-				unit_icon->frame =
-					state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
-				unit_building_progress->progress = economy::unit_construction_progress(state, c);
+				if(unit_icon) unit_icon->frame = state.military_definitions.unit_base_definitions[state.world.province_naval_construction_get_type(c)].icon - 1;
+				if(unit_building_progress) unit_building_progress->progress = economy::unit_construction_progress(state, c);
 			}
 		} else {
 			auto regiments = 0;
@@ -381,26 +377,26 @@ public:
 					++regiments;
 				});
 			}
-			unit_strength_progress->progress = (full_strength != 0.0f) ? strength / full_strength : 0.f;
-			unit_men_text->set_text(state, text::prettify(int32_t(strength)));
-			unit_regiments_text->set_text(state, std::to_string(regiments));
+			if(unit_strength_progress) unit_strength_progress->progress = (full_strength != 0.0f) ? strength / full_strength : 0.f;
+			if(unit_men_text) unit_men_text->set_text(state, text::prettify(int32_t(strength)));
+			if(unit_regiments_text) unit_regiments_text->set_text(state, std::to_string(regiments));
 		}
 
-		unit_icon->set_visible(state, is_building);
-		cancel_button->set_visible(state, is_building);
-		eta_date_text->set_visible(state, is_building);
-		location_text->set_visible(state, is_building);
-		unit_building_progress->set_visible(state, is_building);
+		if(unit_icon) unit_icon->set_visible(state, is_building);
+		if(cancel_button) cancel_button->set_visible(state, is_building);
+		if(eta_date_text) eta_date_text->set_visible(state, is_building);
+		if(location_text) location_text->set_visible(state, is_building);
+		if(unit_building_progress) unit_building_progress->set_visible(state, is_building);
 
-		unit_name->set_visible(state, !is_building);
-		leader_icon->set_visible(state, !is_building);
-		unit_regiments_text->set_visible(state, !is_building);
-		unit_men_text->set_visible(state, !is_building);
-		unit_morale_progress->set_visible(state, !is_building);
-		unit_strength_progress->set_visible(state, !is_building);
-		unit_moving_icon->set_visible(state, !is_building && is_moving);
-		unit_digin_icon->set_visible(state, !is_building && is_digin);
-		unit_combat_icon->set_visible(state, !is_building && is_combat);
+		if(unit_name) unit_name->set_visible(state, !is_building);
+		if(leader_icon) leader_icon->set_visible(state, !is_building);
+		if(unit_regiments_text) unit_regiments_text->set_visible(state, !is_building);
+		if(unit_men_text) unit_men_text->set_visible(state, !is_building);
+		if(unit_morale_progress) unit_morale_progress->set_visible(state, !is_building);
+		if(unit_strength_progress) unit_strength_progress->set_visible(state, !is_building);
+		if(unit_moving_icon) unit_moving_icon->set_visible(state, !is_building && is_moving);
+		if(unit_digin_icon) unit_digin_icon->set_visible(state, !is_building && is_digin);
+		if(unit_combat_icon) unit_combat_icon->set_visible(state, !is_building && is_combat);
 	}
 
 

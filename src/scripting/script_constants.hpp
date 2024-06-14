@@ -533,8 +533,8 @@ constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x00
 constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
 constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
 constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
-
-constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0043;
+constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
+constexpr inline uint16_t first_invalid_code = first_scope_code + 0x0044;
 
 inline constexpr int8_t data_sizes[] = {
 		0, // none
@@ -558,9 +558,10 @@ inline int32_t get_generic_effect_payload_size(uint16_t const* data) {
 inline int32_t effect_scope_data_payload(uint16_t code) {
 	auto const masked_code = code & effect::code_mask;
 	if((masked_code == effect::tag_scope) || (masked_code == effect::integer_scope) ||
-			(masked_code == effect::pop_type_scope_nation) || (masked_code == effect::pop_type_scope_state) ||
-			(masked_code == effect::pop_type_scope_province) || (masked_code == effect::region_scope) ||
-			(masked_code == effect::region_proper_scope) || (masked_code == effect::random_scope))
+		(masked_code == effect::pop_type_scope_nation) || (masked_code == effect::pop_type_scope_state) ||
+		(masked_code == effect::pop_type_scope_province) || (masked_code == effect::region_scope) ||
+		(masked_code == effect::region_proper_scope) || (masked_code == effect::random_scope) ||
+		(masked_code == effect::random_by_modifier_scope))
 		return 1 + ((code & effect::scope_has_limit) != 0);
 	return 0 + ((code & effect::scope_has_limit) != 0);
 }
@@ -1354,12 +1355,13 @@ TRIGGER_BYTECODE_ELEMENT(0x02DB, is_coastal_state, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DC, has_building_bank, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DD, has_building_university, 0) \
 TRIGGER_BYTECODE_ELEMENT(0x02DE, test, 1) \
+TRIGGER_BYTECODE_ELEMENT(0x02DF, unit_has_leader, 0)
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02DF;
+constexpr inline uint16_t first_scope_code = 0x02E0;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2

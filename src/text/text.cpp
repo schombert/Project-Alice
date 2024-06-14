@@ -823,7 +823,7 @@ std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id st
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
 		if(auto osm = st.get_province().get_state_membership().id; osm && fat_id.id != osm) {
 			auto adj_id = text::get_adjective(state, fat_id.get_nation_from_state_ownership());
-			auto adj = produce_simple_string(state, adj_id);
+			auto adj = text::produce_simple_string(state, adj_id);
 			if(!state.key_is_localized(fat_id.get_definition().get_name())) {
 				if(!state.key_is_localized(adj_id)) {
 					return get_name_as_string(state, fat_id.get_capital());
@@ -875,6 +875,10 @@ dcon::text_key get_name(sys::state& state, dcon::nation_id id) {
 }
 dcon::text_key get_adjective(sys::state& state, dcon::nation_id id) {
 	auto ident = state.world.nation_get_identity_from_identity_holder(id);
+	//government specific adjective
+	if(auto k = state.world.national_identity_get_government_adjective(ident, state.world.nation_get_government_type(id)); k) {
+		return k;
+	}
 	return state.world.national_identity_get_adjective(ident);
 }
 
@@ -910,6 +914,10 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 		return text::produce_simple_string(state, "tier_7_focus");
 	case nations::focus_type::tier_8_focus:
 		return text::produce_simple_string(state, "tier_8_focus");
+	case nations::focus_type::building_focus:
+		return text::produce_simple_string(state, "building_focus");
+	case nations::focus_type::population_focus:
+		return text::produce_simple_string(state, "population_focus");
 	default:
 		return text::produce_simple_string(state, "category");
 	}

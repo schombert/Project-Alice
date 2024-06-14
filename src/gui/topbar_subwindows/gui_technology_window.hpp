@@ -115,28 +115,7 @@ public:
 		folder_button->category = category = new_category;
 
 		folder_icon->frame = static_cast<int32_t>(category);
-
-		std::string str{};
-		switch(category) {
-		case culture::tech_category::army:
-			str += text::produce_simple_string(state, "army_tech");
-			break;
-		case culture::tech_category::navy:
-			str += text::produce_simple_string(state, "navy_tech");
-			break;
-		case culture::tech_category::commerce:
-			str += text::produce_simple_string(state, "commerce_tech");
-			break;
-		case culture::tech_category::culture:
-			str += text::produce_simple_string(state, "culture_tech");
-			break;
-		case culture::tech_category::industry:
-			str += text::produce_simple_string(state, "industry_tech");
-			break;
-		default:
-			break;
-		}
-		folder_name->set_text(state, str);
+		folder_name->set_text(state, text::produce_simple_string(state, culture::get_tech_category_name(category)));
 
 		folder_num_discovered->category = folder_progress->category = category;
 		folder_progress->on_update(state);
@@ -176,29 +155,10 @@ class technology_research_progress_category_text : public simple_text_element_ba
 		if(tech_id) {
 			auto tech = dcon::fatten(state.world, tech_id);
 			auto const& folder = state.culture_definitions.tech_folders[tech.get_folder_index()];
-
 			std::string str{};
 			str += text::produce_simple_string(state, folder.name);
 			str += ", ";
-			switch(folder.category) {
-			case culture::tech_category::army:
-				str += text::produce_simple_string(state, "army_tech");
-				break;
-			case culture::tech_category::navy:
-				str += text::produce_simple_string(state, "navy_tech");
-				break;
-			case culture::tech_category::commerce:
-				str += text::produce_simple_string(state, "commerce_tech");
-				break;
-			case culture::tech_category::culture:
-				str += text::produce_simple_string(state, "culture_tech");
-				break;
-			case culture::tech_category::industry:
-				str += text::produce_simple_string(state, "industry_tech");
-				break;
-			default:
-				break;
-			}
+			str += text::produce_simple_string(state, culture::get_tech_category_name(folder.category));
 			return str;
 		} else {
 			return "";
@@ -356,28 +316,8 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::invention_id>(state, parent);
 		auto category = static_cast<culture::tech_category>(state.world.invention_get_technology_type(content));
-		std::string category_name{};
-		switch(category) {
-		case culture::tech_category::army:
-			category_name = "army_tech";
-			break;
-		case culture::tech_category::navy:
-			category_name = "navy_tech";
-			break;
-		case culture::tech_category::commerce:
-			category_name = "commerce_tech";
-			break;
-		case culture::tech_category::culture:
-			category_name = "culture_tech";
-			break;
-		case culture::tech_category::industry:
-			category_name = "industry_tech";
-			break;
-		default:
-			break;
-		}
 		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, category_name), text::text_color::white);
+		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, culture::get_tech_category_name(category)), text::text_color::white);
 		text::close_layout_box(contents, box);
 	}
 };
@@ -645,6 +585,19 @@ public:
 				break;
 			case culture::tech_category::industry:
 				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::industry_tech_research_bonus, true);
+				break;
+			//non vanilla
+			case culture::tech_category::military_theory:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::military_theory_tech_research_bonus, true);
+				break;
+			case culture::tech_category::population:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::population_tech_research_bonus, true);
+				break;
+			case culture::tech_category::diplomacy:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::diplomacy_tech_research_bonus, true);
+				break;
+			case culture::tech_category::flavor:
+				ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::flavor_tech_research_bonus, true);
 				break;
 			default:
 				break;

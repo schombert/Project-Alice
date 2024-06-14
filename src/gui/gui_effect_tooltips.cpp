@@ -1019,15 +1019,26 @@ uint32_t es_random_list_scope(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t es_random_scope(EFFECT_DISPLAY_PARAMS) {
 	auto chance = tval[2];
-
 	auto box = text::open_layout_box(layout, indentation);
-	text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / float(100) });
+	text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / 100.f });
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
 	text::close_layout_box(layout, box);
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
-	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1,
-								 indentation + indentation_amount);
+	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
+}
+uint32_t es_random_by_modifier_scope(EFFECT_DISPLAY_PARAMS) {
+	auto mod_k = dcon::value_modifier_key(dcon::value_modifier_key::value_base_t(tval[2]));
+	auto chance = trigger::evaluate_multiplicative_modifier(ws, mod_k, primary_slot, this_slot, from_slot);
+	assert(chance >= 0.f);
+	auto box = text::open_layout_box(layout, indentation);
+	text::add_to_layout_box(ws, layout, box, text::fp_percentage{ float(chance) / 100.f });
+	text::add_space_to_layout_box(ws, layout, box);
+	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "chance_of"));
+	text::close_layout_box(layout, box);
+	ui::multiplicative_value_modifier_description(ws, layout, mod_k, primary_slot, this_slot, from_slot);
+	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
+	return 1 + display_subeffects(ws, tval, layout, primary_slot, this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 }
 uint32_t es_owner_scope_state(EFFECT_DISPLAY_PARAMS) {
 	{
@@ -7160,7 +7171,8 @@ es_x_decision_country_scope, // constexpr inline uint16_t x_decision_country_sco
 es_x_event_country_scope_nation,//constexpr inline uint16_t x_event_country_scope_nation = first_scope_code + 0x003F;
 es_x_decision_country_scope_nation,//constexpr inline uint16_t x_decision_country_scope_nation = first_scope_code + 0x0040;
 es_from_bounce_scope, // constexpr inline uint16_t from_bounce_scope = first_scope_code + 0x0041;
-es_this_bounce_scope, // constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0041;
+es_this_bounce_scope, // constexpr inline uint16_t this_bounce_scope = first_scope_code + 0x0042;
+es_random_by_modifier_scope,//constexpr inline uint16_t random_by_modifier_scope = first_scope_code + 0x0043;
 };
 
 uint32_t internal_make_effect_description(EFFECT_DISPLAY_PARAMS) {

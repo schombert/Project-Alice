@@ -84,6 +84,11 @@ object{
 		tag{ scenario }
 	}
 	property{
+		name{ government_adjective }
+		type{ array{government_type_id}{text_key} }
+		tag{ scenario }
+	}
+	property{
 		name{ government_ruler_name }
 		type{ array{government_type_id}{text_key} }
 		tag{ scenario }

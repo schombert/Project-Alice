@@ -1,7 +1,7 @@
 in vec3 tex_coord;
 in float opacity;
 in float text_size;
-layout (binding = 0) uniform sampler2DArray texture_atlas_sampler;
+layout (binding = 0) uniform sampler2D texture_sampler;
 layout (location = 0) out vec4 frag_color;
 layout (location = 12) uniform float is_black;
 layout (location = 11) uniform float gamma;
@@ -16,7 +16,7 @@ void main() {
     
     outer_color = mix(inner_color, outer_color, text_size * 40.f);
 	
-	vec4 color_in = texture(texture_atlas_sampler, tex_coord);
+	vec4 color_in = texture(texture_sampler, vec2(tex_coord.rg));
 	if(color_in.r > 0.505) {
 		frag_color = vec4(inner_color, 1.0f);
 	} else if(color_in.r > 0.50) {

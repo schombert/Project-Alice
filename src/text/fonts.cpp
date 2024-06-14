@@ -387,12 +387,12 @@ font& font_manager::get_font(sys::state& state, font_selection s) {
 	default:
 		return font_array[state.world.locale_get_resolved_body_font(current_locale)];
 	}
-	
+
 }
 
 void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_size) {
 	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
-	
+
 	memcpy(fnt.file_data.get(), file_data, file_size);
 	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
 	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
@@ -446,7 +446,16 @@ void font::make_glyph(char32_t ch_in) {
 		FT_Load_Glyph(font_face, ch_in, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
 
 		FT_Glyph g_result;
-		FT_Get_Glyph(font_face->glyph, &g_result);
+		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
+		if(err != 0) {
+			glyph_sub_offset gso;
+			gso.x = 0.f;
+			gso.y = 0.f;
+			gso.x_advance = 0.f;
+			gso.texture_slot = 0;
+			glyph_positions.insert_or_assign(ch_in, gso);
+			return;
+		}
 
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 

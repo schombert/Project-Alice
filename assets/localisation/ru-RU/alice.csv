@@ -315,6 +315,7 @@ units_in_the_state;units in the state
 at_war_against;at war against
 num_of_divisions;a number of divisions
 an_ongoing_battle;an ongoing battle
+an_assigned_leader;an assigned leader
 treasury;treasury
 o_treasury;owner's treasury
 o_of_prov;the owner of the province
