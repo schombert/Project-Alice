@@ -172,7 +172,7 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
-		switch(state, base_data.data.text.get_alignment()) {
+		switch(base_data.data.text.get_alignment()) {
 			case ui::alignment::right:
 				align = text::alignment::right;
 				break;
@@ -219,7 +219,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		text::alignment align = text::alignment::left;
-		switch(state, base_data.data.text.get_alignment()) {
+		switch(base_data.data.text.get_alignment()) {
 		case ui::alignment::right:
 			align = text::alignment::right;
 			break;
