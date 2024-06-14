@@ -2820,13 +2820,15 @@ TRIGGER_FUNCTION(tf_unit_in_battle) {
 	return compare_to_true(tval[0], military::battle_is_ongoing_in_province(ws, to_prov(primary_slot)));
 }
 TRIGGER_FUNCTION(tf_unit_has_leader) {
-	auto al = ws.world.province_get_army_location_as_location(to_prov(primary_slot));
-	for(const auto ar : al) {
-		if(ws.world.army_leadership_get_general(ws.world.army_get_army_leadership(ws.world.army_location_get_army(ar)))) {
-			return compare_to_true(tval[0], true);
+	auto result ve::apply([&ws](dcon::province_id a) {
+		for(const auto ar : ws.world.province_get_army_location(to_prov(primary_slot))) {
+			if(ws.world.army_leadership_get_general(ws.world.army_get_army_leadership(ws.world.army_location_get_army(ar)))) {
+				return compare_to_true(tval[0], true);
+			}
 		}
-	}
-	return compare_to_true(tval[0], false);
+		return false;
+	}, to_prov(primary_slot));
+	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_total_amount_of_divisions) {
 	auto result = ve::apply(
