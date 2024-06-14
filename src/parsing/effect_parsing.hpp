@@ -516,11 +516,6 @@ struct ef_random_list {
 	void finish(effect_building_context&) { }
 };
 
-struct ef_random_by_modifier {
-	dcon::value_modifier_key chance;
-	void finish(effect_building_context&) { }
-};
-
 struct effect_body {
 	int32_t chance = 0;
 	void finish(effect_building_context&) { }
@@ -3672,11 +3667,16 @@ struct effect_body {
 		else
 			context.compiled_effect.push_back(uint16_t(effect::build_fort_in_capital_no_whole_state_no_limit | effect::no_payload));
 	}
-	void random_by_modifier(ef_random_by_modifier const& value, error_handler& err, int32_t line, effect_building_context& context);
+	void random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context);
 	void any_value(std::string_view label, association_type t, std::string_view value, error_handler& err, int32_t line, effect_building_context& context);
 	void limit(dcon::trigger_key lim, error_handler& err, int32_t line, effect_building_context& context) {
 		context.compiled_effect[context.limit_position] = trigger::payload(lim).value;
 	}
+};
+
+struct ef_scope_random_by_modifier : public effect_body {
+	dcon::value_modifier_key chance;
+	void finish(effect_building_context&) { }
 };
 
 struct event_option : public effect_body {

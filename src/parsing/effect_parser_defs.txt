@@ -139,10 +139,6 @@ ef_build_university_in_capital
 	in_whole_capital_state         value     bool                       member
 	limit_to_world_greatest_level  value     bool                       member
 
-ef_scope_random_by_modifier
-	chance		extern			read_chance_modifier	member
-	effect		extern			parse_effect_body		discard
-
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn
 
@@ -334,6 +330,10 @@ effect_body
 	this_bounce						extern		ef_scope_this_bounce		discard
 	random_by_modifier				group		ef_scope_random_by_modifier	member_fn
 	#any                            extern      ef_scope_variable           discard
+
+ef_scope_random_by_modifier
+	#base effect_body
+	chance		extern			read_chance_modifier	member
 
 event_option
 	#base    effect_body

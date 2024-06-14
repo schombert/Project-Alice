@@ -1144,7 +1144,7 @@ void ef_scope_random(token_generator& gen, error_handler& err, effect_building_c
 	context.limit_position = old_limit_offset;
 }
 
-void effect_body::random_by_modifier(ef_scope_random_by_modifier const& value, token_generator& gen, error_handler& err, effect_building_context& context) {
+void effect_body::random_by_modifier(token_generator& gen, error_handler& err, effect_building_context& context) {
 	auto old_limit_offset = context.limit_position;
 
 	context.compiled_effect.push_back(uint16_t(effect::random_by_modifier_scope | effect::scope_has_limit));
@@ -1155,11 +1155,12 @@ void effect_body::random_by_modifier(ef_scope_random_by_modifier const& value, t
 	context.limit_position = context.compiled_effect.size();
 	context.compiled_effect.push_back(trigger::payload(dcon::trigger_key()).value);
 	context.compiled_effect.push_back(uint16_t(0));
+	context.compiled_effect.push_back(uint16_t(0));
 
-	auto read_body = parse_effect_body(gen, err, context);
+	auto read_body = parse_ef_scope_random_by_modifier(gen, err, context);
 
 	context.compiled_effect[payload_size_offset] = uint16_t(context.compiled_effect.size() - payload_size_offset);
-	context.compiled_effect[payload_size_offset + 2] = uint16_t(value.chance.value);
+	context.compiled_effect[payload_size_offset + 2] = uint16_t(read_body.chance.value);
 	static_assert(sizeof(dcon::value_modifier_key::value_base_t) == sizeof(uint16_t));
 	context.limit_position = old_limit_offset;
 }

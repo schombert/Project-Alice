@@ -50,6 +50,7 @@ This often caused crashes if not handled carefully (especially the seceding to a
 - `any_core = { ... }`: Effects dont have `any_core`, but triggers do, so for consistency its supported too.
 - `from_bounce = { ... }`: Forward whatever is in the current scope to be "bounced" to `FROM`, until the end of this scope
 - `this_bounce = { ... }`: Same as above but with `THIS`.
+- `random_by_modifier = { ... }`: See below for syntax usage
 - `tooltip_effect = { ... }`: Only show effect in tooltip but do not execute it, inverse to `hidden_tooltip`.
 - `custom_tooltip = { ... }:`: See below for syntax usage
 
@@ -144,6 +145,26 @@ country_event = {
 		FROM = { add_accepted_culture = THIS }
 		THIS = { add_accepted_culture = FROM }
 	}
+}
+```
+
+### Random by modifier
+The question of: How can we have probabilities which change depending on various factors?
+
+Well the answer is `random_by_modifier`:
+
+```
+random_by_modifier = {
+	chance = {
+		base = 50 #50% chance
+		modifier = {
+			factor = 1.5 # x1.5 (50% x 1.5 = 75%)
+			is_colonial = yes
+		}
+	}
+	#50% base chance
+	#75% chance if colonial
+	secede_province = THIS
 }
 ```
 
