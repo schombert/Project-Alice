@@ -611,6 +611,7 @@ float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t st
 	unsigned int glyph_count = static_cast<unsigned int>(count);
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		make_glyph(glyphid);
 		auto gso = glyph_positions[glyphid];
 		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		bool draw_icon = false;
