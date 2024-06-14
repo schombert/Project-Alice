@@ -2675,6 +2675,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	world.national_identity_resize_government_flag_type(world.government_type_size());
 	world.national_identity_resize_government_name(world.government_type_size());
+	world.national_identity_resize_government_adjective(world.government_type_size());
 	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
@@ -2685,6 +2686,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			auto const name = tag + "_" + named_gov.first;
 			auto name_k = add_key_win1252(name);
 			ident.set_government_name(named_gov.second, name_k);
+			auto const adj = tag + "_" + named_gov.first + "_ADJ";
+			auto adj_k = add_key_win1252(name);
+			ident.set_government_adjective(named_gov.second, adj_k);
 			auto const ruler = tag + "_" + named_gov.first + "_ruler";
 			auto ruler_k = add_key_win1252(ruler);
 			ident.set_government_ruler_name(named_gov.second, ruler_k);

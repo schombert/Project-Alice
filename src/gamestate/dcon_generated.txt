@@ -1298,6 +1298,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ adjective }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
 		name{ desc }
 		type{ text_key }
 		tag{ scenario }
