@@ -910,6 +910,10 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 		return text::produce_simple_string(state, "tier_7_focus");
 	case nations::focus_type::tier_8_focus:
 		return text::produce_simple_string(state, "tier_8_focus");
+	case nations::focus_type::building_focus:
+		return text::produce_simple_string(state, "building_focus");
+	case nations::focus_type::population_focus:
+		return text::produce_simple_string(state, "population_focus");
 	default:
 		return text::produce_simple_string(state, "category");
 	}

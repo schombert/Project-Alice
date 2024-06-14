@@ -45,6 +45,18 @@ enum class focus_type : uint8_t {
 	promotion_focus = 4,
 	production_focus = 5,
 	party_loyalty_focus = 6,
+	//non-vanilla
+	policy_focus = 7,
+	tier_1_focus = 8,
+	tier_2_focus = 9,
+	tier_3_focus = 10,
+	tier_4_focus = 11,
+	tier_5_focus = 12,
+	tier_6_focus = 13,
+	tier_7_focus = 14,
+	tier_8_focus = 15,
+	building_focus = 16,
+	population_focus = 17,
 };
 
 struct global_national_state {
