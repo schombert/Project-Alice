@@ -1,24 +1,5 @@
 ﻿#Powered_by_ParaTranz;;;;;;;;;;;;;x
 #CODE;ENGLISH;FRENCH;GERMAN;;SPANISH;;;;;;;;x
-language_en-US;English (US);;;;;;;;;;;;x
-language_fr-FR;French (France);;;;;;;;;;;;x
-language_de-DE;German (Germany);;;;;;;;;;;;x
-language_es-ES;Spanish (Spain);;;;;;;;;;;;x
-language_it-IT;Italian (Italy);;;;;;;;;;;;x
-language_sv-SV;Swedish (Sweden);;;;;;;;;;;;x
-language_cs-CZ;Czech (Czech Rep.);;;;;;;;;;;;x
-language_hu-HU;Hungarian (Hungary);;;;;;;;;;;;x
-language_nl-NL;Dutch (Netherlands);;;;;;;;;;;;x
-language_po-PO;Portuguese (Portugal);;;;;;;;;;;;x
-language_ru-RU;Russian (Russia);;;;;;;;;;;;x
-language_fi-FI;Finnish (Finland);;;;;;;;;;;;x
-language_pl-PL;Polish (Poland);;;;;;;;;;;;x
-language_ar-AR;Arabic (Arabia);;;;;;;;;;;;x
-language_zh-CN;中文（中国）;;;;;;;;;;;;x
-language_jp-JP;Japanese (Japan);;;;;;;;;;;;x
-language_ko-SK;Korean (South Korea);;;;;;;;;;;;x
-language_ko-NK;Korean (North Korea);;;;;;;;;;;;x
-language_bg-BG;Bulgarian (Bulgaria);;;;;;;;;;;;x
 save_and_exit;保存并退出;;;;;;;;;;;;x
 save;保存;;;;;;;;;;;;x
 exit;退出;;;;;;;;;;;;x

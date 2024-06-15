@@ -1,4 +1,4 @@
-display_name = "العربية (العربية)"
+display_name = "العربية"
 script = Arab
 
 body_font = NotoNaskhArabic-Regular.ttf
