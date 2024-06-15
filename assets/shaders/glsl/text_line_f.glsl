@@ -17,9 +17,9 @@ void main() {
     outer_color = mix(inner_color, outer_color, text_size * 40.f);
 	
 	vec4 color_in = texture(texture_sampler, vec2(tex_coord.rg));
-	if(color_in.r > 0.505) {
+	if(color_in.r > 0.5) {
 		frag_color = vec4(inner_color, 1.0f);
-	} else if(color_in.r > 0.50) {
+	} else if(color_in.r > 0.495) {
 		frag_color = vec4(mix(inner_color, outer_color,  1.0f - (color_in.r - 0.5f) * 200.0f), 1.0f);
 	} else {
 		float t = max(0.0f, color_in.r * 16.0f - 7.0f);
