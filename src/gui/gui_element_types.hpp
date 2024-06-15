@@ -68,6 +68,10 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
+	virtual bool get_horizontal_flip(sys::state& state) noexcept {
+		return state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
+	}
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
 			return message_result::unseen;

@@ -568,7 +568,6 @@ public:
 		base_data.position.x -= 14;
 		base_data.position.y -= 524;
 	}
-
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_select") {
 			return make_element_by_type<diplomacy_country_select>(state, id);

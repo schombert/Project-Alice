@@ -170,7 +170,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_location(state, *this);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			if(command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{}))
 				open_leader_selection(state, unit, dcon::navy_id{}, location.x, location.y);
@@ -257,7 +257,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_location(state, *this);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			open_leader_selection(state, unit, dcon::navy_id{}, location.x + base_data.size.x, location.y);
 		} else {
@@ -1885,7 +1885,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		auto location = get_absolute_location(*this);
+		auto location = get_absolute_location(state, *this);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			open_leader_selection(state, std::get<dcon::army_id>(foru), dcon::navy_id{}, location.x + base_data.size.x, location.y);
 		} else {

@@ -88,7 +88,8 @@ inline constexpr int32_t rotation_bit_offset = 3;
 enum class rotation : uint8_t { // 2 bits
 	upright = (0x00 << rotation_bit_offset),
 	r90_left = (0x01 << rotation_bit_offset),
-	r90_right = (0x02 << rotation_bit_offset)
+	r90_right = (0x02 << rotation_bit_offset),
+	downright = (0x03 << rotation_bit_offset)
 };
 
 inline constexpr int32_t orientation_bit_offset = 5;
@@ -328,8 +329,8 @@ enum class tooltip_behavior { tooltip, variable_tooltip, position_sensitive_tool
 
 class element_base;
 
-xy_pair child_relative_location(element_base const& parent, element_base const& child);
-xy_pair get_absolute_location(element_base const& node);
+xy_pair child_relative_location(sys::state& state, element_base const& parent, element_base const& child);
+xy_pair get_absolute_location(sys::state& state, element_base const& node);
 
 using ui_hook_fn = std::unique_ptr<element_base> (*)(sys::state&, dcon::gui_def_id);
 

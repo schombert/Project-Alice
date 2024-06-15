@@ -96,27 +96,61 @@ void load_text_gui_definitions(sys::state& state, parsers::building_gfx_context&
 	}
 }
 
-xy_pair child_relative_location(element_base const& parent, element_base const& child) {
-	switch(child.base_data.get_orientation()) {
+int16_t child_relative_location_y_component(element_base const& parent, element_base const& child) {
+	auto orientation = child.base_data.get_orientation();
+	switch(orientation) {
 	case orientation::upper_left:
-		return xy_pair{int16_t(child.base_data.position.x), int16_t(child.base_data.position.y)};
+		return int16_t(child.base_data.position.y);
 	case orientation::upper_right:
-		return xy_pair{int16_t(parent.base_data.size.x + child.base_data.position.x), int16_t(child.base_data.position.y)};
+		return int16_t(child.base_data.position.y);
 	case orientation::lower_left:
-		return xy_pair{int16_t(child.base_data.position.x), int16_t(parent.base_data.size.y + child.base_data.position.y)};
+		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::lower_right:
-		return xy_pair{int16_t(parent.base_data.size.x + child.base_data.position.x),
-				int16_t(parent.base_data.size.y + child.base_data.position.y)};
+		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::upper_center:
-		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), int16_t(child.base_data.position.y)};
+		return int16_t(child.base_data.position.y);
 	case orientation::lower_center:
-		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x),
-				int16_t(parent.base_data.size.y + child.base_data.position.y)};
+		return int16_t(parent.base_data.size.y + child.base_data.position.y);
 	case orientation::center:
-		return xy_pair{int16_t(parent.base_data.size.x / 2 + child.base_data.position.x),
-				int16_t(parent.base_data.size.y / 2 + child.base_data.position.y)};
+		return int16_t(parent.base_data.size.y / 2 + child.base_data.position.y);
 	default:
-		return xy_pair{int16_t(child.base_data.position.x), int16_t(child.base_data.position.y)};
+		return int16_t(child.base_data.position.y);
+	}
+}
+
+xy_pair child_relative_location(sys::state& state, element_base const& parent, element_base const& child) {
+	auto orientation = child.base_data.get_orientation();
+	int16_t y = child_relative_location_y_component(parent, child);
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		switch(orientation) {
+		case orientation::upper_left:
+		case orientation::lower_left:
+			return xy_pair{ int16_t(parent.base_data.size.x - child.base_data.position.x - child.base_data.size.x), y };
+		case orientation::lower_right:
+		case orientation::upper_right:
+			return xy_pair{ int16_t(-child.base_data.position.x - child.base_data.size.x), y };
+		case orientation::upper_center:
+		case orientation::lower_center:
+		case orientation::center:
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), y };
+		default:
+			return xy_pair{ int16_t(child.base_data.position.x), y };
+		}
+	} else {
+		switch(orientation) {
+		case orientation::upper_left:
+		case orientation::lower_left:
+			return xy_pair{ int16_t(child.base_data.position.x), y };
+		case orientation::upper_right:
+		case orientation::lower_right:
+			return xy_pair{ int16_t(parent.base_data.size.x + child.base_data.position.x), y };
+		case orientation::upper_center:
+		case orientation::lower_center:
+		case orientation::center:
+			return xy_pair{ int16_t(parent.base_data.size.x / 2 + child.base_data.position.x), y };
+		default:
+			return xy_pair{ int16_t(child.base_data.position.x), y };
+		}
 	}
 }
 
@@ -239,10 +273,10 @@ void element_base::impl_render(sys::state& state, int32_t x, int32_t y) noexcept
 	render(state, x, y);
 }
 
-xy_pair get_absolute_location(element_base const& node) {
+xy_pair get_absolute_location(sys::state& state, element_base const& node) {
 	if(node.parent) {
-		auto parent_loc = get_absolute_location(*node.parent);
-		auto rel_loc = child_relative_location(*node.parent, node);
+		auto parent_loc = get_absolute_location(state, *node.parent);
+		auto rel_loc = child_relative_location(state, *node.parent, node);
 		return xy_pair{int16_t(parent_loc.x + rel_loc.x), int16_t(parent_loc.y + rel_loc.y)};
 	} else {
 		return node.base_data.position;

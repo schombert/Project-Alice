@@ -300,11 +300,13 @@ public:
 					float(y) + float(base_data.size.y - mask_tex.size_y) * 0.5f,
 					float(mask_tex.size_x),
 					float(mask_tex.size_y),
-					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped());
+					flag_texture_handle, mask_handle, base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+					false);
 			} else {
 				ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
-						float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
-						gfx_def.is_vertically_flipped());
+					float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(),
+					gfx_def.is_vertically_flipped(),
+					false);
 			}
 		}
 		image_element_base::render(state, x, y);

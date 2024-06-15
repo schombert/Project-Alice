@@ -283,7 +283,7 @@ public:
 					}
 				}
 
-				auto location = get_absolute_location(*this);
+				auto location = get_absolute_location(state, *this);
 				location.x -= 18;
 				location.y -= 18;
 				state.ui_state.unit_details_box->open(state, location, ui::xy_pair{int16_t(63), int16_t(36)}, port_for, true);
@@ -1680,7 +1680,7 @@ public:
 
 
 
-				auto location = get_absolute_location(*this);
+				auto location = get_absolute_location(state, *this);
 
 				if(state.map_state.get_zoom() >= big_counter_cutoff) {
 					int32_t height = 60;

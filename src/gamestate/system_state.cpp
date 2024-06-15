@@ -1246,6 +1246,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
+					float dead_space = float(container.used_width);
+					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
+						dead_space = std::min(dead_space, t.x);
+					}
+					for(auto& t : ui_state.tooltip->internal_layout.contents) {
+						t.x -= dead_space - 16.f;
+					}
+					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
+				}
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1271,6 +1281,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 				populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 				ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 				ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+				if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
+					float dead_space = float(container.used_width);
+					for(const auto& t : ui_state.tooltip->internal_layout.contents) {
+						dead_space = std::min(dead_space, t.x);
+					}
+					for(auto& t : ui_state.tooltip->internal_layout.contents) {
+						t.x -= dead_space - 16.f;
+					}
+					ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
+				}
 				if(container.used_width > 0)
 					ui_state.tooltip->set_visible(*this, true);
 				else
@@ -1289,6 +1309,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 		populate_shortcut_tooltip(*this, *ui_state.last_tooltip, container);
 		ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 		ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+		if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
+			float dead_space = float(container.used_width);
+			for(const auto& t : ui_state.tooltip->internal_layout.contents) {
+				dead_space = std::min(dead_space, t.x);
+			}
+			for(auto& t : ui_state.tooltip->internal_layout.contents) {
+				t.x -= dead_space - 16.f;
+			}
+			ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
+		}
 		if(container.used_width > 0)
 			ui_state.tooltip->set_visible(*this, true);
 		else
@@ -1297,7 +1327,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(ui_state.last_tooltip && ui_state.tooltip->is_visible()) {
 		// reposition tooltip
-		auto target_location = ui::get_absolute_location(*ui_state.last_tooltip);
+		auto target_location = ui::get_absolute_location(*this, *ui_state.last_tooltip);
 		if(ui_state.tooltip->base_data.size.y <= root_elm->base_data.size.y - (target_location.y + ui_state.last_tooltip->base_data.size.y)) {
 			ui_state.tooltip->base_data.position.y = int16_t(target_location.y + ui_state.last_tooltip->base_data.size.y);
 			ui_state.tooltip->base_data.position.x = std::clamp(
@@ -1375,6 +1405,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui::populate_map_tooltip(*this, container, prov);
 			ui_state.tooltip->base_data.size.x = int16_t(container.used_width + 16);
 			ui_state.tooltip->base_data.size.y = int16_t(container.used_height + 16);
+			if(world.locale_get_native_rtl(font_collection.get_current_locale())) {
+				float dead_space = float(container.used_width);
+				for(const auto& t : ui_state.tooltip->internal_layout.contents) {
+					dead_space = std::min(dead_space, t.x);
+				}
+				for(auto& t : ui_state.tooltip->internal_layout.contents) {
+					t.x -= dead_space - 16.f;
+				}
+				ui_state.tooltip->base_data.size.x -= int16_t(dead_space - 16);
+			}
 			if(container.used_width > 0) {
 				// This block positions the tooltip somewhat under the province centroid
 				auto mid_point = world.province_get_mid_point(prov);
@@ -1415,7 +1455,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(gfx_def.primary_texture_handle) {
 			ogl::render_textured_rect(*this, ui::get_color_modification(false, false, false), 0.f, 0.f, float(x_size), float(y_size),
 				ogl::get_texture_handle(*this, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-				ui::rotation::upright, gfx_def.is_vertically_flipped());
+				ui::rotation::upright, gfx_def.is_vertically_flipped(),
+				false);
 		}
 	}
 

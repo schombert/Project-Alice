@@ -203,6 +203,9 @@ public:
 
 class decision_image : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto id = retrieve<dcon::decision_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, id);

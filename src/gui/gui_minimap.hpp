@@ -1004,6 +1004,10 @@ public:
 
 class minimap_picture_window : public opaque_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
+
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		opaque_element_base::render(state, x, y);
 		// TODO draw white box to represent window borders

@@ -820,11 +820,13 @@ struct layout_box {
 	float x_position = 0;
 	int32_t y_position = 0;
 	text_color color = text_color::white;
+	bool rtl_kludge = false;
 };
 
 struct layout_base {
 	layout& base_layout;
 	layout_parameters fixed_parameters;
+	int32_t max_column_width = 0; //for rtl
 
 	layout_base(layout& base_layout, layout_parameters const& fixed_parameters)
 			: base_layout(base_layout), fixed_parameters(fixed_parameters) { }
