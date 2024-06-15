@@ -488,6 +488,10 @@ class politics_hold_election_button : public button_element_base {
 
 class national_modifier_icon : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
+
 	void on_update(sys::state& state) noexcept override {
 		sys::dated_modifier mod = retrieve< sys::dated_modifier>(state, parent);
 		if(mod.mod_id) {

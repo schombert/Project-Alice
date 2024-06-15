@@ -47,6 +47,9 @@ public:
 };
 class event_image : public image_element_base {
 public:
+	bool get_horizontal_flip(sys::state& state) noexcept override {
+		return false; //never flip
+	}
 	void on_update(sys::state& state) noexcept override;
 };
 class event_desc_text : public scrollable_text {

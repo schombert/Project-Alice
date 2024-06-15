@@ -172,19 +172,19 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 					gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					get_horizontal_flip(state));
 			} else if(gfx_def.number_of_frames > 1) {
 				ogl::render_subsprite(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), frame,
 					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					get_horizontal_flip(state));
 			} else {
 				ogl::render_textured_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 					float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+					get_horizontal_flip(state));
 			}
 		}
 	}
