@@ -321,23 +321,80 @@ void initialize_opengl(sys::state& state) {
 	initialize_msaa(state, window::creation_parameters().size_x, window::creation_parameters().size_y);
 }
 
-static GLfloat global_square_data[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-		0.0f};
+static GLfloat global_square_data[] = {
+	0.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 0.0f, 1.0f, 0.0f
+};
+static GLfloat global_square_right_data[] = {
+	0.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 0.0f
+};
+static GLfloat global_square_left_data[] = {
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f, 1.0f
+};
+static GLfloat global_square_flipped_data[] = {
+	0.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 0.0f, 1.0f, 1.0f
+};
+static GLfloat global_square_right_flipped_data[] = {
+	0.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat global_square_left_flipped_data[] = {
+	0.0f, 0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 1.0f, 0.0f
+};
 
-static GLfloat global_square_right_data[] = {0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f};
-
-static GLfloat global_square_left_data[] = {0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f};
-
-static GLfloat global_square_flipped_data[] = {0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-		1.0f, 1.0f};
-
-static GLfloat global_square_right_flipped_data[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-		0.0f, 0.0f, 1.0f};
-
-static GLfloat global_square_left_flipped_data[] = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 1.0f, 0.0f};
+//RTL squares
+static GLfloat global_rtl_square_data[] = {
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 0.0f, 0.0f
+};
+static GLfloat global_rtl_square_right_data[] = {
+	0.0f, 0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 1.0f, 0.0f
+};
+static GLfloat global_rtl_square_left_data[] = {
+	0.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat global_rtl_square_flipped_data[] = {
+	0.0f, 0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 1.0f
+};
+static GLfloat global_rtl_square_right_flipped_data[] = {
+	0.0f, 0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f, 1.0f
+};
+static GLfloat global_rtl_square_left_flipped_data[] = {
+	0.0f, 0.0f, 0.0f, 1.0f,
+	0.0f, 1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
+	1.0f, 0.0f, 0.0f, 0.0f
+};
 
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
@@ -354,11 +411,14 @@ void load_shaders(sys::state& state) {
 }
 
 void load_global_squares(sys::state& state) {
-	glGenBuffers(1, &state.open_gl.global_square_buffer);
-
 	// Populate the position buffer
+	glGenBuffers(1, &state.open_gl.global_square_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_data, GL_STATIC_DRAW);
+	//RTL version
+	glGenBuffers(1, &state.open_gl.global_rtl_square_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_data, GL_STATIC_DRAW);
 
 	glGenVertexArrays(1, &state.open_gl.global_square_vao);
 	glBindVertexArray(state.open_gl.global_square_vao);
@@ -392,6 +452,27 @@ void load_global_squares(sys::state& state) {
 	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_square_flipped_buffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_square_flipped_data, GL_STATIC_DRAW);
 
+	//RTL mode squares
+	glGenBuffers(1, &state.open_gl.global_rtl_square_left_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_left_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_left_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &state.open_gl.global_rtl_square_right_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_right_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_right_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &state.open_gl.global_rtl_square_right_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_right_flipped_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_right_flipped_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &state.open_gl.global_rtl_square_left_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_left_flipped_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_left_flipped_data, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &state.open_gl.global_rtl_square_flipped_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.global_rtl_square_flipped_buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_rtl_square_flipped_data, GL_STATIC_DRAW);
+
 	glGenBuffers(64, state.open_gl.sub_square_buffers);
 	for(uint32_t i = 0; i < 64; ++i) {
 		glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.sub_square_buffers[i]);
@@ -420,34 +501,34 @@ inline auto map_color_modification_to_index(color_modification e) {
 	}
 }
 
-void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped) {
+void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped, bool rtl) {
 	switch(r) {
 	case ui::rotation::upright:
 		if(!flipped)
-			glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_buffer : state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
 		else
-			glBindVertexBuffer(0, state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_flipped_buffer : state.open_gl.global_square_flipped_buffer, 0, sizeof(GLfloat) * 4);
 		break;
 	case ui::rotation::r90_left:
 		if(!flipped)
-			glBindVertexBuffer(0, state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_buffer: state.open_gl.global_square_left_buffer, 0, sizeof(GLfloat) * 4);
 		else
-			glBindVertexBuffer(0, state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_left_flipped_buffer : state.open_gl.global_square_left_flipped_buffer, 0, sizeof(GLfloat) * 4);
 		break;
 	case ui::rotation::r90_right:
 		if(!flipped)
-			glBindVertexBuffer(0, state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_buffer : state.open_gl.global_square_right_buffer, 0, sizeof(GLfloat) * 4);
 		else
-			glBindVertexBuffer(0, state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
+			glBindVertexBuffer(0, rtl ? state.open_gl.global_rtl_square_right_flipped_buffer : state.open_gl.global_square_right_flipped_buffer, 0, sizeof(GLfloat) * 4);
 		break;
 	}
 }
 
 void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, ui::rotation r, bool flipped) {
+		GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	// glUniform4f(parameters::drawing_rectangle, 0, 0, width, height);
@@ -528,10 +609,10 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 }
 
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		data_texture& t, ui::rotation r, bool flipped) {
+		data_texture& t, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
@@ -561,10 +642,10 @@ void render_piechart(sys::state const& state, color_modification enabled, float 
 }
 
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
-		float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	glUniform1f(parameters::border_size, border_size);
@@ -579,10 +660,10 @@ void render_bordered_rect(sys::state const& state, color_modification enabled, f
 }
 
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped) {
+		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 
@@ -598,10 +679,10 @@ void render_masked_rect(sys::state const& state, color_modification enabled, flo
 }
 
 void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width,
-		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped) {
+		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
 	glUniform1f(parameters::border_size, progress);
@@ -618,10 +699,10 @@ void render_progress_bar(sys::state const& state, color_modification enabled, fl
 }
 
 void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b,
-		GLuint texture_handle, ui::rotation rot, bool flipped) {
+		GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, rot, flipped);
+	bind_vertices_by_rotation(state, rot, flipped, rtl);
 
 	glUniform3f(parameters::inner_color, r, g, b);
 	glUniform4f(parameters::drawing_rectangle, x, y, width, height);
@@ -636,10 +717,11 @@ void render_tinted_textured_rect(sys::state const& state, float x, float y, floa
 }
 
 void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
-		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped) {
+		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped,
+		bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, rot, flipped);
+	bind_vertices_by_rotation(state, rot, flipped, rtl);
 
 	auto const scale = 1.0f / static_cast<float>(total_frames);
 	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
@@ -656,10 +738,10 @@ void render_tinted_subsprite(sys::state const& state, int frame, int total_frame
 }
 
 void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
-		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped) {
+		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
-	bind_vertices_by_rotation(state, r, flipped);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
 
 	auto const scale = 1.0f / static_cast<float>(total_frames);
 	glUniform3f(parameters::inner_color, static_cast<float>(frame) * scale, scale, 0.0f);
@@ -736,7 +818,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 			tag[2] = (i + 3 < glyph_count) ? f.codepoint_to_alnum(glyph_info[i + 3].codepoint) : 0;
 			if(tag[0] == '(' && tag[2] == ')') {
 				if(tag[1] == 'F' || tag[1] == 'T') { //(F)alse or (T)rue
-					bind_vertices_by_rotation(state, ui::rotation::upright, false);
+					bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 					glActiveTexture(GL_TEXTURE0);
 					GLuint false_icon = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan)
 						? state.open_gl.color_blind_cross_icon_tex
@@ -744,14 +826,14 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 					glBindTexture(GL_TEXTURE_2D, tag[1] == 'F' ? false_icon : state.open_gl.checkmark_icon_tex);
 					draw_icon = true;
 				} else { //(A)rmy or (N)avy
-					bind_vertices_by_rotation(state, ui::rotation::upright, false);
+					bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, tag[1] == 'A' ? state.open_gl.army_icon_tex : state.open_gl.navy_icon_tex);
 					draw_icon = true;
 				}
 			} else if(tag[0] != 0 && tag[1] != 0 && tag[2] != 0) {
 				GLuint flag_texture_handle = get_flag_texture_handle_from_tag(state, tag);
-				bind_vertices_by_rotation(state, ui::rotation::upright, false);
+				bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, flag_texture_handle);
 				draw_icon = true;

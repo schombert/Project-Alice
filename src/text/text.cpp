@@ -1069,15 +1069,16 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, boo
 	if(dest.fixed_parameters.align == alignment::center) {
 		auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents.at(i).x += gap;
+			dest.base_layout.contents[i].x += gap;
 		}
 	} else if(dest.fixed_parameters.align == alignment::right) {
 		auto gap = float(dest.fixed_parameters.right) - box.x_position;
 		for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
-			dest.base_layout.contents.at(i).x += gap;
+			dest.base_layout.contents[i].x += gap;
 		}
 	}
 	if(rtl) {
+		//dest.max_column_width = std::max(box.x_size - box.x_position);
 		box.x_position = float(dest.fixed_parameters.right - box.x_offset);
 	} else {
 		box.x_position = float(box.x_offset + dest.fixed_parameters.left);
@@ -1137,7 +1138,27 @@ ui::alignment localized_alignment(sys::state& state, ui::alignment in) {
 	return in;
 }
 
-void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view txt, text_color color, substitution source) {
+void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view text, text_color color, substitution source) {
+	std::string txt = std::string(text);
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		for(uint32_t i = 0; i < uint32_t(txt.size()); ) {
+			uint32_t c = text::codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+			uint32_t sz = uint32_t(text::size_from_utf8(txt.data() + i, txt.data() + txt.size()));
+			if(c == U'@' && int32_t(i) <= int32_t(txt.size()) - 4) {
+				uint32_t nc = text::codepoint_from_utf8(txt.data() + sz, txt.data() + txt.size());
+				if(nc == U'(') {
+					//@(T)
+					std::swap(txt[i + 0], txt[i + 3]); //)(T@
+					std::swap(txt[i + 1], txt[i + 2]); //)T(@
+					std::swap(txt[i + 0], txt[i + 2]); //(T)@
+				} else {
+					std::swap(txt[i + 0], txt[i + 3]);
+					std::swap(txt[i + 1], txt[i + 2]);
+				}
+			}
+			i += uint32_t(sz);
+		}
+	}
 
 	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id));
 	auto text_height = int32_t(std::ceil(font.line_height(text::size_from_font_id(dest.fixed_parameters.font_id))));
@@ -1182,11 +1203,10 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 	};
 
 	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
-		//TODO: A better way to do this?
-		if(box.y_position == 0 && box.x_position == dest.fixed_parameters.left) {
+		if(!box.rtl_kludge) {
 			box.x_position = float(dest.fixed_parameters.right - box.x_offset);
+			box.rtl_kludge = true;
 		}
-
 		while(end_position < all_glyphs.glyph_count) {
 			uint32_t next_wb = all_glyphs.glyph_count;
 			uint32_t next_word = all_glyphs.glyph_count;
@@ -1513,7 +1533,8 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, dc
 			pos = vend + 1;
 			section_start = pos;
 		} else if(pos + 1 < seq_end && *pos == '\\' && *(pos + 1) == 'n') {
-			add_text_range(std::string_view(section_start, pos - section_start));
+			if(section_start < pos)
+				add_text_range(std::string_view(section_start, pos - section_start));
 
 			add_line_break_to_layout_box(state, dest, box);
 			section_start = pos += 2;
@@ -1549,7 +1570,6 @@ layout_box open_layout_box(layout_base& dest, int32_t indent) {
 }
 void close_layout_box(columnar_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0, false); //we're not adding any text so this is fine
-
 	if(box.y_size + dest.y_cursor >= dest.fixed_parameters.bottom) { // make new column
 		dest.current_column_x = dest.used_width + dest.column_width;
 		for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
@@ -1570,7 +1590,6 @@ void close_layout_box(columnar_layout& dest, layout_box& box) {
 }
 void close_layout_box(endless_layout& dest, layout_box& box) {
 	impl::lb_finish_line(dest, box, 0, false); //not adding any text so this is fine
-
 	for(auto i = box.first_chunk; i < dest.base_layout.contents.size(); ++i) {
 		dest.base_layout.contents[i].y += int16_t(dest.y_cursor);
 	}

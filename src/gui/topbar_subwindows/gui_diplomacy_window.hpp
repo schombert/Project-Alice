@@ -539,17 +539,12 @@ public:
 
 class diplomacy_country_interested_in_alliance : public checkbox_button {
 public:
-	xy_pair ltr_pos{};
-	xy_pair rtl_pos{};
-
 	bool is_active(sys::state& state) noexcept override {
 		auto const n = retrieve<dcon::nation_id>(state, parent);
 		auto const rel = state.world.get_unilateral_relationship_by_unilateral_pair(n, state.local_player_nation);
 		return state.world.unilateral_relationship_get_interested_in_alliance(rel);
 	}
 	void on_update(sys::state& state) noexcept override {
-		base_data.position = state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? rtl_pos : ltr_pos;
-		//
 		auto const n = retrieve<dcon::nation_id>(state, parent);
 		disabled = !command::can_toggle_interested_in_alliance(state, state.local_player_nation, n);
 		frame = is_active(state) ? 1 : 0;
@@ -567,17 +562,11 @@ public:
 };
 
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
-	element_base* country_name = nullptr;
-	diplomacy_country_interested_in_alliance* alliance_checkbox = nullptr;
 public:
 	void on_create(sys::state& state) noexcept override {
 		listbox_row_element_base<dcon::nation_id>::on_create(state);
 		base_data.position.x -= 14;
 		base_data.position.y -= 524;
-		if(country_name && alliance_checkbox) {
-			alliance_checkbox->ltr_pos = alliance_checkbox->base_data.position;
-			alliance_checkbox->rtl_pos = country_name->base_data.position;
-		}
 	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_select") {
@@ -587,16 +576,13 @@ public:
 			ptr->base_data.position.y -= 2; // Nudge
 			return ptr;
 		} else if(name == "country_name") {
-			auto ptr = make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
-			country_name = ptr.get();
-			return ptr;
+			return make_element_by_type<generic_name_text<dcon::nation_id>>(state, id);
 		} else if(name == "country_prio") {
 			auto ptr = make_element_by_type<diplomacy_priority_button>(state, id);
 			//
 			auto btn = make_element_by_type<diplomacy_country_interested_in_alliance>(state, "alice_interested_in_alliance");
 			btn->base_data.position = ptr->base_data.position;
 			btn->base_data.position.x -= btn->base_data.size.x;
-			alliance_checkbox = static_cast<decltype(alliance_checkbox)>(btn.get());
 			add_child_to_front(std::move(btn));
 			//
 			return ptr;

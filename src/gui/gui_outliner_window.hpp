@@ -735,7 +735,7 @@ public:
 
 		auto rsz = row_windows[0]->base_data.size.y + row_windows[0]->base_data.position.y;
 		auto max_size = int32_t(rsz * row_contents.size());
-		auto space = (state.ui_state.root->base_data.size.y - 330) - ui::get_absolute_location(*this).y;
+		auto space = (state.ui_state.root->base_data.size.y - 330) - ui::get_absolute_location(state, *this).y;
 		auto max_rows = space / rsz;
 
 		if(max_size < space) {
