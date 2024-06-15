@@ -104,11 +104,20 @@ void autosave_display::on_update(sys::state& state) noexcept {
 }
 
 void language_left::button_action(sys::state& state) noexcept {
-	int32_t i = state.font_collection.get_current_locale().index() - 1;
-	if(i < 0) {
-		i = int32_t(state.world.locale_size()) - 1;
+	dcon::locale_id new_locale;
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) == false) {
+		int32_t i = state.font_collection.get_current_locale().index() - 1;
+		if(i < 0) {
+			i = int32_t(state.world.locale_size()) - 1;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
+	} else {
+		int32_t i = state.font_collection.get_current_locale().index() + 1;
+		if(i >= int32_t(state.world.locale_size())) {
+			i = 0;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
-	auto new_locale = dcon::locale_id{dcon::locale_id::value_base_t(i) };
 
 	memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15)));
 	state.user_settings.locale[std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15))] = 0;
@@ -136,11 +145,20 @@ void language_left::on_update(sys::state& state) noexcept {
 
 }
 void language_right::button_action(sys::state& state) noexcept {
-	int32_t i = state.font_collection.get_current_locale().index() + 1;
-	if(i >= int32_t(state.world.locale_size())) {
-		i = 0;
+	dcon::locale_id new_locale;
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) == false) {
+		int32_t i = state.font_collection.get_current_locale().index() + 1;
+		if(i >= int32_t(state.world.locale_size())) {
+			i = 0;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
+	} else {
+		int32_t i = state.font_collection.get_current_locale().index() - 1;
+		if(i < 0) {
+			i = int32_t(state.world.locale_size()) - 1;
+		}
+		new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 	}
-	auto new_locale = dcon::locale_id{ dcon::locale_id::value_base_t(i) };
 
 	memcpy(state.user_settings.locale, state.world.locale_get_locale_name(new_locale).begin(), std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15)));
 	state.user_settings.locale[std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15))] = 0;
