@@ -2033,12 +2033,12 @@ message_result scrollbar_left::set(sys::state& state, Cyto::Any& payload) noexce
 message_result scrollbar_track::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	scrollbar_settings parent_state = retrieve<scrollbar_settings>(state, parent);
 	int32_t pos_in_track = parent_state.vertical ? y : x;
-	if(parent_state.vertical && state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
-		auto location_abs = get_absolute_location(state, *this);
-		pos_in_track = (x - location_abs.x);
-	}
 	int32_t clamped_pos = std::clamp(pos_in_track, parent_state.buttons_size / 2, parent_state.track_size - parent_state.buttons_size / 2);
 	float fp_pos = float(clamped_pos - parent_state.buttons_size / 2) / float(parent_state.track_size - parent_state.buttons_size);
+	if(!parent_state.vertical && state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		fp_pos = 1.f - fp_pos;
+		assert(fp_pos >= 0.f && fp_pos <= 1.f);
+	}
 	send(state, parent, value_change{ int32_t(parent_state.lower_value + fp_pos * (parent_state.upper_value - parent_state.lower_value)), true, false });
 	return message_result::consumed;
 }
