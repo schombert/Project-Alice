@@ -1,0 +1,56 @@
+save_and_exit;Speichern und schließen
+save;Speichern
+exit;Ausfahrt
+graphics_options;Grafikoptionen
+sound_options;Soundoptionen
+controls_options;Sonstiges Optionen
+message_settings_options;Nachrichteneinstellungen
+window_mode_label;Ganzer Bildschirm
+map_projection;Projektion
+map_projection_globe;Orthographisch
+map_projection_flat;Gleichrechteckig
+map_projection_globe_perspective;Vertikal
+dm_popup_label;Diplomatische Nachricht als Popups
+ui_scale;UI-Skala
+zoom_mode_label;Zoom-Stil
+zoom_mode_panning;Schwenken
+zoom_mode_inverted;Invertiert
+zoom_mode_centered;Zentriert
+zoom_mode_to_cursor;Zum Cursor
+zoom_mode_away_from_cursor;Weg vom Cursor
+zoom_speed_label;Zoombeschleunigung
+river_label;Flüsse
+mute_on_focus_lost_label;Stummschaltung bei Fokusverlust
+wasd_for_map_movement_label;WASD für Bewegung
+vassal_color_label;Vasallenfärbung
+vassal_color_inherit;Erben
+vassal_color_same;Dasselbe
+vassal_color_none;Keiner
+black_map_font_label;Schwarze Kartenschrift
+edge_scrolling_label;Edge-Scrolling
+color_blind_mode_label;Farbenblind
+color_blind_mode_none;Keiner
+color_blind_mode_deutan;Deutan
+color_blind_mode_protan;Protan
+color_blind_mode_tritan;Tritan
+color_blind_mode_achroma;Achroma
+render_models_label;Modelle rendern
+language_label;Sprache
+fow_label;Nebel des Krieges
+railroad_label;Eisenbahnnetze
+master_volume_label;Master-Lautstärke
+music_volume_label;Musiklautstärke
+interface_volume_label;Schnittstellenvolumen
+effect_volume_label;Lautstärke des Soundeffekts
+fonts_label;Klassische Schriftarten
+tooltip_mode_label;Schwebender Tooltip
+music_player_label;Musikspieler
+gaussianblur_label;Gaußsche Unschärfe
+gamma_label;Gamma
+map_label;Kartentext
+map_label_0;Keiner
+map_label_1;Linear
+map_label_2;Quadratisch
+map_label_3;Kubisch
+antialiasing_label;Kantenglättung
+spoilers_label;Spoiler
