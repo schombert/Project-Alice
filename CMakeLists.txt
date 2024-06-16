@@ -22,6 +22,24 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
+	"src/fribidi/fribidi.cpp"
+	"src/fribidi/fribidi-arabic.cpp"
+	"src/fribidi/fribidi-bidi.cpp"
+	"src/fribidi/fribidi-bidi-types.cpp"
+	"src/fribidi/fribidi-brackets.cpp"
+	"src/fribidi/fribidi-char-sets.cpp"
+	"src/fribidi/fribidi-char-sets-cap-rtl.cpp"
+	"src/fribidi/fribidi-char-sets-cp1255.cpp"
+	"src/fribidi/fribidi-char-sets-cp1256.cpp"
+	"src/fribidi/fribidi-char-sets-iso8859-6.cpp"
+	"src/fribidi/fribidi-char-sets-iso8859-8.cpp"
+	"src/fribidi/fribidi-char-sets-utf8.cpp"
+	"src/fribidi/fribidi-deprecated.cpp"
+	"src/fribidi/fribidi-joining.cpp"
+	"src/fribidi/fribidi-joining-types.cpp"
+	"src/fribidi/fribidi-mirroring.cpp"
+	"src/fribidi/fribidi-run.cpp"
+	"src/fribidi/fribidi-shape.cpp"
 	"src/graphics/xac.cpp"
 )
 
@@ -217,6 +235,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/zstd
+	${PROJECT_SOURCE_DIR}/src/fribidi
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

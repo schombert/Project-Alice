@@ -1140,6 +1140,7 @@ ui::alignment localized_alignment(sys::state& state, ui::alignment in) {
 
 void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view text, text_color color, substitution source) {
 	std::string txt = std::string(text);
+#if 0
 	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
 		for(uint32_t i = 0; i < uint32_t(txt.size()); ) {
 			uint32_t c = text::codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
@@ -1155,6 +1156,19 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 					std::swap(txt[i + 0], txt[i + 3]);
 					std::swap(txt[i + 1], txt[i + 2]);
 				}
+			}
+			i += uint32_t(sz);
+		}
+	}
+#endif
+	if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+		for(uint32_t i = 0; i < uint32_t(txt.size()); ) {
+			uint32_t c = text::codepoint_from_utf8(txt.data() + i, txt.data() + txt.size());
+			uint32_t sz = uint32_t(text::size_from_utf8(txt.data() + i, txt.data() + txt.size()));
+			if(c == U'(') {
+				txt[i + 0] = ')';
+			} else if(c == U')') {
+				txt[i + 0] = '(';
 			}
 			i += uint32_t(sz);
 		}
@@ -1283,6 +1297,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 		}
 		return;
 	}
+
 	while(end_position < all_glyphs.glyph_count) {
 		uint32_t next_wb = all_glyphs.glyph_count;
 		uint32_t next_word = all_glyphs.glyph_count;

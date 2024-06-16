@@ -1,8 +1,11 @@
 #include <cmath>
 #include <bit>
 
+extern "C" {
 #include "hb.h"
 #include "hb-ft.h"
+#include "fribidi.h"
+}
 
 #include "fonts.hpp"
 #include "parsers.hpp"
@@ -552,66 +555,54 @@ void stored_text::set_text(sys::state& state, font_selection type, std::string&&
 	}
 }
 
-void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& s) {
+void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& str) {
 	hb_buffer_clear_contents(hb_buf);
-	hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
 
-	auto locale = state.font_collection.get_current_locale();
-	hb_buffer_set_direction(hb_buf, state.world.locale_get_native_rtl(locale) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
-	hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
-	hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
+	auto visual_str = std::unique_ptr<FriBidiChar>(new FriBidiChar[str.size() + 1]);
+	auto pos_l_to_v = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[str.size() + 1]);
+	auto pos_v_to_l = std::unique_ptr<FriBidiStrIndex>(new FriBidiStrIndex[str.size() + 1]);
+	auto emb_level_list = std::unique_ptr<FriBidiLevel>(new FriBidiLevel[str.size() + 1]);
+	FriBidiCharType pbase_dir = FRIBIDI_TYPE_ON;
+	fribidi_log2vis((const FriBidiChar*)str.c_str(), FriBidiStrIndex(str.size()), &pbase_dir, visual_str.get(), pos_l_to_v.get(), pos_v_to_l.get(), emb_level_list.get());
 
-	hb_feature_t feature_buffer[10];
-	switch(type) {
-	case font_selection::body_font:
+	txt.glyph_count = 0;
 	{
-		auto features = state.world.locale_get_body_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
+		auto s = std::string((const char*)visual_str.get());
+		hb_buffer_add_utf8(hb_buf, s.c_str(), int(s.length()), 0, int(s.length()));
+
+		auto locale = state.font_collection.get_current_locale();
+		hb_buffer_set_direction(hb_buf, FRIBIDI_IS_RTL(pbase_dir) ? HB_DIRECTION_RTL : HB_DIRECTION_LTR);
+		hb_buffer_set_script(hb_buf, (hb_script_t)state.world.locale_get_hb_script(locale));
+		hb_buffer_set_language(hb_buf, state.world.locale_get_resolved_language(locale));
+
+		hb_feature_t feature_buffer[10];
+		dcon::dcon_vv_fat_id<uint32_t> features = type == font_selection::header_font ? state.world.locale_get_header_font_features(locale)
+			: type == font_selection::map_font ? state.world.locale_get_map_font_features(locale)
+			: type == font_selection::body_font ? state.world.locale_get_body_font_features(locale)
+			: state.world.locale_get_body_font_features(locale);
+		for(uint32_t i = 0; i < uint32_t(std::extent_v<decltype(feature_buffer)>) && i < features.size(); ++i) {
 			feature_buffer[i].tag = features[i];
 			feature_buffer[i].start = 0;
 			feature_buffer[i].end = (unsigned int)-1;
 			feature_buffer[i].value = 1;
 		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
-	case font_selection::header_font:
-	{
-		auto features = state.world.locale_get_header_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
-			feature_buffer[i].tag = features[i];
-			feature_buffer[i].start = 0;
-			feature_buffer[i].end = (unsigned int)-1;
-			feature_buffer[i].value = 1;
-		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
-	case font_selection::map_font:
-	{
-		auto features = state.world.locale_get_map_font_features(locale);
-		for(uint32_t i = 0; i < 10 && i < features.size(); ++i) {
-			feature_buffer[i].tag = features[i];
-			feature_buffer[i].start = 0;
-			feature_buffer[i].end = (unsigned int)-1;
-			feature_buffer[i].value = 1;
-		}
-		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(10)));
-	}
-		break;
+		hb_shape(hb_font_face, hb_buf, feature_buffer, std::min(features.size(), uint32_t(std::extent_v<decltype(feature_buffer)>)));
+
+		unsigned int glyph_count = 0;
+		hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
+		hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
+		auto glyph_offset = txt.glyph_count;
+		txt.glyph_count += glyph_count;
+		txt.glyph_info.resize(size_t(txt.glyph_count));
+		std::memcpy(txt.glyph_info.data() + glyph_offset, glyph_info, glyph_count * sizeof(glyph_info[0]));
+		txt.glyph_pos.resize(size_t(txt.glyph_count));
+		std::memcpy(txt.glyph_pos.data() + glyph_offset, glyph_pos, glyph_count * sizeof(glyph_pos[0]));
 	}
 
-	
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &txt.glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &txt.glyph_count);
-	for(unsigned int i = 0; i < txt.glyph_count; i++) { // Preload glyphs
-		make_glyph(glyph_info[i].codepoint);
+	// Preload all glyphs
+	for(unsigned int i = 0; i < txt.glyph_count; i++) {
+		make_glyph(txt.glyph_info[i].codepoint);
 	}
-	txt.glyph_info.resize(size_t(txt.glyph_count));
-	std::memcpy(txt.glyph_info.data(), glyph_info, txt.glyph_count * sizeof(glyph_info[0]));
-	txt.glyph_pos.resize(size_t(txt.glyph_count));
-	std::memcpy(txt.glyph_pos.data(), glyph_pos, txt.glyph_count * sizeof(glyph_pos[0]));
-
 }
 
 float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
