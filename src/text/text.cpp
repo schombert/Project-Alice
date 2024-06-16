@@ -1079,7 +1079,10 @@ void lb_finish_line(layout_base& dest, layout_box& box, int32_t line_height, boo
 
 	if(dest.fixed_parameters.align == alignment::center) {
 		if(box.rtl_kludge) {
-
+			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
+			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
+				dest.base_layout.contents[i].x -= gap;
+			}
 		} else {
 			auto gap = (float(dest.fixed_parameters.right) - box.x_position) / 2.0f;
 			for(size_t i = box.line_start; i < dest.base_layout.contents.size(); ++i) {
