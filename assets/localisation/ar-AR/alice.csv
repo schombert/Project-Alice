@@ -1183,13 +1183,13 @@ alice_mvcap_9;العاصمة الحالية ليست محاصرة
 alice_mvcap_10;مملوكة لك
 alice_mvcap_11;يتم التحكم بها من قبلك
 alice_mvcap_12;هو جوهر المالك
-alice_pnt_pops;?Yالسكان:؟! $x$
-alice_pnt_rpops;?Yالطبقات الغنية:؟! $x$ ($y$)
-alice_pnt_mpops;?Yالطبقات الوسطى:؟! $x$ ($y$)
-alice_pnt_ppops;?Y الطبقات الفقيرة:؟! $x$ ($y$)
-alice_pnt_culture;?الثقافة:؟! $x$
-alice_pnt_religion;؟الدين:؟! $x$
-alice_pnt_dominant_religion;؟الدين المهيمن:؟! $x$
-alice_pnt_dominant_ideology;?الأيديولوجية المهيمنة:؟! $x$
+alice_pnt_pops;?Yالسكان:?! $x$
+alice_pnt_rpops;?Yالطبقات الغنية:?! $x$ ($y$)
+alice_pnt_mpops;?Yالطبقات الوسطى:?! $x$ ($y$)
+alice_pnt_ppops;?Yالطبقات الفقيرة:?! $x$ ($y$)
+alice_pnt_culture;?Yالثقافة:?! $x$
+alice_pnt_religion;?Yالدين:?! $x$
+alice_pnt_dominant_religion;?Yالدين المهيمن:?! $x$
+alice_pnt_dominant_ideology;?Yالأيديولوجية المهيمنة:?! $x$
 ledger_ppp_gdp;الناتج المحلي الإجمالي (تعادل القوة الشرائية)
 ledger_ppp_gdp_per_capita;الناتج المحلي الإجمالي (تعادل القوة الشرائية) لكل مليون شخص
