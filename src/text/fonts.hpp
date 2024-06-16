@@ -4,6 +4,7 @@
 #include "freetype/ftglyph.h"
 #include "unordered_dense.h"
 #include "hb.h"
+#include <span>
 
 namespace sys {
 struct state;
@@ -41,18 +42,36 @@ enum class font_feature {
 
 class font;
 
+inline bool requires_surrogate_pair(uint32_t codepoint) {
+	return codepoint >= 0x10000;
+}
 
+struct surrogate_pair {
+	uint16_t high = 0; // aka leading
+	uint16_t low = 0; // aka trailing
+};
+
+inline surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
+	uint32_t v = val - 0x10000;
+	uint32_t h = ((v >> 10) & 0x03FF) | 0xD800;
+	uint32_t l = (v & 0x03FF) | 0xDC00;
+	return surrogate_pair{ uint16_t(h), uint16_t(l) };
+}
 
 struct stored_glyphs {
 	std::vector<hb_glyph_info_t> glyph_info;
 	std::vector<hb_glyph_position_t> glyph_pos;
 	unsigned int glyph_count = 0;
 
+	struct no_bidi { };
+
 	stored_glyphs() = default;
 	stored_glyphs(stored_glyphs const& other) noexcept = default;
 	stored_glyphs(stored_glyphs&& other) noexcept = default;
 	stored_glyphs(sys::state& state, font_selection type, std::string const& s);
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
+	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s);
+	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
 	void clear() {
@@ -113,6 +132,8 @@ public:
 	float top_adjustment(int32_t size) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
+	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
+	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 
 	friend class font_manager;
 
